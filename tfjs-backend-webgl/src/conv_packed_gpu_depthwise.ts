@@ -193,18 +193,21 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               if (dilationWidth > 1) {
                 mainLoop += `
                     xCOffset -= 2;
-                    if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
-                    colIndex}Ready == 0) {
-                      xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
-                      xTexelC${colIndex}Ready = 1;
+                    if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                     previous = getX(batch, xR, xCOffset, d1);
+                     xC${colIndex + 1} = vec4(previous.zw, xTexelC${
+                       colIndex + 1}.xy);
+                    } else {
+                     xC${colIndex + 1} = vec4(0.0, 0.0, xTexelC${
+                       colIndex + 1}.xy);
                     }
                     `;
+              } else {
+                mainLoop += `
+                    xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                    colIndex + 1}.xy);
+                    `;
               }
-
-              mainLoop += `
-                  xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
-                  colIndex + 1}.xy);
-                  `;
             } else {
               // If dilation is 1 and padding is odd, we have already read the
               // texel when constructing the previous x value. Here we can

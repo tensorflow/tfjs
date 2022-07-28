@@ -85,6 +85,7 @@ describeWebGPU('Ops benchmarks', () => {
     const fmt = (n: number) => n.toFixed(3);
     console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
+    expect().nothing();
   }
 
   it('argMax', async () => {
@@ -232,5 +233,6 @@ describeWebGPU('Ops benchmarks', () => {
     const totalTime = Math.round(t1 - t0);
     const avgTime = Math.round(totalTime / numIterations);
     console.log(`Total time: ${totalTime} ms | average time: ${avgTime} ms`);
+    expect().nothing();
   });
 });
