@@ -321,7 +321,8 @@ export function repeatedTry(
         reject();
         return;
       }
-      setTimeout(tryFn, nextBackoff);
+      (window as any).setTimeoutWPM(tryFn, nextBackoff);
+      // setTimeout(tryFn, nextBackoff);
     };
 
     tryFn();
@@ -504,8 +505,8 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}):
-  a is Float32Array|Int32Array|Uint8Array|Uint8ClampedArray {
+export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
+    Uint8ClampedArray {
   return a instanceof Float32Array || a instanceof Int32Array ||
       a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
@@ -556,9 +557,9 @@ export function inferDtype(values: TensorLike): DataType {
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array
-             || values instanceof Uint8Array
-             || values instanceof Uint8ClampedArray) {
+  } else if (
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';
@@ -748,4 +749,39 @@ export function isPromise(object: any): object is Promise<unknown> {
   //  the async calls, so it is possible the obj (patched) is comparing to a
   //  pre-patched Promise.
   return object && object.then && typeof object.then === 'function';
+}
+
+if (!('setTimeoutWPM' in window)) {
+  const messageName = 'setTimeoutWPM';
+  let fns: Function[] = [];
+  let handledMessageCount = 0;
+
+  // If the setTimeout nesting level is greater than 5 and timeout is less than
+  // 4ms, timeout will be clamped to 4ms, which hurts the perf. Interleaving
+  // window.postMessage and setTimeout will trick the browser and avoid the
+  // clamp.
+  const setTimeoutWPM = function(fn: Function, timeout: number) {
+    fns.push(fn);
+    setTimeout(() => {
+      window.postMessage({name: messageName, index: fns.length - 1}, '*');
+    }, timeout);
+  };
+
+  const handleMessage = function(event: MessageEvent) {
+    if (event.source == window && event.data.name == messageName) {
+      event.stopPropagation();
+      const fn = fns[event.data.index];
+      fn();
+      handledMessageCount++;
+      // console.log(`handledMessageCount=${handledMessageCount},
+      // fns.length=${fns.length}`);
+      if (handledMessageCount === fns.length) {
+        fns = [];
+        handledMessageCount = 0;
+      }
+    }
+  };
+
+  window.addEventListener('message', handleMessage, true);
+  (window as any).setTimeoutWPM = setTimeoutWPM;
 }
