@@ -487,14 +487,14 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
-    if(!this.supportTimeQuery) {
+    if (!this.supportTimeQuery) {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
           `Start Chrome browser with flag ` +
           `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
-          `Or zero will shown for the kernel time when profiling mode is` +
-          `enabled. Using performance.now is not workable for webgpu since` +
-          `it doesn't support synchronously to read data from GPU.`);
+          `Otherwise, zero will be shown for the kernel time when profiling ` +
+          `mode is enabled. Using performance.now is not workable for webgpu ` +
+          `since it doesn't support synchronous data read from GPU.`);
     }
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
