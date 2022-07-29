@@ -56,40 +56,40 @@
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
 
-"@tensorflow/tfjs-backend-cpu@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.18.0.tgz#f0596911c14adf3dfa428e7d04305ef37c6f65e1"
-  integrity sha512-LcSqlylzGtpgngcMFIL3q9Q3eVaPRJ7ITZt7ivhzkCj4R5ZsnPa9qM3DCVihkQ77heAwSw4hPTo2jp5C4mJ4Cg==
+"@tensorflow/tfjs-backend-cpu@3.19.0":
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.19.0.tgz#c7524ccdfded81df0c5cb53185b14e5222ac51e5"
+  integrity sha512-02f+WkiL9gc9G7P8PwfsvuXREcAUdM/3uAL6fTle3xKEj7KOxX+E/mc3jxPY5UzjAsgHVBZrPJ2xi6AG16WPkQ==
   dependencies:
-    "@types/seedrandom" "2.4.27"
-    seedrandom "2.4.3"
+    "@types/seedrandom" "^2.4.28"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-wasm@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-wasm/-/tfjs-backend-wasm-3.18.0.tgz#b9823ceace4e7f01fa472e675dda8836d5bc6b7b"
-  integrity sha512-LbMCSXYv4CUKiplNiqGvW9XKLCXfYribpQwuV2QMmfrNaDSa7pR19Y29ajoDCN7Tij9FmqWh4suajAVK6rE+7w==
+"@tensorflow/tfjs-backend-wasm@3.19.0":
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-wasm/-/tfjs-backend-wasm-3.19.0.tgz#742b94c63413a971983ac4ea6d6a306a54da2220"
+  integrity sha512-qNvFi77BSvQiFxHFgWl6B3GJ8IbGVUn6jLfiHibqKI9dEmbVIN1dBiOJdbJT+lJZPlJv+vKyW9jgpVUM7QtfnQ==
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "3.18.0"
+    "@tensorflow/tfjs-backend-cpu" "3.19.0"
     "@types/emscripten" "~0.0.34"
 
-"@tensorflow/tfjs-converter@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-3.18.0.tgz#f4b6d8812d133aa0b6eaa06f75abbde1dbb3550f"
-  integrity sha512-hpChA+zVNQOVwRnCfqDb1WI9jbEAKA6DuEm4m75Zb3dIlE6VVooDmAaHBhlc++z2q2G1sBzF9A4Bv48SUpN6vA==
+"@tensorflow/tfjs-converter@3.19.0":
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-3.19.0.tgz#701db7255ef45578811a191478db5a09bcca6dda"
+  integrity sha512-B69HQq9/orsM8pGJPjNp1cV+hIcc90mxcRIsQSYGovTUNEcftmz2Sh+mqXDWysKUk0gRfx5CX6eJk6NaE55Xow==
 
-"@tensorflow/tfjs-core@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.18.0.tgz#c9eb420d1ae2852109fae640ae8a38041b82f9ec"
-  integrity sha512-gMxisZozqsr5sCKlphF/eVBLg91MjlBiN60tjX8hJAu0WlSn6Gi5k65GNIL+Pq6hrxpvImcfdCmTH/2XJVZ0Mg==
+"@tensorflow/tfjs-core@3.19.0":
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.19.0.tgz#981c50bb38a6441a4375cfc8806784e7490f01bc"
+  integrity sha512-znJ+TOJ3NdNL5yjw8M7dn2jO96sokiH1wfFuD7gglCkbZ4SXlFpFj2xelNdRHHmeYanMhJzqeyOW9whUnNcBqw==
   dependencies:
     "@types/long" "^4.0.1"
     "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
+    "@types/seedrandom" "^2.4.28"
     "@types/webgl-ext" "0.0.30"
-    "@webgpu/types" "^0.1.16"
+    "@webgpu/types" "0.1.16"
     long "4.0.0"
     node-fetch "~2.6.1"
-    seedrandom "2.4.3"
+    seedrandom "^3.0.5"
 
 "@types/emscripten@~0.0.34":
   version "0.0.34"
@@ -137,11 +137,6 @@
     "@types/glob" "*"
     "@types/node" "*"
 
-"@types/seedrandom@2.4.27":
-  version "2.4.27"
-  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.27.tgz#9db563937dd86915f69092bc43259d2f48578e41"
-  integrity sha1-nbVjk33YaRX2kJK8QyWdL0hXjkE=
-
 "@types/seedrandom@^2.4.28":
   version "2.4.30"
   resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.30.tgz#d2efe425869b84163c2d56e779dddadb9372cbfa"
@@ -164,10 +159,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@webgpu/types@^0.1.16":
-  version "0.1.17"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.17.tgz#91e8ec9fd6a1e63945ef12bff11394949ea1a583"
-  integrity sha512-M8INbXsMdkWtVsSHRPEiTXHe0S4gxMhYA/Kz4pNoUF9IXd3PHMi6/2n8EAsqkAEdna+aeCm2RmscWV0hsmIf0Q==
+"@webgpu/types@0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.16.tgz#1f05497b95b7c013facf7035c8e21784645f5cc4"
+  integrity sha512-9E61voMP4+Rze02jlTXud++Htpjyyk8vw5Hyw9FGRrmhHQg2GqbuOfwf5Klrb8vTxc2XWI3EfO7RUHMpxTj26A==
 
 ajv@^6.12.3:
   version "6.12.6"
@@ -1365,11 +1360,6 @@ safer-buffer@^2.0.2, safer-buffer@^2.1.0, safer-buffer@~2.1.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
-
-seedrandom@2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
-  integrity sha1-JDhQTa0zkXMUv/GKxNeU8W1qrsw=
 
 seedrandom@^3.0.5:
   version "3.0.5"
