@@ -18,6 +18,8 @@
 import {backend_util, broadcastTo, DataType, reshape, tidy, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import RowPartitionType = backend_util.RowPartitionType;
+// Based on
+// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/ragged_tensor_to_tensor_op.cc
 class RaggedTensorToTensorOp {
   private readonly rowPartitionTypes: RowPartitionType[];
   private readonly raggedRank: number;
