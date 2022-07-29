@@ -155,14 +155,6 @@ export class WebGPUBackend extends KernelBackend {
         type: 'timestamp',
         count: 2,
       });
-    } else {
-      console.warn(
-          `This device doesn't support timestamp-query extension. ` +
-          `Start Chrome browser with flag ` +
-          `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
-          `Or zero will shown for the kernel time when profiling mode is` +
-          `enabled. Using performance.now is not workable for webgpu since` +
-          `it doesn't support synchronously to read data from GPU.`);
     }
 
     // Profiling tools like PIX needs this dummy canvas to
@@ -495,6 +487,15 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
+    if(!this.supportTimeQuery) {
+      console.warn(
+          `This device doesn't support timestamp-query extension. ` +
+          `Start Chrome browser with flag ` +
+          `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
+          `Or zero will shown for the kernel time when profiling mode is` +
+          `enabled. Using performance.now is not workable for webgpu since` +
+          `it doesn't support synchronously to read data from GPU.`);
+    }
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
 
