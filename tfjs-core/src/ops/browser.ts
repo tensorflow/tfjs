@@ -107,16 +107,6 @@ function fromPixels_(
         ` or {data: Uint32Array, width: number, height: number}, ` +
         `but was ${(pixels as {}).constructor.name}`);
   }
-  if (isVideo) {
-    const HAVE_CURRENT_DATA_READY_STATE = 2;
-    if (isVideo &&
-        (pixels as HTMLVideoElement).readyState <
-            HAVE_CURRENT_DATA_READY_STATE) {
-      throw new Error(
-          'The video element has not loaded data yet. Please wait for ' +
-          '`loadeddata` event on the <video> element.');
-    }
-  }
   // If the current backend has 'FromPixels' registered, it has a more
   // efficient way of handling pixel uploads, so we call that.
   const kernel = getKernel(FromPixels, ENGINE.backendName);
