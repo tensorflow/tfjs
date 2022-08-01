@@ -104,7 +104,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   };
 
   // Wramp up.
-  timeInfo = await timeInference(predict, 1);
+  await timeInference(predict, 1);
 
   // Benchmark code snippet.
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
