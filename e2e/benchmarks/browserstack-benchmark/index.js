@@ -632,7 +632,9 @@ function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
 
-  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
+  modelFolder
+      .add(
+          state.benchmark, 'model', [...Object.keys(benchmarks), 'codeSnippet'])
       .name('model name')
       .onChange(async model => {
         if (model === 'custom') {
