@@ -96,12 +96,12 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);
   /* End */
 
+  /* Please put your code snippet to benchmark into the predict function. */
+  /* Start */
   const predict = () => {
-    /* Please put your code snippet to benchmark here. */
-    /* Start */
     return tf.conv2d(img, filter, 1, 'same');
-    /* End */
   };
+  /* End */
 
   // Wramp up.
   await timeInference(predict, 1);
@@ -110,8 +110,11 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
   memoryInfo = await profileInference(predict);
 
-  return `<tfjs_benchmark>${
-      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
+  return `<tfjs_benchmark>${JSON.stringify({
+    timeInfo,
+    memoryInfo,
+    codeSnippet: predict.toString()
+  })}</tfjs_benchmark>`;
 }
 
 describe('BrowserStack benchmark', () => {
