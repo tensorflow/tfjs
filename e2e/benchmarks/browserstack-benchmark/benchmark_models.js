@@ -90,8 +90,12 @@ async function benchmarkModel(benchmarkParameters) {
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
+  /* Please set up environments to run your code snippet here. */
+  /* Start */
   const img = tf.randomUniform([1, 240, 240, 3], 0, 1000);
   const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);
+  /* End */
+
   const predict = () => {
     /* Please put your code snippet to benchmark here. */
     /* Start */
