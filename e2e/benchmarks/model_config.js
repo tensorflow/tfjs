@@ -103,7 +103,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      if (isTflite != null && isTflite()) {
+      if (typeof isTflite === 'function' && isTflite()) {
         return () => tfliteModel.predict(input);
       } else {
         return predictFunction(input);
@@ -124,7 +124,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      if (isTflite != null && isTflite()) {
+      if (typeof isTflite === 'function' && isTflite()) {
         return () => tfliteModel.predict(input);
       } else {
         return predictFunction(input);
@@ -434,7 +434,7 @@ const benchmarks = {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
-          if (isTflite != null && isTflite()) {
+          if (typeof isTflite === 'function' && isTflite()) {
             return await tfliteModel.predict(inferenceInput);
           } else {
             const predict = getPredictFnForModel(model, inferenceInput);
