@@ -29,7 +29,7 @@
   "scripts": {
     "test": "karma start",
     "test-node": "jasmine app_node_test.js",
-    "build-all-deps": "yarn build-link-package && yarn build-tfjs && yarn build-vis",
+    "build-all-deps": "yarn build-link-package && yarn build-tfjs",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-npm",
     "build-link-package": "cd ../../../link-package && yarn build",
     "build-backend-cpu": "cd ../../../tfjs-backend-cpu && yarn && yarn build-npm",
@@ -39,7 +39,6 @@
     "build-core": "cd ../../../tfjs-core && yarn && yarn build && yarn build-npm",
     "build-data": "cd ../../../tfjs-data && yarn && yarn build",
     "build-layers": "cd ../../../tfjs-layers && yarn && yarn build && yarn build-npm",
-    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build",
     "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --cloud --maxBenchmarks=9 --firestore"
   },
   "license": "Apache-2.0",
