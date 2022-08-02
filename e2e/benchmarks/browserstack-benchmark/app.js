@@ -156,7 +156,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   setupBenchmarkEnv(config);
   if (require.main === module) {
     console.log(
-        `Starting benchmarks using ${cliArgs?.webDeps ? 'cdn' : 'local'} ` +
+        `Starting benchmarks using ${cliArgs.localBuild || 'cdn'} ` +
         `dependencies...`);
   }
 
@@ -235,8 +235,8 @@ async function getOneBenchmarkResult(
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
-    if (cliArgs.webDeps) {
-      args.push('--cdn')
+    if (cliArgs.localBuild) {
+      args.push(`--localBuild=${cliArgs.localBuild}`)
     };
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
@@ -362,9 +362,14 @@ function setupHelpMessage() {
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
-  parser.add_argument('--webDeps', {
-    help: 'utilizes public, web hosted dependencies instead of local versions',
-    action: 'store_true'
+  parser.add_argument('--localBuild', {
+    help: 'local build name list, separated by comma. The name is in short ' +
+        'form (in general the name without the tfjs- and backend- prefixes, ' +
+        'for example webgl for tfjs-backend-webgl, core for tfjs-core). ' +
+        'Example: --localBuild=webgl,core.',
+    type: 'string',
+    default: '',
+    action: 'store'
   });
   cliArgs = parser.parse_args();
   console.dir(cliArgs);
