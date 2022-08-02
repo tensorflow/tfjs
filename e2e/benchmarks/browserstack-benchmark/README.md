@@ -122,7 +122,7 @@ The following are supported options arguments which trigger options features:
     node app.js --version
     ```
   * --localBuild
-    - Uses local build dependencies, instead of public CDNs. (**When using localBuild targets, please make sure you have [build the targets](https://github.com/tensorflow/tfjs/blob/51da19833ace3e63b232ebbec3f7ea110e77fe31/e2e/benchmarks/browserstack-benchmark/package.json#L32-L40) you need.**)
+    - Uses local build dependencies, instead of public CDNs. (**When using localBuild targets, please make sure you have built the targets (eg. run `yarn build-individual-link-package tfjs-backend-webgl`) you need.**)
     ``` shell
     node app.js --localBuild=core,webgl,wasm,cpu,layers,converter,automl
     ```
