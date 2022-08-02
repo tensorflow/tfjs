@@ -12,7 +12,7 @@
     "@tensorflow/tfjs-backend-wasm": "link:../../../link_package/node_modules/@tensorflow/tfjs-backend-wasm",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
-    "firebase": "^8.7.1",
+    "firebase-admin": "^11.0.1",
     "jasmine": "^3.7.0",
     "karma": "^6.3.16",
     "karma-browserstack-launcher": "^1.6.0",
@@ -29,7 +29,7 @@
   "scripts": {
     "test": "karma start",
     "test-node": "jasmine app_node_test.js",
-    "build-all-deps": "yarn build-link-package && yarn build-tfjs",
+    "build-all-deps": "yarn build-all-link-packages && yarn build-tfjs",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-npm",
     "build-all-link-packages": "cd ../../../link-package && yarn build",
     "build-individual-link-package": "cd ../../../link-package && yarn build-deps-for",
