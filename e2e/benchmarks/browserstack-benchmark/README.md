@@ -27,7 +27,6 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
   yarn install
-  yarn build-deps
 
   node app.js
   ```
@@ -122,10 +121,10 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --version
     ```
-  * --webDeps
-    - Uses public CDNs instead of local file dependencies.
+  * --localBuild
+    - Uses local build dependencies, instead of public CDNs. (**When using localBuild targets, please make sure you have built the targets (eg. run `yarn build-individual-link-package tfjs-backend-webgl`) you need.**)
     ``` shell
-    node app.js --webDeps
+    node app.js --localBuild=core,webgl,wasm,cpu,layers,converter,automl
     ```
 
 ## Custom model
