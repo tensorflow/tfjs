@@ -179,55 +179,28 @@ function makeShader(
     ].join('\n');
   }
 
-  let preMemberIsStruct = false;
-  let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
-    if (perDataType === 'vec5' || perDataType === 'vec6') {
-      currentMemberIsStruct = true;
-    }
-    if (preMemberIsStruct || currentMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
-  currentMemberIsStruct =
-      outputDataType === 'vec5' || outputDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
-  currentMemberIsStruct =
-      stridesDataType === 'vec5' || stridesDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
          outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
+  uniformDeclaration = insertAlignment(uniformDeclaration);
 
   prefixSnippets.push(uniformDeclaration);
 
@@ -831,4 +804,19 @@ function setOutputSnippet(
   }
 
   return snippet;
+}
+
+function insertAlignment(uniformShader: string) {
+  // insert alignment when current pattern is vec5 or vec6
+  const curInsertRe = /(\w+)\s*:\s*vec(5|6)/g;
+  uniformShader = uniformShader.replace(curInsertRe, (match) => {
+    return '@align(16) ' + match;
+  });
+
+  // insert alignment when previous pattern is vec5 or vec6
+  const preInsertRe = /vec(5|6)\s*,\s*(\w+)/g;
+  uniformShader = uniformShader.replace(preInsertRe, (_, p1, p2) => {
+    return `vec${p1}, @align(16) ${p2}`;
+  });
+  return uniformShader;
 }

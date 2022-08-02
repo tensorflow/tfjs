@@ -44,14 +44,12 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
-      //'avgPool3d',  // Not yet implemented.
     ]
   },
   {
     startsWith: 'batchToSpaceND ',
     excludes: [
-      'tensor3d', 'tensor4d', 'gradient',
-      'accepts a tensor-like object',  // tensor6d not yet implemented
+      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -82,13 +80,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'einsum ',
-    excludes: [
-      '4d tensors',               // rank 5 is not yet supported.
-      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
     ]
   },
   {
@@ -211,14 +202,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'slice ',
-    excludes: [
-      'slice5d',             // Rank 5 is not yet implemented.
-      'slice6d',             // Rank 6 is not yet implemented.
-      'strided slice with',  // Rank 6 is not yet implemented.
-    ]
-  },
-  {
     startsWith: 'softmax ',
     excludes: [
       'MEAN',
@@ -249,13 +232,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'squaredDifference ',
     excludes: [
       'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'stridedSlice ',
-    excludes: [
-      'strided slice with several new axes',  // Rank 6 is not yet implemented.
-      'strided slice with new axes and',      // Rank 6 is not yet implemented.
     ]
   },
   {
