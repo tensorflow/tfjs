@@ -15,46 +15,36 @@
  * =============================================================================
  */
 
-require('firebase/firestore');
-require('firebase/auth');
+const {initializeApp, deleteApp, applicationDefault, cert} = require('firebase-admin/app');
+const {getFirestore, Timestamp, FieldValue} = require('firebase-admin/firestore');
 
-const firebase = require('firebase/app');
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_KEY,
-  authDomain: 'learnjs-174218.firebaseapp.com',
-  databaseURL: 'https://learnjs-174218.firebaseio.com',
-  projectId: 'learnjs-174218',
-  storageBucket: 'learnjs-174218.appspot.com',
-  messagingSenderId: '834911136599',
-  appId: '1:834911136599:web:4b65685455bdf916a1ec12'
-};
-
+let app;
 /**
  * Initializes Firebase, signs in with secret credentials, and accesses the
  * Firestore collection of results.
  *
  * @param firebaseConfig A configuration with Firebase credentials
  */
-async function runFirestore(firebaseConfig) {
+async function runFirestore() {
   try {
-    firebase.initializeApp(firebaseConfig);
-    await firebase.auth().signInAnonymously();
-    console.log('\nSuccesfuly signed into Firebase with anonymous account.');
+    app = initializeApp({
+      credential: applicationDefault()
+    });
+    const db = getFirestore();
 
-    // Reference to the "BenchmarkResults" collection on firestore that contains
-    // the benchmark results.
-    return firebase.firestore().collection('BenchmarkResults');
+    console.log('\nSuccesfuly signed into Firebase.');
+    return db.collection('BenchmarkResults');
   } catch (err) {
-    console.log(`\nError code: ${err.code}`);
-    throw new Error(`Error message: ${err.message}`);
+    console.warn(`Failed to connect to firebase database: ${err.message}`);
+    throw err;
   }
 }
 
 /**
  * Deletes the Firebase instance, which allows the Node.js process to finish.
  */
-function endFirebaseInstance() {
-  firebase.app().delete();
+async function endFirebaseInstance() {
+  await deleteApp(app);
   console.log('Exited Firebase instance.');
 }
 
@@ -128,5 +118,4 @@ exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
 exports.runFirestore = runFirestore;
-exports.firebaseConfig = firebaseConfig;
 exports.endFirebaseInstance = endFirebaseInstance;
