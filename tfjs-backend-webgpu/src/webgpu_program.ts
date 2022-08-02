@@ -808,13 +808,14 @@ function setOutputSnippet(
 
 function insertAlignment(uniformShader: string) {
   // insert alignment when current pattern is vec5 or vec6
-  const curInsertRe = /(\w+)\s+:\s+vec(5|6)/g;
+  const curInsertRe = /(\w+)\s*:\s*vec(5|6)/g;
   uniformShader = uniformShader.replace(curInsertRe, (match) => {
     return '@align(16) ' + match;
   });
 
   // insert alignment when previous pattern is vec5 or vec6
-  const preInsertRe = /(?<=vec(5|6)(<\w+>)*\s*,\s*)\w+/g;
+  // TODO: RegExp lookbehind assertion (?<=) does not support on Safari
+  const preInsertRe = /(?<=vec(5|6)\s*,\s*)\w+/g;
   uniformShader = uniformShader.replace(preInsertRe, (match) => {
     return '@align(16) ' + match;
   });
