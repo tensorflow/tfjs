@@ -20,7 +20,8 @@ limitations under the License.
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
         <script src='/socket.io/socket.io.js'></script>
         <script src="./node_modules/@tensorflow/tfjs/dist/tf.min.js"> </script>
-        <script src="./node_modules/@tensorflow/tfjs-vis/dist/tfjs-vis.umd.min.js"></script>
+        <script>window.tf || document.write('<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"><\/script>')</script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
     </head>
     <body onload="onPageLoad()">
         <script src='/../model_config.js'></script>

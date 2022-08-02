@@ -29,7 +29,7 @@
   "scripts": {
     "test": "karma start",
     "test-node": "jasmine app_node_test.js",
-    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-wasm && yarn build-backend-webgl && yarn build-converter && yarn build-layers && yarn build-data && yarn build-tfjs && yarn build-vis",
+    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-wasm && yarn build-backend-webgl && yarn build-converter && yarn build-layers && yarn build-data && yarn build-tfjs",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build && yarn build-npm",
     "build-backend-cpu": "cd ../../../tfjs-backend-cpu && yarn && yarn build-npm",
     "build-backend-wasm": "cd ../../../tfjs-backend-wasm && yarn && yarn build && yarn build-npm",
@@ -38,7 +38,6 @@
     "build-core": "cd ../../../tfjs-core && yarn && yarn build && yarn build-npm",
     "build-data": "cd ../../../tfjs-data && yarn && yarn build",
     "build-layers": "cd ../../../tfjs-layers && yarn && yarn build && yarn build-npm",
-    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build",
     "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --webDeps --cloud --maxBenchmarks=9 --firestore"
   },
   "license": "Apache-2.0",
