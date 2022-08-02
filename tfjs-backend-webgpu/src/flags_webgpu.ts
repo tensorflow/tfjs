@@ -69,4 +69,4 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
 /**
  * Whether to use import API.
  */
-ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => false);
+ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
