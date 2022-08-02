@@ -29,7 +29,7 @@
   "scripts": {
     "test": "karma start",
     "test-node": "jasmine app_node_test.js",
-    "build-all-deps": "yarn build-link-package && yarn build-tfjs",
+    "build-all-deps": "yarn build-all-link-packages && yarn build-tfjs",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-npm",
     "build-all-link-packages": "cd ../../../link-package && yarn build",
     "build-individual-link-package": "cd ../../../link-package && yarn build-deps-for",
