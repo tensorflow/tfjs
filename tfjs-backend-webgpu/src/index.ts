@@ -49,7 +49,7 @@ if (isWebGPUSupported()) {
     };
 
     if (supportTimeQuery) {
-      deviceDescriptor.requiredFeatures = ['timestamp-query' as const];
+      deviceDescriptor.requiredFeatures = ['timestamp-query'];
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
     return new WebGPUBackend(device);
@@ -57,3 +57,4 @@ if (isWebGPUSupported()) {
 }
 
 export {webgpu};
+export * from './base';
