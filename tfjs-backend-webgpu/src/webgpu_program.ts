@@ -814,10 +814,9 @@ function insertAlignment(uniformShader: string) {
   });
 
   // insert alignment when previous pattern is vec5 or vec6
-  // TODO: RegExp lookbehind assertion (?<=) does not support on Safari
-  const preInsertRe = /(?<=vec(5|6)\s*,\s*)\w+/g;
-  uniformShader = uniformShader.replace(preInsertRe, (match) => {
-    return '@align(16) ' + match;
+  const preInsertRe = /vec(5|6)\s*,\s*(\w+)/g;
+  uniformShader = uniformShader.replace(preInsertRe, (_, p1, p2) => {
+    return `vec${p1}, @align(16) ${p2}`;
   });
   return uniformShader;
 }
