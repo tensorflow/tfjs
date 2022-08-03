@@ -19,6 +19,11 @@ import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorf
 
 import {symbolicallyComputeStrides} from './shader_util';
 
+export enum PixelsOpType {
+  FROM_PIXELS,
+  TO_PIXELS
+}
+
 export interface WebGPUProgram {
   // Whether to use atomic built-in functions.
   atomic?: boolean;
@@ -27,7 +32,7 @@ export interface WebGPUProgram {
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  isFromPixels?: boolean;
+  isPixelsOp?: PixelsOpType;
   isVec4?: boolean;
   outputShape: number[];
   // The unique key to distinguish different shader source code.
@@ -179,7 +184,12 @@ function makeShader(
       }
     `);
 
-  if (program.isFromPixels) {
+  if (program.isPixelsOp != null) {
+    const inoutSnippet = program.isPixelsOp === PixelsOpType.FROM_PIXELS ?
+        `@group(0) @binding(0) var<storage, read_write> result: array<${
+            mapToWgslTypes(outputData.dtype, program.isVec4)}>;` :
+        `@group(0) @binding(1) var<storage, read> inBuf : array<${
+            mapToWgslTypes(inputInfo[0].dtype, false)}>;`;
     prefixSnippets.push(`
         struct Uniform {
           size            : i32,
@@ -187,8 +197,7 @@ function makeShader(
           outShapeStrides : vec2<i32>,
         };
 
-        @group(0) @binding(0) var<storage, read_write> result: array<${
-        mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+        ${inoutSnippet}
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
@@ -288,7 +297,7 @@ export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
     output: TensorInfo): string {
   let key = program.shaderKey;
-  if (program.isFromPixels) {
+  if (program.isPixelsOp != null) {
     return key;
   }
 

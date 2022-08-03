@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, PixelsOpType, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
-  isFromPixels = true;
+  isPixelsOp = PixelsOpType.FROM_PIXELS;
   outputShape: number[] = [0];
   shaderKey: string;
   importVideo: boolean;
