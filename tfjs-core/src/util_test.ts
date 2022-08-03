@@ -584,8 +584,8 @@ describeWithFlags('util.toNestedArray for a complex tensor', ALL_ENVS, () => {
 
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(tf.env().platform, 'fetch').and
-      .callFake(async () => ({} as unknown as Response));
+    spyOn(tf.env().platform, 'fetch')
+        .and.callFake(async () => ({} as unknown as Response));
 
     util.fetch('test/path', {method: 'GET'});
 
@@ -663,5 +663,60 @@ describe('util.decodeString', () => {
     expect(util.isPromise(promise2)).toBeTruthy();
     const promise3 = {};
     expect(util.isPromise(promise3)).toBeFalsy();
+  });
+});
+
+describe('setTimeout', () => {
+  // If we set a larger number here, an error will be reported as "'expect'
+  // was used when there was no current spec, this could be because an
+  // asynchronous test timed out".
+  const totalCount = 8;
+  const skipCount = 5;
+
+  it('setTimeout', () => {
+    let count = 0;
+    let startTime = performance.now();
+    let totalTime = 0;
+    setTimeout(_testSetTimeout, 0);
+
+    function _testSetTimeout() {
+      let endTime = performance.now();
+      count++;
+      if (count > skipCount) {
+        totalTime += endTime - startTime;
+      }
+      if (count === totalCount) {
+        let averageTime = totalTime / (totalCount - skipCount);
+        console.log(`averageTime of setTimeout is ${averageTime} ms`);
+        // We don't have expect here as in some browsers, like Chrome Canary,
+        // nesting level threshold is set to 100 instead of 5.
+        return;
+      }
+      startTime = performance.now();
+      setTimeout(_testSetTimeout, 0);
+    }
+  });
+
+  it('setTimeoutWPM', () => {
+    let count = 0;
+    let startTime = performance.now();
+    let totalTime = 0;
+    (window as any).setTimeoutWPM(_testSetTimeoutWPM, 0);
+
+    function _testSetTimeoutWPM() {
+      let endTime = performance.now();
+      count++;
+      if (count > skipCount) {
+        totalTime += endTime - startTime;
+      }
+      if (count === totalCount) {
+        let averageTime = totalTime / (totalCount - skipCount);
+        console.log(`averageTime of setTimeoutWPM is ${averageTime} ms`);
+        expect(averageTime).toBeLessThan(4);
+        return;
+      }
+      startTime = performance.now();
+      (window as any).setTimeoutWPM(_testSetTimeoutWPM, 0);
+    }
   });
 });
