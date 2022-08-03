@@ -947,6 +947,14 @@ export interface FromPixelsAttrs {
   numChannels: number;
 }
 
+export const ToPixels = 'ToPixels';
+export interface ToPixelsInputs extends NamedTensorInfoMap {
+  $img: TensorInfo;
+}
+export interface ToPixelsOutput {
+  canvas: HTMLCanvasElement;
+}
+
 export const RotateWithOffset = 'RotateWithOffset';
 export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
 export interface RotateWithOffsetAttrs {

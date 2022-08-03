@@ -28,6 +28,7 @@ export interface WebGPUProgram {
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   isFromPixels?: boolean;
+  isToPixels?: boolean;
   isVec4?: boolean;
   outputShape: number[];
   // The unique key to distinguish different shader source code.
@@ -169,6 +170,24 @@ function makeShader(
 
         @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+        @group(0) @binding(2) var<uniform> uniforms: Uniform;
+      `);
+    return [
+      commonSnippet,
+      prefixSnippets.join('\n'),
+      getCoordsFromIndexSnippet(outputData.shape),
+      program.getUserCode(),
+    ].join('\n');
+  }
+
+  if (program.isToPixels) {
+    prefixSnippets.push(`
+        struct Uniform {
+          size            : i32,
+          numChannels     : i32,
+          outShapeStrides : vec2<i32>,
+        };
+
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     return [
