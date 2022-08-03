@@ -17,7 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs, ToPixels, ToPixelsAttrs, ToPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -270,8 +270,7 @@ export async function fromPixelsAsync(
 }
 
 /**
- * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
- * canvas.
+ * Draws a `tf.Tensor` of pixel values to canvas.
  *
  * When the dtype of the input is 'float32', we assume values in the range
  * [0-1]. Otherwise, when input is 'int32', we assume values in the range
@@ -291,7 +290,7 @@ export async function fromPixelsAsync(
  */
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
-    canvas?: HTMLCanvasElement): Promise<Uint8ClampedArray> {
+    canvas: HTMLCanvasElement): Promise<void> {
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -303,12 +302,11 @@ export async function toPixels(
     throw new Error(
         `toPixels only supports rank 2 or 3 tensors, got rank ${$img.rank}.`);
   }
-  const [height, width] = $img.shape.slice(0, 2);
   const depth = $img.rank === 2 ? 1 : $img.shape[2];
 
   if (depth > 4 || depth === 2) {
     throw new Error(
-        `toPixels only supports depth of size ` +
+        `toCanvas only supports depth of size ` +
         `1, 3 or 4 but got ${depth}`);
   }
 
@@ -318,6 +316,22 @@ export async function toPixels(
         ` Please use float32 or int32 tensors.`);
   }
 
+  // If the current backend has 'toPixels' registered, it has a more
+  // efficient way of drawing pixels, so we call that.
+  const kernel = getKernel(ToPixels, ENGINE.backendName);
+  if (kernel != null) {
+    const inputs: ToPixelsInputs = {$img};
+    const attrs: ToPixelsAttrs = {canvas, numChannels: depth};
+    const tensorPlaceholder = ENGINE.runKernel(
+        ToPixels, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+    (tensorPlaceholder as Tensor).dispose();
+    if ($img !== img) {
+      $img.dispose();
+    }
+    return;
+  }
+
+  const [height, width] = $img.shape.slice(0, 2);
   const data = await $img.data();
   const multiplier = $img.dtype === 'float32' ? 255 : 1;
   const bytes = new Uint8ClampedArray(width * height * 4);
@@ -368,7 +382,7 @@ export async function toPixels(
   if ($img !== img) {
     $img.dispose();
   }
-  return bytes;
+  return;
 }
 
 export const fromPixels = op({fromPixels_});

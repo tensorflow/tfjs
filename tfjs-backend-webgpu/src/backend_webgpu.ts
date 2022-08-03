@@ -41,7 +41,8 @@ export type TextureInfo = {
   height: number,
   format: GPUTextureFormat,
   usage: GPUTextureUsageFlags,
-  texture: GPUTexture|GPUExternalTexture
+  texture: GPUTexture|GPUExternalTexture,
+  isCanvas?: boolean,
 };
 
 type TensorData = {
@@ -237,7 +238,9 @@ export class WebGPUBackend extends KernelBackend {
     }
     if ('texture' in tensorData.resourceInfo) {
       const textureInfo = tensorData.resourceInfo;
-      if (textureInfo.texture instanceof GPUTexture) {
+      // Texture from canvas should not be released.
+      if (textureInfo.texture instanceof GPUTexture &&
+          textureInfo.isCanvas !== true) {
         this.textureManager.releaseTexture(
             textureInfo.texture, textureInfo.width, textureInfo.height,
             textureInfo.format, textureInfo.usage);
@@ -693,9 +696,13 @@ export class WebGPUBackend extends KernelBackend {
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, programDefinedUniform?: ProgramUniform,
-      output?: TensorInfo): TensorInfo {
+      output?: TensorInfo, outputTextureInfo?: TextureInfo): TensorInfo {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
+    }
+    if (program.isToPixels) {
+      const info = this.tensorMap.get(output.dataId);
+      info.resourceInfo = outputTextureInfo;
     }
     if (util.sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
@@ -711,7 +718,7 @@ export class WebGPUBackend extends KernelBackend {
     // size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
-    if (!program.isFromPixels) {
+    if (!program.isFromPixels && !program.isToPixels) {
       programUniform.push({type: 'float32', data: [NaN]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
       const uniformsType = 'int32';
@@ -795,8 +802,10 @@ export class WebGPUBackend extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+    if (program.isToPixels) {
+      this.submitQueue();
+    } else if (
+        env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
