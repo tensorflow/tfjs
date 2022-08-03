@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from './environment';
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
@@ -321,8 +322,11 @@ export function repeatedTry(
         reject();
         return;
       }
-      (window as any).setTimeoutWPM(tryFn, nextBackoff);
-      // setTimeout(tryFn, nextBackoff);
+      if (env().getBool('USE_SETTIMEOUTWPM')) {
+        (window as any).setTimeoutWPM(tryFn, nextBackoff);
+      } else {
+        setTimeout(tryFn, nextBackoff);
+      }
     };
 
     tryFn();
