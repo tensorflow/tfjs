@@ -19,6 +19,11 @@ import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorf
 
 import {symbolicallyComputeStrides} from './shader_util';
 
+export enum PixelsOpType {
+  FROM_PIXELS,
+  TO_PIXELS
+}
+
 export interface WebGPUProgram {
   // Whether to use atomic built-in functions.
   atomic?: boolean;
@@ -27,9 +32,9 @@ export interface WebGPUProgram {
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  isFromPixels?: boolean;
   // By default, the output data component is 1.
   outputComponent?: number;
+  pixelsOpType?: PixelsOpType;
   outputShape: number[];
   // The unique key to distinguish different shader source code.
   shaderKey: string;
@@ -197,16 +202,20 @@ function makeShader(
       }
     `);
 
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
+    const inoutSnippet = program.pixelsOpType === PixelsOpType.FROM_PIXELS ?
+        `@group(0) @binding(0) var<storage, read_write> result: array<${
+            dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;` :
+        `@group(0) @binding(1) var<storage, read> inBuf : array<${
+            dataTypeToGPUType(inputInfo[0].dtype, program.outputComponent)}>;`;
     prefixSnippets.push(`
         struct Uniform {
+          outShapeStrides : vec2<i32>,
           size            : i32,
           numChannels     : i32,
-          outShapeStrides : vec2<i32>,
         };
 
-        @group(0) @binding(0) var<storage, read_write> result: array<${
-        dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
+        ${inoutSnippet}
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
@@ -317,7 +326,7 @@ export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
     output: TensorInfo): string {
   let key = program.shaderKey;
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
     return key;
   }
 
