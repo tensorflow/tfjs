@@ -50,17 +50,9 @@ if (isWebGPUSupported()) {
 
     if (supportTimeQuery) {
       deviceDescriptor.requiredFeatures = ['timestamp-query' as const];
-    } else {
-      console.warn(
-          `This device doesn't support timestamp-query extension. ` +
-          `Start Chrome browser with flag ` +
-          `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
-          `Or zero will shown for the kernel time when profiling mode is` +
-          `enabled. Using performance.now is not workable for webgpu since` +
-          `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device, supportTimeQuery);
+    return new WebGPUBackend(device);
   }, 3 /*priority*/);
 }
 
