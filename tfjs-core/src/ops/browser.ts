@@ -282,16 +282,35 @@ export async function fromPixelsAsync(
  * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
  * 4, all four components of the depth dimension correspond to r, g, b, a.
  * @param canvas The canvas to draw to.
+ * @param getData Whether to return the data of the tensor drawn to the canvas
+ * or only draw to the canvas (and return null). For backends that run on the
+ * GPU, set this to false to avoid copying the data back to the CPU. Defaults to
+ * true.
  * @return Returns a promise that resolves when the canvas has been drawn to.
- * When canvas is non null and TO_PIXELS_RETURN_VOID is true, returns
- * Promise<void>. Otherwise, returns canvas data by Promise<Uint8ClampedArray>.
+ * When canvas is non null and getData is false, returns
+ * Promise<void>. Otherwise, returns canvas data via Promise<Uint8ClampedArray>.
  *
  * @doc {heading: 'Browser', namespace: 'browser'}
  */
+export function toPixels(
+    img: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
+    getData: false): Promise<void>;
+export function toPixels(
+    img: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
+    getData: true): Promise<Uint8ClampedArray>;
+export function toPixels(
+    img: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
+    getData: boolean): Promise<Uint8ClampedArray|void>;
+export function toPixels(
+    img: Tensor2D|Tensor3D|TensorLike,
+    canvas: HTMLCanvasElement): Promise<Uint8ClampedArray>;
+export function toPixels(img: Tensor2D|Tensor3D|
+                         TensorLike): Promise<Uint8ClampedArray>;
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     // tslint:disable-next-line:no-any
-    canvas?: HTMLCanvasElement): Promise<any> {
+    canvas?: HTMLCanvasElement,
+    getData = true): Promise<Uint8ClampedArray|void> {
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -326,7 +345,7 @@ export async function toPixels(
     const tensorPlaceholder = ENGINE.runKernel(
         ToPixels, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
     (tensorPlaceholder as Tensor).dispose();
-    if (env().getBool('TO_PIXELS_RETURN_VOID')) {
+    if (!getData) {
       if ($img !== img) {
         $img.dispose();
       }
