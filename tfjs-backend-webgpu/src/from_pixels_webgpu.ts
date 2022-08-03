@@ -15,19 +15,20 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, PixelsOpType, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
-  isFromPixels = true;
+  pixelsOpType = PixelsOpType.FROM_PIXELS;
   outputShape: number[] = [0];
   shaderKey: string;
   importVideo: boolean;
   variableNames: string[] = [];
   workgroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
+  size = true;
 
   constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;
