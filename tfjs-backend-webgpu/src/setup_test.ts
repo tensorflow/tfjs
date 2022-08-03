@@ -245,7 +245,17 @@ const TEST_FILTERS: TestFilter[] = [
       'fused',   // Not yet implemented.
     ]
   },
-
+  {
+    startsWith: 'toPixels ',
+    excludes: [
+      'throws for float32 tensor with values not in [0 - 1]',  // Not yet
+                                                               // implemented.
+      'throws for int32 tensor with values not in [0 - 255]',  // Not yet
+                                                               // implemented.
+      'draws a rank-3 float32 tensor, 4 channel',  // Not yet implemented.
+      'draws a rank-3 int32 tensor, 4 channel',    // Not yet implemented.
+    ]
+  },
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
