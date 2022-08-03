@@ -435,3 +435,12 @@ describeWithFlags(K_FLAG, WEBGL_ENVS, () => {
     expect(tf.env().getNumber(K_FLAG)).toBe(128);
   });
 });
+
+describe('WEBGL_EXP_CONV', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('true when WEBGL_PACK is true', () => {
+    expect(tf.env().getBool('WEBGL_EXP_CONV')).toBe(false);
+  });
+});

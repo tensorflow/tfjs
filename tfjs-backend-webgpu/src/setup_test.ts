@@ -44,26 +44,22 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
-      //'avgPool3d',  // Not yet implemented.
     ]
   },
   {
     startsWith: 'batchToSpaceND ',
     excludes: [
-      'tensor3d', 'tensor4d', 'gradient',
-      'accepts a tensor-like object',  // tensor6d not yet implemented
-    ]
-  },
-  {
-    startsWith: 'concat ',
-    excludes: [
-      'concat a large number of tensors',  // The number of storage buffers
-                                           // exceeds the maximum per-stage
-                                           // limit.
+      'gradient',  // Not yet implemented.
     ]
   },
   {
     startsWith: 'conv2d ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'conv2dTranspose ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
@@ -84,13 +80,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'einsum ',
-    excludes: [
-      '4d tensors',               // rank 5 is not yet supported.
-      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
     ]
   },
   {
@@ -213,14 +202,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'slice ',
-    excludes: [
-      'slice5d',             // Rank 5 is not yet implemented.
-      'slice6d',             // Rank 6 is not yet implemented.
-      'strided slice with',  // Rank 6 is not yet implemented.
-    ]
-  },
-  {
     startsWith: 'softmax ',
     excludes: [
       'MEAN',
@@ -254,13 +235,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'stridedSlice ',
-    excludes: [
-      'strided slice with several new axes',  // Rank 6 is not yet implemented.
-      'strided slice with new axes and',      // Rank 6 is not yet implemented.
-    ]
-  },
-  {
     startsWith: 'tensor ',
     excludes: [
       'bool tensor'  // Expected object not to have properties.
@@ -291,8 +265,6 @@ const TEST_FILTERS: TestFilter[] = [
       'avgPool3dBackprop ',
       'bincount ',
       'broadcastArgs ',
-      'concat3d ',
-      'conv2dTranspose ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
       'conv1d gradients',  // Conv2DBackpropFilter

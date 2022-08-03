@@ -21,6 +21,7 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import '@tensorflow/tfjs-backend-wasm';
 
 import {TAGS} from './constants';
 
@@ -33,6 +34,12 @@ registerTestEnv({
     'WEBGL_SIZE_UPLOAD_UNIFORM': 0
   },
   isDataSync: true
+});
+
+registerTestEnv({
+  name: 'wasm',
+  backendName: 'wasm',
+  isDataSync: true,
 });
 
 registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});

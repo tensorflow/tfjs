@@ -318,7 +318,7 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
     // This will set the screen size to 1x1 to make sure the page limit is
     // very small.
     spyOnProperty(window, 'screen', 'get')
-        .and.returnValue({height: 1, width: 1});
+        .and.returnValue({height: 1, width: 1} as unknown as Screen);
 
     tf.registerBackend(customBackendName, () => new MathBackendWebGL());
     tf.setBackend(customBackendName);

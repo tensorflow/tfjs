@@ -719,7 +719,7 @@ class TestWriteWeights(tf.test.TestCase):
             'data': np.array([6, 7], 'float64')
         }, {
             'name': 'weight4',
-            'data': np.array(['hello'], np.object)
+            'data': np.array(['hello'], object)
         }]
     ]
 

@@ -536,6 +536,10 @@ function drawBenchmarkResultSummaryTable(benchmarkResult) {
 
   values.push(['Number of kernels', memoryInfo.kernels.length]);
 
+  if ('codeSnippet' in benchmarkResult) {
+    values.push(['Code snippet', benchmarkResult.codeSnippet]);
+  }
+
   const surface = {
     name: 'Benchmark Summary',
     tab: tabId,
@@ -632,7 +636,9 @@ function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
 
-  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
+  modelFolder
+      .add(
+          state.benchmark, 'model', [...Object.keys(benchmarks), 'codeSnippet'])
       .name('model name')
       .onChange(async model => {
         if (model === 'custom') {

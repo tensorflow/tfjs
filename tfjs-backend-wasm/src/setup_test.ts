@@ -15,15 +15,20 @@
  * =============================================================================
  */
 
+// Import Object.fromEntries polyfill for Safari 11
+import 'core-js/es/object/from-entries';
+
 // Import core for side effects (e.g. flag registration)
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
-
+// Register the wasm backend.
+import './index';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setupCachedWasmPaths} from './test_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
@@ -89,6 +94,12 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'cropAndResize'},
   {
     include: 'resizeBilinear',
+    excludes: [
+      'gradients',  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'resizeNearestNeighbor',
     excludes: [
       'gradients',  // Not yet implemented.
     ]
@@ -384,6 +395,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {include: 'stringNGrams'},
+  {include: 'stringSplit'},
+  {include: 'stringToHashBucketFast'},
 ];
 
 const customInclude = (testName: string) => {
@@ -401,7 +415,12 @@ const customInclude = (testName: string) => {
 };
 setupTestFilters(TEST_FILTERS, customInclude);
 
+beforeAll(setupCachedWasmPaths, 30_000);
+
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
+// Import and run wasm tests
+// tslint:disable-next-line:no-require-imports
+require('./tests');

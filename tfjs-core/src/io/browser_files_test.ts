@@ -108,7 +108,7 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
     fakeAnchorCount = 0;
     fakeAnchors = [new FakeHTMLAnchorElement(), new FakeHTMLAnchorElement()];
     spyOn(document, 'createElement').and.callFake((tag: string) => {
-      return fakeAnchors[fakeAnchorCount++];
+      return fakeAnchors[fakeAnchorCount++] as unknown as HTMLElement;
     });
   });
 

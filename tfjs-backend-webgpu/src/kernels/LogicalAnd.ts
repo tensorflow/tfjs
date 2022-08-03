@@ -17,14 +17,11 @@
 
 import {KernelConfig, LogicalAnd} from '@tensorflow/tfjs-core';
 
+import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {BinaryOpType} from '../binary_op_util';
-
-export const logicalAnd = binaryKernelFunc({
-  opSnippet: BinaryOpType.LOGICAL_AND,
-  dtype: 'bool'
-});
+export const logicalAnd =
+    binaryKernelFunc({opType: BinaryOpType.LOGICAL_AND, dtype: 'bool'});
 
 export const logicalAndConfig: KernelConfig = {
   kernelName: LogicalAnd,

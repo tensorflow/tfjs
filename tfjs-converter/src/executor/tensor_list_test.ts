@@ -203,13 +203,13 @@ describe('TensorList', () => {
 
   describe('reserve', () => {
     it('should create a tensor list', async () => {
-      const tensorList = reserve([1, 1], 'float32', 10);
+      const tensorList = reserve([1, 1], 'float32', 10, 10);
       expect(tensorList.maxNumElements).toEqual(10);
       expect(tensorList.elementDtype).toEqual('float32');
       expect(tensorList.elementShape).toEqual([1, 1]);
     });
     it('should not fail for wildcard shape', async () => {
-      const tensorList = reserve([-1, 1], 'float32', 10);
+      const tensorList = reserve([-1, 1], 'float32', 10, 10);
       expect(tensorList.maxNumElements).toEqual(10);
       expect(tensorList.elementDtype).toEqual('float32');
       expect(tensorList.elementShape).toEqual([-1, 1]);

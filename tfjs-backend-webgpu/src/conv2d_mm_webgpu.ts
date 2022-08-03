@@ -17,26 +17,11 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
-
-const typeSnippet = (innerElementSize: number) => {
-  switch (innerElementSize) {
-    case 1:
-      return 'f32';
-    case 2:
-      return 'vec2<f32>';
-    case 3:
-      return 'vec3<f32>';
-    case 4:
-      return 'vec4<f32>';
-    default:
-      throw new Error(`innerElementSize ${innerElementSize} is not supported.`);
-  }
-};
 
 function conv2dCommonSnippet(
     isChannelsLast: boolean, fitAOuter: boolean, fitBOuter: boolean,
@@ -76,14 +61,14 @@ function conv2dCommonSnippet(
       `;
 
   const coordResSnippet = isChannelsLast ? `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row / outWidth,
         row % outWidth,
         col);
       ` :
                                            `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row,
         col / outWidth,
@@ -142,54 +127,28 @@ function conv2dCommonSnippet(
                                  typeSnippet(innerElementSizeW);
   const bType = isChannelsLast ? typeSnippet(innerElementSizeW) :
                                  typeSnippet(innerElementSizeX);
-  let activationSnippet = '', applyActivationSnippet = '';
-  if (activation) {
-    const activationOp =
-        mapActivationToShaderProgram(activation, innerElementSize === 4);
-    if (hasPreluActivationWeights) {
-      activationSnippet =
-          `fn activation(a: ${resType}, outCoord : vec4<i32>) -> ${resType} {
-              let b = getPreluActivationWeightsByOutputCoords(outCoord);
-              ${activationOp}
-           }`;
-    } else {
-      activationSnippet = `
-           fn activation(a : ${resType}, outCoord : vec4<i32>) -> ${resType} {
-             ${activationOp}
-           }`;
-    }
-
-    applyActivationSnippet = `value = activation(value, outCoord);`;
-  }
-
-  const addBiasSnippet =
-      addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
   const userCode = `
-      ${activationSnippet}
-      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        var batch = i32(globalId.z);
+      ${
+      activationFnSnippet(
+          activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
+      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        var batch = i32(globalId.z);
+      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(row : i32, colIn : i32, valueIn : ${
-      resType}, globalId : vec3<u32>) {
-        var col = colIn * ${innerElementSize};
+      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
+        let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        var batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
         ${coordResSnippet}
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
-        setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3], value);
+        ${biasActivationSnippet(addBias, activation)}
+        setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }`;
   return userCode;
@@ -223,10 +182,14 @@ export class Conv2DMMProgram implements WebGPUProgram {
       convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
       dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false, isVec4 = false) {
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    this.isVec4 = isVec4;
+    this.isVec4 =
+        (((convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) &&
+          this.isChannelsLast) ||
+         (convInfo.outWidth % 4 === 0 && !this.isChannelsLast)) &&
+        convInfo.outChannels % 4 === 0;
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [2, 3], y: [1], z: [0]};
     this.workGroupSize = computeWorkGroupSizeForConv2d(
@@ -238,28 +201,35 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         this.elementsPerThread);
 
-    this.innerElementSize = this.isVec4 ?
-        (convInfo.inChannels % 4 === 0 ? 4 : 3) :
-        this.elementsPerThread[0];
     if (this.isVec4) {
-      this.variableTypes = this.innerElementSize === 3 ?
-          ['f32', 'vec4<f32>'] :
-          ['vec4<f32>', 'vec4<f32>'];
-    }
+      if (this.isChannelsLast && convInfo.inChannels % 4 !== 0) {
+        this.innerElementSize = 3;
+        this.variableTypes = ['f32', 'vec4<f32>'];
+      } else {
+        this.innerElementSize = 4;
+        this.variableTypes = ['vec4<f32>', 'vec4<f32>'];
+      }
 
-    if (addBias) {
-      this.variableNames.push('bias');
-      if (this.isVec4) {
+      if (addBias) {
+        this.variableNames.push('bias');
         this.variableTypes.push('vec4<f32>');
+      }
+
+      if (hasPreluActivationWeights) {
+        this.variableNames.push('preluActivationWeights');
+        this.variableTypes.push('vec4<f32>');
+      }
+    } else {
+      this.innerElementSize = this.elementsPerThread[0];
+      if (addBias) {
+        this.variableNames.push('bias');
+      }
+
+      if (hasPreluActivationWeights) {
+        this.variableNames.push('preluActivationWeights');
       }
     }
 
-    if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
-      if (this.isVec4) {
-        this.variableTypes.push('vec4<f32>');
-      }
-    }
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;

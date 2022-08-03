@@ -20,7 +20,7 @@
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
   },
   "devDependencies": {
-    "@bazel/bazelisk": "^1.10.1"
+    "@bazel/bazelisk": "^1.12.0"
   },
   "scripts": {
     "prep": "./scripts/download-tflite-web-api.sh",
@@ -32,7 +32,7 @@
     "build-deps": "yarn build-link-package",
     "build-npm": "bazel build :tfjs-tflite_pkg",
     "publish-npm": "bazel run :tfjs-tflite_pkg.publish",
-    "test": "bazel test --flaky_test_attempts=3 :tfjs-tflite_test --test_output=all",
+    "test": "bazel test :tests --test_output=all",
     "test-ci": "yarn test",
     "test-debug": "bazel run :tfjs-tflite_test"
   },

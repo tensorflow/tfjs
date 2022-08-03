@@ -20,8 +20,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@bazel/bazelisk": "^1.9.0",
-    "@bazel/ibazel": "^0.15.10"
+    "@bazel/bazelisk": "^1.12.0",
+    "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
     "build-ci": "yarn build",
@@ -32,14 +32,14 @@
     "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
     "coverage": "bazel coverage :tfjs-backend-cpu_test",
-    "test": "bazel test :tfjs-backend-cpu_test --test_output=streamed",
+    "test": "bazel test :tests --test_output=streamed",
     "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
-    "test-dev": "ibazel run :tfjs-backend-cpu_test --test-output=streamed",
+    "test-dev": "ibazel run :tests --test-output=streamed",
     "test-ci": "yarn test"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
-    "seedrandom": "2.4.3"
+    "@types/seedrandom": "^2.4.28",
+    "seedrandom": "^3.0.5"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"

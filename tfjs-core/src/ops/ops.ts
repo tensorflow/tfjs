@@ -139,6 +139,7 @@ export {raggedTensorToTensor} from './ragged_tensor_to_tensor';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
+export {randomStandardNormal} from './random_standard_normal';
 export {randomUniform} from './random_uniform';
 export {range} from './range';
 export {real} from './real';

@@ -13,11 +13,36 @@ build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
+# The following --define=EXECUTOR=remote will be able to be removed
+# once https://github.com/bazelbuild/bazel/issues/7254 is fixed
+build:rbe --define=EXECUTOR=remote
+
+build:rbe --jobs=100
+
 # Remote cache config. Users can add credentials in their .bazelrc.user files.
-build:remote --remote_cache=remotebuildexecution.googleapis.com --auth_enabled=true --google_default_credentials --remote_instance_name=projects/learnjs-174218/instances/default_instance --project_id=learnjs-174218 --remote_timeout=180s
+build:remote --remote_cache=remotebuildexecution.googleapis.com
+build:rbe --remote_executor=remotebuildexecution.googleapis.com
+
+# Force remote exeuctions to consider the entire run as linux
+build:rbe --cpu=k8
+build:rbe --host_cpu=k8
+
+# Toolchain and platform related flags
+build:rbe --crosstool_top=@//remote-execution/cpp:cc_toolchain_suite
+build:rbe --extra_toolchains=@//remote-execution/cpp:cc_toolchain
+build:rbe --extra_execution_platforms=@//remote-execution:platform
+build:rbe --host_platform=@//remote-execution:platform
+build:rbe --platforms=@//remote-execution:platform
+
+build:remote --remote_instance_name=projects/learnjs-174218/instances/default_instance
+build:remote --project_id=learnjs-174218
+build:remote --auth_enabled=true
+build:remote --google_default_credentials
+build:remote --remote_timeout=180s
 
 # Stream build results to the results UI
 build:bes --config=remote --bes_backend="buildeventservice.googleapis.com" --bes_timeout=60s --bes_results_url="https://source.cloud.google.com/results/invocations/"
+build:rbe --config=remote
 
 # Config for Google Cloud continuous integration that uses default credentials.
 build:ci --config=bes
@@ -30,7 +55,7 @@ run --incompatible_strict_action_env
 
 # Don't use a sandboxed build since it hurts performance.
 # When sandboxed, the wasm backend takes hours to build on a 32 core machine.
-build --spawn_strategy=worker,local
+build --spawn_strategy=remote,worker,local
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY

@@ -64,3 +64,34 @@ nodejs_binary(
     ],
     entry_point = "make_version_test_file.ts",
 )
+
+ts_library(
+    name = "downlevel_to_es5_plugin",
+    srcs = [
+        "downlevel_to_es5_plugin.ts",
+    ],
+    module_name = "downlevel_to_es5_plugin",
+    deps = [
+        "@npm//@types/node",
+        "@npm//typescript",
+    ],
+)
+
+ts_library(
+    name = "make_rollup_config",
+    srcs = [
+        "make_rollup_config.ts",
+    ],
+    module_name = "make_rollup_config",
+    deps = [
+        ":downlevel_to_es5_plugin",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
+        "@npm//@types/node",
+        "@npm//@types/rollup-plugin-visualizer",
+        "@npm//rollup-plugin-sourcemaps",
+        "@npm//rollup-plugin-terser",
+        "@npm//rollup-plugin-visualizer",
+        "@npm//typescript",
+    ],
+)

@@ -20,48 +20,48 @@ import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorf
 import {symbolicallyComputeStrides} from './shader_util';
 
 export interface WebGPUProgram {
-  // The unique key to distinguish different shader source code.
-  shaderKey: string;
-  outputShape: number[];
+  // Whether to use atomic built-in functions.
+  atomic?: boolean;
+  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
+  dispatch: [number, number, number];
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
-  dispatch: [number, number, number];
+  isFromPixels?: boolean;
+  isVec4?: boolean;
+  outputShape: number[];
+  // The unique key to distinguish different shader source code.
+  shaderKey: string;
+  // Whether to use output size for bounds checking.
+  size?: boolean;
+  uniforms?: string;
   variableNames: string[];
   // Describe each variable's type and must have one-one mapping with
   // variableNames. If not set, all variables type will be either f32 or
   // vec4<f32> based on isVec4 member.
   variableTypes?: string[];
-  uniforms?: string;
-  // Size of register cache in one dimension (assumes square cache).
-  // Each thread writes to workPerThread * workPerThread locations in the output
-  // buffer.
-  workPerThread?: number;
   // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
   workGroupSize: [number, number, number];
-  isVec4?: boolean;
-  // Whether to use output size for bounds checking.
-  size?: boolean;
-  // Whether to use atomic built-in functions.
-  atomic?: boolean;
+  // Size of register cache in one dimension (assumes square cache).
+  // Each thread writes to workPerThread * workPerThread locations in the output
+  // buffer.
+  workPerThread?: number;
   getUserCode: () => string;
 }
 
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram,
-     pipelineLayout: GPUPipelineLayout, inputsData: InputInfo[],
-     output: TensorInfo, isFromPixel = false): GPUComputePipeline => {
+    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
+     output: TensorInfo): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
-      const source = makeShader(inputsData, outputData, program, isFromPixel);
+      const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        layout: pipelineLayout,
         compute: {module, entryPoint: 'main'},
-        label: program.constructor.name
+        label: program.constructor.name,
+        layout: 'auto'
       });
 
       return pipeline;
@@ -124,18 +124,18 @@ export function getMainHeaderString(): string {
 
 export function getWorkGroupSizeString(): string {
   return `
-  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 
-export function makeShader(
+function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
-    program: WebGPUProgram, isFromPixel = false): string {
+    program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   prefixSnippets.push(`
-      let workGroupSizeX = ${program.workGroupSize[0]}u;
-      let workGroupSizeY = ${program.workGroupSize[1]}u;
-      let workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workGroupSizeX = ${program.workGroupSize[0]}u;
+      const workGroupSizeY = ${program.workGroupSize[1]}u;
+      const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> globalId: vec3<u32>;
@@ -159,16 +159,15 @@ export function makeShader(
       }
     `);
 
-  if (isFromPixel === true) {
+  if (program.isFromPixels) {
     prefixSnippets.push(`
         struct Uniform {
           size            : i32,
           numChannels     : i32,
           outShapeStrides : vec2<i32>,
-          dispatchSize    : vec3<u32>,
         };
 
-        @group(0) @binding(0) var<storage, write> result: array<${
+        @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
@@ -180,55 +179,28 @@ export function makeShader(
     ].join('\n');
   }
 
-  let preMemberIsStruct = false;
-  let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
-    if (perDataType === 'vec5' || perDataType === 'vec6') {
-      currentMemberIsStruct = true;
-    }
-    if (preMemberIsStruct || currentMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
-  currentMemberIsStruct =
-      outputDataType === 'vec5' || outputDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
-  currentMemberIsStruct =
-      stridesDataType === 'vec5' || stridesDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
          outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
+  uniformDeclaration = insertAlignment(uniformDeclaration);
 
   prefixSnippets.push(uniformDeclaration);
 
@@ -239,7 +211,7 @@ export function makeShader(
     `);
   } else {
     prefixSnippets.push(`
-      @group(0) @binding(0) var<storage, write> result: array<${
+      @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }
@@ -259,7 +231,7 @@ export function makeShader(
       `);
   }
 
-  const [coordsSnippet, dispatchLayoutRank] =
+  const coordsSnippet =
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
@@ -271,22 +243,18 @@ export function makeShader(
     sources.push(
         setOutputSnippet(outputData.shape, outputData.dtype, program.isVec4));
   }
-  if (dispatchLayoutRank === outputData.shape.length) {
-    // Input snippet is only meaningful when the output isn't getting
-    // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet =
-        inputInfo
-            .map(
-                (x, i) => getInputSnippet(
-                    x, outputData.shape,
-                    program.variableTypes ?
-                        (program.variableTypes[i] === 'vec4<f32>') :
-                        program.isVec4,
-                    program.dispatchLayout.x.length ===
-                        outputData.shape.length))
-            .join('\n');
-    sources.push(inputSnippet);
-  }
+
+  const inputSnippet =
+      inputInfo
+          .map(
+              (x, i) => getInputSnippet(
+                  x, outputData.shape,
+                  program.variableTypes ?
+                      (program.variableTypes[i] === 'vec4<f32>') :
+                      program.isVec4,
+                  program.dispatchLayout.x.length === outputData.shape.length))
+          .join('\n');
+  sources.push(inputSnippet);
 
   sources.push(program.getUserCode());
   const source = sources.join('\n');
@@ -294,14 +262,27 @@ export function makeShader(
 }
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[] = [],
-    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
+    output: TensorInfo): string {
+  let key = program.shaderKey;
+  if (program.isFromPixels) {
+    return key;
+  }
+
+  const types = inputsData.map(d => d.dtype).concat(output.dtype);
+  const broadcastDims =
+      inputsData.map(d => backend_util.getBroadcastDims(d.shape, output.shape));
+  const inputShapesEqualsOutShape =
+      inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
+  const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
-  const key = program.shaderKey + '_' +
-      (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+
+  key += '_' + (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;
+
   return key;
 }
 
@@ -344,8 +325,8 @@ const commonSnippet = `
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
       res = res - 1;
     }
     return res;
@@ -368,7 +349,7 @@ const commonSnippet = `
 type InputInfo = {
   dtype: DataType; shape: number[]; name: string;
 };
-type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
+export type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
 
 /**
  * Derives logical coordinates from a flat index. Performs integer division
@@ -622,8 +603,7 @@ function getInputSnippet(
  */
 function getOutputCoordsSnippet(
     outShape: number[],
-    dispatchLayout: {x: number[], y?: number[], z?: number[]}):
-    [string, number] {
+    dispatchLayout: {x: number[], y?: number[], z?: number[]}): string {
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
@@ -634,7 +614,7 @@ function getOutputCoordsSnippet(
     return getCoordsFromIndex(globalIndex);
   }
   `;
-    return [snippet, outRank];
+    return snippet;
   }
 
   let gatherDimensionsStr = '';
@@ -685,7 +665,7 @@ function getOutputCoordsSnippet(
     snippet += `return ${dtype}(${dimensions.join(',')}); }`;
   }
 
-  return [snippet, rank];
+  return snippet;
 }
 
 function getOutputIndexFromCoordsSnippet(outRank: number) {
@@ -755,7 +735,7 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
   return program.dispatch[1] === 1 && program.dispatch[2] === 1;
 }
 
-function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
+export function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
   if (type === 'float32') {
     return isVec4 ? 'vec4<f32>' : 'f32';
@@ -824,4 +804,19 @@ function setOutputSnippet(
   }
 
   return snippet;
+}
+
+function insertAlignment(uniformShader: string) {
+  // insert alignment when current pattern is vec5 or vec6
+  const curInsertRe = /(\w+)\s*:\s*vec(5|6)/g;
+  uniformShader = uniformShader.replace(curInsertRe, (match) => {
+    return '@align(16) ' + match;
+  });
+
+  // insert alignment when previous pattern is vec5 or vec6
+  const preInsertRe = /vec(5|6)\s*,\s*(\w+)/g;
+  uniformShader = uniformShader.replace(preInsertRe, (_, p1, p2) => {
+    return `vec${p1}, @align(16) ${p2}`;
+  });
+  return uniformShader;
 }

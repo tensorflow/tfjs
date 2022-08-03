@@ -45,8 +45,11 @@ for auto-formatting.
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
+# Run this at the root of the repository
+$ yarn lint
 # cd into the package directory you want to test
 $ yarn test
+# You may also need to run 'yarn lint' in the directory you want to test
 $ yarn lint
 ```
 This will install yarn dependencies, build the other TensorFlow.js packages that the package being tested depeds on,
@@ -64,33 +67,30 @@ $ yarn test --//:grep=multinomial
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
 ```
 
-To run the tests once and exit the karma process (helpful on Windows):
+By default, the tests run once and exit. To keep the browser window open, run the following:
 
 ```bash
-$ yarn test --single-run
+# For packages with only browser tests
+$ yarn test-debug
+# For packages with browser and node tests
+$ yarn test-browser-debug
 ```
-
-To run the tests in an environment that does not have GPU support (such as Chrome Remote Desktop):
-
-```bash
-$ yarn test --testEnv cpu
-```
-
-Available test environments: cpu, webgl1, webgl2.
 
 #### Packaging (browser and npm)
 
 In any of the directories the following commands build the NPM tarball:
 
 ```bash
+# Example for tfjs-core
 $ yarn build-npm
-> Stored standalone library at dist/tf-core(.min).js
-> Stored also tensorflow-tf-core-VERSION.tgz
+# The output is located at ../dist/bin/tfjs-core/tfjs-core_pkg/
+# You can also package as a tar with
+$ yarn bazel run :tfjs-core_pkg.pack
 ```
 
 To install it locally, run `yarn add ./tensorflow-tf-core-VERSION.tgz`.
 
-> On Windows, use bash (available through git) to use the scripts above.
+> On Windows, use bash (available through git or WSL2) to use the scripts above. For the best experience, we recommend using [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 Looking to contribute, and don't know where to start? Check out our "stat:contributions welcome" [issues](https://github.com/tensorflow/tfjs/labels/stat%3Acontributions%20welcome).
 

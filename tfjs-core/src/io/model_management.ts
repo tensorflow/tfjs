@@ -71,7 +71,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getManager(scheme: string): ModelStoreManager {
-    const manager = this.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
@@ -79,7 +79,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getSchemes(): string[] {
-    return Object.keys(this.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 }
 

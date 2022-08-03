@@ -20,11 +20,7 @@ import {spawnSync, exec} from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-
-const PACKAGES: ReadonlySet<string> = new Set([
-  'tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl', 'tfjs-backend-webgpu',
-  'tfjs-converter', 'tfjs-tflite', 'tfjs-layers', 'tfjs-data',
-]);
+import {BAZEL_PACKAGES} from '../scripts/bazel_packages';
 
 const parser = new argparse.ArgumentParser();
 
@@ -39,12 +35,23 @@ parser.add_argument('--all', {
   help: 'Build all packages',
 });
 
+parser.add_argument('--bazel_options', {
+  type: String,
+  default: '',
+  help: 'Options to pass to Bazel',
+});
+
 /**
  * Build bazel dependencies for the packages specified by the repeated argument
- * tfjs_package.
+ * tfjs_package. If the package is a Bazel package, also build the package
+ * itself.
  *
  * @example 'yarn build-deps-for tfjs-react-native' builds all bazel
  * dependencies for @tensorflow/tfjs-react-native.
+ *
+ * @example 'yarn build-deps-for tfjs-backend-cpu' builds all bazel
+ * dependencies for @tensorflow/tfjs-backend-cpu and builds tfjs-backend-cpu
+ * (since it's a Bazel package).
  *
  * @example 'yarn build-deps-for --all' builds all bazel packages.
  */
@@ -54,17 +61,16 @@ async function main() {
 
   let targets: string[];
   if (args.all) {
-    targets = [...PACKAGES].map(dirToTarget);
+    targets = [...BAZEL_PACKAGES].map(dirToTarget);
   } else {
-    const allDeps = packageNames
-      .map((name): Iterable<string> => getDeps(name))
-      .reduce((a, b) => [...a, ...b], []);
-    targets = [...allDeps].map(getDepTarget).filter(v => v);
+    const bazelDeps = findTransitiveBazelDeps(packageNames);
+    targets = [...bazelDeps].map(dirToTarget);
   }
 
   if (targets.length > 0) {
     if (process.platform === 'win32') {
-      const child = exec(`yarn bazel build --color=yes ${targets.join(' ')}`);
+      const child = exec('yarn bazel build --color=yes '
+        + `${args.bazel_options} ${targets.join(' ')}`);
       await new Promise((resolve, reject) => {
         child.stdout.pipe(process.stdout);
         child.stderr.pipe(process.stderr);
@@ -77,10 +83,15 @@ async function main() {
       });
     } else {
       // Use spawnSync intead of exec for prettier printing.
-      spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+      const bazelArgs = ['bazel', 'build'];
+      if (args.bazel_options) {
+        bazelArgs.push(args.bazel_options);
+      }
+      bazelArgs.push(...targets);
+      spawnSync('yarn', bazelArgs, {stdio:'inherit'});
     }
-
   }
+
   const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
   rimraf.sync(tfjsDir);
   fs.mkdirSync(tfjsDir, {recursive: true});
@@ -88,7 +99,7 @@ async function main() {
   // Copy all built packages to node_modules. Note that this does not install
   // their dependencies, but that's okay since the node resolution algorithm
   // will find dependencies in the root node_modules folder of the repository.
-  for (const pkg of PACKAGES) {
+  for (const pkg of BAZEL_PACKAGES) {
     const pkgPath = path.normalize(
       `${__dirname}/../dist/bin/${pkg}/${pkg}_pkg`);
 
@@ -129,21 +140,51 @@ function getDeps(packageName: string): Set<string> {
 }
 
 /**
- * Get the bazel target corresponding to a package.json dependency.
+ * Get just the @tensorflow/ scoped deps of a tfjs package.
  *
- * @param dep The package.json dependency.
- * @returns The bazel target corresponding to the dependency or undefined if no
- * such dependency exists.
+ * @param packageName The package name (without @tensorflow/).
+ * @returns The tfjs package names (not paths) of immediate dependencies.
  */
-function getDepTarget(dep: string): string | undefined {
-  const found = dep.match(/@tensorflow\/(.*)/);
-  if (found) {
-    const name = found[1];
-    if (PACKAGES.has(name)) {
-      return dirToTarget(name);
+function getTfjsDeps(packageName: string): Set<string> {
+  const deps = getDeps(packageName);
+  const tfjsDeps = [...deps]
+                     .map(dep => dep.match(/@tensorflow\/(.*)/))
+                     .filter(Boolean)
+                     .map(dep => dep[1]);
+  return new Set(tfjsDeps);
+}
+
+/**
+ * Find the set of tfjs Bazel packages that the given packages depend on,
+ * including transitively.
+ *
+ * @param packages An iterable of tfjs package names to check for Bazel
+ * dependencies
+ * @returns The set of TFJS packages that constitute the edge between the Bazel
+ * build graph and the npm build graph, i.e. the minimum set of Bazel packages
+ * that need to be built in order to build the packages listed in `packages`.
+ */
+function findTransitiveBazelDeps(packages: Iterable<string>): Set<string> {
+  let toVisit = new Set([...packages]);
+  const visited = new Set<string>();
+  const bazelPackages = new Set<string>();
+
+  while (toVisit.size > 0) {
+    for (const pkg of toVisit) {
+      if (BAZEL_PACKAGES.has(pkg)) {
+        bazelPackages.add(pkg);
+      } else {
+        const deps = getTfjsDeps(pkg);
+        // Only add deps that haven't been visited
+        const newDeps = [...deps].filter(dep => !visited.has(dep));
+        toVisit = new Set([...toVisit, ...newDeps]);
+      }
+      visited.add(pkg);
+      toVisit.delete(pkg);
     }
   }
-  return undefined;
+
+  return bazelPackages;
 }
 
 /**

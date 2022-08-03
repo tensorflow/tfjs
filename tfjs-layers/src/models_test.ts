@@ -1901,16 +1901,15 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
     expect(model.outputs[0].shape).toEqual([null, 1]);
   });
 
-  it('IOHandler without load method causes error', async done => {
+  it('IOHandler without load method causes error', async () => {
     loadLayersModelInternal(new IOHandlerWithoutLoad())
         .then(model => {
-          done.fail(
+          fail(
               'Loading with an IOHandler without load method succeeded ' +
               'unexpectedly.');
         })
         .catch(err => {
           expect(err.message).toMatch(/does not have .*load.* method/);
-          done();
         });
   });
 });

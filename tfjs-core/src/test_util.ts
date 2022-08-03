@@ -93,6 +93,9 @@ function expectArraysPredicate(
           `Expected: ${expectedFlat}.`);
     }
   }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export interface DoneFn {
@@ -102,6 +105,9 @@ export interface DoneFn {
 
 export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
   fn().then(() => done.fail(), () => done());
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export function expectArraysEqual(actual: TensorLike, expected: TensorLike) {
@@ -124,6 +130,9 @@ export function expectNumbersClose(a: number, e: number, epsilon?: number) {
   }
   if (!areClose(a, e, epsilon)) {
     throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
+  }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
   }
 }
 

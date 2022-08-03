@@ -94,7 +94,7 @@ describeMathCPUAndGPU('LayersModel.save', () => {
     expect(handler.savedArtifacts.weightSpecs[1].dtype).toEqual('float32');
   });
 
-  it('Saving to a handler without save method fails', async done => {
+  it('Saving to a handler without save method fails', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
     const handler = new EmptyIOHandler();
@@ -109,7 +109,6 @@ describeMathCPUAndGPU('LayersModel.save', () => {
               .toEqual(
                   'LayersModel.save() cannot proceed because the IOHandler ' +
                   'provided does not have the `save` attribute defined.');
-          done();
         });
   });
 });

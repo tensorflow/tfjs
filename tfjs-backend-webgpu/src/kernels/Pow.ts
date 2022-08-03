@@ -17,11 +17,11 @@
 
 import {KernelConfig, Pow} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {BinaryOpType} from '../binary_op_util';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 export const pow = binaryKernelFunc({
-  opSnippet: BinaryOpType.POW,
+  opType: BinaryOpType.POW,
 });
 
 export const powConfig: KernelConfig = {

@@ -237,3 +237,6 @@ ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
  * Default value is 128.
  */
 ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
+
+/** Whether we will use the experimental conv op. */
+ENV.registerFlag('WEBGL_EXP_CONV', () => false);

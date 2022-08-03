@@ -16,23 +16,110 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
+
+export function matMulReadFnSource(
+    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
+    transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
+    component = 1) {
+  util.assert(
+      transposeA && component === 1 || !transposeA,
+      () => `transposeA ${transposeA} is not compatible with component size ${
+          component}`);
+  const sampleA = `
+      let batch = ${batchAEqualOne ? '0' : 'batchIn'};
+      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+      ${
+      transposeA ?
+          `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
+              component}];` :
+          `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
+              component}];`}
+
+    `;
+  let sampleB;
+  if (transposeB === false) {
+    sampleB =
+        `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
+            component}];`;
+  } else {
+    sampleB =
+        `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
+            component}];`;
+  }
+
+  return `
+  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+    var value = ${typeSnippet(component)}(0.0);
+    let col = colIn * ${component};
+    ${
+      fitAOuter && fitInner ?
+          sampleA :
+          `
+    ${
+              transposeA ?
+                  `if(row < uniforms.dimAOuter && col < uniforms.dimInner)` :
+                  `if(row < uniforms.aShape[1] && col < uniforms.aShape[2])`}
+    {
+      ${sampleA}
+    }
+    `}
+    return value;
+  }
+
+  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+    let col = colIn * ${component};
+    let batch = ${batchBEqualOne ? '0' : 'batchIn'};
+    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+    var value = ${typeSnippet(component)}(0.0);
+    ${sampleB}
+    return value;
+  }
+  `;
+}
+
+export function matMulReadWriteFnSource(
+    hasBias: boolean, activation: backend_util.Activation,
+    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
+    transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
+    component = 1) {
+  return `
+  ${
+      matMulReadFnSource(
+          batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter,
+          fitBOuter, fitInner, component)}
+  fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${
+      typeSnippet(component)}) {
+    let col = colIn * ${component};
+    ${
+      fitAOuter && fitBOuter ?
+          '' :
+          'if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)'}
+    {
+      var value = valueIn;
+      let coords = vec3<i32>(batch, row, col);
+      ${biasActivationSnippet(hasBias, activation)}
+      setOutputAtCoords(coords[0], coords[1], coords[2], value);
+    }
+  }
+  `;
+}
 
 const writeDataToSubASnippet = (transpose: boolean) => {
   if (transpose) {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           t * TileInner + inputRow,
-          globalRowStart + inputCol, globalId);
+          globalRowStart + inputCol);
         `;
 
   } else {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           globalRowStart + inputRow,
-          t * TileInner + inputCol, globalId);
+          t * TileInner + inputCol);
         `;
   }
 };
@@ -65,11 +152,11 @@ export function makeMatMulPackedSource(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    let RowPerThread = ${workPerThread[1]};
-    let ColPerThread = ${workPerThread[0]};
-    let TileInner = ${tileInner};
+    const RowPerThread = ${workPerThread[1]};
+    const ColPerThread = ${workPerThread[0]};
+    const TileInner = ${tileInner};
 
-    @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+    @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
     fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
             @builtin(global_invocation_id) GlobalId : vec3<u32>,
             @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
@@ -83,7 +170,7 @@ export function makeMatMulPackedSource(
 
       let globalRow = i32(globalId.y) * RowPerThread;
       let globalCol = i32(globalId.x) * ColPerThread;
-
+      let batch = i32(globalId.z);
       let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
       let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
@@ -119,9 +206,9 @@ export function makeMatMulPackedSource(
           for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol + innerCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(
-              t * ${tileInner} + inputRow,
-              globalCol + innerCol, globalId);
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+              t * TileInner + inputRow,
+              globalCol + innerCol);
           }
         }
 
@@ -147,9 +234,8 @@ export function makeMatMulPackedSource(
 
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          mm_write(globalRow + innerRow,
-                   globalCol + innerCol,
-                   acc[innerRow][innerCol], globalId);
+          mm_write(batch, globalRow + innerRow, globalCol + innerCol,
+              acc[innerRow][innerCol]);
         }
       }
     }
@@ -158,26 +244,26 @@ export function makeMatMulPackedSource(
 
 const readVectorASnippet = (transpose: boolean) => {
   return transpose ? `
-      mm_readA(colA, globalRow, globalId),
-      mm_readA(colA + 1, globalRow, globalId),
-      mm_readA(colA + 2, globalRow, globalId),
-      mm_readA(colA + 3, globalRow, globalId)
+      mm_readA(batch, colA, globalRow),
+      mm_readA(batch, colA + 1, globalRow),
+      mm_readA(batch, colA + 2, globalRow),
+      mm_readA(batch, colA + 3, globalRow)
   ` :
                      `
-      mm_readA(globalRow, colA, globalId),
-      mm_readA(globalRow, colA + 1, globalId),
-      mm_readA(globalRow, colA + 2, globalId),
-      mm_readA(globalRow, colA + 3, globalId)
+      mm_readA(batch, globalRow, colA),
+      mm_readA(batch, globalRow, colA + 1),
+      mm_readA(batch, globalRow, colA + 2),
+      mm_readA(batch, globalRow, colA + 3)
   `;
 };
 
-export function makeMatMulVectorSource(
+export function makeVectorMatrixProductSource(
     workGroupSize: [number, number, number], transposeA = false): string {
   util.assert(
       workGroupSize[1] === 1 && workGroupSize[2] === 1,
       () => `A linear work group size is required. But got ${workGroupSize}.`);
   return `
-    let TileSize = ${workGroupSize[0] * 4};
+    const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
     ${getMainHeaderString()}
@@ -186,7 +272,7 @@ export function makeMatMulVectorSource(
       let globalRow = i32(globalId.y);
 
       let numTiles = (uniforms.dimInner - 1) / TileSize + 1;
-
+      let batch = i32(globalId.z);
       // Without this initialization strange values show up in acc.
       var acc = 0.0;
 
@@ -200,10 +286,10 @@ export function makeMatMulVectorSource(
         // Compute acc values for a single thread.
         for (var k = 0; k < TileSize / 4; k = k + 1) {
           let rowB = t * TileSize + k * 4;
-          let BCached = vec4<f32>(mm_readB(rowB, globalCol, globalId),
-                              mm_readB(rowB + 1, globalCol, globalId),
-                              mm_readB(rowB + 2, globalCol, globalId),
-                              mm_readB(rowB + 3, globalCol, globalId));
+          let BCached = vec4<f32>(mm_readB(batch, rowB, globalCol),
+                              mm_readB(batch, rowB + 1, globalCol),
+                              mm_readB(batch, rowB + 2, globalCol),
+                              mm_readB(batch, rowB + 3, globalCol));
 
           let ACached = mm_Asub[k];
           acc = acc + dot(ACached, BCached);
@@ -212,7 +298,7 @@ export function makeMatMulVectorSource(
         workgroupBarrier();
       }
 
-      mm_write(globalRow, globalCol, acc, globalId);
+      mm_write(batch, globalRow, globalCol, acc);
     }
   `;
 }
@@ -309,93 +395,20 @@ export class MatMulPackedProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const sampleA = this.fitAOuter && this.fitInner ?
-        `return A[batch * batchASize + row * uniforms.aShape[2] + col];` :
-        `
-        if(row < uniforms.aShape[1] && col < uniforms.aShape[2]) {
-          return A[batch * batchASize + row * uniforms.aShape[2] + col];
-        }
-        return 0.0;
-         `;
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB =
-          `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
-    } else {
-      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
-    }
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsByOutputCoords(outCoord);
-               ${activationOp}
-            }`;
-      } else {
-        activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
-
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${
-        this.batchAEqualOne ? `
-        let batch = 0;
-        let batchASize = 0;
-        ` :
-                              `
-        let batch = i32(globalId.z);
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        `}
-        ${sampleA}
-      }
-
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${
-        this.batchBEqualOne ? `
-        let batch = 0;
-        let batchBSize = 0;
-        ` :
-                              `
-        let batch = i32(globalId.z);
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-        `}
-        ${sampleB}
-      }
-
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
-        ${
-        this.fitAOuter && this.fitBOuter ?
-            '' :
-            'if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)'}
-        {
-        var value = valueIn;
-        let batch = i32(globalId.z);
-        let outCoord = vec3<i32>(batch, row, col);
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
-        setOutputAtCoords(batch, row, col, value);
-        }
-      }
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
+      ${
+        matMulReadWriteFnSource(
+            this.addBias, this.activation, this.batchAEqualOne,
+            this.batchBEqualOne,
+            false /* transposeA is implemented in makeMatMulPackedSource */,
+            this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner)}
       ${
         this.outputShape[1] > 1 ?
             makeMatMulPackedSource(
                 [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
                 this.transposeA, this.tileInner) :
-            makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
+            makeVectorMatrixProductSource(this.workGroupSize, this.transposeA)}
     `;
     return userCode;
   }

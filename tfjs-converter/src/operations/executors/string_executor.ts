@@ -27,10 +27,10 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'StringNGrams': {
-          const {nGrams, nGramsSplits} = tfOps.string.stringNGrams(
+          const {nGrams, nGramsSplits} = ops.string.stringNGrams(
               getParamValue('data', node, tensorMap, context) as Tensor1D,
               getParamValue('dataSplits', node, tensorMap, context) as Tensor,
               getParamValue('separator', node, tensorMap, context) as string,
@@ -45,14 +45,14 @@ export const executeOp: InternalOpExecutor =
           return [nGrams, nGramsSplits];
         }
         case 'StringSplit': {
-          const {indices, values, shape} = tfOps.string.stringSplit(
+          const {indices, values, shape} = ops.string.stringSplit(
               getParamValue('input', node, tensorMap, context) as Tensor1D,
               getParamValue('delimiter', node, tensorMap, context) as Scalar,
               getParamValue('skipEmpty', node, tensorMap, context) as boolean);
           return [indices, values, shape];
         }
         case 'StringToHashBucketFast': {
-          const output = tfOps.string.stringToHashBucketFast(
+          const output = ops.string.stringToHashBucketFast(
               getParamValue('input', node, tensorMap, context) as Tensor,
               getParamValue('numBuckets', node, tensorMap, context) as number);
           return [output];

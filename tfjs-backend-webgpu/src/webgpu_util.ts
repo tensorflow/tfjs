@@ -161,7 +161,11 @@ export function isWebGPUSupported(): boolean {
       !!navigator.gpu;
 }
 
-export interface WebGPULayout {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipelineLayout: GPUPipelineLayout;
+export enum MatMulProgramType {
+  MatMulPackedVec4Program,
+  MatMulReduceProgram,
+  MatMulSplitKProgram,
+  MatMulSmallOutputSizeProgram,
+  MatMulPackedProgram,
+  MatMulMax
 }

@@ -42,7 +42,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      let TILE_DIM = ${this.workGroupSize[0]};
+      const TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
       ${getWorkGroupSizeString()}

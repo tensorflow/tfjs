@@ -25,7 +25,7 @@ from tensorflowjs import quantization
 from tensorflowjs import read_weights
 
 _OUTPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
-                  np.uint8, np.uint16, np.bool, np.object]
+                  np.uint8, np.uint16, bool, object]
 _AUTO_DTYPE_CONVERSION = {
     np.dtype(np.float16): np.float32,
     np.dtype(np.float64): np.float32,
@@ -259,7 +259,7 @@ def _stack_group_bytes(group):
     _assert_valid_weight_entry(entry)
     data = entry['data']
 
-    if data.dtype == np.object:
+    if data.dtype == object:
       data_bytes = _serialize_string_array(data)
     else:
       data_bytes = _serialize_numeric_array(data)
@@ -367,9 +367,9 @@ def _assert_valid_weight_entry(entry):
   data = entry['data']
 
   # String tensors can be backed by different numpy dtypes, thus we consolidate
-  # to a single 'np.object' dtype.
+  # to a single 'object' dtype.
   if data.dtype.name.startswith('str') or data.dtype.name.startswith('bytes'):
-    data = data.astype(np.object)
+    data = data.astype(object)
     entry['data'] = data
 
 

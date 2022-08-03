@@ -74,7 +74,7 @@ tfjs_web_test(
     ],
     browsers = [
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
     ],
     headless = False,
     static_files = [
@@ -154,5 +154,12 @@ js_library(
     package_name = "tfjs-layers",
     srcs = [
         ":package.json",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-layers_webgl2_test",
     ],
 )

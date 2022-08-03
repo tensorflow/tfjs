@@ -95,15 +95,18 @@ export function concatImpl(
     return outInfo;
   }
 
-  if (inputs.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-    const midIndex = Math.floor(inputs.length / 2);
-    const leftSide = concatImpl(inputs.slice(0, midIndex), axis, backend);
-    const rightSide = concatImpl(inputs.slice(midIndex), axis, backend);
+  const maxTexturesInShader = env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER');
+  if (inputs.length > maxTexturesInShader) {
+    const reducedInputs = [];
+    for (let i = 0; i < inputs.length; i += maxTexturesInShader) {
+      const subArray = inputs.slice(i, i + maxTexturesInShader);
+      reducedInputs.push(concatImpl(subArray, axis, backend));
+    }
+    const result = concatImpl(reducedInputs, axis, backend);
 
-    const result = concatImpl([leftSide, rightSide], axis, backend);
-
-    backend.disposeIntermediateTensorInfo(leftSide);
-    backend.disposeIntermediateTensorInfo(rightSide);
+    for (const i of reducedInputs) {
+      backend.disposeIntermediateTensorInfo(i);
+    }
 
     return result;
   }
