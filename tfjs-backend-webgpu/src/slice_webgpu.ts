@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SliceProgram implements WebGPUProgram {
@@ -54,8 +54,8 @@ export class SliceProgram implements WebGPUProgram {
       });
     } else {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = uniforms.start[${i}] + coords.${
-            coords[i]};`;
+        return `sourceLoc.${coords[i]} = uniforms.start.${
+            getCoordsXYZ(i)} + coords.${coords[i]};`;
       });
     }
 
