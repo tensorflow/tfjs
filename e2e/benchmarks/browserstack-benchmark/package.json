@@ -31,8 +31,8 @@
     "test-node": "jasmine app_node_test.js",
     "build-all-deps": "yarn build-all-link-packages && yarn build-tfjs",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-npm",
-    "build-all-link-packages": "cd ../../../link-package && yarn build",
-    "build-individual-link-package": "cd ../../../link-package && yarn build-deps-for",
+    "build-all-link-packages": "cd ../../../ && yarn && cd ./link-package && yarn build",
+    "build-individual-link-package": "cd ../../../ && yarn && cd ./link-package && yarn build-deps-for",
     "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --cloud --maxBenchmarks=9 --firestore"
   },
   "license": "Apache-2.0",
