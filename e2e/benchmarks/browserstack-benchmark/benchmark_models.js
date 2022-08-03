@@ -103,7 +103,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   };
   /* End */
 
-  // Wramp up.
+  // Warm up.
   await timeInference(predict, 1);
 
   // Benchmark code snippet.
