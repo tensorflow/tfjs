@@ -32,7 +32,8 @@ The script expects three required arguments: `model_path`, `inputs_dir` and
 **inputs_dir**: Directory to read the input tensor info and output info files.
 
 **outputs_dir**: Directory to write the output files. Output files include:
-                 data.json, shape.json and dtype.json. The order of the output
+                 data.json, shape.json and dtype.json. Additionally, name.json
+                 is written if the model returns a map. The order of the output
                  tensors follow the same order as the tf_output_name_file.
 
 **inputs_data_file**: (Optional) Filename of the input data file.
