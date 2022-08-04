@@ -46,4 +46,6 @@ export interface Platform {
   encode(text: string, encoding: string): Uint8Array;
   /** Decode the provided bytes into a string using the provided encoding. */
   decode(bytes: Uint8Array, encoding: string): string;
+
+  setTimeoutCustom?(functionRef: Function, delay: number): void;
 }
