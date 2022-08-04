@@ -63,7 +63,7 @@ module.exports = function(config) {
     'tfjs-automl/dist/tf-automl.js',
   ].map(url => {
     let name = url.split('/')[0].replace('tfjs-', '').replace('backend-', '');
-    if (config.localBuild.includes(name)) {
+    if (config.localBuild?.includes(name)) {
       return `../../../dist/bin/${url}`;
     } else {
       return `https://unpkg.com/@tensorflow/${url.replace('/', '@latest/')}`;
