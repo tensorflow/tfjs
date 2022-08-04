@@ -29,6 +29,7 @@ const {
   firebaseConfig,
   endFirebaseInstance
 } = require('./firestore.js');
+const {PromiseQueue} = require('./promise_queue');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -160,22 +161,18 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
         `dependencies...`);
   }
 
+  const promiseQueue = new PromiseQueue(cliArgs?.maxBenchmarks ?? 9);
   const results = [];
-  let numActiveBenchmarks = 0;
+
   // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
-    numActiveBenchmarks++;
-    results.push(runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
-      value.deviceInfo = config.browsers[tabId];
-      value.modelInfo = config.benchmark;
-      return value;
+    results.push(promiseQueue.add(() => {
+      return runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
+	value.deviceInfo = config.browsers[tabId];
+	value.modelInfo = config.benchmark;
+	return value;
+      });
     }));
-
-    // Waits for specified # of benchmarks to complete before running more
-    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
-      numActiveBenchmarks = 0;
-      await Promise.allSettled(results);
-    }
   }
 
   // Optionally written to an outfile or pushed to a database once all
