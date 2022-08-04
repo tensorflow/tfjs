@@ -148,6 +148,7 @@ const IGNORE_LIST: string[] = [
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
   'einsum',
+  'raggedTensorToTensor',
   'searchSorted',
   'sparseFillEmptyRows',
   'sparseReshape',
