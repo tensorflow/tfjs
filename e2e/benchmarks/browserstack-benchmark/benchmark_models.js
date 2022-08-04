@@ -92,22 +92,39 @@ async function benchmarkModel(benchmarkParameters) {
 async function benchmarkCodeSnippet(benchmarkParameters) {
   /* Please set up environments to run your code snippet here. */
   /* Start */
-  const img = tf.randomUniform([1, 240, 240, 3], 0, 1000);
-  const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);
+  let image = tf.randomUniform([1, 1, 1024, 1024], 1, 10);
+  let filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
   /* End */
 
-  /* Please put your code snippet to benchmark into the predict function. */
-  /* Start */
-  const predict = () => {
-    return tf.conv2d(img, filter, 1, 'same');
+  /* Run $numRuns of horizontal reads. */
+  let predict = () => {
+    return tf.conv2d(image, filter, 1, 'same', 'NCHW');
   };
-  /* End */
-
-  // Warm up.
   await timeInference(predict, 1);
+  const timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
 
-  // Benchmark code snippet.
-  timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
+  /* Run $numRuns of vertical reads. */
+  image = tf.randomUniform([1, 1, 1024, 1024], 1, 10);
+  filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
+  predict = () => {
+    return tf.conv2d(image, filter, 2, 'same', 'NCHW');
+  };
+  await timeInference(predict, 1);
+  const timeInfo2 = await timeInference(predict, benchmarkParameters.numRuns);
+  timeInfo.times.push(...timeInfo2.times);
+
+
+  /* Run $numRuns of square reads. */
+  image = tf.randomUniform([1, 1, 1024, 1024], 1, 10);
+  filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
+  predict = () => {
+    return tf.conv2d(image, filter, 3, 'same', 'NCHW');
+  };
+  await timeInference(predict, 1);
+  const timeInfo3 = await timeInference(predict, benchmarkParameters.numRuns);
+  timeInfo.times.push(...timeInfo3.times);
+
+
   memoryInfo = await profileInference(predict);
 
   return `<tfjs_benchmark>${JSON.stringify({
