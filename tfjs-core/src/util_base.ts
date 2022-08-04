@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {env} from './environment';
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
@@ -304,7 +303,7 @@ export function rightPad(a: string, size: number): string {
 
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
-    maxCounter?: number): Promise<void> {
+    maxCounter?: number, scheduleFn?: Function): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -322,10 +321,10 @@ export function repeatedTry(
         reject();
         return;
       }
-      if (env().getBool('USE_SETTIMEOUTWPM')) {
-        (window as any).setTimeoutWPM(tryFn, nextBackoff);
-      } else {
+      if (typeof scheduleFn === 'undefined') {
         setTimeout(tryFn, nextBackoff);
+      } else {
+        scheduleFn(tryFn, nextBackoff);
       }
     };
 
@@ -529,9 +528,9 @@ export function bytesPerElement(dtype: DataType): number {
 
 /**
  * Returns the approximate number of bytes allocated in the string array - 2
- * bytes per character. Computing the exact bytes for a native string in JS is
- * not possible since it depends on the encoding of the html page that serves
- * the website.
+ * bytes per character. Computing the exact bytes for a native string in JS
+ * is not possible since it depends on the encoding of the html page that
+ * serves the website.
  */
 export function bytesFromStringArray(arr: Uint8Array[]): number {
   if (arr == null) {
@@ -717,8 +716,8 @@ export function locToIndex(
 }
 
 /**
- * Computes the location (multidimensional index) in a tensor/multidimentional
- * array for a given flat index.
+ * Computes the location (multidimensional index) in a
+ * tensor/multidimentional array for a given flat index.
  *
  * @param index Index in flat array.
  * @param rank Rank of tensor.
@@ -749,43 +748,8 @@ export function isPromise(object: any): object is Promise<unknown> {
   //  We chose to not use 'obj instanceOf Promise' for two reasons:
   //  1. It only reliably works for es6 Promise, not other Promise
   //  implementations.
-  //  2. It doesn't work with framework that uses zone.js. zone.js monkey patch
-  //  the async calls, so it is possible the obj (patched) is comparing to a
-  //  pre-patched Promise.
+  //  2. It doesn't work with framework that uses zone.js. zone.js monkey
+  //  patch the async calls, so it is possible the obj (patched) is
+  //  comparing to a pre-patched Promise.
   return object && object.then && typeof object.then === 'function';
-}
-
-if (!('setTimeoutWPM' in window)) {
-  const messageName = 'setTimeoutWPM';
-  let fns: Function[] = [];
-  let handledMessageCount = 0;
-
-  // If the setTimeout nesting level is greater than 5 and timeout is less than
-  // 4ms, timeout will be clamped to 4ms, which hurts the perf. Interleaving
-  // window.postMessage and setTimeout will trick the browser and avoid the
-  // clamp.
-  const setTimeoutWPM = function(fn: Function, timeout: number) {
-    fns.push(fn);
-    setTimeout(() => {
-      window.postMessage({name: messageName, index: fns.length - 1}, '*');
-    }, timeout);
-  };
-
-  const handleMessage = function(event: MessageEvent) {
-    if (event.source == window && event.data.name == messageName) {
-      event.stopPropagation();
-      const fn = fns[event.data.index];
-      fn();
-      handledMessageCount++;
-      // console.log(`handledMessageCount=${handledMessageCount},
-      // fns.length=${fns.length}`);
-      if (handledMessageCount === fns.length) {
-        fns = [];
-        handledMessageCount = 0;
-      }
-    }
-  };
-
-  window.addEventListener('message', handleMessage, true);
-  (window as any).setTimeoutWPM = setTimeoutWPM;
 }

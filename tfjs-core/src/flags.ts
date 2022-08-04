@@ -83,5 +83,5 @@ ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
 /** Whether to enable canvas2d willReadFrequently for GPU backends */
 ENV.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
 
-/** Whether to use setTimeoutWPM to replace setTimeout in WebGL data() */
-ENV.registerFlag('USE_SETTIMEOUTWPM', () => false);
+/** Whether to use setTimeoutCustom */
+ENV.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);
