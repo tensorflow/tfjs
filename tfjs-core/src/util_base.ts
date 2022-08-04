@@ -322,8 +322,8 @@ export function repeatedTry(
         reject();
         return;
       }
-      if (env().getBool('USE_SETTIMEOUTWPM')) {
-        (window as any).setTimeoutWPM(tryFn, nextBackoff);
+      if ('setTimeoutCustom' in env().platform) {
+        env().platform.setTimeoutCustom(tryFn, nextBackoff);
       } else {
         setTimeout(tryFn, nextBackoff);
       }
@@ -753,39 +753,4 @@ export function isPromise(object: any): object is Promise<unknown> {
   //  the async calls, so it is possible the obj (patched) is comparing to a
   //  pre-patched Promise.
   return object && object.then && typeof object.then === 'function';
-}
-
-if (!('setTimeoutWPM' in window)) {
-  const messageName = 'setTimeoutWPM';
-  let fns: Function[] = [];
-  let handledMessageCount = 0;
-
-  // If the setTimeout nesting level is greater than 5 and timeout is less than
-  // 4ms, timeout will be clamped to 4ms, which hurts the perf. Interleaving
-  // window.postMessage and setTimeout will trick the browser and avoid the
-  // clamp.
-  const setTimeoutWPM = function(fn: Function, timeout: number) {
-    fns.push(fn);
-    setTimeout(() => {
-      window.postMessage({name: messageName, index: fns.length - 1}, '*');
-    }, timeout);
-  };
-
-  const handleMessage = function(event: MessageEvent) {
-    if (event.source == window && event.data.name == messageName) {
-      event.stopPropagation();
-      const fn = fns[event.data.index];
-      fn();
-      handledMessageCount++;
-      // console.log(`handledMessageCount=${handledMessageCount},
-      // fns.length=${fns.length}`);
-      if (handledMessageCount === fns.length) {
-        fns = [];
-        handledMessageCount = 0;
-      }
-    }
-  };
-
-  window.addEventListener('message', handleMessage, true);
-  (window as any).setTimeoutWPM = setTimeoutWPM;
 }
