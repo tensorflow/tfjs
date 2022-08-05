@@ -29,6 +29,7 @@ const {
   firebaseConfig,
   endFirebaseInstance
 } = require('./firestore.js');
+const {PromiseQueue} = require('./promise_queue');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -156,26 +157,22 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   setupBenchmarkEnv(config);
   if (require.main === module) {
     console.log(
-        `Starting benchmarks using ${cliArgs?.webDeps ? 'cdn' : 'local'} ` +
+        `Starting benchmarks using ${cliArgs.localBuild || 'cdn'} ` +
         `dependencies...`);
   }
 
+  const promiseQueue = new PromiseQueue(cliArgs?.maxBenchmarks ?? 9);
   const results = [];
-  let numActiveBenchmarks = 0;
+
   // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
-    numActiveBenchmarks++;
-    results.push(runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
-      value.deviceInfo = config.browsers[tabId];
-      value.modelInfo = config.benchmark;
-      return value;
+    results.push(promiseQueue.add(() => {
+      return runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
+	value.deviceInfo = config.browsers[tabId];
+	value.modelInfo = config.benchmark;
+	return value;
+      });
     }));
-
-    // Waits for specified # of benchmarks to complete before running more
-    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
-      numActiveBenchmarks = 0;
-      await Promise.allSettled(results);
-    }
   }
 
   // Optionally written to an outfile or pushed to a database once all
@@ -235,8 +232,8 @@ async function getOneBenchmarkResult(
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
-    if (cliArgs.webDeps) {
-      args.push('--cdn')
+    if (cliArgs.localBuild) {
+      args.push(`--localBuild=${cliArgs.localBuild}`)
     };
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
@@ -362,9 +359,14 @@ function setupHelpMessage() {
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
-  parser.add_argument('--webDeps', {
-    help: 'utilizes public, web hosted dependencies instead of local versions',
-    action: 'store_true'
+  parser.add_argument('--localBuild', {
+    help: 'local build name list, separated by comma. The name is in short ' +
+        'form (in general the name without the tfjs- and backend- prefixes, ' +
+        'for example webgl for tfjs-backend-webgl, core for tfjs-core). ' +
+        'Example: --localBuild=webgl,core.',
+    type: 'string',
+    default: '',
+    action: 'store'
   });
   cliArgs = parser.parse_args();
   console.dir(cliArgs);
