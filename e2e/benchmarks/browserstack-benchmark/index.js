@@ -37,12 +37,13 @@ const state = {
   browser: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '84.0',
+    browser_version: '15.3',
     os: 'OS X',
-    os_version: 'Catalina',
+    os_version: 'Monterey',
     device: 'null'
   },
-  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
+  benchmark:
+      {model: 'mobilenet_v2', modelUrl: '', numRuns: 10, backend: 'webgl'},
 
   /**
    * An array of browser configurations, used to record the browsers to
