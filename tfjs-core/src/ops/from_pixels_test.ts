@@ -233,15 +233,6 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     document.body.removeChild(video);
   }, 30_000 /* 30 seconds */);
 
-  it('fromPixels for HTMLVideoElement throws without loadeddata', async () => {
-    const video = document.createElement('video');
-    video.width = 1;
-    video.height = 1;
-    video.src = 'data:image/gif;base64' +
-        ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-    expect(() => tf.browser.fromPixels(video)).toThrowError();
-  });
-
   it('throws when passed a primitive number', () => {
     const msg = /pixels passed to tf.browser.fromPixels\(\) must be either/;
     // tslint:disable-next-line:no-any
