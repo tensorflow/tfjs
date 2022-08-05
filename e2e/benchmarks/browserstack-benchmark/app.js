@@ -125,7 +125,6 @@ async function benchmarkAll(config) {
     }
   }
   console.log('\nAll benchmarks complete!');
-  endFirebaseInstance();
   return allResults;
 }
 
@@ -168,9 +167,9 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   for (const tabId in config.browsers) {
     results.push(promiseQueue.add(() => {
       return runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
-	value.deviceInfo = config.browsers[tabId];
-	value.modelInfo = config.benchmark;
-	return value;
+        value.deviceInfo = config.browsers[tabId];
+        value.modelInfo = config.benchmark;
+        return value;
       });
     }));
   }
@@ -403,6 +402,9 @@ async function prebenchmarkSetup() {
           `File could not be found at ${filePath}. ` +
           `Please provide a valid path.`);
     }
+  }
+  if (cliArgs.firestore) {
+    endFirebaseInstance();
   }
 }
 
