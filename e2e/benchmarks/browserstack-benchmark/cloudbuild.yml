@@ -23,11 +23,11 @@ availableSecrets:
       env: 'BROWSERSTACK_ACCESS_KEY'
     - versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
       env: 'FIREBASE_KEY'
-timeout: 3600s
+timeout: 28800s # 8h
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_8'
+  # machineType: 'E2_MEDIUM' # The default cloudbuild machine is e2-medium.
   substitution_option: 'ALLOW_LOOSE'
