@@ -33,7 +33,7 @@
     "Windows_7_1": {
       "base": "BrowserStack",
       "browser": "firefox",
-      "browser_version": "79.0",
+      "browser_version": "103.0",
       "os": "Windows",
       "os_version": "7",
       "device": null

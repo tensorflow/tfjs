@@ -37,7 +37,7 @@ const state = {
   browser: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '15.3',
+    browser_version: '103.0',
     os: 'OS X',
     os_version: 'Monterey',
     device: 'null'
