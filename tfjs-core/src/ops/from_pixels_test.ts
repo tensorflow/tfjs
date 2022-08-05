@@ -199,6 +199,27 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(1 * 1 * 3);
   });
+
+  it('fromPixels after draw to HTMLCanvasElement', async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 20;
+    canvas.height = 10;
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.arc(5, 5, 4, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    const tensorFromPixels = tf.browser.fromPixels(canvas, 3);
+    const dataFromPixels = await tensorFromPixels.data();
+    let dataIsNotAll0 = false;
+    dataFromPixels.forEach((x: number) => {
+      if (x !== 0) {
+        dataIsNotAll0 = true;
+      }
+    });
+    expect(dataIsNotAll0).toEqual(true);
+  });
+
   it('fromPixels for HTMLImageElement', async () => {
     const img = new Image(10, 10);
     img.src = 'data:image/gif;base64' +
