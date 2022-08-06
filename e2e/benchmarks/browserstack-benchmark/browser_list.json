@@ -89,7 +89,7 @@
   },
   {
     "os": "ios",
-    "os_version": "14",
+    "os_version": "15",
     "browser": "iphone",
     "device": "iPhone XS",
     "browser_version": null,
@@ -97,7 +97,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone XS",
     "browser_version": null,
@@ -113,7 +113,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone 11 Pro",
     "browser_version": null,
@@ -121,7 +121,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone 11",
     "browser_version": null,
