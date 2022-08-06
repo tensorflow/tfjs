@@ -126,6 +126,7 @@ limitations under the License.
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
+    let modelAlphaController = null;
     let tunableFlagsControllers = null;
 
     function updateGUIFromURLState() {
@@ -198,7 +199,7 @@ limitations under the License.
       numWarmups: warmupTimes,
       numRuns: runTimes,
       numProfiles: profileTimes,
-      benchmark: 'mobilenet_v2',
+      benchmark: 'mobilenet_v3',
       run: (v) => {
         runBenchmark().catch(e => {
           showMsg('Error: ' + e.message);
@@ -280,11 +281,12 @@ limitations under the License.
           appendRow(timeTable, '', '');
         }
       },
-      backend: 'wasm',
+      backend: 'webgl',
       kernelTiming: 'aggregate',
       inputSize: 0,
       inputType: '',
-      architecture: '',
+      architecture: 'small',
+      alpha: '075',
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
@@ -349,6 +351,9 @@ limitations under the License.
       }
       if (isParameterDefined('architectures')) {
         appendRow(parameterTable, 'architecture', state.architecture);
+      }
+      if (isParameterDefined('alphas')) {
+        appendRow(parameterTable, 'alpha', state.alpha);
       }
     }
 
@@ -514,6 +519,8 @@ limitations under the License.
         state.inputType = urlState.get('inputType');
       if (urlState.has('architecture'))
         state.architecture = urlState.get('architecture');
+      if (urlState.has('alpha'))
+        state.alpha = urlState.get('alpha');
     }
 
     async function loadModelAndRecordTime() {
@@ -535,7 +542,7 @@ limitations under the License.
       if (isTflite()) {
         await loadTfliteModel();
       } else {
-        model = await benchmark.load(inputSize, state.architecture, state.inputType);
+        model = await benchmark.load(inputSize, state.architecture, state.inputType, state.alpha);
       }
       state.inputs = [];
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs
@@ -803,6 +810,10 @@ limitations under the License.
           modelParameterFolder.remove(modelArchitectureController);
           modelArchitectureController = null;
         }
+        if (modelAlphaController !== null) {
+          modelParameterFolder.remove(modelAlphaController);
+          modelAlphaController = null;
+        }
         if (inputSizeController !== null) {
           modelParameterFolder.remove(inputSizeController);
           inputSizeController = null;
@@ -846,8 +857,27 @@ limitations under the License.
           modelArchitectureController.setValue(defaultModelArchitecture);
           state.architecture = defaultModelArchitecture;
         } else {
-          // Model doesn't support input size.
+          // Model doesn't support architecture.
           state.architecture = '';
+        }
+
+        if (isParameterDefined('alphas')) {
+          modelAlphaController = modelParameterFolder.add(state, 'alpha', benchmark['alphas']).name('alphas').onChange(async alpha => {
+            state.alpha = alpha;
+            state.isModelChanged = true;
+          });
+          // Current use first value as default.
+          let defaultModelAlpha = null;
+          if (isURLParameterDefined('alpha'))
+            defaultModelAlpha = urlState.get('alpha');
+          else
+            defaultModelAlpha = benchmark['alphas'][0];
+
+          modelAlphaController.setValue(defaultModelAlpha);
+          state.alpha = defaultModelAlpha;
+        } else {
+          // Model doesn't support alpha.
+          state.alpha = '';
         }
 
         if (isParameterDefined('inputTypes')) {
@@ -868,7 +898,10 @@ limitations under the License.
           // Model doesn't support input type.
           state.inputType = '';
         }
-        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
+
+        // Unfolding the model parameter UI if any model parameters are deinfed
+        // in the current model.
+        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures') || isParameterDefined('alphas')) {
           modelParameterFolder.open();
         }
 
@@ -881,7 +914,7 @@ limitations under the License.
             });
             modelUrlController.domElement.querySelector('input').placeholder =
               'https://your-domain.com/model-path/model.json';
-            if (modelUrlController != null && urlState.has('modelUrl')) {
+            if (modelUrlController != null && urlState && urlState.has('modelUrl')) {
               modelUrlController.setValue(urlState.get('modelUrl'));
             }
           }
@@ -899,18 +932,32 @@ limitations under the License.
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
+      // Show model parameter UI when loading the page.
       modelParameterFolder = gui.addFolder('Model Parameters');
+      // For each model parameter, show it only if it is defined in the
+      // pre-selected model.
       if (isParameterDefined('architectures')) {
-        modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
+        modelArchitectureController = modelParameterFolder.add(state, 'architecture', benchmarks[state.benchmark]['architectures']);
+        modelArchitectureController.setValue(state.architecture);
+      }
+      if (isParameterDefined('alphas')) {
+        modelAlphaController = modelParameterFolder.add(state, 'alpha', benchmarks[state.benchmark]['alphas']);
+        modelAlphaController.setValue(state.alpha);
       }
       if (isParameterDefined('inputSizes')) {
-        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmarks[state.benchmark]['inputSizes']);
+        inputSizeController.setValue(state.inputSize);
       }
       if (isParameterDefined('inputTypes')) {
-        inputTypeController = modelParameterFolder.add(state, 'inputType', []);
+        inputTypeController = modelParameterFolder.add(state, 'inputType', benchmarks[state.benchmark]['inputTypes']);
+        inputTypeController.setValue(state.inputType);
       }
 
-      modelParameterFolder.open();
+      // Unfolding the model parameter UI if any model parameters are deinfed
+      // in the pre-selected model.
+      if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures') || isParameterDefined('alphas')) {
+          modelParameterFolder.open();
+      }
 
       const envFolder = gui.addFolder('Environment');
       const backendsController = envFolder.add(
@@ -973,7 +1020,7 @@ limitations under the License.
         tfliteModel.modelRunner.cleanUp();
       }
       const benchmark = benchmarks[state.benchmark];
-      tfliteModel = await benchmark.loadTflite(enableProfiling);
+      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture, state.alpha);
     }
 
     function updateModelsDropdown(newValues) {
