@@ -90,7 +90,7 @@ describeWithFlags('PlatformBrowser', BROWSER_ENVS, async () => {
   });
 });
 
-describe('setTimeout', () => {
+describeWithFlags('setTimeout', BROWSER_ENVS, () => {
   const totalCount = 100;
   // Skip the first few samples because the browser does not clamp the timeout
   const skipCount = 5;
@@ -99,11 +99,7 @@ describe('setTimeout', () => {
     let count = 0;
     let startTime = performance.now();
     let totalTime = 0;
-    if (env().platformName === 'browser') {
-      setTimeout(_testSetTimeout, 0);
-    } else {
-      expect().nothing();
-    }
+    setTimeout(_testSetTimeout, 0);
 
     function _testSetTimeout() {
       const endTime = performance.now();
@@ -129,13 +125,9 @@ describe('setTimeout', () => {
     let totalTime = 0;
     let originUseSettimeoutcustom: boolean;
 
-    if (env().platformName === 'browser') {
-      originUseSettimeoutcustom = env().getBool('USE_SETTIMEOUTCUSTOM');
-      env().set('USE_SETTIMEOUTCUSTOM', true);
-      env().platform.setTimeoutCustom(_testSetTimeoutCustom, 0);
-    } else {
-      expect().nothing();
-    }
+    originUseSettimeoutcustom = env().getBool('USE_SETTIMEOUTCUSTOM');
+    env().set('USE_SETTIMEOUTCUSTOM', true);
+    env().platform.setTimeoutCustom(_testSetTimeoutCustom, 0);
 
     function _testSetTimeoutCustom() {
       const endTime = performance.now();

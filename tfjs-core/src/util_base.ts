@@ -303,7 +303,9 @@ export function rightPad(a: string, size: number): string {
 
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
-    maxCounter?: number, scheduleFn?: Function): Promise<void> {
+    maxCounter?: number,
+    scheduleFn: (functionRef: Function, delay: number) => void =
+        setTimeout): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -321,11 +323,7 @@ export function repeatedTry(
         reject();
         return;
       }
-      if (typeof scheduleFn === 'undefined') {
-        setTimeout(tryFn, nextBackoff);
-      } else {
-        scheduleFn(tryFn, nextBackoff);
-      }
+      scheduleFn(tryFn, nextBackoff);
     };
 
     tryFn();
