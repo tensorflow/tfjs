@@ -89,7 +89,7 @@ function predictFunction(input) {
 }
 
 const benchmarks = {
-  'mobilenet_v3': {
+  'MobileNetV3': {
     type: 'GraphModel',
     alphas: ['075', '100'],
     architectures: ['small', 'large'],
@@ -116,7 +116,7 @@ const benchmarks = {
       }
     },
   },
-  'mobilenet_v2': {
+  'MobileNetV2': {
     type: 'GraphModel',
     alphas: ['050', '075', '100'],
     load: async (
@@ -136,7 +136,7 @@ const benchmarks = {
   // provides mibilnet_v2_lite with alpha=100 on the tflite backend, so
   // mibilnet_v2_lite is separated from mibilnet_v2 and fixes alpha=100; othwise
   // it would confuse users.
-  'mobilenet_v2_lite': {
+  'MobileNetV2Lite': {
     type: 'GraphModel',
     load: async () => {
       throw new Error(`Please set tflite as the backend to run this model.`);
