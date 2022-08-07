@@ -75,7 +75,7 @@ It's easy to set up a web server to host benchmarks and run against them via e2e
   <b>inputSize</b>: same as inputSizes<br>
   <b>inputType</b>: same as inputTypes<br>
   <b>modelUrl</b>: same as modelUrl, for custom models only<br>
-  <b>${InputeName}Shape</b>: the input shape array, separated by comma, for     custom models only.  For example, bodypix's [graph model](https://storage.    googleapis.com/tfjs-models/savedmodel/bodypix/mobilenet/float/075/    model-stride16.json) has an input named sub_2, then users could add     '`sub_2Shape=1,1,1,3`' in the URL to populate its shape.<br>
+  <b>${InputeName}Shape</b>: the input shape array, separated by comma, for custom models only. For example, bodypix's [graph model](https://storage.googleapis.com/tfjs-models/savedmodel/bodypix/mobilenet/float/075/model-stride16.json) has an input named sub_2, then users could add '`sub_2Shape=1,1,1,3`' in the URL to populate its shape.<br>
 
 * Environment related parameters:
 
