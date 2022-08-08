@@ -134,28 +134,28 @@ const benchmarks = {
   'HandPoseDetector': {
     type: 'GraphModel',
     architectures: ['lite', 'full'],
-    load: async (inputResolution = 256, modelArchitecture = 'lite') => {
+    load: async (inputResolution = 192, modelArchitecture = 'lite') => {
       const url =
           `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/detector/${
               modelArchitecture}/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 256, 256, 3]);
+      const input = tf.zeros([1, 192, 192, 3]);
       return predictFunction(input);
     },
   },
   'HandPoseLandmark': {
     type: 'GraphModel',
     architectures: ['lite', 'full'],
-    load: async (inputResolution = 256, modelArchitecture = 'lite') => {
+    load: async (inputResolution = 224, modelArchitecture = 'lite') => {
       const url =
           `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/landmark/${
               modelArchitecture}/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 256, 256, 3]);
+      const input = tf.zeros([1, 224, 224, 3]);
       return predictFunction(input);
     },
   },
@@ -169,7 +169,7 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: (inputResolution = 192) => {
-      const input = tf.zeros([1, inputResolution, inputResolution, 3]);
+      const input = tf.zeros([1, inputResolution, inputResolution, 3], 'int32');
       return predictFunction(input);
     },
   },
@@ -181,7 +181,7 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 256, 256, 3]);
+      const input = tf.zeros([1, 256, 256, 3], 'int32');
       return predictFunction(input);
     },
   },
@@ -212,7 +212,9 @@ const benchmarks = {
   },
   'Coco-SSD': {
     type: 'GraphModel',
-    architectures: ['MobileNetV2', 'MobileNetV1', 'LiteMobileNetV2'],
+    // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
+    architectures: ['MobileNetV2', 'MobileNetV1', 'liteMobileNetV2'],
     load: async (inputResolution = 227, modelArchitecture = 'MobileNetV2') => {
       const tfliteBased = modelArchitecture.split('MobileNetV')[0];
       const mobileNetVersion = modelArchitecture.split('MobileNetV')[1];
@@ -221,8 +223,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 227, 227, 3]);
-      return predictFunction(input);
+      const input = tf.zeros([1, 227, 227, 3], 'int32');
+      return model => model.executeAsync(input);
     },
   },
   'DeepLabV3': {
@@ -235,7 +237,7 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 227, 500, 3]);
+      const input = tf.zeros([1, 227, 500, 3], 'int32');
       return predictFunction(input);
     },
   },
@@ -281,7 +283,6 @@ const benchmarks = {
   },
   'SelfieSegmentation-General': {
     type: 'GraphModel',
-    architectures: ['general', 'landscape'],
     load: async () => {
       const url =
           'https://tfhub.dev/mediapipe/tfjs-model/selfie_segmentation/general/1';
@@ -313,8 +314,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([224, 224, 3]);
-      return model => model.classify(zeros);
+      const zeros = tf.zeros([1, 224, 224, 3]);
+      return predictFunction(zeros);
     }
   },
   'AutoML Object': {
@@ -326,8 +327,10 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([224, 224, 3]);
-      return model => model.detect(zeros);
+      const OUTPUT_NODE_NAMES =
+          ['Postprocessor/convert_scores', 'Postprocessor/Decode/transpose_1'];
+      const feedDict = {ToFloat: tf.zeros([1, 224, 224, 3])};
+      return model => model.executeAsync(feedDict, OUTPUT_NODE_NAMES);
     }
   },
   'USE - batchsize 30': {
@@ -356,6 +359,45 @@ const benchmarks = {
         const res = await model.embed(next);
         return res;
       };
+    }
+  },
+  'TextToxicity': {
+    type: 'GraphModel',
+    // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/toxicity/1/default/1/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const indices = tf.tensor2d(
+          [0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9], [10, 2],
+          'int32');
+      const values = tf.randomUniform([10], 0, 1000, 'int32');
+      const input = {Placeholder_1: indices, Placeholder: values};
+      return model => model.executeAsync(input);
+    }
+  },
+  'MobileBert': {
+    type: 'GraphModel',
+    load: async () => {
+      const url = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const batchSize = 1;
+      const INPUT_SIZE = 384;
+      const inputIds = tf.ones([batchSize, INPUT_SIZE], 'int32');
+      const segmentIds = tf.ones([1, INPUT_SIZE], 'int32');
+      const inputMask = tf.ones([1, INPUT_SIZE], 'int32');
+      const input = {
+        input_ids: inputIds,
+        segment_ids: segmentIds,
+        input_mask: inputMask,
+        global_step: tf.scalar(1, 'int32')
+      };
+      return predictFunction(input);
     }
   },
   'posenet': {
