@@ -9,6 +9,7 @@ const {
   runFirestore,
   firebaseConfig
 } = require('./firestore.js');
+const {PromiseQueue} = require('./promise_queue.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -255,5 +256,77 @@ describe('test adding to firestore', () => {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');
     }
+  });
+});
+
+function sleep(n) {
+  return new Promise((resolve) => {
+    setTimeout(() => { resolve(); }, n);
+  });
+}
+
+describe('promise queue', () => {
+  let queue;
+  beforeEach(() => {
+    queue = new PromiseQueue(3);
+    jasmine.clock().install();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
+  });
+
+  it('runs a given number of functions at once', async () => {
+    let promises = [];
+    let started = [false, false, false, false, false];
+    let resolved = [false, false, false, false, false];
+    for (let i = 0; i < 5; i++) {
+      resolved[i] = false;
+      promises.push(queue.add(async () => {
+        started[i] = true;
+        await sleep((i + 1) * 10);
+        resolved[i] = true;
+      }));
+    }
+
+    // Queue should immediately start 3 promises.
+    expect(started).toEqual(
+        [true, true, true, false, false]
+    );
+    expect(resolved).toEqual(
+        [false, false, false, false, false]
+    );
+
+    // After the first promise is done, queue should start the fourth one.
+    jasmine.clock().tick(15);
+    await promises[0];
+    expect(started).toEqual(
+        [true, true, true, true, false]
+    );
+    expect(resolved).toEqual(
+        [true, false, false, false, false]
+    );
+
+    // All running promises should finish, and the last should start.
+    jasmine.clock().tick(1000);
+    await promises[1];
+    await promises[2];
+    await promises[3];
+    expect(started).toEqual(
+        [true, true, true, true, true]
+    );
+    expect(resolved).toEqual(
+        [true, true, true, true, false]
+    );
+
+    // The last promise should finish
+    jasmine.clock().tick(1000);
+    await promises[4];
+    expect(started).toEqual(
+        [true, true, true, true, true]
+    );
+    expect(resolved).toEqual(
+        [true, true, true, true, true]
+    );
   });
 });
