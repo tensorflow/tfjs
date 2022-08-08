@@ -229,7 +229,9 @@ const benchmarks = {
   },
   'DeepLabV3': {
     type: 'GraphModel',
-    architectures: ['pascal', 'cityscapes', 'ade20k'],
+    // TODO: Add cityscapes architecture.
+    // https://github.com/tensorflow/tfjs/issues/6733
+    architectures: ['pascal', 'ade20k'],
     load: async (inputResolution = 227, modelArchitecture = 'pascal') => {
       const url =
           `https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/deeplab/${
