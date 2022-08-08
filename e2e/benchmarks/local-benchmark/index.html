@@ -126,7 +126,6 @@ limitations under the License.
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
-    let modelAlphaController = null;
     let tunableFlagsControllers = null;
 
     function updateGUIFromURLState() {
@@ -286,7 +285,6 @@ limitations under the License.
       inputSize: 0,
       inputType: '',
       architecture: 'small',
-      alpha: '075',
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
@@ -351,9 +349,6 @@ limitations under the License.
       }
       if (isParameterDefined('architectures')) {
         appendRow(parameterTable, 'architecture', state.architecture);
-      }
-      if (isParameterDefined('alphas')) {
-        appendRow(parameterTable, 'alpha', state.alpha);
       }
     }
 
@@ -519,8 +514,6 @@ limitations under the License.
         state.inputType = urlState.get('inputType');
       if (urlState.has('architecture'))
         state.architecture = urlState.get('architecture');
-      if (urlState.has('alpha'))
-        state.alpha = urlState.get('alpha');
     }
 
     async function loadModelAndRecordTime() {
@@ -542,7 +535,7 @@ limitations under the License.
       if (isTflite()) {
         await loadTfliteModel();
       } else {
-        model = await benchmark.load(inputSize, state.architecture, state.inputType, state.alpha);
+        model = await benchmark.load(inputSize, state.architecture, state.inputType);
       }
       state.inputs = [];
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs
@@ -810,10 +803,6 @@ limitations under the License.
           modelParameterFolder.remove(modelArchitectureController);
           modelArchitectureController = null;
         }
-        if (modelAlphaController !== null) {
-          modelParameterFolder.remove(modelAlphaController);
-          modelAlphaController = null;
-        }
         if (inputSizeController !== null) {
           modelParameterFolder.remove(inputSizeController);
           inputSizeController = null;
@@ -861,25 +850,6 @@ limitations under the License.
           state.architecture = '';
         }
 
-        if (isParameterDefined('alphas')) {
-          modelAlphaController = modelParameterFolder.add(state, 'alpha', benchmark['alphas']).name('alphas').onChange(async alpha => {
-            state.alpha = alpha;
-            state.isModelChanged = true;
-          });
-          // Current use first value as default.
-          let defaultModelAlpha = null;
-          if (isURLParameterDefined('alpha'))
-            defaultModelAlpha = urlState.get('alpha');
-          else
-            defaultModelAlpha = benchmark['alphas'][0];
-
-          modelAlphaController.setValue(defaultModelAlpha);
-          state.alpha = defaultModelAlpha;
-        } else {
-          // Model doesn't support alpha.
-          state.alpha = '';
-        }
-
         if (isParameterDefined('inputTypes')) {
           inputTypeController = modelParameterFolder.add(state, 'inputType', benchmark['inputTypes']).name('inputTypes').onChange(async inputType => {
             state.inputType = inputType;
@@ -901,7 +871,7 @@ limitations under the License.
 
         // Unfolding the model parameter UI if any model parameters are deinfed
         // in the current model.
-        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures') || isParameterDefined('alphas')) {
+        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
         }
 
@@ -940,10 +910,6 @@ limitations under the License.
         modelArchitectureController = modelParameterFolder.add(state, 'architecture', benchmarks[state.benchmark]['architectures']);
         modelArchitectureController.setValue(state.architecture);
       }
-      if (isParameterDefined('alphas')) {
-        modelAlphaController = modelParameterFolder.add(state, 'alpha', benchmarks[state.benchmark]['alphas']);
-        modelAlphaController.setValue(state.alpha);
-      }
       if (isParameterDefined('inputSizes')) {
         inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmarks[state.benchmark]['inputSizes']);
         inputSizeController.setValue(state.inputSize);
@@ -955,7 +921,7 @@ limitations under the License.
 
       // Unfolding the model parameter UI if any model parameters are deinfed
       // in the pre-selected model.
-      if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures') || isParameterDefined('alphas')) {
+      if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
       }
 
@@ -1020,7 +986,7 @@ limitations under the License.
         tfliteModel.modelRunner.cleanUp();
       }
       const benchmark = benchmarks[state.benchmark];
-      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture, state.alpha);
+      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture);
     }
 
     function updateModelsDropdown(newValues) {
