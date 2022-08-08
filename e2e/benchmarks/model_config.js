@@ -91,7 +91,6 @@ function predictFunction(input) {
 const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
-    alphas: ['075', '100'],
     architectures: ['small_075', 'small_100', 'large_075', 'large_100'],
     load: async (inputResolution = 224, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_${
@@ -126,11 +125,11 @@ const benchmarks = {
       return predictFunction(input);
     },
   },
-  // Currently, for mibilnet_v2, only alpha=100 has tflite model. Since users
-  // could tune the alpha for 'mobilenet_v2' tfjs models, while we could only
-  // provides mibilnet_v2_lite with alpha=100 on the tflite backend, so
-  // mibilnet_v2_lite is separated from mibilnet_v2 and fixes alpha=100; othwise
-  // it would confuse users.
+  // Currently, for mibilnet_v2, only the architectures with alpha=100 has
+  // tflite model. Since users could tune the alpha for 'mobilenet_v2' tfjs
+  // models, while we could only provides mibilnet_v2_lite with alpha=100 on the
+  // tflite backend, so mibilnet_v2_lite is separated from mibilnet_v2 and fixes
+  // alpha=100; othwise it would confuse users.
   'MobileNetV2Lite': {
     type: 'GraphModel',
     load: async () => {
