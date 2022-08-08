@@ -70,7 +70,6 @@ It's easy to set up a web server to host benchmarks and run against them via e2e
 * Model related parameters:
 
   <b>architecture</b>: same as architecture (only certain models has it, such as MobileNetV3 and posenet)<br>
-  <b>alpha</b>: same as alpha (only certain models has it, such as MobileNetV3)<br>
   <b>benchmark</b>: same as models<br>
   <b>inputSize</b>: same as inputSizes<br>
   <b>inputType</b>: same as inputTypes<br>

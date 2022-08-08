@@ -92,19 +92,16 @@ const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
     alphas: ['075', '100'],
-    architectures: ['small', 'large'],
-    load: async (
-        inputResolution = 224, modelArchitecture = 'small',
-        inputType = 'tensor', alpha = '075') => {
+    architectures: ['small_075', 'small_100', 'large_075', 'large_100'],
+    load: async (inputResolution = 224, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_${
-          modelArchitecture}_${alpha}_224/classification/5/default/1`;
+          modelArchitecture}_224/classification/5/default/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     loadTflite: async (
-        enableProfiling = false, modelArchitecture = 'small',
-        alpha = '075') => {
+        enableProfiling = false, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
-          modelArchitecture}_${alpha}_224/classification/5/metadata/1`;
+          modelArchitecture}_224/classification/5/metadata/1`;
       return tflite.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
@@ -118,12 +115,10 @@ const benchmarks = {
   },
   'MobileNetV2': {
     type: 'GraphModel',
-    alphas: ['050', '075', '100'],
-    load: async (
-        inputResolution = 224, modelArchitecture = '', inputType = 'tensor',
-        alpha = '050') => {
+    architectures: ['050', '075', '100'],
+    load: async (inputResolution = 224, modelArchitecture = '050') => {
       const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_${
-          alpha}_224/classification/3/default/1`;
+          modelArchitecture}_224/classification/3/default/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
