@@ -303,6 +303,7 @@ const TEST_FILTERS: TestFilter[] = [
       'reverse3d ',
       'reverse4d ',
       'reverse webgpu',
+      'raggedTensorToTensor ',
       'RFFT ',
       'round webgpu',
       'method otsu',  // round
