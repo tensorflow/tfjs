@@ -42,8 +42,16 @@ const state = {
     os_version: 'Monterey',
     device: 'null'
   },
-  benchmark:
-      {model: 'mobilenet_v2', modelUrl: '', numRuns: 10, backend: 'webgl'},
+  benchmark: {
+    model: 'mobilenet_v2',
+    modelUrl: '',
+    numRuns: 10,
+    backend: 'webgl',
+    setupCodeSnippetEnv:
+        'img = tf.randomUniform([1, 240, 240, 3], 0, 1000); filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);',
+    codeSnippet:
+        'predict = () => { return tf.conv2d(img, filter, 2, \'same\');};'
+  },
 
   /**
    * An array of browser configurations, used to record the browsers to

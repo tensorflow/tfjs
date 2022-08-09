@@ -90,18 +90,15 @@ async function benchmarkModel(benchmarkParameters) {
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
-  /* Please set up environments to run your code snippet here. */
-  /* Start */
-  const img = tf.randomUniform([1, 240, 240, 3], 0, 1000);
-  const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);
-  /* End */
+  let predict = null;
 
-  /* Please put your code snippet to benchmark into the predict function. */
-  /* Start */
-  const predict = () => {
-    return tf.conv2d(img, filter, 1, 'same');
-  };
-  /* End */
+  eval(benchmarkParameters.setupCodeSnippetEnv || '');
+  eval(benchmarkParameters.codeSnippet || '');
+
+  if (predict == null) {
+    throw new Error(
+        'predict function is suppoed to be defined in codeSnippet.');
+  }
 
   // Warm up.
   await timeInference(predict, 1);
