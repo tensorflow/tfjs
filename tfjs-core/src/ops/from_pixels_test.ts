@@ -210,7 +210,9 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   });
   it('fromPixels for HTMLVideoElement', async () => {
     const video = document.createElement('video');
-    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.preload = 'auto';
     const source = document.createElement('source');
     source.src =
         // tslint:disable-next-line:max-line-length
@@ -223,6 +225,15 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     if (video.readyState < 2) {
       await new Promise(resolve => {
         video.addEventListener('loadeddata', () => resolve(video));
+      });
+    }
+
+    await video.play();
+
+    if ('requestVideoFrameCallback' in video) {
+      await new Promise(resolve => {
+        // tslint:disable-next-line:no-any
+        (video as any).requestVideoFrameCallback(resolve);
       });
     }
 
