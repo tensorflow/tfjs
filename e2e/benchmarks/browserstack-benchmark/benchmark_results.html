@@ -1,0 +1,102 @@
+<html>
+<body style="margin: 5%"></body>
+<script src="./benchmark_results.js"></script>
+<script>
+  // node app.js --localBuild=core,webgl --benchmark='./preconfigured_browser.json' --maxBenchmarks=4 --cloud --outfile
+
+  function getTableName(benchmarkReocrd) {
+    let benchmarkCategory =
+      benchmarkReocrd?.value?.modelInfo?.model !== 'codeSnippet'?
+          'Model' : 'Code Snippet';
+    return `${benchmarkCategory} (${benchmarkReocrd?.value?.modelInfo?.backend})`;
+  }
+
+  function getDeviceName(benchmarkReocrd) {
+    let deviceInfo = benchmarkReocrd?.value?.deviceInfo || {};
+    return `${deviceInfo.os}(${deviceInfo.os_version})  ${deviceInfo.device || deviceInfo.browser + deviceInfo.browser_version} `;
+  }
+
+  function getBenchmarkTargetName(benchmarkReocrd) {
+    let benchmarkTargetName =
+      benchmarkReocrd?.value?.modelInfo?.model;
+      if (benchmarkTargetName === 'codeSnippet') {
+        benchmarkTargetName = benchmarkReocrd?.value?.codeSnippet
+            .replaceAll('\n', '')
+            .replaceAll('\t', '');
+      }
+    return `${benchmarkTargetName || 'NA'}`;
+  }
+
+  function parseBenchmarkResults(benchmarkResults) {
+    const structuredBenchmarkResults = {};
+    for (let benchmarkReocrd of benchmarkResults) {
+      if (benchmarkReocrd.status !== 'fulfilled') {
+        return;
+      }
+      let tableName = getTableName(benchmarkReocrd);
+      let deviceName = getDeviceName(benchmarkReocrd);
+      let benchmarkTargetName = getBenchmarkTargetName(benchmarkReocrd);
+
+      if (structuredBenchmarkResults[tableName] == null) {
+        structuredBenchmarkResults[tableName] = {};
+      }
+      if (structuredBenchmarkResults[tableName][deviceName] == null) {
+        structuredBenchmarkResults[tableName][deviceName] = {};
+      }
+
+      structuredBenchmarkResults[tableName][deviceName][benchmarkTargetName]
+        = benchmarkReocrd?.value?.timeInfo?.averageTime;
+    }
+    return structuredBenchmarkResults;
+  }
+
+  function initializeTable(tableHeaderfileds) {
+    const table = document.createElement("TABLE");
+    let header = table.createTHead();
+    let row = header.insertRow(0);
+    row.insertCell(0);
+    for (let filedIndex in tableHeaderfileds) {
+      let cell = row.insertCell(row.cells.length);
+      cell.innerHTML = `<b>${tableHeaderfileds[filedIndex]}</b>`;
+    }
+    return table;
+  }
+
+  function addDeviceData(table, tableHeaderfileds, tableData, deviceName) {
+    const deviceData = tableData[deviceName];
+    const row = table.insertRow(table.rows.length);
+    let deviceNameCell = row.insertCell(0);
+    deviceNameCell.innerHTML = deviceName;
+
+    for (const filedName of tableHeaderfileds) {
+      const cell = row.insertCell(row.cells.length);
+      cell.innerHTML = deviceData[filedName] || 'NA';
+    }
+  }
+
+  function renderBenchmarkTable(tableName) {
+    let table, tableHeaderfileds;
+    const tableData = structuredBenchmarkResults[tableName];
+    for (const deviceName in tableData) {
+      if (table == null) {
+        tableHeaderfileds = Object.keys(tableData[deviceName]);
+        table = initializeTable(tableHeaderfileds);
+      }
+      addDeviceData(table, tableHeaderfileds, tableData, deviceName);
+    }
+
+     table.createCaption().innerHTML = tableName;
+    table.setAttribute('border', '1');
+    document.body.appendChild(table);
+  }
+
+  function renderStructuredBenchmarkResults() {
+    for (let tableName in structuredBenchmarkResults) {
+      renderBenchmarkTable(tableName);
+    }
+  }
+
+const structuredBenchmarkResults = parseBenchmarkResults(res);
+renderStructuredBenchmarkResults();
+</script>
+</html>

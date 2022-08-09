@@ -96,33 +96,27 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   let filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
   /* End */
 
-  /* Run $numRuns of horizontal reads. */
-  let predict = () => {
-    return tf.conv2d(image, filter, 1, 'same', 'NCHW');
-  };
-  await timeInference(predict, 1);
-  const timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
+  // /* Run $numRuns of horizontal reads. */
+  // let predict = () => {
+  //   return tf.conv2d(image, filter, 1, 'same', 'NCHW');
+  // };
+  // await timeInference(predict, 1);
+  // const timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
 
-  /* Run $numRuns of vertical reads. */
-  image = tf.randomUniform([1, 1, 1024, 1024], 1, 10);
-  filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
-  predict = () => {
-    return tf.conv2d(image, filter, 2, 'same', 'NCHW');
-  };
-  await timeInference(predict, 1);
-  const timeInfo2 = await timeInference(predict, benchmarkParameters.numRuns);
-  timeInfo.times.push(...timeInfo2.times);
+  // /* Run $numRuns of vertical reads. */
+  // let predict = () => {
+  //   return tf.conv2d(image, filter, 2, 'same', 'NCHW');
+  // };
+  // await timeInference(predict, 1);
+  // const timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
 
 
   /* Run $numRuns of square reads. */
-  image = tf.randomUniform([1, 1, 1024, 1024], 1, 10);
-  filter = tf.randomUniform([1, 1, 1, 1], 1, 10);
-  predict = () => {
+  let predict = () => {
     return tf.conv2d(image, filter, 3, 'same', 'NCHW');
   };
   await timeInference(predict, 1);
-  const timeInfo3 = await timeInference(predict, benchmarkParameters.numRuns);
-  timeInfo.times.push(...timeInfo3.times);
+  const timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
 
 
   memoryInfo = await profileInference(predict);

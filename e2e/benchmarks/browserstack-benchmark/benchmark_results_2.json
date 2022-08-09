@@ -1,0 +1,1539 @@
+[
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          8,
+          8,
+          4.0000000000009095,
+          2.9999999999990905,
+          3,
+          6
+        ],
+        "averageTime": 5.333333333333333,
+        "minTime": 2.9999999999990905,
+        "maxTime": 8
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 3,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 3
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "OS_X_Monterey_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "safari",
+        "browser_version": "15.3",
+        "os": "OS X",
+        "os_version": "Monterey",
+        "device": null
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          14.299999997019768,
+          10,
+          10.600000001490116,
+          7.699999995529652,
+          6.800000004470348,
+          6.800000004470348
+        ],
+        "averageTime": 9.366666667163372,
+        "minTime": 6.800000004470348,
+        "maxTime": 14.299999997019768
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 0.189666,
+            "extraInfo": "LinearReadProgram: 0.189666"
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 0.189666
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "OS_X_Monterey_2",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "os": "OS X",
+        "os_version": "Monterey",
+        "browser": "chrome",
+        "device": null,
+        "browser_version": "103.0"
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          12.999999999999886,
+          13,
+          12,
+          11,
+          13,
+          11
+        ],
+        "averageTime": 12.166666666666648,
+        "minTime": 11,
+        "maxTime": 13
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 12,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 12
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_13_Pro_Max_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "os": "ios",
+        "os_version": "15",
+        "browser": "iphone",
+        "device": "iPhone 13 Pro Max",
+        "browser_version": null,
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          21,
+          14.000000000000455,
+          14.999999999999545,
+          15,
+          15,
+          14
+        ],
+        "averageTime": 15.666666666666666,
+        "minTime": 14,
+        "maxTime": 21
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 14,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 14
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_13_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "os": "ios",
+        "os_version": "15",
+        "browser": "iphone",
+        "device": "iPhone 13",
+        "browser_version": null,
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          263,
+          261,
+          270,
+          268,
+          272,
+          260
+        ],
+        "averageTime": 265.6666666666667,
+        "minTime": 260,
+        "maxTime": 272
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 258,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 258
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_12_Pro_Max_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "iphone",
+        "browser_version": null,
+        "os": "ios",
+        "os_version": "14",
+        "device": "iPhone 12 Pro Max",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          273.00000000000045,
+          270.99999999999955,
+          260,
+          256,
+          261,
+          272
+        ],
+        "averageTime": 265.5,
+        "minTime": 256,
+        "maxTime": 273.00000000000045
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 273,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 273
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_12_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "iphone",
+        "browser_version": null,
+        "os": "ios",
+        "os_version": "14",
+        "device": "iPhone 12",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          326,
+          322.00000000000045,
+          318.99999999999955,
+          315,
+          318,
+          320
+        ],
+        "averageTime": 320,
+        "minTime": 315,
+        "maxTime": 326
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 321.0000000000009,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 321.0000000000009
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_11_Pro_Max_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "iphone",
+        "browser_version": null,
+        "os": "ios",
+        "os_version": "14",
+        "device": "iPhone 11 Pro Max",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          319,
+          320,
+          322,
+          323,
+          315,
+          320
+        ],
+        "averageTime": 319.8333333333333,
+        "minTime": 315,
+        "maxTime": 323
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 317,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 317
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_11_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "iphone",
+        "browser_version": null,
+        "os": "ios",
+        "os_version": "14",
+        "device": "iPhone 11",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          41,
+          34,
+          35,
+          35,
+          40,
+          40.00000000000023
+        ],
+        "averageTime": 37.500000000000036,
+        "minTime": 34,
+        "maxTime": 41
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 39,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 39
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "iPhone_XS_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "iphone",
+        "browser_version": null,
+        "os": "ios",
+        "os_version": "15",
+        "device": "iPhone XS",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          69.29999999981374,
+          60.90000000037253,
+          64.8999999994412,
+          62.5,
+          62,
+          69.40000000037253
+        ],
+        "averageTime": 64.83333333333333,
+        "minTime": 60.90000000037253,
+        "maxTime": 69.40000000037253
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 66.1000000005588,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 66.1000000005588
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Google_Pixel_6_Pro_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "12.0",
+        "device": "Google Pixel 6 Pro",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          940.1000000000931,
+          940.1000000000931,
+          945.1999999997206,
+          949.7000000001863,
+          946.5,
+          951.2000000001863
+        ],
+        "averageTime": 945.4666666667132,
+        "minTime": 940.1000000000931,
+        "maxTime": 951.2000000001863
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 946,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 946
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Google_Pixel_5_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "12.0",
+        "device": "Google Pixel 5",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          10,
+          10.5,
+          11,
+          11.5,
+          12.299999952316284,
+          11.100000023841858
+        ],
+        "averageTime": 11.066666662693024,
+        "minTime": 10,
+        "maxTime": 12.299999952316284
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 10.600000023841858,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 10.600000023841858
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_S22_Ultra_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "12.0",
+        "device": "Samsung Galaxy S22 Ultra",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          529.6999999880791,
+          531,
+          532.5,
+          531.9000000059605,
+          539.9000000059605,
+          539.5999999940395
+        ],
+        "averageTime": 534.0999999990066,
+        "minTime": 529.6999999880791,
+        "maxTime": 539.9000000059605
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 533.5,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 533.5
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_M52_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "11.0",
+        "device": "Samsung Galaxy M52",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          1123.0999999642372,
+          1137.199999988079,
+          1133.2999999523163,
+          1150.199999988079,
+          1134.1000000238419,
+          1157.2000000476837
+        ],
+        "averageTime": 1139.1833333273728,
+        "minTime": 1123.0999999642372,
+        "maxTime": 1157.2000000476837
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 1146.800000011921,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 1146.800000011921
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_A52_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "11.0",
+        "device": "Samsung Galaxy A52",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          2843,
+          2843.2000000476837,
+          2835.100000023842,
+          2838.6999999284744,
+          2847,
+          2146
+        ],
+        "averageTime": 2725.5,
+        "minTime": 2146,
+        "maxTime": 2847
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 57,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 57
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Xiaomi_Redmi_Note_11_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "11.0",
+        "device": "Xiaomi Redmi Note 11",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          100.19999998807907,
+          87.29999999701977,
+          87.90000000596046,
+          88.70000000298023,
+          87.29999999701977,
+          86.5
+        ],
+        "averageTime": 89.64999999850988,
+        "minTime": 86.5,
+        "maxTime": 100.19999998807907
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 86.90000000596046,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 86.90000000596046
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_Note_20_Ultra_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "10.0",
+        "device": "Samsung Galaxy Note 20 Ultra",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          43.19999999925494,
+          9.699999999254942,
+          5.5,
+          3.099999999627471,
+          2.600000001490116,
+          2.900000000372529
+        ],
+        "averageTime": 11.166666666666666,
+        "minTime": 2.600000001490116,
+        "maxTime": 43.19999999925494
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 5.300000000745058,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 5.300000000745058
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_A11_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "10.0",
+        "device": "Samsung Galaxy A11",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          414.8999999910593,
+          428.30000001192093,
+          422.5,
+          427.20000000298023,
+          425.20000000298023,
+          421.79999999701977
+        ],
+        "averageTime": 423.31666666766006,
+        "minTime": 414.8999999910593,
+        "maxTime": 428.30000001192093
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 427,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 427
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Google_Pixel_4_XL_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "10.0",
+        "device": "Google Pixel 4 XL",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  },
+  {
+    "status": "fulfilled",
+    "value": {
+      "timeInfo": {
+        "times": [
+          301,
+          294.69999998807907,
+          296,
+          294.30000001192093,
+          303.5,
+          296.89999997615814
+        ],
+        "averageTime": 297.7333333293597,
+        "minTime": 294.30000001192093,
+        "maxTime": 303.5
+      },
+      "memoryInfo": {
+        "newBytes": 0,
+        "newTensors": 0,
+        "peakBytes": 8388612,
+        "kernels": [
+          {
+            "name": "Conv2D",
+            "bytesAdded": 4194304,
+            "totalBytesSnapshot": 8388612,
+            "tensorsAdded": 1,
+            "totalTensorsSnapshot": 3,
+            "inputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                1024,
+                1024
+              ]
+            ],
+            "kernelTimeMs": 294.80000001192093,
+            "extraInfo": ""
+          }
+        ],
+        "kernelNames": [
+          "Conv2D"
+        ],
+        "aggregatedKernels": [
+          {
+            "name": "Conv2D",
+            "timeMs": 294.80000001192093
+          }
+        ]
+      },
+      "codeSnippet": "() => {\n    return tf.conv2d(image, filter, 2, 'same', 'NCHW');\n  }",
+      "tabId": "Samsung_Galaxy_S10_Plus_1",
+      "deviceInfo": {
+        "base": "BrowserStack",
+        "browser": "android",
+        "browser_version": null,
+        "os": "android",
+        "os_version": "9.0",
+        "device": "Samsung Galaxy S10 Plus",
+        "real_mobile": true
+      },
+      "modelInfo": {
+        "model": "codeSnippet",
+        "numRuns": 6,
+        "backend": "webgl"
+      }
+    }
+  }
+]
