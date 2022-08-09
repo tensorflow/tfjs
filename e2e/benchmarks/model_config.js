@@ -89,16 +89,18 @@ function predictFunction(input) {
 }
 
 const benchmarks = {
-  'mobilenet_v3': {
+  'MobileNetV3': {
     type: 'GraphModel',
-    load: async () => {
-      const url =
-          'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/classification/5/default/1';
+    architectures: ['small_075', 'small_100', 'large_075', 'large_100'],
+    load: async (inputResolution = 224, modelArchitecture = 'small_075') => {
+      const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_${
+          modelArchitecture}_224/classification/5/default/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
-    loadTflite: async (enableProfiling = false) => {
-      const url =
-          'https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_small_100_224/classification/5/metadata/1';
+    loadTflite: async (
+        enableProfiling = false, modelArchitecture = 'small_075') => {
+      const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
+          modelArchitecture}_224/classification/5/metadata/1`;
       return tflite.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
@@ -110,12 +112,28 @@ const benchmarks = {
       }
     },
   },
-  'mobilenet_v2': {
+  'MobileNetV2': {
+    type: 'GraphModel',
+    architectures: ['050', '075', '100'],
+    load: async (inputResolution = 224, modelArchitecture = '050') => {
+      const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_${
+          modelArchitecture}_224/classification/3/default/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([1, 224, 224, 3]);
+      return predictFunction(input);
+    },
+  },
+  // Currently, for mibilnet_v2, only the architectures with alpha=100 has
+  // tflite model. Since users could tune the alpha for 'mobilenet_v2' tfjs
+  // models, while we could only provides mibilnet_v2_lite with alpha=100 on the
+  // tflite backend, so mibilnet_v2_lite is separated from mibilnet_v2 and fixes
+  // alpha=100; othwise it would confuse users.
+  'MobileNetV2Lite': {
     type: 'GraphModel',
     load: async () => {
-      const url =
-          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
-      return tf.loadGraphModel(url);
+      throw new Error(`Please set tflite as the backend to run this model.`);
     },
     loadTflite: async (enableProfiling = false) => {
       const url =
