@@ -198,7 +198,7 @@ limitations under the License.
       numWarmups: warmupTimes,
       numRuns: runTimes,
       numProfiles: profileTimes,
-      benchmark: 'mobilenet_v2',
+      benchmark: 'MobileNetV3',
       run: (v) => {
         runBenchmark().catch(e => {
           showMsg('Error: ' + e.message);
@@ -280,11 +280,11 @@ limitations under the License.
           appendRow(timeTable, '', '');
         }
       },
-      backend: 'wasm',
+      backend: 'webgl',
       kernelTiming: 'aggregate',
       inputSize: 0,
       inputType: '',
-      architecture: '',
+      architecture: 'small_075',
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
@@ -846,7 +846,7 @@ limitations under the License.
           modelArchitectureController.setValue(defaultModelArchitecture);
           state.architecture = defaultModelArchitecture;
         } else {
-          // Model doesn't support input size.
+          // Model doesn't support architecture.
           state.architecture = '';
         }
 
@@ -868,6 +868,9 @@ limitations under the License.
           // Model doesn't support input type.
           state.inputType = '';
         }
+
+        // Unfolding the model parameter UI if any model parameters are deinfed
+        // in the current model.
         if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
         }
@@ -881,7 +884,7 @@ limitations under the License.
             });
             modelUrlController.domElement.querySelector('input').placeholder =
               'https://your-domain.com/model-path/model.json';
-            if (modelUrlController != null && urlState.has('modelUrl')) {
+            if (modelUrlController != null && urlState && urlState.has('modelUrl')) {
               modelUrlController.setValue(urlState.get('modelUrl'));
             }
           }
@@ -899,18 +902,28 @@ limitations under the License.
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
+      // Show model parameter UI when loading the page.
       modelParameterFolder = gui.addFolder('Model Parameters');
+      // For each model parameter, show it only if it is defined in the
+      // pre-selected model.
       if (isParameterDefined('architectures')) {
-        modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
+        modelArchitectureController = modelParameterFolder.add(state, 'architecture', benchmarks[state.benchmark]['architectures']);
+        modelArchitectureController.setValue(state.architecture);
       }
       if (isParameterDefined('inputSizes')) {
-        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmarks[state.benchmark]['inputSizes']);
+        inputSizeController.setValue(state.inputSize);
       }
       if (isParameterDefined('inputTypes')) {
-        inputTypeController = modelParameterFolder.add(state, 'inputType', []);
+        inputTypeController = modelParameterFolder.add(state, 'inputType', benchmarks[state.benchmark]['inputTypes']);
+        inputTypeController.setValue(state.inputType);
       }
 
-      modelParameterFolder.open();
+      // Unfolding the model parameter UI if any model parameters are deinfed
+      // in the pre-selected model.
+      if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
+          modelParameterFolder.open();
+      }
 
       const envFolder = gui.addFolder('Environment');
       const backendsController = envFolder.add(
@@ -973,7 +986,7 @@ limitations under the License.
         tfliteModel.modelRunner.cleanUp();
       }
       const benchmark = benchmarks[state.benchmark];
-      tfliteModel = await benchmark.loadTflite(enableProfiling);
+      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture);
     }
 
     function updateModelsDropdown(newValues) {
