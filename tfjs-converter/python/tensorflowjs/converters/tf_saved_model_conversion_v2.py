@@ -637,7 +637,7 @@ def _convert_tf_saved_model(output_dir,
   num_outputs = len(output_node_names)
   structured_outputs = concrete_func.structured_outputs
   if use_structured_outputs_names and structured_outputs is not None:
-    if type(structured_outputs) is not dict:
+    if not isinstance(structured_outputs, dict):
       raise Exception('Converter only supports dict structured_outputs.')
 
     # As per tensorflow/python/util/nest.py: "If `structure` is or contains a
@@ -649,7 +649,8 @@ def _convert_tf_saved_model(output_dir,
     # We don't support anything more complex due to the GraphModel.predict
     # function return type in typescript.
     test_sequence = list(range(num_outputs))
-    actual_structure = tf.nest.pack_sequence_as(structured_outputs, test_sequence, True)
+    actual_structure = tf.nest.pack_sequence_as(
+        structured_outputs, test_sequence, True)
     expected_structure = dict(zip(sorted_keys, test_sequence))
     if actual_structure != expected_structure:
       raise Exception('Converter only supports structured_outputs of form '
@@ -812,7 +813,7 @@ def convert_tf_saved_model(saved_model_dir,
                           skip_op_check=skip_op_check,
                           strip_debug_ops=strip_debug_ops,
                           use_structured_outputs_names=
-                                             use_structured_outputs_names,
+                          use_structured_outputs_names,
                           weight_shard_size_bytes=weight_shard_size_bytes,
                           control_flow_v2=control_flow_v2,
                           experiments=experiments,
@@ -999,7 +1000,7 @@ def convert_tf_hub_module(module_handle, output_dir,
                            skip_op_check=skip_op_check,
                            strip_debug_ops=strip_debug_ops,
                            use_structured_outputs_names=
-                                              use_structured_outputs_names,
+                           use_structured_outputs_names,
                            weight_shard_size_bytes=weight_shard_size_bytes,
                            control_flow_v2=control_flow_v2,
                            experiments=experiments,
@@ -1044,7 +1045,7 @@ def convert_keras_model_to_graph_model(keras_model,
                           skip_op_check=skip_op_check,
                           strip_debug_ops=strip_debug_ops,
                           use_structured_outputs_names=
-                                             use_structured_outputs_names,
+                          use_structured_outputs_names,
                           weight_shard_size_bytes=weight_shard_size_bytes,
                           control_flow_v2=control_flow_v2,
                           experiments=experiments,
