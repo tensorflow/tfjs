@@ -48,7 +48,7 @@ const state = {
     numRuns: 10,
     backend: 'webgl',
     setupCodeSnippetEnv:
-        'img = tf.randomUniform([1, 240, 240, 3], 0, 1000); filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);',
+        'const img = tf.randomUniform([1, 240, 240, 3], 0, 1000); const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);',
     codeSnippet:
         'predict = () => { return tf.conv2d(img, filter, 2, \'same\');};'
   },
