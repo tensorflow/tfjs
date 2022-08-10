@@ -111,19 +111,35 @@ async function benchmarkAll(config) {
 
   for (backend of benchmarkInfo.backend) {
     for (model of benchmarkInfo.model) {
-      console.log(
-          `\nRunning ${model} model benchmarks over ${backend} backend...`);
-      const result = await benchmark({
-        'benchmark': {
-          'model': model,
-          'numRuns': benchmarkInfo.numRuns,
-          'backend': backend,
-          'codeSnippet': benchmarkInfo.codeSnippet || '',
-          'setupCodeSnippetEnv': benchmarkInfo.setupCodeSnippetEnv || ''
-        },
-        'browsers': config.browsers
-      });
-      allResults.push(result);
+      if (model === 'codeSnippet') {
+        for (codeSnippetPair of benchmarkInfo.codeSnippets) {
+          console.log(
+              `\nRunning codeSnippet benchmarks over ${backend} backend...`);
+          const result = await benchmark({
+            'benchmark': {
+              'model': model,
+              'numRuns': benchmarkInfo.numRuns,
+              'backend': backend,
+              'codeSnippet': codeSnippetPair.codeSnippet || '',
+              'setupCodeSnippetEnv': codeSnippetPair.setupCodeSnippetEnv || ''
+            },
+            'browsers': config.browsers
+          });
+          allResults.push(result);
+        }
+      } else {
+        console.log(
+            `\nRunning ${model} model benchmarks over ${backend} backend...`);
+        const result = await benchmark({
+          'benchmark': {
+            'model': model,
+            'numRuns': benchmarkInfo.numRuns,
+            'backend': backend
+          },
+          'browsers': config.browsers
+        });
+        allResults.push(result);
+      }
     }
   }
   console.log('\nAll benchmarks complete!');
