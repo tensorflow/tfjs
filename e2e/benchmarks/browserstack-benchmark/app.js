@@ -179,7 +179,8 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write(
-        './benchmark_results.js', `let res = ${JSON.stringify(fulfilled)};`);
+        './benchmark_results.js',
+        `let benchmarkResults = ${JSON.stringify(fulfilled)};`);
   } else {
     console.log('\Benchmarks complete.\n');
   }

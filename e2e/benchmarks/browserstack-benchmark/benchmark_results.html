@@ -17,7 +17,6 @@ limitations under the License.
 <body style="margin: 5%"></body>
 <script src="./benchmark_results.js"></script>
 <script>
-  // node app.js --localBuild=core,webgl --benchmark='./preconfigured_browser.json' --maxBenchmarks=4 --cloud --outfile
 
   /**
    * Returns the table name for this benchmark record, which is a combination
@@ -151,8 +150,11 @@ limitations under the License.
   }
 
   function onPageLoad() {
-    const structuredBenchmarkResults = parseBenchmarkResults(res);
-    renderStructuredBenchmarkResults(structuredBenchmarkResults);
+    // benchmarkResults is supposed to be loaded from benchmark_results.js.
+    if (benchmarkResults != null) {
+      const structuredBenchmarkResults = parseBenchmarkResults(benchmarkResults);
+      renderStructuredBenchmarkResults(structuredBenchmarkResults);
+    }
   }
 
   onPageLoad();
