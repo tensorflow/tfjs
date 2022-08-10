@@ -221,6 +221,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
+    await video.play();
+
     // On mobile safari the ready state is ready immediately.
     if (video.readyState < 2) {
       await new Promise(resolve => {
@@ -229,8 +231,6 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     }
 
     expect(true).toBeTrue();
-
-    //await video.play();
 
     //if ('requestVideoFrameCallback' in video) {
     //  await new Promise(resolve => {
