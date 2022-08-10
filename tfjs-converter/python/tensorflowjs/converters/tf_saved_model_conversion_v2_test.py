@@ -274,15 +274,15 @@ class ConvertTest(tf.test.TestCase):
     output3 = tf.keras.layers.Multiply(name='c')([output1, output2])
 
     inputs = {
-      "input1": input1,
-      "input3": input3,
-      "input2": input2
+        "input1": input1,
+        "input3": input3,
+        "input2": input2
     }
 
     outputs = {
-      "a": output1,
-      "c": output3,
-      "b": output2
+        "a": output1,
+        "c": output3,
+        "b": output2
     }
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
@@ -933,7 +933,8 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
 
-    self.assertEqual(["a", "b", "c"], model_json['userDefinedMetadata']['structuredOutputKeys'])
+    self.assertEqual(["a", "b", "c"],
+                     model_json['userDefinedMetadata']['structuredOutputKeys'])
 
   def test_convert_saved_model_structured_outputs_false(self):
     self._create_saved_model_with_structured_outputs()
