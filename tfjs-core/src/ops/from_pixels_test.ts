@@ -221,14 +221,14 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
-    expect(true).toBeTrue();
+    // On mobile safari the ready state is ready immediately.
+    if (video.readyState < 2) {
+      await new Promise(resolve => {
+        video.addEventListener('loadeddata', () => resolve(video));
+      });
+    }
 
-    //// On mobile safari the ready state is ready immediately.
-    //if (video.readyState < 2) {
-    //  await new Promise(resolve => {
-    //    video.addEventListener('loadeddata', () => resolve(video));
-    //  });
-    //}
+    expect(true).toBeTrue();
 
     //await video.play();
 
