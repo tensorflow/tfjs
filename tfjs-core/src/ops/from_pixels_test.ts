@@ -212,7 +212,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const video = document.createElement('video');
     video.loop = true;
     video.muted = true;
-    video.playsInline = true;
+    video.setAttribute('playsinline', '');
     video.preload = 'auto';
     const source = document.createElement('source');
     source.src =
