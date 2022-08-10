@@ -178,7 +178,8 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
-    await write('./benchmark_results.json', fulfilled);
+    await write(
+        './benchmark_results.js', `let res = ${JSON.stringify(fulfilled)};`);
   } else {
     console.log('\Benchmarks complete.\n');
   }
@@ -287,12 +288,12 @@ function runBrowserStackBenchmark(tabId) {
  */
 function write(filePath, msg) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
+    fs.writeFile(filePath, msg, 'utf8', err => {
       if (err) {
         console.log(`Error: ${err}.`);
         return reject(err);
       } else {
-        console.log('\nOutput written.');
+        console.log(`\nOutput written to ${filePath}.`);
         return resolve();
       }
     });
