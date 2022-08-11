@@ -177,8 +177,12 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // Optionally written to an outfile or pushed to a database once all
   // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
-  if (cliArgs?.outfile) {
-    await write('./benchmark_results.json', fulfilled);
+  if (cliArgs?.outfile === 'html') {
+    await write(
+        './benchmark_results.js',
+        `let benchmarkResults = ${JSON.stringify(fulfilled)};`);
+  } else if (cliArgs?.outfile === 'json') {
+    await write('./benchmark_results.json', JSON.stringify(fulfilled));
   } else {
     console.log('\Benchmarks complete.\n');
   }
@@ -287,12 +291,12 @@ function runBrowserStackBenchmark(tabId) {
  */
 function write(filePath, msg) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
+    fs.writeFile(filePath, msg, 'utf8', err => {
       if (err) {
         console.log(`Error: ${err}.`);
         return reject(err);
       } else {
-        console.log('\nOutput written.');
+        console.log(`\nOutput written to ${filePath}.`);
         return resolve();
       }
     });
@@ -355,8 +359,14 @@ function setupHelpMessage() {
     help: 'Store benchmark results in Firestore database',
     action: 'store_true'
   });
-  parser.add_argument(
-      '--outfile', {help: 'write results to outfile', action: 'store_true'});
+  parser.add_argument('--outfile', {
+    help: 'write results to outfile. Expects \'html\' or \'json\'. ' +
+        'If you set it as \'html\', benchmark_results.js will be generated ' +
+        'and you could review the benchmark results by openning ' +
+        'benchmark_result.html file.',
+    type: 'string',
+    action: 'store'
+  });
   parser.add_argument('-v', '--version', {action: 'version', version});
   parser.add_argument('--localBuild', {
     help: 'local build name list, separated by comma. The name is in short ' +
