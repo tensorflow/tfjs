@@ -162,6 +162,7 @@ saved a tf.keras model in the SavedModel format.
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 |<nobr>`--control_flow_v2`</nobr>| Only applicable to TF 2.x Saved Model. This flag improve performance on models with control flow ops, default to False.|
 |<nobr>`--metadata`</nobr>| Comma separated list of metadata json file paths, indexed by name. Prefer absolute path. Example: 'metadata1:/metadata1.json,metadata2:/metadata2.json'.|
+|<nobr>`--use_structured_outputs_names`</nobr>| Changes output of graph model to match the structured_outputs format instead of list format. Defaults to `False`.|
 
 __Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
 
