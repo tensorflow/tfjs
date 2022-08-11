@@ -177,10 +177,12 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // Optionally written to an outfile or pushed to a database once all
   // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
-  if (cliArgs?.outfile) {
+  if (cliArgs?.outfile === 'html') {
     await write(
         './benchmark_results.js',
         `let benchmarkResults = ${JSON.stringify(fulfilled)};`);
+  } else if (cliArgs?.outfile === 'json') {
+    await write('./benchmark_results.json', JSON.stringify(fulfilled));
   } else {
     console.log('\Benchmarks complete.\n');
   }
@@ -357,8 +359,14 @@ function setupHelpMessage() {
     help: 'Store benchmark results in Firestore database',
     action: 'store_true'
   });
-  parser.add_argument(
-      '--outfile', {help: 'write results to outfile', action: 'store_true'});
+  parser.add_argument('--outfile', {
+    help: 'write results to outfile. Expects \'html\' or \'json\'. ' +
+        'If you set it as \'html\', benchmark_results.js will be generated ' +
+        'and you could review the benchmark results by openning ' +
+        'benchmark_result.html file.',
+    type: 'string',
+    action: 'store'
+  });
   parser.add_argument('-v', '--version', {action: 'version', version});
   parser.add_argument('--localBuild', {
     help: 'local build name list, separated by comma. The name is in short ' +
