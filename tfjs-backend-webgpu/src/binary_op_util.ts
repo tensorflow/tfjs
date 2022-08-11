@@ -58,12 +58,7 @@ const CHECK_NAN_SNIPPET_VEC4 = `
   `;
 
 const ADD = 'return a + b;';
-const ATAN2 = CHECK_NAN_SNIPPET + `
-  return atan2(a, b);
-`;
-const ATAN2_VEC4 = CHECK_NAN_SNIPPET_VEC4 + `
-  return atan2(a, b);
-`;
+const ATAN2 = 'return atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -207,7 +202,7 @@ export function getBinaryOpString(
     case BinaryOpType.ADD:
       return ADD;
     case BinaryOpType.ATAN2:
-      return useVec4 ? ATAN2_VEC4 : ATAN2;
+      return ATAN2;
     case BinaryOpType.SUB:
       return SUB;
     case BinaryOpType.DIV:
