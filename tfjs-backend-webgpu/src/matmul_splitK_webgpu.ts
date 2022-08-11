@@ -48,7 +48,19 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         () => 'MatMulSplitKProgram only supports batch = 1.');
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
+                   !transposeA && dimInner % 4 === 0) &&
+        this.outputShape[2] % 4 === 0;
     this.elementsPerThread = [4, 4, this.tileInner];
+    if (!this.isVec4) {
+      if (this.outputShape[1] < 16) {
+        this.elementsPerThread[1] = 1;
+      }
+      if (this.outputShape[2] < 16) {
+        this.elementsPerThread[0] = 1;
+      }
+    }
+
     this.dispatch = computeDispatch(
         this.dispatchLayout,
         [
@@ -61,9 +73,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.transposeB = transposeB;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
-    this.isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
-                   !transposeA && dimInner % 4 === 0) &&
-        this.outputShape[2] % 4 === 0;
     this.shaderKey =
         `matMulSplitK_${transposeA}_${transposeB}_${batchAEqualOne}_${
             batchBEqualOne}_${this.elementsPerThread}_${this.isVec4}`;
