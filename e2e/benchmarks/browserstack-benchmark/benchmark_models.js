@@ -92,8 +92,9 @@ async function benchmarkModel(benchmarkParameters) {
 async function benchmarkCodeSnippet(benchmarkParameters) {
   let predict = null;
 
-  eval(benchmarkParameters.setupCodeSnippetEnv || '');
-  eval(benchmarkParameters.codeSnippet || '');
+  const setupCodeSnippetEnv = benchmarkParameters.setupCodeSnippetEnv || '';
+  const codeSnippet = benchmarkParameters.codeSnippet || ''
+  eval(setupCodeSnippetEnv.concat(codeSnippet));
 
   if (predict == null) {
     throw new Error(
@@ -107,11 +108,8 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
   memoryInfo = await profileInference(predict);
 
-  return `<tfjs_benchmark>${JSON.stringify({
-    timeInfo,
-    memoryInfo,
-    codeSnippet: predict.toString()
-  })}</tfjs_benchmark>`;
+  return `<tfjs_benchmark>${
+      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
 }
 
 describe('BrowserStack benchmark', () => {
