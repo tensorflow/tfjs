@@ -66,7 +66,7 @@ function runServer() {
     });
   });
   app.listen(port, () => {
-    console.log(`  > Running socket on port: ${port}`);
+    console.log(`  > Running socket on: 127.0.0.1:${port}`);
   });
 
   io = socketio(app);
@@ -117,7 +117,9 @@ async function benchmarkAll(config) {
         'benchmark': {
           'model': model,
           'numRuns': benchmarkInfo.numRuns,
-          'backend': backend
+          'backend': backend,
+          'codeSnippet': benchmarkInfo.codeSnippet || '',
+          'setupCodeSnippetEnv': benchmarkInfo.setupCodeSnippetEnv || ''
         },
         'browsers': config.browsers
       });
