@@ -214,6 +214,9 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.muted = true;
     video.setAttribute('playsinline', '');
     video.preload = 'auto';
+    video.style.position = 'fixed';
+    video.style.top = '0px';
+    video.style.left = '0px';
     const source = document.createElement('source');
     source.src =
         // tslint:disable-next-line:max-line-length
