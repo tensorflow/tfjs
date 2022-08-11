@@ -222,12 +222,17 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
-    await video.play();
+    //await video.play();
 
-    // On mobile safari the ready state is ready immediately.
-    if (video.readyState < 2) {
+    //// On mobile safari the ready state is ready immediately.
+    //if (video.readyState < 2) {
+    //  await new Promise(resolve => {
+    //    video.addEventListener('loadeddata', () => resolve(video));
+    //  });
+    //}
+    if (video.readyState < 1) {
       await new Promise(resolve => {
-        video.addEventListener('loadeddata', () => resolve(video));
+        video.addEventListener('loadedmetadata', () => resolve(video));
       });
     }
 
