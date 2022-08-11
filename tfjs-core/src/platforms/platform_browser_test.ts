@@ -138,11 +138,7 @@ describeWithFlags('setTimeout', BROWSER_ENVS, () => {
       if (count === totalCount) {
         const averageTime = totalTime / (totalCount - skipCount);
         console.log(`averageTime of setTimeoutCustom is ${averageTime} ms`);
-        if (window) {
-          expect(averageTime).toBeLessThan(4);
-        } else {
-          expect(averageTime).toBeGreaterThan(4);
-        }
+        expect(averageTime).toBeLessThan(4);
         done();
         env().set('USE_SETTIMEOUTCUSTOM', originUseSettimeoutcustom);
         return;
