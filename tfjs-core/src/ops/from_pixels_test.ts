@@ -225,7 +225,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
-    //await video.play();
+    await video.play();
 
     // On mobile safari the ready state is ready immediately.
     if (video.readyState < 2) {
