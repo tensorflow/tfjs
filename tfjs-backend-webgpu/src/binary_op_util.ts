@@ -18,6 +18,7 @@
 export enum BinaryOpType {
   MUL,
   ADD,
+  ATAN2,
   SUB,
   DIV,
   EQUAL,
@@ -37,7 +38,32 @@ export enum BinaryOpType {
   COMPLEX_MULTIPLY_IMAG
 }
 
+const CHECK_NAN_SNIPPET = `
+  if (isnan(a)) { return a; }
+  if (isnan(b)) { return b; }
+  `;
+const CHECK_NAN_SNIPPET_VEC4 = `
+  if (isNaN.r) {
+    resultTemp.r = uniforms.NAN;
+  }
+  if (isNaN.g) {
+    resultTemp.g = uniforms.NAN;
+  }
+  if (isNaN.b) {
+    resultTemp.b = uniforms.NAN;
+  }
+  if (isNaN.a) {
+    resultTemp.a = uniforms.NAN;
+  }
+  `;
+
 const ADD = 'return a + b;';
+const ATAN2 = CHECK_NAN_SNIPPET + `
+  return atan2(a, b);
+`;
+const ATAN2_VEC4 = CHECK_NAN_SNIPPET_VEC4 + `
+  return atan2(a, b);
+`;
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -61,24 +87,6 @@ const LESS_EQUAL_VEC4 = 'return vec4<f32>(a <= b);';
 const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
-const CHECK_NAN_SNIPPET = `
-  if (isnan(a)) { return a; }
-  if (isnan(b)) { return b; }
-  `;
-const CHECK_NAN_SNIPPET_VEC4 = `
-  if (isNaN.r) {
-    resultTemp.r = uniforms.NAN;
-  }
-  if (isNaN.g) {
-    resultTemp.g = uniforms.NAN;
-  }
-  if (isNaN.b) {
-    resultTemp.b = uniforms.NAN;
-  }
-  if (isNaN.a) {
-    resultTemp.a = uniforms.NAN;
-  }
-  `;
 const INT_DIV = `
   let s = sign(a) * sign(b);
   let ia = i32(round(a));
@@ -198,6 +206,8 @@ export function getBinaryOpString(
       return MUL;
     case BinaryOpType.ADD:
       return ADD;
+    case BinaryOpType.ATAN2:
+      return useVec4 ? ATAN2_VEC4 : ATAN2;
     case BinaryOpType.SUB:
       return SUB;
     case BinaryOpType.DIV:

@@ -41,6 +41,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'atan2 ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+    ]
+  },
+  {
     startsWith: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
@@ -124,6 +130,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
+  {startsWith: 'isNaN ', excludes: []},
   {
     startsWith: 'matmul',
     excludes: [
@@ -192,6 +199,7 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
+  {startsWith: 'reciprocal ', excludes: []},
   {
     startsWith: 'relu ',
     excludes: [
