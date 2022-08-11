@@ -334,6 +334,7 @@ limitations under the License.
       appendRow(parameterTable, 'task', 'Performance Benchmark');
       appendRow(parameterTable, 'benchmark', state.benchmark);
       appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      appendRow(parameterTable, 'convertedBy', model?.artifacts?.convertedBy || 'Unknown');
       if (state.benchmark === 'custom') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
