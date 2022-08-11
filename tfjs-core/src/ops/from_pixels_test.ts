@@ -224,15 +224,10 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     //await video.play();
 
-    //// On mobile safari the ready state is ready immediately.
-    //if (video.readyState < 2) {
-    //  await new Promise(resolve => {
-    //    video.addEventListener('loadeddata', () => resolve(video));
-    //  });
-    //}
-    if (video.readyState < 1) {
+    // On mobile safari the ready state is ready immediately.
+    if (video.readyState < 2) {
       await new Promise(resolve => {
-        video.addEventListener('loadedmetadata', () => resolve(video));
+        video.addEventListener('loadeddata', () => resolve(video));
       });
     }
 
