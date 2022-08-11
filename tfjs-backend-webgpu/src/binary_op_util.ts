@@ -58,12 +58,6 @@ const CHECK_NAN_SNIPPET_VEC4 = `
   `;
 
 const ADD = 'return a + b;';
-const ATAN2 = CHECK_NAN_SNIPPET + `
-  return atan2(a, b);
-`;
-const ATAN2_VEC4 = CHECK_NAN_SNIPPET_VEC4 + `
-  return atan2(a, b);
-`;
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -125,19 +119,20 @@ const NOT_EQUAL = `
 `;
 const NOT_EQUAL_VEC4 = `
   var result = vec4<f32>(a != b);
+  let valueForNaN = 1.0;
   var isANaN = isnanVec4(a);
   var isBNaN = isnanVec4(b);
   if (isANaN.r || isBNaN.r) {
-    result.r = 1.0;
+    result.r = valueForNaN;
   }
   if (isANaN.g || isBNaN.g) {
-    result.g = 1.0;
+    result.g = valueForNaN;
   }
   if (isANaN.b || isBNaN.b) {
-    result.b = 1.0;
+    result.b = valueForNaN;
   }
   if (isANaN.a || isBNaN.a) {
-    result.a = 1.0;
+    result.a = valueForNaN;
   }
 
   return result;
@@ -185,7 +180,7 @@ const PRELU_VEC4 = `
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
   `;
 
-function getMinMaxString(op: string, useVec4: boolean) {
+function getBinaryWithNanString(op: string, useVec4: boolean) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op}(a, b));
@@ -207,7 +202,7 @@ export function getBinaryOpString(
     case BinaryOpType.ADD:
       return ADD;
     case BinaryOpType.ATAN2:
-      return useVec4 ? ATAN2_VEC4 : ATAN2;
+      return getBinaryWithNanString('atan2', useVec4);
     case BinaryOpType.SUB:
       return SUB;
     case BinaryOpType.DIV:
@@ -233,9 +228,9 @@ export function getBinaryOpString(
     case BinaryOpType.PRELU:
       return useVec4 ? PRELU_VEC4 : PRELU;
     case BinaryOpType.MAX:
-      return getMinMaxString('max', useVec4);
+      return getBinaryWithNanString('max', useVec4);
     case BinaryOpType.MIN:
-      return getMinMaxString('min', useVec4);
+      return getBinaryWithNanString('min', useVec4);
     case BinaryOpType.POW:
       return useVec4 ? POW_VEC4 : POW;
     case BinaryOpType.COMPLEX_MULTIPLY_REAL:

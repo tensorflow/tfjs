@@ -130,7 +130,6 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
-  {startsWith: 'isNaN ', excludes: []},
   {
     startsWith: 'matmul',
     excludes: [
@@ -199,7 +198,6 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
-  {startsWith: 'reciprocal ', excludes: []},
   {
     startsWith: 'relu ',
     excludes: [
@@ -267,7 +265,6 @@ const TEST_FILTERS: TestFilter[] = [
       'any webgpu ',
       'asin ',
       'asinh ',
-      'atan2 ',
       'atanh ',
       'avgPool3d ',
       'avgPool3dBackprop ',
@@ -288,7 +285,6 @@ const TEST_FILTERS: TestFilter[] = [
       'IRFFT ',
       'isFinite ',
       'isInf ',
-      'isNaN ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
@@ -305,7 +301,6 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
-      'reciprocal ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',
