@@ -227,9 +227,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     video.load();
 
-    await new Promise(resolve => {
-      video.addEventListener('loadeddata', () => resolve(video));
-    });
+    await new Promise(resolve => video.addEventListener('loadeddata', resolve));
 
     await video.play();
 
