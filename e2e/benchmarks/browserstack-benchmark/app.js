@@ -30,7 +30,9 @@ const {
   endFirebaseInstance
 } = require('./firestore.js');
 const {PromiseQueue} = require('./promise_queue');
+const JSONStream = require('JSONStream');
 
+const jsonwriter = JSONStream.stringify();
 const port = process.env.PORT || 8001;
 let io;
 let parser;
@@ -195,18 +197,16 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // Optionally written to an outfile or pushed to a database once all
   // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
-  if (cliArgs?.outfile === 'html') {
-    await write(
-        './benchmark_results.js',
-        `let benchmarkResults = ${JSON.stringify(fulfilled)};`);
-  } else if (cliArgs?.outfile === 'json') {
-    await write('./benchmark_results.json', JSON.stringify(fulfilled));
-  } else {
-    console.log('\Benchmarks complete.\n');
+  if (cliArgs?.outfile === 'html' || cliArgs?.outfile === 'json') {
+    for (const benchmarkResult of fulfilled) {
+      jsonwriter.write(benchmarkResult);
+    }
   }
   if (cliArgs?.firestore) {
     await pushToFirestore(fulfilled);
   }
+  console.log(
+      `\n${config.benchmark?.model} model benchmark over ${config.benchmark?.backend} backend complete.\n`);
   return fulfilled;
 }
 
@@ -302,26 +302,6 @@ function runBrowserStackBenchmark(tabId) {
 }
 
 /**
- * Writes a passed message to a passed JSON file.
- *
- * @param filePath Relative filepath of target file
- * @param msg Message to be written
- */
-function write(filePath, msg) {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, msg, 'utf8', err => {
-      if (err) {
-        console.log(`Error: ${err}.`);
-        return reject(err);
-      } else {
-        console.log(`\nOutput written to ${filePath}.`);
-        return resolve();
-      }
-    });
-  })
-}
-
-/**
  * Pushes all benchmark results to Firestore.
  *
  * @param benchmarkResults List of all benchmark results
@@ -405,34 +385,85 @@ function setupHelpMessage() {
  * @param file Relative filepath to preset benchmark configuration
  * @param runBenchmark Function to run a benchmark configuration
  */
-function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
+async function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
-  runBenchmark(file);
+  await runBenchmark(file);
+}
+
+async function initializeWriting() {
+  if (cliArgs.firestore) {
+    db = await runFirestore(firebaseConfig)
+  };
+
+  let file;
+   if (cliArgs?.outfile === 'html') {
+     await fs.writeFile('./benchmark_results.js', 'const a = ', 'utf8', err => {
+       if (err) {
+         console.log(`Error: ${err}.`);
+         return reject(err);
+       } else {
+         return resolve();
+       }
+     });
+     file = fs.createWriteStream('benchmark_results.js', {'flags': 'a'});
+   } else if (cliArgs?.outfile === 'json') {
+     file = fs.createWriteStream('./benchmark_results.json');
+   } else {
+     return;
+   }
+
+   // Pipe the JSON data to the file.
+   jsonwriter.pipe(file);
+   console.log(`\nStart writing.`);
+
+   // If having outfile, add a listener to Ctrl+C to finalize writing.
+   process.on('SIGINT', async () => {
+     await finalizeWriting();
+     process.exit();
+   });
+}
+
+
+async function finalizeWriting() {
+  if (cliArgs.firestore) {
+    await endFirebaseInstance();
+  }
+
+  if (cliArgs?.outfile === 'html') {
+    jsonwriter.end();
+    await fs.appendFile('./benchmark_results.js', ';', 'utf8', err => {});
+    console.log('\nOutput written to ./benchmark_results.js.');
+  } else if (cliArgs?.outfile === 'json') {
+    jsonwriter.end();
+    console.log('\nOutput written to ./benchmark_results.json.');
+  }
 }
 
 /** Sets up the local or remote environment for benchmarking. */
 async function prebenchmarkSetup() {
   checkBrowserStackAccount();
-  if (cliArgs.firestore) {
-    db = await runFirestore(firebaseConfig)
-  };
+  await initializeWriting();
+
   if (!cliArgs.cloud) {
     runServer()
   };
-  if (cliArgs.benchmarks) {
-    const filePath = resolve(cliArgs.benchmarks);
-    if (fs.existsSync(filePath)) {
-      console.log(`\nFound file at ${filePath}`);
-      const config = require(filePath);
-      runBenchmarkFromFile(config);
-    } else {
-      throw new Error(
-          `File could not be found at ${filePath}. ` +
-          `Please provide a valid path.`);
+
+  try {
+    if (cliArgs.benchmarks) {
+      const filePath = resolve(cliArgs.benchmarks);
+      if (fs.existsSync(filePath)) {
+        console.log(`\nFound file at ${filePath}`);
+        const config = require(filePath);
+        await runBenchmarkFromFile(config);
+        console.log('finish')
+      } else {
+        throw new Error(
+            `File could not be found at ${filePath}. ` +
+            `Please provide a valid path.`);
+      }
     }
-  }
-  if (cliArgs.firestore) {
-    endFirebaseInstance();
+  } finally {
+    finalizeWriting();
   }
 }
 
@@ -445,4 +476,3 @@ if (require.main === module) {
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
 exports.getOneBenchmarkResult = getOneBenchmarkResult;
 exports.benchmark = benchmark;
-exports.write = write;
