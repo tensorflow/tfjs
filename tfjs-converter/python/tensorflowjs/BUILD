@@ -50,7 +50,10 @@ py_library(
     # This is a dummy rule used as a JAX dependency in open-source.
     # We expect JAX to already be installed on the system, e.g. via
     # `pip install jax`.
-    deps = [requirement("jax")],
+    deps = [
+        requirement("jax"),
+        requirement("importlib_resources"),
+    ],
 )
 
 py_library(

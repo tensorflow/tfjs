@@ -19,7 +19,7 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 from jax.experimental import jax2tf
 from jax.experimental.jax2tf import shape_poly
 import tensorflow as tf
-from tensorflowjs.converters import convert_tf_saved_model
+from tensorflowjs.converters import tf_saved_model_conversion_v2 as saved_model_conversion
 
 
 _TF_SERVING_KEY = tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY
@@ -146,4 +146,4 @@ def convert_jax(
         saved_model_dir,
         signatures=signatures,
         options=saved_model_options)
-    convert_tf_saved_model(saved_model_dir, model_dir)
+    saved_model_conversion.convert_tf_saved_model(saved_model_dir, model_dir)
