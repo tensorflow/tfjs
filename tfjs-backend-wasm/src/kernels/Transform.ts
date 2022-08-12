@@ -22,9 +22,10 @@ import {BackendWasm} from '../backend_wasm';
 let wasmTransform: (
     imageId: number, transformsId: number, isBatchTransform: boolean,
     batch: number, outHeight: number, outWidth: number, numChannels: number,
-    imageWidth: number, imageHeight: number, strides: Uint8Array,
-    stridesLength: number, interpolationModeId: number, fillModeId: number,
-    fillValue: number, outId: number) => void;
+    imageWidth: number, imageHeight: number, inputStrides: Uint8Array,
+    inputStridesLength: number, outputStrides: Uint8Array,
+    outputStridesLength: number, interpolationModeId: number,
+    fillModeId: number, fillValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmTransform = backend.wasm.cwrap(Transform, null /*void*/, [
@@ -37,8 +38,10 @@ function setup(backend: BackendWasm): void {
     'number',  // numChannels
     'number',  // imageWidth
     'number',  // imageHeight
-    'array',   // strides
-    'number',  // stridesLength
+    'array',   // inputStrides
+    'number',  // inputStridesLength
+    'array',   // outputStrides
+    'number',  // outputStridesLength
     'number',  // interpolationModeId
     'number',  // fillModeId
     'number',  // fillValue
@@ -60,8 +63,11 @@ function transform(
   const outShape =
       [batch, outHeight, outWidth,
        numChannels] as [number, number, number, number];
-  const strides =
+  const inputStrides =
       new Uint8Array(new Int32Array(util.computeStrides(image.shape)).buffer);
+
+  const outputStrides =
+      new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
 
   const out = backend.makeOutput(outShape, image.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
@@ -94,9 +100,9 @@ function transform(
 
   wasmTransform(
       imageId, transformsId, (transforms.shape[0] > 1), batch, outHeight,
-      outWidth, numChannels, imageWidth, imageHeight, strides,
-      image.shape.length - 1, interpolationModeId, fillModeId, fillValue,
-      outId);
+      outWidth, numChannels, imageWidth, imageHeight, inputStrides,
+      image.shape.length - 1, outputStrides, outShape.length - 1,
+      interpolationModeId, fillModeId, fillValue, outId);
 
   return out;
 }

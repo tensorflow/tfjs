@@ -27,13 +27,16 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
   yarn install
-  yarn build-deps
 
   node app.js
   ```
   Then you can see `> Running socket on port: 8001` on your Command-line interface.
 
 3. Open http://localhost:8001/ and start to benchmark.
+  3.1 If you want to benchmark code snippet. Please update [`benchmarkCodeSnippet` ](https://github.com/tensorflow/tfjs/pull/6704/files#diff-a7c2ef12f0f2bc1a6cabb45bc9850aa68d10644cd2786e6505456e5537dccadbR92)with your code snippet before running `node app.js` and select `codeSnippet` in `model name`:
+<div style="text-align:center">
+  <img src="https://user-images.githubusercontent.com/40653845/182249695-021db9a7-e0ef-47e6-8110-ddf777b598a5.png" alt="drawing" height="300px"/>
+</div>
 4. When the benchmark is complete, you can see the benchmark results in the webpage, like:
 <div style="text-align:center">
   <img src="https://user-images.githubusercontent.com/40653845/90341914-a432f180-dfb8-11ea-841e-0d9078c6d50d.png" alt="drawing" height="300px"/>
@@ -109,9 +112,9 @@ The following are supported options arguments which trigger options features:
     node app.js --maxTries=positive_integer
     ```
   * --outfile
-    - Writes results to an accessible external file, benchmark_results.json.
+    - Writes results to an accessible external file, benchmark_results.js or benchmark_results.json. Expects 'html' or 'json'. If you set it as \'html\', benchmark_results.js will be generated and you could review the benchmark results by openning benchmark_result.html file.
     ``` shell
-    node app.js --outfile
+    node app.js --outfile=js
     ```
   * --v, --version
     - Shows node version in use.
@@ -122,10 +125,10 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --version
     ```
-  * --webDeps
-    - Uses public CDNs instead of local file dependencies.
+  * --localBuild
+    - Uses local build dependencies, instead of public CDNs. (**When using localBuild targets, please make sure you have built the targets (eg. run `yarn build-individual-link-package tfjs-backend-webgl`) you need.**)
     ``` shell
-    node app.js --webDeps
+    node app.js --localBuild=core,webgl,wasm,cpu,layers,converter,automl
     ```
 
 ## Custom model

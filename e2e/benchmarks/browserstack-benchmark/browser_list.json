@@ -1,10 +1,10 @@
 [
   {
     "os": "Windows",
-    "os_version": "10",
+    "os_version": "11",
     "browser": "chrome",
     "device": null,
-    "browser_version": "84.0",
+    "browser_version": "103.0",
     "real_mobile": null
   },
   {
@@ -17,43 +17,59 @@
   },
   {
     "os": "Windows",
-    "os_version": "10",
+    "os_version": "11",
     "browser": "edge",
     "device": null,
-    "browser_version": "84.0",
+    "browser_version": "103.0",
     "real_mobile": null
   },
   {
     "os": "Windows",
-    "os_version": "10",
+    "os_version": "11",
     "browser": "firefox",
     "device": null,
-    "browser_version": "79.0",
+    "browser_version": "103.0",
     "real_mobile": null
   },
   {
     "os": "OS X",
-    "os_version": "Catalina",
+    "os_version": "Monterey",
     "browser": "chrome",
     "device": null,
-    "browser_version": "84.0",
+    "browser_version": "103.0",
     "real_mobile": null
   },
   {
     "os": "OS X",
-    "os_version": "Catalina",
+    "os_version": "Monterey",
     "browser": "safari",
     "device": null,
-    "browser_version": "13.1",
+    "browser_version": "15.3",
     "real_mobile": null
   },
   {
     "os": "OS X",
-    "os_version": "Catalina",
+    "os_version": "Monterey",
     "browser": "firefox",
     "device": null,
-    "browser_version": "79.0",
+    "browser_version": "103.0",
     "real_mobile": null
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13 Pro Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13",
+    "browser_version": null,
+    "real_mobile": true
   },
   {
     "os": "ios",
@@ -73,7 +89,7 @@
   },
   {
     "os": "ios",
-    "os_version": "14",
+    "os_version": "15",
     "browser": "iphone",
     "device": "iPhone XS",
     "browser_version": null,
@@ -81,7 +97,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone XS",
     "browser_version": null,
@@ -97,7 +113,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone 11 Pro",
     "browser_version": null,
@@ -105,7 +121,7 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
     "device": "iPhone 11",
     "browser_version": null,
@@ -124,6 +140,42 @@
     "os_version": "13",
     "browser": "iphone",
     "device": "iPhone SE 2020",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "15",
+    "browser": "ipad",
+    "device": "iPad 9th",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "15",
+    "browser": "ipad",
+    "device": "iPad Air 5",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "14",
+    "browser": "ipad",
+    "device": "iPad Air 4",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "14",
+    "browser": "ipad",
+    "device": "iPad 8th",
     "browser_version": null,
     "real_mobile": true
   },
@@ -244,6 +296,63 @@
     "os_version": "12",
     "browser": "ipad",
     "device": "iPad Air 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22 Ultra",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S21",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 6 Pro",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 6",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Tab S8",
     "browser_version": null,
     "real_mobile": true
   },

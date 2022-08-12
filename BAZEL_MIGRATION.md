@@ -384,12 +384,12 @@ Update all downstream dependencies that depend on the package to point to its lo
 
 To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*tfjs-foo" .` in the root of the repository.
 
-#### Update Downstream Packages' build-link-package Scripts
-Make sure to list the new package in the call to `yarn build-deps-for ...` script for downstream packages. This includes packages that have `tfjs-foo` as a transitive dependency.
+#### Remove the 'build-tfjs-foo' Script from Downstream Packages
+Remove the `build-tfjs-foo` script from downstream packages' package.json files.
 ```json
 "scripts": {
-  "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-foo tfjs-some-other-dependency",
-  "build-tfjs-foo": "remove this script", // <-- Don't forget to remove this earlier build script from downstream packages.
+  "build-deps": "....... && yarn build-tfjs-foo" // <-- Remove 'yarn build-deps-foo'.
+  "build-tfjs-foo": "remove this script", // <-- Also remove it here.
 }
 ```
 ### Move linting to the repo-wide lint script
