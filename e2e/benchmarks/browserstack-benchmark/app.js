@@ -397,14 +397,15 @@ async function initializeWriting() {
 
   let file;
    if (cliArgs?.outfile === 'html') {
-     await fs.writeFile('./benchmark_results.js', 'const a = ', 'utf8', err => {
-       if (err) {
-         console.log(`Error: ${err}.`);
-         return reject(err);
-       } else {
-         return resolve();
-       }
-     });
+     await fs.writeFile(
+         './benchmark_results.js', 'const benchmarkResults = ', 'utf8', err => {
+           if (err) {
+             console.log(`Error: ${err}.`);
+             return reject(err);
+           } else {
+             return resolve();
+           }
+         });
      file = fs.createWriteStream('benchmark_results.js', {'flags': 'a'});
    } else if (cliArgs?.outfile === 'json') {
      file = fs.createWriteStream('./benchmark_results.json');
@@ -431,7 +432,7 @@ async function finalizeWriting() {
 
   if (cliArgs?.outfile === 'html') {
     jsonwriter.end();
-    await fs.appendFile('./benchmark_results.js', ';', 'utf8', err => {});
+    fs.appendFileSync('./benchmark_results.js', ';', 'utf8', err => {});
     console.log('\nOutput written to ./benchmark_results.js.');
   } else if (cliArgs?.outfile === 'json') {
     jsonwriter.end();
