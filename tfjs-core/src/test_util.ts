@@ -190,3 +190,32 @@ export function encodeStrings(a: RecursiveArray<{}>):
   }
   return a as RecursiveArray<Uint8Array>;
 }
+
+/** Creates an HTMLVideoElement with autoplay-friendly default settings. */
+export function createVideoElement(source: HTMLSourceElement):
+    Promise<HTMLVideoElement> {
+  const video = document.createElement('video');
+  video.style.position = 'fixed';
+  video.style.left = '0px';
+  video.style.top = '0px';
+  video.muted = true;
+  // tslint:disable-next-line:no-any
+  (video as any).playsInline = true;
+  video.loop = true;
+  video.preload = 'auto';
+  video.appendChild(source);
+  return new Promise(resolve => {
+    video.addEventListener('loadeddata', _ => resolve(video));
+    video.load();
+  });
+}
+
+export async function play(video: HTMLVideoElement) {
+  await video.play();
+  if ('requestVideoFrameCallback' in video) {
+    await new Promise(resolve => {
+      // tslint:disable-next-line:no-any
+      (video as any).requestVideoFrameCallback(resolve);
+    });
+  }
+}
