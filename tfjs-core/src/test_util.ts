@@ -191,8 +191,7 @@ export function encodeStrings(a: RecursiveArray<{}>):
   return a as RecursiveArray<Uint8Array>;
 }
 
-/** Creates an HTMLVideoElement with autoplay-friendly default settings. */
-export function createVideoElement(source: HTMLSourceElement):
+export async function createAndPlayVideoElement(source: HTMLSourceElement):
     Promise<HTMLVideoElement> {
   const video = document.createElement('video');
   video.style.position = 'fixed';
@@ -204,13 +203,10 @@ export function createVideoElement(source: HTMLSourceElement):
   video.loop = true;
   video.preload = 'auto';
   video.appendChild(source);
-  return new Promise(resolve => {
+  await new Promise(resolve => {
     video.addEventListener('loadeddata', _ => resolve(video));
     video.load();
   });
-}
-
-export async function play(video: HTMLVideoElement) {
   await video.play();
   if ('requestVideoFrameCallback' in video) {
     await new Promise(resolve => {
@@ -218,4 +214,5 @@ export async function play(video: HTMLVideoElement) {
       (video as any).requestVideoFrameCallback(resolve);
     });
   }
+  return video;
 }
