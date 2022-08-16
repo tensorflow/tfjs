@@ -18,7 +18,6 @@
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
@@ -93,9 +92,6 @@ export function batchMatMulImpl({
   const batchDim = Math.max(batchDimA, batchDimB);
   const batchAEqualOne = batchDimA === 1;
   const batchBEqualOne = batchDimB === 1;
-  const useVec4 = ((innerShapeA % 4 === 0 && !transposeA) ||
-                   (outerShapeA % 4 === 0 && transposeA)) &&
-      outerShapeB % 4 === 0 && !transposeB;
 
   const inputs: TensorInfo[] = [a3d, b3d];
   const dimensions = [
@@ -133,22 +129,12 @@ export function batchMatMulImpl({
         (outerShapeB <= 16 &&
          (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
-    } else if (useVec4) {
-      // TODO: Currently we need to make sure that innerShapeA and outerShapeB
-      // are divisible by 4 since we use vec4 to get data. In future, we can
-      // remove this limitation by insert 0 to pack data.
-      matmulProgramType = MatMulProgramType.MatMulPackedVec4Program;
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
   }
 
   switch (matmulProgramType) {
-    case MatMulProgramType.MatMulPackedVec4Program:
-      program = new MatMulPackedVec4Program(
-          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          bias, activation, preluActivationWeights);
-      break;
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
           outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
@@ -199,10 +185,8 @@ export function batchMatMulImpl({
       break;
     case MatMulProgramType.MatMulPackedProgram:
       program = new MatMulPackedProgram(
-          a3dShape, outputShape,
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
-          batchBEqualOne, transposeA, transposeB, bias, activation,
-          preluActivationWeights);
+          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
+          transposeB, bias, activation, preluActivationWeights);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);

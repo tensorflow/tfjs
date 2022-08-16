@@ -50,7 +50,8 @@ py_wheel(
     requires = [
         "flax>=0.5.3",
         "importlib_resources>=5.9.0",
-        "jax>=0.3.15",
+        # TODO(marcvanzee): Replace once they release a version >0.3.16.
+        "git+https://github.com/google/jax.git",
         "protobuf<3.20,>=3.9.2",
         "tensorflow>=2.1.0,<3",
         "six>=1.12.0,<2",
