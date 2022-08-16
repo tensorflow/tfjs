@@ -42,19 +42,25 @@ const CHECK_NAN_SNIPPET = `
   if (isnan(a)) { return a; }
   if (isnan(b)) { return b; }
   `;
-const CHECK_NAN_SNIPPET_VEC4 = `
+
+const CHECK_NAN_SNIPPET_VEC4_INNER = `
   if (isNaN.r) {
-    resultTemp.r = uniforms.NAN;
+    resultTemp.r = valueForNaN;
   }
   if (isNaN.g) {
-    resultTemp.g = uniforms.NAN;
+    resultTemp.g = valueForNaN;
   }
   if (isNaN.b) {
-    resultTemp.b = uniforms.NAN;
+    resultTemp.b = valueForNaN;
   }
   if (isNaN.a) {
-    resultTemp.a = uniforms.NAN;
+    resultTemp.a = valueForNaN;
   }
+  `;
+
+const CHECK_NAN_SNIPPET_VEC4 = `
+  let isNaN = isnanVec4(a) | isnanVec4(b);
+  ${CHECK_NAN_SNIPPET_VEC4_INNER}
   `;
 
 const ADD = 'return a + b;';
@@ -118,24 +124,11 @@ const NOT_EQUAL = `
   return f32(a != b);
 `;
 const NOT_EQUAL_VEC4 = `
-  var result = vec4<f32>(a != b);
+  var resultTemp = vec4<f32>(a != b);
   let valueForNaN = 1.0;
-  var isANaN = isnanVec4(a);
-  var isBNaN = isnanVec4(b);
-  if (isANaN.r || isBNaN.r) {
-    result.r = valueForNaN;
-  }
-  if (isANaN.g || isBNaN.g) {
-    result.g = valueForNaN;
-  }
-  if (isANaN.b || isBNaN.b) {
-    result.b = valueForNaN;
-  }
-  if (isANaN.a || isBNaN.a) {
-    result.a = valueForNaN;
-  }
+  ${CHECK_NAN_SNIPPET_VEC4}
 
-  return result;
+  return resultTemp;
 `;
 const POW = `
   if(a < 0.0 && floor(b) < b) {
@@ -170,7 +163,8 @@ const POW_VEC4 = `
     resultTemp.a = 1.0;
   }
   let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
-  ${CHECK_NAN_SNIPPET_VEC4}
+  let valueForNaN = uniforms.NAN;
+  ${CHECK_NAN_SNIPPET_VEC4_INNER}
   return resultTemp;
   `;
 
@@ -180,11 +174,12 @@ const PRELU_VEC4 = `
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
   `;
 
-function getBinaryWithNanString(op: string, useVec4: boolean) {
+function getBinaryWithNanString(
+    op: string, useVec4: boolean, valueForNaN = 'uniforms.NAN') {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
+    let valueForNaN = ${valueForNaN};
     var resultTemp = vec4<f32>(${op}(a, b));
-    let isNaN = isnanVec4(a) | isnanVec4(b);
     ` + checkNanSnippet +
           `
     return resultTemp;
