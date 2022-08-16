@@ -15,12 +15,18 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
-import {UnaryOpProgram} from '../unary_op_webgpu';
 import {UnaryOpType} from '../unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
 
 export function int(input: TensorInfo, backend: WebGPUBackend): TensorInfo {
+  if (backend.shouldExecuteOnCPU([input])) {
+    const values = backend.tensorMap.get(input.dataId).values as TypedArray;
+    const resultValues = Int32Array.from(values);
+    return backend.makeTensorInfo(input.shape, 'int32', resultValues);
+  }
   const program = new UnaryOpProgram(input.shape, UnaryOpType.TO_INT);
   const output = backend.runWebGPUProgram(program, [input], 'int32');
   return {dataId: output.dataId, shape: output.shape, dtype: output.dtype};
