@@ -1083,6 +1083,36 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     expectArraysClose(await r.data(), expected);
   });
 
+  it('atan2 vec4 NaNs', async () => {
+    const aValues = [1.0, 2.0, 3.0, 4.0];
+    const cValues = [3.0, NaN, 3.0, 4.0];
+    const a = tf.tensor2d(aValues, [4, 1]);
+    const c = tf.tensor2d(cValues, [4, 1]);
+
+    const r = tf.atan2(a, c);
+    const expected = [];
+
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atan2(aValues[i], cValues[i]);
+    }
+    expectArraysClose(await r.data(), expected);
+  });
+
+  it('atan2 vec4 all NaNs', async () => {
+    const aValues = [NaN, 2.0, NaN, NaN];
+    const cValues = [3.0, NaN, 3.0, 4.0];
+    const a = tf.tensor2d(aValues, [4, 1]);
+    const c = tf.tensor2d(cValues, [4, 1]);
+
+    const r = tf.atan2(a, c);
+    const expected = [];
+
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atan2(aValues[i], cValues[i]);
+    }
+    expectArraysClose(await r.data(), expected);
+  });
+
   it('gradient: Scalar', async () => {
     const a = tf.scalar(5);
     const b = tf.scalar(2);
