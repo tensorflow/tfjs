@@ -210,7 +210,7 @@ export function makeMatMulPackedVec4Source(
     let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
     let numTiles = ${
-      splitK ? `${splitedDimInner / tileInner}` :
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
                '(uniforms.dimInner - 1) / TileInner + 1'};
     var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
 
@@ -326,7 +326,7 @@ export function makeMatMulPackedSource(
       let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
       let numTiles = ${
-      splitK ? `${splitedDimInner / tileInner}` :
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
                '(uniforms.dimInner - 1) / TileInner + 1'};
       var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
 
