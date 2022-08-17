@@ -160,7 +160,7 @@ const calculateResultSnippet =
 
 export function makeMatMulPackedVec4Source(
     workPerThread: number[], workGroupSize: [number, number, number],
-    transposeA = false, tileInner = 32, splitK = false,
+    transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
     isVectorA = false): string {
   const tileAOuter = workGroupSize[1] * workPerThread[1];
   const tileBOuter = workGroupSize[0] * workPerThread[0];
@@ -209,8 +209,10 @@ export function makeMatMulPackedVec4Source(
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
     let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
-    let numTiles = ${splitK ? '1' : '(uniforms.dimInner - 1) / TileInner + 1'};
-    var kStart = ${splitK ? 'i32(globalId.z) * TileInner' : '0'};
+    let numTiles = ${
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
+               '(uniforms.dimInner - 1) / TileInner + 1'};
+    var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
 
     var acc: array<vec4<f32>, RowPerThread>;
 
@@ -281,7 +283,8 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
 
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
-    transposeA = false, tileInner = 32, splitK = false): string {
+    transposeA = false, tileInner = 32, splitK = false,
+    splitedDimInner = 32): string {
   const tileAOuter = workPerThread[1] * workGroupSize[1];
   const tileBOuter = workPerThread[0] * workGroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -323,8 +326,9 @@ export function makeMatMulPackedSource(
       let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
       let numTiles = ${
-      splitK ? '1' : '(uniforms.dimInner - 1) / TileInner + 1'};
-      var kStart = ${splitK ? 'i32(globalId.z) * TileInner' : '0'};
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
+               '(uniforms.dimInner - 1) / TileInner + 1'};
+      var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
 
       var acc : array<array<f32, ColPerThread>, RowPerThread>;
 
@@ -565,7 +569,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
         this.isVec4 ?
             makeMatMulPackedVec4Source(
                 this.elementsPerThread, this.workGroupSize, this.transposeA,
-                this.tileInner, false, this.isVectorA) :
+                this.tileInner, false, null, this.isVectorA) :
             (this.isVectorA ? makeVectorMatrixProductSource(
                                   this.workGroupSize, this.transposeA) :
                               makeMatMulPackedSource(
