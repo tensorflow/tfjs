@@ -432,7 +432,6 @@ async function finalizeWriting() {
 
   if (cliArgs?.outfile === 'html') {
     jsonwriter.end();
-    fs.appendFileSync('./benchmark_results.js', ';', 'utf8', err => {});
     console.log('\nOutput written to ./benchmark_results.js.');
   } else if (cliArgs?.outfile === 'json') {
     jsonwriter.end();
