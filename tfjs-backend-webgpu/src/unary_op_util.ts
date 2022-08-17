@@ -24,6 +24,7 @@ export enum UnaryOpType {
   EXP,
   EXPM1,
   FLOOR,
+  IS_NAN,
   LINEAR,
   LOG,
   LOGICAL_NOT,
@@ -31,6 +32,7 @@ export enum UnaryOpType {
   RELU,
   RELU6,
   LEAKYRELU,
+  RECIPROCAL,
   RSQRT,
   SIN,
   SINH,
@@ -68,6 +70,7 @@ const ELU_VEC4 = `
 `;
 const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
+const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) { return 1.0/0.0; }
   return log(a);`;
@@ -78,6 +81,7 @@ const LEAKYRELU_VEC4 = `
   let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
   return (aLessThanZero * (uniforms.alpha * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
 `;
+const RECIPROCAL = `return 1.0 / a;`;
 const RELU = `return select(a, 0.0, a < 0.0);`;
 const RELU6 = 'return clamp(a, 0.0, 6.0);';
 const RELU6_VEC4 =
@@ -118,6 +122,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return EXPM1;
     case UnaryOpType.FLOOR:
       return FLOOR;
+    case UnaryOpType.IS_NAN:
+      return IS_NAN;
     case UnaryOpType.LINEAR:
       return LINEAR;
     case UnaryOpType.LOG:
@@ -128,6 +134,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return NEG;
     case UnaryOpType.LEAKYRELU:
       return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU;
+    case UnaryOpType.RECIPROCAL:
+      return RECIPROCAL;
     case UnaryOpType.RELU:
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:
