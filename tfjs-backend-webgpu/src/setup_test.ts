@@ -222,13 +222,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'sparseToDense ',
-    excludes: [
-      // TODO: Fix 0-sized buffer binding on WebGPU
-      '0-sized',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'square ',
     excludes: [
       'dilation2d',  // 'dilation2d' not yet implemented.

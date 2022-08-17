@@ -126,18 +126,23 @@ class JaxConversionTest(tf.test.TestCase):
         polymorphic_shapes=['(b, 4)'],
         model_dir=self.get_temp_dir())
 
-  def test_convert_flax_bn(self):
-    m, x = FlaxModuleBatchNorm(), jnp.zeros((1, 32, 32, 3))
-    variables = m.init(random.PRNGKey(0), x)
-    # Note: if we don't pass training=False here, we will get an error during
-    # conversion since `batch_stats` is mutated while it is not passed as a
-    # mutable variable collections (we currently do not support this).
-    apply_fn = functools.partial(m.apply, training=False)
-    jax_conversion.convert_jax(
-        apply_fn,
-        variables,
-        input_signatures=[tf.TensorSpec((1, 32, 32, 3), tf.float32)],
-        model_dir=self.get_temp_dir())
+  # TODO(marcvanzee): This test currently fails due to
+  # https://github.com/google/jax/issues/11804.
+  # This issue is fixed in JAX, but only will be part of jax>0.3.16. Once JAX
+  # releases a new version we can re-enable this test. If you install JAX from
+  # Github this will work fine.
+  # def test_convert_flax_bn(self):
+  #   m, x = FlaxModuleBatchNorm(), jnp.zeros((1, 32, 32, 3))
+  #   variables = m.init(random.PRNGKey(0), x)
+  #   # Note: if we don't pass training=False here, we will get an error during
+  #   # conversion since `batch_stats` is mutated while it is not passed as a
+  #   # mutable variable collections (we currently do not support this).
+  #   apply_fn = functools.partial(m.apply, training=False)
+  #   jax_conversion.convert_jax(
+  #       apply_fn,
+  #       variables,
+  #       input_signatures=[tf.TensorSpec((1, 32, 32, 3), tf.float32)],
+  #       model_dir=self.get_temp_dir())
 
 
 if __name__ == '__main__':

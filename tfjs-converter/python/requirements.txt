@@ -1,6 +1,5 @@
 flax>=0.5.3
-# TODO(marcvanzee): Replace with jax once they release a version >0.3.16.
-git+https://github.com/google/jax.git
+jax>=0.3.16
 importlib_resources>=5.9.0
 protobuf<3.20,>=3.9.2
 tensorflow>=2.1.0,<3

@@ -79,7 +79,7 @@ def convert_jax(
   convert_jax(
     apply_fn=module.apply,
     params=params,
-    input_signatures=[((3, 4), np.float32)]
+    input_signatures=[((3, 4), np.float32)],
     model_dir=tfjs_model_dir)
   ```
 
