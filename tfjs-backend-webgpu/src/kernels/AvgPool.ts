@@ -17,10 +17,13 @@
 import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {identity} from './Identity';
 import {Pool2DProgram} from '../pool2d_webgpu';
 import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
+
+import {identity} from './Identity';
+import {mean} from './Mean';
+import {reshape} from './Reshape';
+import {transpose} from './Transpose';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):
@@ -35,6 +38,33 @@ export function avgPool(
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
       util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
     return identity({inputs: {x}, backend});
+  }
+
+  if (convInfo.filterWidth === convInfo.inWidth &&
+      convInfo.filterHeight === convInfo.inHeight && convInfo.batchSize === 1 &&
+      convInfo.padInfo.type === 'VALID') {
+    // The reshape is for going to the fast path of transpose.
+    const length = x.shape.length;
+    const reshapeX = reshape({
+      inputs: {x},
+      backend,
+      attrs: {
+        shape: [
+          x.shape[length - 3] * x.shape[length - 2] /* height * width */,
+          x.shape[length - 1] /* channel */
+        ]
+      }
+    });
+    const transposeX =
+        transpose({inputs: {x: reshapeX}, backend, attrs: {perm: [1, 0]}});
+    const meanX = mean(
+        {inputs: {x: transposeX}, backend, attrs: {keepDims: false, axis: 1}});
+    const result = reshape(
+        {inputs: {x: meanX}, backend, attrs: {shape: convInfo.outShape}});
+    backend.disposeData(reshapeX.dataId);
+    backend.disposeData(transposeX.dataId);
+    backend.disposeData(meanX.dataId);
+    return result;
   }
 
   let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
