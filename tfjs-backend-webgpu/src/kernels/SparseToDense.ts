@@ -19,7 +19,7 @@ import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDen
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {scatterImplCPU} from '../kernel_utils/shared';
-import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
+import {ScatterProgram} from '../scatter_webgpu';
 
 import {identity} from './Identity';
 import {reshape} from './Reshape';
@@ -89,7 +89,7 @@ export function sparseToDense(args: {
       break;
     case 1:
       if (true) {
-        const program = new ScatterOptimizedProgram(
+        const program = new ScatterProgram(
             [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
             $sparseValues.shape.length, strides, flattenShape, type,
             sumDupeIndices);
@@ -101,7 +101,7 @@ export function sparseToDense(args: {
     default:
       if (true) {
         // First replace the default value with 0 at indices.
-        const program = new ScatterOptimizedProgram(
+        const program = new ScatterProgram(
             [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
             zero.shape.length, strides, flattenShape, type, sumDupeIndices);
         backend.runWebGPUProgram(
@@ -109,7 +109,7 @@ export function sparseToDense(args: {
       }
       {
         // Then replace 0 with the (sum of) sparse value(s) at indices.
-        const program = new ScatterOptimizedProgram(
+        const program = new ScatterProgram(
             [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
             $sparseValues.shape.length, strides, flattenShape, type);
         backend.runWebGPUProgram(
