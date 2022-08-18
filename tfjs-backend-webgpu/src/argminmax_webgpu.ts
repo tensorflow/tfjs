@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
@@ -91,7 +91,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${sharedMemorySnippet}
 
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         let outputIndex = index / i32(workGroupSizeX);
         let reduceLength = ${getInputShapeLastDim()};
 

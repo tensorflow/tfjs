@@ -16,7 +16,7 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterProgram implements WebGPUProgram {
@@ -121,8 +121,7 @@ export class ScatterProgram implements WebGPUProgram {
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
-      ${getMainHeaderAndGlobalIndexString()}
-
+      ${main('index')} {
         if (index < uniforms.size) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
