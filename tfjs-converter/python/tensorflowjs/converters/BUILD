@@ -196,6 +196,32 @@ py_library(
 )
 
 py_test(
+    name = "jax_conversion_test",
+    srcs = ["jax_conversion_test.py"],
+    imports = ["../.."],
+    srcs_version = "PY3",
+    tags = ["ci"],
+    deps = [
+        ":jax_conversion",
+        "//tfjs-converter/python/tensorflowjs:expect_flax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_jax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
+    name = "jax_conversion",
+    srcs = ["jax_conversion.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":tf_saved_model_conversion_v2",
+        "//tfjs-converter/python/tensorflowjs:expect_jax2tf_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_jax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
     name = "wizard_test",
     srcs = ["wizard_test.py"],
     imports = ["../.."],
