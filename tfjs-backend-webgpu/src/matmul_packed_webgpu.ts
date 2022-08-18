@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
@@ -23,7 +23,7 @@ import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
 export function matMulReadFnSource(
     batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
     transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
-    component = 1) {
+    component = 1, aType = 'float32', bType = 'float32') {
   util.assert(
       transposeA && component === 1 || !transposeA,
       () => `transposeA ${transposeA} is not compatible with component size ${
@@ -33,31 +33,42 @@ export function matMulReadFnSource(
       let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
       ${
       transposeA ?
+          aType === 'float32' ?
+          `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
+              component}];` :
           `value = ${
               typeSnippet(
                   component)}(A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
               component}]);` :
+          aType === 'float32' ?
+          `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
+              component}];` :
           `value = ${
               typeSnippet(
                   component)}(A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
               component}]);`}
 
     `;
-  let sampleB;
-  if (transposeB === false) {
-    sampleB = `value = ${
-        typeSnippet(
-            component)}(B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
-        component}]);`;
-  } else {
-    sampleB = `value = ${
-        typeSnippet(
-            component)}(B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
-        component}]);`;
-  }
+
+  const sampleB = transposeB ?
+      bType === 'float32' ?
+      `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
+          component}];` :
+      `value = ${
+          typeSnippet(
+              component)}(B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
+          component}]);` :
+      bType === 'float32' ?
+      `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
+          component}];` :
+      `value = ${
+          typeSnippet(
+              component)}(B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
+          component}]);`;
 
   return `
-  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     let col = colIn * ${component};
     ${
@@ -75,7 +86,8 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? '0' : 'batchIn'};
     let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
@@ -90,12 +102,12 @@ export function matMulReadWriteFnSource(
     hasBias: boolean, activation: backend_util.Activation,
     batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
     transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
-    component = 1) {
+    component = 1, aType = 'float32', bType = 'float32') {
   return `
   ${
       matMulReadFnSource(
           batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter,
-          fitBOuter, fitInner, component)}
+          fitBOuter, fitInner, component, aType, bType)}
   fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${
       typeSnippet(component)}) {
     let col = colIn * ${component};
@@ -486,14 +498,19 @@ export class MatMulPackedProgram implements WebGPUProgram {
   tileInner: number;
   isVectorA: boolean;
   isVec4: boolean;
+  aType: DataType = 'float32';
+  bType: DataType = 'float32';
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
       transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
-      preluActivationWeights: TensorInfo = null) {
+      preluActivationWeights: TensorInfo = null, aType: DataType = 'float32',
+      bType: DataType = 'float32') {
     this.outputShape = outputShape;
+    this.aType = aType;
+    this.bType = bType;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const dimInner = transposeA ? aShape[1] : aShape[2];
     this.isVec4 = ((dimInner % 4 === 0 && !transposeA) ||
@@ -570,7 +587,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
             this.batchBEqualOne,
             false /* transposeA is implemented in makeMatMulPackedSource */,
             this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner,
-            this.isVec4 ? 4 : 1)}
+            this.isVec4 ? 4 : 1, this.aType, this.bType)}
       ${
         this.isVec4 ?
             makeMatMulPackedVec4Source(

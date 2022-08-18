@@ -138,7 +138,7 @@ export function batchMatMulImpl({
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
           outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
-          bias, activation, preluActivationWeights);
+          bias, activation, preluActivationWeights, a.dtype, b.dtype);
       break;
     case MatMulProgramType.MatMulSplitKProgram: {
       // The output buffer must be initailzed to zero before using since we
@@ -181,12 +181,13 @@ export function batchMatMulImpl({
     case MatMulProgramType.MatMulSmallOutputSizeProgram:
       program = new MatMulSmallOutputSizeProgram(
           a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
-          activation, preluActivationWeights);
+          activation, preluActivationWeights, a.dtype, b.dtype);
       break;
     case MatMulProgramType.MatMulPackedProgram:
       program = new MatMulPackedProgram(
           a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights);
+          transposeB, bias, activation, preluActivationWeights, a.dtype,
+          b.dtype);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
