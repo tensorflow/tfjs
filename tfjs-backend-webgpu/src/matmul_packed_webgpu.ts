@@ -28,6 +28,7 @@ export function matMulReadFnSource(
       transposeA && component === 1 || !transposeA,
       () => `transposeA ${transposeA} is not compatible with component size ${
           component}`);
+  // Do type casting when input buffer type is not float32
   const sampleA = `
       let batch = ${batchAEqualOne ? '0' : 'batchIn'};
       let batchASize = uniforms.aShape[1] * uniforms.aShape[2];

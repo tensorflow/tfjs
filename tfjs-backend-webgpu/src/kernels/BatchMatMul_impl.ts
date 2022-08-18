@@ -133,6 +133,9 @@ export function batchMatMulImpl({
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
   }
+
+  // Returning dtype from tensorMap because it reflects dtype
+  // of underlying buffer, rather than abstract dtype.
   const aBufType = backend.tensorMap.get(a.dataId).dtype;
   const bBufType = backend.tensorMap.get(b.dataId).dtype;
 
