@@ -175,3 +175,55 @@ function expectArraysClose(actual, expected, epsilon, key) {
     return tf.test_util.expectArraysClose(actual, expected, epsilon);
   }
 }
+
+async function compareJsons(jsonObject1, backend1, jsonObject2, backend2) {
+  const keys = Object.keys(jsonObject1);
+  var errorCount = 0;
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    let match = false;
+    try {
+      expectObjectsClose(jsonObject1[key], jsonObject2[key]);
+      match = true;
+    } catch (e) {
+      match = false;
+      const newKey = key.replace(/\//g, '-');
+      download(jsonObject1[key], `${i}_${newKey}_${backend1}.json`);
+      download(jsonObject2[key], `${i}_${newKey}_${backend2}.json`);
+      errorCount++;
+      // Without sleep, some files fail to download.
+      await sleep(200);
+    }
+  }
+  if (errorCount) {
+    console.error('Total mismatch: ' + errorCount);
+  }
+}
+
+async function printTensors(tensorsMap, backend) {
+  if (!tensorsMap) {
+    return;
+  }
+  const jsonObject = {};
+  const keysOfTensors = Object.keys(tensorsMap);
+  for (let i = 0; i < keysOfTensors.length; i++) {
+    const key = keysOfTensors[i];
+    const dataArray = [];
+    const dataLengthArray = [];
+    for (let j = 0; j < tensorsMap[key].length; j++) {
+      const data = await (tensorsMap[key][j]).data();
+      dataArray.push(data);
+      dataLengthArray.push(data.length);
+    }
+    jsonObject[key] = dataArray;
+  }
+  return jsonObject;
+}
+
+function download(content, fileName) {
+  var a = document.createElement('a');
+  var file = new Blob([JSON.stringify(content)], {type: 'application/json'});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+}
