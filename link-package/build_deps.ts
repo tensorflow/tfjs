@@ -173,12 +173,11 @@ function findTransitiveBazelDeps(packages: Iterable<string>): Set<string> {
     for (const pkg of toVisit) {
       if (BAZEL_PACKAGES.has(pkg)) {
         bazelPackages.add(pkg);
-      } else {
-        const deps = getTfjsDeps(pkg);
-        // Only add deps that haven't been visited
-        const newDeps = [...deps].filter(dep => !visited.has(dep));
-        toVisit = new Set([...toVisit, ...newDeps]);
       }
+      const deps = getTfjsDeps(pkg);
+      // Only add deps that haven't been visited
+      const newDeps = [...deps].filter(dep => !visited.has(dep));
+      toVisit = new Set([...toVisit, ...newDeps]);
       visited.add(pkg);
       toVisit.delete(pkg);
     }
