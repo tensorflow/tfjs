@@ -133,12 +133,14 @@ export function batchMatMulImpl({
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
   }
+  const aBufType = backend.tensorMap.get(a.dataId).dtype;
+  const bBufType = backend.tensorMap.get(b.dataId).dtype;
 
   switch (matmulProgramType) {
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
           outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
-          bias, activation, preluActivationWeights, a.dtype, b.dtype);
+          bias, activation, preluActivationWeights, aBufType, bBufType);
       break;
     case MatMulProgramType.MatMulSplitKProgram: {
       // The output buffer must be initailzed to zero before using since we
@@ -181,13 +183,13 @@ export function batchMatMulImpl({
     case MatMulProgramType.MatMulSmallOutputSizeProgram:
       program = new MatMulSmallOutputSizeProgram(
           a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
-          activation, preluActivationWeights, a.dtype, b.dtype);
+          activation, preluActivationWeights, aBufType, bBufType);
       break;
     case MatMulProgramType.MatMulPackedProgram:
       program = new MatMulPackedProgram(
           a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights, a.dtype,
-          b.dtype);
+          transposeB, bias, activation, preluActivationWeights, aBufType,
+          bBufType);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);

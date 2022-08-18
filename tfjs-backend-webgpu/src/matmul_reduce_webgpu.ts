@@ -72,8 +72,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
-  aType: DataType;
-  bType: DataType;
+  aType: DataType = 'float32';
+  bType: DataType = 'float32';
 
   constructor(
       outputShape: [number, number, number], batchAEqualOne: boolean,
