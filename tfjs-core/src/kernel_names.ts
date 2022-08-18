@@ -658,6 +658,10 @@ export interface ProdAttrs {
   keepDims: boolean;
 }
 
+export const RaggedRange = 'RaggedRange';
+export type RaggedRangeInputs =
+    Pick<NamedTensorInfoMap, 'starts'|'limits'|'deltas'>;
+
 export const RaggedTensorToTensor = 'RaggedTensorToTensor';
 export type RaggedTensorToTensorInputs =
     Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
