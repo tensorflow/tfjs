@@ -1,0 +1,5 @@
+{
+  "model": "MobileNetV3",
+  "numRuns": 10,
+  "backend": "webgl"
+}

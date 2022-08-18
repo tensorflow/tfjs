@@ -32,8 +32,6 @@ e2e/integration_tests/convert_predict_data
 e2e/integration_tests/metadata
 e2e/scripts/storage
 e2e/scripts/htpasswd
-e2e/benchmarks/browserstack-benchmark/browsers.json
-e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
 e2e/benchmarks/browserstack-benchmark/benchmark_results.json
 e2e/benchmarks/browserstack-benchmark/benchmark_results.js
 e2e/benchmarks/browserstack-benchmark/benchmark_test_results.json

@@ -1,0 +1,10 @@
+{
+  "Windows_11_1": {
+    "base": "BrowserStack",
+    "browser": "chrome",
+    "browser_version": "103.0",
+    "os": "Windows",
+    "os_version": "11",
+    "device": null
+  }
+}
