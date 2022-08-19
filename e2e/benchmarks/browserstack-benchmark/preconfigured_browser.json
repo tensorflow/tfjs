@@ -14,7 +14,7 @@
     "Windows_11_1": {
       "base": "BrowserStack",
       "browser": "chrome",
-      "browser_version": "101.0",
+      "browser_version": "103.0",
       "os": "Windows",
       "os_version": "11",
       "device": null
@@ -22,7 +22,7 @@
     "Windows_11_2": {
       "base": "BrowserStack",
       "browser": "edge",
-      "browser_version": "101.0",
+      "browser_version": "103.0",
       "os": "Windows",
       "os_version": "11",
       "device": null
