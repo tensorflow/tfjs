@@ -12,6 +12,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":converter",
+        ":jax_conversion",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",
@@ -192,6 +193,32 @@ py_library(
         "//tfjs-converter/python/tensorflowjs:resource_loader",
         "//tfjs-converter/python/tensorflowjs:version",
         "//tfjs-converter/python/tensorflowjs:write_weights",
+    ],
+)
+
+py_test(
+    name = "jax_conversion_test",
+    srcs = ["jax_conversion_test.py"],
+    imports = ["../.."],
+    srcs_version = "PY3",
+    tags = ["ci"],
+    deps = [
+        ":jax_conversion",
+        "//tfjs-converter/python/tensorflowjs:expect_flax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_jax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
+    name = "jax_conversion",
+    srcs = ["jax_conversion.py"],
+    srcs_version = "PY3",
+    deps = [
+        ":tf_saved_model_conversion_v2",
+        "//tfjs-converter/python/tensorflowjs:expect_jax2tf_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_jax_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 

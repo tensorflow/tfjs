@@ -37,7 +37,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
   isVec4 = false;
-  tileInner = 32;
+  splitedDimInner = 128;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
@@ -51,7 +51,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
                    !transposeA && dimInner % 4 === 0) &&
         this.outputShape[2] % 4 === 0;
-    this.elementsPerThread = [4, 4, this.tileInner];
+    this.elementsPerThread = [4, 4, this.splitedDimInner];
+
     if (!this.isVec4) {
       if (this.outputShape[1] < 16) {
         this.elementsPerThread[1] = 1;
@@ -119,10 +120,10 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       ${
         this.isVec4 ? makeMatMulPackedVec4Source(
                           this.elementsPerThread, this.workGroupSize,
-                          this.transposeA, this.tileInner, true) :
+                          this.transposeA, 32, true, this.splitedDimInner) :
                       makeMatMulPackedSource(
                           this.elementsPerThread, this.workGroupSize,
-                          this.transposeA, this.tileInner, true)}
+                          this.transposeA, 32, true, this.splitedDimInner)}
     `;
     return userCode;
   }
