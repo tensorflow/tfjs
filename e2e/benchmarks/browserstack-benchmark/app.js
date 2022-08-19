@@ -182,13 +182,20 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   const results = [];
 
   // Runs and gets result of each queued benchmark
+  let tabIndex = 1;
   for (const tabId in config.browsers) {
     results.push(promiseQueue.add(() => {
-      return runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
+      return runOneBenchmark(tabId, cliArgs?.maxTries, tabIndex++).then((value) => {
         value.deviceInfo = config.browsers[tabId];
         value.modelInfo = config.benchmark;
         return value;
-      });
+      }).catch(error => {
+        console.log(
+            `${tabId} ${config.benchmark.model} ${config.benchmark.backend}`,
+            error);
+        return {
+          error, deviceInfo: config.browsers[tabId], modelInfo: config.benchmark
+        }});
     }));
   }
 
@@ -210,6 +217,10 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   return fulfilled;
 }
 
+function sleep(timeMs) {
+  return new Promise(resolve => setTimeout(resolve, timeMs));
+}
+
 /**
  * Gets the benchmark result of a singular browser-device pairing.
  *
@@ -218,13 +229,24 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
  *
  * @param tabId Indicates browser-device pairing for benchmark
  * @param triesLeft Number of tries left for a benchmark to succeed
+ * @param tabIndex Indicates the sequential position for the browser-device
+ *     pairing, which is used to delay initiating runner.
  * @param runOneBenchmark Function that runs a singular BrowserStack
  *     performance test
  * @param retyOneBenchmark Function that retries a singular BrowserStack
  *     performance test
  */
 async function getOneBenchmarkResult(
-    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark) {
+    tabId, triesLeft, tabIndex = 0,
+    runOneBenchmark = runBrowserStackBenchmark) {
+  // Since karma will throw out `spawn ETXTBSY` error if initiating multiple
+  // benchmark runners at the same time, adds delays between initiating runners
+  // to resolve this race condition.
+  const numFailed = cliArgs.maxTries - triesLeft;
+  // The delay increase exponentially when benchmark fails.
+  const delayInitiatingRunnerTimeMs = tabIndex * (3 ** numFailed) * 1000;
+  await sleep(delayInitiatingRunnerTimeMs);
+
   triesLeft--;
   try {
     const result = await runOneBenchmark(tabId);

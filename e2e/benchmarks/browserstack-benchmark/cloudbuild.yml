@@ -23,7 +23,7 @@ availableSecrets:
       env: 'BROWSERSTACK_ACCESS_KEY'
     - versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
       env: 'FIREBASE_KEY'
-timeout: 3600s
+timeout: 14400s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''
