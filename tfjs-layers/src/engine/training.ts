@@ -229,7 +229,7 @@ export function checkArrayLengths(
 function checkLossAndTargetCompatibility(
     targets: Tensor[], lossFns: LossOrMetricFn[], outputShapes: Shape[]) {
   // TODO(cais): Dedicated test coverage?
-  const keyLosses = [
+  const keyLosses: LossOrMetricFn[] = [
     losses.meanSquaredError, losses.binaryCrossentropy,
     losses.categoricalCrossentropy
   ];
