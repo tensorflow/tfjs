@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
     workGroupSize: [number, number, number]): string {
@@ -35,7 +35,7 @@ export function makeMatMulSmallOutputSizeSource(
   // shared memory, so it is instruction-Level parallelism for arithmetic
   // operations and others handle IO operations between barrier api, makes ALU
   // and load/store units work simultaneously, could improves the performance.
-  ${getMainHeaderString()}
+  ${main()} {
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);

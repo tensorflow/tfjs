@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SelectProgram implements WebGPUProgram {
@@ -66,7 +66,7 @@ export class SelectProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           let cVal = getC(${cCoords});

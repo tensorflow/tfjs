@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MirrorPadProgram implements WebGPUProgram {
@@ -66,7 +66,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let start = ${dtype}(${start});
           let end = ${dtype}(${end});

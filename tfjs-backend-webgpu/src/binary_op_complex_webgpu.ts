@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpComplexProgram implements WebGPUProgram {
@@ -48,7 +48,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
         ${opStr}
       }
 
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if(index < uniforms.size) {
           let areal = getARealByOutputIndex(index);
           let aimag = getAImagByOutputIndex(index);

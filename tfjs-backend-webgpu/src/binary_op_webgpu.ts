@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpProgram implements WebGPUProgram {
@@ -105,8 +105,7 @@ export class BinaryOpProgram implements WebGPUProgram {
           ${opStr}
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getMainHeaderAndGlobalIndexString()}
-
+        ${main('index')} {
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
@@ -136,7 +135,7 @@ export class BinaryOpProgram implements WebGPUProgram {
        fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
          ${opStr}
        }
-       ${getMainHeaderAndGlobalIndexString()}
+       ${main('index')} {
          if (index < uniforms.size) {
            let a = getAByOutputIndex(index);
            let b = getBByOutputIndex(index);

@@ -59,7 +59,7 @@ export const compileProgram =
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: 'main'},
+        compute: {module, entryPoint: '_start'},
         label: program.constructor.name,
         layout: 'auto'
       });
@@ -103,23 +103,45 @@ export function getCoordsXYZ(index: number): string {
   }
 }
 
-export function getMainHeaderAndGlobalIndexString(): string {
-  return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
-`;
-}
+export function getMainHeaderString(): string;
+export function getMainHeaderString(index: string): string;
+export function getMainHeaderString(...params: string[]): string {
+  let snippet: string;
+  switch (params.length) {
+    case 0:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main();
+        }
 
-export function getMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-`;
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main(getGlobalIndex());
+        }
+
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error('Unreachable');
+  }
+  return snippet;
 }
 
 export function getWorkGroupSizeString(): string {
