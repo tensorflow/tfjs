@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class RotateProgram implements WebGPUProgram {
@@ -54,8 +54,7 @@ export class RotateProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
-
+        ${main('index')} {
           if (index < uniforms.size) {
             let coords = getCoordsFromIndex(index);
             let coordXFloat = (f32(coords[2]) - uniforms.centerX) *

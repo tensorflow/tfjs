@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BatchNormProgram implements WebGPUProgram {
@@ -69,7 +69,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size)
         {
           let xValue = getXByOutputIndex(index);

@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
@@ -41,7 +41,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let batch = coords[0];
