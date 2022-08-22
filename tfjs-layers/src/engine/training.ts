@@ -1324,7 +1324,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
         let totalLoss: Tensor;
         for (let i = 0; i < this.lossFunctions.length; ++i) {
           const lossFunction = this.lossFunctions[i];
-          let loss = lossFunction(targets[i], outputs[i]);
+          let loss = lossFunction(targets[i], outputs[i], undefined);
           if (sampleWeights[i] != null) {
             loss = computeWeightedLoss(loss, sampleWeights[i]);
           }
@@ -1352,7 +1352,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
             const metric = this.metricsTensors[i][0];
             const outputIndex = this.metricsTensors[i][1];
             weightedMetric =
-                tfc.mean(metric(targets[outputIndex], outputs[outputIndex]));
+                tfc.mean(metric(targets[outputIndex], outputs[outputIndex], undefined));
           }
 
           tfc.keep(weightedMetric);
@@ -1404,7 +1404,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           const lossFunction = this.lossFunctions[i];
           // TODO(cais): Add sample weighting and replace the simple
           // averaging.
-          const loss: Scalar = tfc.mean(lossFunction(targets[i], outputs[i]));
+          const loss: Scalar = tfc.mean(lossFunction(targets[i], outputs[i], undefined));
           if (i === 0) {
             totalLoss = loss;
           } else {
@@ -1418,7 +1418,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
           const outputIndex = this.metricsTensors[i][1];
           // TODO(cais): Replace K.mean() with a proper weighting function.
           const meanMetric =
-              tfc.mean(metric(targets[outputIndex], outputs[outputIndex]));
+              tfc.mean(metric(targets[outputIndex], outputs[outputIndex], undefined));
           valOutputs.push(meanMetric as Scalar);
         }
         return valOutputs;
