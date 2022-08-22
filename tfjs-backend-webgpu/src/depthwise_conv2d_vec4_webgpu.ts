@@ -76,7 +76,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         return value;
       }
       ${getWorkGroupSizeString()}
-      fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
+      fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;

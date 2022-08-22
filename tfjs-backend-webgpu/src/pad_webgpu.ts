@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PadProgram implements WebGPUProgram {
@@ -63,7 +63,7 @@ export class PadProgram implements WebGPUProgram {
         'coords';
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let start = ${startValue};
           let end = ${endValue};

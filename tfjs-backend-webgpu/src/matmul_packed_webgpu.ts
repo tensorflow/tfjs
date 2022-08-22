@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
@@ -192,10 +192,10 @@ export function makeMatMulPackedVec4Source(
   const TileInner = ${tileInner};
 
   @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-          @builtin(workgroup_id) workgroupId: vec3<u32>) {
+  fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+            @builtin(global_invocation_id) GlobalId : vec3<u32>,
+            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+            @builtin(workgroup_id) workgroupId: vec3<u32>) {
     localId = LocalId;
     globalId = GlobalId;
     numWorkgroups = NumWorkgroups;
@@ -309,10 +309,10 @@ export function makeMatMulPackedSource(
     const TileInner = ${tileInner};
 
     @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-    fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-            @builtin(global_invocation_id) GlobalId : vec3<u32>,
-            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+              @builtin(global_invocation_id) GlobalId : vec3<u32>,
+              @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+              @builtin(workgroup_id) workgroupId: vec3<u32>) {
       localId = LocalId;
       globalId = GlobalId;
       numWorkgroups = NumWorkgroups;
@@ -421,7 +421,7 @@ export function makeVectorMatrixProductSource(
     const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getMainHeaderString()}
+    ${main()} {
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
