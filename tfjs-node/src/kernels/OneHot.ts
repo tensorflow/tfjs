@@ -28,8 +28,8 @@ export const oneHotConfig: KernelConfig = {
     const {dtype, depth, onValue, offValue} = args.attrs as {} as OneHotAttrs;
 
     const depthTensor = scalar(depth, 'int32');
-    const onValueTensor = scalar(onValue, 'int32');
-    const offValueTensor = scalar(offValue, 'int32');
+    const onValueTensor = scalar(onValue, dtype);
+    const offValueTensor = scalar(offValue, dtype);
 
     const opAttrs = [
       {name: 'axis', type: backend.binding.TF_ATTR_INT, value: -1},
