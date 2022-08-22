@@ -240,3 +240,9 @@ ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
 
 /** Whether we will use the experimental conv op. */
 ENV.registerFlag('WEBGL_EXP_CONV', () => false);
+
+/**
+ * If the device performance is low or if no hardware GPU is available, whether
+ * software WebGL will be used.
+ */
+ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
