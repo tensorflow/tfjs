@@ -44,6 +44,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    // The shared algorithm is mainly used for large reduce size. It fully
+    // utilizes the threads in one workgroup to do the reduction. However,
+    // when the reduce size is very small or the output shape is too large. It's
+    // better to use the plain algorithm to reduce the number of workgroups to
+    // speedup. The threthold can be further tuned.
     if (util.sizeFromShape(reduceShape) < 32 ||
         util.sizeFromShape(outputShape) > 1000) {
       this.type = 'plain';
