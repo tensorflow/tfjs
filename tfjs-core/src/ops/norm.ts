@@ -55,7 +55,7 @@ import {sum} from './sum';
  *  |Infinity    |max(sum(abs(x), axis=1))   |max(abs(x))
  *  |-Infinity   |min(sum(abs(x), axis=1))   |min(abs(x))
  *  |1           |max(sum(abs(x), axis=0))   |sum(abs(x))
- *  |2           |                           |sum(abs(x)^2)^1/2*
+ *  |2           |                           |sum(abs(x)^2)^(1/2)
  *
  * @param axis Optional. If axis is null (the default), the input is
  * considered a vector and a single vector norm is computed over the entire
