@@ -72,10 +72,10 @@ import {op} from '../operation';
  *     0] for rows missing from the input sparse tensor.
  * @return A map with the following properties:
  *     - outputIndices
- *     - outputValues: 1-D. the values of the filled sparse tensor.
- *     - emptyRowIndicator: 1-D. whether the dense row was missing in the input
+ *     - outputValues: 1-D. The values of the filled sparse tensor.
+ *     - emptyRowIndicator: 1-D. Whether the dense row was missing in the input
  * sparse tensor.
- *     - reverseIndexMap: 1-D. a map from the input indices to the output
+ *     - reverseIndexMap: 1-D. A map from the input indices to the output
  * indices.
  * @doc {heading: 'Operations', subheading: 'Sparse'}
  */
