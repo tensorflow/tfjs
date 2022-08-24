@@ -22,7 +22,7 @@ import {norm} from './norm';
 import {op} from './operation';
 
 /**
- * Computes the euclidean norm of scalar, vectors, and matrices.
+ * Computes the Euclidean norm of scalar, vectors, and matrices.
  *
  * ```js
  * const x = tf.tensor1d([1, 2, 3, 4]);
