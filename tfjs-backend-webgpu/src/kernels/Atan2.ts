@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '@tensorflow/tfjs-core';
-import {WebGPUBackend} from '../backend_webgpu';
-import {UnaryOpType} from '../unary_op_util';
-import {UnaryOpProgram} from '../unary_op_webgpu';
+import {Atan2, KernelConfig} from '@tensorflow/tfjs-core';
+import {BinaryOpType} from '../binary_op_util';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-export function int(input: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = new UnaryOpProgram(input.shape, UnaryOpType.TO_INT);
-  const output = backend.runWebGPUProgram(program, [input], 'int32');
-  return {dataId: output.dataId, shape: output.shape, dtype: output.dtype};
-}
+export const atan2 = binaryKernelFunc({opType: BinaryOpType.ATAN2});
+
+export const atan2Config: KernelConfig = {
+  kernelName: Atan2,
+  backendName: 'webgpu',
+  kernelFunc: atan2
+};

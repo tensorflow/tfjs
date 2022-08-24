@@ -41,6 +41,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'atan2 ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+    ]
+  },
+  {
     startsWith: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
@@ -216,13 +222,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'sparseToDense ',
-    excludes: [
-      // TODO: Fix 0-sized buffer binding on WebGPU
-      '0-sized',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'square ',
     excludes: [
       'dilation2d',  // 'dilation2d' not yet implemented.
@@ -259,7 +258,6 @@ const TEST_FILTERS: TestFilter[] = [
       'any webgpu ',
       'asin ',
       'asinh ',
-      'atan2 ',
       'atanh ',
       'avgPool3d ',
       'avgPool3dBackprop ',
@@ -280,7 +278,6 @@ const TEST_FILTERS: TestFilter[] = [
       'IRFFT ',
       'isFinite ',
       'isInf ',
-      'isNaN ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
@@ -297,7 +294,6 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
-      'reciprocal ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',

@@ -83,10 +83,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
       }
 
       ${getWorkGroupSizeString()}
-      fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-              @builtin(global_invocation_id) GlobalId : vec3<u32>,
-              @builtin(local_invocation_index) LocalIndex: u32,
-              @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
         localId = LocalId;
         globalId = GlobalId;
         let localIndex = i32(LocalIndex);

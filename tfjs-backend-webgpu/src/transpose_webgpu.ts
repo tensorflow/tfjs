@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransposeProgram implements WebGPUProgram {
@@ -49,8 +49,7 @@ export class TransposeProgram implements WebGPUProgram {
     const switched = getSwitchedCoords(this.newDim);
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
-
+      ${main('index')} {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {

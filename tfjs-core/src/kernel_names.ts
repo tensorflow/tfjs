@@ -627,6 +627,7 @@ export interface OneHotAttrs {
   depth: number;
   onValue: number;
   offValue: number;
+  dtype: DataType;
 }
 
 export const Pack = 'Pack';

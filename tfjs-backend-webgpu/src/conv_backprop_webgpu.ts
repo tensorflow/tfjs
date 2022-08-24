@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Conv2DDerInputProgram implements WebGPUProgram {
@@ -45,7 +45,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderAndGlobalIndexString()} {
+    ${main('index')} {
       if(index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         let batch = coords[0];

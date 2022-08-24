@@ -118,6 +118,7 @@ describe('BrowserStack benchmark', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
     const response = await fetch(`${KARMA_SERVER}/benchmark_parameters.json`);
     benchmarkParameters = await response.json();
+    tf.env().set('SOFTWARE_WEBGL_ENABLED', true);
   });
 
   it(`benchmark`, async () => {
