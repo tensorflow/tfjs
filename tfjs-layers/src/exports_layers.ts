@@ -33,7 +33,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
 /**
  * An input layer is an entry point into a `tf.LayersModel`.
  *
- * `InputLayer` is generated automatically for `tf.Sequential`` models by
+ * `InputLayer` is generated automatically for `tf.Sequential` models by
  * specifying the `inputshape` or `batchInputShape` for the first layer.  It
  * should not be specified explicitly. However, it can be useful sometimes,
  * e.g., when constructing a sequential model from a subset of another
