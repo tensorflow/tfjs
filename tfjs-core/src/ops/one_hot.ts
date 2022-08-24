@@ -45,6 +45,7 @@ import {op} from './operation';
  * the location.
  * @param offValue A number used to fill in the output when the index does
  *     not match the location.
+ * @param dtype The dtype of the output tensor, default to 'int32'.
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
