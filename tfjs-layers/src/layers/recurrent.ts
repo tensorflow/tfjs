@@ -1593,7 +1593,7 @@ export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1852,7 +1852,7 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
