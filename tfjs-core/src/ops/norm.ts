@@ -65,7 +65,7 @@ import {sum} from './sum';
  * over which to compute vector norms. If axis is a 2-tuple of integer it is
  * considered a batch of matrices and axis determines the axes in NDArray
  * over which to compute a matrix norm.
- * @param keepDims Optional. If true, the norm have the same dimensionality
+ * @param keepDims Optional. If true, the norm has the same dimensionality
  * as the input.
  *
  * @doc {heading: 'Operations', subheading: 'Matrices'}
