@@ -867,7 +867,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   /**
    * Evaluate model using a dataset object.
    *
-   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`).
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
@@ -875,7 +875,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
@@ -1478,7 +1478,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs.
    *   Of the two items in the array, the first is the input feature(s) and
