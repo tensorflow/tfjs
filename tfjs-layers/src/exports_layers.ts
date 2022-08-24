@@ -283,7 +283,7 @@ export function conv2d(args: ConvLayerArgs) {
  *   4D tensor with shape:
  *   `[batch, channels, rows, cols]` if `dataFormat` is `'channelsFirst'`.
  *   or 4D tensor with shape
- *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast`.
+ *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast'`.
  *
  * Output shape:
  *   4D tensor with shape:
