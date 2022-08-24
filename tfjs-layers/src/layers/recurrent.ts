@@ -253,7 +253,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     Porting Node: PyKeras overrides the `call()` signature of RNN cells,
    *       which are Layer subtypes, to accept two arguments. tfjs-layers does
    *       not do such overriding. Instead we preseve the `call()` signature,
-   *       which due to its `Tensor|Tensor[]` argument and return value, is
+   *       which due to its `Tensor|Tensor[]` argument and return value is
    *       flexible enough to handle the inputs and states.
    *   - a `stateSize` attribute. This can be a single integer (single state)
    *     in which case it is the size of the recurrent state (which should be
@@ -315,8 +315,8 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
 
   /**
    * If `true`, the network will be unrolled, else a symbolic loop will be
-   * used. Unrolling can speed-up a RNN, although it tends to be more memory-
-   * intensive. Unrolling is only suitable for short sequences (default:
+   * used. Unrolling can speed up a RNN, although it tends to be more
+   * memory-intensive. Unrolling is only suitable for short sequences (default:
    * `false`).
    * Porting Note: tfjs-layers has an imperative backend. RNNs are executed with
    *   normal TypeScript control flow. Hence this property is inapplicable and
@@ -931,7 +931,7 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraintfunction applied to the bias vector.
+   * Constraint function applied to the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
