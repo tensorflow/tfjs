@@ -71,7 +71,7 @@ export function inputLayer(args: InputLayerArgs) {
 // Advanced Activation Layers.
 
 /**
- * Exponetial Linear Unit (ELU).
+ * Exponential Linear Unit (ELU).
  *
  * It follows:
  * `f(x) =  alpha * (exp(x) - 1.) for x < 0`,
@@ -667,7 +667,7 @@ export function permute(args: PermuteLayerArgs) {
 
 /**
  * Maps positive integers (indices) into dense vectors of fixed size.
- * eg. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
+ * E.g. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
  *
  * **Input shape:** 2D tensor with shape: `[batchSize, sequenceLength]`.
  *
