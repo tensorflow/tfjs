@@ -1501,7 +1501,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * This method differs from `fit()` and `fitDataset()` in the following
    * regards:
    *   - It operates on exactly one batch of data.
-   *   - It returns only the loss and matric values, instead of
+   *   - It returns only the loss and metric values, instead of
    *     returning the batch-by-batch loss and metric values.
    *   - It doesn't support fine-grained options such as verbosity and
    *     callbacks.
