@@ -1916,7 +1916,7 @@ serialization.registerClass(LSTM);
 
 export declare interface StackedRNNCellsArgs extends LayerArgs {
   /**
-   * A `Array` of `RNNCell` instances.
+   * An `Array` of `RNNCell` instances.
    */
   cells: RNNCell[];
 }
