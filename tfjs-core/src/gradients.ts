@@ -340,7 +340,7 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  * `f`. When called, `g` returns `f().value`. In backward mode, custom gradients
  * with respect to each input of `f` are computed using `f().gradFunc`.
  *
- * The `save` function passsed to `f` should be used for saving tensors needed
+ * The `save` function passed to `f` should be used for saving tensors needed
  * in the gradient. And the `saved` passed to the `gradFunc` is a
  * `NamedTensorMap`, which contains those saved tensor.
  *
