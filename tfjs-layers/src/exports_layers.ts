@@ -432,7 +432,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs) {
  *
  * Depthwise Separable convolutions consists in performing just the first step
  * in a depthwise spatial convolution (which acts on each input channel
- * separately). The `depthMultplier` argument controls how many output channels
+ * separately). The `depthMultiplier` argument controls how many output channels
  * are generated per input channel in the depthwise step.
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
@@ -753,9 +753,9 @@ export function concatenate(args?: ConcatenateLayerArgs) {
 }
 
 /**
- * Layer that computes the element-wise maximum an `Array` of inputs.
+ * Layer that computes the element-wise maximum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -777,7 +777,7 @@ export function maximum(args?: LayerArgs) {
 /**
  * Layer that computes the element-wise minimum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -877,8 +877,8 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs) {
  *
  * Normalizes the activations of the previous layer for each given example in a
  * batch independently, instead of across a batch like in `batchNormalization`.
- * In other words, this layer applies a transformation that maintanis the mean
- * activation within each example close to0 and activation variance close to 1.
+ * In other words, this layer applies a transformation that maintains the mean
+ * activation within each example close to 0 and activation variance close to 1.
  *
  * Input shape:
  *   Arbitrary. Use the argument `inputShape` when using this layer as the first
@@ -963,10 +963,10 @@ export function avgPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *  - If `dataFormat === CHANNEL_LAST`:
  *      4D tensor with shape:
- *      `[batchSize, pooleRows, pooledCols, channels]`
+ *      `[batchSize, pooledRows, pooledCols, channels]`
  *  - If `dataFormat === CHANNEL_FIRST`:
  *      4D tensor with shape:
- *      `[batchSize, channels, pooleRows, pooledCols]`
+ *      `[batchSize, channels, pooledRows, pooledCols]`
  *
  * `tf.avgPool2d` is an alias.
  *
@@ -1022,7 +1022,7 @@ export function avgPooling3d(args: Pooling3DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1053,7 +1053,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1106,10 +1106,10 @@ export function maxPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *   - If `dataFormat=CHANNEL_LAST`:
  *       4D tensor with shape:
- *       `[batchSize, pooleRows, pooledCols, channels]`
+ *       `[batchSize, pooledRows, pooledCols, channels]`
  *   - If `dataFormat=CHANNEL_FIRST`:
  *       4D tensor with shape:
- *       `[batchSize, channels, pooleRows, pooledCols]`
+ *       `[batchSize, channels, pooledRows, pooledCols]`
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1376,7 +1376,7 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs) {
 /**
  * Convolutional LSTM layer - Xingjian Shi 2015.
  *
- * This is an `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
+ * This is a `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
  * unlike the underlying `ConvLSTM2DCell`, the `apply` method of `ConvLSTM2D`
  * operates on a sequence of inputs. The shape of the input (not including the
  * first, batch dimension) needs to be 4-D, with the first dimension being time
