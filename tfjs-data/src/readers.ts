@@ -188,7 +188,7 @@ export function func<T extends TensorContainer>(
  * await ds.forEachAsync(e => console.log(e));
  * ```
  *
- * @param generator A Javascript generator function that returns a JavaScript
+ * @param generator A JavaScript generator function that returns a JavaScript
  *     iterator.
  *
  * @doc {
