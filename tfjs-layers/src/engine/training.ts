@@ -1511,7 +1511,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *     multiple inputs).
    *   - An Object mapping input names to corresponding `tf.Tensor` (if the
    *     model has named inputs).
-   * @param y Target darta. It could be either a `tf.Tensor` a multiple
+   * @param y Target data. It could be either a `tf.Tensor` or multiple
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
