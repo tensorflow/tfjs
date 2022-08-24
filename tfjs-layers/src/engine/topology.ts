@@ -91,7 +91,7 @@ export class InputSpec {
  * `tf.SymbolicTensor` is a placeholder for a Tensor without any concrete value.
  *
  * They are most often encountered when building a graph of `Layer`s for a
- * a `tf.LayersModel` and the input data's shape, but not values are known.
+ * `tf.LayersModel` and the input data's shape, but not values are known.
  *
  * @doc {heading: 'Models', 'subheading': 'Classes'}
  */
