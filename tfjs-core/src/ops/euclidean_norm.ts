@@ -34,7 +34,7 @@ import {op} from './operation';
  * @param axis Optional. If axis is null (the default), the input is
  * considered a vector and a single vector norm is computed over the entire
  * set of values in the Tensor, i.e. euclideanNorm(x) is equivalent
- * to euclideanNorm(x.reshape([-1])). If axis is a integer, the input
+ * to euclideanNorm(x.reshape([-1])). If axis is an integer, the input
  * is considered a batch of vectors, and axis determines the axis in x
  * over which to compute vector norms. If axis is a 2-tuple of integer it is
  * considered a batch of matrices and axis determines the axes in NDArray
