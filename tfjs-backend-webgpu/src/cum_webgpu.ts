@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export enum CumOpType {
@@ -70,7 +70,7 @@ export class CumProgram implements WebGPUProgram {
       idxString = (this.reverse ? 'end + pow2' : 'end - pow2');
     }
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
        if (index < uniforms.size) {
          var coords = getCoordsFromIndex(index);
 

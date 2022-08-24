@@ -88,8 +88,7 @@
       {
         "tfName": "T",
         "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
+        "type": "dtype"
       }
     ]
   },

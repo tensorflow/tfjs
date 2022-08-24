@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class CropAndResizeProgram implements WebGPUProgram {
@@ -78,7 +78,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+    ${main('index')} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         let height_ratio = f32(${heightRatio});

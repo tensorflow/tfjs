@@ -16,7 +16,7 @@
  */
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class UnaryOpProgram implements WebGPUProgram {
@@ -47,7 +47,7 @@ export class UnaryOpProgram implements WebGPUProgram {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false)}
       }
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let a = getAByOutputIndex(index);
           setOutputAtIndex(index, unaryOperation(a));

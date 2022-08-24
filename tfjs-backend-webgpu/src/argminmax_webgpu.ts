@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
-import {getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {backend_util, util} from '@tensorflow/tfjs-core';
+import {getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
@@ -31,37 +31,42 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   reductionFactor: number;
   op: string;
   size = true;
+  private type: string;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
-    backend_util.assertAxesAreInnerMostDims(
-        'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
-        inputShape.length);
 
     this.op = reduceType === 'min' ? '<' : '>';
 
     // |outShape| is the shape with the removed axis
-    const [outputShape] =
+    const [outputShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(inputShape, axes);
 
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    // A work group only outputs a data, so we transfer [1, 1, 1] to compute
-    // dispatch size.
-    this.dispatch =
-        computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    // The shared algorithm is mainly used for large reduce size. It fully
+    // utilizes the threads in one workgroup to do the reduction. However,
+    // when the reduce size is very small or the output shape is too large. It's
+    // better to use the plain algorithm to reduce the number of workgroups to
+    // speedup. The threthold can be further tuned.
+    if (util.sizeFromShape(reduceShape) < 32 ||
+        util.sizeFromShape(outputShape) > 1000) {
+      this.type = 'plain';
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize);
+    } else {
+      this.type = 'shared';
+      // A work group only outputs a data, so we transfer [1, 1, 1] to compute
+      // dispatch size.
+      this.dispatch =
+          computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
+    }
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax${this.op}`;
+    this.shaderKey = `argMinMax_${this.op}_${this.type}`;
   }
 
   getUserCode(): string {
-    const sharedMemorySnippet = `
-      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
-      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
-    `;
-
     const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
@@ -84,14 +89,19 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       return snippet;
     };
 
-    const userCode = `
+    if (this.type === 'shared') {
+      const sharedMemorySnippet = `
+      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+    `;
+      const userCode = `
       fn DIV_CEIL(a : u32, b : u32) -> u32 {
         return ((a - 1u) / b + 1u);
       }
 
       ${sharedMemorySnippet}
 
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         let outputIndex = index / i32(workGroupSizeX);
         let reduceLength = ${getInputShapeLastDim()};
 
@@ -131,6 +141,27 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         }
       }
     `;
-    return userCode;
+      return userCode;
+    } else {
+      const userCode = `
+      ${main('index')} {
+        if (index < uniforms.size) {
+          let outputCoords = getCoordsFromIndex(index);
+          var bestIndex = 0;
+          var bestValue = getX(${splitOutputCoords()} 0);
+          let reduceLength = ${getInputShapeLastDim()};
+          for (var i = 1; i < reduceLength; i++) {
+            let candidate = getX(${splitOutputCoords()} i);
+            if (candidate ${this.op} bestValue) {
+              bestValue = candidate;
+              bestIndex = i;
+            }
+          }
+          setOutputAtIndexI32(index, bestIndex);
+        }
+      }
+      `;
+      return userCode;
+    }
   }
 }

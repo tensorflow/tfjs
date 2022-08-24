@@ -19,13 +19,13 @@ import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getMainHeaderString()}
+    ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
       let row = coords[1];
