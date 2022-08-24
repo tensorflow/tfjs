@@ -1592,15 +1592,15 @@ export {Layer, RNN, RNNCell, input /* alias for tf.input */};
  * for real valued inputs.
  *
  * # Arguments
- *     stddev: float, standard deviation of the noise distribution.
+ * stddev: float, standard deviation of the noise distribution.
  *
  * # Input shape
- *         Arbitrary. Use the keyword argument `input_shape`
- *         (tuple of integers, does not include the samples axis)
- *         when using this layer as the first layer in a model.
+ * Arbitrary. Use the keyword argument `input_shape`
+ * (tuple of integers, does not include the samples axis)
+ * when using this layer as the first layer in a model.
  *
  * # Output shape
- *         Same shape as input.
+ * Same shape as input.
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
