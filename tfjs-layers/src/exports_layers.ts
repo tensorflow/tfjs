@@ -1496,8 +1496,8 @@ export function convLstm2dCell(args: ConvLSTM2DCellArgs) {
  *   You can pass "external" constants to the cell using the `constants`
  *   keyword argument of `RNN.call` method. This requires that the `cell.call`
  *   method accepts the same keyword argument `constants`. Such constants
- *   can be used to conditon the cell transformation on additional static inputs
- *   (not changing over time), a.k.a an attention mechanism.
+ *   can be used to condition the cell transformation on additional static inputs
+ *   (not changing over time), a.k.a. an attention mechanism.
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
