@@ -54,17 +54,17 @@ export function conv2DBackpropInput(args: {
     },
   ];
   let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
+  const dimBOuter = convInfo.inChannels;
+  const dimInner =
+      convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
   if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE') ||
-      convInfo.inChannels < 32 && convInfo.outChannels < 32) {
-    // When inChannels and outChannels are both less than 32,
+      dimInner <= 64 && dimBOuter < 32) {
+    // When dimInner and dimBOuter are small,
     // Conv2DDerInputProgram is much faster than Conv2DDerInputMMProgram.
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);
-    const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
-    const dimBOuter = convInfo.inShape[3];
-    const dimInner =
-        convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
+    const dimAOuter = convInfo.inHeight * convInfo.inWidth;
     dimensions.push(
         {type: 'uint32', data: [dimAOuter]},
         {type: 'uint32', data: [dimBOuter]},
