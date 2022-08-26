@@ -58,7 +58,7 @@ export function conv2DBackpropInput(args: {
       convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
   if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE') ||
       dimInner <= 64 && convInfo.inChannels <= 16) {
-    // When dimInner and dimBOuter are small,
+    // When dimInner(f_H x f_W * outChannels)  and inChannels are small,
     // Conv2DDerInputProgram is much faster than Conv2DDerInputMMProgram.
     program = new Conv2DDerInputProgram(convInfo);
   } else {
