@@ -58,7 +58,7 @@ export function conv2DBackpropInput(args: {
       convInfo.inChannels < 32 && convInfo.outChannels < 32) {
     // When inChannels and outChannels are both less than 32,
     // Conv2DDerInputProgram is much faster than Conv2DDerInputMMProgram. The
-    // most likely reason is that in such situation, the UE utilization in
+    // most likely reason is that in such situation, the EU utilization in
     // Conv2DDerInputMMProgram is too low.
     program = new Conv2DDerInputProgram(convInfo);
   } else {
