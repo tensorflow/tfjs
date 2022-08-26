@@ -25,8 +25,6 @@ export class StridedSliceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  // TODO(xing.xu): Increase the workPerThread.
-  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -34,8 +32,7 @@ export class StridedSliceProgram implements WebGPUProgram {
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     const dtype = getCoordsDataType(this.outputShape.length);
     this.uniforms = `begin : ${dtype},  strides : ${dtype}, `;

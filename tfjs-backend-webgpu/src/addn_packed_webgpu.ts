@@ -24,7 +24,6 @@ export class AddNPackedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -33,8 +32,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = 'addN';
   }
 
@@ -53,14 +51,11 @@ export class AddNPackedProgram implements WebGPUProgram {
 
     const userCode = `
       ${main('index')} {
-        for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
-          let flatIndex = index * ${this.workPerThread} + i;
-          if (flatIndex < uniforms.size) {
-            let coords = getCoordsFromIndex(flatIndex);
+          if (index < uniforms.size) {
+            let coords = getCoordsFromIndex(index);
             ${snippets.join('\n        ')}
-            setOutputAtIndex(flatIndex, ${operation});
+            setOutputAtIndex(index, ${operation});
           }
-        }
       }
     `;
     return userCode;

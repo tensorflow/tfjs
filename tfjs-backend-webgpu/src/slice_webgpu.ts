@@ -26,7 +26,6 @@ export class SliceProgram implements WebGPUProgram {
   rank: number;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
   size = true;
@@ -36,8 +35,7 @@ export class SliceProgram implements WebGPUProgram {
     this.rank = destSize.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.start = start;
     this.uniforms = `start : ${getCoordsDataType(start.length)}, `;
