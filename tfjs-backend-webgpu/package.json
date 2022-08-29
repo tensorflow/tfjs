@@ -15,7 +15,7 @@
     "bundle": "yarn build",
     "bundle-ci": "yarn bundle",
     "build-npm": "yarn build",
-    "publish-npm": "yarn --cwd .. bazel run tfjs-backend-webgpu:tfjs-backend-webgpu_pkg.publish",
+    "publish-npm": "bazel run //tfjs-backend-webgpu:tfjs-backend-webgpu_pkg.publish",
     "test": "yarn --cwd .. bazel test tfjs-backend-webgpu:tfjs-backend-webgpu_test --test_output=streamed",
     "test-dev": "yarn --cwd .. bazel run tfjs-backend-webgpu:tfjs-backend-webgpu_test --test_output=streamed"
   },
