@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {GPUDeviceValidation} from './gpudevice_validation';
+
 export class BufferManager {
   private numUsedBuffers = 0;
   private numFreeBuffers = 0;
@@ -24,7 +26,7 @@ export class BufferManager {
   public numBytesUsed = 0;
   public numBytesAllocated = 0;
 
-  constructor(private device: GPUDevice) {}
+  constructor(private device: GPUDeviceValidation) {}
 
   acquireUploadBuffer(size: number, usage: GPUBufferUsageFlags) {
     return this.acquireBuffer(size, usage, true);
