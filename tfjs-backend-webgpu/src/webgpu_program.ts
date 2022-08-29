@@ -16,7 +16,7 @@
  */
 
 import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
-
+import {GPUDeviceValidation} from './gpudevice_validation';
 import {symbolicallyComputeStrides} from './shader_util';
 
 export interface WebGPUProgram {
@@ -52,8 +52,8 @@ export interface WebGPUProgram {
 }
 
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): GPUComputePipeline => {
+    (device: GPUDeviceValidation, program: WebGPUProgram,
+     inputsData: InputInfo[], output: TensorInfo): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
       const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(

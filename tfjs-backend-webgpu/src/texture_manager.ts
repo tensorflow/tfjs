@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {GPUDeviceValidation} from './gpudevice_validation';
+
 export class TextureManager {
   private numUsedTextures = 0;
   private numFreeTextures = 0;
@@ -24,7 +26,7 @@ export class TextureManager {
   public numBytesUsed = 0;
   public numBytesAllocated = 0;
 
-  constructor(private device: GPUDevice) {}
+  constructor(private device: GPUDeviceValidation) {}
 
   acquireTexture(
       width: number, height: number, format: GPUTextureFormat,
