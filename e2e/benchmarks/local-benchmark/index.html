@@ -171,11 +171,11 @@ limitations under the License.
       }
     }
 
-    async function predictAndGetPredictionData(predict, model, inferenceInput, debug, backend) {
+    async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
       const prediction = await predict(model, inferenceInput);
       let intermediateData = {};
       if (debug) {
-        intermediateData = await printTensors(model.getIntermediateTensors(), backend);
+        intermediateData = await getIntermediateTensorsData(model.getIntermediateTensors());
         model.disposeIntermediateTensors();
       }
       const predictionData = await getPredictionData(prediction);
@@ -232,7 +232,7 @@ limitations under the License.
           }
 
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug, referenceBackend);
+          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
           referenceData = referenceResult['data'];;
 
           await tf.setBackend(state.backend);
@@ -246,12 +246,12 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug, state.backend);
+          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
           predictionData = predictionResult['data'];;
           if (debug) {
-            const predictionJsonObject = predictionResult['intermediateData'];
-            const referenceJsonObject = referenceResult['intermediateData'];
-            compareJsons(predictionJsonObject, state.backend, referenceJsonObject, referenceBackend);
+            const predictionIntermediateObject = predictionResult['intermediateData'];
+            const referenceIntermediateObject = referenceResult['intermediateData'];
+            compareAndDownloadErrorValue(predictionIntermediateObject, state.backend, referenceIntermediateObject, referenceBackend);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
