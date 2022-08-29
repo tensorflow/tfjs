@@ -176,7 +176,8 @@ function expectArraysClose(actual, expected, epsilon, key) {
   }
 }
 
-async function compareJsons(jsonObject1, backend1, jsonObject2, backend2) {
+async function compareAndDownloadErrorValue(
+    jsonObject1, backend1, jsonObject2, backend2) {
   const keys = Object.keys(jsonObject1);
   var errorCount = 0;
   for (let i = 0; i < keys.length; i++) {
@@ -200,7 +201,7 @@ async function compareJsons(jsonObject1, backend1, jsonObject2, backend2) {
   }
 }
 
-async function printTensors(tensorsMap, backend) {
+async function getIntermediateTensorsData(tensorsMap) {
   if (!tensorsMap) {
     return;
   }
@@ -209,11 +210,9 @@ async function printTensors(tensorsMap, backend) {
   for (let i = 0; i < keysOfTensors.length; i++) {
     const key = keysOfTensors[i];
     const dataArray = [];
-    const dataLengthArray = [];
     for (let j = 0; j < tensorsMap[key].length; j++) {
       const data = await (tensorsMap[key][j]).data();
       dataArray.push(data);
-      dataLengthArray.push(data.length);
     }
     jsonObject[key] = dataArray;
   }
