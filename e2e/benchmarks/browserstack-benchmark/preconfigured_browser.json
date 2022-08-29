@@ -1,9 +1,14 @@
 {
   "benchmark": {
-    "model": ["mobilenet_v2", "mesh_128", "face_detector", "hand_detector",
-      "hand_skeleton", "blazeface"],
+    "model": ["MobileNetV3", "MobileNetV2", "HandPoseDetector",
+    "HandPoseLandmark", "MoveNet-SinglePose", "MoveNet-MultiPose",
+    "BlazePoseDetector", "BlazePoseLandmark", "Coco-SSD", "DeepLabV3",
+    "FaceDetection", "FaceLandmarkDetection", "ArPortraitDepth",
+    "SelfieSegmentation-General", "SelfieSegmentation-Landscape",
+    "AutoML Image", "AutoML Object", "USE - batchsize 30", "USE - batchsize 1",
+    "TextToxicity", "MobileBert", "posenet", "bodypix", "speech-commands"],
     "numRuns": 10,
-    "backend": ["wasm", "webgl"]
+    "backend": ["webgl"]
   },
   "browsers": {
     "Windows_11_1": {
