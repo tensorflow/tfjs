@@ -130,6 +130,9 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
+  private validationErrors:
+      {errorPromises: Array<Promise<GPUError>>,
+       programNames: string[]} = {errorPromises: [], programNames: []};
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -340,8 +343,24 @@ export class WebGPUBackend extends KernelBackend {
     return this.currentComputePass;
   }
 
+  async checkValidationErrors() {
+    const errors = await Promise.all(this.validationErrors.errorPromises);
+    const validationErrors = this.validationErrors;
+    const realErrors: string[] = [];
+    errors.forEach((error, index) => {
+      if (error != null) {
+        realErrors.push(validationErrors.programNames[index]);
+      }
+    });
+    if (realErrors.length !== 0) {
+      throw new Error(`GPU validation error(s): ${(realErrors)}`);
+    }
+    this.validationErrors = {errorPromises: [], programNames: []};
+  }
+
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<backend_util.BackendValues> {
+    await this.checkValidationErrors();
     const staging = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -752,8 +771,11 @@ export class WebGPUBackend extends KernelBackend {
     if (key in this.pipelineCache) {
       pipeline = this.pipelineCache[key];
     } else {
+      this.device.pushErrorScope('validation');
       pipeline = webgpu_program.compileProgram(
           this.device, program, inputsData, output);
+      this.validationErrors.errorPromises.push(this.device.popErrorScope());
+      this.validationErrors.programNames.push(program.constructor.name);
       this.pipelineCache[key] = pipeline;
     }
 
