@@ -32,15 +32,20 @@ export class GPUDeviceValidation {
   }
 
   async checkValidationErrors() {
-    const errors =
-        (await Promise.all(this.errorPromises)).filter(error => error != null);
-    errors.forEach((error, index) => {
+    const errors = (await Promise.all(this.errorPromises));
+    let hasError = false;
+    errors.forEach((error) => {
       if (error instanceof GPUValidationError) {
-        throw new Error(`GPU error(s) : ${error.message}`);
-      } else {
-        throw new Error(`GPU error(s)`);
+        hasError = true;
+        console.error(`GPUValidationError: ${error.message}`);
+      } else if (error) {
+        hasError = true;
+        console.error('GPU error!');
       }
     });
+    if (hasError) {
+      throw new Error('GPU error(s) should be resolved!');
+    }
     this.errorPromises = [];
   }
 
