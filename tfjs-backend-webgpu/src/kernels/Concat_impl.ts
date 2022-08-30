@@ -97,8 +97,7 @@ export function concatImpl(
   // There is a storage buffer limitation in compute stage, one for output so
   // the maximum for input is limits.maxStorageBuffersPerShaderStage - 1
   const maxInputNum =
-      backend.deviceValidation.device.limits.maxStorageBuffersPerShaderStage -
-      1;
+      backend.getDeviceLimits().maxStorageBuffersPerShaderStage - 1;
   if (inputs.length > maxInputNum) {
     const reducedInputs = [];
     for (let i = 0; i < inputs.length; i += maxInputNum) {

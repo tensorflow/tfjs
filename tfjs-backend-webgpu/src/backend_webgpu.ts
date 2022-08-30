@@ -231,6 +231,10 @@ export class WebGPUBackend extends KernelBackend {
     } as WebGPUMemoryInfo;
   }
 
+  getDeviceLimits(): GPUSupportedLimits {
+    return this.deviceValidation.device.limits;
+  }
+
   releaseResource(dataId: DataId) {
     const tensorData = this.tensorMap.get(dataId);
     if (!tensorData || !tensorData.resourceInfo) {
