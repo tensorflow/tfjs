@@ -232,7 +232,11 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   getDeviceLimits(): GPUSupportedLimits {
-    return this.deviceValidation.device.limits;
+    return this.getDevice().device.limits;
+  }
+
+  getDevice(): GPUDeviceValidation {
+    return this.deviceValidation;
   }
 
   releaseResource(dataId: DataId) {
@@ -327,7 +331,7 @@ export class WebGPUBackend extends KernelBackend {
 
   ensureCommandEncoderReady() {
     if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.deviceValidation.createCommandEncoder();
+      this.currentCommandEncoder = this.getDevice().createCommandEncoder();
     }
   }
 
@@ -347,7 +351,7 @@ export class WebGPUBackend extends KernelBackend {
 
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<backend_util.BackendValues> {
-    await this.deviceValidation.checkValidationErrors();
+    await this.getDevice().checkValidationErrors();
     const staging = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -711,7 +715,7 @@ export class WebGPUBackend extends KernelBackend {
       return output;
     }
     this.uploadToGPU(output.dataId);
-    program.dispatch = reshapeDispatch(this.deviceValidation.device, program);
+    program.dispatch = reshapeDispatch(this.getDevice().device, program);
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
@@ -759,7 +763,7 @@ export class WebGPUBackend extends KernelBackend {
       pipeline = this.pipelineCache[key];
     } else {
       pipeline = webgpu_program.compileProgram(
-          this.deviceValidation, program, inputsData, output);
+          this.getDevice(), program, inputsData, output);
       this.pipelineCache[key] = pipeline;
     }
 
@@ -771,7 +775,7 @@ export class WebGPUBackend extends KernelBackend {
       this.makeUniforms(programUniform)
     ];
 
-    const bindGroup = this.deviceValidation.createBindGroup({
+    const bindGroup = this.getDevice().createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
       entries: bindings.map((b, i) => ({binding: i, resource: b})),
     });
@@ -859,6 +863,7 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.bufferManager.dispose();
     this.textureManager.dispose();
+    this.getDevice().destroy();
     this.disposed = true;
   }
 }

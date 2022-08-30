@@ -76,7 +76,7 @@ export function fromPixels(args: {
         const externalTextureDescriptor = {source: videoElement};
         videoToTextureMap.set(
             videoElement,
-            backend.deviceValidation.importExternalTexture(
+            backend.getDevice().importExternalTexture(
                 externalTextureDescriptor));
       }
 
