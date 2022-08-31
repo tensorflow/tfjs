@@ -26,7 +26,7 @@ export class ConcatProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms = '';
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   offsetLength: number;

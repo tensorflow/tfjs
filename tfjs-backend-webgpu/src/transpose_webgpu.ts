@@ -24,7 +24,7 @@ export class TransposeProgram implements WebGPUProgram {
   outputShape: number[];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   newDim: number[];
   size = true;
