@@ -370,9 +370,8 @@ export function getTextureShapeFromLogicalShape(
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
   let maxSizeForNarrorTex =
       env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
-
   if (maxSizeForNarrorTex === Infinity &&
-      env().getBool('WEBGL_AUTO_RESHAPE_NARROW_TEXTURE_FOR_MALI_GPU')) {
+      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU')) {
     maxSizeForNarrorTex = maxTexSize / 2;
   }
 
@@ -397,6 +396,8 @@ export function getTextureShapeFromLogicalShape(
     }
   }
 
+  // returns true if one edge length is 1 (or 2, if packed), while another edge
+  // length exceeds maxSizeForNarrorTex.
   const isLongNarrowTex =
       (textureShape: [number, number]) => {
         return Math.max(...textureShape) > maxSizeForNarrorTex &&

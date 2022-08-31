@@ -267,4 +267,5 @@ ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
  * interpolations for long skinny triangles. We found Mali GPU probably has this
  * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
-ENV.registerFlag('WEBGL_AUTO_RESHAPE_NARROW_TEXTURE_FOR_MALI_GPU', () => false);
+ENV.registerFlag(
+    'WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU', () => false);

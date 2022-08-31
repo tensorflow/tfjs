@@ -462,19 +462,20 @@ describeWithFlags(MAX_SIZE_FOR_NARROR_TEX_FLAG, WEBGL_ENVS, () => {
   });
 });
 
-const AUTO_RESHAPE_NARROW_TEX_FLAG = 'WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE';
+const AUTO_SQUARIFY_NARROW_TEX_FLAG =
+    'WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU';
 
-describeWithFlags(AUTO_RESHAPE_NARROW_TEX_FLAG, WEBGL_ENVS, () => {
+describeWithFlags(AUTO_SQUARIFY_NARROW_TEX_FLAG, WEBGL_ENVS, () => {
   beforeEach(() => tf.env().reset());
   afterAll(() => tf.env().reset());
 
-  it(`returns correct value when ${AUTO_RESHAPE_NARROW_TEX_FLAG} is set`,
+  it(`returns correct value when ${AUTO_SQUARIFY_NARROW_TEX_FLAG} is set`,
      () => {
-       tf.env().set(AUTO_RESHAPE_NARROW_TEX_FLAG, true);
-       expect(tf.env().getBool(AUTO_RESHAPE_NARROW_TEX_FLAG)).toBe(true);
+       tf.env().set(AUTO_SQUARIFY_NARROW_TEX_FLAG, true);
+       expect(tf.env().getBool(AUTO_SQUARIFY_NARROW_TEX_FLAG)).toBe(true);
      });
 
-  it(`returns default when ${AUTO_RESHAPE_NARROW_TEX_FLAG} is not set`, () => {
-    expect(tf.env().getBool(AUTO_RESHAPE_NARROW_TEX_FLAG)).toBe(false);
+  it(`returns default when ${AUTO_SQUARIFY_NARROW_TEX_FLAG} is not set`, () => {
+    expect(tf.env().getBool(AUTO_SQUARIFY_NARROW_TEX_FLAG)).toBe(false);
   });
 });
