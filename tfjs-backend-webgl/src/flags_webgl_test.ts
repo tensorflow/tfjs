@@ -444,3 +444,19 @@ describe('WEBGL_EXP_CONV', () => {
     expect(tf.env().getBool('WEBGL_EXP_CONV')).toBe(false);
   });
 });
+
+const MAX_1D_TEX_DIM_FLAG = 'WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE';
+
+describeWithFlags(MAX_1D_TEX_DIM_FLAG, WEBGL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it(`returns correct value when ${MAX_1D_TEX_DIM_FLAG} is set`, () => {
+    tf.env().set(MAX_1D_TEX_DIM_FLAG, 2048);
+    expect(tf.env().getNumber(MAX_1D_TEX_DIM_FLAG)).toBe(2048);
+  });
+
+  it(`returns default when ${MAX_1D_TEX_DIM_FLAG} is not set`, () => {
+    expect(tf.env().getNumber(MAX_1D_TEX_DIM_FLAG)).toBe(Infinity);
+  });
+});

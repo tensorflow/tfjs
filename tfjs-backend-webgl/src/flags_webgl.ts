@@ -246,3 +246,13 @@ ENV.registerFlag('WEBGL_EXP_CONV', () => false);
  * software WebGL will be used.
  */
 ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
+
+/**
+ * For 1D texture (physical height or physical width is 1), if the length of any
+ * texture edges exceed the threshold, the other edge will be increased to 2.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles.
+ * https://github.com/tensorflow/tfjs/issues/6775
+ */
+ENV.registerFlag('WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE', () => Infinity);

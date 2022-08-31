@@ -395,29 +395,30 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
+  let textureShape: [number, number];
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
       logShape[1] <= maxTexSize) {
-    return logShape as [number, number];
+    textureShape = logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
       logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
       logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
   } else {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
@@ -432,10 +433,23 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+    } else {
+      textureShape = util.sizeToSquarishShape(size);
     }
-    return util.sizeToSquarishShape(size);
   }
+
+  const maxDimFor1DTex =
+      env().getNumber('WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE') *
+      (isPacked ? 2 : 1);
+  if (textureShape[0] > maxDimFor1DTex || textureShape[1] > maxDimFor1DTex) {
+    // For 1D texture, if the length exceeds maxDimFor1DTex, the texture will be
+    // upgraded to 2D with a physical shape as [length, 2] or [2, length].
+    textureShape[0] = Math.max(isPacked ? 4 : 2, textureShape[0]);
+    textureShape[1] = Math.max(isPacked ? 4 : 2, textureShape[1]);
+  }
+  return textureShape;
 }
 
 function isEven(n: number): boolean {
