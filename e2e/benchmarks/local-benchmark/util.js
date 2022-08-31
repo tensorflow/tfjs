@@ -176,29 +176,53 @@ function expectArraysClose(actual, expected, epsilon, key) {
   }
 }
 
-async function compareAndDownloadErrorValue(
-    jsonObject1, backend1, jsonObject2, backend2) {
-  const keys = Object.keys(jsonObject1);
-  var errorCount = 0;
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    let match = false;
-    try {
-      expectObjectsClose(jsonObject1[key], jsonObject2[key]);
-      match = true;
-    } catch (e) {
-      match = false;
-      const newKey = key.replace(/\//g, '-');
-      download(jsonObject1[key], `${i}_${newKey}_${backend1}.json`);
-      download(jsonObject2[key], `${i}_${newKey}_${backend2}.json`);
-      errorCount++;
-      // Without sleep, some files fail to download.
-      await sleep(200);
+function parseIntermediateIndex(intermediateIndexStr, maxIndex) {
+  // intermediateIndex = -1 downloads all.
+  if (Number(intermediateIndexStr) == -1) {
+    return Array.from({length: maxIndex}, (v, i) => i);
+  }
+  const values = intermediateIndexStr.split(',');
+  let flatArray = [];
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i].split('-');
+    if (value.length == 2) {
+      const start = Number(value[0]);
+      const end = Number(value[1]);
+      const arrayLength = end - start + 1;
+      const subArray = Array.from({length: arrayLength}, (v, i) => i + start);
+      flatArray = [...flatArray, ...subArray];
+    } else if (value.length == 1) {
+      flatArray = [...flatArray, ...[Number(value)]];
+    } else {
+      throw new Error(`${intermediateIndexStr} is not supported!`);
     }
   }
-  if (errorCount) {
-    console.error('Total mismatch: ' + errorCount);
+  flatArray = flatArray.filter(function(x) {
+    return x < maxIndex;
+  });
+  if (flatArray.length == 0) {
+    throw new Error(
+        `Intermediate tensor ${intermediateIndexStr} is not exist!`);
   }
+  return flatArray;
+}
+
+async function downloadIntermediateTensors(
+    jsonObject1, backend1, jsonObject2, backend2, benchmark,
+    intermediateIndexStr) {
+  const keys = Object.keys(jsonObject1);
+  let intermediateIndex =
+      parseIntermediateIndex(intermediateIndexStr, keys.length);
+  const objects = [];
+  for (let i = 0; i < intermediateIndex.length && i < keys.length; i++) {
+    const key = keys[intermediateIndex[i]];
+    objects.push({
+      node: `${intermediateIndex[i]}_${key.replace(/\//g, '-')}`,
+      [backend1]: jsonObject1[key],
+      [backend2]: jsonObject2[key]
+    });
+  }
+  download(objects, `${benchmark}_diff.json`);
 }
 
 async function getIntermediateTensorsData(tensorsMap) {

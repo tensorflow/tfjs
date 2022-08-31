@@ -233,7 +233,7 @@ limitations under the License.
 
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
           const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
-          referenceData = referenceResult['data'];;
+          referenceData = referenceResult['data'];
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -247,11 +247,13 @@ limitations under the License.
           }
 
           const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
-          predictionData = predictionResult['data'];;
+          predictionData = predictionResult['data'];
           if (debug) {
             const predictionIntermediateObject = predictionResult['intermediateData'];
             const referenceIntermediateObject = referenceResult['intermediateData'];
-            compareAndDownloadErrorValue(predictionIntermediateObject, state.backend, referenceIntermediateObject, referenceBackend);
+            const hasIntermediateIndex = urlState && urlState.has('intermediateIndex');
+            const intermediateIndex = hasIntermediateIndex ? urlState.get('intermediateIndex') : "0-9";
+            downloadIntermediateTensors(predictionIntermediateObject, state.backend, referenceIntermediateObject, referenceBackend, state.benchmark, intermediateIndex);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
