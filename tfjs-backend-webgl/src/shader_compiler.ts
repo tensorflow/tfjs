@@ -1359,7 +1359,7 @@ function getSampler3D(
       // Explicitly use integer operations as dot() only works on floats.
       int stride0 = ${texName}Shape[1] * ${texName}Shape[2];
       int stride1 = ${texName}Shape[2];
-      int index = row * ${stride0} + col * ${stride1} + depth + ${offset};
+      int index = row * stride0 + col * stride1 + depth + ${offset};
       vec2 uv = uvFromFlat(${texName}TexShape[0], ${texName}TexShape[1], index);
       return sampleTexture(${texName}, uv);
     }
