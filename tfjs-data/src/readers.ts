@@ -207,8 +207,8 @@ export function generator<T extends TensorContainer>(
 }
 
 /**
- * Create an iterator that generates `Tensor`s from webcam video stream. This API
- * only works in Browser environment when the device has webcam.
+ * Create an iterator that generates `Tensor`s from webcam video stream. This
+ * API only works in Browser environment when the device has webcam.
  *
  * Note: this code snippet only works when the device has a webcam. It will
  * request permission to open the webcam when running.
