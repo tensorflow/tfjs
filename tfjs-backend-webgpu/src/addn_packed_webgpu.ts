@@ -24,7 +24,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
