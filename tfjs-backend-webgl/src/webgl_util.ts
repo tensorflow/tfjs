@@ -368,8 +368,17 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  let maxSizeForNarrorTex =
+      env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+
+  if (maxSizeForNarrorTex === Infinity &&
+      env().getBool('WEBGL_AUTO_RESHAPE_NARROW_TEXTURE_FOR_MALI_GPU')) {
+    maxSizeForNarrorTex = maxTexSize / 2;
+  }
+
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrorTex = maxSizeForNarrorTex * 2;
 
     // This logic ensures we accurately count the number of packed texels needed
     // to accommodate the tensor. We can only pack values in the same texel if
@@ -388,6 +397,12 @@ export function getTextureShapeFromLogicalShape(
     }
   }
 
+  const isLongNarrowTex =
+      (textureShape: [number, number]) => {
+        return Math.max(...textureShape) > maxSizeForNarrorTex &&
+            Math.min(...textureShape) <= (isPacked ? 2 : 1);
+      }
+
   // If logical shape is 2, we don't squeeze, since we want to match physical.
   if (logShape.length !== 2) {
     const squeezeResult = util.squeezeShape(logShape);
@@ -395,30 +410,37 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
-  let textureShape: [number, number];
-  if (logShape.length <= 1 && size <= maxTexSize) {
-    textureShape = [1, size];
+  if (logShape.length <= 1 && size <= maxTexSize &&
+      size <= maxSizeForNarrorTex) {
+    return [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
-      logShape[1] <= maxTexSize) {
-    textureShape = logShape as [number, number];
+      logShape[1] <= maxTexSize &&
+      !isLongNarrowTex(logShape as [number, number])) {
+    return logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
-      logShape[2] <= maxTexSize) {
-    textureShape = [logShape[0] * logShape[1], logShape[2]];
+      logShape[2] <= maxTexSize &&
+      !isLongNarrowTex([logShape[0] * logShape[1], logShape[2]])) {
+    return [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
-      logShape[1] * logShape[2] <= maxTexSize) {
-    textureShape = [logShape[0], logShape[1] * logShape[2]];
+      logShape[1] * logShape[2] <= maxTexSize &&
+      !isLongNarrowTex([logShape[0], logShape[1] * logShape[2]])) {
+    return [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
-      logShape[3] <= maxTexSize) {
-    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+      logShape[3] <= maxTexSize &&
+      !isLongNarrowTex(
+          [logShape[0] * logShape[1] * logShape[2], logShape[3]])) {
+    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
-      logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+      logShape[1] * logShape[2] * logShape[3] <= maxTexSize &&
+      !isLongNarrowTex(
+          [logShape[0], logShape[1] * logShape[2] * logShape[3]])) {
+    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
   } else {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
@@ -433,23 +455,10 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      textureShape =
-          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
-    } else {
-      textureShape = util.sizeToSquarishShape(size);
+      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
     }
+    return util.sizeToSquarishShape(size);
   }
-
-  const maxDimFor1DTex =
-      env().getNumber('WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE') *
-      (isPacked ? 2 : 1);
-  if (textureShape[0] > maxDimFor1DTex || textureShape[1] > maxDimFor1DTex) {
-    // For 1D texture, if the length exceeds maxDimFor1DTex, the texture will be
-    // upgraded to 2D with a physical shape as [length, 2] or [2, length].
-    textureShape[0] = Math.max(isPacked ? 4 : 2, textureShape[0]);
-    textureShape[1] = Math.max(isPacked ? 4 : 2, textureShape[1]);
-  }
-  return textureShape;
 }
 
 function isEven(n: number): boolean {

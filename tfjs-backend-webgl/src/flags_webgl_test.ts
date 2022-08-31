@@ -445,18 +445,36 @@ describe('WEBGL_EXP_CONV', () => {
   });
 });
 
-const MAX_1D_TEX_DIM_FLAG = 'WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE';
+const MAX_SIZE_FOR_NARROR_TEX_FLAG = 'WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE';
 
-describeWithFlags(MAX_1D_TEX_DIM_FLAG, WEBGL_ENVS, () => {
+describeWithFlags(MAX_SIZE_FOR_NARROR_TEX_FLAG, WEBGL_ENVS, () => {
   beforeEach(() => tf.env().reset());
   afterAll(() => tf.env().reset());
 
-  it(`returns correct value when ${MAX_1D_TEX_DIM_FLAG} is set`, () => {
-    tf.env().set(MAX_1D_TEX_DIM_FLAG, 2048);
-    expect(tf.env().getNumber(MAX_1D_TEX_DIM_FLAG)).toBe(2048);
-  });
+  it(`returns correct value when ${MAX_SIZE_FOR_NARROR_TEX_FLAG} is set`,
+     () => {
+       tf.env().set(MAX_SIZE_FOR_NARROR_TEX_FLAG, 2048);
+       expect(tf.env().getNumber(MAX_SIZE_FOR_NARROR_TEX_FLAG)).toBe(2048);
+     });
 
-  it(`returns default when ${MAX_1D_TEX_DIM_FLAG} is not set`, () => {
-    expect(tf.env().getNumber(MAX_1D_TEX_DIM_FLAG)).toBe(Infinity);
+  it(`returns default when ${MAX_SIZE_FOR_NARROR_TEX_FLAG} is not set`, () => {
+    expect(tf.env().getNumber(MAX_SIZE_FOR_NARROR_TEX_FLAG)).toBe(Infinity);
+  });
+});
+
+const AUTO_RESHAPE_NARROW_TEX_FLAG = 'WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE';
+
+describeWithFlags(AUTO_RESHAPE_NARROW_TEX_FLAG, WEBGL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it(`returns correct value when ${AUTO_RESHAPE_NARROW_TEX_FLAG} is set`,
+     () => {
+       tf.env().set(AUTO_RESHAPE_NARROW_TEX_FLAG, true);
+       expect(tf.env().getBool(AUTO_RESHAPE_NARROW_TEX_FLAG)).toBe(true);
+     });
+
+  it(`returns default when ${AUTO_RESHAPE_NARROW_TEX_FLAG} is not set`, () => {
+    expect(tf.env().getBool(AUTO_RESHAPE_NARROW_TEX_FLAG)).toBe(false);
   });
 });

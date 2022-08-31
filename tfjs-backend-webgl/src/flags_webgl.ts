@@ -248,11 +248,23 @@ ENV.registerFlag('WEBGL_EXP_CONV', () => false);
 ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
 
 /**
- * For 1D texture (physical height or physical width is 1), if the length of any
- * texture edges exceed the threshold, the other edge will be increased to 2.
+ * For narrow texture (physical height or physical width is 1), if the length of
+ * any texture edges exceed the threshold, the texture will be reshaped to be
+ * more squarish.
  *
  * This flag is used to help some GPUs that could not provide correct
- * interpolations for long skinny triangles.
- * https://github.com/tensorflow/tfjs/issues/6775
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
-ENV.registerFlag('WEBGL_MAX_TEXTURE_DIMENSION_FOR_1D_TEXTURE', () => Infinity);
+ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
+
+/**
+ * If the flag is set to true, the max size of the narrow texture will be auto
+ * computed and it will be considerred as a threshold to reshape the narrow
+ * texture to be more squarish.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
+ */
+ENV.registerFlag('WEBGL_AUTO_RESHAPE_NARROW_TEXTURE_FOR_MALI_GPU', () => false);
