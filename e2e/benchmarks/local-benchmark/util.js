@@ -177,9 +177,10 @@ function expectArraysClose(actual, expected, epsilon, key) {
 }
 
 async function compareAndDownloadErrorValue(
-    jsonObject1, backend1, jsonObject2, backend2) {
+    jsonObject1, backend1, jsonObject2, backend2, benchmark) {
   const keys = Object.keys(jsonObject1);
   var errorCount = 0;
+  const errorObjects = [];
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     let match = false;
@@ -188,15 +189,16 @@ async function compareAndDownloadErrorValue(
       match = true;
     } catch (e) {
       match = false;
-      const newKey = key.replace(/\//g, '-');
-      download(jsonObject1[key], `${i}_${newKey}_${backend1}.json`);
-      download(jsonObject2[key], `${i}_${newKey}_${backend2}.json`);
+      errorObjects.push({
+        node: `${i}_${key.replace(/\//g, '-')}`,
+        [backend1]: jsonObject1[key],
+        [backend2]: jsonObject2[key]
+      });
       errorCount++;
-      // Without sleep, some files fail to download.
-      await sleep(200);
     }
   }
   if (errorCount) {
+    download(errorObjects, `${benchmark}_diff.json`);
     console.error('Total mismatch: ' + errorCount);
   }
 }
