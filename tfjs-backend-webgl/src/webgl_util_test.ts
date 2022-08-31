@@ -133,11 +133,11 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
     const max = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
     const maxForNarrowTex =
         tf.env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
-    const autoSquarify = tf.env().getNumber(
-        'WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU');
+    const autoSquarify =
+        tf.env().getNumber('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE');
 
     tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 6);
-    tf.env().set('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU', true);
+    tf.env().set('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', true);
     tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', Infinity);
     const logicalShape = [1, 16];
     const texShape =
@@ -145,8 +145,7 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
 
     tf.env().set('WEBGL_MAX_TEXTURE_SIZE', max);
     tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', maxForNarrowTex);
-    tf.env().set(
-        'WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU', autoSquarify);
+    tf.env().set('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', autoSquarify);
     expect(texShape).toEqual([6, 6]);
   });
 });

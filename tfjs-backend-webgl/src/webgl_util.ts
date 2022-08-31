@@ -371,7 +371,7 @@ export function getTextureShapeFromLogicalShape(
   let maxSizeForNarrorTex =
       env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
   if (maxSizeForNarrorTex === Infinity &&
-      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE_FOR_MALI_GPU')) {
+      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE')) {
     maxSizeForNarrorTex = maxTexSize / 2;
   }
 
@@ -401,7 +401,8 @@ export function getTextureShapeFromLogicalShape(
   const isLongNarrowTex =
       (textureShape: [number, number]) => {
         return Math.max(...textureShape) > maxSizeForNarrorTex &&
-            Math.min(...textureShape) <= (isPacked ? 2 : 1);
+            Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
+            Math.min(...textureShape) > 0;
       }
 
   // If logical shape is 2, we don't squeeze, since we want to match physical.
