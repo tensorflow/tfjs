@@ -135,8 +135,8 @@ async function main() {
         // in publish-npm.
         dashes = '-- -- --';
       }
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes} --otp=${
-          otp}`);
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes}`
+        + ` --otp=${otp}`);
     } else {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     }
