@@ -431,7 +431,8 @@ export function getTextureShapeFromLogicalShape(
 
   // true if one edge length is 1 (1 or 2, if packed), while another edge
   // length exceeds maxSizeForNarrowTex.
-  const isLongNarrowTex = Math.max(...textureShape) > maxSizeForNarrowTex &&
+  const isLongNarrowTex = textureShape != null &&
+      Math.max(...textureShape) > maxSizeForNarrowTex &&
       Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
       Math.min(...textureShape) > 0;
 
