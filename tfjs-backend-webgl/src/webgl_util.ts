@@ -396,15 +396,6 @@ export function getTextureShapeFromLogicalShape(
     }
   }
 
-  // returns true if one edge length is 1 (or 2, if packed), while another edge
-  // length exceeds maxSizeForNarrorTex.
-  const isLongNarrowTex =
-      (textureShape: [number, number]) => {
-        return Math.max(...textureShape) > maxSizeForNarrorTex &&
-            Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
-            Math.min(...textureShape) > 0;
-      }
-
   // If logical shape is 2, we don't squeeze, since we want to match physical.
   if (logShape.length !== 2) {
     const squeezeResult = util.squeezeShape(logShape);
@@ -441,7 +432,13 @@ export function getTextureShapeFromLogicalShape(
     textureShape = null;
   }
 
-  if (textureShape == null || isLongNarrowTex(textureShape)) {
+  // true if one edge length is 1 (1 or 2, if packed), while another edge
+  // length exceeds maxSizeForNarrorTex.
+  const isLongNarrowTex = Math.max(...textureShape) > maxSizeForNarrorTex &&
+      Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
+      Math.min(...textureShape) > 0;
+
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
       // accommodate the texture data. However in order to squarify such that
@@ -455,10 +452,14 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+    } else {
+      textureShape = util.sizeToSquarishShape(size);
     }
-    return util.sizeToSquarishShape(size);
   }
+
+  return textureShape;
 }
 
 function isEven(n: number): boolean {
