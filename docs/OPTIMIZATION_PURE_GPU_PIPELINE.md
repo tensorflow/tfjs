@@ -6,8 +6,9 @@ API that allows data to stay in GPU. Our users are pretty faimilar with
 `tensor.dataSync()` and `tensor.data()`, however both will download data from GPU to CPU. In the latest release, we have added `tensor.dataToGPU()`,
 which returns a `GPUData` type.
 
+# For webgl backend
 The example below shows how to get the tensor texture by calling
-`datatoGPU`. Also see this [example code](https://github.com/tensorflow/tfjs-examples/tree/master/gpu-pipeline) for details.
+`dataToGPU`. Also see this [example code](https://github.com/tensorflow/tfjs-examples/tree/master/gpu-pipeline/webgl) for details.
 
 ```javascript
 // Getting the texture that holds the data on GPU.
@@ -51,3 +52,46 @@ So if a tensor's shape is `[1, height, width, 4]` or `[height, width, 4]`, the w
 downstream processing assumes the texture is an image, it doesn't need to
 do any additional coordination conversion. Each texel is mapped to a [CSS pixel](https://developer.mozilla.org/en-US/docs/Glossary/CSS_pixel) in an image. However, if the tensor has other shapes, downstream
 processing steps may need to reformat the data onto another texture. The `texShape` field has the `[height, width]` information of the texture, which can be used for transformation.
+
+# For webgpu backend
+The example below shows how to get the tensor buffer by calling
+`dataToGPU`. Also see this [example code](https://github.com/tensorflow/tfjs-examples/tree/master/gpu-pipeline/webgpu) for details.
+
+```javascript
+// Getting the buffer that holds the data on GPU.
+// data has below fields:
+// {buffer, bufSize, tensorRef}
+// buffer: A GPUBuffer.
+// bufSize: the size of the buffer.
+// tensorRef: the tensor associated with the buffer.
+//
+// Unlike webgl backend, There is no parameter for dataToGPU API on the webgpu
+// backend, and the size of returned buffer is the same as the tensor size.
+const data = tensor.dataToGPU();
+
+// Once we have the buffer, we can bind it and pass it to the downstream
+// webgpu processing steps to use the buffer.
+const uniformBindGroup = device.createBindGroup({
+  layout: pipeline.getBindGroupLayout(0),
+  entries: [
+    {
+      binding: 1,
+      resource: {
+        buffer: data.buffer,
+      },
+    },
+    ...
+  ],
+});
+
+// Some webgpu processing steps.
+
+// Defines the mapping between resources of all GPUBindGroup objects
+passEncoder.setBindGroup(0, uniformBindGroup);
+
+// Some webgpu processing steps.
+
+// Remember to dispose the buffer after use, otherwise, there will be
+// memory leak.
+data.tensorRef.dispose();
+```
