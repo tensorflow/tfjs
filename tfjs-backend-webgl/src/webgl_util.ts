@@ -404,8 +404,7 @@ export function getTextureShapeFromLogicalShape(
 
   let size = util.sizeFromShape(logShape);
   let textureShape: [number, number] = null;
-  if (logShape.length <= 1 && size <= maxTexSize &&
-      size <= maxSizeForNarrorTex) {
+  if (logShape.length <= 1 && size <= maxTexSize) {
     textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
