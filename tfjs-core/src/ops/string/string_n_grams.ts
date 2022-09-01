@@ -51,7 +51,7 @@ import {op} from '../operation';
  *     sequence. Only used if pad_width !== 0.
  * @param padWidth: The number of padding elements to add to each side of each
  *     sequence. Note that padding will never be greater than `nGramWidths`-1
- *     regardless of this value. If `padWidth`=-1 , then add max(`nGramWidths)-1
+ *     regardless of this value. If `padWidth`=-1, then add max(`nGramWidths`)-1
  *     elements.
  * @param preserveShortSequences: If true, then ensure that at least one ngram
  *     is generated for each input sequence. In particular, if an input sequence

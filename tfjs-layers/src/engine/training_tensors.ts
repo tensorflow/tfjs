@@ -101,7 +101,7 @@ export interface ModelFitArgs {
    *
    * If the model has multiple outputs, a class weight can be specified for
    * each of the outputs by setting this field an array of weight object
-   * or a object that maps model output names (e.g., `model.outputNames[0]`)
+   * or an object that maps model output names (e.g., `model.outputNames[0]`)
    * to weight objects.
    */
   classWeight?: ClassWeight|ClassWeight[]|ClassWeightMap;

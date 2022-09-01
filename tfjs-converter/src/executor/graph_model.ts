@@ -358,7 +358,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    * Executes inference for the model for given input tensors.
    * @param inputs tensor, tensor array or tensor map of the inputs for the
    * model, keyed by the input node names.
-   * @param outputs output node name from the Tensorflow model, if no
+   * @param outputs output node name from the TensorFlow model, if no
    * outputs are specified, the default outputs of the model would be used.
    * You can inspect intermediate nodes of the model by adding them to the
    * outputs array.
@@ -382,7 +382,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    * fashion, use this method when your model contains control flow ops.
    * @param inputs tensor, tensor array or tensor map of the inputs for the
    * model, keyed by the input node names.
-   * @param outputs output node name from the Tensorflow model, if no outputs
+   * @param outputs output node name from the TensorFlow model, if no outputs
    * are specified, the default outputs of the model would be used. You can
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
