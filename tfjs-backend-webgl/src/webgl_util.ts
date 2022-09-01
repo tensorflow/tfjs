@@ -412,38 +412,36 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
+  let textureShape: [number, number];
   if (logShape.length <= 1 && size <= maxTexSize &&
       size <= maxSizeForNarrorTex) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
-      logShape[1] <= maxTexSize &&
-      !isLongNarrowTex(logShape as [number, number])) {
-    return logShape as [number, number];
+      logShape[1] <= maxTexSize) {
+    textureShape = logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
-      logShape[2] <= maxTexSize &&
-      !isLongNarrowTex([logShape[0] * logShape[1], logShape[2]])) {
-    return [logShape[0] * logShape[1], logShape[2]];
+      logShape[2] <= maxTexSize) {
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
-      logShape[1] * logShape[2] <= maxTexSize &&
-      !isLongNarrowTex([logShape[0], logShape[1] * logShape[2]])) {
-    return [logShape[0], logShape[1] * logShape[2]];
+      logShape[1] * logShape[2] <= maxTexSize) {
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
-      logShape[3] <= maxTexSize &&
-      !isLongNarrowTex(
-          [logShape[0] * logShape[1] * logShape[2], logShape[3]])) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+      logShape[3] <= maxTexSize) {
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
-      logShape[1] * logShape[2] * logShape[3] <= maxTexSize &&
-      !isLongNarrowTex(
-          [logShape[0], logShape[1] * logShape[2] * logShape[3]])) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+      logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
   } else {
+    textureShape = null;
+  }
+
+  if (textureShape == null || isLongNarrowTex(textureShape)) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
       // accommodate the texture data. However in order to squarify such that
