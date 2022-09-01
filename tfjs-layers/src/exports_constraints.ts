@@ -37,7 +37,7 @@ export function unitNorm(args: UnitNormArgs): Constraint {
 }
 
 /**
- * Constains the weight to be non-negative.
+ * Constrains the weight to be non-negative.
  *
  * @doc {heading: 'Constraints', namespace: 'constraints'}
  */

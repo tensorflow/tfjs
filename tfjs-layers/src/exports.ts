@@ -212,7 +212,7 @@ export function sequential(config?: SequentialArgs): Sequential {
  *      the model in the canonical TensorFlow.js format. For file://
  *      (tfjs-node-only), http:// and https:// schemas, the path can be
  *      either absolute or relative.
- *   2. An `tf.io.IOHandler` object that loads model artifacts with its `load`
+ *   2. A `tf.io.IOHandler` object that loads model artifacts with its `load`
  *      method.
  * @param options Optional configuration arguments for the model loading,
  *   including:
