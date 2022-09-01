@@ -39,12 +39,18 @@ async function getKernels(modelKey) {
       const profileInfo =
           await profileInference(() => predict(model), false, 1);
       kernels.push(...profileInfo.kernels);
+      if (model.dispose != null) {
+        model.dispose();
+      }
     }
   } else {
     const model = await benchmark.load();
     const predict = benchmark.predictFunc();
     const profileInfo = await profileInference(() => predict(model), false, 1);
     kernels = profileInfo.kernels;
+    if (model.dispose != null) {
+      model.dispose();
+    }
   }
   return kernels;
 }
