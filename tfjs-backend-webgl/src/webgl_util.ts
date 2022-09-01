@@ -403,7 +403,7 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
-  let textureShape: [number, number];
+  let textureShape: [number, number] = null;
   if (logShape.length <= 1 && size <= maxTexSize &&
       size <= maxSizeForNarrorTex) {
     textureShape = [1, size];
@@ -428,8 +428,6 @@ export function getTextureShapeFromLogicalShape(
       logShape.length === 4 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
     textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
-    textureShape = null;
   }
 
   // true if one edge length is 1 (1 or 2, if packed), while another edge
