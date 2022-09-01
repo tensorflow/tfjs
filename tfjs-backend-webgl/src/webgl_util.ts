@@ -368,16 +368,16 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
-  let maxSizeForNarrorTex =
+  let maxSizeForNarrowTex =
       env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
-  if (maxSizeForNarrorTex === Infinity &&
+  if (maxSizeForNarrowTex === Infinity &&
       env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE')) {
-    maxSizeForNarrorTex = maxTexSize / 2;
+    maxSizeForNarrowTex = maxTexSize / 2;
   }
 
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
-    maxSizeForNarrorTex = maxSizeForNarrorTex * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
 
     // This logic ensures we accurately count the number of packed texels needed
     // to accommodate the tensor. We can only pack values in the same texel if
@@ -430,8 +430,8 @@ export function getTextureShapeFromLogicalShape(
   }
 
   // true if one edge length is 1 (1 or 2, if packed), while another edge
-  // length exceeds maxSizeForNarrorTex.
-  const isLongNarrowTex = Math.max(...textureShape) > maxSizeForNarrorTex &&
+  // length exceeds maxSizeForNarrowTex.
+  const isLongNarrowTex = Math.max(...textureShape) > maxSizeForNarrowTex &&
       Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
       Math.min(...textureShape) > 0;
 
