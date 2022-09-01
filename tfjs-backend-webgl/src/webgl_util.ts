@@ -368,8 +368,16 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  let maxSizeForNarrowTex =
+      env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+  if (maxSizeForNarrowTex === Infinity &&
+      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE')) {
+    maxSizeForNarrowTex = maxTexSize / 2;
+  }
+
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
 
     // This logic ensures we accurately count the number of packed texels needed
     // to accommodate the tensor. We can only pack values in the same texel if
@@ -395,30 +403,40 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
+  let textureShape: [number, number] = null;
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
       logShape[1] <= maxTexSize) {
-    return logShape as [number, number];
+    textureShape = logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
       logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
       logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+  }
+
+  // true if one edge length is 1 (1 or 2, if packed), while another edge
+  // length exceeds maxSizeForNarrowTex.
+  const isLongNarrowTex = textureShape != null &&
+      Math.max(...textureShape) > maxSizeForNarrowTex &&
+      Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
+      Math.min(...textureShape) > 0;
+
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
       // accommodate the texture data. However in order to squarify such that
@@ -432,10 +450,14 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+    } else {
+      textureShape = util.sizeToSquarishShape(size);
     }
-    return util.sizeToSquarishShape(size);
   }
+
+  return textureShape;
 }
 
 function isEven(n: number): boolean {
