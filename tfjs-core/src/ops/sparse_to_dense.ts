@@ -58,7 +58,7 @@ import {op} from './operation';
  * @param sparseValues A 0-D or 1-D Tensor. Values
  * corresponding to each row of sparseIndices, or a scalar value to be used for
  * all sparse indices.
- * @param outputShape Shape of the dense output tensor. the type is inferred.
+ * @param outputShape Shape of the dense output tensor. The type is inferred.
  * @param defaultValue Scalar. Value to set for indices not specified in
  * sparseIndices. Defaults to zero.
  *

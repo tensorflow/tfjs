@@ -34,7 +34,7 @@ import {tensor2d} from '../tensor2d';
  * @param frameLength Length of each frame
  * @param frameStep The frame hop size in samples.
  * @param padEnd Whether to pad the end of signal with padValue.
- * @param padValue An number to use where the input signal does
+ * @param padValue A number to use where the input signal does
  *     not exist when padEnd is True.
  *
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}

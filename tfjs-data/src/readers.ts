@@ -188,7 +188,7 @@ export function func<T extends TensorContainer>(
  * await ds.forEachAsync(e => console.log(e));
  * ```
  *
- * @param generator A Javascript generator function that returns a JavaScript
+ * @param generator A JavaScript generator function that returns a JavaScript
  *     iterator.
  *
  * @doc {
@@ -207,8 +207,8 @@ export function generator<T extends TensorContainer>(
 }
 
 /**
- * Create an iterator that generate `Tensor`s from webcam video stream. This API
- * only works in Browser environment when the device has webcam.
+ * Create an iterator that generates `Tensor`s from webcam video stream. This
+ * API only works in Browser environment when the device has webcam.
  *
  * Note: this code snippet only works when the device has a webcam. It will
  * request permission to open the webcam when running.
@@ -243,7 +243,7 @@ export async function webcam(
 }
 
 /**
- * Create an iterator that generate frequency-domain spectrogram `Tensor`s from
+ * Create an iterator that generates frequency-domain spectrogram `Tensor`s from
  * microphone audio stream with browser's native FFT. This API only works in
  * browser environment when the device has microphone.
  *
