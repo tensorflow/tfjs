@@ -25,7 +25,7 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 
 /**
- * RReturns which elements of x are NaN.
+ * Returns which elements of x are NaN.
  *
  * ```js
  * const x = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);

@@ -22,8 +22,8 @@ import * as creation from '../op_list/creation';
 import {Node} from '../types';
 
 import {executeOp} from './creation_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
-import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('creation', () => {
   let node: Node;
@@ -99,15 +99,17 @@ describe('creation', () => {
         node.inputParams['depth'] = createNumberAttrFromIndex(1);
         node.inputParams['onValue'] = createNumberAttrFromIndex(2);
         node.inputParams['offValue'] = createNumberAttrFromIndex(3);
+        node.attrParams['dtype'] = createDtypeAttr('float32');
         node.inputNames = ['input', 'input2', 'input3', 'input4'];
         const input = [tfOps.tensor1d([0])];
         const input3 = [tfOps.scalar(2)];
         const input4 = [tfOps.scalar(3)];
         spyOps.oneHot.and.returnValue({});
-        executeOp(node, {input, input2, input3, input4}, context,
-                  spyOpsAsTfOps);
+        executeOp(
+            node, {input, input2, input3, input4}, context, spyOpsAsTfOps);
 
-        expect(spyOps.oneHot).toHaveBeenCalledWith(input[0], 1, 2, 3);
+        expect(spyOps.oneHot)
+            .toHaveBeenCalledWith(input[0], 1, 2, 3, 'float32');
       });
       it('should match json def', () => {
         node.op = 'OneHot';
@@ -115,6 +117,7 @@ describe('creation', () => {
         node.inputParams['depth'] = createNumberAttrFromIndex(1);
         node.inputParams['onValue'] = createNumberAttrFromIndex(2);
         node.inputParams['offValue'] = createNumberAttrFromIndex(3);
+        node.attrParams['dtype'] = createDtypeAttr('float32');
 
         expect(validateParam(node, creation.json)).toBeTruthy();
       });

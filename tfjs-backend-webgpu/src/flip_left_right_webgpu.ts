@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FlipLeftRightProgram implements WebGPUProgram {
@@ -37,7 +37,7 @@ export class FlipLeftRightProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let coordX = uniforms.xShape[2] - coords[2] - 1;

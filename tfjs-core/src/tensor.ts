@@ -379,7 +379,7 @@ export class Tensor<R extends Rank = Rank> {
    * This means that the texture will use the RGBA channels to store value.
    *
    * For WebGPU backend, the data will be stored on a buffer. There is no
-   * parameter, so can not use an user defined size to create the buffer.
+   * parameter, so can not use a user-defined size to create the buffer.
    *
    * @param options:
    *     For WebGL,

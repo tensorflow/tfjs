@@ -58,47 +58,83 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
 
 const KARMA_SERVER = './base';
 
-describe('benchmark models', () => {
+async function benchmarkModel(benchmarkParameters) {
+  // Load the model.
+  const benchmark = benchmarks[benchmarkParameters.model];
+  const numRuns = benchmarkParameters.numRuns;
+  let model;
+  if (benchmarkParameters.model === 'custom') {
+    if (benchmarkParameters.modelUrl == null) {
+      throw new Error('Please provide model url for the custom model.');
+    }
+    model = await loadModelByUrl(benchmarkParameters.modelUrl);
+  } else {
+    model = await benchmark.load();
+  }
+
+  // Benchmark.
+  let timeInfo;
+  let memoryInfo;
+  if (benchmark.predictFunc != null) {
+    const predict = benchmark.predictFunc();
+    timeInfo = await timeInference(() => predict(model), numRuns);
+    memoryInfo = await profileInference(() => predict(model));
+  } else {
+    const input = generateInput(model);
+    timeInfo = await timeModelInference(model, input, numRuns);
+    memoryInfo = await profileModelInference(model, input);
+  }
+
+  return `<tfjs_benchmark>${
+      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
+}
+
+async function benchmarkCodeSnippet(benchmarkParameters) {
+  let predict = null;
+
+  const setupCodeSnippetEnv = benchmarkParameters.setupCodeSnippetEnv || '';
+  const codeSnippet = benchmarkParameters.codeSnippet || ''
+  eval(setupCodeSnippetEnv.concat(codeSnippet));
+
+  if (predict == null) {
+    throw new Error(
+        'predict function is suppoed to be defined in codeSnippet.');
+  }
+
+  // Warm up.
+  await timeInference(predict, 1);
+
+  // Benchmark code snippet.
+  timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
+  memoryInfo = await profileInference(predict);
+
+  return `<tfjs_benchmark>${
+      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
+}
+
+describe('BrowserStack benchmark', () => {
   let benchmarkParameters;
   beforeAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
     const response = await fetch(`${KARMA_SERVER}/benchmark_parameters.json`);
     benchmarkParameters = await response.json();
+    tf.env().set('SOFTWARE_WEBGL_ENABLED', true);
   });
 
-  it(`benchmark model`, async () => {
+  it(`benchmark`, async () => {
     try {
+      // Setup benchmark environments.
       await tf.setBackend(benchmarkParameters.backend);
 
-      // Load the model.
-      const benchmark = benchmarks[benchmarkParameters.model];
-      const numRuns = benchmarkParameters.numRuns;
-      let model;
-      if (benchmarkParameters.model === 'custom') {
-        if (benchmarkParameters.modelUrl == null) {
-          throw new Error('Please provide model url for the custom model.');
-        }
-        model = await loadModelByUrl(benchmarkParameters.modelUrl);
+      // Run benchmark and stringify results.
+      let resultStr;
+      if (benchmarkParameters.model === 'codeSnippet') {
+        resultStr = await benchmarkCodeSnippet(benchmarkParameters);
       } else {
-        model = await benchmark.load();
-      }
-
-      // Benchmark.
-      let timeInfo;
-      let memoryInfo;
-      if (benchmark.predictFunc != null) {
-        const predict = benchmark.predictFunc();
-        timeInfo = await timeInference(() => predict(model), numRuns);
-        memoryInfo = await profileInference(() => predict(model));
-      } else {
-        const input = generateInput(model);
-        timeInfo = await timeModelInference(model, input, numRuns);
-        memoryInfo = await profileModelInference(model, input);
+        resultStr = await benchmarkModel(benchmarkParameters);
       }
 
       // Report results.
-      const resultStr = `<tfjs_benchmark>${
-          JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
       console.log(resultStr);
     } catch (error) {
       console.log(`<tfjs_error>${error}</tfjs_error>`);

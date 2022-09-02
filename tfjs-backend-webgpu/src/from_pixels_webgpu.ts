@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
@@ -48,15 +48,13 @@ export class FromPixelsProgram implements WebGPUProgram {
         this.importVideo ? 'texture_external' : 'texture_2d<f32>';
     return `
       @binding(1) @group(0) var src: ${textureType};
-
-      ${getMainHeaderAndGlobalIndexString()}
-        let flatIndexBase = index * uniforms.numChannels;
-        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
-          let flatIndex = flatIndexBase + i;
-          if (flatIndex < uniforms.size) {
-            let coords = getCoordsFromIndex(flatIndexBase);
-            let values = ${textureLoad};
-            result[flatIndex] = i32(floor(255.0 * values[i]));
+      ${main('index')} {
+        let flatIndex = index * uniforms.numChannels;
+        if (flatIndex < uniforms.size) {
+          let coords = getCoordsFromIndex(flatIndex);
+          let values = ${textureLoad};
+          for (var i = 0; i < uniforms.numChannels; i = i + 1) {
+            result[flatIndex + i] = i32(floor(255.0 * values[i]));
           }
         }
       }

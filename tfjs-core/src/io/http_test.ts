@@ -396,6 +396,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
               'unexpectedly');
         })
         .catch(err => {
+          expect().nothing();
           done();
         });
   });
@@ -775,6 +776,7 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
             expect(err.message)
                 .toMatch(/contains neither model topology or manifest/);
           });
+      expect().nothing();
     });
 
     it('with fetch rejection leads to error', async () => {

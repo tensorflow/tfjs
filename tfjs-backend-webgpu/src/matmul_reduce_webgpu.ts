@@ -16,14 +16,16 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
+
+import {activationFnSnippet} from './activation_util';
+import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getMainHeaderString()}
+    ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
       let row = coords[1];
@@ -103,59 +105,12 @@ export class MatMulReduceProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    let sampleA;
-    if (this.transposeA === false) {
-      sampleA =
-          `return f32(A[batch * batchASize + row * uniforms.dimInner + col]);`;
-    } else {
-      sampleA =
-          `return f32(A[batch * batchASize + col * uniforms.dimAOuter + row]);`;
-    }
-
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB =
-          `return f32(B[batch * batchBSize + row * uniforms.dimBOuter + col]);`;
-    } else {
-      sampleB =
-          `return f32(B[batch * batchBSize + col * uniforms.dimInner + row]);`;
-    }
-
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
-
-      fn mm_readA(batchIn: i32, row : i32, col : i32) -> f32 {
-        ${
-        this.batchAEqualOne ? `
-          let batchASize = 0;
-          let batch = 0;
-          ` :
-                              `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-          let batch = batchIn;
-          `}
-        ${sampleA}
-      }
-
-      fn mm_readB(batchIn: i32, row : i32, col : i32) -> f32 {
-        ${
-        this.batchBEqualOne ? `
-          let batch = 0;
-          let batchBSize = 0;
-          ` :
-                              `
-          let batch = batchIn;
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-          `}
-        ${sampleB}
-      }
-
-      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
-        var value = valueIn;
-        let coords = vec3<i32>(batch, row, col);
-        ${biasActivationSnippet(this.addBias, this.activation)}
-        setOutputAtCoords(batch, row, col, value);
-      }
+      ${
+        matMulReadWriteFnSource(
+            this.addBias, this.activation, this.batchAEqualOne,
+            this.batchBEqualOne, this.transposeA, this.transposeB)}
       ${makeMatMulReduceSource()}
     `;
     return userCode;

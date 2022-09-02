@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpProgram implements WebGPUProgram {
@@ -44,9 +44,9 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.op = op;
 
     this.useSharedMemoryWithA =
-        aShape.length === 1 && bShape.length > 1 && aShape[0] < 1024;
+        aShape.length <= 1 && bShape.length > 1 && aShape[0] < 128;
     this.useSharedMemoryWithB =
-        bShape.length === 1 && aShape.length > 1 && bShape[0] < 1024;
+        bShape.length <= 1 && aShape.length > 1 && bShape[0] < 128;
 
     if (this.useSharedMemoryWithA || this.useSharedMemoryWithB) {
       this.isVec4 = false;
@@ -60,13 +60,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       // This is an experimental value when using shared memory.
       // Note that the maximum of workgroup X dimension is 256.
       this.workGroupSize = [256, 1, 1];
-      if (this.lastDimensionSize < 256) {
-        this.workPerThread = 1;
-      } else if (this.lastDimensionSize < 512) {
-        this.workPerThread = 2;
-      } else {
-        this.workPerThread = 4;
-      }
+      this.workPerThread = 1;
     } else {
       if (util.arraysEqual(aShape, bShape) &&
           util.sizeFromShape(aShape) % 4 === 0) {
@@ -90,53 +84,45 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode;
+    const dType = this.isVec4 ? 'vec4<f32>' : 'f32';
+    const opFnStr = `
+    fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
+      ${getBinaryOpString(this.op, this.isVec4)}
+    };
+    `;
+
     if (this.type === 'shared') {
       const sharedIndexSnippet = this.lastDimensionSize > 1 ?
           `coords[${this.outputShape.length - 1}]` :
           '0';
       const accessDataSnippet = this.useSharedMemoryWithB ?
-          `let a = getAByOutputCoords(coords);
+          `let a = getAByOutputIndex(index);
           let b = sharedBuf[${sharedIndexSnippet}];` :
           `let a = sharedBuf[${sharedIndexSnippet}];
-          let b = getBByOutputCoords(coords);`;
-      const opStr = getBinaryOpString(this.op, this.isVec4);
+          let b = getBByOutputIndex(index);`;
       userCode = `
-        fn binaryOperation(a : f32, b : f32) -> f32 {
-          ${opStr}
-        }
+        ${opFnStr}
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getMainHeaderAndGlobalIndexString()}
-
-          // Fill in the shared memory buffer. Here we need a loop to make sure
-          // that all data in A|B are uploaded when |sharedMemorySize| is larger
-          // than work group size.
-          for(var localIndex = i32(localId.x); localIndex < ${
-          this.lastDimensionSize}; localIndex = localIndex + ${
-          this.workGroupSize[0]}) {
+        ${main('index')} {
+          // Fill in the shared memory buffer.
+          let localIndex = i32(localId.x);
+          if(localIndex < ${this.lastDimensionSize}) {
             sharedBuf[localIndex] = f32(${
           this.useSharedMemoryWithB ? 'B' : 'A'}[localIndex]);
           }
           workgroupBarrier();
 
-          for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
-            let flatIndex = index * ${this.workPerThread} + i;
-            if(flatIndex < uniforms.size) {
-              let coords = getCoordsFromIndex(flatIndex);
-
-              ${accessDataSnippet}
-              setOutputAtIndex(flatIndex, binaryOperation(a, b));
-            }
+          if(index < uniforms.size) {
+            let coords = getCoordsFromIndex(index);
+            ${accessDataSnippet}
+            setOutputAtIndex(index, binaryOperation(a, b));
           }
         }
         `;
     } else {
-      const dType = this.type === 'vec4' ? 'vec4<f32>' : 'f32';
-      const opStr = getBinaryOpString(this.op, this.isVec4);
       userCode = `
-       fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
-         ${opStr}
-       }
-       ${getMainHeaderAndGlobalIndexString()}
+       ${opFnStr}
+       ${main('index')} {
          if (index < uniforms.size) {
            let a = getAByOutputIndex(index);
            let b = getBByOutputIndex(index);

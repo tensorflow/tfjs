@@ -19,6 +19,7 @@
 export {simpleAbsImpl} from './kernels/Abs';
 export {addImpl} from './kernels/Add';
 export {bincountImpl, bincountReduceImpl} from './kernels/Bincount_impl';
+export {castImpl} from './kernels/Cast';
 export {ceilImpl} from './kernels/Ceil';
 export {concatImpl} from './kernels/Concat_impl';
 export {equalImpl} from './kernels/Equal';
@@ -40,6 +41,7 @@ export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
 export {prodImpl} from './kernels/Prod';
+export {raggedTensorToTensorImpl} from './kernels/RaggedTensorToTensor_impl';
 export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {scatterImpl} from './kernels/Scatter_impl';

@@ -18,8 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {makeMatMulPackedSource} from './matmul_packed_webgpu';
+import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
@@ -131,22 +130,18 @@ function conv2dCommonSnippet(
       ${
       activationFnSnippet(
           activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        let batch = i32(globalId.z);
+      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        let batch = i32(globalId.z);
+      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(row : i32, colIn : i32, valueIn : ${
-      resType}, globalId : vec3<u32>) {
+      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
         let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        let batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
@@ -255,14 +250,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-            this.tileInner, this.innerElementSize, !this.isChannelsLast) :
+            this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
+            this.tileInner) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
             this.tileInner);
-    const elementsSize = this.isVec4 ?
-        [this.isChannelsLast ? this.innerElementSize : 4, 4, 4] :
-        [1, 1, 1];
+    const elementsSize =
+        this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `
     ${
         conv2dCommonSnippet(

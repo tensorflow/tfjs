@@ -29,6 +29,7 @@ export const fromPixelsConfig: KernelConfig = {
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
+let willReadFrequently = env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
 const videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
@@ -87,9 +88,14 @@ export function fromPixels(args: {
       };
     } else {
       if (isVideoOrImage) {
-        if (fromPixels2DContext == null) {
+        const newWillReadFrequently =
+            env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
+        if (fromPixels2DContext == null ||
+            newWillReadFrequently !== willReadFrequently) {
+          willReadFrequently = newWillReadFrequently;
           fromPixels2DContext =
-              document.createElement('canvas').getContext('2d');
+              document.createElement('canvas').getContext(
+                  '2d', {willReadFrequently}) as CanvasRenderingContext2D;
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;

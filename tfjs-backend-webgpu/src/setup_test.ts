@@ -41,21 +41,31 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'atan2 ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+    ]
+  },
+  {
     startsWith: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
-      //'avgPool3d',  // Not yet implemented.
     ]
   },
   {
     startsWith: 'batchToSpaceND ',
     excludes: [
-      'tensor3d', 'tensor4d', 'gradient',
-      'accepts a tensor-like object',  // tensor6d not yet implemented
+      'gradient',  // Not yet implemented.
     ]
   },
   {
     startsWith: 'conv2d ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'conv2dTranspose ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
@@ -76,13 +86,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'einsum ',
-    excludes: [
-      '4d tensors',               // rank 5 is not yet supported.
-      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
     ]
   },
   {
@@ -130,9 +133,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'matmul',
     excludes: [
-      'has zero in its shape',           // Test times out.
-      'valueAndGradients',               // backend.sum() not yet implemented.
-      'upcasts when dtypes dont match',  // GLSL compilation failed
+      'has zero in its shape',  // Test times out.
+      'valueAndGradients',      // backend.sum() not yet implemented.
     ]
   },
   {
@@ -205,14 +207,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'slice ',
-    excludes: [
-      'slice5d',             // Rank 5 is not yet implemented.
-      'slice6d',             // Rank 6 is not yet implemented.
-      'strided slice with',  // Rank 6 is not yet implemented.
-    ]
-  },
-  {
     startsWith: 'softmax ',
     excludes: [
       'MEAN',
@@ -227,13 +221,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'sparseToDense ',
-    excludes: [
-      // TODO: Fix 0-sized buffer binding on WebGPU
-      '0-sized',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'square ',
     excludes: [
       'dilation2d',  // 'dilation2d' not yet implemented.
@@ -243,13 +230,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'squaredDifference ',
     excludes: [
       'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'stridedSlice ',
-    excludes: [
-      'strided slice with several new axes',  // Rank 6 is not yet implemented.
-      'strided slice with new axes and',      // Rank 6 is not yet implemented.
     ]
   },
   {
@@ -277,13 +257,11 @@ const TEST_FILTERS: TestFilter[] = [
       'any webgpu ',
       'asin ',
       'asinh ',
-      'atan2 ',
       'atanh ',
       'avgPool3d ',
       'avgPool3dBackprop ',
       'bincount ',
       'broadcastArgs ',
-      'conv2dTranspose ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
       'conv1d gradients',  // Conv2DBackpropFilter
@@ -299,7 +277,6 @@ const TEST_FILTERS: TestFilter[] = [
       'IRFFT ',
       'isFinite ',
       'isInf ',
-      'isNaN ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
@@ -316,12 +293,12 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
-      'reciprocal ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',
       'reverse4d ',
       'reverse webgpu',
+      'raggedTensorToTensor ',
       'RFFT ',
       'round webgpu',
       'method otsu',  // round

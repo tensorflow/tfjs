@@ -26,6 +26,7 @@ PEER_DEPS = [
     # specified. They are manually spefied here so we can append
     # extra dependencies.
     "@npm//karma-jasmine-html-reporter",
+    "@npm//karma-jasmine-order-reporter",
 ]
 
 GrepProvider = provider(fields = ["grep"])
@@ -89,7 +90,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ])

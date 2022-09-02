@@ -59,6 +59,37 @@ export function computeDispatch(
   return [dispatchX, dispatchY, dispatchZ];
 }
 
+export type WorkGroupInfo = {
+  workGroupSize: [number, number, number],
+  elementsPerThread: [number, number, number],
+};
+
+export function computeWorkGroupInfoForMatMul(
+    dimAOuter: number, dimInner: number, dimBOuter: number,
+    transposeA = false): WorkGroupInfo {
+  // These are experimental values. Usually, we need to adjust the work group
+  // size based on the input shapes to improve the EU occupancy.
+  // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
+  // sure it doesn't exceed this limitations. Temporarily reduce the work group
+  // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
+  // revisit it and find the balance between work group size and work per thread
+  // size.
+  const workGroupSize: [number, number, number] = [8, 8, 1];
+  const elementsPerThread: [number, number, number] = [4, 4, 1];
+
+  if (!transposeA) {
+    if (dimAOuter <= 8) {
+      elementsPerThread[1] = 1;
+    }
+
+    if (dimInner <= 16 && dimBOuter <= 16) {
+      workGroupSize[0] = 4;
+    }
+  }
+
+  return {workGroupSize, elementsPerThread};
+}
+
 export function computeWorkGroupSizeForConv2d(
     layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
     isVec4 = false): [number, number, number] {
@@ -84,25 +115,6 @@ export function computeWorkGroupSizeForConv2d(
   }
 
   return [16, 16, 1];
-}
-
-export function computeWorkGroupSizeForMatMul(
-    dimAOuter: number, dimInner: number,
-    dimBOuter: number): [number, number, number] {
-  // These are experimental values. Usually, we need to adjust the work group
-  // size based on the input shapes to improve the EU occupancy.
-  // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
-  // sure it doesn't exceed this limitations. Temporarily reduce the work group
-  // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
-  // revisit it and find the balance between work group size and work per thread
-  // size.
-  if (dimAOuter === 1) {
-    return [32, 1, 1];
-  } else if (dimBOuter === 1) {
-    return [1, 32, 1];
-  }
-
-  return [8, 8, 1];
 }
 
 export function computeWorkPerThreadForConv2d(
@@ -159,4 +171,12 @@ export function isWebGPUSupported(): boolean {
           //@ts-ignore
           (typeof WorkerGlobalScope !== 'undefined')) &&
       !!navigator.gpu;
+}
+
+export enum MatMulProgramType {
+  MatMulReduceProgram,
+  MatMulSplitKProgram,
+  MatMulSmallOutputSizeProgram,
+  MatMulPackedProgram,
+  MatMulMax
 }

@@ -59,7 +59,7 @@ export const compileProgram =
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: 'main'},
+        compute: {module, entryPoint: '_start'},
         label: program.constructor.name,
         layout: 'auto'
       });
@@ -103,23 +103,45 @@ export function getCoordsXYZ(index: number): string {
   }
 }
 
-export function getMainHeaderAndGlobalIndexString(): string {
-  return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
-`;
-}
+export function getMainHeaderString(): string;
+export function getMainHeaderString(index: string): string;
+export function getMainHeaderString(...params: string[]): string {
+  let snippet: string;
+  switch (params.length) {
+    case 0:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main();
+        }
 
-export function getMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-`;
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main(getGlobalIndex());
+        }
+
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error('Unreachable');
+  }
+  return snippet;
 }
 
 export function getWorkGroupSizeString(): string {
@@ -133,9 +155,9 @@ function makeShader(
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   prefixSnippets.push(`
-      let workGroupSizeX = ${program.workGroupSize[0]}u;
-      let workGroupSizeY = ${program.workGroupSize[1]}u;
-      let workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workGroupSizeX = ${program.workGroupSize[0]}u;
+      const workGroupSizeY = ${program.workGroupSize[1]}u;
+      const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> globalId: vec3<u32>;
@@ -167,7 +189,7 @@ function makeShader(
           outShapeStrides : vec2<i32>,
         };
 
-        @group(0) @binding(0) var<storage, write> result: array<${
+        @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
@@ -179,55 +201,28 @@ function makeShader(
     ].join('\n');
   }
 
-  let preMemberIsStruct = false;
-  let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
-    if (perDataType === 'vec5' || perDataType === 'vec6') {
-      currentMemberIsStruct = true;
-    }
-    if (preMemberIsStruct || currentMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
-  currentMemberIsStruct =
-      outputDataType === 'vec5' || outputDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
-  currentMemberIsStruct =
-      stridesDataType === 'vec5' || stridesDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
          outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
+  uniformDeclaration = insertAlignment(uniformDeclaration);
 
   prefixSnippets.push(uniformDeclaration);
 
@@ -238,7 +233,7 @@ function makeShader(
     `);
   } else {
     prefixSnippets.push(`
-      @group(0) @binding(0) var<storage, write> result: array<${
+      @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }
@@ -352,8 +347,8 @@ const commonSnippet = `
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
       res = res - 1;
     }
     return res;
@@ -831,4 +826,19 @@ function setOutputSnippet(
   }
 
   return snippet;
+}
+
+function insertAlignment(uniformShader: string) {
+  // insert alignment when current pattern is vec5 or vec6
+  const curInsertRe = /(\w+)\s*:\s*vec(5|6)/g;
+  uniformShader = uniformShader.replace(curInsertRe, (match) => {
+    return '@align(16) ' + match;
+  });
+
+  // insert alignment when previous pattern is vec5 or vec6
+  const preInsertRe = /vec(5|6)\s*,\s*(\w+)/g;
+  uniformShader = uniformShader.replace(preInsertRe, (_, p1, p2) => {
+    return `vec${p1}, @align(16) ${p2}`;
+  });
+  return uniformShader;
 }

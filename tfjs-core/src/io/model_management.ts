@@ -210,7 +210,7 @@ async function listModels(): Promise<{[url: string]: ModelArtifactsInfo}> {
 }
 
 /**
- * Remove a model specified by URL from a reigstered storage medium.
+ * Remove a model specified by URL from a registered storage medium.
  *
  * ```js
  * // First create and save a model.

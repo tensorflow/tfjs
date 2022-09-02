@@ -42,12 +42,12 @@ export class TransposeSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      let TILE_DIM = ${this.workGroupSize[0]};
+      const TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
       ${getWorkGroupSizeString()}
-      fn main(@builtin(local_invocation_id) localId : vec3<u32>,
-              @builtin(workgroup_id) workgroupId : vec3<u32>) {
+      fn _start(@builtin(local_invocation_id) localId : vec3<u32>,
+                @builtin(workgroup_id) workgroupId : vec3<u32>) {
         var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
         var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];

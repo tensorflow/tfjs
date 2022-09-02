@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {activationFnSnippet} from './activation_util';
+import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
     workGroupSize: [number, number, number]): string {
@@ -34,11 +35,12 @@ export function makeMatMulSmallOutputSizeSource(
   // shared memory, so it is instruction-Level parallelism for arithmetic
   // operations and others handle IO operations between barrier api, makes ALU
   // and load/store units work simultaneously, could improves the performance.
-  ${getMainHeaderString()}
+  ${main()} {
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
     let globalCol = i32(globalId.x);
+    let batch = i32(globalId.z);
 
     // uniforms.dimInner should be greater than 0.
     let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
@@ -46,9 +48,9 @@ export function makeMatMulSmallOutputSizeSource(
 
     var globalColA = tileCol;
     var globalRowB = 0;
-    var regA = mm_readA(globalRow, globalColA, globalId);
-    var regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
-    var regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+    var regA = mm_readA(batch, globalRow, globalColA);
+    var regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
+    var regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
     globalColA = globalColA + ${tileInner};
     globalRowB = globalRowB + ${tileInner};
 
@@ -59,9 +61,9 @@ export function makeMatMulSmallOutputSizeSource(
 
       workgroupBarrier();
 
-      regA = mm_readA(globalRow, globalColA, globalId);
-      regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
-      regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+      regA = mm_readA(batch, globalRow, globalColA);
+      regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
+      regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
       globalColA = globalColA + ${tileInner};
       globalRowB = globalRowB + ${tileInner};
 
@@ -71,7 +73,7 @@ export function makeMatMulSmallOutputSizeSource(
       workgroupBarrier();
     }
 
-    mm_write(globalRow, globalCol, acc, globalId);
+    mm_write(batch, globalRow, globalCol, acc);
   }
   `;
 }
@@ -84,6 +86,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [16, 8, 1];
+  transposeA: boolean;
+  transposeB: boolean;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
@@ -92,14 +96,10 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
-      outputShape: [number, number, number], bias: TensorInfo = null,
+      outputShape: [number, number, number], transposeA = false,
+      transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
-    util.assert(
-        aShape[1] <= 16 || bShape[2] <= 16,
-        () =>
-            'This program can be only used when A width or B Height are small');
-
     this.outputShape = outputShape;
 
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
@@ -118,68 +118,24 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
+    this.transposeA = transposeA;
+    this.transposeB = transposeB;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = aShape[0] === 1;
     this.batchBEqualOne = bShape[0] === 1;
-    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${
-        this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${transposeA}_${
+        transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
 
   getUserCode(): string {
-    const sampleA = `var result: f32;
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-          result =  A[batch * batchASize + row * uniforms.dimInner + col];
-        } else {
-          result = 0.0;
-        }
-        return result;`;
-
-    const sampleB = `var result: f32;
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           result = B[batch * batchBSize + row * uniforms.dimBOuter + col];
-         } else {
-           result = 0.0;
-         }
-         return result;`;
-
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
-
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${
-        this.batchAEqualOne ? `
-          let batch = 0;
-          let batchASize = 0;
-          ` :
-                              `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-          let batch = i32(globalId.z);
-          `}
-        ${sampleA}
-      }
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        ${
-        this.batchBEqualOne ? `
-          let batch = 0;
-          let batchBSize = 0;
-          ` :
-                              `
-          let batch = i32(globalId.z);
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-          `}
-        ${sampleB}
-      }
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
-        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
-          let batch = i32(globalId.z);
-          let coords = vec3<i32>(batch, row, col);
-          var value = valueIn;
-          ${biasActivationSnippet(this.addBias, this.activation)}
-          setOutputAtCoords(batch, row, col, value);
-        }
-      }
+      ${
+        matMulReadWriteFnSource(
+            this.addBias, this.activation, this.batchAEqualOne,
+            this.batchBEqualOne, this.transposeA, this.transposeB)}
       ${makeMatMulSmallOutputSizeSource(this.workGroupSize)}
     `;
     return userCode;

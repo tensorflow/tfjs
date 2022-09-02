@@ -359,8 +359,12 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       wasm = wasmFactory(factoryConfig);
     }
 
-    // The WASM module has been successfully created by the factory.
-    // Any error will be caught by the onAbort callback defined above.
+    // The `wasm` promise will resolve to the WASM module created by
+    // the factory, but it might have had errors during creation. Most
+    // errors are caught by the onAbort callback defined above.
+    // However, some errors, such as those occurring from a
+    // failed fetch, result in this promise being rejected. These are
+    // caught and re-rejected below.
     wasm.then((module) => {
       initialized = true;
       initAborted = false;
@@ -384,7 +388,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       };
 
       resolve({wasm: module});
-    });
+    }).catch(reject);
   });
 }
 
