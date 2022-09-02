@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
@@ -72,18 +72,13 @@ export class MatMulReduceProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
-  aType: DataType = 'float32';
-  bType: DataType = 'float32';
 
   constructor(
       outputShape: [number, number, number], batchAEqualOne: boolean,
       batchBEqualOne: boolean, transposeA = false, transposeB = false,
       bias: TensorInfo = null, activation: backend_util.Activation = null,
-      preluActivationWeights: TensorInfo = null, aType: DataType = 'float32',
-      bType: DataType = 'float32') {
+      preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
-    this.aType = aType;
-    this.bType = bType;
     this.dispatchLayout = {x: [], y: [1, 2], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -115,8 +110,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
       ${
         matMulReadWriteFnSource(
             this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne, this.transposeA, this.transposeB, undefined,
-            undefined, undefined, undefined, this.aType, this.bType)}
+            this.batchBEqualOne, this.transposeA, this.transposeB)}
       ${makeMatMulReduceSource()}
     `;
     return userCode;
