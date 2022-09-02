@@ -30,7 +30,6 @@ export function matMulReadFnSource(
           component}`);
   const sampleA = `
       let batch = ${batchAEqualOne ? '0' : 'batchIn'};
-      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
       ${
       transposeA ? `value = getA(batch, col, row);` :
                    `value = getA(batch, row, col);`}
@@ -63,7 +62,6 @@ export function matMulReadFnSource(
       typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? '0' : 'batchIn'};
-    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
