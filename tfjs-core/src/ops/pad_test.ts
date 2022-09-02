@@ -75,6 +75,14 @@ describeWithFlags('pad 1d', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
+  it('Should handle empty tensor with meaningful dims', async () => {
+    const a = tf.tensor([], [0, 1]);
+    const b = tf.pad(a, [[0, 4], [0, 0]], 2);
+
+    expectArraysClose(await b.data(), [2, 2, 2, 2]);
+    expectArraysClose(b.shape, [4, 1]);
+  });
+
   it('grad', async () => {
     const a = tf.tensor1d([1, 2, 3]);
     const dy = tf.tensor1d([10, 20, 30, 40, 50, 60]);

@@ -79,6 +79,12 @@ const WEBGPU_REPO: Repo = {
   path: 'tfjs-backend-webgpu',
 };
 
+const AUTOML_REPO: Repo = {
+  name: 'tfjs-automl',
+  identifier: 'tfjs-automl',
+  path: 'tfjs-automl',
+};
+
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
@@ -199,6 +205,20 @@ async function generateWebgpuNotes() {
   await generateNotes([WEBGPU_REPO]);
 }
 
+async function generateAutomlNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-automl');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-automl');
+
+  // Get tfjs-automl start version and end version.
+  AUTOML_REPO.startVersion = startVersion;
+  AUTOML_REPO.endVersion = endVersion;
+  AUTOML_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(AUTOML_REPO.identifier, AUTOML_REPO.startVersion)}`);
+
+  await generateNotes([AUTOML_REPO]);
+}
 
 async function generateNotes(repositories: util.Repo[]) {
   const repoCommits: RepoCommits[] = [];
@@ -280,9 +300,9 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu|automl. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu']
+  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu', 'automl']
 });
 
 const args = parser.parseArgs();
@@ -297,4 +317,6 @@ if (args.project === 'union') {
   generateTfliteNotes();
 } else if (args.project === 'webgpu') {
   generateWebgpuNotes();
+} else if (args.project === 'automl') {
+  generateAutomlNotes();
 }

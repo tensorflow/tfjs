@@ -14,7 +14,7 @@
   "dependencies": {
     "@tensorflow-models/blazeface": "^0.0.5",
     "@tensorflow/tfjs": "link:../../../tfjs",
-    "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm"
+    "@tensorflow/tfjs-backend-wasm": "link:../../../link_package/node_modules/@tensorflow/tfjs-backend-wasm"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.1",
@@ -29,5 +29,9 @@
     "terser-webpack-plugin": "^4.2.1",
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }

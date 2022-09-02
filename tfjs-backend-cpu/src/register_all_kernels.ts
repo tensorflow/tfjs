@@ -42,9 +42,10 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
-import {clipConfig} from './kernels/Clip';
+import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
@@ -57,6 +58,7 @@ import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
@@ -64,9 +66,9 @@ import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
-import {dilation2dConfig} from './kernels/Dilation2D';
-import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
-import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {dilation2DConfig} from './kernels/Dilation2D';
+import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
+import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -101,8 +103,8 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
-import {lRNConfig} from './kernels/LRN';
-import {lRNGradConfig} from './kernels/LRNGrad';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -129,6 +131,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {raggedTensorToTensorConfig} from './kernels/RaggedTensorToTensor';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
@@ -145,6 +148,7 @@ import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -207,21 +211,23 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
-  clipConfig,
+  clipByValueConfig,
   complexConfig,
   complexAbsConfig,
   concatConfig,
+  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv2DConfig,
+  conv3DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputV2Config,
-  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
@@ -229,10 +235,9 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
   diagConfig,
-  dilation2dConfig,
-  dilation2dBackpropInputConfig,
-  dilation2dBackpropFilterConfig,
-  realDivConfig,
+  dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
@@ -267,15 +272,15 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
-  lRNConfig,
-  lRNGradConfig,
+  LRNConfig,
+  LRNGradConfig,
+  maxConfig,
   maximumConfig,
   maxPoolConfig,
   maxPool3DConfig,
   maxPool3DGradConfig,
   maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
-  maxConfig,
   meanConfig,
   minConfig,
   minimumConfig,
@@ -295,8 +300,10 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,
+  realDivConfig,
   reciprocalConfig,
   reluConfig,
   relu6Config,
@@ -310,6 +317,7 @@ const kernelConfigs: KernelConfig[] = [
   roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,
@@ -340,8 +348,8 @@ const kernelConfigs: KernelConfig[] = [
   tanhConfig,
   tileConfig,
   topKConfig,
-  transposeConfig,
   transformConfig,
+  transposeConfig,
   uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,

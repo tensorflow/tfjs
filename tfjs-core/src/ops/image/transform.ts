@@ -30,7 +30,7 @@ import {op} from '../operation';
  *
  * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
  * @param transforms Projective transform matrix/matrices. A tensor1d of length
- *     8 or tensor of size N x 8. If one row of transforms is [a0, a1, a2, b0
+ *     8 or tensor of size N x 8. If one row of transforms is [a0, a1, a2, b0,
  *     b1, b2, c0, c1], then it maps the output point (x, y) to a transformed
  *     input point (x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k),
  *     where k = c0 x + c1 y + 1. The transforms are inverted compared to the

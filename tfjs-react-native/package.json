@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-react-native"
+  },
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "keywords": [
@@ -40,7 +45,7 @@
     "@types/jasmine": "~3.3.0",
     "@types/react-native": "0.60.2",
     "@types/react-native-fs": "^2.13.0",
-    "clang-format": "~1.2.2",
+    "clang-format": "~1.8.0",
     "expo-asset": "^7.0.0",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
@@ -73,5 +78,8 @@
     "react": "^16.12.0",
     "react-native": ">= 0.58.0",
     "react-native-fs": "^2.14.1"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

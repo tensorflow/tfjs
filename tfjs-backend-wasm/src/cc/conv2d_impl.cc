@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/elu_impl.h"
 #include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/prelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
@@ -280,6 +281,9 @@ void conv2d(const size_t x_id, const size_t batch_size,
   }
   if (activation == FusableActivation::SIGMOID) {
     sigmoid(out_buf, out_info.size, out_id);
+  }
+  if (activation == FusableActivation::ELU) {
+    elu(out_buf, out_info.size, out_id);
   }
 }
 

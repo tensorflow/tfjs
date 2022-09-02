@@ -20,8 +20,8 @@ import {KernelConfig, KernelFunc, Transpose, TransposeAttrs, TransposeInputs, Ty
 import {WebGPUBackend} from '../backend_webgpu';
 import {transposeImplCPU as cpuTranspose} from '../kernel_utils/shared';
 
-import {TransposeSharedProgram} from './transpose_shared_webgpu';
-import {TransposeProgram} from './transpose_webgpu';
+import {TransposeSharedProgram} from '../transpose_shared_webgpu';
+import {TransposeProgram} from '../transpose_webgpu';
 
 export function transpose(args: {
   inputs: TransposeInputs,

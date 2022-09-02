@@ -1,5 +1,0 @@
-{
-  "MAILGUN_DOMAIN":"sandbox497e7af39a1b4dee92fb92d9bfe5a686.mailgun.org",
-  "MAILGUN_FROM":"Cloud Build <builds@sandbox497e7af39a1b4dee92fb92d9bfe5a686.mailgun.org>",
-  "MAILGUN_TO":"tfjs-builds@google.com"
-}

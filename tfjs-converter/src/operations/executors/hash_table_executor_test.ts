@@ -119,7 +119,7 @@ describe('hash_table', () => {
         expect(after).toBe(before + 1);
       });
 
-      it('should throw if dtype doesnot match.', async (done) => {
+      it('should throw if dtype doesnot match.', async () => {
         const hashTable = new HashTable('string', 'float32');
 
         resourceManager.addHashTable('hashtable', hashTable);
@@ -135,17 +135,16 @@ describe('hash_table', () => {
         const before = memory().numTensors;
         try {
           await executeOp(node, {input3, input5}, context, resourceManager);
-          done.fail('Should fail, succeed unexpectedly.');
+          fail('Should fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
         expect(after).toBe(before);
-        done();
       });
 
       it('should throw if length of keys and values doesnot match.',
-         async (done) => {
+         async () => {
            const hashTable = new HashTable('string', 'float32');
 
            resourceManager.addHashTable('hashtable', hashTable);
@@ -161,13 +160,12 @@ describe('hash_table', () => {
            const before = memory().numTensors;
            try {
              await executeOp(node, {input3, input5}, context, resourceManager);
-             done.fail('Should fail, succeed unexpectedly.');
+             fail('Should fail, succeed unexpectedly.');
            } catch (err) {
              expect(err).toMatch(/The number of elements doesn't match/);
            }
            const after = memory().numTensors;
            expect(after).toBe(before);
-           done();
          });
 
       it('should match json def.', () => {
@@ -200,7 +198,7 @@ describe('hash_table', () => {
         expect(after).toBe(before + 1);
       });
 
-      it('should throw if dtype doesnot match.', async (done) => {
+      it('should throw if dtype doesnot match.', async () => {
         const hashTable = new HashTable('string', 'float32');
 
         resourceManager.addHashTable('hashtable', hashTable);
@@ -216,17 +214,16 @@ describe('hash_table', () => {
         const before = memory().numTensors;
         try {
           await executeOp(node, {input3, input5}, context, resourceManager);
-          done.fail('Should fail, succeed unexpectedly.');
+          fail('Should fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
         expect(after).toBe(before);
-        done();
       });
 
       it('should throw if length of keys and values doesnot match.',
-         async (done) => {
+         async () => {
            const hashTable = new HashTable('string', 'float32');
 
            resourceManager.addHashTable('hashtable', hashTable);
@@ -242,13 +239,12 @@ describe('hash_table', () => {
            const before = memory().numTensors;
            try {
              await executeOp(node, {input3, input5}, context, resourceManager);
-             done.fail('Should fail, succeed unexpectedly.');
+             fail('Should fail, succeed unexpectedly.');
            } catch (err) {
              expect(err).toMatch(/The number of elements doesn't match/);
            }
            const after = memory().numTensors;
            expect(after).toBe(before);
-           done();
          });
 
       it('should match json def.', () => {
@@ -305,7 +301,7 @@ describe('hash_table', () => {
         // Create a result tensor.
         expect(after).toBe(before + 1);
       });
-      it('should throw if dtype doesnot match.', async (done) => {
+      it('should throw if dtype doesnot match.', async () => {
         const hashTable = new HashTable('string', 'float32');
 
         resourceManager.addHashTable('hashtable', hashTable);
@@ -341,13 +337,12 @@ describe('hash_table', () => {
         const before = memory().numTensors;
         try {
           await executeOp(node, {input3, input5}, context, resourceManager);
-          done.fail('Shoudl fail, succeed unexpectedly.');
+          fail('Shoudl fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
         expect(after).toBe(before);
-        done();
       });
       it('should match json def.', () => {
         node.op = 'LookupTableFind';
@@ -403,7 +398,7 @@ describe('hash_table', () => {
         // Create a result tensor.
         expect(after).toBe(before + 1);
       });
-      it('should throw if dtype doesnot match.', async (done) => {
+      it('should throw if dtype doesnot match.', async () => {
         const hashTable = new HashTable('string', 'float32');
 
         resourceManager.addHashTable('hashtable', hashTable);
@@ -439,13 +434,12 @@ describe('hash_table', () => {
         const before = memory().numTensors;
         try {
           await executeOp(node, {input3, input5}, context, resourceManager);
-          done.fail('Shoudl fail, succeed unexpectedly.');
+          fail('Shoudl fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
         expect(after).toBe(before);
-        done();
       });
       it('should match json def.', () => {
         node.op = 'LookupTableFindV2';

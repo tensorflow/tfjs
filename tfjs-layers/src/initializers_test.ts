@@ -21,7 +21,7 @@ import {PyJsonDict} from './keras_format/types';
 import {deserialize} from './layers/serialization';
 import * as math_utils from './utils/math_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndWebGL2, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
 describeMathCPU('Zeros initializer', () => {
   it('1D', () => {
@@ -568,7 +568,7 @@ describe('checkDistribution', () => {
   });
 });
 
-describeMathCPUAndGPU('Orthogonal Initializer', () => {
+describeMathCPUAndWebGL2('Orthogonal Initializer', () => {
   it('2x2', () => {
     const init = getInitializer('Orthogonal');
     const w = init.apply([2, 2], 'float32') as Tensor2D;

@@ -571,7 +571,7 @@ function getOutput3DCoords(
     enableShapeUniforms: boolean): string {
   if (enableShapeUniforms) {
     const coordsFromIndexSnippet =
-        shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+        shader_util.getOutputLogicalCoordinatesFromFlatIndexByUniform(
             ['r', 'c', 'd'], shape);
 
     return `
@@ -670,7 +670,7 @@ function getOutput4DCoords(
     enableShapeUniforms: boolean): string {
   if (enableShapeUniforms) {
     const coordsFromIndexSnippet =
-        shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+        shader_util.getOutputLogicalCoordinatesFromFlatIndexByUniform(
             ['r', 'c', 'd', 'd2'], shape);
 
     return `
@@ -1359,7 +1359,7 @@ function getSampler3D(
       // Explicitly use integer operations as dot() only works on floats.
       int stride0 = ${texName}Shape[1] * ${texName}Shape[2];
       int stride1 = ${texName}Shape[2];
-      int index = row * ${stride0} + col * ${stride1} + depth + ${offset};
+      int index = row * stride0 + col * stride1 + depth + ${offset};
       vec2 uv = uvFromFlat(${texName}TexShape[0], ${texName}TexShape[1], index);
       return sampleTexture(${texName}, uv);
     }
@@ -1889,7 +1889,7 @@ export function getCoordsDataType(rank: number): string {
 
 export function getUniformInfoFromShape(
     isPacked: boolean, shape: number[], texShape: number[]) {
-  const {newShape} = util.squeezeShape(shape);
+  const {newShape, keptDims} = util.squeezeShape(shape);
   const rank = shape.length;
   const useSqueezePackedShape = isPacked && rank === 3 && shape[0] === 1;
   const squeezeShape = useSqueezePackedShape ? shape.slice(1) : newShape;
@@ -1898,7 +1898,7 @@ export function getUniformInfoFromShape(
        newShape.length < rank) ||
       useSqueezePackedShape;
   const uniformShape = useSqueezeShape ? squeezeShape : shape;
-  return {useSqueezeShape, uniformShape};
+  return {useSqueezeShape, uniformShape, keptDims};
 }
 
 /** Returns a new input info (a copy) that has a squeezed logical shape. */

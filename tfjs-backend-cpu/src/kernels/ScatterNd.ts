@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Rank, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {scatterImpl} from './Scatter_impl';
@@ -33,8 +33,8 @@ export function scatterNd(args: {
       backend_util.calculateShapes(updates, indices, shape);
   const sumDupeIndices = true;
 
-  const indicesBuf = backend.bufferSync(indices);
-  const updatesBuf = backend.bufferSync(updates);
+  const indicesBuf = backend.bufferSync<Rank, 'int32'>(indices);
+  const updatesBuf = backend.bufferSync<Rank, 'int32'|'float32'>(updates);
 
   const outBuf = scatterImpl(
       indicesBuf, updatesBuf, shape, outputSize, sliceSize, numUpdates,

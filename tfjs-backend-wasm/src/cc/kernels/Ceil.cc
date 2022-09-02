@@ -28,7 +28,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Ceil(const size_t x_id, const size_t out_id) {
+void Ceil(const size_t x_id, const DType dtype, const size_t out_id) {
   unary_xnn_f32(x_id, out_id, xnn_create_ceiling_nc_f32,
                 xnn_setup_ceiling_nc_f32);
 }

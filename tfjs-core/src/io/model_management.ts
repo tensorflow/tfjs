@@ -71,7 +71,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getManager(scheme: string): ModelStoreManager {
-    const manager = this.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
@@ -79,7 +79,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getSchemes(): string[] {
-    return Object.keys(this.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 }
 
@@ -210,7 +210,7 @@ async function listModels(): Promise<{[url: string]: ModelArtifactsInfo}> {
 }
 
 /**
- * Remove a model specified by URL from a reigstered storage medium.
+ * Remove a model specified by URL from a registered storage medium.
  *
  * ```js
  * // First create and save a model.

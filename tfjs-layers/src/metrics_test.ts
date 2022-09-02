@@ -14,10 +14,11 @@
 
 import {scalar, Tensor, tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 
+import {setEpsilon} from './backend/common';
 import * as tfl from './index';
 import {binaryAccuracy, categoricalAccuracy, get, getLossOrMetricName} from './metrics';
 import {LossOrMetricFn} from './types';
-import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('binaryAccuracy', () => {
   it('1D exact', () => {
@@ -71,7 +72,11 @@ describeMathCPUAndGPU('sparseCategoricalAccuracy', () => {
   });
 });
 
-describeMathCPUAndGPU('binaryCrossentropy', () => {
+describeMathCPUAndWebGL2('binaryCrossentropy', () => {
+  beforeEach(() => {
+    setEpsilon(1e-7);
+  });
+
   it('2D single-value yTrue', () => {
     // Use the following Python code to generate the reference values:
     // ```python
@@ -149,7 +154,7 @@ describeMathCPUAndGPU('categoricalAccuracy', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy metric', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy metric', () => {
   it('1D', () => {
     const x = tensor1d([0, 0, 0, 1]);
     const y = tensor1d([0.1, 0.8, 0.05, 0.05]);
@@ -297,17 +302,17 @@ describe('metrics.get', () => {
 describe('getLossOrMetricName', () => {
   it('string short cut name', async () => {
     const fnName = getLossOrMetricName('meanSquaredError');
-    expect(fnName).toEqual('meanSquaredError');
+    expect(fnName).toMatch(/meanSquaredError/);
   });
 
   it('function included in losses map', async () => {
     const fnName = getLossOrMetricName(tfl.metrics.meanSquaredError);
-    expect(fnName).toEqual('meanSquaredError');
+    expect(fnName).toMatch(/meanSquaredError/);
   });
 
   it('function included in metrics map', async () => {
     const fnName = getLossOrMetricName(tfl.metrics.categoricalAccuracy);
-    expect(fnName).toEqual('categoricalAccuracy');
+    expect(fnName).toMatch(/categoricalAccuracy/);
   });
 
   it('function not included in losses map or metrics map', async () => {

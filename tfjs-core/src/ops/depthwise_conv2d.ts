@@ -23,7 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {ExplicitPadding} from './conv_util';
+import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -75,12 +75,13 @@ import {reshape} from './reshape';
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
     strides: [number, number]|number,
-    pad: 'valid'|'same'|number|ExplicitPadding,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
-  const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
+  const $x = convertToTensor(x, 'x', 'depthwiseConv2d', 'float32');
+  const $filter =
+      convertToTensor(filter, 'filter', 'depthwiseConv2d', 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;
@@ -96,19 +97,13 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
       $filter.rank === 4,
       () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
+  const inChannels = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
+      inChannels === $filter.shape[2],
       () => `Error in depthwiseConv2d: number of input channels ` +
-          `(${x4D.shape[3]}) must match the inChannels dimension in ` +
+          `(${inChannels}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in depthwiseConv2d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('depthwiseConv2d', pad, dimRoundingMode);
   const inputs: DepthwiseConv2dNativeInputs = {x: x4D, filter: $filter};
   const attrs: DepthwiseConv2dNativeAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode};

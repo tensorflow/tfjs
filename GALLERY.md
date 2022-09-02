@@ -7,7 +7,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
-- [HumanGPS: Dense Human Correspondences](https://feitongt.github.io/HumanGPS/demo) -  A deep learning framework that maps each pixel to a feature space, where the feature distances reflect the geodesic distances among pixels as if they were projected onto the surface of a 3D human scan.
+- [HumanGPS: Dense Human Correspondences](https://feitongt.github.io/HumanGPS/#Live_demo) -  A deep learning framework that maps each pixel to a feature space, where the feature distances reflect the geodesic distances among pixels as if they were projected onto the surface of a 3D human scan.
 - [Time Series Forecasting](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/) - Pull stock prices from online API, train and perform predictions using Long Short Term Memory, and predict the next value. [[demo](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/)][[repo](https://github.com/jinglescode/time-series-forecasting-tensorflowjs)]
 - [Textual Similarity Analysis](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/) - Group similar sentences with universal sentence encoder word embeddings [[demo](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/)][[repo](https://github.com/jinglescode/textual-similarity-universal-sentence-encoder)]
 - [PoseAnimator](https://github.com/yemount/pose-animator/) - Animate any SVG character using your own body live via your webcam. Uses posenet and facemesh to create some really unique animations.
@@ -69,7 +69,9 @@ Please reach out to us if you'd like to put your project on the list.
 - [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
 - [audiate](https://cjbayron.github.io/audiate/) - Ear training game using Pitch Transcription model in the browser - By CJ Bayron [[demo](https://www.youtube.com/watch?v=VZ3i4V7i7Iw&t=2s)][[repo](https://github.com/cjbayron/audiate)]
 - [Plant AI](https://github.com/Rishit-dagli/Greenathon-Plant-AI) - This web app identifies diseases in plants across 38 healthy and unhealthy plant categories by species and diseases all in the browser - By Rishit Dagli, Rishabh Singh and Rucha Yagnik. [[demo](https://www.plant-ai.tech/)][[repo](https://github.com/Rishit-dagli/Greenathon-Plant-AI)]
-
+- [Brainchop.org](https://neuroneural.github.io/brainchop/) - Brings automatic 3D MRI segmentation capability to neuroimaging by running a deep learning model in the web-browser on the user side - By Mohamed Masoud and Sergey Plis. [[demo](https://neuroneural.github.io/brainchop/)][[repo](https://github.com/neuroneural/brainchop)][[wiki](https://github.com/neuroneural/brainchop/wiki)]
+- [chestxray.ai](https://github.com/jordimassaguerpla/chestxray.ai) - X-Ray image of you Chest, and predicts the probability of having any of these 4 diseases:Cardiomegaly,Mass,Pneumotorax,Edema - By Jordi Massaguer Pla. [[repo](https://github.com/jordimassaguerpla/chestxray.ai)]
+  
 ## Tutorials / Codelabs
 
 These tutorials augment the [official tutorials](https://js.tensorflow.org/tutorials/).

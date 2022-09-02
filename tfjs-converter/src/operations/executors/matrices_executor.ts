@@ -27,12 +27,12 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'BatchMatMul':
         case 'BatchMatMulV2':
         case 'MatMul':
-          return [tfOps.matMul(
+          return [ops.matMul(
               getParamValue('a', node, tensorMap, context) as Tensor2D,
               getParamValue('b', node, tensorMap, context) as Tensor2D,
               getParamValue('transposeA', node, tensorMap, context) as boolean,
@@ -40,13 +40,13 @@ export const executeOp: InternalOpExecutor =
                   boolean)];
 
         case 'Einsum':
-          return [tfOps.einsum(
+          return [ops.einsum(
               getParamValue('equation', node, tensorMap, context) as string,
               ...getParamValue('tensors', node, tensorMap, context) as
                   Tensor[])];
 
         case 'Transpose':
-          return [tfOps.transpose(
+          return [ops.transpose(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('perm', node, tensorMap, context) as number[])];
 
@@ -76,7 +76,7 @@ export const executeOp: InternalOpExecutor =
           }
           const [biasArg, preluArg] =
               getParamValue('args', node, tensorMap, context) as Tensor[];
-          return [tfOps.fused.matMul({
+          return [ops.fused.matMul({
             a: getParamValue('a', node, tensorMap, context) as Tensor2D,
             b: getParamValue('b', node, tensorMap, context) as Tensor2D,
             transposeA: getParamValue('transposeA', node, tensorMap, context) as

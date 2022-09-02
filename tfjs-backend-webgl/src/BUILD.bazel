@@ -1,0 +1,104 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:enumerate_tests.bzl", "enumerate_tests")
+
+package(default_visibility = ["//visibility:public"])
+
+TEST_SRCS = [
+    "**/*_test.ts",
+]
+
+filegroup(
+    name = "all_test_entrypoints",
+    srcs = glob(
+        ["**/*_test.ts"],
+        exclude = [
+            "setup_test.ts",
+        ],
+    ),
+)
+
+# Generates the 'tests.ts' file that imports all test entrypoints.
+enumerate_tests(
+    name = "tests",
+    srcs = [":all_test_entrypoints"],
+    root_path = "tfjs-backend-webgl/src",
+)
+
+ts_library(
+    name = "tfjs-backend-webgl_src_lib",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = TEST_SRCS + ["index.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-backend-webgl/dist",
+    deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "@npm//@types/offscreencanvas",
+        "@npm//@types/seedrandom",
+        "@npm//@types/webgl-ext",
+        "@npm//@types/webgl2",
+    ],
+)
+
+ts_library(
+    name = "tfjs-backend-webgl_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-backend-webgl",
+    deps = [
+        ":tfjs-backend-webgl_src_lib",
+    ],
+)
+
+ts_library(
+    name = "tfjs-backend-webgl_test_lib",
+    # TODO(mattsoulanille): Mark as testonly when esbuild is fixed to allow it.
+    # https://github.com/bazelbuild/rules_nodejs/pull/2984
+    # testonly = True,
+    srcs = glob(TEST_SRCS) + [":tests"],
+    module_name = "@tensorflow/tfjs-backend-webgl/dist",
+    deps = [
+        ":tfjs-backend-webgl_lib",
+        ":tfjs-backend-webgl_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+)
+
+esbuild(
+    name = "tfjs-backend-webgl_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-backend-webgl_lib",
+        ":tfjs-backend-webgl_test_lib",
+    ],
+)

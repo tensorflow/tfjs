@@ -117,6 +117,57 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  // For WebGPU DepthwiseConv2D3x3Program.
+  it('basic with channel-wise broadcasted bias and relu filter 3x3',
+     async () => {
+       const fSize = 3;
+       const pad = 'same';
+       const strides = 1;
+       const chMul = 1;
+       const inDepth = 4;
+
+       const x = tf.tensor4d(
+           [
+             0.230664,  0.987388, 0.0685208, 0.419224,  0.887861, 0.731641,
+             0.0741907, 0.409265, 0.351377,  0.230664,  0.987388, 0.0685208,
+             0.419224,  0.887861, 0.731641,  0.0741907, 0.409265, 0.351377,
+             0.230664,  0.987388, 0.0685208, 0.419224,  0.887861, 0.731641,
+             0.0741907, 0.409265, 0.351377,  0.230664,  0.987388, 0.0685208,
+             0.419224,  0.887861, 0.731641,  0.0741907, 0.409265, 0.351377
+           ],
+           [1, 3, 3, inDepth]);
+       const w = tf.tensor4d(
+           [
+             -0.303873, -0.229223, 0.144333,  0.803373,  -0.303873, -0.229223,
+             0.144333,  0.803373,  -0.303873, -0.229223, 0.144333,  0.803373,
+             -0.303873, -0.229223, 0.144333,  0.803373,  -0.303873, -0.229223,
+             0.144333,  0.803373,  -0.303873, -0.229223, 0.144333,  0.803373,
+             -0.303873, -0.229223, 0.144333,  0.803373,  -0.303873, -0.229223,
+             0.144333,  0.803373,  -0.303873, -0.229223, 0.144333,  0.803373
+           ],
+           [fSize, fSize, inDepth, chMul],
+       );
+       const bias = tf.tensor1d([0, 1, 2, 3]);
+       const result =
+           tf.fused.depthwiseConv2d({x, filter: w, strides, pad, bias});
+       expect(result.shape).toEqual([1, 3, 3, 4]);
+       const expected = [
+         -0.5916450023651123, 0.32189714908599854, 2.1594903469085693,
+         4.518429279327393,   -0.7192406058311462, 0.1729278564453125,
+         2.4301507472991943,  5.161257743835449,   -0.521757185459137,
+         0.6027780771255493,  2.3146610260009766,  4.764861583709717,
+         -0.9142301082611084, 0.212377667427063,   2.2707135677337646,
+         5.417022228240967,   -1.264151692390442,  0.046402156352996826,
+         2.6004443168640137,  6.342137336730957,   -1.044123649597168,
+         0.5700653791427612,  2.434239149093628,   5.760432243347168,
+         -0.5743405818939209, 0.6064186692237854,  2.250115394592285,
+         4.751436233520508,   -0.8174881339073181, 0.4933167099952698,
+         2.437333583831787,   5.621503829956055,   -0.6675527095794678,
+         0.7906477451324463,  2.2810182571411133,  5.376591682434082
+       ];
+       expectArraysClose(await result.data(), expected);
+     });
+
   it('prelu', async () => {
     const fSize = 3;
     const pad = 'valid';
@@ -350,4 +401,42 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
        expectArraysClose(await dfilterFused.array(), await dfilter.array());
        expectArraysClose(await dbiasFused.array(), await dbias.array());
      });
+
+  it('throws when input is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth], 'int32');
+    const w = tf.tensor4d(
+        [-0.303873, -0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    expect(() => tf.fused.depthwiseConv2d({x, filter: w, strides, pad}))
+        .toThrowError(
+            /Argument 'x' passed to 'depthwiseConv2d' must be float32/);
+  });
+
+  it('throws when filter is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4],
+        [fSize, fSize, inDepth, chMul],
+        'int32',
+    );
+
+    expect(() => tf.fused.depthwiseConv2d({x, filter: w, strides, pad}))
+        .toThrowError(
+            /Argument 'filter' passed to 'depthwiseConv2d' must be float32/);
+  });
 });

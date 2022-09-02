@@ -35,13 +35,13 @@ export function printSummary(
   const sequentialLike = isModelSequentialLike(model);
 
   // Header names for different log elements.
-  const toDisplay: string[] = ['Layer (type)', 'Output shape', 'Param #'];
+  const toDisplay: string[] = ['Layer (type)', 'Input Shape', 'Output shape', 'Param #'];
   if (sequentialLike) {
-    lineLength = lineLength || 65;
-    positions = positions || [0.45, 0.85, 1];
+    lineLength = lineLength || 90;
+    positions = positions || [0.32, 0.61, 0.89, 1];
   } else {
-    lineLength = lineLength || 98;
-    positions = positions || [0.33, 0.55, 0.67, 1];
+    lineLength = lineLength || 115;
+    positions = positions || [0.24, 0.48, 0.70, 0.80, 1];
     // Header names for different log elements.
   }
 
@@ -162,6 +162,16 @@ function printLayerSummary(
     // tslint:disable-next-line:no-any
     printFn: (message?: any, ...optionalParams: any[]) => void) {
   let outputShape: string;
+  let inputShape: string;
+
+  try {
+    inputShape = (layer.inboundNodes.map(
+      x => JSON.stringify(x.inputShapes)
+    )).join(',');
+  } catch (err) {
+    inputShape = 'multiple';
+  }
+
   try {
     outputShape = JSON.stringify(layer.outputShape);
   } catch (err) {
@@ -171,7 +181,8 @@ function printLayerSummary(
   const name = layer.name;
   const className = layer.getClassName();
   const fields: string[] =
-      [`${name} (${className})`, outputShape, layer.countParams().toString()];
+      [`${name} (${className})`, inputShape,
+      outputShape, layer.countParams().toString()];
   printRow(fields, positions, printFn);
 }
 
@@ -183,6 +194,16 @@ function printLayerSummaryWithConnections(
     // tslint:disable-next-line:no-any
     printFn: (message?: any, ...optionalParams: any[]) => void) {
   let outputShape: string;
+  let inputShape: string;
+
+  try {
+    inputShape = (layer.inboundNodes.map(
+      x => JSON.stringify(x.inputShapes)
+    )).join(',');
+  } catch (err) {
+    inputShape = 'multiple';
+  }
+
   try {
     outputShape = JSON.stringify(layer.outputShape);
   } catch (err) {
@@ -207,12 +228,13 @@ function printLayerSummaryWithConnections(
   const className = layer.getClassName();
   const firstConnection = connections.length === 0 ? '' : connections[0];
   const fields: string[] = [
-    `${name} (${className})`, outputShape, layer.countParams().toString(),
+    `${name} (${className})`, inputShape,
+    outputShape, layer.countParams().toString(),
     firstConnection
   ];
 
   printRow(fields, positions, printFn);
   for (let i = 1; i < connections.length; ++i) {
-    printRow(['', '', '', connections[i]], positions, printFn);
+    printRow(['', '', '', '', connections[i]], positions, printFn);
   }
 }

@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ResizeBilinearProgram} from './resize_bilinear_webgpu';
+import {ResizeBilinearProgram} from '../resize_bilinear_webgpu';
 
 export function resizeBilinear(args: {
   inputs: ResizeBilinearInputs,
@@ -27,14 +27,21 @@ export function resizeBilinear(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {images} = inputs;
-  const {alignCorners, size} = attrs;
+  const {alignCorners, size, halfPixelCenters} = attrs;
 
   const [newHeight, newWidth] = size;
-  const program = new ResizeBilinearProgram(
-      images.shape as [number, number, number, number], newHeight, newWidth,
-      alignCorners);
+  const adjustHeight = alignCorners && newHeight > 1 ? 1.0 : 0.0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1.0 : 0.0;
+  const halfPixelCentersValue = halfPixelCenters ? 0.5 : 0.0;
+  const uniformData = [
+    {type: 'float32', data: [adjustHeight, adjustWidth]},
+    {type: 'float32', data: [halfPixelCentersValue]}
+  ];
 
-  return backend.runWebGPUProgram(program, [images], 'float32');
+  const program = new ResizeBilinearProgram(
+      images.shape as [number, number, number, number], newHeight, newWidth);
+
+  return backend.runWebGPUProgram(program, [images], 'float32', uniformData);
 }
 
 export const resizeBilinearConfig: KernelConfig = {

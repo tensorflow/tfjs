@@ -58,7 +58,7 @@ import {op} from './operation';
  * blockShape[M-1], batch / prod(blockShape), x.shape[1], ...,
  * x.shape[N-1]]`
  *
- * 2. Permute dimensions of `reshaped`to produce `permuted` of shape `[batch /
+ * 2. Permute dimensions of `reshaped` to produce `permuted` of shape `[batch /
  * prod(blockShape),x.shape[1], blockShape[0], ..., x.shape[M],
  * blockShape[M-1],x.shape[M+1], ..., x.shape[N-1]]`
  *

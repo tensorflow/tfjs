@@ -15,17 +15,23 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Max, MaxAttrs, MaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {permuteAxesAndTranspose} from './kernel_utils';
+import {CppDType} from './types';
 
-let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
+let wasmMax: (xId: number, dtype: number, reduceSize: number, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
-  wasmMax = backend.wasm.cwrap(Max, null /*void*/, ['number, number, number']);
+  wasmMax = backend.wasm.cwrap(Max, null /*void*/, [
+    'number',  // x_id
+    'number',  // dtype
+    'number',  // reduce_size
+    'number',  // out_id
+  ]);
 }
 
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
@@ -55,7 +61,7 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
   const out = backend.makeOutput(outShape, x.dtype);
   if (util.sizeFromShape(input.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    wasmMax(inputId, reduceSize, outId);
+    wasmMax(inputId, CppDType[x.dtype], reduceSize, outId);
   }
 
   if (inputWasTransposed) {

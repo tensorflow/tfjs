@@ -65,17 +65,17 @@ import {op} from '../operation';
  * result['emptyRowIndicator'].print(); // [false, false, true, false, true]
  * result['reverseIndexMap'].print(); // [0, 1, 2, 3, 5, 6]
  * ```
- * @param indices: 2-D. the indices of the sparse tensor.
- * @param values: 1-D. the values of the sparse tensor.
- * @param denseShape: 1-D. the shape of the sparse tensor.
- * @param defaultValue: 0-D. default value to insert into location [row, 0, ...,
+ * @param indices: 2-D. The indices of the sparse tensor.
+ * @param values: 1-D. The values of the sparse tensor.
+ * @param denseShape: 1-D. The shape of the sparse tensor.
+ * @param defaultValue: 0-D. Default value to insert into location [row, 0, ...,
  *     0] for rows missing from the input sparse tensor.
  * @return A map with the following properties:
  *     - outputIndices
- *     - outputValues: 1-D. the values of the filled sparse tensor.
- *     - emptyRowIndicator: 1-D. whether the dense row was missing in the input
+ *     - outputValues: 1-D. The values of the filled sparse tensor.
+ *     - emptyRowIndicator: 1-D. Whether the dense row was missing in the input
  * sparse tensor.
- *     - reverseIndexMap: 1-D. a map from the input indices to the output
+ *     - reverseIndexMap: 1-D. A map from the input indices to the output
  * indices.
  * @doc {heading: 'Operations', subheading: 'Sparse'}
  */
@@ -83,10 +83,11 @@ function sparseFillEmptyRows_(
     indices: Tensor2D|TensorLike, values: Tensor1D|TensorLike,
     denseShape: Tensor1D|TensorLike,
     defaultValue: Scalar|ScalarLike): NamedTensorMap {
-  const $indices = convertToTensor(indices, 'indices', 'sparseFillEmptyRows');
+  const $indices =
+      convertToTensor(indices, 'indices', 'sparseFillEmptyRows', 'int32');
   const $values = convertToTensor(values, 'values', 'sparseFillEmptyRows');
   const $denseShape =
-      convertToTensor(denseShape, 'denseShape', 'sparseFillEmptyRows');
+      convertToTensor(denseShape, 'denseShape', 'sparseFillEmptyRows', 'int32');
   const $defaultValue = convertToTensor(
       defaultValue, 'defaultValue', 'sparseFillEmptyRows', $values.dtype);
 

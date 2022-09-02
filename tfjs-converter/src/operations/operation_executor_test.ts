@@ -78,10 +78,11 @@ describe('OperationExecutor', () => {
      string, transformation]
         .forEach(category => {
           it('should call tidy around executor', () => {
-            spyOn(tfc, 'tidy');
+            const tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
+
             node.category = category.CATEGORY;
-            executeOp(node, {}, context);
-            expect(tfc.tidy).toHaveBeenCalled();
+            executeOp(node, {}, context, undefined, tidySpy as typeof tfc.tidy);
+            expect(tidySpy).toHaveBeenCalled();
           });
         });
 

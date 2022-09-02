@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('min', ALL_ENVS, () => {
   it('Tensor1D', async () => {
@@ -91,6 +92,15 @@ describeWithFlags('min', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', async () => {
     expectArraysClose(await tf.min([3, -1, 0, 100, -7, 2]).data(), -7);
+  });
+
+  it('accpets int32 input', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([12345678, 12345679], 'int32');
+      expect(a.dtype).toEqual('int32');
+      expectArraysClose(await tf.min(a).data(), 12345678);
+    }
   });
 
   it('min gradient: Scalar', async () => {

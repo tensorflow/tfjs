@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {fill} from './Fill';
 
 import {CppDType} from './types';
 
@@ -45,9 +47,21 @@ function pad(
 
   const outShape = paddings.map(
       (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+
+  if (util.sizeFromShape(x.shape) === 0) {
+    // Short-circuit the computation, since x doesn't have value, only
+    // the shape is used to compute output shape to pad.
+    return fill({
+      backend,
+      attrs: {shape: outShape, value: constantValue, dtype: x.dtype}
+    });
+  }
+
   const xId = backend.dataIdMap.get(x.dataId).id;
   const out = backend.makeOutput(outShape, x.dtype);
-  const outId = backend.dataIdMap.get(out.dataId).id;
+  const outTensorData = backend.dataIdMap.get(out.dataId);
+  const outId = outTensorData.id;
+
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
 
   const prePaddingsFlat = paddings.map(padTuple => padTuple[0]);

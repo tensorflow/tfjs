@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class MatMulPackedProgram implements GPGPUProgram {
   variableNames = ['matrixA', 'matrixB'];
@@ -23,6 +23,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -30,6 +31,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
       transposeB = false, addBias = false, activation: string = null,
       hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
@@ -83,7 +85,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
     this.userCode = `
       ${activationSnippet}
-
+      // Don't use uniform for sharedDimensionPacked for performance.
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
       vec4 dot2x2ARowBCol(ivec3 rc) {

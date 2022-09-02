@@ -34,8 +34,8 @@ import {op} from './operation';
  * x.clipByValue(-2, 3).print();  // or tf.clipByValue(x, -2, 3)
  * ```
  * @param x The input tensor.
- * @param clipValueMin Lower-bound of range to be clipped to.
- * @param clipValueMax Upper-bound of range to be clipped to.
+ * @param clipValueMin Lower bound of range to be clipped to.
+ * @param clipValueMax Upper bound of range to be clipped to.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */

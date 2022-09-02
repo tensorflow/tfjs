@@ -57,9 +57,11 @@ export class Environment {
 
   setPlatform(platformName: string, platform: Platform) {
     if (this.platform != null) {
-      console.warn(
-          `Platform ${this.platformName} has already been set. ` +
-          `Overwriting the platform with ${platform}.`);
+      if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
+        console.warn(
+            `Platform ${this.platformName} has already been set. ` +
+            `Overwriting the platform with ${platformName}.`);
+      }
     }
     this.platformName = platformName;
     this.platform = platform;
@@ -70,12 +72,14 @@ export class Environment {
       setHook?: (value: FlagValue) => void) {
     this.flagRegistry[flagName] = {evaluationFn, setHook};
 
-    // Override the flag value from the URL. This has to happen here because the
-    // environment is initialized before flags get registered.
+    // Override the flag value from the URL. This has to happen here because
+    // the environment is initialized before flags get registered.
     if (this.urlFlags[flagName] != null) {
       const flagValue = this.urlFlags[flagName];
-      console.warn(
-          `Setting feature override from URL ${flagName}: ${flagValue}.`);
+      if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
+        console.warn(
+            `Setting feature override from URL ${flagName}: ${flagValue}.`);
+      }
       this.set(flagName, flagValue);
     }
   }
@@ -101,8 +105,7 @@ export class Environment {
           `Please use getAsync() instead.`);
     }
 
-    this.flags[flagName] = flagValue as number | boolean;
-
+    this.flags[flagName] = flagValue;
     return this.flags[flagName];
   }
 

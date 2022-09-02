@@ -114,6 +114,40 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_MAX_TEXTURE_SIZE', max);
     expect(texShape).toEqual([6, 4]);
   });
+
+  it('squarified long narrow texture shapes', () => {
+    const isPacked = true;
+    const max = tf.env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+
+    tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', 5);
+    const logicalShape = [1, 16];
+    const texShape =
+        webgl_util.getTextureShapeFromLogicalShape(logicalShape, isPacked);
+
+    tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', max);
+    expect(texShape).toEqual([6, 6]);
+  });
+
+  it('auto squarified long narrow texture shapes', () => {
+    const isPacked = true;
+    const max = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+    const maxForNarrowTex =
+        tf.env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+    const autoSquarify =
+        tf.env().getNumber('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE');
+
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', 6);
+    tf.env().set('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', true);
+    tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', Infinity);
+    const logicalShape = [1, 16];
+    const texShape =
+        webgl_util.getTextureShapeFromLogicalShape(logicalShape, isPacked);
+
+    tf.env().set('WEBGL_MAX_TEXTURE_SIZE', max);
+    tf.env().set('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', maxForNarrowTex);
+    tf.env().set('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', autoSquarify);
+    expect(texShape).toEqual([6, 6]);
+  });
 });
 
 describeWithFlags('isReshapeFree', WEBGL_ENVS, () => {

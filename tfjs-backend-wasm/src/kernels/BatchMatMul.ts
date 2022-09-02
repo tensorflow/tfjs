@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, broadcast_util, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -69,17 +69,8 @@ function batchMatMul(args: {
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
-  util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
   const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(

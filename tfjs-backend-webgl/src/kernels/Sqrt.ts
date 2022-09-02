@@ -16,11 +16,14 @@
  */
 
 import {KernelConfig, KernelFunc, Sqrt} from '@tensorflow/tfjs-core';
+
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {sqrtImplCPU} from '../kernel_utils/shared';
 
 const SQRT = `return sqrt(x);`;
 
-export const sqrt = unaryKernelFunc({opSnippet: SQRT});
+export const sqrt = unaryKernelFunc(
+    {opSnippet: SQRT, packedOpSnippet: SQRT, cpuKernelImpl: sqrtImplCPU});
 
 export const sqrtConfig: KernelConfig = {
   kernelName: Sqrt,

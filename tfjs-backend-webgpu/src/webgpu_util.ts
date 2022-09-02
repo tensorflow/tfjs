@@ -43,7 +43,7 @@ export function computeDispatch(
     workGroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
-  return [
+  const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
         (workGroupSize[0] * elementsPerThread[0])),
@@ -56,11 +56,47 @@ export function computeDispatch(
                    (workGroupSize[2] * elementsPerThread[2])) :
                1
   ];
+  return [dispatchX, dispatchY, dispatchZ];
+}
+
+export type WorkGroupInfo = {
+  workGroupSize: [number, number, number],
+  elementsPerThread: [number, number, number],
+};
+
+export function computeWorkGroupInfoForMatMul(
+    dimAOuter: number, dimInner: number, dimBOuter: number,
+    transposeA = false): WorkGroupInfo {
+  // These are experimental values. Usually, we need to adjust the work group
+  // size based on the input shapes to improve the EU occupancy.
+  // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
+  // sure it doesn't exceed this limitations. Temporarily reduce the work group
+  // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
+  // revisit it and find the balance between work group size and work per thread
+  // size.
+  const workGroupSize: [number, number, number] = [8, 8, 1];
+  const elementsPerThread: [number, number, number] = [4, 4, 1];
+
+  if (!transposeA) {
+    if (dimAOuter <= 8) {
+      elementsPerThread[1] = 1;
+    }
+
+    if (dimInner <= 16 && dimBOuter <= 16) {
+      workGroupSize[0] = 4;
+    }
+  }
+
+  return {workGroupSize, elementsPerThread};
 }
 
 export function computeWorkGroupSizeForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [8, 8, 1];
+  }
+
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -81,30 +117,13 @@ export function computeWorkGroupSizeForConv2d(
   return [16, 16, 1];
 }
 
-export function computeWorkGroupSizeForMatMul(
-    dimAOuter: number, dimInner: number,
-    dimBOuter: number): [number, number, number] {
-  // These are experimental values. Usually, we need to adjust the work group
-  // size based on the input shapes to improve the EU occupancy.
-  // 64 (16 x 4) is the default tile size. If one dimension can't be divisible
-  // by 64, it means some threads will be idle. To improve the thread
-  // utilization, reducing the work group size may be a good way.
-  if (dimAOuter === 1) {
-    return [64, 1, 1];
-  } else if (dimBOuter === 1) {
-    return [1, 64, 1];
-  } else if (dimInner % 64 === 0 && dimBOuter % 64 === 0) {
-    return [16, 16, 1];
-  } else if (dimInner < 192 && dimBOuter < 192) {
-    return [8, 8, 1];
+export function computeWorkPerThreadForConv2d(
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [4, 4, 1];
   }
 
-  return [16, 16, 1];
-}
-
-export function computeWorkPerThreadForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -141,21 +160,23 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   } else if (dtype === 'int32') {
     return new Int32Array(data);
   } else if (dtype === 'bool' || dtype === 'string') {
-    const dataAsInt32Array = new Int32Array(data);
-    const boolData = new ArrayBuffer(dataAsInt32Array.length);
-    const dataAsTypedArray = new Uint8Array(boolData);
-    for (let i = 0; i < dataAsInt32Array.length; i++) {
-      dataAsTypedArray[i] = dataAsInt32Array[i];
-    }
-    return dataAsTypedArray;
+    return Uint8Array.from(new Int32Array(data));
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }
 }
 
 export function isWebGPUSupported(): boolean {
-  if (!navigator.gpu) {
-    return false;
-  }
-  return true;
+  return ((typeof window !== 'undefined') ||
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
+}
+
+export enum MatMulProgramType {
+  MatMulReduceProgram,
+  MatMulSplitKProgram,
+  MatMulSmallOutputSizeProgram,
+  MatMulPackedProgram,
+  MatMulMax
 }

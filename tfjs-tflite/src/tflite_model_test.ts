@@ -16,23 +16,28 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {NamedTensorMap} from '@tensorflow/tfjs-core';
+import {DataType, NamedTensorMap} from '@tensorflow/tfjs-core';
 
 import {TFLiteModel} from './tflite_model';
-import {TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
+import {ProfileItem, TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 // A mock TFLiteWebModelRunner that doubles the data from input tensors to
 // output tensors during inference.
 class MockModelRunner implements TFLiteWebModelRunner {
   private mockInferResults: string[] = [];
 
-  private inputTensors = this.getTensorInfos();
-  private outputTensors = this.getTensorInfos();
+  private inputTensors: TFLiteWebModelRunnerTensorInfo[];
+  private outputTensors: TFLiteWebModelRunnerTensorInfo[];
 
   singleInput = false;
   singleOutput = false;
 
-  constructor(modelPath: string, options: TFLiteWebModelRunnerOptions) {
+  constructor(
+      modelPath: string, options: TFLiteWebModelRunnerOptions,
+      firstOutputtype: TFLiteDataType = 'int32') {
+    this.inputTensors = this.getTensorInfos();
+    this.outputTensors = this.getTensorInfos(firstOutputtype);
+
     this.mockInferResults.push(`ModelPath=${modelPath}`);
     this.mockInferResults.push(`numThreads=${options.numThreads}`);
   }
@@ -56,15 +61,52 @@ class MockModelRunner implements TFLiteWebModelRunner {
 
   cleanUp() {}
 
-  private getTensorInfos(): TFLiteWebModelRunnerTensorInfo[] {
+  getProfilingResults(): ProfileItem[] {
+    return [];
+  }
+
+  getProfilingSummary(): string {
+    return '';
+  }
+
+  private getTensorInfos(firstTensorType: TFLiteDataType = 'int32'):
+      TFLiteWebModelRunnerTensorInfo[] {
     const shape0 = [1, 2, 3];
-    const buffer0 = new Int32Array(shape0.reduce((a, c) => a * c, 1));
+    let buffer0: Int8Array|Uint8Array|Int16Array|Int32Array|Uint32Array|
+        Float32Array|Float64Array = undefined;
+    const size0 = shape0.reduce((a, c) => a * c, 1);
+    switch (firstTensorType) {
+      case 'int8':
+        buffer0 = new Int8Array(size0);
+        break;
+      case 'uint8':
+        buffer0 = new Uint8Array(size0);
+        break;
+      case 'int16':
+        buffer0 = new Int16Array(size0);
+        break;
+      case 'int32':
+        buffer0 = new Int32Array(size0);
+        break;
+      case 'uint32':
+        buffer0 = new Uint32Array(size0);
+        break;
+      case 'float32':
+        buffer0 = new Float32Array(size0);
+        break;
+      case 'float64':
+        buffer0 = new Float64Array(size0);
+        break;
+      default:
+        break;
+    }
+
     const shape1 = [1, 2];
-    const buffer1 = new Int32Array(shape1.reduce((a, c) => a * c, 1));
+    const buffer1 = new Float32Array(shape1.reduce((a, c) => a * c, 1));
     return [
       {
         id: 0,
-        dataType: 'int32',
+        dataType: firstTensorType,
         name: 't0',
         shape: shape0.join(','),
         data: () => buffer0,
@@ -82,6 +124,19 @@ class MockModelRunner implements TFLiteWebModelRunner {
 
 let tfliteModel: TFLiteModel;
 let modelRunner: MockModelRunner;
+
+function checkOutputTypeConversion(
+    originalOutputType: TFLiteDataType, expectedConvertedType: DataType) {
+  const modelRunner = new MockModelRunner(
+      'my_model.tflite', {numThreads: 2}, originalOutputType);
+  modelRunner.singleInput = true;
+  modelRunner.singleOutput = true;
+  const tfliteModel = new TFLiteModel(modelRunner);
+
+  const input = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
+  const outputs = tfliteModel.predict(input, {});
+  expect((outputs as tf.Tensor).dtype).toBe(expectedConvertedType);
+}
 
 describe('TFLiteModel', () => {
   beforeEach(() => {
@@ -124,6 +179,35 @@ describe('TFLiteModel', () => {
     const input = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
     const outputs = tfliteModel.predict(input, {});
     expect(outputs instanceof tf.Tensor).toBe(true);
+  });
+
+  it('should convert output type correctly', () => {
+    const testCases: Array<{
+      originalOutputType: TFLiteDataType; expectedConvertedType: DataType;
+    }> =
+        [
+          {
+            originalOutputType: 'int8',
+            expectedConvertedType: 'int32',
+          },
+          {
+            originalOutputType: 'int16',
+            expectedConvertedType: 'int32',
+          },
+          {
+            originalOutputType: 'uint32',
+            expectedConvertedType: 'int32',
+          },
+          {
+            originalOutputType: 'float64',
+            expectedConvertedType: 'float32',
+          },
+        ];
+
+    for (const testCase of testCases) {
+      checkOutputTypeConversion(
+          testCase.originalOutputType, testCase.expectedConvertedType);
+    }
   });
 
   it('should throw error if input size mismatch', () => {

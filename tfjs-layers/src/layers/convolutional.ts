@@ -1259,7 +1259,7 @@ export declare interface Cropping2DLayerArgs extends LayerArgs {
    *   interpreted as two different
    *   symmetric cropping values for height and width:
    *   `[symmetric_height_crop, symmetric_width_crop]`.
-   * - If a list of 2 list of 2 integers:
+   * - If a list of 2 lists of 2 integers:
    *   interpreted as
    *   `[[top_crop, bottom_crop], [left_crop, right_crop]]`
    */
@@ -1437,7 +1437,11 @@ export class UpSampling2D extends Layer {
   }
 
   getConfig(): serialization.ConfigDict {
-    const config = {size: this.size, dataFormat: this.dataFormat};
+    const config = {
+        size: this.size, 
+        dataFormat: this.dataFormat, 
+        interpolation: this.interpolation
+    };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;

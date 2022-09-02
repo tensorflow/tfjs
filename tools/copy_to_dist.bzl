@@ -23,6 +23,9 @@ def _copy_to_dist_impl(ctx):
     outputs = []
     for f in files:
         dest_path = paths.join(ctx.attr.dest_dir, paths.relativize(f.short_path, root_dir))
+        if ctx.attr.extension:
+            dest_path = paths.replace_extension(dest_path, ctx.attr.extension)
+
         out = ctx.actions.declare_file(dest_path)
         outputs.append(out)
         ctx.actions.symlink(
@@ -38,6 +41,9 @@ copy_to_dist = rule(
         "dest_dir": attr.string(
             default = "dist",
             doc = "Destination directory to copy the source file tree to",
+        ),
+        "extension": attr.string(
+            doc = "New file extension to use for each file",
         ),
         "root": attr.string(
             default = "",
@@ -59,3 +65,42 @@ copy_to_dist = rule(
     It is also used for copying tfjs bundles and miniprogram outputs.
     """,
 )
+
+def copy_ts_library_to_dist(name, srcs, root = "", dest_dir = "dist"):
+    # Declaration (.d.ts) files
+    declaration = name + "_declaration"
+    native.filegroup(
+        name = declaration,
+        srcs = srcs,
+    )
+
+    # ES Module es2017 compilation results. This is configured in
+    # tools/defaults.bzl. Outputs '.mjs' files.
+    esm = name + "_esm_sources"
+    native.filegroup(
+        name = esm,
+        srcs = srcs,
+        output_group = "es6_sources",
+    )
+
+    copy_esm = name + "_copy_esm"
+    copy_to_dist(
+        name = copy_esm,
+        srcs = [esm],
+        root = root,
+        dest_dir = dest_dir,
+        extension = ".js",  # Rewrite '.mjs' extension to '.js'
+    )
+
+    copy_esm_declaration = name + "_copy_esm_declaration"
+    copy_to_dist(
+        name = copy_esm_declaration,
+        srcs = [declaration],
+        root = root,
+        dest_dir = dest_dir,
+    )
+
+    native.filegroup(
+        name = name,
+        srcs = [copy_esm, copy_esm_declaration],
+    )

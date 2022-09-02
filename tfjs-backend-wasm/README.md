@@ -12,6 +12,7 @@ the following models from our
 - MobileNet
 - PoseDetection
 - Q&A
+- Universal sentence encoder
 - AutoML Image classification
 - AutoML Object detection
 
@@ -32,7 +33,7 @@ tf.setBackend('wasm').then(() => main());
 
 ```html
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
 
 <!-- Adds the WASM backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script>
@@ -91,6 +92,36 @@ If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
 <code>tfjs-backend-wasm-<b>threaded-simd</b>.wasm</code> WASM binary is loaded.
 
+## Threads count
+
+By default, the backend will use the number of logical CPU cores as the
+threads count when creating the threadpool used by XNNPACK. You can use the
+`setThreadsCount` API to manually set it (must be called before calling
+`tf.setBackend('wasm')`). `getThreadsCount` API can be used to get the actual
+number of threads being used (must be called after the WASM backend is
+initialized).
+
+### Via NPM
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import {getThreadsCount, setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+
+setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(getThreadsCount());
+});
+```
+
+### Via script tag
+
+```js
+tf.wasm.setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(tf.wasm.getThreadsCount());
+});
+```
+
 ## Running MobileNet
 
 ```js
@@ -137,8 +168,15 @@ import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
 // setWasmPaths accepts a `prefixOrFileMap` argument which can be either a
 // string or an object. If passing in a string, this indicates the path to
 // the directory where your WASM binaries are located.
-setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
+setWasmPaths('www.yourdomain.com/');
 tf.setBackend('wasm').then(() => {...});
+```
+
+If the WASM backend is imported through `<script>` tag, `setWasmPaths` needs to
+be called on the `tf.wasm` object:
+
+```ts
+tf.wasm.setWasmPaths('www.yourdomain.com/');
 ```
 
 Note that if you call `setWasmPaths` with a string, it will be used to load

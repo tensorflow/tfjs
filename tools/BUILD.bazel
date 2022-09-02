@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("//tools:defaults.bzl", "ts_library")
+
+package(default_visibility = ["//visibility:public"])
 
 exports_files(
     [
@@ -19,4 +23,75 @@ exports_files(
         "rollup_template.config.js",
     ],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "enumerate_tests_lib",
+    srcs = [
+        "enumerate-tests.ts",
+    ],
+    deps = [
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+        "@npm//argparse",
+    ],
+)
+
+nodejs_binary(
+    name = "enumerate_tests_bin",
+    data = [
+        ":enumerate_tests_lib",
+    ],
+    entry_point = "enumerate-tests.ts",
+)
+
+ts_library(
+    name = "make_version_test_file_lib",
+    srcs = [
+        "make_version_test_file.ts",
+    ],
+    deps = [
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+        "@npm//argparse",
+    ],
+)
+
+nodejs_binary(
+    name = "make_version_test_file_bin",
+    data = [
+        ":make_version_test_file_lib",
+    ],
+    entry_point = "make_version_test_file.ts",
+)
+
+ts_library(
+    name = "downlevel_to_es5_plugin",
+    srcs = [
+        "downlevel_to_es5_plugin.ts",
+    ],
+    module_name = "downlevel_to_es5_plugin",
+    deps = [
+        "@npm//@types/node",
+        "@npm//typescript",
+    ],
+)
+
+ts_library(
+    name = "make_rollup_config",
+    srcs = [
+        "make_rollup_config.ts",
+    ],
+    module_name = "make_rollup_config",
+    deps = [
+        ":downlevel_to_es5_plugin",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
+        "@npm//@types/node",
+        "@npm//@types/rollup-plugin-visualizer",
+        "@npm//rollup-plugin-sourcemaps",
+        "@npm//rollup-plugin-terser",
+        "@npm//rollup-plugin-visualizer",
+        "@npm//typescript",
+    ],
 )

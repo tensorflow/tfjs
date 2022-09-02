@@ -37,12 +37,21 @@ const state = {
   browser: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '84.0',
+    browser_version: '103.0',
     os: 'OS X',
-    os_version: 'Catalina',
+    os_version: 'Monterey',
     device: 'null'
   },
-  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
+  benchmark: {
+    model: 'mobilenet_v2',
+    modelUrl: '',
+    numRuns: 10,
+    backend: 'webgl',
+    setupCodeSnippetEnv:
+        'const img = tf.randomUniform([1, 240, 240, 3], 0, 1000); const filter = tf.randomUniform([3, 3, 3, 3], 0, 1000);',
+    codeSnippet:
+        'predict = () => { return tf.conv2d(img, filter, 2, \'same\');};'
+  },
 
   /**
    * An array of browser configurations, used to record the browsers to
@@ -536,6 +545,10 @@ function drawBenchmarkResultSummaryTable(benchmarkResult) {
 
   values.push(['Number of kernels', memoryInfo.kernels.length]);
 
+  if ('codeSnippet' in benchmarkResult) {
+    values.push(['Code snippet', benchmarkResult.codeSnippet]);
+  }
+
   const surface = {
     name: 'Benchmark Summary',
     tab: tabId,
@@ -632,7 +645,9 @@ function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
 
-  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
+  modelFolder
+      .add(
+          state.benchmark, 'model', [...Object.keys(benchmarks), 'codeSnippet'])
       .name('model name')
       .onChange(async model => {
         if (model === 'custom') {

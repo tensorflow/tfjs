@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {CHROME_ENVS, describeWithFlags} from '../jasmine_util';
+import {CHROME_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {deleteDatabase} from './indexed_db';
 import {purgeLocalStorageArtifacts} from './local_storage';
 
@@ -325,157 +325,163 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('Failed copyModel to invalid source URL', done => {
-    const url1 = 'invalidurl';
-    const url2 = 'localstorage://a1/FooModel';
-    tf.io.copyModel(url1, url2)
-        .then(out => {
-          done.fail('Copying from invalid URL succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual(
-                  'Copying failed because no load handler is found for ' +
-                  'source URL invalidurl.');
-          done();
-        });
-  });
+  it('Failed copyModel to invalid source URL', runWithLock(done => {
+       const url1 = 'invalidurl';
+       const url2 = 'localstorage://a1/FooModel';
+       tf.io.copyModel(url1, url2)
+           .then(out => {
+             done.fail('Copying from invalid URL succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual(
+                     'Copying failed because no load handler is found for ' +
+                     'source URL invalidurl.');
+             done();
+           });
+     }));
 
-  it('Failed copyModel to invalid destination URL', done => {
-    const url1 = 'localstorage://a1/FooModel';
-    const url2 = 'invalidurl';
-    // First, save a model.
-    const handler1 = tf.io.getSaveHandlers(url1)[0];
-    handler1.save(artifacts1)
-        .then(saveResult => {
-          // Once model is saved, copy the model to another path.
-          tf.io.copyModel(url1, url2)
-              .then(out => {
-                done.fail('Copying to invalid URL succeeded unexpectedly.');
-              })
-              .catch(err => {
-                expect(err.message)
-                    .toEqual(
-                        'Copying failed because no save handler is found for ' +
-                        'destination URL invalidurl.');
-                done();
-              });
-        })
-        .catch(err => done.fail(err.stack));
-  });
+  it('Failed copyModel to invalid destination URL', runWithLock(done => {
+       const url1 = 'localstorage://a1/FooModel';
+       const url2 = 'invalidurl';
+       // First, save a model.
+       const handler1 = tf.io.getSaveHandlers(url1)[0];
+       handler1.save(artifacts1)
+           .then(saveResult => {
+             // Once model is saved, copy the model to another path.
+             tf.io.copyModel(url1, url2)
+                 .then(out => {
+                   done.fail('Copying to invalid URL succeeded unexpectedly.');
+                 })
+                 .catch(err => {
+                   expect(err.message)
+                       .toEqual(
+                           'Copying failed because no save handler is found ' +
+                           'for destination URL invalidurl.');
+                   done();
+                 });
+           })
+           .catch(err => done.fail(err.stack));
+     }));
 
-  it('Failed moveModel to invalid destination URL', done => {
-    const url1 = 'localstorage://a1/FooModel';
-    const url2 = 'invalidurl';
-    // First, save a model.
-    const handler1 = tf.io.getSaveHandlers(url1)[0];
-    handler1.save(artifacts1)
-        .then(saveResult => {
-          // Once model is saved, copy the model to an invalid path, which
-          // should fail.
-          tf.io.moveModel(url1, url2)
-              .then(out => {
-                done.fail('Copying to invalid URL succeeded unexpectedly.');
-              })
-              .catch(err => {
-                expect(err.message)
-                    .toEqual(
-                        'Copying failed because no save handler is found for ' +
-                        'destination URL invalidurl.');
+  it('Failed moveModel to invalid destination URL', runWithLock(done => {
+       const url1 = 'localstorage://a1/FooModel';
+       const url2 = 'invalidurl';
+       // First, save a model.
+       const handler1 = tf.io.getSaveHandlers(url1)[0];
+       handler1.save(artifacts1)
+           .then(saveResult => {
+             // Once model is saved, copy the model to an invalid path, which
+             // should fail.
+             tf.io.moveModel(url1, url2)
+                 .then(out => {
+                   done.fail('Copying to invalid URL succeeded unexpectedly.');
+                 })
+                 .catch(err => {
+                   expect(err.message)
+                       .toEqual(
+                           'Copying failed because no save handler is found ' +
+                           'for destination URL invalidurl.');
 
-                // Verify that the source has not been removed.
-                tf.io.listModels()
-                    .then(out => {
-                      expect(Object.keys(out)).toEqual([url1]);
-                      done();
-                    })
-                    .catch(err => done.fail(err.stack));
-              });
-        })
-        .catch(err => done.fail(err.stack));
-  });
+                   // Verify that the source has not been removed.
+                   tf.io.listModels()
+                       .then(out => {
+                         expect(Object.keys(out)).toEqual([url1]);
+                         done();
+                       })
+                       .catch(err => done.fail(err.stack));
+                 });
+           })
+           .catch(err => done.fail(err.stack));
+     }));
 
-  it('Failed deletedModel: Absent scheme', done => {
-    // Attempt to delete a nonexistent model is expected to fail.
-    tf.io.removeModel('foo')
-        .then(out => {
-          done.fail(
-              'Removing model with missing scheme succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toMatch(/The url string provided does not contain a scheme/);
-          expect(err.message.indexOf('localstorage')).toBeGreaterThan(0);
-          expect(err.message.indexOf('indexeddb')).toBeGreaterThan(0);
-          done();
-        });
-  });
+  it('Failed deletedModel: Absent scheme', runWithLock(done => {
+       // Attempt to delete a nonexistent model is expected to fail.
+       tf.io.removeModel('foo')
+           .then(out => {
+             done.fail(
+                 'Removing model with missing scheme succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toMatch(/The url string provided does not contain a scheme/);
+             expect(err.message.indexOf('localstorage')).toBeGreaterThan(0);
+             expect(err.message.indexOf('indexeddb')).toBeGreaterThan(0);
+             done();
+           });
+     }));
 
-  it('Failed deletedModel: Invalid scheme', done => {
-    // Attempt to delete a nonexistent model is expected to fail.
-    tf.io.removeModel('invalidscheme://foo')
-        .then(out => {
-          done.fail('Removing nonexistent model succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual(
-                  'Cannot find model manager for scheme \'invalidscheme\'');
-          done();
-        });
-  });
+  it('Failed deletedModel: Invalid scheme', runWithLock(done => {
+       // Attempt to delete a nonexistent model is expected to fail.
+       tf.io.removeModel('invalidscheme://foo')
+           .then(out => {
+             done.fail('Removing nonexistent model succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual(
+                     'Cannot find model manager for scheme \'invalidscheme\'');
+             done();
+           });
+     }));
 
-  it('Failed deletedModel: Nonexistent model', done => {
-    // Attempt to delete a nonexistent model is expected to fail.
-    tf.io.removeModel('indexeddb://nonexistent')
-        .then(out => {
-          done.fail('Removing nonexistent model succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual(
-                  'Cannot find model with path \'nonexistent\' in IndexedDB.');
-          done();
-        });
-  });
+  it('Failed deletedModel: Nonexistent model', runWithLock(done => {
+       // Attempt to delete a nonexistent model is expected to fail.
+       tf.io.removeModel('indexeddb://nonexistent')
+           .then(out => {
+             done.fail('Removing nonexistent model succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual(
+                     'Cannot find model ' +
+                     'with path \'nonexistent\' in IndexedDB.');
+             done();
+           });
+     }));
 
-  it('Failed copyModel', done => {
-    // Attempt to copy a nonexistent model should fail.
-    tf.io.copyModel('indexeddb://nonexistent', 'indexeddb://destination')
-        .then(out => {
-          done.fail('Copying nonexistent model succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual(
-                  'Cannot find model with path \'nonexistent\' in IndexedDB.');
-          done();
-        });
-  });
+  it('Failed copyModel', runWithLock(done => {
+       // Attempt to copy a nonexistent model should fail.
+       tf.io.copyModel('indexeddb://nonexistent', 'indexeddb://destination')
+           .then(out => {
+             done.fail('Copying nonexistent model succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual(
+                     'Cannot find model ' +
+                     'with path \'nonexistent\' in IndexedDB.');
+             done();
+           });
+     }));
 
-  it('copyModel: Identical oldPath and newPath leads to Error', done => {
-    tf.io.copyModel('a/1', 'a/1')
-        .then(out => {
-          done.fail(
-              'Copying with identical old & new paths succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual('Old path and new path are the same: \'a/1\'');
-          done();
-        });
-  });
+  it('copyModel: Identical oldPath and newPath leads to Error',
+     runWithLock(done => {
+       tf.io.copyModel('a/1', 'a/1')
+           .then(out => {
+             done.fail(
+                 'Copying with identical ' +
+                 'old & new paths succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual('Old path and new path are the same: \'a/1\'');
+             done();
+           });
+     }));
 
-  it('moveModel: Identical oldPath and newPath leads to Error', done => {
-    tf.io.moveModel('a/1', 'a/1')
-        .then(out => {
-          done.fail(
-              'Copying with identical old & new paths succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toEqual('Old path and new path are the same: \'a/1\'');
-          done();
-        });
-  });
+  it('moveModel: Identical oldPath and newPath leads to Error',
+     runWithLock(done => {
+       tf.io.moveModel('a/1', 'a/1')
+           .then(out => {
+             done.fail(
+                 'Copying with identical ' +
+                 'old & new paths succeeded unexpectedly.');
+           })
+           .catch(err => {
+             expect(err.message)
+                 .toEqual('Old path and new path are the same: \'a/1\'');
+             done();
+           });
+     }));
 });

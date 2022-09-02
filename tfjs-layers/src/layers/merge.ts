@@ -851,7 +851,7 @@ export declare interface DotLayerArgs extends LayerArgs {
    * Whether to L2-normalize samples along the dot product axis
    * before taking the dot product.
    *
-   * If set to `true`, the output of the dot product isthe cosine
+   * If set to `true`, the output of the dot product is the cosine
    * proximity between the two samples.
    */
   normalize?: boolean;

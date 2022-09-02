@@ -25,6 +25,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -77,16 +78,8 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
       input5D.rank === 5,
       () => `Error in avgPool3dGrad: input must be rank 5 but got rank ` +
           `${input5D.rank}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool3dGrad: pad must be an integer when ` +
-            `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  checkPadOnDimRoundingMode('avgPool3dGrad', pad, dimRoundingMode);
   const inputs: AvgPool3DGradInputs = {dy: dy5D, input: input5D};
-
   const attrs: AvgPool3DGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion

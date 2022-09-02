@@ -13,8 +13,8 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,7 +23,6 @@ nodejs_test(
     name = "tfjs-backend-cpu_test",
     data = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_test_lib",
-        "//tfjs-core:package_json",
     ],
     entry_point = "//tfjs-backend-cpu/src:run_tests.ts",
     link_workspace_root = True,
@@ -51,29 +50,9 @@ tfjs_bundle(
     ],
 )
 
-filegroup(
-    name = "es6_sources",
-    srcs = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-    ],
-    output_group = "es6_sources",
-)
-
-filegroup(
-    name = "es5_sources",
-    srcs = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-    ],
-    output_group = "es5_sources",
-)
-
-copy_to_dist(
+copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        ":es5_sources",
-        ":es6_sources",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
@@ -89,12 +68,17 @@ copy_to_dist(
         ":tf-backend-cpu.fesm",
         ":tf-backend-cpu.fesm.min",
         ":tf-backend-cpu.min",
+        ":tf-backend-cpu.node",
     ],
 )
 
 pkg_npm(
     name = "tfjs-backend-cpu_pkg",
-    srcs = ["package.json"],
+    package_name = "@tensorflow/tfjs-backend-cpu",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
@@ -102,9 +86,9 @@ pkg_npm(
     ],
 )
 
-js_library(
-    name = "package_json",
-    srcs = [
-        ":package.json",
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-cpu_test",
     ],
 )

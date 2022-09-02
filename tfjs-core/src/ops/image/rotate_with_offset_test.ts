@@ -143,4 +143,13 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
 
     expectArraysClose(expected, rotatedPixelsData);
   });
+
+  it('throws when input is int32', async () => {
+    expect(
+        () => tf.image.rotateWithOffset(
+            tf.tensor4d([1, 2, 3, 255], [1, 1, 1, 4], 'int32'),
+            90 * Math.PI / 180))
+        .toThrowError(
+            /Argument 'image' passed to 'rotateWithOffset' must be float32/);
+  });
 });

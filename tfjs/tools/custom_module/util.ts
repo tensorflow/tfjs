@@ -38,6 +38,14 @@ export function opNameToFileName(opName: string) {
   // add exceptions here.
   if (opName === 'isNaN') {
     return 'is_nan';
+  } else if (opName.match(/(.*)ND/)) {
+    return opName.match(/(.*)ND/)[1].replace(
+               /[A-Z]/g, (s: string) => `_${s.toLowerCase()}`) +
+        '_nd';
+  } else if (opName === 'avgPool3d') {
+    return 'avg_pool_3d';
+  } else if (opName.match(/concat[0-9]d/)) {
+    return `concat_${opName.match(/concat([0-9]d)/)[1]}`;
   }
   return opName.replace(/[A-Z]/g, (s: string) => `_${s.toLowerCase()}`);
 }
