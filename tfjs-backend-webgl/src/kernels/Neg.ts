@@ -16,12 +16,27 @@
  */
 
 import {env, KernelConfig, KernelFunc, Neg, NegInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+
 import {MathBackendWebGL} from '../backend_webgl';
 import {negImplCPU} from '../kernel_utils/shared';
-import {UnaryOpProgram} from '../unaryop_gpu';
+import {CHECK_NAN_SNIPPET, UnaryOpProgram} from '../unaryop_gpu';
 import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
-const NEG = `return -x;`;
+const NEG = CHECK_NAN_SNIPPET + `
+  return -x;
+`;
+
+const NEG_PACKED = `
+  vec4 result = -x;
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
 
 // This doesn't use unaryKernelFunc because negImplCPU is not of type
 // SimpleUnaryKernelImplCPU.
@@ -39,7 +54,7 @@ export function neg(args: {inputs: NegInputs, backend: MathBackendWebGL}):
 
   let program: UnaryOpProgram|UnaryOpPackedProgram;
   if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-    program = new UnaryOpPackedProgram(x.shape, NEG);
+    program = new UnaryOpPackedProgram(x.shape, NEG_PACKED);
   } else {
     program = new UnaryOpProgram(x.shape, NEG);
   }

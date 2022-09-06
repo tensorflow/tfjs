@@ -21,7 +21,7 @@ import {OpExecutor, OpMapper} from '../types';
 const CUSTOM_OPS: {[key: string]: OpMapper} = {};
 
 /**
- * Register an Op for graph model executor. This allow you to register
+ * Register an Op for graph model executor. This allows you to register
  * TensorFlow custom op or override existing op.
  *
  * Here is an example of registering a new MatMul Op.
@@ -33,7 +33,7 @@ const CUSTOM_OPS: {[key: string]: OpMapper} = {};
  *
  * tf.registerOp('MatMul', customMatmul);
  * ```
- * The inputs and attrs of the node object is based on the TensorFlow op
+ * The inputs and attrs of the node object are based on the TensorFlow op
  * registry.
  *
  * @param name The Tensorflow Op name.

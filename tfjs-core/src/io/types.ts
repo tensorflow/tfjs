@@ -388,6 +388,28 @@ export interface IOHandler {
 }
 
 /**
+ * Type definition for handlers of synchronous loading operations.
+ */
+export type LoadHandlerSync = () => ModelArtifacts;
+
+/**
+ * Type definition for handlers of synchronous saving operations.
+ */
+export type SaveHandlerSync = (modelArtifact: ModelArtifacts) => SaveResult;
+
+/**
+ * Interface for a synchronous model import/export handler.
+ *
+ * The `save` and `load` handlers are both optional, in order to allow handlers
+ * that support only saving or loading.
+ */
+// tslint:disable-next-line:interface-name
+export type IOHandlerSync = {
+  save?: SaveHandlerSync;
+  load?: LoadHandlerSync;
+};
+
+/**
  * An interface for the manager of a model store.
  *
  * A model store is defined as a storage medium on which multiple models can

@@ -16,9 +16,40 @@
 #include <emscripten.h>
 #endif
 #include <math.h>
+
 #include <cstddef>
+#include <iostream>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace {
+
+template <typename T>
+void min(const T* x_buf, const size_t out_size, const size_t reduce_size,
+         T* out_buf) {
+  const T* x_offset = x_buf;
+
+  for (size_t i = 0; i < out_size; ++i) {
+    const size_t offset = i * reduce_size;
+    T min = x_buf[offset];
+
+    const T* x_iter_end = x_offset + reduce_size;
+
+    for (const T* x = x_offset; x < x_iter_end; ++x) {
+      T value = *x;
+      if (isnan(value) || value < min) {
+        min = value;
+      }
+    }
+
+    x_offset += reduce_size;
+
+    out_buf[i] = min;
+  }
+}
+
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -28,33 +59,25 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Min(const size_t x_id, const size_t reduce_size, const size_t out_id) {
+void Min(const size_t x_id, const DType dtype, const size_t reduce_size,
+         const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* x_buf = x_info.f32();
-
-  float* out_buf = out_info.f32_write();
   const size_t out_size = out_info.size;
 
-  const float* x_offset = x_buf;
-
-  for (size_t i = 0; i < out_size; ++i) {
-    const size_t offset = i * reduce_size;
-    float min = x_buf[offset];
-
-    const float* x_iter_end = x_offset + reduce_size;
-
-    for (const float* x = x_offset; x < x_iter_end; ++x) {
-      float value = *x;
-      if (isnan(value) || value < min) {
-        min = value;
-      }
-    }
-
-    x_offset += reduce_size;
-
-    out_buf[i] = min;
+  switch (dtype) {
+    case DType::float32:
+      min<float>(x_info.f32(), out_size, reduce_size, out_info.f32_write());
+      break;
+    case DType::int32:
+      min<int32_t>(x_info.i32(), out_size, reduce_size, out_info.i32_write());
+      break;
+    case DType::boolean:
+      min<bool>(x_info.b(), out_size, reduce_size, out_info.b_write());
+      break;
+    default:
+      util::warn("Min failed. Unknown dtype %d", dtype);
   }
 }
 

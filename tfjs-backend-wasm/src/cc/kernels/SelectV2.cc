@@ -27,6 +27,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
+// Note that the following implementation also works with int32 since it just
+// moves values from either t_buf or e_buf to out_buf.
 void SelectV2(const int condition_id, const int t_id, const int e_id,
               const int offset, const int out_id) {
   auto& condition_info = backend::get_tensor_info(condition_id);

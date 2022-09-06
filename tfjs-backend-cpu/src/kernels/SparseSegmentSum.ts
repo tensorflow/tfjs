@@ -38,6 +38,9 @@ export function sparseSegmentSum(
     throw new Error(`Segment ids should be a vector but received shape
          ${segmentIds.shape}`);
   }
+  if (indices.shape[0] !== segmentIds.shape[0]) {
+    throw new Error(`segmentIds and indices should have same size.`);
+  }
 
   const $data = backend.data.get(data.dataId).values as TypedArray;
   const $indices = backend.data.get(indices.dataId).values as TypedArray;

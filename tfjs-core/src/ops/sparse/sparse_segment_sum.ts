@@ -33,7 +33,7 @@ import {op} from '../operation';
  *                                           tf.tensor1d([0, 0], 'int32'));
  * result1.print(); // [[0, 0, 0, 0]]
  *
- * // Select two rows, two segment.
+ * // Select two rows, two segments.
  * const result2 = tf.sparse.sparseSegmentSum(c,
  *                                           tf.tensor1d([0, 1], 'int32'),
  *                                           tf.tensor1d([0, 1], 'int32'));
@@ -60,9 +60,10 @@ function sparseSegmentSum_(
     data: Tensor|TensorLike, indices: Tensor1D|TensorLike,
     segmentIds: Tensor1D|TensorLike): Tensor {
   const $data = convertToTensor(data, 'data', 'sparseSegmentSum');
-  const $indices = convertToTensor(indices, 'indices', 'sparseSegmentSum');
+  const $indices =
+      convertToTensor(indices, 'indices', 'sparseSegmentSum', 'int32');
   const $segmentIds =
-      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentSum');
+      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentSum', 'int32');
 
   if ($data.rank < 1) {
     throw new Error(

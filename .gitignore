@@ -6,6 +6,7 @@
 */run-ci
 **/*.pyc
 **/bundle.js
+**/.parcel-cache
 **/*.js.map
 .DS_Store
 .idea/
@@ -34,6 +35,7 @@ e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
 e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
 e2e/benchmarks/browserstack-benchmark/benchmark_results.json
+e2e/benchmarks/browserstack-benchmark/benchmark_results.js
 e2e/benchmarks/browserstack-benchmark/benchmark_test_results.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
@@ -62,6 +64,9 @@ tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log
 cloudbuild_generated.yml
+wasm-dist/
+.firebase/
 
 # User-specific .bazelrc
 .bazelrc.user
+**/.parcel-cache

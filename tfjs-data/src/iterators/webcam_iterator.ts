@@ -67,7 +67,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   // Construct a WebcamIterator and start it's video stream.
   static async create(
       webcamVideoElement?: HTMLVideoElement, webcamConfig: WebcamConfig = {}) {
-    if (env().get('IS_NODE')) {
+    if (!env().get('IS_BROWSER')) {
       throw new Error(
           'tf.data.webcam is only supported in browser environment.');
     }

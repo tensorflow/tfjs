@@ -17,11 +17,16 @@
 
 import * as tf from './index';
 import {KernelBackend} from './index';
-import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, TestEnv} from './jasmine_util';
 import {KernelFunc, TensorInfo} from './kernel_registry';
 import {expectArraysClose} from './test_util';
 
-describeWithFlags('kernel_registry', ALL_ENVS, () => {
+describeWithFlags('kernel_registry', ALL_ENVS, (testEnv: TestEnv) => {
+  afterEach(async () => {
+    // Revert backend mutation.
+    await tf.setBackend(testEnv.backendName);
+  });
+
   it('register a kernel and call it', () => {
     // Make sure the backend is loaded. Perhaps tf.getBackend
     // should call tf.backend to make sure the backend is loaded?
@@ -94,7 +99,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     tf.removeBackend('backend1');
   });
 
-  it('register same kernel on two different backends', () => {
+  it('register same kernel on two different backends', async () => {
     interface TestBackend extends KernelBackend {
       id: number;
     }
@@ -129,12 +134,12 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     expect(lastStorageId).toBe(-1);
 
     // Kernel was executed on the first backend.
-    tf.setBackend('backend1');
+    await tf.setBackend('backend1');
     tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(1);
 
     // Kernel was executed on the second backend.
-    tf.setBackend('backend2');
+    await tf.setBackend('backend2');
     tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(2);
 
@@ -144,7 +149,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     tf.unregisterKernel('MyKernel', 'backend2');
   });
 
-  it('register kernel with setup and dispose functions', () => {
+  it('register kernel with setup and dispose functions', async () => {
     const backendName = 'custom-backend';
     const kernelName = 'MyKernel';
     interface TestBackend extends KernelBackend {}
@@ -174,7 +179,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     expect(setupCalled).toBe(false);
     expect(disposeCalled).toBe(false);
 
-    tf.setBackend(backendName);
+    await tf.setBackend(backendName);
     expect(setupCalled).toBe(true);
     expect(disposeCalled).toBe(false);
 

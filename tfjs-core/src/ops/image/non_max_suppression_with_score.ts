@@ -30,7 +30,7 @@ import {op} from '../operation';
  * Performs non maximum suppression of bounding boxes based on
  * iou (intersection over union).
  *
- * This op also supports a Soft-NMS mode (c.f.
+ * This op also supports a Soft-NMS mode (cf.
  * Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
  * of other overlapping boxes, therefore favoring different regions of the image
  * with high scores. To enable this Soft-NMS mode, set the `softNmsSigma`

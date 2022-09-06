@@ -5,14 +5,17 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-link-package-core && yarn reinstall",
-    "build-link-package-core": "cd ../link-package-core && yarn build",
-    "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
-    "reinstall": "yarn && yarn reinstall-link-package-core && rimraf node_modules && yarn"
+    "build": "yarn build-deps-for --all",
+    "build-deps-for": "yarn && ts-node build_deps.ts"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
-    "rimraf": "^3.0.2"
+    "@types/rimraf": "^3.0.2",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.7.0"
+  },
+  "dependencies": {
+    "@bazel/bazelisk": "^1.12.0",
+    "@types/argparse": "^2.0.10",
+    "argparse": "^2.0.1"
   }
 }

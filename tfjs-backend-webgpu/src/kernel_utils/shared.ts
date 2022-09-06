@@ -28,6 +28,7 @@ export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
 export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
 const {
   addImpl: addImplCPU,
+  castImpl: castImplCPU,
   ceilImpl: ceilImplCPU,
   concatImpl: concatImplCPU,
   equalImpl: equalImplCPU,
@@ -50,18 +51,21 @@ const {
   prodImpl: prodImplCPU,
   rangeImpl: rangeImplCPU,
   rsqrtImpl: rsqrtImplCPU,
+  scatterImpl: scatterImplCPU,
   simpleAbsImpl: simpleAbsImplCPU,
   sliceImpl: sliceImplCPU,
   stridedSliceImpl: stridedSliceImplCPU,
   stringNGramsImpl: stringNGramsImplCPU,
   subImpl: subImplCPU,
   tileImpl: tileImplCPU,
+  topKImpl: topKImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
 
 export {
   addImplCPU,
+  castImplCPU,
   ceilImplCPU,
   concatImplCPU,
   equalImplCPU,
@@ -82,6 +86,7 @@ export {
   prodImplCPU,
   negImplCPU,
   notEqualImplCPU,
+  scatterImplCPU,
   simpleAbsImplCPU,
   sliceImplCPU,
   stridedSliceImplCPU,
@@ -90,6 +95,7 @@ export {
   rangeImplCPU,
   rsqrtImplCPU,
   tileImplCPU,
+  topKImplCPU,
   transposeImplCPU,
   uniqueImplCPU,
 };

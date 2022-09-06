@@ -941,6 +941,17 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('negative base and whole exponent not NaN - vec4', async () => {
+    const a = tf.tensor1d([-2, -3, -4, -5], 'float32');
+    const b = tf.tensor1d([2, -3, 4, -5], 'float32');
+
+    const expected =
+        [Math.pow(-2, 2), Math.pow(-3, -3), Math.pow(-4, 4), Math.pow(-5, -5)];
+    const result = tf.pow(a, b);
+
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('negative base and fract exponent NaN', async () => {
     const a = tf.tensor1d([-2, -3, -4], 'float32');
     const b = tf.tensor1d([2.1, -3.01, 4.1], 'float32');

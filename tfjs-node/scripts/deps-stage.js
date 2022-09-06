@@ -40,7 +40,7 @@ if (os.platform() !== 'win32') {
 
 // Some windows machines contain a trailing " char:
 if (targetDir != undefined && targetDir.endsWith('"')) {
-  targetDir = targetDir.substr(0, targetDir.length - 1);
+  targetDir = targetDir.slice(0, -1);
 }
 
 // Setup dest binary paths:

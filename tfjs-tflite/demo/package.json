@@ -4,28 +4,19 @@
   "main": "script.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-tflite": "link:../../link-package/node_modules/@tensorflow/tfjs-tflite"
+    "@tensorflow/tfjs-backend-cpu": "3.14.0",
+    "@tensorflow/tfjs-core": "3.14.0",
+    "@tensorflow/tfjs-tflite": "0.0.1-alpha.8"
   },
   "devDependencies": {
-    "@babel/core": "7.13.14",
-    "@babel/plugin-transform-runtime": "^7.13.10",
-    "@babel/polyfill": "^7.8.7",
     "clang-format": "~1.5.0",
     "cross-env": "^7.0.3",
-    "parcel-bundler": "^1.12.3",
-    "parcel-plugin-static-files-copy": "^2.2.1",
+    "parcel": "^2.3.2",
     "typescript": "3.5.3"
-  },
-  "staticFiles": {
-    "staticPath": [
-      "../../link-package/node_modules/@tensorflow/tfjs-tflite/dist"
-    ]
   },
   "scripts": {
     "build-deps": "cd ../../link-package && yarn build",
     "watch": "cross-env NODE_ENV=development parcel src/index.html --no-hmr --open",
-    "build": "NODE_ENV=production parcel build src/index.html --no-minify --public-url ./"
+    "build": "NODE_ENV=production parcel build src/index.html --public-url ./"
   }
 }

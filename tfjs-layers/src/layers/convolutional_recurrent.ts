@@ -441,7 +441,8 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
                              ones: () => tfc.onesLike(x),
                              rate: this.dropout,
                              training,
-                             count: numOfKernels
+                             count: numOfKernels,
+                             dropoutFunc: this.dropoutFunc
                            }) as tfc.Tensor[];
       }
 
@@ -467,7 +468,8 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: numOfKernels
+                                      count: numOfKernels,
+                                      dropoutFunc: this.dropoutFunc
                                     }) as tfc.Tensor[];
       }
 

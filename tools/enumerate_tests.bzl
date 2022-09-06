@@ -28,7 +28,7 @@ enumerate_tests = rule(
     attrs = {
         "enumerate_tests_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tools:enumerate_tests_bin"),
             doc = "The script that enumerates the tests",
         ),

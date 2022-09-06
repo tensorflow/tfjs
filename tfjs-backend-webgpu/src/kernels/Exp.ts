@@ -18,10 +18,13 @@
 import {Exp, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {expImplCPU} from '../kernel_utils/shared';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
-export const exp =
-    unaryKernelFunc({opType: UnaryOpType.EXP, cpuKernelImpl: expImplCPU});
+export const exp = unaryKernelFunc({
+  opType: UnaryOpType.EXP,
+  cpuKernelImpl: expImplCPU,
+  dtype: 'float32',
+});
 
 export const expConfig: KernelConfig = {
   kernelName: Exp,

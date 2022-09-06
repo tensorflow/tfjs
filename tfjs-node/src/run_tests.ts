@@ -66,10 +66,20 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should sum the duplicated indices',
   'scatterND test-tensorflow {} should work for tensorLike input',
   // https://github.com/tensorflow/tfjs/issues/1077
+  // tslint:disable-next-line:max-line-length
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'avgPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'avgPool test-tensorflow {} gradient x=[3,3,1] f=[3,3] s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
@@ -80,7 +90,8 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'argmax test-tensorflow {} 6D, axis=0', 'diag test-tensorflow {} complex',
+  'argmax test-tensorflow {} 6D, axis=0',
+  'diag test-tensorflow {} complex',
   'diag test-tensorflow {} bool',
   // See https://github.com/tensorflow/tfjs/issues/1891
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
@@ -93,12 +104,34 @@ const IGNORE_LIST: string[] = [
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
+  'conv2dTranspose test-tensorflow {} input=8x8x8,output=4x4x8,f=8,s=1,inDepth=8,p=same vec4',
+  // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
-  'maxPoolWithArgmax', 'rotate', 'unique',
-  // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  'fused conv2d test-tensorflow {} basic in NCHW',
+  'fused conv2d test-tensorflow {} im2row in NCHW',
+  'fused conv2d test-tensorflow {} batch in NCHW',
+  'maxPoolWithArgmax',
+  'rotate',
+  // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
+  'unique test-tensorflow {} 1d tensor with NaN and Infinity',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
@@ -108,17 +141,32 @@ const IGNORE_LIST: string[] = [
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
-  'image.transform', 'sign test-tensorflow {} basic',
+  'image.transform',
+  'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentMean',
-  'sparseSegmentSum', 'stringNGrams', 'stringSplit', 'stringToHashBucketFast',
+  'einsum',
+  'raggedTensorToTensor',
+  'searchSorted',
+  'sparseFillEmptyRows',
+  'sparseReshape',
+  'sparseSegmentMean',
+  'sparseSegmentSum',
+  'stringNGrams',
+  'stringSplit',
+  'stringToHashBucketFast',
   'greaterEqual test-tensorflow {} should support string comparison',
   'greater test-tensorflow {} should support string comparison',
   'lessEqual test-tensorflow {} should support string comparison',
-  'less test-tensorflow {} should support string comparison'
+  'less test-tensorflow {} should support string comparison',
+  // int32 input for the following ops not supported by TF 2.4.0.
+  'leakyrelu test-tensorflow {} int32',
+  'step kernel test-tensorflow {} with int32 tensor',
+  // upperBound and lowerBound use SearchSorted, which is unsupported
+  'upperBound',
+  'lowerBound',
 ];
 
 if (process.platform === 'win32') {

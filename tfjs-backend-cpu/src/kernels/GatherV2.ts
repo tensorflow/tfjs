@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -33,6 +33,18 @@ export function gatherV2(args: {
 
   assertNotComplex([x, indices], 'gatherV2');
 
+  // Throw error when any index is out of bound.
+  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+  const indicesVals = backend.data.get(indices.dataId).values as TypedArray;
+  const axisDim = x.shape[parsedAxis];
+  for (let i = 0; i < indicesVals.length; ++i) {
+    const index = indicesVals[i];
+    util.assert(
+        index <= axisDim - 1 && index >= 0,
+        () =>
+            `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+  }
+
   let $batchDims = batchDims;
 
   if (batchDims == null) {
@@ -41,7 +53,6 @@ export function gatherV2(args: {
 
   const indicesSize = util.sizeFromShape(indices.shape);
 
-  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
   const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
       x, indices, parsedAxis, $batchDims);
 

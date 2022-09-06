@@ -25,4 +25,4 @@ else
   TARGETS=`./node_modules/.bin/bazel query --output label 'attr("tags", "ci", ...)'`
 fi
 
-yarn bazel test --config=ci --flaky_test_attempts=3 --test_output=all $TARGETS
+yarn bazel test --config=ci --flaky_test_attempts=3 --test_output=all --local_test_jobs=25 $TARGETS

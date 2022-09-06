@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseFillEmptyRowsImpl(
     indices: TypedArray, indicesShape: number[], indicesDType: DataType,
@@ -32,8 +32,9 @@ export function sparseFillEmptyRowsImpl(
 
   if (denseRows === 0) {
     if (indicesCount !== 0) {
-      throw new Error(`Received SparseTensor with denseShape[0] = 0 but
-         indices.shape[0] = ${indicesCount}`);
+      throw new Error(
+          backend_util.getSparseFillEmptyRowsIndicesDenseShapeMismatch(
+              indicesCount));
     }
     const outputIndices = util.getArrayFromDType(indicesDType, 0) as TypedArray;
     const outputValues = util.getArrayFromDType(valuesDType, 0) as TypedArray;
@@ -50,10 +51,13 @@ export function sparseFillEmptyRowsImpl(
     // indices is a 2d tensor with shape of [N, rank]
     const row = indices[i * rank];
     if (row < 0) {
-      throw new Error(`indices(${i}, 0) is invalid: ${row} < 0`);
+      throw new Error(
+          backend_util.getSparseFillEmptyRowsNegativeIndexErrorMessage(i, row));
     }
     if (row >= denseRows) {
-      throw new Error(`indices(${i}, 0) is invalid: ${row} >= ${denseRows}`);
+      throw new Error(
+          backend_util.getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(
+              i, row, denseRows));
     }
     ++csrOffset[row];
     rowsAreOrdered = rowsAreOrdered && (row >= lastIndicesRow);

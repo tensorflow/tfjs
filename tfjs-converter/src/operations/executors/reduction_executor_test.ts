@@ -22,14 +22,19 @@ import * as reduction from '../op_list/reduction';
 import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
-import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('reduction', () => {
   let node: Node;
   const input1 = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
+  let spyOps: RecursiveSpy<typeof tfOps>;
+  let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
+    spyOps = spyOnAllFunctions(tfOps);
+    spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     node = {
       name: 'test',
       op: '',
@@ -43,57 +48,73 @@ describe('reduction', () => {
   });
 
   describe('executeOp', () => {
-    ['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'].forEach(op => {
-      it('should call tfOps.' + op, () => {
-        const spy =
-            spyOn(tfOps, op.charAt(0).toLowerCase() + op.slice(1) as 'max');
-        node.op = op;
-        node.attrParams.keepDims = createBoolAttr(true);
-        node.attrParams.axis = createNumberAttr(1);
-        executeOp(node, {input1}, context);
+    (['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            node.attrParams.keepDims = createBoolAttr(true);
+            node.attrParams.axis = createNumberAttr(1);
+            // TODO(mattsoulanille): Remove type assertions after TS4
+            // tslint:disable-next-line no-any
+            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
+              .and.returnValue({});
+            executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(spy).toHaveBeenCalledWith(input1[0], 1, true);
-      });
-    });
+            // TODO(mattsoulanille): Remove type assertion after TS4
+            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+                .toHaveBeenCalledWith(input1[0], 1, true);
+          });
+        });
     describe('ArgMax', () => {
       it('should call tfOps.argMax', () => {
-        spyOn(tfOps, 'argMax');
         node.op = 'ArgMax';
         node.attrParams.keepDims = createBoolAttr(true);
         node.attrParams.axis = createNumberAttr(1);
-        executeOp(node, {input1}, context);
+        spyOps.argMax.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfOps.argMax).toHaveBeenCalledWith(input1[0], 1);
+        expect(spyOps.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('ArgMin', () => {
       it('should call tfOps.argMin', () => {
-        spyOn(tfOps, 'argMin');
         node.op = 'ArgMin';
         node.attrParams.keepDims = createBoolAttr(true);
         node.attrParams.axis = createNumberAttr(1);
-        executeOp(node, {input1}, context);
+        spyOps.argMin.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfOps.argMin).toHaveBeenCalledWith(input1[0], 1);
+        expect(spyOps.argMin).toHaveBeenCalledWith(input1[0], 1);
+      });
+    });
+    describe('Cumprod', () => {
+      it('should call tfOps.cumprod', () => {
+        node.op = 'Cumprod';
+        node.attrParams.exclusive = createBoolAttr(true);
+        node.attrParams.reverse = createBoolAttr(false);
+        node.inputNames = ['input1', 'input2'];
+        node.inputParams.axis = createNumberAttrFromIndex(1);
+        const input2 = [tfOps.scalar(2)];
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+
+        expect(spyOps.cumprod).toHaveBeenCalledWith(input1[0], 2, true, false);
       });
     });
     describe('Cumsum', () => {
       it('should call tfOps.cumsum', () => {
-        spyOn(tfOps, 'cumsum');
         node.op = 'Cumsum';
         node.attrParams.exclusive = createBoolAttr(true);
         node.attrParams.reverse = createBoolAttr(false);
         node.inputNames = ['input1', 'input2'];
         node.inputParams.axis = createNumberAttrFromIndex(1);
         const input2 = [tfOps.scalar(2)];
-        executeOp(node, {input1, input2}, context);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-        expect(tfOps.cumsum).toHaveBeenCalledWith(input1[0], 2, true, false);
+        expect(spyOps.cumsum).toHaveBeenCalledWith(input1[0], 2, true, false);
       });
     });
     describe('Bincount', () => {
       it('should call tfOps.bincount', () => {
-        spyOn(tfOps, 'bincount');
         node.op = 'Bincount';
         node.inputNames = ['input4', 'input3', 'input2'];
         node.inputParams.size = createNumberAttrFromIndex(1);
@@ -101,9 +122,9 @@ describe('reduction', () => {
         const input4 = [tfOps.tensor1d([1, 1], 'int32')];
         const input3 = [tfOps.scalar(2)];
         const input2 = [tfOps.tensor1d([])];
-        executeOp(node, {input4, input3, input2}, context);
+        executeOp(node, {input4, input3, input2}, context, spyOpsAsTfOps);
 
-        expect(tfOps.bincount).toHaveBeenCalledWith(input4[0], input2[0], 2);
+        expect(spyOps.bincount).toHaveBeenCalledWith(input4[0], input2[0], 2);
       });
       it('should match json def for bincount.', () => {
         node.op = 'Bincount';
@@ -115,7 +136,6 @@ describe('reduction', () => {
     });
     describe('DenseBincount', () => {
       it('should call tfOps.denseBincount', () => {
-        spyOn(tfOps, 'denseBincount');
         node.op = 'DenseBincount';
         node.inputNames = ['input4', 'input3', 'input2'];
         node.inputParams.x = createTensorAttr(0);
@@ -125,9 +145,9 @@ describe('reduction', () => {
         const input4 = [tfOps.tensor1d([1, 1], 'int32')];
         const input3 = [tfOps.scalar(2)];
         const input2 = [tfOps.tensor1d([])];
-        executeOp(node, {input4, input3, input2}, context);
+        executeOp(node, {input4, input3, input2}, context, spyOpsAsTfOps);
 
-        expect(tfOps.denseBincount)
+        expect(spyOps.denseBincount)
             .toHaveBeenCalledWith(input4[0], input2[0], 2, true);
       });
       it('should match json def for denseBincount.', () => {

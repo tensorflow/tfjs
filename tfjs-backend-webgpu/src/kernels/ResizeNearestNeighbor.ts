@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ResizeNearestNeighborProgram} from './resize_nearest_neighbor_webgpu';
+import {ResizeNearestNeighborProgram} from '../resize_nearest_neighbor_webgpu';
 
 export function resizeNearestNeighbor(args: {
   inputs: ResizeNearestNeighborInputs,
@@ -30,11 +30,19 @@ export function resizeNearestNeighbor(args: {
   const {alignCorners, halfPixelCenters, size} = attrs;
 
   const [newHeight, newWidth] = size;
+  const adjustHeight = alignCorners && newHeight > 1 ? 1.0 : 0.0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1.0 : 0.0;
+  // When align corners is false, we rounds the value with floor.
+  const roundBase = alignCorners ? 0.5 : 0.0;
+  const uniformData = [
+    {type: 'float32', data: [adjustHeight, adjustWidth]},
+    {type: 'float32', data: [roundBase]}
+  ];
 
   const program = new ResizeNearestNeighborProgram(
       images.shape as [number, number, number, number], newHeight, newWidth,
-      alignCorners, halfPixelCenters);
-  return backend.runWebGPUProgram(program, [images], images.dtype);
+      halfPixelCenters);
+  return backend.runWebGPUProgram(program, [images], images.dtype, uniformData);
 }
 
 export const resizeNearestNeighborConfig: KernelConfig = {

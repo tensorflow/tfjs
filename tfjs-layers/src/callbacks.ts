@@ -79,7 +79,7 @@ export interface EarlyStoppingCallbackArgs {
   /**
    * Whether to restore model weights from the epoch with the best value
    * of the monitored quantity. If `False`, the model weights obtained at the
-   * at the last step of training are used.
+   * last step of training are used.
    *
    * **`True` is not supported yet.**
    */

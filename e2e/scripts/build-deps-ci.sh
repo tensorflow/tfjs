@@ -17,10 +17,6 @@
 set -e
 
 yarn build-link-package
-yarn build-backend-webgl-ci
-yarn build-layers-ci
-yarn build-converter-ci
-yarn build-data-ci
 yarn build-union-ci
 yarn build-node-ci
 

@@ -19,7 +19,7 @@ import {KernelConfig, MirrorPad, MirrorPadAttrs, MirrorPadInputs} from '@tensorf
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {MirrorPadProgram} from './mirror_pad_webgpu';
+import {MirrorPadProgram} from '../mirror_pad_webgpu';
 
 export const mirrorPadConfig: KernelConfig = {
   kernelName: MirrorPad,

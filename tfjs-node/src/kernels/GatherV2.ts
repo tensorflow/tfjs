@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, scalar, Tensor} from '@tensorflow/tfjs';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, scalar, Tensor, TypedArray, util} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -26,6 +26,17 @@ export const gatherV2Config: KernelConfig = {
     const {x, indices} = args.inputs as GatherV2Inputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {axis, batchDims} = args.attrs as {} as GatherV2Attrs;
+
+    // Throw error when any index is out of bound.
+    const indicesVals = backend.readSync(indices.dataId) as TypedArray;
+    const axisDim = x.shape[axis];
+    for (let i = 0; i < indicesVals.length; ++i) {
+      const index = indicesVals[i];
+      util.assert(
+          index <= axisDim - 1 && index >= 0,
+          () => `GatherV2: the index value ${index} is not in [0, ${
+              axisDim - 1}]`);
+    }
 
     // validate the inputs
     backend_util.segment_util.collectGatherOpShapeInfo(

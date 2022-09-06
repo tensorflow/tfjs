@@ -99,6 +99,12 @@ extern "C" {
 // Initializes the WASM backend.
 void init();
 
+// Initializes the WASM backend with the given threads count.
+void init_with_threads_count(const int threads_count);
+
+// Get the actual number of threads used in the XNNPACK threadpool.
+int get_threads_count();
+
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.
 void register_tensor(const size_t tensor_id, const size_t size,

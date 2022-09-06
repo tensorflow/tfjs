@@ -21,7 +21,7 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
@@ -810,7 +810,7 @@ describeMathCPUAndGPU('Permute Layer: Tensor', () => {
   });
 });
 
-describeMathCPUAndGPU('Masking Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Masking Layer: Tensor', () => {
   // Reference Python code:
   // ```py
   // import numpy as np

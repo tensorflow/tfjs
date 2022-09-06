@@ -72,7 +72,7 @@ on NPM.
 
 ## Benchmarks
 
-* [Local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
+* [Local benchmark tool](https://tfjs-benchmarks.web.app/). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
 * [Multi-device benchmark tool](https://github.com/tensorflow/tfjs/tree/master/e2e/benchmarks/browserstack-benchmark/README.md). Use this tool to collect the same performance related metrics **on a collection of remote devices**.
 
 ## Getting started
@@ -166,15 +166,19 @@ We support porting pre-trained models from:
 - [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter)
 - [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
 
+## Various ops supported in different backends
+
+Please refer below :
+- [TFJS Ops Matrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
+
 ## Find out more
 
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
-- For help from the community, use [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag on Stack Overflow.
-- [js.tensorflow.org](https://js.tensorflow.org)
+- For help from the community, use the `tfjs` tag on the [TensorFlow Forum](https://discuss.tensorflow.org/tag/tfjs).
+- [TensorFlow.js Website](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
-- [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
 - [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
 Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.

@@ -210,7 +210,7 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ],
@@ -314,14 +314,20 @@ load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
 
 pkg_npm(
     name = "tfjs-core_pkg",
-    srcs = ["package.json"],
+    package_name = "@tensorflow/tfjs-core",
+    srcs = [
+        # Add any static files the package should include here
+        "package.json",
+        "README.md",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
-        ":copy_test_snippets", # <- This is only in core, so I've omitted its definition.
+        ":copy_test_snippets", # <- This is only in core, so I've omitted its
+                               # definition in these docs.
     ],
 )
 ```
@@ -358,31 +364,12 @@ As a core featue of its design, Bazel places outputs in a different directory th
 Instead, we maintain a `link-package` pseudopackage where we copy the Bazel outputs. This package allows for correct Node module resolution between Bazel outputs because it has its own `node_modules` folder. This package will never be published and will be removed once the migration is complete.
 
 #### Add the Package to `link-package`
-Add your package to the `devDependencies` of the `link-package`'s `package.json`. The package path should be similar to the one below and is based off of the `pkg_npm` rule's name.
+Add your package to the `PACKAGES` list in the `build_deps.ts` script in `link-package`. For a package with npm name `@tensorflow/tfjs-foo`, the package's directory in the monorepo and the value to add to `PACKAGES` should both be `tfjs-foo`. The name of the package's `pkg_npm` target should be `tfjs-foo_pkg`.
 
-```json
-"devDependencies": {
-  "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
-  "@tensorflow/your-package": "file:../dist/bin/...",
-}
-```
-
-#### Add a build script to the `link-package`
-Add a script to build your package to the link-package's `package.json`. Be sure to add it to the `build` script as well.
-
-```json
-"scripts": {
-  "build": "yarn build-backend-cpu && yarn build-core && yarn reinstall",
-  "build-core": "cd ../tfjs-core && yarn && yarn build",
-  "build-your-package": "...",
-},
-```
-
-#### Add your package to the `reinstall` script
-This ensures that when the link package is rebuilt, it uses the most up-to-date version of your package.
-
-```json
-    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/your-package && ... && rimraf node_modules && yarn"
+```typescript
+const PACKAGES: ReadonlySet<string> = new Set([
+  ..., 'tfjs-foo',
+]);  
 ```
 
 #### Change Downstream Dependency `package.json` Paths
@@ -391,18 +378,44 @@ Update all downstream dependencies that depend on the package to point to its lo
 ```json
 "devDependencies": {
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-  "@tensorflow/your-package": "link:../link-package/node_modules/@tensorflow/your-package",
+  "@tensorflow/tfjs-foo": "link:../link-package/node_modules/@tensorflow/tfjs-foo",
 },
 ```
 
-To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*your-package-name" .` in the root of the repository.
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*tfjs-foo" .` in the root of the repository.
+
+#### Remove the 'build-tfjs-foo' Script from Downstream Packages
+Remove the `build-tfjs-foo` script from downstream packages' package.json files.
+```json
+"scripts": {
+  "build-deps": "....... && yarn build-tfjs-foo" // <-- Remove 'yarn build-deps-foo'.
+  "build-tfjs-foo": "remove this script", // <-- Also remove it here.
+}
+```
+### Move linting to the repo-wide lint script
+#### Add the new Bazel package to the [repo-wide tslint tsconfig](tsconfig_tslint.json):
+
+Add the path mapping:
+```json
+"paths": {
+  ...,
+  "@tensorflow/the-new-package": ["the-new-package/src/index.ts"],
+  "@tensorflow/the-new-package/dist/*": ["the-new-package/src/*"]
+```
+
+Also, remove the package from the `exclude` list.
+
+It's a good idea to test that linting is working on the package. Create a lint error in one if its files, e.g. `const x = "Hello, world!"` (note the double quotes), and then run `yarn lint` in the root of the repository.
+
+#### Remove the package's own TypeScript linting scripts:
+Remove the `package.json` `lint` script, the `tslint.json` file, and the cloudbuild `lint` step from the package's `cloudbuild.yml` file. Remove `tslint`-related dependencies from the package's `package.json` and run `yarn` to regenerate the `yarn.lock` file.
 
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
 
 Note that the output paths of Bazel-created outputs will be different, so any remaining steps that now rely on Bazel outputs may need to be updated. Bazel outputs are located in `tfjs/dist/bin/...`.
 
-If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Make sure to also remove references to the package from `tfjs/scripts/package_dependencies.json`. This includes references to it from other steps in the dependency tree.
+If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Do not remove the package from `tfjs/scripts/package_dependencies.json`.
 
 Rebuild the cloudbuild golden files by running `yarn update-cloudbuild-tests` in the root of the repository.
 
@@ -411,3 +424,19 @@ Before pushing to Git, run the Bazel linter by running `yarn bazel:format` and `
 
 ### Done!
 🎉🎉🎉
+
+## Notes for Reviewing PRs
+* Make sure the package is added to `BAZEL_PACKAGES` in [e2e/scripts/publish-tfjs-ci.sh](https://github.com/tensorflow/tfjs/blob/master/e2e/scripts/publish-tfjs-ci.sh#L61)
+* Make sure the package is added to `BAZEL_PACKAGES` in [scripts/publish-npm.ts](https://github.com/tensorflow/tfjs/blob/master/scripts/publish-npm.ts#L31)
+* Make sure the package generated by `pkg_npm` has all the files it needs, e.g. the README.
+* Make sure the package is added to the link-package's package.json and that downstream pakcages are updated to point to the link package's copy instead of the package's directory.
+* For browser tests, it may be worth checking that all desired browser configurations will run in nightly CI.
+* Make sure browser tests include all required tests. The `enumerate_tests` rule is usually necessary to make the browser actually run tests.
+* Make sure as many cloudbuild steps as possible are converted to Bazel, and that those steps are removed from the cloudbuild file.
+* If the build and tests are fully handled by Bazel and don't need any other cloudbuild steps, make sure the package's `cloudbuild.yml` file is removed. Do not remove the package from [scripts/package_dependencies.json](https://github.com/tensorflow/tfjs/blob/master/scripts/package_dependencies.json).
+* Make sure tests are tagged with `nightly` or `ci` (`tfjs_web_test` automatically tags tests with `nightly` and `ci`).
+* Make sure the main `pkg_npm` rule is tagged with `ci` or `nightly` so all parts of the build are tested.
+* Make sure the `package.json` scripts are updated and that the package.json includes `@bazel/bazelisk` as a dev dependency.
+* Make sure the package has a `build-npm` script and a `publish-npm` script. These are used by the release script.
+* Check the generated bundle sizes and make sure they don't include any unexpected files. Check the `_stats` files for info on this.
+* Make sure the package is added to the [repo-wide tslint tsconfig](tsconfig_tslint.json) and that its original lint scripts are removed.

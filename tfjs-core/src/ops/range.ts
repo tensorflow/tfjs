@@ -23,9 +23,9 @@ import {Tensor1D} from '../tensor';
 /**
  * Creates a new `tf.Tensor1D` filled with the numbers in the range provided.
  *
- * The tensor is a is half-open interval meaning it includes start, but
+ * The tensor is a half-open interval meaning it includes start, but
  * excludes stop. Decrementing ranges and negative step values are also
- * supported.sv
+ * supported.
  *
  *
  * ```js

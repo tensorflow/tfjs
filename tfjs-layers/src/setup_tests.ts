@@ -15,11 +15,40 @@
  * =============================================================================
  */
 
+// Register Layers' flags.
+import './flags_layers';
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
-
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+
+// tslint:disable-next-line: no-imports-from-dist
+import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+registerTestEnv({
+  name: 'webgl1',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 1,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
+
+// Allow flags to override test envs
+// tslint:disable-next-line:no-any
+declare let __karma__: any;
+if (typeof __karma__ !== 'undefined') {
+  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
+  if (testEnv != null) {
+    setTestEnvs([testEnv]);
+  }
+}
+
+// Import and run tests from layers.
+// tslint:disable-next-line:no-require-imports
+require('./tests');

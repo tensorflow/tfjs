@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, Rank, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {GatherNDProgram} from '../gather_nd_gpu';
@@ -46,7 +46,7 @@ export function gatherNd(
   if (backend.shouldExecuteOnCPU([params, indices]) ||
       params.dtype === 'string') {
     const indicesData = backend.readSync(indices.dataId) as TypedArray;
-    const paramsBuf = backend.bufferSync(params);
+    const paramsBuf = backend.bufferSync<Rank, 'float32'>(params);
     const outValue = gatherNdImplCPU(
         indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
         strides, params.shape, paramsSize);
@@ -54,7 +54,8 @@ export function gatherNd(
     return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
   }
   const program =
-      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], 
+        params.shape);
   const res = backend.runWebGLProgram(
       program, [flattenX, flattenIndices], flattenX.dtype);
 

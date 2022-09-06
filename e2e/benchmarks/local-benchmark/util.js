@@ -67,12 +67,24 @@ function queryTimerIsEnabled() {
              'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
 }
 
-function areClose(a, e, epsilon) {
+function areClose(
+    a, e, epsilon, epsilonOfBigNumber = 0.1, relativeEpsilon = 0.01) {
   if (!isFinite(a) && !isFinite(e)) {
     return true;
-  }
-  if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
+  } else if (isNaN(a) || isNaN(e)) {
     return false;
+  }
+
+  const absoluteError = Math.abs(a - e);
+  if (Math.abs(a) >= 1) {
+    if ((absoluteError > epsilonOfBigNumber) ||
+        absoluteError / Math.min(Math.abs(a), Math.abs(e)) > relativeEpsilon) {
+      return false;
+    }
+  } else {
+    if (absoluteError > epsilon) {
+      return false;
+    }
   }
   return true;
 }
@@ -145,6 +157,7 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
   }
 }
 
+// TODO: support relative comparison for array.
 function expectArraysClose(actual, expected, epsilon, key) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();

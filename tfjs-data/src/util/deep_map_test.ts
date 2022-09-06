@@ -112,6 +112,23 @@ describe('deepMap', () => {
     const input = [b, c];
     expect(() => deepMap(input, transform)).toThrowError();
   });
+  it('handle prototype', () => {
+    class Test {
+      first() {
+        return true;
+      }
+    }
+    class ChildTest extends Test {
+      second() {
+        return false;
+      }
+    }
+    // tslint:disable-next-line:no-any
+    const b: ChildTest = new ChildTest();
+    const transformed = deepMap(b, transform);
+    expect(transformed.first).toBeDefined();
+    expect(transformed.second).toBeDefined();
+  });
 });
 
 describe('asyncDeepMap', () => {
@@ -172,7 +189,7 @@ describe('asyncDeepMap', () => {
     const b2Mapped = result.b2;
     expect(b2Mapped).toBe(b1Mapped);
   });
-  it('detects and rejects cycles', async done => {
+  it('detects and rejects cycles', async () => {
     try {
       // tslint:disable-next-line:no-any
       const b: any[] = [2, 3, null, {ba: 0, bb: 'world'}];
@@ -180,10 +197,9 @@ describe('asyncDeepMap', () => {
       b[4] = c;
       const input = [b, c];
       await deepMapAndAwaitAll(input, asyncTransform);
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toBe('Circular references are not supported.');
-      done();
     }
   });
 });

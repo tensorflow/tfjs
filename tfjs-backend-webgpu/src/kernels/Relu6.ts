@@ -17,7 +17,7 @@
 
 import {KernelConfig, Relu6} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const relu6 = unaryKernelFunc({opType: UnaryOpType.RELU6});
 
