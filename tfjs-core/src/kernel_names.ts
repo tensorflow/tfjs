@@ -675,7 +675,6 @@ export interface RaggedTensorToTensorAttrs {
   rowPartitionTypes: string[];
 }
 
-
 export const Range = 'Range';
 export interface RangeAttrs {
   start: number;

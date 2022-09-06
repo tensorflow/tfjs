@@ -50,7 +50,7 @@ function validateSplits(
     }
     for (let i = 1; i < splits.length; ++i) {
       if (splits[i - 1] > splits[i]) {
-        throw new Error('Ragged splits must be sorted');
+        throw new Error('Ragged splits must be sorted in ascending order');
       }
     }
   }
