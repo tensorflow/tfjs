@@ -19,6 +19,22 @@
 #include <math.h>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace {
+
+template <typename T>
+void step(const T* x_buf, const size_t x_size, const T alpha, T* out_buf) {
+  for (size_t i = 0; i < x_size; ++i) {
+    if (isnan(static_cast<float>(x_buf[i]))) {
+      out_buf[i] = x_buf[i];
+    } else {
+      out_buf[i] = x_buf[i] > 0 ? 1 : alpha;
+    }
+  }
+}
+
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -28,18 +44,21 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Step(const int x_id, const float alpha, const int out_id) {
+void Step(const int x_id, const float alpha, const DType dtype,
+          const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* x_buf = x_info.f32();
-  float* out_buf = out_info.f32_write();
-  for (size_t i = 0; i < x_info.size; ++i) {
-    if (isnan(x_buf[i])) {
-      out_buf[i] = x_buf[i];
-    } else {
-      out_buf[i] = x_buf[i] > 0 ? 1 : alpha;
-    }
+  switch (dtype) {
+    case DType::float32:
+      step<float>(x_info.f32(), x_info.size, alpha, out_info.f32_write());
+      break;
+    case DType::int32:
+      step<int32_t>(x_info.i32(), x_info.size, static_cast<int32_t>(alpha),
+                    out_info.i32_write());
+      break;
+    default:
+      util::warn("Step failed. Unknown dtype %d", dtype);
   }
 }
 

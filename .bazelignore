@@ -16,3 +16,4 @@ tfjs-node-gpu/node_modules
 tfjs-react-native/node_modules
 tfjs-tflite/node_modules
 tfjs-vis/node_modules
+e2e/node_modules

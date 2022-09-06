@@ -2,80 +2,34 @@
 steps:
 
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
 
 # Install tfjs-converter dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build deps.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'build-deps'
-  args: ['build-deps-ci']
+# Create python pips
+- name: 'gcr.io/learnjs-174218/release'
+  id: 'create-pips'
+  entrypoint: 'bash'
+  args:
+    - './tfjs-converter/scripts/create_python_pips.sh'
   waitFor: ['yarn-common']
 
-# Build.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['yarn', 'build-deps']
-
-# Lint.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn', 'build-deps']
-
-# Run javascript tests.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'test-js'
-  args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint']
-  env: ['NIGHTLY=$_NIGHTLY']
-
 # Run python tests.
-- name: 'gcr.io/google-appengine/python'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   id: 'test-python-pip'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['yarn-common']
-
-- name: 'python:2'
-  dir: 'tfjs-converter/python'
-  entrypoint: 'bash'
-  id: 'test-python2'
-  args: ['./run-python-tests.sh']
-  waitFor: ['yarn-common']
-
-- name: 'python:3.6'
-  dir: 'tfjs-converter/python'
-  entrypoint: 'bash'
-  id: 'test-python3.6'
-  args: ['./run-python-tests.sh']
-  waitFor: ['yarn-common']
-
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'test-snippets'
-  args: ['test-snippets-ci']
-  waitFor: ['build']
+  waitFor: ['create-pips']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'

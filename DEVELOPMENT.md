@@ -45,8 +45,11 @@ for auto-formatting.
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
+# Run this at the root of the repository
+$ yarn lint
 # cd into the package directory you want to test
 $ yarn test
+# You may also need to run 'yarn lint' in the directory you want to test
 $ yarn lint
 ```
 This will install yarn dependencies, build the other TensorFlow.js packages that the package being tested depeds on,
@@ -55,45 +58,73 @@ unnecessarily rebuilding dependencies.
 
 Many TensorFlow.js packages use Karma to run tests in a browser. These tests can be configured by command-line options.
 
-To run a subset of tests on a specific browser:
+To run a subset of tests:
 
 ```bash
-$ yarn test --browsers=Chrome --grep='multinomial'
+$ yarn test --//:grep=multinomial
  
 > ...
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
 ```
 
-To run the tests once and exit the karma process (helpful on Windows):
+By default, the tests run once and exit. To keep the browser window open, run the following:
 
 ```bash
-$ yarn test --single-run
+# For packages with only browser tests
+$ yarn test-debug
+# For packages with browser and node tests
+$ yarn test-browser-debug
 ```
-
-To run the tests in an environment that does not have GPU support (such as Chrome Remote Desktop):
-
-```bash
-$ yarn test --testEnv cpu
-```
-
-Available test environments: cpu, webgl1, webgl2.
 
 #### Packaging (browser and npm)
 
 In any of the directories the following commands build the NPM tarball:
 
 ```bash
+# Example for tfjs-core
 $ yarn build-npm
-> Stored standalone library at dist/tf-core(.min).js
-> Stored also tensorflow-tf-core-VERSION.tgz
+# The output is located at ../dist/bin/tfjs-core/tfjs-core_pkg/
+# You can also package as a tar with
+$ yarn bazel run :tfjs-core_pkg.pack
 ```
 
 To install it locally, run `yarn add ./tensorflow-tf-core-VERSION.tgz`.
 
-> On Windows, use bash (available through git) to use the scripts above.
+> On Windows, use bash (available through git or WSL2) to use the scripts above. For the best experience, we recommend using [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 Looking to contribute, and don't know where to start? Check out our "stat:contributions welcome" [issues](https://github.com/tensorflow/tfjs/labels/stat%3Acontributions%20welcome).
 
+#### Developing on Windows
+Developing on Windows is supported through the [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/about) running Debian.
+
+1. Install WSL2 (if necessary) by following [Microsoft's instructions](https://docs.microsoft.com/en-us/windows/wsl/install). WSL1 has not been tested, but it may work.
+2. Install Debian in WSL2. [Debian is available from the Microsoft store](https://www.microsoft.com/en-us/p/debian/9msvkqc78pk6?activetab=pivot:overviewtab).
+3. Open Debian and install node and yarn with 
+`sudo apt update && sudo apt install nodejs && npm i -g yarn`. 
+If you need to reset the root debian password, you can get a root shell from command prompt with `wsl -u root`.
+4. Make sure Chrome is installed on Windows. Then, find the path to `chrome.exe`. It's probably `C:\Program Files\Google\Chrome\Application\chrome.exe`.
+5. Run the following to set up the `CHROME_BIN` variable, clone the `tfjs` repo, and create a custom `.bazelrc.user` config for WSL. If your `chrome.exe` is not located at the above path, you will need to change it to the correct path in the command below.
+```bash
+# Add yarn bin to the path
+echo "export PATH=$PATH:~/.yarn/bin/" >> ~/.bashrc &&
+# Set CHROME_BIN. Change this if your CHROME_BIN has a different path.
+echo "export CHROME_BIN=/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe" >> ~/.bashrc &&
+source ~/.bashrc &&
+# Clone tfjs.
+git clone https://github.com/tensorflow/tfjs.git &&
+cd tfjs &&
+# Create the .bazelrc.user file for WSL.
+echo "# Pass necessary WSL variables for running in Windows Subsystem for Linux.
+# WSLENV and WSL_DISTRO_NAME are build-in variables that are needed for running
+# the 'wslpath' command, which Karma uses to resolve file paths.
+# DISPLAY=:0 is passed to the Chrome process to make it launch in a window
+# since running Chrome headlessly from WSL does not seem to work. If you get
+# this working, please send a PR updating these docs (or open an issue :).
+run --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=:0
+test --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=:0" > .bazelrc.user &&
+printf "\n\nDone! Try running a browser test to verify the installation worked, e.g. 'cd tfjs-core && yarn && yarn test-browser'\n"
+```
+6. To access this repo from VScode, follow [Microsoft's WSL VSCode Tutorial](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode).
 
 ## For repository owners: commit style guide
 

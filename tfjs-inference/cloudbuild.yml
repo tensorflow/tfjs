@@ -1,14 +1,14 @@
 steps:
 
 # Install packages.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-inference'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 
 # Build binaries.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-inference'
   entrypoint: 'yarn'
   id: 'build-binary'
@@ -16,7 +16,7 @@ steps:
   waitFor: ['yarn']
 
 # JS Test.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-inference'
   entrypoint: 'yarn'
   id: 'test'
@@ -24,7 +24,7 @@ steps:
   waitFor: ['yarn']
 
 # Python Test.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-inference'
   entrypoint: 'yarn'
   id: 'test-python'

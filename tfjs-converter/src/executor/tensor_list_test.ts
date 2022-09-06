@@ -122,7 +122,8 @@ describe('TensorList', () => {
     it('should create no new tensors', () => {
       tensorList.pushBack(tensor);
       const numTensors = memory().numTensors;
-      tensorList.popBack(SHAPE, DTYPE);
+      const tensorPoped = tensorList.popBack(SHAPE, DTYPE);
+      expect(tensorPoped.kept).toBeFalsy();
       // a new reshaped tensor
       expect(memory().numTensors).toEqual(numTensors + 1);
     });
@@ -164,6 +165,14 @@ describe('TensorList', () => {
       tensorList.setItem(0, tensor);
       expect(memory().numTensors).toEqual(numTensors);
     });
+    it('should remove kept flag for replaced tensor', () => {
+      tensorList = new TensorList([], [-1, 1], DTYPE, SIZE);
+      tensorList.setItem(0, tensor);
+      expect(tensor.kept).toBeTruthy();
+      tensorList.setItem(0, tensor2);
+      expect(tensor.kept).toBeFalsy();
+      expect(tensor2.kept).toBeTruthy();
+    });
   });
 
   describe('getItem', () => {
@@ -203,13 +212,13 @@ describe('TensorList', () => {
 
   describe('reserve', () => {
     it('should create a tensor list', async () => {
-      const tensorList = reserve([1, 1], 'float32', 10);
+      const tensorList = reserve([1, 1], 'float32', 10, 10);
       expect(tensorList.maxNumElements).toEqual(10);
       expect(tensorList.elementDtype).toEqual('float32');
       expect(tensorList.elementShape).toEqual([1, 1]);
     });
     it('should not fail for wildcard shape', async () => {
-      const tensorList = reserve([-1, 1], 'float32', 10);
+      const tensorList = reserve([-1, 1], 'float32', 10, 10);
       expect(tensorList.maxNumElements).toEqual(10);
       expect(tensorList.elementDtype).toEqual('float32');
       expect(tensorList.elementShape).toEqual([-1, 1]);

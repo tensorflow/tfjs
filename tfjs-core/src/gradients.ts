@@ -141,7 +141,7 @@ function grads(f: (...args: Tensor[]) => Tensor): (
  * returns a metric you want to show.
  *
  * The result is a rich object with the following properties:
- * - grad: The gradient of `f(x)` w.r.t `x` (result of `tf.grad`).
+ * - grad: The gradient of `f(x)` w.r.t. `x` (result of `tf.grad`).
  * - value: The value returned by `f(x)`.
  *
  * ```js
@@ -187,7 +187,7 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
  * returns a metric you want to show.
  *
  * The result is a rich object with the following properties:
- * - grads: The gradients of `f()` w.r.t each input (result of `tf.grads`).
+ * - grads: The gradients of `f()` w.r.t. each input (result of `tf.grads`).
  * - value: The value returned by `f(x)`.
  *
  * ```js
@@ -340,9 +340,9 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  * `f`. When called, `g` returns `f().value`. In backward mode, custom gradients
  * with respect to each input of `f` are computed using `f().gradFunc`.
  *
- * The `save` function passsed to `f` should be used for saving tensors needed
+ * The `save` function passed to `f` should be used for saving tensors needed
  * in the gradient. And the `saved` passed to the `gradFunc` is a
- * `NamedTensorMap`, which contains those saved tensor.
+ * `NamedTensorMap`, which contains those saved tensors.
  *
  * ```js
  * const customOp = tf.customGrad((x, save) => {

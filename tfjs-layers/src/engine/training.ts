@@ -167,9 +167,15 @@ export function standardizeInputData(
         const refDim = shapes[i][j];
         if (refDim != null && refDim >= 0 && dim !== refDim) {
           throw new ValueError(
-              `Error when checking ${exceptionPrefix}: expected ${names[i]} ` +
-              `to have shape [${shapes[i]}], but got array with shape ` +
-              `[${array.shape}].`);
+              `${exceptionPrefix} expected a batch of elements where each ` +
+              `example has shape [${shapes[i].slice(1, shapes[i].length)}] ` +
+              `(i.e.,tensor shape [*,${
+                  shapes[i].slice(1, shapes[i].length)}])` +
+              ` but the ${exceptionPrefix} received an input with ${
+                  array.shape[0]}` +
+              ` examples, each with shape [${
+                  array.shape.slice(1, array.shape.length)}]` +
+              ` (tensor shape [${array.shape}])`);
         }
       }
     }
@@ -861,7 +867,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   /**
    * Evaluate model using a dataset object.
    *
-   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`).
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
@@ -869,7 +875,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
@@ -1472,7 +1478,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs.
    *   Of the two items in the array, the first is the input feature(s) and
@@ -1495,7 +1501,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * This method differs from `fit()` and `fitDataset()` in the following
    * regards:
    *   - It operates on exactly one batch of data.
-   *   - It returns only the loss and matric values, instead of
+   *   - It returns only the loss and metric values, instead of
    *     returning the batch-by-batch loss and metric values.
    *   - It doesn't support fine-grained options such as verbosity and
    *     callbacks.
@@ -1505,7 +1511,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *     multiple inputs).
    *   - An Object mapping input names to corresponding `tf.Tensor` (if the
    *     model has named inputs).
-   * @param y Target darta. It could be either a `tf.Tensor` a multiple
+   * @param y Target data. It could be either a `tf.Tensor` or multiple
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
@@ -1529,6 +1535,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       lossValues.push(v[0]);
     }
     tfc.dispose(losses);
+    disposeNewTensors(standardizeOut[0], x);
+    disposeNewTensors(standardizeOut[1], y);
     return singletonOrArray(lossValues);
   }
 

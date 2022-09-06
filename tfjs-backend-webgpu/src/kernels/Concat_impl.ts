@@ -18,10 +18,10 @@
 import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {ConcatProgram} from '../concat_webgpu';
 import {concatImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
-import {ConcatProgram} from './concat_webgpu';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
@@ -94,10 +94,41 @@ export function concatImpl(
     return outInfo;
   }
 
+  // There is a storage buffer limitation in compute stage, one for output so
+  // the maximum for input is limits.maxStorageBuffersPerShaderStage - 1
+  const maxInputNum = backend.device.limits.maxStorageBuffersPerShaderStage - 1;
+  if (inputs.length > maxInputNum) {
+    const reducedInputs = [];
+    for (let i = 0; i < inputs.length; i += maxInputNum) {
+      const subArray = inputs.slice(i, i + maxInputNum);
+      reducedInputs.push(concatImpl(subArray, axis, backend));
+    }
+    const result = concatImpl(reducedInputs, axis, backend);
+
+    for (const i of reducedInputs) {
+      backend.disposeData(i.dataId);
+    }
+
+    return result;
+  }
+
   const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
-  const program =
-      new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
-  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
+  const shapes = (tensors2D).map(t => t.shape as [number, number]);
+  const program = new ConcatProgram(shapes);
+
+  const uniformData: Array<{type: string; data: number[]}> = [];
+  const offsets: number[] = new Array(shapes.length - 1);
+  if (offsets.length > 0) {
+    offsets[0] = shapes[0][1];
+    uniformData.push({type: 'int32', data: [offsets[0]]});
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+      uniformData.push({type: 'int32', data: [offsets[i]]});
+    }
+  }
+
+  const res = backend.runWebGPUProgram(
+      program, tensors2D, tensors2D[0].dtype, uniformData);
   tensors2D.forEach(r => backend.disposeData(r.dataId));
 
   const reshapedResult =

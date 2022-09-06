@@ -16,6 +16,7 @@
  */
 
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 const HttpsProxyAgent = require('https-proxy-agent');
 const path = require('os').platform() === 'win32' ? require('path') :
@@ -36,6 +37,8 @@ const unlink = util.promisify(fs.unlink);
  *     complete.
  */
 async function downloadAndUnpackResource(uri, destPath, callback) {
+  const httpClient = uri.startsWith('https') ? https : http;
+
   // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
   const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
       process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
@@ -44,13 +47,13 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
   // http request.  the '...url.parse(targetUri)' part fills in the host,
   // path, protocol, etc from the targetUri and then we set the agent to the
   // default agent which is overridden a few lines down if there is a proxy
-  const options = {...url.parse(uri), agent: https.globalAgent};
+  const options = {...url.parse(uri), agent: httpClient.globalAgent};
 
   if (proxy !== '') {
     options.agent = new HttpsProxyAgent(proxy);
   }
 
-  const request = https.get(options, response => {
+  const request = httpClient.get(options, response => {
     const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
       complete: '=',
       incomplete: ' ',

@@ -17,8 +17,8 @@
 
 import {KernelConfig, Square, SquareInputs} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {UnaryOpProgram} from './unary_op_webgpu';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
+import {UnaryOpType} from '../unary_op_util';
 
 export const squareConfig: KernelConfig = {
   kernelName: Square,

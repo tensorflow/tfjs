@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, env, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
 import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
@@ -45,6 +45,10 @@ export class GraphExecutor implements FunctionExecutor {
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
+  private intermediateTensors: NamedTensorsMap = {};
+  private keepIds: Set<number>;
+  private tensorsMap: NamedTensorsMap;
+  private keepTensorForDebug = false;
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -198,7 +202,7 @@ export class GraphExecutor implements FunctionExecutor {
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
     let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
-
+    this.resetIntermediateTensors();
     // If no outputs are specified, then use the default outputs of the model.
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
@@ -293,7 +297,18 @@ export class GraphExecutor implements FunctionExecutor {
             if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
               const count = intermediateTensorConsumerCount[tensor.id];
               if (count === 1) {
-                tensor.dispose();
+                if (!this.keepTensorForDebug) {
+                  tensor.dispose();
+                } else {
+                  const [nodeName, index] =
+                      getNodeNameAndIndex(node.name, context);
+                  if (this.intermediateTensors[nodeName]) {
+                    this.intermediateTensors[nodeName][index] = tensor;
+                  } else {
+                    this.intermediateTensors[nodeName] = [];
+                    this.intermediateTensors[nodeName][index] = tensor;
+                  }
+                }
                 delete intermediateTensorConsumerCount[tensor.id];
               } else if (count != null) {
                 // only intermediate nodes has count set, inputs and weights are
@@ -319,6 +334,43 @@ export class GraphExecutor implements FunctionExecutor {
   async executeAsync(inputs: NamedTensorMap, outputs?: string[]):
       Promise<Tensor[]> {
     return this._executeAsync(inputs, outputs);
+  }
+
+  disposeIntermediateTensors() {
+    if (!this.intermediateTensors) {
+      return;
+    }
+    Object.keys(this.intermediateTensors)
+        .forEach(
+            key => this.intermediateTensors[key].forEach(
+                tensor => tensor.dispose()));
+    this.disposeTensorsMap();
+  }
+
+  private disposeTensorsMap() {
+    if (!this.tensorsMap) {
+      return;
+    }
+    Object.keys(this.tensorsMap).forEach(key => {
+      const tensorArray = this.tensorsMap[key];
+      tensorArray.forEach(tensor => {
+        if (tensor && !tensor.kept && !tensor.isDisposed &&
+            !this.keepIds.has(tensor.id)) {
+          tensor.dispose();
+        }
+      });
+    });
+  }
+
+  getIntermediateTensors(): NamedTensorsMap {
+    return this.tensorsMap;
+  }
+
+  private resetIntermediateTensors() {
+    for (const key in this.intermediateTensors) {
+      this.intermediateTensors[key].forEach(tensor => tensor.dispose());
+      delete this.intermediateTensors[key];
+    }
   }
 
   /**
@@ -347,6 +399,14 @@ export class GraphExecutor implements FunctionExecutor {
       this.checkOutputs(outputs);
     }
 
+    // For model debug.
+    try {
+      this.keepTensorForDebug = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+    } catch (e) {
+      console.warn(e.message);
+    }
+    this.resetIntermediateTensors();
+
     const context = new ExecutionContext(
         this.weightMap, tensorArrayMap, tensorListMap,
         this.functionExecutorMap);
@@ -354,27 +414,23 @@ export class GraphExecutor implements FunctionExecutor {
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
-    const tensorMap = await this.executeWithControlFlow(
+    this.tensorsMap = await this.executeWithControlFlow(
         inputs, context, outputs, isFunctionExecution);
-    const results = outputs.map(name => getTensor(name, tensorMap, context));
+    const results =
+        outputs.map(name => getTensor(name, this.tensorsMap, context));
 
     // dispose all the intermediate tensors
     const outputIds = results.map(t => t.id);
     const inputIds = Object.keys(inputs).map(name => inputs[name].id);
-    const keepIds =
+    this.keepIds =
         new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
-    Object.keys(tensorMap).forEach(key => {
-      const tensorArray = tensorMap[key];
-      tensorArray.forEach(tensor => {
-        if (tensor && !tensor.kept && !tensor.isDisposed &&
-            !keepIds.has(tensor.id)) {
-          tensor.dispose();
-        }
-      });
-    });
+    if (!this.keepTensorForDebug) {
+      this.disposeTensorsMap();
+    }
+
     // dispose the context for the root executor
     if (this.parent == null) {
-      context.dispose(keepIds);
+      context.dispose(this.keepIds);
     }
 
     return results;
@@ -391,6 +447,7 @@ export class GraphExecutor implements FunctionExecutor {
     return this._executeAsync(
         mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap);
   }
+
   /**
    * When there are control flow nodes in the graph, the graph execution use
    * ExecutionContext to keep track of the frames and loop iterators.
@@ -497,7 +554,7 @@ export class GraphExecutor implements FunctionExecutor {
         }
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
-          promises.push((tensors as Promise<Tensor[]>).then(t => {
+          promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
@@ -508,7 +565,7 @@ export class GraphExecutor implements FunctionExecutor {
             return t;
           }));
         } else {
-          tensorMap[nodeName] = tensors as Tensor[];
+          tensorMap[nodeName] = tensors;
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
               outputNames, intermediateTensorConsumerCount);

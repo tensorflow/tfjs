@@ -31,7 +31,7 @@ import {reshape} from './reshape';
  * Broadcast an array to a compatible shape NumPy-style.
  *
  * The tensor's shape is compared to the broadcast shape from end to beginning.
- * Ones are prepended to the tensor's shape until is has the same length as
+ * Ones are prepended to the tensor's shape until it has the same length as
  * the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
  * already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
  * the input tensor is tiled N times along that axis (using tf.tile).

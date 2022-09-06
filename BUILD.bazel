@@ -13,6 +13,11 @@
 # limitations under the License.
 # =============================================================================
 
+load("@npm//@bazel/concatjs:index.bzl", "ts_config")
+load("//tools:tfjs_web_test.bzl", "grep_flag")
+
+package(default_visibility = ["//visibility:public"])
+
 exports_files([
     "babel.config.json",
     "tsconfig.json",
@@ -20,3 +25,29 @@ exports_files([
     "tsconfig.test.json",
     "tsconfig_ts_library.json",
 ])
+
+ts_config(
+    name = "tsconfig_ts_library",
+    src = "tsconfig_ts_library.json",
+    deps = [":tsconfig.json"],
+)
+
+grep_flag(
+    name = "grep",
+    build_setting_default = "",
+    visibility = ["//visibility:public"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        "//tfjs-backend-cpu:tests",
+        "//tfjs-backend-wasm:tests",
+        "//tfjs-backend-webgl:tests",
+        "//tfjs-converter:tests",
+        "//tfjs-core:tests",
+        "//tfjs-data:tests",
+        "//tfjs-layers:tests",
+        "//tfjs-tflite:tests",
+    ],
+)

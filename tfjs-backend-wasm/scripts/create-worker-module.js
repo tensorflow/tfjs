@@ -21,11 +21,35 @@
  */
 
 const fs = require('fs');
+const {ArgumentParser} = require('argparse');
 
-const BASE_PATH = '../wasm-out/';
-const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
+const parser = new ArgumentParser();
 
-const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
-fs.chmodSync(WORKER_PATH, 0o644);
-fs.writeFileSync(`${WORKER_PATH}`,
-  `export const wasmWorkerContents = '${workerContents.trim()}';`);
+parser.addArgument('workerFile', {
+  type: String,
+  help: 'The input worker file to transform.',
+});
+
+parser.addArgument('outFile', {
+  type: String,
+  help: 'The output file path.',
+});
+
+parser.addArgument('--cjs', {
+  action: 'storeTrue',
+  default: false,
+  optional: true,
+  help: 'Whether to output commonjs instead of esm.',
+});
+
+const args = parser.parseArgs();
+const workerContents = fs.readFileSync(args.workerFile, "utf8");
+const escaped = workerContents.replace(/`/g, '\\`');
+
+if (args.cjs) {
+  fs.writeFileSync(`${args.outFile}`,
+    `module.exports.wasmWorkerContents = \`${escaped.trim()}\`;`);
+} else {
+  fs.writeFileSync(`${args.outFile}`,
+    `export const wasmWorkerContents = \`${escaped.trim()}\`;`);
+}

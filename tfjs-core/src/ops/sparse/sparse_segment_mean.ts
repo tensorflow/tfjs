@@ -60,9 +60,10 @@ function sparseSegmentMean_(
     data: Tensor|TensorLike, indices: Tensor1D|TensorLike,
     segmentIds: Tensor1D|TensorLike): Tensor {
   const $data = convertToTensor(data, 'data', 'sparseSegmentMean');
-  const $indices = convertToTensor(indices, 'indices', 'sparseSegmentMean');
+  const $indices =
+      convertToTensor(indices, 'indices', 'sparseSegmentMean', 'int32');
   const $segmentIds =
-      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentMean');
+      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentMean', 'int32');
 
   if ($data.rank < 1) {
     throw new Error(

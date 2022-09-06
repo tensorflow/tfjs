@@ -17,11 +17,13 @@
 
 #include <cstddef>
 
+#include "tfjs-backend-wasm/src/cc/backend.h"
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void Elu(const size_t x_id, const size_t out_id);
+void Elu(const size_t x_id, const DType dtyle, const size_t out_id);
 }
 
 }  // namespace wasm

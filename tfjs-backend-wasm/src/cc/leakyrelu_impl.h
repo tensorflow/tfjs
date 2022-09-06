@@ -20,8 +20,9 @@
 namespace tfjs {
 namespace wasm {
 
-void leakyrelu(const float* x_buf, const size_t x_size,
-               const float leakyrelu_alpha, const size_t out_id);
+template <typename T>
+void leakyrelu(const T* x_buf, const size_t x_size, const float leakyrelu_alpha,
+               const size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs

@@ -9,6 +9,7 @@ const {
   runFirestore,
   firebaseConfig
 } = require('./firestore.js');
+const {PromiseQueue} = require('./promise_queue.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -126,9 +127,8 @@ describe('test app.js cli', () => {
     // Writes to mock results file
     await write(filePath, mockResults);
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      expect(data).toEqual(JSON.stringify(mockResults, null, 2));
-    });
+    const contents = fs.readFileSync(filePath, 'utf8');
+    expect(contents).toEqual(JSON.stringify(mockResults, null, 2));
   });
 
   it('benchmark function benchmarks each browser-device pairing ', async () => {
@@ -216,27 +216,25 @@ describe('test app.js cli', () => {
 
 describe('test adding to firestore', () => {
   let db;
-  let mockDb;
   let mockResultValue;
+  let mockSerialization;
+  let mockDate;
 
   beforeAll(async () => {
     // Set a longer jasmine timeout than 5 seconds
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
-
-    // References result collection and checks credentials
-    db = await runFirestore(firebaseConfig);
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1_000_000;
   });
 
   beforeEach(() => {
     // mockResultValue is the result of a successful benchmark
     mockResultValue = require('./firestore_test_value.json');
-    mockDb = spyOn(db, 'add');
+    db = jasmine.createSpyObj('firestore', ['add']);
     mockSerialization = jasmine.createSpy('mockSerialization');
     mockDate = jasmine.createSpy('mockDate').and.returnValue('7/21/2021');
   });
 
   it('Expects db.add to be called with formatted results', () => {
-    mockDb.and.returnValue(Promise.resolve({id: 123}));
+    db.add.and.returnValue(Promise.resolve({id: 123}));
     let expectedAdd = {
       result:
           formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
@@ -258,5 +256,77 @@ describe('test adding to firestore', () => {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');
     }
+  });
+});
+
+function sleep(n) {
+  return new Promise((resolve) => {
+    setTimeout(() => { resolve(); }, n);
+  });
+}
+
+describe('promise queue', () => {
+  let queue;
+  beforeEach(() => {
+    queue = new PromiseQueue(3);
+    jasmine.clock().install();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
+  });
+
+  it('runs a given number of functions at once', async () => {
+    let promises = [];
+    let started = [false, false, false, false, false];
+    let resolved = [false, false, false, false, false];
+    for (let i = 0; i < 5; i++) {
+      resolved[i] = false;
+      promises.push(queue.add(async () => {
+        started[i] = true;
+        await sleep((i + 1) * 10);
+        resolved[i] = true;
+      }));
+    }
+
+    // Queue should immediately start 3 promises.
+    expect(started).toEqual(
+        [true, true, true, false, false]
+    );
+    expect(resolved).toEqual(
+        [false, false, false, false, false]
+    );
+
+    // After the first promise is done, queue should start the fourth one.
+    jasmine.clock().tick(15);
+    await promises[0];
+    expect(started).toEqual(
+        [true, true, true, true, false]
+    );
+    expect(resolved).toEqual(
+        [true, false, false, false, false]
+    );
+
+    // All running promises should finish, and the last should start.
+    jasmine.clock().tick(1000);
+    await promises[1];
+    await promises[2];
+    await promises[3];
+    expect(started).toEqual(
+        [true, true, true, true, true]
+    );
+    expect(resolved).toEqual(
+        [true, true, true, true, false]
+    );
+
+    // The last promise should finish
+    jasmine.clock().tick(1000);
+    await promises[4];
+    expect(started).toEqual(
+        [true, true, true, true, true]
+    );
+    expect(resolved).toEqual(
+        [true, true, true, true, true]
+    );
   });
 });

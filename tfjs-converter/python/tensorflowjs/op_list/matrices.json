@@ -51,6 +51,12 @@
         "defaultValue": false
       },
       {
+        "tfName": "leakyrelu_alpha",
+        "name": "leakyreluAlpha",
+        "type": "number",
+        "defaultValue": 0.2
+      },
+      {
         "tfName": "T",
         "name": "dtype",
         "type": "dtype",

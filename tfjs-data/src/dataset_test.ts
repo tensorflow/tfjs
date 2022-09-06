@@ -158,23 +158,22 @@ describeAllEnvs('Dataset', () => {
     expect(result).toEqual([[1, 3], [2, 4]]);
   });
 
-  it('zipping a native string throws an error', async done => {
+  it('zipping a native string throws an error', async () => {
     try {
       // tslint:disable-next-line:no-any no-construct
       await tfd.zip('test' as any);
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'The argument to zip() must be an object or array.');
-      done();
     }
   });
 
-  it('zipping a string object throws a meaningful error', async done => {
+  it('zipping a string object throws a meaningful error', async () => {
     try {
       // tslint:disable-next-line:no-any no-construct
       await tfd.zip(new String('test') as any).iterator();
-      done.fail();
+      fail();
     } catch (e) {
       // This error is not specific to the error case arising from
       //   typeof(new String('test')) === 'object'
@@ -184,7 +183,6 @@ describeAllEnvs('Dataset', () => {
       expect(e.message).toEqual(
           'Leaves of the structure passed to zip() must be Datasets, ' +
           'not primitives.');
-      done();
     }
   });
 
@@ -203,7 +201,7 @@ describeAllEnvs('Dataset', () => {
     ]);
   });
 
-  it('zipping a structure with cycles throws an error', async done => {
+  it('zipping a structure with cycles throws an error', async () => {
     try {
       // tslint:disable-next-line:no-any
       const a = tfd.array([1, 2, 3]);
@@ -212,15 +210,14 @@ describeAllEnvs('Dataset', () => {
       const abc: DatasetContainer = [a, b, c];
       c.push(abc);
       await tfd.zip({a, abc}).iterator();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual('Circular references are not supported.');
-      done();
     }
   });
 
   it('zip propagates errors thrown when iterating constituent datasets',
-     async done => {
+     async () => {
        try {
          const makeIterator = () => {
            let count = 0;
@@ -240,10 +237,9 @@ describeAllEnvs('Dataset', () => {
          // unrelated tests to fail (See
          // https://github.com/tensorflow/tfjs/issues/1330.
          await (await tfd.zip([a, b]).iterator()).toArray();
-         done.fail();
+         fail();
        } catch (e) {
          expect(e.message).toMatch(/propagate me!/);
-         done();
        }
      });
 
@@ -496,20 +492,15 @@ describeAllEnvs('Dataset', () => {
     expect(tf.memory().numTensors).toBe(0);
   });
 
-  it('skip does not leak Tensors', async done => {
-    try {
-      const ds = new TestDataset();
-      expect(tf.memory().numTensors).toEqual(0);
-      const result = await ds.skip(15).toArrayForTest();
-      // The test dataset had 100 elements; we skipped 15; 85 remain.
-      expect(result.length).toEqual(85);
-      // Each element of the test dataset contains 2 Tensors;
-      // 85 elements remain, so 2 * 85 = 170 Tensors remain.
-      expect(tf.memory().numTensors).toEqual(170);
-      done();
-    } catch (e) {
-      done.fail(e);
-    }
+  it('skip does not leak Tensors', async () => {
+    const ds = new TestDataset();
+    expect(tf.memory().numTensors).toEqual(0);
+    const result = await ds.skip(15).toArrayForTest();
+    // The test dataset had 100 elements; we skipped 15; 85 remain.
+    expect(result.length).toEqual(85);
+    // Each element of the test dataset contains 2 Tensors;
+    // 85 elements remain, so 2 * 85 = 170 Tensors remain.
+    expect(tf.memory().numTensors).toEqual(170);
   });
 
   it('filter does not leak Tensors', async () => {
@@ -951,16 +942,15 @@ describeAllEnvs('Dataset', () => {
      });
 
   it('converting dataset with infinite elements to array throws error',
-     async done => {
+     async () => {
        try {
          const ds = tfd.array([1, 2, 3, 4, 5]).repeat();
          expect(ds.size).toEqual(Infinity);
          await ds.toArrayForTest();
-         done.fail();
+         fail();
        } catch (e) {
          expect(e.message).toEqual(
              'Can not convert infinite data stream to array.');
-         done();
        }
      });
 
@@ -983,7 +973,7 @@ describeAllEnvs('Dataset with DEBUG mode', () => {
   });
 
   it('throws an error when given an array of inconsistent shape',
-     async done => {
+     async () => {
        const dataset = array([[[1, 2], [3]], [[4, 5], [6]]]).batch(2);
        try {
          // Using toArray() rather than toArrayForTest().  The prefetch in
@@ -991,12 +981,11 @@ describeAllEnvs('Dataset with DEBUG mode', () => {
          // unrelated tests to fail (See
          // https://github.com/tensorflow/tfjs/issues/1330.
          await (await dataset.iterator()).toArray();
-         done.fail();
+         fail();
        } catch (e) {
          expect(e.message).toEqual(
              'Element arr[0][1] should have 2 elements, ' +
              'but has 1 elements');
-         done();
        }
        expect(tf.memory().numTensors).toBe(0);
      });

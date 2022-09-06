@@ -1,13 +1,13 @@
 steps:
 # Install top-level deps.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 
 # Generate cloudbuild_generated.yml,
 # which builds and tests all affected packages.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'generate-cloudbuild-for-packages'
   args: ['generate-cloudbuild-for-packages']

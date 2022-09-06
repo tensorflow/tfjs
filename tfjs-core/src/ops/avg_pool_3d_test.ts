@@ -157,13 +157,30 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     expect(() => tf.avgPool3d(x as tf.Tensor5D, 2, 1, 'valid')).toThrowError();
   });
 
-  it('throws when dimRoundingMode is set and pad is not a number', async () => {
+  it('throws when dimRoundingMode is set and pad is same', async () => {
+    const x = tf.tensor5d([1], [1, 1, 1, 1, 1]);
+    const pad = 'same';
+    const dimRoundingMode = 'round';
+
+    expect(() => tf.avgPool3d(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is valid', async () => {
     const x = tf.tensor5d([1], [1, 1, 1, 1, 1]);
     const pad = 'valid';
     const dimRoundingMode = 'round';
 
     expect(() => tf.avgPool3d(x, 2, 1, pad, dimRoundingMode)).toThrowError();
   });
+
+  it('throws when dimRoundingMode is set and pad is a non-integer number',
+     async () => {
+       const x = tf.tensor5d([1], [1, 1, 1, 1, 1]);
+       const pad = 1.2;
+       const dimRoundingMode = 'round';
+
+       expect(() => tf.avgPool3d(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+     });
 
   it('throws when passed a non-tensor', () => {
     expect(() => tf.avgPool3d({} as tf.Tensor5D, 2, 1, 'valid')).toThrowError();

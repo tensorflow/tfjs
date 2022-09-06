@@ -16,9 +16,11 @@
  */
 
 import {KernelConfig, KernelFunc, Prelu, PreluInputs, TensorInfo} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
-import {BinaryOpProgram} from './binary_op_webgpu';
-import {BinaryOpType} from './binary_op_util';
+
+import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpProgram} from '../binary_op_webgpu';
 
 export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
     TensorInfo {
@@ -26,7 +28,7 @@ export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
   const {x, alpha} = inputs;
 
   const program = new BinaryOpProgram(BinaryOpType.PRELU, x.shape, alpha.shape);
-  return backend.runWebGPUProgram(program, [x, alpha], x.dtype);
+  return backend.runWebGPUProgram(program, [x, alpha], 'float32');
 }
 
 export const preluConfig: KernelConfig = {

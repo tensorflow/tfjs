@@ -32,6 +32,12 @@ export const batchMatMulConfig: KernelConfig = {
       {name: 'adj_x', type: backend.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'adj_y', type: backend.binding.TF_ATTR_BOOL, value: transposeB}
     ];
-    return backend.executeSingleOutput(BatchMatMul, opAttrs, [a, b]);
+
+    // libtensorflow's BatchMatMulV2 op performs the same behavior as other tfjs
+    // backends' BatchMatMul (supports broadcasting), so a string literal is
+    // used here to point to libtensorflow's BatchMatMulV2 op, instead of using
+    // const `BatchMatMul` ('BatchMatMul') to resolve node-backend's special
+    // mapping.
+    return backend.executeSingleOutput('BatchMatMulV2', opAttrs, [a, b]);
   }
 };

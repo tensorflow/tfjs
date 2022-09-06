@@ -20,7 +20,6 @@ import {NonMaxSuppressionV3} from '../../kernel_names';
 import {Tensor1D, Tensor2D} from '../../tensor';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
-
 import {nonMaxSuppSanityCheck} from '../nonmax_util';
 import {op} from '../operation';
 
@@ -46,8 +45,10 @@ function nonMaxSuppression_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
     scoreThreshold = Number.NEGATIVE_INFINITY): Tensor1D {
-  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
-  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
+  const $boxes =
+      convertToTensor(boxes, 'boxes', 'nonMaxSuppression', 'float32');
+  const $scores =
+      convertToTensor(scores, 'scores', 'nonMaxSuppression', 'float32');
 
   const inputs = nonMaxSuppSanityCheck(
       $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);

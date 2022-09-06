@@ -31,6 +31,7 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
+
 import {deserialize} from './serialization';
 
 /**
@@ -252,7 +253,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     Porting Node: PyKeras overrides the `call()` signature of RNN cells,
    *       which are Layer subtypes, to accept two arguments. tfjs-layers does
    *       not do such overriding. Instead we preseve the `call()` signature,
-   *       which due to its `Tensor|Tensor[]` argument and return value, is
+   *       which due to its `Tensor|Tensor[]` argument and return value is
    *       flexible enough to handle the inputs and states.
    *   - a `stateSize` attribute. This can be a single integer (single state)
    *     in which case it is the size of the recurrent state (which should be
@@ -314,8 +315,8 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
 
   /**
    * If `true`, the network will be unrolled, else a symbolic loop will be
-   * used. Unrolling can speed-up a RNN, although it tends to be more memory-
-   * intensive. Unrolling is only suitable for short sequences (default:
+   * used. Unrolling can speed up a RNN, although it tends to be more
+   * memory-intensive. Unrolling is only suitable for short sequences (default:
    * `false`).
    * Porting Note: tfjs-layers has an imperative backend. RNNs are executed with
    *   normal TypeScript control flow. Hence this property is inapplicable and
@@ -930,7 +931,7 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraintfunction applied to the bias vector.
+   * Constraint function applied to the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
@@ -945,6 +946,11 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 export class SimpleRNNCell extends RNNCell {
@@ -968,6 +974,7 @@ export class SimpleRNNCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
 
@@ -1011,6 +1018,7 @@ export class SimpleRNNCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
@@ -1058,7 +1066,8 @@ export class SimpleRNNCell extends RNNCell {
         this.dropoutMask = generateDropoutMask({
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
-                             training
+                             training,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor;
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1066,7 +1075,8 @@ export class SimpleRNNCell extends RNNCell {
         this.recurrentDropoutMask = generateDropoutMask({
                                       ones: () => tfc.onesLike(prevOutput),
                                       rate: this.recurrentDropout,
-                                      training
+                                      training,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor;
       }
       let h: Tensor;
@@ -1197,6 +1207,11 @@ export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 /**
@@ -1301,6 +1316,7 @@ export class GRUCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
   readonly implementation: number;
@@ -1356,6 +1372,7 @@ export class GRUCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = this.units;
     this.dropoutMask = null;
@@ -1405,7 +1422,8 @@ export class GRUCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 3
+                             count: 3,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1414,7 +1432,8 @@ export class GRUCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 3
+                                      count: 3,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
@@ -1574,7 +1593,7 @@ export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1617,6 +1636,7 @@ export class LSTMCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number[];
   readonly implementation: number;
@@ -1670,6 +1690,7 @@ export class LSTMCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = [this.units, this.units];
     this.dropoutMask = null;
@@ -1735,7 +1756,8 @@ export class LSTMCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 4
+                             count: 4,
+                             dropoutFunc: this.dropoutFunc
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1744,7 +1766,8 @@ export class LSTMCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 4
+                                      count: 4,
+                                      dropoutFunc: this.dropoutFunc
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
@@ -1829,7 +1852,7 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1893,7 +1916,7 @@ serialization.registerClass(LSTM);
 
 export declare interface StackedRNNCellsArgs extends LayerArgs {
   /**
-   * A `Array` of `RNNCell` instances.
+   * An `Array` of `RNNCell` instances.
    */
   cells: RNNCell[];
 }
@@ -2084,10 +2107,12 @@ export function generateDropoutMask(args: {
   rate: number,
   training?: boolean,
   count?: number,
+  dropoutFunc?: Function,
 }): tfc.Tensor|tfc.Tensor[] {
-  const {ones, rate, training = false, count = 1} = args;
+  const {ones, rate, training = false, count = 1, dropoutFunc} = args;
 
-  const droppedInputs = () => K.dropout(ones(), rate);
+  const droppedInputs = () =>
+      dropoutFunc != null ? dropoutFunc(ones(), rate) : K.dropout(ones(), rate);
 
   const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
 

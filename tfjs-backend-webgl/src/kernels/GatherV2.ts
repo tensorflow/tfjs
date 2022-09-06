@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util, env} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {GatherProgram} from '../gather_gpu';
+import {GatherProgram, GatherShape} from '../gather_gpu';
 import {gatherV2ImplCPU} from '../kernel_utils/shared';
 
 import {reshape} from './Reshape';
@@ -33,6 +33,20 @@ export function gatherV2(args: {
   const {axis, batchDims} = attrs;
 
   const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+  if (env().get('DEBUG')) {
+    // In debug mode, throw error when any index is out of bound.
+    // Otherwise, just fill out of bounds with zeroes.
+    const indicesVals = backend.readSync(indices.dataId) as TypedArray;
+    const axisDim = x.shape[parsedAxis];
+    for (let i = 0; i < indicesVals.length; ++i) {
+      const index = indicesVals[i];
+      util.assert(
+        index <= axisDim - 1 && index >= 0,
+        () =>
+          `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+    }
+  }
+
   const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
       x, indices, parsedAxis, batchDims);
 
@@ -76,7 +90,8 @@ export function gatherV2(args: {
         shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
   }
 
-  const program = new GatherProgram(flattenX.shape, flattenOutputShape);
+  const program = new GatherProgram(flattenX.shape as GatherShape,
+                                    flattenOutputShape as GatherShape);
   const res = backend.runWebGLProgram(
       program, [flattenX, flattenIndex], flattenX.dtype);
   toDispose.push(res);

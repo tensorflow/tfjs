@@ -19,7 +19,7 @@ import {LayersModel} from '../engine/training';
 import * as tfl from '../index';
 import {BidirectionalMergeMode, VALID_BIDIRECTIONAL_MERGE_MODES} from '../keras_format/common';
 import {convertPythonicToTs} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
 import {RNN, SimpleRNN} from './recurrent';
@@ -60,7 +60,7 @@ describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
+describeMathCPUAndWebGL2('TimeDistributed Layer: Tensor', () => {
   it('3D input: Dense', () => {
     const input = tensor3d(
         [
@@ -357,7 +357,7 @@ describe('checkBidirectionalMergeMode', () => {
   });
 });
 
-describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Bidirectional Layer: Tensor', () => {
   // The golden tensor values used in the tests below can be obtained with
   // PyKeras code such as the following:
   // ```python
@@ -555,7 +555,7 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
   });
 });
 
-describeMathCPUAndGPU('Bidirectional with initial state', () => {
+describeMathCPUAndWebGL2('Bidirectional with initial state', () => {
   const sequenceLength = 4;
   const recurrentUnits = 3;
   const inputDim = 2;
@@ -666,7 +666,7 @@ describeMathCPUAndGPU('Bidirectional with initial state', () => {
   });
 });
 
-describeMathCPUAndGPU('Bidirectional with masking', () => {
+describeMathCPUAndWebGL2('Bidirectional with masking', () => {
   for (const rnnLayerType of [tfl.layers.simpleRNN, tfl.layers.lstm]) {
     // Reference Python TensorFlow code (v1.15.0):
     // ```py

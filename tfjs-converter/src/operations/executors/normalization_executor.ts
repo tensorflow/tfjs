@@ -27,11 +27,16 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
+        case 'EuclideanNorm':
+          return [ops.euclideanNorm(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('axis', node, tensorMap, context) as number[],
+              getParamValue('keepDims', node, tensorMap, context) as boolean)];
         case 'FusedBatchNorm':
         case 'FusedBatchNormV2': {
-          return [tfOps.batchNorm(
+          return [ops.batchNorm(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('mean', node, tensorMap, context) as Tensor,
               getParamValue('variance', node, tensorMap, context) as Tensor,
@@ -40,7 +45,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('epsilon', node, tensorMap, context) as number)];
         }
         case 'FusedBatchNormV3': {
-          return [tfOps.batchNorm(
+          return [ops.batchNorm(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('mean', node, tensorMap, context) as Tensor,
               getParamValue('variance', node, tensorMap, context) as Tensor,
@@ -49,7 +54,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('epsilon', node, tensorMap, context) as number)];
         }
         case 'LRN': {
-          return [tfOps.localResponseNormalization(
+          return [ops.localResponseNormalization(
               getParamValue('x', node, tensorMap, context) as Tensor3D |
                   Tensor4D,
               getParamValue('radius', node, tensorMap, context) as number,
@@ -58,15 +63,15 @@ export const executeOp: InternalOpExecutor =
               getParamValue('beta', node, tensorMap, context) as number)];
         }
         case 'Softmax': {
-          return [tfOps.softmax(
+          return [ops.softmax(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'LogSoftmax': {
-          return [tfOps.logSoftmax(
+          return [ops.logSoftmax(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'SparseToDense': {
-          return [tfOps.sparseToDense(
+          return [ops.sparseToDense(
               getParamValue('sparseIndices', node, tensorMap, context) as
                   Tensor,
               getParamValue('outputShape', node, tensorMap, context) as Tensor,

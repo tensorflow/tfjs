@@ -277,13 +277,22 @@ async function timeInference(predict, numRuns = 1) {
  */
 async function downloadValuesFromTensorContainer(tensorContainer) {
   let valueContainer;
+  const readSync = tf.getBackend() === 'webgl';
   if (tensorContainer instanceof tf.Tensor) {
-    valueContainer = await tensorContainer.data();
+    if (readSync) {
+      valueContainer = tensorContainer.dataSync();
+    } else {
+      valueContainer = await tensorContainer.data();
+    }
   } else if (Array.isArray(tensorContainer)) {
     // Start value downloads from all tensors.
     const valuePromiseContainer = tensorContainer.map(async item => {
       if (item instanceof tf.Tensor) {
-        return item.data();
+        if (readSync) {
+          return item.dataSync();
+        } else {
+          return item.data();
+        }
       }
       return item;
     });
@@ -294,7 +303,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     // Start value downloads from all tensors.
     for (const property in tensorContainer) {
       if (tensorContainer[property] instanceof tf.Tensor) {
-        valuePromiseContainer.push(tensorContainer[property].data());
+        if (readSync) {
+          valuePromiseContainer.push(tensorContainer[property].dataSync());
+        } else {
+          valuePromiseContainer.push(tensorContainer[property].data());
+        }
       } else {
         valuePromiseContainer.push(tensorContainer[property]);
       }
@@ -335,10 +348,14 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
+ * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(model, input) {
-  const predict = getPredictFnForModel(model, input);
-  return profileInference(predict);
+async function profileModelInference(
+    model, input, isTflite = false, numProfiles = 1) {
+  const predict = isTflite ? () => tfliteModel.predict(input) :
+                             getPredictFnForModel(model, input);
+  return profileInference(predict, isTflite, numProfiles);
 }
 
 /**
@@ -369,20 +386,50 @@ async function profileModelInference(model, input) {
  * ```
  *
  * @param predict The predict function to execute for profiling memory usage.
+ * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for `predict` to execute and profile.
  */
-async function profileInference(predict) {
+async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
   }
 
-  const kernelInfo = await tf.profile(async () => {
-    const res = await predict();
-    await downloadValuesFromTensorContainer(res);
-    tf.dispose(res);
-  });
-
+  let kernelInfo = {};
+  let kernelInfos = [];
+  if (isTflite) {
+    for (let i = 0; i < numProfiles; i++) {
+      await predict();
+      const profileItems = tfliteModel.getProfilingResults();
+      kernelInfo.kernels = profileItems.map(item => {
+        return {
+          name: item.nodeType,
+          kernelTimeMs: item.nodeExecMs,
+          // TODO: Shapes are not supported yet.
+          inputShapes: [],
+          outputShapes: [],
+        };
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  } else {
+    for (let i = 0; i < numProfiles; i++) {
+      kernelInfo = await tf.profile(async () => {
+        const res = await predict();
+        await downloadValuesFromTensorContainer(res);
+        tf.dispose(res);
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  }
+  for (let i = 0; i < kernelInfos[0].kernels.length; i++) {
+    let totalTimeMs = 0;
+    for (let j = 0; j < kernelInfos.length; j++) {
+      totalTimeMs += kernelInfos[j].kernels[i].kernelTimeMs;
+    }
+    kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
+  }
   kernelInfo.kernels =
       kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
@@ -437,8 +484,9 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   WEBGL_FLUSH_THRESHOLD: [-1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
   WEBGL_PACK_DEPTHWISECONV: [true, false],
   CHECK_COMPUTATION_FOR_ERRORS: [true, false],
+  KEEP_INTERMEDIATE_TENSORS: [true, false],
   WEBGL_USE_SHAPES_UNIFORMS: [true, false],
-  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: [1, 5, 10, 15, 20, 25, 30, 35, 40],
+  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: [1, 5, 10, 15, 20, 25, 30, 35, 40]
 };
 
 /**

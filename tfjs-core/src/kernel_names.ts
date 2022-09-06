@@ -238,6 +238,14 @@ export type CosInputs = UnaryInputs;
 export const Cosh = 'Cosh';
 export type CoshInputs = UnaryInputs;
 
+export const Cumprod = 'Cumprod';
+export type CumprodInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface CumprodAttrs {
+  axis: number;
+  exclusive: boolean;
+  reverse: boolean;
+}
+
 export const Cumsum = 'Cumsum';
 export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface CumsumAttrs {
@@ -449,11 +457,18 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
 
+export const LogicalXor = 'LogicalXor';
+export type LogicalXorInputs = BinaryInputs;
+
 export const LogSoftmax = 'LogSoftmax';
 export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
 export interface LogSoftmaxAttrs {
   axis: number;
 }
+
+export const LowerBound = 'LowerBound';
+export type LowerBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
 
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -612,6 +627,7 @@ export interface OneHotAttrs {
   depth: number;
   onValue: number;
   offValue: number;
+  dtype: DataType;
 }
 
 export const Pack = 'Pack';
@@ -641,6 +657,14 @@ export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ProdAttrs {
   axis: number|number[];
   keepDims: boolean;
+}
+
+export const RaggedTensorToTensor = 'RaggedTensorToTensor';
+export type RaggedTensorToTensorInputs =
+    Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
+    {rowPartitionTensors: TensorInfo[]};
+export interface RaggedTensorToTensorAttrs {
+  rowPartitionTypes: string[];
 }
 
 export const Range = 'Range';
@@ -710,6 +734,13 @@ export const ScatterNd = 'ScatterNd';
 export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
 export interface ScatterNdAttrs {
   shape: number[];
+}
+
+export const SearchSorted = 'SearchSorted';
+export type SearchSortedInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
+export interface SearchSortedAttrs {
+  side: 'left'|'right';
 }
 
 export const Select = 'Select';
@@ -891,6 +922,10 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const UpperBound = 'UpperBound';
+export type UpperBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
 
 export const ZerosLike = 'ZerosLike';
 export type ZerosLikeInputs = UnaryInputs;

@@ -16,6 +16,7 @@
 #define UNARY_H_
 
 #include <xnnpack.h>
+
 #include <cstddef>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
@@ -23,12 +24,51 @@
 namespace tfjs {
 namespace wasm {
 
-inline void unary(const size_t x_id, const size_t out_id,
-                  float operation(float)) {
+inline void unary_bool(const int x_id, const int out_id,
+                       bool operation(bool)) {
+  auto& a_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  const bool* a_buf = a_info.b();
+  bool* out_buf = out_info.b_write();
+
+  for (size_t i = 0; i < a_info.size; ++i) {
+    out_buf[i] = operation(a_buf[i]);
+  }
+}
+
+inline void unary_f32(const size_t x_id, const size_t out_id,
+                      float operation(float)) {
   auto& a_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* a_buf = a_info.f32();
+  float* out_buf = out_info.f32_write();
+
+  for (size_t i = 0; i < a_info.size; ++i) {
+    out_buf[i] = operation(a_buf[i]);
+  }
+}
+
+inline void unary_i32(const size_t x_id, const size_t out_id,
+                      int operation(int)) {
+  auto& a_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  const int32_t* a_buf = a_info.i32();
+  int32_t* out_buf = out_info.i32_write();
+
+  for (size_t i = 0; i < a_info.size; ++i) {
+    out_buf[i] = operation(a_buf[i]);
+  }
+}
+
+inline void unary_i32_with_f32_out(const size_t x_id, const size_t out_id,
+                                   float operation(int)) {
+  auto& a_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  const int32_t* a_buf = a_info.i32();
   float* out_buf = out_info.f32_write();
 
   for (size_t i = 0; i < a_info.size; ++i) {

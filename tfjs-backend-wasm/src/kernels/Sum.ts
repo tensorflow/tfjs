@@ -20,11 +20,18 @@ import {backend_util, KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs, Tensor
 import {BackendWasm} from '../backend_wasm';
 
 import {permuteAxesAndTranspose} from './kernel_utils';
+import {CppDType} from './types';
 
-let wasmSum: (xId: number, reduceSize: number, outId: number) => void;
+let wasmSum: (xId: number, reduceSize: number, dtype: number, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
-  wasmSum = backend.wasm.cwrap(Sum, null /*void*/, ['number, number, number']);
+  wasmSum = backend.wasm.cwrap(Sum, null /*void*/, [
+    'number',  // input_id
+    'number',  // reduce_size
+    'number',  // dtype
+    'number',  // out_id
+  ]);
 }
 
 function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
@@ -61,7 +68,7 @@ function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
   const out = backend.makeOutput(outShape, input.dtype);
   if (util.sizeFromShape(input.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    wasmSum(inputId, reduceSize, outId);
+    wasmSum(inputId, reduceSize, CppDType[out.dtype], outId);
   }
 
   if (inputWasTransposed) {

@@ -66,6 +66,10 @@ function deepMapInternal(
   if (input == null) {
     return null;
   }
+  if (typeof Blob === 'function' && input instanceof Blob) {
+    return input.slice();
+  }
+
   if (containedIn.has(input)) {
     throw new Error('Circular references are not supported.');
   }
@@ -92,6 +96,9 @@ function deepMapInternal(
       mappedIterable[k] = childResult;
     }
     containedIn.delete(input);
+    if (input.__proto__) {
+      mappedIterable.__proto__ = input.__proto__;
+    }
     return mappedIterable;
   } else {
     throw new Error(`Can't recurse into non-iterable type: ${input}`);
@@ -215,7 +222,7 @@ export type DeepMapAsyncResult = {
  */
 export async function deepMapAndAwaitAll(
     input: any, mapFn: (x: any) => DeepMapAsyncResult): Promise<any|any[]> {
-  const seen: Map<any, Promise<any>> = new Map();
+  const seen: Map<any, any> = new Map();
 
   // First do a normal deepMap, collecting Promises in 'seen' as a side effect.
   deepMapInternal(input, mapFn, seen);

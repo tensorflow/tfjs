@@ -21,11 +21,12 @@ import {
   StyleSheet,
   PixelRatio,
   LayoutChangeEvent,
-  Platform
+  Platform,
 } from 'react-native';
 import { Camera } from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
+import { Rotation } from './types';
 
 interface WrappedComponentProps {
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -34,17 +35,19 @@ interface WrappedComponentProps {
 }
 
 interface Props {
+  useCustomShadersToResize: boolean;
   cameraTextureWidth: number;
   cameraTextureHeight: number;
   resizeWidth: number;
   resizeHeight: number;
   resizeDepth: number;
   autorender: boolean;
+  rotation?: Rotation;
   onReady: (
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
     gl: ExpoWebGLRenderingContext,
-    cameraTexture: WebGLTexture,
+    cameraTexture: WebGLTexture
   ) => void;
 }
 
@@ -54,6 +57,7 @@ interface State {
 
 const DEFAULT_AUTORENDER = true;
 const DEFAULT_RESIZE_DEPTH = 3;
+const DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE = false;
 
 /**
  * A higher-order-component (HOC) that augments the [Expo.Camera](https://docs.expo.io/versions/latest/sdk/camera/)
@@ -70,10 +74,26 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * __In addition to__ all the props taken by Expo.Camera. The returned
  * component takes the following props
  *
+ * - __use_custom_shaders_to_resize__: boolean — whether to use custom shaders
+ *   to resize the camera image to smaller dimensions that fit the output
+ *   tensor.
+ *   - If it is set to false (default and recommended), the resize will be done
+ *     by the underlying GL system when drawing the camera image texture to the
+ *     target output texture with TEXTURE_MIN_FILTER/TEXTURE_MAG_FILTER set to
+ *     gl.LINEAR, and there is no need to provide `cameraTextureWidth` and
+ *     `cameraTextureHeight` props below.
+ *   - If it is set to true (legacy), the resize will be done by the custom
+ *     shaders defined in `resize_bilinear_program_info.ts`. Setting it to true
+ *     also requires that client provide the correct `cameraTextureWidth` and
+ *     `cameraTextureHeight` props below. Unfortunately there is no official API
+ *     to get the camera texture size programmatically so they have to be
+ *     decided empirically. From our experience, it is hard to cover all cases
+ *     in this way because different devices models and/or preview sizes might
+ *     produce different camera texture sizes.
  * - __cameraTextureWidth__: number — the width the camera preview texture
- *   (see example and note below)
+ *   (see note above)
  * - __cameraTextureHeight__: number — the height the camera preview texture
- *   (see example and note below)
+ *   (see note above)
  * - __resizeWidth__: number — the width of the output tensor
  * - __resizeHeight__: number — the height of the output tensor
  * - __resizeDepth__: number — the depth (num of channels) of the output tensor.
@@ -81,6 +101,9 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * - __autorender__: boolean — if true the view will be automatically updated
  *   with the contents of the camera. Set this to false if you want more direct
  *   control on when rendering happens.
+ * - __rotation__: number — the degrees that the internal camera texture and
+ *   preview will be rotated. Accepted values: 0, +/- 90, +/- 180, +/- 270 or
+ *   360.
  * - __onReady__: (
  *    images: IterableIterator<tf.Tensor3D>,
  *    updateCameraPreview: () => void,
@@ -127,31 +150,12 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *   }
  *
  *   render() {
- *    // Currently expo does not support automatically determining the
- *    // resolution of the camera texture used. So it must be determined
- *    // empirically for the supported devices and preview size.
- *
- *    let textureDims;
- *    if (Platform.OS === 'ios') {
- *     textureDims = {
- *       height: 1920,
- *       width: 1080,
- *     };
- *    } else {
- *     textureDims = {
- *       height: 1200,
- *       width: 1600,
- *     };
- *    }
- *
  *    return <View>
  *      <TensorCamera
  *       // Standard Camera props
  *       style={styles.camera}
  *       type={Camera.Constants.Type.front}
  *       // Tensor related props
- *       cameraTextureHeight={textureDims.height}
- *       cameraTextureWidth={textureDims.width}
  *       resizeHeight={200}
  *       resizeWidth={152}
  *       resizeDepth={3}
@@ -168,10 +172,12 @@ const DEFAULT_RESIZE_DEPTH = 3;
 /** @doc {heading: 'Media', subheading: 'Camera'} */
 export function cameraWithTensors<T extends WrappedComponentProps>(
   // tslint:disable-next-line: variable-name
-  CameraComponent: React.ComponentType<T>,
+  CameraComponent: React.ComponentType<T>
 ) {
-  return class CameraWithTensorStream
-    extends React.Component<T & Props, State> {
+  return class CameraWithTensorStream extends React.Component<
+    T & Props,
+    State
+  > {
     camera: Camera;
     glView: GLView;
     glContext: ExpoWebGLRenderingContext;
@@ -189,7 +195,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
 
     componentWillUnmount() {
       cancelAnimationFrame(this.rafID);
-      if(this.glContext) {
+      if (this.glContext) {
         GLView.destroyContextAsync(this.glContext);
       }
       this.camera = null;
@@ -247,13 +253,23 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         renderLoop();
       }
 
-      const {
-        resizeHeight,
-        resizeWidth,
-        resizeDepth,
-        cameraTextureHeight,
-        cameraTextureWidth,
-      } = this.props;
+      const { resizeDepth } = this.props;
+
+      // cameraTextureHeight and cameraTextureWidth props can be omitted when
+      // useCustomShadersToResize is set to false. Setting a default value to
+      // them here.
+      const cameraTextureHeight =
+        this.props.cameraTextureHeight != null
+          ? this.props.cameraTextureHeight
+          : 0;
+      const cameraTextureWidth =
+        this.props.cameraTextureWidth != null
+          ? this.props.cameraTextureWidth
+          : 0;
+      const useCustomShadersToResize =
+        this.props.useCustomShadersToResize != null
+          ? this.props.useCustomShadersToResize
+          : DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE;
 
       //
       //  Set up a generator function that yields tensors representing the
@@ -268,18 +284,20 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           depth: RGBA_DEPTH,
         };
 
-        const targetDims = {
-          height: resizeHeight,
-          width: resizeWidth,
-          depth: resizeDepth || DEFAULT_RESIZE_DEPTH,
-        };
-
         while (cameraStreamView.glContext != null) {
+          const targetDims = {
+            height: cameraStreamView.props.resizeHeight,
+            width: cameraStreamView.props.resizeWidth,
+            depth: resizeDepth || DEFAULT_RESIZE_DEPTH,
+          };
+
           const imageTensor = fromTexture(
             gl,
             cameraTexture,
             textureDims,
-            targetDims
+            targetDims,
+            useCustomShadersToResize,
+            { rotation: cameraStreamView.props.rotation }
           );
           yield imageTensor;
         }
@@ -302,6 +320,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     ) {
       const renderFunc = () => {
         const { cameraLayout } = this.state;
+        const { rotation } = this.props;
         const width = PixelRatio.getPixelSizeForLayoutSize(cameraLayout.width);
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
@@ -311,7 +330,13 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
-        renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
+        renderToGLView(
+          gl,
+          cameraTexture,
+          { width, height },
+          flipHorizontal,
+          rotation
+        );
       };
 
       return renderFunc.bind(this);
@@ -329,6 +354,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       // Use this object to use typescript to check that we are removing
       // all the tensorCamera properties.
       const tensorCameraPropMap: Props = {
+        useCustomShadersToResize: null,
         cameraTextureWidth: null,
         cameraTextureHeight: null,
         resizeWidth: null,
@@ -336,6 +362,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth: null,
         autorender: null,
         onReady: null,
+        rotation: 0,
       };
       const tensorCameraPropKeys = Object.keys(tensorCameraPropMap);
 
@@ -349,10 +376,12 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       }
 
       // Set up an on layout handler
-      const onlayout = this.props.onLayout ? (e: LayoutChangeEvent) => {
-        this.props.onLayout(e);
-        this.onCameraLayout(e);
-      } : this.onCameraLayout;
+      const onlayout = this.props.onLayout
+        ? (e: LayoutChangeEvent) => {
+            this.props.onLayout(e);
+            this.onCameraLayout(e);
+          }
+        : this.onCameraLayout;
 
       cameraProps.onLayout = onlayout;
 
@@ -360,7 +389,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         //@ts-ignore see https://github.com/microsoft/TypeScript/issues/30650
         <CameraComponent
           key='camera-with-tensor-camera-view'
-          {...(cameraProps)}
+          {...cameraProps}
           ref={(ref: Camera) => (this.camera = ref)}
         />
       );
@@ -375,10 +404,10 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             top: cameraLayout.y,
             width: cameraLayout.width,
             height: cameraLayout.height,
-            zIndex: this.props.style.zIndex ?
-              parseInt(this.props.style.zIndex, 10) + 10 : 10,
-          }
-
+            zIndex: this.props.style.zIndex
+              ? parseInt(this.props.style.zIndex, 10) + 10
+              : 10,
+          },
         });
 
         glViewComponent = (
@@ -386,7 +415,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             key='camera-with-tensor-gl-view'
             style={styles.glView}
             onContextCreate={this.onGLContextCreate}
-            ref={ref => (this.glView = ref)}
+            ref={(ref) => (this.glView = ref)}
           />
         );
       }

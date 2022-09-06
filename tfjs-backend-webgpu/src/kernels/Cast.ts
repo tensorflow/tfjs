@@ -15,9 +15,10 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs-core';
-import {BinaryInputs, Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {BinaryInputs, Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {castImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
@@ -67,6 +68,13 @@ export function cast(
     return {dataId: result.dataId, shape: result.shape, dtype};
   }
 
+  if (backend.shouldExecuteOnCPU([x])) {
+    const values = backend.tensorMap.get(x.dataId).values as TypedArray;
+    const [resultShape, resultType, resultData] =
+        castImplCPU(values, x.shape, x.dtype, dtype);
+    return backend.makeTensorInfo(resultShape, resultType, resultData);
+  }
+
   if (dtype === 'int32') {
     return int(x, backend);
   }
@@ -78,6 +86,7 @@ export function cast(
     const binaryInputs: BinaryInputs = {a: x, b: zerosTensorInfo};
 
     const result = notEqual({inputs: binaryInputs, backend}) as TensorInfo;
+    backend.disposeData(zerosTensorInfo.dataId);
     return result;
   }
 

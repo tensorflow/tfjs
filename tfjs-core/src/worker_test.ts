@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {describeWithFlags, HAS_WORKER} from './jasmine_util';
+import '@tensorflow/tfjs-backend-cpu';
 import {expectArraysClose} from './test_util';
 
 const str2workerURL = (str: string): string => {
@@ -36,7 +36,7 @@ a = tf.add(a, b);
 self.postMessage({data: a.dataSync()});
 `;
 
-describeWithFlags('computation in worker', HAS_WORKER, () => {
+describe('computation in worker', () => {
   it('tensor in worker', (done) => {
     const worker = new Worker(str2workerURL(workerTest));
     worker.onmessage = (msg) => {

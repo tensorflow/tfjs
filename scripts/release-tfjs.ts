@@ -27,7 +27,7 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions} from './release-util';
+import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -36,12 +36,10 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
-// Computes the default updated version (does a minor version update).
-function getMinorUpdateVersion(version: string): string {
-  const versionSplit = version.split('.');
-
-  return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
-}
+parser.addArgument('--local', {
+  action: 'storeTrue',
+  help: 'Only create the release branch locally. Do not push or create a PR.',
+});
 
 async function main() {
   const args = parser.parseArgs();
@@ -52,11 +50,29 @@ async function main() {
   // Guess release version from tfjs-core's latest version, with a minor update.
   const latestVersion = $(`npm view @tensorflow/tfjs-core dist-tags.latest`);
   const minorUpdateVersion = getMinorUpdateVersion(latestVersion);
-  let newVersion = minorUpdateVersion;
-  newVersion =
-      await question(`New version (leave empty for ${minorUpdateVersion}): `);
-  if (newVersion === '') {
-    newVersion = minorUpdateVersion;
+  const newVersion = await question('New version for monorepo (leave empty for '
+    + `${minorUpdateVersion}): `) || minorUpdateVersion;
+
+  // Populate the versions map with new versions for monorepo packages.
+  const versions = new Map<string /* package name */, string /* version */>();
+  for (const phase of TFJS_RELEASE_UNIT.phases) {
+    for (const packageName of phase.packages) {
+      versions.set(packageName, newVersion);
+    }
+  }
+
+  // Add versions for alpha monorepo packages, which do not have the same
+  // version as the other monorepo packages.
+  for (const phase of ALPHA_RELEASE_UNIT.phases) {
+    for (const packageName of phase.packages) {
+      const latestVersion =
+        $(`npm view @tensorflow/${packageName} dist-tags.latest`);
+      const minorUpdateVersion = getPatchUpdateVersion(latestVersion);
+      const newVersion =
+        await question(`New version for alpha package ${packageName}`
+          + ` (leave empty for ${minorUpdateVersion}): `) || minorUpdateVersion;
+      versions.set(packageName, newVersion);
+    }
   }
 
   // Get release candidate commit.
@@ -75,17 +91,16 @@ async function main() {
   console.log(chalk.magenta.bold(
       `~~~ Creating new release branch ${releaseBranch} ~~~`));
   $(`git checkout -b ${releaseBranch} ${commit}`);
-  $(`git push origin ${releaseBranch}`);
+  if (!args.local) {
+    $(`git push origin ${releaseBranch}`);
+  }
 
-  // Update version.
-  const phases = TFJS_RELEASE_UNIT.phases;
-
-  for (let i = 0; i < phases.length; i++) {
-    const packages = phases[i].packages;
-    const deps = phases[i].deps || [];
-
-    for (let i = 0; i < packages.length; i++) {
-      const packageName = packages[i];
+  // Update versions in package.json files.
+  const phases = [
+    ...TFJS_RELEASE_UNIT.phases, ...ALPHA_RELEASE_UNIT.phases, E2E_PHASE
+  ];
+  for (const phase of phases) {
+    for (const packageName of phase.packages) {
       shell.cd(packageName);
 
       // Update the version.
@@ -94,17 +109,17 @@ async function main() {
       const parsedPkg = JSON.parse(`${pkg}`);
 
       console.log(chalk.magenta.bold(`~~~ Processing ${packageName} ~~~`));
+      const newVersion = versions.get(packageName);
       pkg = `${pkg}`.replace(
-          `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
-
-      pkg = updateTFJSDependencyVersions(deps, pkg, parsedPkg, newVersion);
+        `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
+      pkg = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
 
       fs.writeFileSync(packageJsonPath, pkg);
 
       shell.cd('..');
 
-      // Make version for all packages other than tfjs-node-gpu.
-      if (packageName !== 'tfjs-node-gpu') {
+      // Make version for all packages other than tfjs-node-gpu and e2e.
+      if (packageName !== 'tfjs-node-gpu' && packageName !== 'e2e') {
         $(`./scripts/make-version.js ${packageName}`);
       }
     }
@@ -114,7 +129,9 @@ async function main() {
   const devBranchName = `dev_${releaseBranch}`;
 
   const message = `Update monorepo to ${newVersion}.`;
-  createPR(devBranchName, releaseBranch, message);
+  if (!args.local) {
+    createPR(devBranchName, releaseBranch, message);
+  }
 
   console.log(
       'Done. FYI, this script does not publish to NPM. ' +
@@ -125,6 +142,9 @@ async function main() {
       'Please remeber to update the website once you have released ' +
       'a new package version.');
 
+  if (args.local) {
+    console.log(`Local output located in ${dir}`)
+  }
   process.exit(0);
 }
 

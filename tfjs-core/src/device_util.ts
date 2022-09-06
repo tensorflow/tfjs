@@ -20,7 +20,16 @@ function _isNavigatorDefined(): boolean {
   return typeof navigator !== 'undefined' && navigator != null;
 }
 
+let isMobileMockValue: boolean|undefined;
+
+export function mockIsMobile(value: boolean|undefined) {
+  isMobileMockValue = value;
+}
+
 export function isMobile(nav?: Navigator): boolean {
+  if (isMobileMockValue !== undefined) {
+    return isMobileMockValue;
+  }
   if (nav || _isNavigatorDefined()) {
     if (!nav) {
       nav = navigator;
@@ -29,8 +38,8 @@ export function isMobile(nav?: Navigator): boolean {
       return true;
     }
 
-    // tslint:disable-next-line:no-any
     const a = nav.userAgent || nav.vendor ||
+        // tslint:disable-next-line:no-any
         (typeof window !== 'undefined' ? (window as any).opera : '');
     // Use `navigator.userAgentData.mobile` as fallback.
     if (!a) {

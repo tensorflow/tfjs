@@ -12,6 +12,7 @@ the following models from our
 - MobileNet
 - PoseDetection
 - Q&A
+- Universal sentence encoder
 - AutoML Image classification
 - AutoML Object detection
 
@@ -32,7 +33,7 @@ tf.setBackend('wasm').then(() => main());
 
 ```html
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
 
 <!-- Adds the WASM backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script>
@@ -90,6 +91,36 @@ learn more about this topic [here](https://web.dev/coop-coep/).
 If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
 <code>tfjs-backend-wasm-<b>threaded-simd</b>.wasm</code> WASM binary is loaded.
+
+## Threads count
+
+By default, the backend will use the number of logical CPU cores as the
+threads count when creating the threadpool used by XNNPACK. You can use the
+`setThreadsCount` API to manually set it (must be called before calling
+`tf.setBackend('wasm')`). `getThreadsCount` API can be used to get the actual
+number of threads being used (must be called after the WASM backend is
+initialized).
+
+### Via NPM
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import {getThreadsCount, setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+
+setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(getThreadsCount());
+});
+```
+
+### Via script tag
+
+```js
+tf.wasm.setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(tf.wasm.getThreadsCount());
+});
+```
 
 ## Running MobileNet
 

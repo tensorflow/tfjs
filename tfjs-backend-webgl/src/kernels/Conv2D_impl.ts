@@ -17,6 +17,8 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
+// import {assertAndGetBroadcastShape} from
+// '../../../tfjs-core/src/ops/broadcast_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -37,6 +39,39 @@ type Conv2DConfig = {
   leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
+
+// Both conv2dByMatMul and conv2dWithIm2Row fuse height and width into one
+// dimension to compute batchMatMul, so bias and activation weights are also
+// supposed to fuse the two dimensions into one.
+//
+// This function computes the target shape for fusing height and width
+// dimensions. Returning null means the shape is already compatible.
+//
+// Even though the bias is not supposed to be a 3-D or a 4-D (including
+// batch) tensor and PReLU activiation weights is not supposed to be a 4-D
+// tensor, we still need to support them, because we haven't disabled
+// them for NHWC format.
+// https://github.com/tensorflow/tfjs/blob/b53bd47e880367ae57493f0ea628abaf08db2d5d/tfjs-core/src/ops/fused/conv2d.ts#L181-L196
+function getShapeForBatchMatMul(
+    shape: number[], isChannelsLast: boolean): number[] {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ?
+        [
+          ...shape.slice(0, -3) /* batch */,
+          shape[length - 3] * shape[length - 2] /* height * width */,
+          shape[length - 1] /* channel */
+        ] :
+        [
+          ...shape.slice(0, -3) /* batch */, shape[length - 3] /* channel */,
+          shape[length - 2] * shape[length - 1] /* height * width */
+        ];
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+}
 
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
@@ -64,6 +99,27 @@ export function conv2dByMatMul({
 
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
+
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
+  }
 
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
   // and we can remove this condition.
@@ -140,12 +196,15 @@ export function conv2dByMatMul({
 
     intermediates.push(pointwiseConv);
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
+    const numCols = convInfo.outHeight * convInfo.outWidth;
     const xReshaped = reshape({
       inputs: {x},
       backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+      attrs: {
+        shape: isChannelsLast ?
+            [convInfo.batchSize, numCols, convInfo.inChannels] :
+            [convInfo.batchSize, convInfo.inChannels, numCols]
+      }
     });
     const filterReshaped = reshape({
       inputs: {x: filter},
@@ -153,9 +212,9 @@ export function conv2dByMatMul({
       attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
     });
     const result = batchMatMulImpl({
-      a: xReshaped,
-      b: filterReshaped,
-      transposeA,
+      a: isChannelsLast ? xReshaped : filterReshaped,
+      b: isChannelsLast ? filterReshaped : xReshaped,
+      transposeA: !isChannelsLast,
       transposeB,
       backend,
       bias,
@@ -210,36 +269,51 @@ export function conv2dWithIm2Row({
 
   const sharedDim = filterWidth * filterHeight * inChannels;
   const numCols = outHeight * outWidth;
-  const x2ColShape = [sharedDim, numCols];
+  const x2ColShape = [convInfo.batchSize, sharedDim, numCols];
   const transposeA = true;
   const transposeB = false;
 
   const intermediates: TensorInfo[] = [];
 
-  const xSqueezed =
-      reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
+  }
+
   const w2Row = reshape({
     inputs: {x: filter},
     backend,
     attrs: {shape: [1, sharedDim, util.sizeFromShape(filter.shape) / sharedDim]}
   });
-
-  intermediates.push(xSqueezed);
   intermediates.push(w2Row);
 
   const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
   const customValues = [
-    xSqueezed.shape, [convInfo.padInfo.left, convInfo.padInfo.top],
+    x.shape, [convInfo.padInfo.top, convInfo.padInfo.left],
     [convInfo.strideHeight, convInfo.strideWidth],
-    [convInfo.dilationHeight, convInfo.dilationWidth]
+    [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
+    [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
   ];
-  const im2Col = backend.runWebGLProgram(
-      im2ColProgram, [xSqueezed], 'float32', customValues);
-  const im2ColReshaped = reshape({
-    inputs: {x: im2Col},
-    backend,
-    attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
-  });
+  const im2Col =
+      backend.runWebGLProgram(im2ColProgram, [x], 'float32', customValues);
+  const im2ColReshaped =
+      reshape({inputs: {x: im2Col}, backend, attrs: {shape: x2ColShape}});
 
   intermediates.push(im2Col);
   intermediates.push(im2ColReshaped);
@@ -250,11 +324,16 @@ export function conv2dWithIm2Row({
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
   const matmulProgram = new MatMulPackedProgram(
-      im2ColReshaped.shape as [number, number, number],
-      w2Row.shape as [number, number, number],
-      [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias,
-      fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
-  const inputs: TensorInfo[] = [im2ColReshaped, w2Row];
+      isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
+                       w2Row.shape as [number, number, number],
+      isChannelsLast ? w2Row.shape as [number, number, number] :
+                       im2ColReshaped.shape as [number, number, number],
+      isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
+                       [convInfo.batchSize, convInfo.outChannels, numCols],
+      transposeA, transposeB, hasBias, fusedActivation,
+      hasPreluActivationWeights, hasLeakyreluAlpha);
+  const inputs: TensorInfo[] =
+      isChannelsLast ? [im2ColReshaped, w2Row] : [w2Row, im2ColReshaped];
   if (bias) {
     inputs.push(bias);
   }
@@ -269,12 +348,8 @@ export function conv2dWithIm2Row({
     intermediates.push($leakyreluAlpha);
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
-
-  const outShape = isChannelsLast ?
-      [1, outHeight, outWidth, convInfo.outChannels] :
-      [1, convInfo.outChannels, outHeight, outWidth];
-  const out =
-      reshape({inputs: {x: product}, backend, attrs: {shape: outShape}});
+  const out = reshape(
+      {inputs: {x: product}, backend, attrs: {shape: convInfo.outShape}});
 
   intermediates.push(product);
   for (const i of intermediates) {

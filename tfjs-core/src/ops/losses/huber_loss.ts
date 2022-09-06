@@ -32,7 +32,7 @@ import {sub} from '../sub';
 import {computeWeightedLoss} from './compute_weighted_loss';
 
 /**
- * Computes the huber loss between two tensors.
+ * Computes the Huber loss between two tensors.
  *
  * @param labels The ground truth output tensor, same dimensions as
  *    'predictions'.
@@ -41,7 +41,7 @@ import {computeWeightedLoss} from './compute_weighted_loss';
  *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
  *    must be either `1`, or the same as the corresponding `losses`
  *    dimension).
- * @param delta Point where huber loss changes from quadratic to linear.
+ * @param delta Point where Huber loss changes from quadratic to linear.
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`.
  *

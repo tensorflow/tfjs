@@ -1,13 +1,13 @@
 steps:
 # Install top-level deps.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
 
 # Test generate_cloudbuild.js
 # See #4523 for why this is special-cased into every cloudbuild.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'scripts'
   id: 'test-generate-cloudbuild'
   entrypoint: 'yarn'
@@ -17,47 +17,56 @@ steps:
 # Test run_flaky.js
 # The flaky test runner is important enough to test every time and takes less
 # than 5 seconds.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'test-run-flaky'
   entrypoint: 'yarn'
   args: ['test-run-flaky']
   waitFor: ['yarn-common']
 
 # Lint bazel files.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'buildifier'
   entrypoint: 'yarn'
   args: ['buildifier-ci']
   waitFor: ['yarn-common']
 
+# Lint Bazel package typescript files.
+- name: 'gcr.io/learnjs-174218/release'
+  id: 'tslint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn-common']
+
 # Bazel tests
 # These use a remote cache and only re-run if changes occurred, so we run them
 # in every build.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'bazel-tests'
   entrypoint: 'bash'
   args:
     - './scripts/run_bazel_ci_tests.sh'
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  env:
+    - 'BROWSERSTACK_USERNAME=deeplearnjs1'
+    - 'NIGHTLY=$_NIGHTLY'
   waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# The following steps build the link packages, which are temporary packages
-# that help packages that don't build with Bazel load outputs from packages
+# The following step builds the link package, which is a temporary package
+# that helps packages that don't build with Bazel load outputs from packages
 # that build with Bazel.
-- name: 'node:10'
-  dir: 'link-package-core'
-  entrypoint: 'yarn'
-  id: 'yarn-link-package-core'
-  args: ['install']
-  waitFor: ['bazel-tests']
-
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'link-package'
   entrypoint: 'yarn'
   id: 'yarn-link-package'
   args: ['install']
-  waitFor: ['bazel-tests', 'yarn-link-package-core']
+  waitFor: ['bazel-tests']
+
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'link-package'
+  entrypoint: 'yarn'
+  id: 'yarn-link-package-build'
+  args: ['build', '--bazel_options=--config=ci']
+  waitFor: ['yarn-link-package']
 
 # General configuration
 secrets:

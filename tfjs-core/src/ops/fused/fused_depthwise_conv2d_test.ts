@@ -401,4 +401,42 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
        expectArraysClose(await dfilterFused.array(), await dfilter.array());
        expectArraysClose(await dbiasFused.array(), await dbias.array());
      });
+
+  it('throws when input is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth], 'int32');
+    const w = tf.tensor4d(
+        [-0.303873, -0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    expect(() => tf.fused.depthwiseConv2d({x, filter: w, strides, pad}))
+        .toThrowError(
+            /Argument 'x' passed to 'depthwiseConv2d' must be float32/);
+  });
+
+  it('throws when filter is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4],
+        [fSize, fSize, inDepth, chMul],
+        'int32',
+    );
+
+    expect(() => tf.fused.depthwiseConv2d({x, filter: w, strides, pad}))
+        .toThrowError(
+            /Argument 'filter' passed to 'depthwiseConv2d' must be float32/);
+  });
 });
