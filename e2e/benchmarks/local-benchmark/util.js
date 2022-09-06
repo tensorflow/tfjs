@@ -89,7 +89,7 @@ function areClose(
   return true;
 }
 
-function expectObjectsPredicate(actual, expected, epsilon, predicate) {
+function expectObjectsPredicate(actual, expected, epsilon, predicate, fuzzy) {
   let actualKeys = Object.getOwnPropertyNames(actual);
   let expectedKeys = Object.getOwnPropertyNames(expected);
   if (actualKeys.length != expectedKeys.length) {
@@ -103,9 +103,10 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
     let isArray = tf.util.isTypedArray(actual[key]) &&
         tf.util.isTypedArray(expected[key]);
     if (isArray) {
-      expectArraysClose(actual[key], expected[key], epsilon, key);
+      expectArraysClose(actual[key], expected[key], epsilon, predicate, fuzzy);
     } else if (isObject) {
-      expectObjectsPredicate(actual[key], expected[key], epsilon, predicate);
+      expectObjectsPredicate(
+          actual[key], expected[key], epsilon, predicate, fuzzy);
     } else {
       if (!predicate(actual[key], expected[key])) {
         throw new Error(`Objects differ: actual[${key}] = ${
@@ -117,12 +118,18 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
   return true;
 }
 
-function expectObjectsClose(actual, expected, epsilon) {
+function shouldCompareWithFuzzy(benchmarkInfo) {
+  const benchmarkInfos = ['bodypix', 'FaceLandmarkDetection-attention_mesh'];
+  return benchmarkInfos.includes(benchmarkInfo);
+}
+
+function expectObjectsClose(actual, expected, benchmarkInfo, epsilon) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
   }
+  const fuzzy = shouldCompareWithFuzzy(benchmarkInfo);
   expectObjectsPredicate(
-      actual, expected, epsilon, (a, b) => areClose(a, b, epsilon));
+      actual, expected, epsilon, (a, b) => areClose(a, b, epsilon), fuzzy);
 }
 
 function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
@@ -158,19 +165,19 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
 }
 
 // TODO: support relative comparison for array.
-function expectArraysClose(actual, expected, epsilon, key) {
+function expectArraysClose(actual, expected, epsilon, predicate, fuzzy) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
   }
 
-  if (key == 'data') {
+  if (fuzzy) {
     // For bodypix, the value in data memeber means "1 for the pixels that are
-    // part of the person, and 0 otherwise".
-    // So for these models, we don't expect all data is exactly match. Default
-    // use error rate 0.001 (1/1000).
+    // part of the person, and 0 otherwise". So for these models, we don't
+    // expect all data is exactly match. Default use error rate 0.001 (1/1000).
+    // For FaceLandmarkDetection(attention_mesh), the predict result contains
+    // pixel coordinates. These coordinates need a big epsilon from areClose.
     const ERROR_RATE = 0.001;
-    return expectArraysPredicateFuzzy(
-        actual, expected, (a, b) => areClose(a, b, epsilon), ERROR_RATE);
+    return expectArraysPredicateFuzzy(actual, expected, predicate, ERROR_RATE);
   } else {
     return tf.test_util.expectArraysClose(actual, expected, epsilon);
   }
