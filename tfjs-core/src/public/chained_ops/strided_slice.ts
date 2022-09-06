@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {stridedSlice} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -29,7 +29,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.stridedSlice = function<T extends Tensor>(
+getGlobalTensorClass().prototype.stridedSlice = function<T extends Tensor>(
     this: Tensor, begin: number[], end: number[], strides: number[],
     beginMask?: number, endMask?: number, ellipsisMask?: number,
     newAxisMask?: number, shrinkAxisMask?: number): T {

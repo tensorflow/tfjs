@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Mod, ModInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -50,23 +50,17 @@ import {op} from './operation';
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'mod');
   let $b = convertToTensor(b, 'b', 'mod');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.mod($a, $b);
-    save([$a, $b]);
-    return res;
-  };
   const inputs: ModInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Mod) as T;
+  return ENGINE.runKernel(Mod, inputs as {} as NamedTensorMap);
 }
 
 export const mod = op({mod_});

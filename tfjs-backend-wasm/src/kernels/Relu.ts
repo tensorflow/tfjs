@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Relu} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
-export const reluConfig: KernelConfig = createUnaryKernelConfig('Relu');
+export const reluConfig: KernelConfig = createUnaryKernelConfig(Relu);

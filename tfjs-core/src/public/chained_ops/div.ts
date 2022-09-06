@@ -16,7 +16,7 @@
  */
 
 import {div} from '../../ops/div';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.div = function<T extends Tensor>(b: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.div = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return div(this, b);
 };

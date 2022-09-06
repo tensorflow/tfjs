@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import '../flags';
 import {env} from '../environment';
 
 import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
-import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
+import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, SaveResult} from './types';
 
 const PATH_SEPARATOR = '/';
 const PATH_PREFIX = 'tensorflowjs_models';
@@ -37,8 +37,7 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  * @returns Paths of the models purged.
  */
 export function purgeLocalStorageArtifacts(): string[] {
-  if (!env().getBool('IS_BROWSER') ||
-      typeof window === 'undefined' ||
+  if (!env().getBool('IS_BROWSER') || typeof window === 'undefined' ||
       typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
@@ -60,13 +59,31 @@ export function purgeLocalStorageArtifacts(): string[] {
   return purgedModelPaths;
 }
 
-function getModelKeys(path: string): {
+type LocalStorageKeys = {
+  /** Key of the localStorage entry storing `ModelArtifactsInfo`. */
   info: string,
+  /**
+   * Key of the localStorage entry storing the 'modelTopology' key of
+   * `model.json`
+   */
   topology: string,
+  /**
+   * Key of the localStorage entry storing the `weightsManifest.weights` entries
+   * of `model.json`
+   */
   weightSpecs: string,
+  /** Key of the localStorage entry storing the weight data in Base64 */
   weightData: string,
-  modelMetadata: string
-} {
+  /**
+   * Key of the localStorage entry storing the remaining fields of `model.json`
+   * @see {@link ModelMetadata}
+   */
+  modelMetadata: string,
+};
+
+type ModelMetadata = Omit<ModelJSON, 'modelTopology'|'weightsManifest'>;
+
+function getModelKeys(path: string): LocalStorageKeys {
   return {
     info: [PATH_PREFIX, path, INFO_SUFFIX].join(PATH_SEPARATOR),
     topology: [PATH_PREFIX, path, MODEL_TOPOLOGY_SUFFIX].join(PATH_SEPARATOR),
@@ -75,6 +92,12 @@ function getModelKeys(path: string): {
     modelMetadata:
         [PATH_PREFIX, path, MODEL_METADATA_SUFFIX].join(PATH_SEPARATOR)
   };
+}
+
+function removeItems(keys: LocalStorageKeys): void {
+  for (const key of Object.values(keys)) {
+    window.localStorage.removeItem(key);
+  }
 }
 
 /**
@@ -98,14 +121,6 @@ function maybeStripScheme(key: string) {
       key;
 }
 
-declare type LocalStorageKeys = {
-  info: string,
-  topology: string,
-  weightSpecs: string,
-  weightData: string,
-  modelMetadata: string
-};
-
 /**
  * IOHandler subclass: Browser Local Storage.
  *
@@ -119,9 +134,8 @@ export class BrowserLocalStorage implements IOHandler {
   static readonly URL_SCHEME = 'localstorage://';
 
   constructor(modelPath: string) {
-    if (!env().getBool('IS_BROWSER') ||
-          typeof window === 'undefined' ||
-          typeof window.localStorage === 'undefined') {
+    if (!env().getBool('IS_BROWSER') || typeof window === 'undefined' ||
+        typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
       //   Maybe point to a doc page on the web and/or automatically determine
@@ -167,21 +181,33 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(
             this.keys.weightData,
             arrayBufferToBase64String(modelArtifacts.weightData));
-        this.LS.setItem(this.keys.modelMetadata, JSON.stringify({
+
+        // Note that JSON.stringify doesn't write out keys that have undefined
+        // values, so for some keys, we set undefined instead of a null-ish
+        // value.
+        const metadata: Required<ModelMetadata> = {
           format: modelArtifacts.format,
           generatedBy: modelArtifacts.generatedBy,
           convertedBy: modelArtifacts.convertedBy,
-          userDefinedMetadata: modelArtifacts.userDefinedMetadata
-        }));
+          signature: modelArtifacts.signature != null ?
+              modelArtifacts.signature :
+              undefined,
+          userDefinedMetadata: modelArtifacts.userDefinedMetadata != null ?
+              modelArtifacts.userDefinedMetadata :
+              undefined,
+          modelInitializer: modelArtifacts.modelInitializer != null ?
+              modelArtifacts.modelInitializer :
+              undefined,
+          trainingConfig: modelArtifacts.trainingConfig != null ?
+              modelArtifacts.trainingConfig :
+              undefined
+        };
+        this.LS.setItem(this.keys.modelMetadata, JSON.stringify(metadata));
 
         return {modelArtifactsInfo};
       } catch (err) {
         // If saving failed, clean up all items saved so far.
-        this.LS.removeItem(this.keys.info);
-        this.LS.removeItem(this.keys.topology);
-        this.LS.removeItem(this.keys.weightSpecs);
-        this.LS.removeItem(this.keys.weightData);
-        this.LS.removeItem(this.keys.modelMetadata);
+        removeItems(this.keys);
 
         throw new Error(
             `Failed to save model '${this.modelPath}' to local storage: ` +
@@ -238,11 +264,22 @@ export class BrowserLocalStorage implements IOHandler {
     // Load meta-data fields.
     const metadataString = this.LS.getItem(this.keys.modelMetadata);
     if (metadataString != null) {
-      const metadata = JSON.parse(metadataString) as ModelArtifacts;
-      out.format = metadata['format'];
-      out.generatedBy = metadata['generatedBy'];
-      out.convertedBy = metadata['convertedBy'];
-      out.userDefinedMetadata = metadata['userDefinedMetadata'];
+      const metadata = JSON.parse(metadataString) as ModelMetadata;
+      out.format = metadata.format;
+      out.generatedBy = metadata.generatedBy;
+      out.convertedBy = metadata.convertedBy;
+      if (metadata.signature != null) {
+        out.signature = metadata.signature;
+      }
+      if (metadata.userDefinedMetadata != null) {
+        out.userDefinedMetadata = metadata.userDefinedMetadata;
+      }
+      if (metadata.modelInitializer != null) {
+        out.modelInitializer = metadata.modelInitializer;
+      }
+      if (metadata.trainingConfig != null) {
+        out.trainingConfig = metadata.trainingConfig;
+      }
     }
 
     // Load weight data.
@@ -310,7 +347,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
         () => 'Current environment is not a web browser');
     assert(
         typeof window === 'undefined' ||
-        typeof window.localStorage !== 'undefined',
+            typeof window.localStorage !== 'undefined',
         () => 'Current browser does not appear to support localStorage');
     this.LS = window.localStorage;
   }
@@ -336,21 +373,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
       throw new Error(`Cannot find model at path '${path}'`);
     }
     const info = JSON.parse(this.LS.getItem(keys.info)) as ModelArtifactsInfo;
-
-    this.LS.removeItem(keys.info);
-    this.LS.removeItem(keys.topology);
-    this.LS.removeItem(keys.weightSpecs);
-    this.LS.removeItem(keys.weightData);
+    removeItems(keys);
     return info;
-  }
-}
-
-if (env().getBool('IS_BROWSER')) {
-  // Wrap the construction and registration, to guard against browsers that
-  // don't support Local Storage.
-  try {
-    ModelStoreManagerRegistry.registerManager(
-        BrowserLocalStorage.URL_SCHEME, new BrowserLocalStorageManager());
-  } catch (err) {
   }
 }

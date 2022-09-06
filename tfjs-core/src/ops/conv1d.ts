@@ -39,19 +39,19 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat An optional string from "NWC", "NCW". Defaults to "NWC",
  *     the data is stored in the order of [batch, in_width, in_channels]. Only
  *     "NWC" is currently supported.
  * @param dilation The dilation rate in which we sample input values in
  *     atrous convolution. Defaults to `1`. If it is greater than 1, then
  *     stride must be `1`.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function conv1d_<T extends Tensor2D|Tensor3D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike, stride: number,
     pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
@@ -74,13 +74,7 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
       $filter.rank === 3,
       () => `Error in conv1d: filter must be rank 3, but got rank ` +
           `${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv1d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv1d', pad, dimRoundingMode);
   util.assert(
       x3D.shape[2] === $filter.shape[1],
       () => `Error in conv1d: depth of input (${x3D.shape[2]}) must match ` +

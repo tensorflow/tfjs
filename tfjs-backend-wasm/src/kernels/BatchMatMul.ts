@@ -15,19 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, broadcast_util, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface BatchMatMulInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
-}
-
-interface BatchMatMulAttrs extends NamedAttrMap {
-  transposeA: boolean;
-  transposeB: boolean;
-}
+import {reshape} from './Reshape';
 
 let wasmBatchMatMul: (
     aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
@@ -35,7 +27,7 @@ let wasmBatchMatMul: (
     transposeB: boolean, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmBatchMatMul = backend.wasm.cwrap('BatchMatMul', null /* void */, [
+  wasmBatchMatMul = backend.wasm.cwrap(BatchMatMul, null /* void */, [
     'number',  // a_id
     'array',   // a_shape
     'number',  // a_shape.length
@@ -55,36 +47,75 @@ function batchMatMul(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b} = inputs;
+  const {transposeA, transposeB} = attrs;
 
   if (a.dtype !== 'float32' || b.dtype !== 'float32') {
     throw new Error(
         `BatchMatMul for non non-float32 tensors not yet supported.`);
   }
 
-  const {transposeA, transposeB} = attrs;
-  const aId = backend.dataIdMap.get(a.dataId).id;
-  const bId = backend.dataIdMap.get(b.dataId).id;
+  const aRank = a.shape.length;
+  const bRank = b.shape.length;
 
-  const leftDim = transposeA ? a.shape[2] : a.shape[1];
-  const rightDim = transposeB ? b.shape[1] : b.shape[2];
-  const batchDim = a.shape[0];
+  const innerShapeA = transposeA ? a.shape[aRank - 2] : a.shape[aRank - 1];
+  const innerShapeB = transposeB ? b.shape[bRank - 1] : b.shape[bRank - 2];
 
-  const out = backend.makeOutput([batchDim, leftDim, rightDim], a.dtype);
+  const outerShapeA = transposeA ? a.shape[aRank - 1] : a.shape[aRank - 2];
+  const outerShapeB = transposeB ? b.shape[bRank - 2] : b.shape[bRank - 1];
+
+  const outerDimsA = a.shape.slice(0, -2);
+  const outerDimsB = b.shape.slice(0, -2);
+
+  const batchDimA = util.sizeFromShape(outerDimsA);
+  const batchDimB = util.sizeFromShape(outerDimsB);
+
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
+  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+
+  util.assert(
+      innerShapeA === innerShapeB,
+      () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
+          `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
+          `${b.shape} and transposeA=${transposeA}` +
+          ` and transposeB=${transposeB} must match.`);
+
+  const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
+                                [batchDimA, outerShapeA, innerShapeA];
+  const b3dShape = transposeB ? [batchDimB, outerShapeB, innerShapeB] :
+                                [batchDimB, innerShapeB, outerShapeB];
+
+  // The rest of the implementation is designed to operate on rank-3 tensors
+  const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
+  const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
+
+  const a3dId = backend.dataIdMap.get(a3d.dataId).id;
+  const b3dId = backend.dataIdMap.get(b3d.dataId).id;
+
+  const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
+  const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
+  const batchDim = Math.max(batchDimA, batchDimB);
+
+  const out = backend.makeOutput([batchDim, leftDim, rightDim], a3d.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
-  const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
+  const aShapeBytes = new Uint8Array(new Int32Array(a3d.shape).buffer);
+  const bShapeBytes = new Uint8Array(new Int32Array(b3d.shape).buffer);
 
   wasmBatchMatMul(
-      aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
-      transposeA, transposeB, outId);
+      a3dId, aShapeBytes, a3d.shape.length, b3dId, bShapeBytes,
+      b3d.shape.length, transposeA, transposeB, outId);
 
+  backend.disposeData(a3d.dataId);
+  backend.disposeData(b3d.dataId);
+
+  out.shape = outShape;
   return out;
 }
 
 export const batchMatMulConfig: KernelConfig = {
-  kernelName: 'BatchMatMul',
+  kernelName: BatchMatMul,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: batchMatMul
+  kernelFunc: batchMatMul as {} as KernelFunc
 };

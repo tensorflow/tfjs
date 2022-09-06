@@ -17,7 +17,7 @@
 
 import {MaxPool, MaxPoolAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {maxPoolBackprop} from '../ops/max_pool_backprop';
+import {maxPoolGrad} from '../ops/max_pool_grad';
 import {Tensor, Tensor4D} from '../tensor';
 
 export const maxPoolGradConfig: GradConfig = {
@@ -29,7 +29,7 @@ export const maxPoolGradConfig: GradConfig = {
     const {filterSize, strides, pad} = attrs as {} as MaxPoolAttrs;
 
     return {
-      x: () => maxPoolBackprop(dy as Tensor4D, x, y, filterSize, strides, pad)
+      x: () => maxPoolGrad(dy as Tensor4D, x, y, filterSize, strides, pad)
     };
   }
 };

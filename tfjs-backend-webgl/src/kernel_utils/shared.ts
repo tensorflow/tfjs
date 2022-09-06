@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -18,8 +19,106 @@
 // Import shared functionality from tfjs-backend-cpu without triggering
 // side effects.
 // tslint:disable-next-line: no-imports-from-dist
-import {shared} from '@tensorflow/tfjs-backend-cpu/dist/base';
+import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {SimpleUnaryImpl} from '@tensorflow/tfjs-backend-cpu/dist/utils/unary_types';
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
+export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
+export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
+const {
+  addImpl: addImplCPU,
+  bincountImpl: bincountImplCPU,
+  bincountReduceImpl: bincountReduceImplCPU,
+  castImpl: castImplCPU,
+  ceilImpl: ceilImplCPU,
+  concatImpl: concatImplCPU,
+  equalImpl: equalImplCPU,
+  expImpl: expImplCPU,
+  expm1Impl: expm1ImplCPU,
+  floorImpl: floorImplCPU,
+  gatherNdImpl: gatherNdImplCPU,
+  gatherV2Impl: gatherV2ImplCPU,
+  greaterImpl: greaterImplCPU,
+  greaterEqualImpl: greaterEqualImplCPU,
+  lessImpl: lessImplCPU,
+  lessEqualImpl: lessEqualImplCPU,
+  linSpaceImpl: linSpaceImplCPU,
+  logImpl: logImplCPU,
+  maxImpl: maxImplCPU,
+  maximumImpl: maximumImplCPU,
+  minimumImpl: minimumImplCPU,
+  multiplyImpl: multiplyImplCPU,
+  negImpl: negImplCPU,
+  notEqualImpl: notEqualImplCPU,
+  prodImpl: prodImplCPU,
+  raggedTensorToTensorImpl: raggedTensorToTensorImplCPU,
+  rangeImpl: rangeImplCPU,
+  rsqrtImpl: rsqrtImplCPU,
+  scatterImpl: scatterImplCPU,
+  sigmoidImpl: sigmoidImplCPU,
+  simpleAbsImpl: simpleAbsImplCPU,
+  sliceImpl: sliceImplCPU,
+  sparseFillEmptyRowsImpl: sparseFillEmptyRowsImplCPU,
+  sparseReshapeImpl: sparseReshapeImplCPU,
+  sparseSegmentReductionImpl: sparseSegmentReductionImplCPU,
+  sqrtImpl: sqrtImplCPU,
+  stridedSliceImpl: stridedSliceImplCPU,
+  stringNGramsImpl: stringNGramsImplCPU,
+  stringSplitImpl: stringSplitImplCPU,
+  stringToHashBucketFastImpl: stringToHashBucketFastImplCPU,
+  subImpl: subImplCPU,
+  tileImpl: tileImplCPU,
+  topKImpl: topKImplCPU,
+  transposeImpl: transposeImplCPU,
+  uniqueImpl: uniqueImplCPU,
+} = shared;
 
-export {maxImplCPU, transposeImplCPU};
+export {
+  addImplCPU,
+  bincountImplCPU,
+  bincountReduceImplCPU,
+  castImplCPU,
+  ceilImplCPU,
+  concatImplCPU,
+  equalImplCPU,
+  expImplCPU,
+  expm1ImplCPU,
+  floorImplCPU,
+  gatherNdImplCPU,
+  gatherV2ImplCPU,
+  greaterEqualImplCPU,
+  greaterImplCPU,
+  lessEqualImplCPU,
+  lessImplCPU,
+  linSpaceImplCPU,
+  logImplCPU,
+  maxImplCPU,
+  maximumImplCPU,
+  minimumImplCPU,
+  multiplyImplCPU,
+  negImplCPU,
+  notEqualImplCPU,
+  prodImplCPU,
+  raggedTensorToTensorImplCPU,
+  scatterImplCPU,
+  sigmoidImplCPU,
+  simpleAbsImplCPU,
+  sliceImplCPU,
+  sparseFillEmptyRowsImplCPU,
+  sparseReshapeImplCPU,
+  sparseSegmentReductionImplCPU,
+  sqrtImplCPU,
+  stridedSliceImplCPU,
+  stringNGramsImplCPU,
+  stringSplitImplCPU,
+  stringToHashBucketFastImplCPU,
+  subImplCPU,
+  rangeImplCPU,
+  rsqrtImplCPU,
+  tileImplCPU,
+  topKImplCPU,
+  transposeImplCPU,
+  uniqueImplCPU,
+};

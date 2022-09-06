@@ -30,7 +30,7 @@ import {makeTensor} from './tensor_ops_util';
  *
  *  ```js
  * // Pass a nested array.
- * tf.tensor5d([[[[[1], [2]], [[3], [4]]]]]).print();
+ * tf.tensor5d([[[[[1],[2]],[[3],[4]]],[[[5],[6]],[[7],[8]]]]]).print();
  * ```
  * ```js
  * // Pass a flat array and specify a shape.
@@ -42,8 +42,9 @@ import {makeTensor} from './tensor_ops_util';
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function tensor5d(
     values: TensorLike5D, shape?: [number, number, number, number, number],
     dtype?: DataType): Tensor5D {

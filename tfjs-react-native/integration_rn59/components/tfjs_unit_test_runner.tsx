@@ -106,6 +106,15 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           // Browser specific mobile test
           return false;
         }
+
+        if(name.match('dilation2d')) {
+          // Not implemented in webgl
+          return false;
+        }
+        if (name.match('method otsu')) {
+          // Image threshold is broken for Otsu's method. #5245
+          return false;
+        }
         return true;
       }
      });

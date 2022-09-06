@@ -1,0 +1,33 @@
+{
+    "kernels": [
+        "Cast",
+        "ExpandDims",
+        "Reshape",
+        "ResizeBilinear",
+        "RealDiv",
+        "Sub",
+        "Multiply",
+        "FusedConv2D",
+        "fusedConv2d__op",
+        "DepthwiseConv2dNative",
+        "Add",
+        "Relu",
+        "PadV2",
+        "Pack",
+        "MaxPool",
+        "Slice",
+        "StridedSlice",
+        "Concat",
+        "Identity",
+        "Sigmoid",
+        "NonMaxSuppressionV3"
+    ],
+    "backends": [
+        "wasm"
+    ],
+    "models": [
+        "./model.json"
+    ],
+    "outputPath": "./custom_tfjs_blazeface",
+    "forwardModeOnly": true
+}

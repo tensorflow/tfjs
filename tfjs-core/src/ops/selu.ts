@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Selu, SeluInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -35,22 +35,15 @@ import {op} from './operation';
  * x.selu().print();  // or tf.selu(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function selu_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'selu');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.selu($x);
-    save([$x]);
-    return res;
-  };
-
   const inputs: SeluInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Selu) as
-      T;
+  return ENGINE.runKernel(Selu, inputs as {} as NamedTensorMap);
 }
 
 export const selu = op({selu_});

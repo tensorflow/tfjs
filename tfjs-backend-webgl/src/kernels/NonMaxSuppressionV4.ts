@@ -15,31 +15,41 @@
  * =============================================================================
  */
 
-import {backend_util, kernel_impls, KernelConfig, NonMaxSuppressionV4, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV4, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 const nonMaxSuppressionV4Impl = kernel_impls.nonMaxSuppressionV4Impl;
+
 import {MathBackendWebGL} from '../backend_webgl';
+
+export function nonMaxSuppressionV4(args: {
+  inputs: NonMaxSuppressionV4Inputs,
+  backend: MathBackendWebGL,
+  attrs: NonMaxSuppressionV4Attrs
+}): [TensorInfo, TensorInfo] {
+  backend_util.warn(
+      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+      'Call tf.nonMaxSuppressionAsync() instead');
+
+  const {inputs, backend, attrs} = args;
+  const {boxes, scores} = inputs;
+  const {maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize} =
+      attrs;
+
+  const boxesVals = backend.readSync(boxes.dataId) as TypedArray;
+  const scoresVals = backend.readSync(scores.dataId) as TypedArray;
+
+  const {selectedIndices, validOutputs} = nonMaxSuppressionV4Impl(
+      boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
+      padToMaxOutputSize);
+
+  return [
+    backend.makeTensorInfo(
+        [selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
+    backend.makeTensorInfo([], 'int32', new Int32Array([validOutputs]))
+  ];
+}
 
 export const nonMaxSuppressionV4Config: KernelConfig = {
   kernelName: NonMaxSuppressionV4,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend, attrs}) => {
-    backend_util.warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-        'Call tf.nonMaxSuppressionAsync() instead');
-
-    const {boxes, scores} = inputs as NonMaxSuppressionV4Inputs;
-    const {maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize} =
-        attrs as unknown as NonMaxSuppressionV4Attrs;
-
-    const gpuBackend = backend as MathBackendWebGL;
-
-    const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
-    const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
-
-    const {selectedIndices, validOutputs} = nonMaxSuppressionV4Impl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
-        padToMaxOutputSize);
-
-    return [selectedIndices, validOutputs];
-  }
+  kernelFunc: nonMaxSuppressionV4 as {} as KernelFunc
 };

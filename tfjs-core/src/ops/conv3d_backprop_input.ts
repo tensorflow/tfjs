@@ -14,14 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropInputAttrs, Conv3DBackpropInputInputs, Conv3DBackpropInputV2} from '../kernel_names';
+import {ENGINE} from '../engine';
+import {Conv3DBackpropInputV2, Conv3DBackpropInputV2Attrs, Conv3DBackpropInputV2Inputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -87,29 +86,22 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3dDerInput: depth of output (${outDepth}) must ` +
           `match output depth for filter ${filter.shape[4]}.`);
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const dilations = 1;
+  const inputs: Conv3DBackpropInputV2Inputs = {dy: dy5D, filter};
 
-    const convInfo = conv_util.computeConv3DInfo(
-        xShape5D, filter.shape, strides, dilations, pad);
+  const attrs:
+      Conv3DBackpropInputV2Attrs = {pad, strides, inputShape: xShape5D};
 
-    return backend.conv3dDerInput(dy5D, filter, convInfo);
-  };
-
-  const inputs: Conv3DBackpropInputInputs = {dy: dy5D};
-
-  const attrs: Conv3DBackpropInputAttrs = {pad};
-
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInputV2,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Conv3DBackpropInputV2, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
                res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]) as
         T;
   }
-  return res as T;
+  return res;
 }
 
 export const conv3DBackpropInput = op({conv3DBackpropInput_});

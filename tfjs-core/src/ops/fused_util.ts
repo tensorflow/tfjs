@@ -20,9 +20,15 @@ import {Tensor} from '../tensor';
 import * as broadcast_util from './broadcast_util';
 import {elu} from './elu';
 import {Activation} from './fused_types';
+import {leakyRelu} from './leaky_relu';
+import {mul} from './mul';
 import {prelu} from './prelu';
 import {relu} from './relu';
 import {relu6} from './relu6';
+import {reshape} from './reshape';
+import {sigmoid} from './sigmoid';
+import {step} from './step';
+import {sum} from './sum';
 
 // Returns gradient for fused activation.
 export function getFusedDyActivation(
@@ -31,7 +37,7 @@ export function getFusedDyActivation(
     return dy;
   }
   if (activation === 'relu') {
-    return dy.mul(y.step());
+    return mul(dy, step(y));
   }
   throw new Error(
       `Cannot compute gradient for fused activation ${activation}.`);
@@ -44,14 +50,14 @@ export function getFusedBiasGradient(
   const reduceAxes =
       broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
   if (reduceAxes.length > 0) {
-    res = res.sum(reduceAxes);
+    res = sum(res, reduceAxes);
   }
-  return res.reshape(bias.shape);
+  return reshape(res, bias.shape);
 }
 
 export function applyActivation(
-    x: Tensor, activation: Activation,
-    preluActivationWeights?: Tensor): Tensor {
+    x: Tensor, activation: Activation, preluActivationWeights?: Tensor,
+    leakyreluAlpha?: number): Tensor {
   if (activation === 'linear') {
     return x;
   } else if (activation === 'relu') {
@@ -62,6 +68,10 @@ export function applyActivation(
     return relu6(x);
   } else if (activation === 'prelu') {
     return prelu(x, preluActivationWeights);
+  } else if (activation === 'leakyrelu') {
+    return leakyRelu(x, leakyreluAlpha);
+  } else if (activation === 'sigmoid') {
+    return sigmoid(x);
   }
   throw new Error(`Unknown fused activation ${activation}.`);
 }

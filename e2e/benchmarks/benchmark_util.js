@@ -16,6 +16,11 @@
  */
 
 /**
+ * This tool depends on tf-core, tf-layers, tf-converter and the backends
+ * (tf-backend-cpu, tf-backend-webgl or tf-backend-wasm) that you would use.
+ */
+
+/**
  * Generates a random input for `model`, based on `model.inputs`. For
  * tf.GraphModel, `NamedTensorMap` input will be returned; otherwise,
  * `Tensor[]` will be returned.
@@ -39,34 +44,81 @@ function generateInput(model) {
     throw new Error('The model.inputs cannot be found.');
   }
 
+  const inputDefs = model.inputs.map((inputNode, inputNodeIndex) => {
+    // Replace -1 or null in input tensor shape.
+    const inputShape = inputNode.shape.map(shapeValue => {
+      if (shapeValue == null || shapeValue < 0) {
+        return 1;
+      } else {
+        return shapeValue;
+      }
+    });
+    return {
+      shape: inputShape,
+      name: inputNode.name,
+      dtype: inputNode.dtype,
+      range: [0, 1000]
+    };
+  });
+
+  return generateInputFromDef(inputDefs, model instanceof tf.GraphModel);
+}
+
+/**
+ * Generates a random input for input definition.
+ *
+ * ```js
+ * const input = generateInput(inputDefs);
+ *
+ * console.log(`Generated input: ${Object.values(input)}`);
+ * console.log(`Prediction for the generated input: ${prediction}`);
+ * ```
+ *
+ * @param inputDefs The input definition that is used to generate the input.
+ * @param isForGraphModel flag for whether to generate inputs for GraphModel
+ */
+function generateInputFromDef(inputDefs, isForGraphModel = false) {
+  if (inputDefs == null) {
+    throw new Error('The inputDef cannot be found.');
+  }
+
   const tensorArray = [];
   try {
-    model.inputs.forEach((inputNode, inputNodeIndex) => {
-      // Replace -1 or null in input tensor shape.
-      const inputShape = inputNode.shape.map(shapeValue => {
-        if (shapeValue == null || shapeValue < 0) {
-          return 1;
-        } else {
-          return shapeValue;
-        }
-      });
+    inputDefs.forEach((inputDef, inputDefIndex) => {
+      const inputShape = inputDef.shape;
 
       // Construct the input tensor.
       let inputTensor;
-      if (inputNode.dtype === 'float32' || inputNode.dtype === 'int32') {
-        inputTensor = tf.randomNormal(inputShape, 0, 1000, inputNode.dtype);
+      if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32') {
+        // We assume a bell curve normal distribution. In this case,
+        // we use below approximation:
+        // mean ~= (min + max) / 2
+        // std ~= (max - min) / 4
+        // Note: for std, our approximation is based on the fact that
+        // 95% of the data is within the range of 2 stds above and
+        // below the mean. So 95% of the data falls in the range of
+        // 4 stds.
+        const min = inputDef.range[0];
+        const max = inputDef.range[1];
+        const mean = (min + max) / 2;
+        const std = (max - min) / 4;
+        generatedRaw = tf.randomNormal(inputShape, mean, std, inputDef.dtype);
+        // We clip the value to be within [min, max], because 5% of
+        // the data generated maybe outside of [min, max].
+        inputTensor = tf.clipByValue(generatedRaw, min, max);
+        generatedRaw.dispose();
       } else {
         throw new Error(
-            `The ${inputNode.dtype} dtype of '${inputNode.name}' input ` +
-            `at model.inputs[${inputNodeIndex}] is not supported.`);
+            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+            `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
 
     // Return tensor map for tf.GraphModel.
-    if (model instanceof tf.GraphModel) {
-      const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
-        map[inputName] = tensorArray[i];
+    if (isForGraphModel) {
+      const tensorMap = inputDefs.reduce((map, inputDef, i) => {
+        map[inputDef.name] = tensorArray[i];
         return map;
       }, {});
       return tensorMap;
@@ -135,7 +187,7 @@ function getPredictFnForModel(model, input) {
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
  * const timeInfo =
- *    await profileInferenceTimeForModel(model, zeros, 2);
+ *    await timeModelInference(model, zeros, 2);
  *
  * console.log(`Elapsed time array: ${timeInfo.times}`);
  * console.log(`Average time: ${timeInfo.averageTime}`);
@@ -148,9 +200,9 @@ function getPredictFnForModel(model, input) {
  * @param input The input tensor container for model inference.
  * @param numRuns The number of rounds for timing the inference process.
  */
-async function profileInferenceTimeForModel(model, input, numRuns = 1) {
+async function timeModelInference(model, input, numRuns = 1) {
   const predict = getPredictFnForModel(model, input);
-  return profileInferenceTime(predict, numRuns);
+  return timeInference(predict, numRuns);
 }
 
 /**
@@ -171,7 +223,7 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
  * const timeInfo =
- *    await profileInferenceTime(() => model.predict(zeros), 2);
+ *    await timeInference(() => model.predict(zeros), 2);
  *
  * console.log(`Elapsed time array: ${timeInfo.times}`);
  * console.log(`Average time: ${timeInfo.averageTime}`);
@@ -182,7 +234,7 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
  * @param predict The predict function to execute and time.
  * @param numRuns The number of rounds for `predict` to execute and time.
  */
-async function profileInferenceTime(predict, numRuns = 1) {
+async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
@@ -225,13 +277,22 @@ async function profileInferenceTime(predict, numRuns = 1) {
  */
 async function downloadValuesFromTensorContainer(tensorContainer) {
   let valueContainer;
+  const readSync = tf.getBackend() === 'webgl';
   if (tensorContainer instanceof tf.Tensor) {
-    valueContainer = await tensorContainer.data();
+    if (readSync) {
+      valueContainer = tensorContainer.dataSync();
+    } else {
+      valueContainer = await tensorContainer.data();
+    }
   } else if (Array.isArray(tensorContainer)) {
     // Start value downloads from all tensors.
     const valuePromiseContainer = tensorContainer.map(async item => {
       if (item instanceof tf.Tensor) {
-        return item.data();
+        if (readSync) {
+          return item.dataSync();
+        } else {
+          return item.data();
+        }
       }
       return item;
     });
@@ -242,7 +303,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     // Start value downloads from all tensors.
     for (const property in tensorContainer) {
       if (tensorContainer[property] instanceof tf.Tensor) {
-        valuePromiseContainer.push(tensorContainer[property].data());
+        if (readSync) {
+          valuePromiseContainer.push(tensorContainer[property].dataSync());
+        } else {
+          valuePromiseContainer.push(tensorContainer[property].data());
+        }
       } else {
         valuePromiseContainer.push(tensorContainer[property]);
       }
@@ -257,105 +322,142 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * Executes the predict function for `model` (`model.predict` for
  * tf.LayersModel and `model.executeAsync` for tf.GraphModel) and returns a
  * promise that resolves with information about the memory usage:
- * - `newBytes`: the number of new bytes allocated
- * - `newTensors`: the number of new tensors created
- * - `peakBytes`: the peak number of bytes allocated
- * - `kernels`: an array of objects for each kernel involved that reports
- * their input and output shapes, number of bytes used, and number of new
- * tensors created.
+ * - `newBytes`: the number of new bytes allocated.
+ * - `newTensors`: the number of new tensors created.
+ * - `peakBytes`: the peak number of bytes allocated.
+ * - `kernels`: an array of kernel information objects about their input and
+ * output shapes, number of bytes used, number of new tensors created and kernel
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemoryForModel(model, zeros);
+ * const profileInfo = await profileModelInference(model, zeros);
  *
- * console.log(`newBytes: ${memoryInfo.newBytes}`);
- * console.log(`newTensors: ${memoryInfo.newTensors}`);
- * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * console.log(`newBytes: ${profileInfo.newBytes}`);
+ * console.log(`newTensors: ${profileInfo.newTensors}`);
+ * console.log(`peakBytes: ${profileInfo.peakBytes}`);
  * ```
  *
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
+ * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileInferenceMemoryForModel(model, input) {
-  const predict = getPredictFnForModel(model, input);
-  return profileInferenceMemory(predict);
+async function profileModelInference(
+    model, input, isTflite = false, numProfiles = 1) {
+  const predict = isTflite ? () => tfliteModel.predict(input) :
+                             getPredictFnForModel(model, input);
+  return profileInference(predict, isTflite, numProfiles);
 }
 
 /**
  * Executes `predict()` and returns a promise that resolves with information
  * about the memory usage:
- * - `newBytes`: the number of new bytes allocated
- * - `newTensors`: the number of new tensors created
- * - `peakBytes`: the peak number of bytes allocated
- * - `kernels`: an array of objects for each kernel involved that reports
- * their input and output shapes, number of bytes used, and number of new
- * tensors created.
+ * - `newBytes`: the number of new bytes allocated.
+ * - `newTensors`: the number of new tensors created.
+ * - `peakBytes`: the peak number of bytes allocated.
+ * - `kernels`: an array of kernel information objects about their input and
+ * output shapes, number of bytes used, number of new tensors created and kernel
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemory(() =>
+ * const profileInfo = await profileInference(() =>
  * model.predict(zeros));
  *
- * console.log(`newBytes: ${memoryInfo.newBytes}`);
- * console.log(`newTensors: ${memoryInfo.newTensors}`);
- * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * console.log(`newBytes: ${profileInfo.newBytes}`);
+ * console.log(`newTensors: ${profileInfo.newTensors}`);
+ * console.log(`peakBytes: ${profileInfo.peakBytes}`);
  * ```
  *
  * @param predict The predict function to execute for profiling memory usage.
+ * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for `predict` to execute and profile.
  */
-async function profileInferenceMemory(predict) {
+async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
   }
 
-  const memoryInfo = await profile(async () => {
-    const res = await predict();
-    await downloadValuesFromTensorContainer(res);
-    tf.dispose(res);
-  });
-  return memoryInfo;
+  let kernelInfo = {};
+  let kernelInfos = [];
+  if (isTflite) {
+    for (let i = 0; i < numProfiles; i++) {
+      await predict();
+      const profileItems = tfliteModel.getProfilingResults();
+      kernelInfo.kernels = profileItems.map(item => {
+        return {
+          name: item.nodeType,
+          kernelTimeMs: item.nodeExecMs,
+          // TODO: Shapes are not supported yet.
+          inputShapes: [],
+          outputShapes: [],
+        };
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  } else {
+    for (let i = 0; i < numProfiles; i++) {
+      kernelInfo = await tf.profile(async () => {
+        const res = await predict();
+        await downloadValuesFromTensorContainer(res);
+        tf.dispose(res);
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  }
+  for (let i = 0; i < kernelInfos[0].kernels.length; i++) {
+    let totalTimeMs = 0;
+    for (let j = 0; j < kernelInfos.length; j++) {
+      totalTimeMs += kernelInfos[j].kernels[i].kernelTimeMs;
+    }
+    kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
+  }
+  kernelInfo.kernels =
+      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+  kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
+  return kernelInfo;
 }
 
 /**
- * This function is temporarily used and will be deleted after a new release of
- * tf-core. This function modifies
- * This function is temporarily used and will be deleted after a new release
- * of tf-core. This function modifies
- * [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
- * in the following points:
- * - replaces all `this` by `tf.engine()`
- * - adds `await` in `this.state.activeProfile.result = query();`
+ * Aggregate kernels by name and sort the array in non-ascending order of time.
+ * Return an array of objects with `name` and `timeMs` fields.
  *
- * When deleting this method, please change the caller
- * `profileInferenceMemory`.
+ * @param {Array<Object>} kernels An array of kernel information objects. Each
+ *     object must include `name` (string) and `kernelTimeMs` (number) fields.
  */
-async function profile(query) {
-  const engine = tf.engine();
-  engine.state.profiling = true;
+function aggregateKernelTime(kernels) {
+  const aggregatedKernelTime = {};
+  kernels.forEach(kernel => {
+    const oldAggregatedKernelTime = aggregatedKernelTime[kernel.name];
+    if (oldAggregatedKernelTime == null) {
+      aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
+    } else {
+      aggregatedKernelTime[kernel.name] =
+          oldAggregatedKernelTime + kernel.kernelTimeMs;
+    }
+  });
 
-  const startBytes = engine.state.numBytes;
-  const startNumTensors = engine.state.numTensors;
-
-  engine.state.activeProfile.kernels = [];
-  engine.state.activeProfile.result = await query();
-
-  engine.state.profiling = false;
-
-  engine.state.activeProfile.peakBytes = Math.max(
-      ...engine.state.activeProfile.kernels.map(d => d.totalBytesSnapshot));
-  engine.state.activeProfile.newBytes = engine.state.numBytes - startBytes;
-  engine.state.activeProfile.newTensors =
-      engine.state.numTensors - startNumTensors;
-  return engine.state.activeProfile;
+  return Object.entries(aggregatedKernelTime)
+      .map(([name, timeMs]) => ({name, timeMs}))
+      .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -374,10 +476,17 @@ async function profile(query) {
 const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   WEBGL_VERSION: [1, 2],
   WASM_HAS_SIMD_SUPPORT: [true, false],
+  WASM_HAS_MULTITHREAD_SUPPORT: [true, false],
   WEBGL_CPU_FORWARD: [true, false],
   WEBGL_PACK: [true, false],
   WEBGL_FORCE_F16_TEXTURES: [true, false],
   WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
+  WEBGL_FLUSH_THRESHOLD: [-1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+  WEBGL_PACK_DEPTHWISECONV: [true, false],
+  CHECK_COMPUTATION_FOR_ERRORS: [true, false],
+  KEEP_INTERMEDIATE_TENSORS: [true, false],
+  WEBGL_USE_SHAPES_UNIFORMS: [true, false],
+  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: [1, 5, 10, 15, 20, 25, 30, 35, 40]
 };
 
 /**

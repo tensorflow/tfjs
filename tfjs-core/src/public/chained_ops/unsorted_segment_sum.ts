@@ -16,7 +16,7 @@
  */
 
 import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
-import {Tensor, Tensor1D} from '../../tensor';
+import {getGlobalTensorClass, Tensor, Tensor1D} from '../../tensor';
 import {Rank, TensorLike1D} from '../../types';
 
 declare module '../../tensor' {
@@ -26,8 +26,9 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
-    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
+getGlobalTensorClass().prototype.unsortedSegmentSum =
+    function<T extends Tensor>(
+        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
   this.throwIfDisposed();
   return unsortedSegmentSum(this, segmentIds, numSegments);
 };

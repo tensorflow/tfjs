@@ -1,0 +1,189 @@
+{
+    "format": "graph-model",
+    "signature": {
+      "inputs": {
+          "dense_dense1_input:0": {
+              "dtype": "DT_FLOAT",
+              "name": "dense_dense1_input:0",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "1"
+                      }
+                  ]
+              }
+          }
+      },
+      "outputs": {
+          "Identity:0": {
+              "dtype": "DT_FLOAT",
+              "name": "Identity:0",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "1"
+                      }
+                  ]
+              }
+          }
+      }
+    },
+    "modelTopology": {
+        "node": [
+            {
+                "attr": {
+                    "dtype": {
+                        "type": "DT_FLOAT"
+                    },
+                    "shape": {
+                        "shape": {
+                            "dim": [
+                                {
+                                    "size": "-1"
+                                },
+                                {
+                                    "size": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "name": "dense_dense1_input",
+                "op": "Placeholder"
+            },
+            {
+                "input": [
+                    "^dense_dense1_input"
+                ],
+                "attr": {
+                    "dtype": {
+                        "type": "DT_FLOAT"
+                    },
+                    "value": {
+                        "tensor": {
+                            "dtype": "DT_FLOAT",
+                            "tensorShape": {
+                                "dim": [
+                                    {
+                                        "size": "1"
+                                    },
+                                    {
+                                        "size": "1"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "name": "StatefulPartitionedCall/sequential_1/dense_Dense1/MatMul/ReadVariableOp",
+                "op": "Const"
+            },
+            {
+                "input": [
+                    "^dense_dense1_input"
+                ],
+                "attr": {
+                    "dtype": {
+                        "type": "DT_FLOAT"
+                    },
+                    "value": {
+                        "tensor": {
+                            "dtype": "DT_FLOAT",
+                            "tensorShape": {
+                                "dim": [
+                                    {
+                                        "size": "1"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "name": "StatefulPartitionedCall/sequential_1/dense_Dense1/BiasAdd/ReadVariableOp",
+                "op": "Const"
+            },
+            {
+                "device": "/device:CPU:0",
+                "input": [
+                    "dense_dense1_input",
+                    "StatefulPartitionedCall/sequential_1/dense_Dense1/MatMul/ReadVariableOp",
+                    "StatefulPartitionedCall/sequential_1/dense_Dense1/BiasAdd/ReadVariableOp"
+                ],
+                "attr": {
+                    "epsilon": {
+                        "f": 0
+                    },
+                    "num_args": {
+                        "i": "1"
+                    },
+                    "T": {
+                        "type": "DT_FLOAT"
+                    },
+                    "transpose_b": {
+                        "b": false
+                    },
+                    "fused_ops": {
+                        "list": {
+                            "s": [
+                                "Qmlhc0FkZA=="
+                            ]
+                        }
+                    },
+                    "transpose_a": {
+                        "b": false
+                    }
+                },
+                "name": "StatefulPartitionedCall/sequential_1/dense_Dense1/BiasAdd",
+                "op": "_FusedMatMul"
+            },
+            {
+                "input": [
+                    "StatefulPartitionedCall/sequential_1/dense_Dense1/BiasAdd"
+                ],
+                "attr": {
+                    "T": {
+                        "type": "DT_FLOAT"
+                    }
+                },
+                "name": "Identity",
+                "op": "Identity"
+            }
+        ],
+        "library": {},
+        "versions": {
+            "producer": 175
+        }
+    },
+    "generatedBy": "2.1.0",
+    "weightsManifest": [
+        {
+            "paths": [
+                "group1-shard1of1.bin"
+            ],
+            "weights": [
+                {
+                    "dtype": "float32",
+                    "shape": [
+                        1,
+                        1
+                    ],
+                    "name": "StatefulPartitionedCall/sequential_1/dense_Dense1/MatMul/ReadVariableOp"
+                },
+                {
+                    "dtype": "float32",
+                    "shape": [
+                        1
+                    ],
+                    "name": "StatefulPartitionedCall/sequential_1/dense_Dense1/BiasAdd/ReadVariableOp"
+                }
+            ]
+        }
+    ],
+    "convertedBy": "TensorFlow.js Converter v2.4.0"
+}

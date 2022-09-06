@@ -15,37 +15,36 @@
  * =============================================================================
  */
 
+import {TypedArray} from '../types';
+import {binaryInsert} from './non_max_suppression_util';
+
 /**
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
-
-import {scalar} from '../ops/scalar';
-import {tensor1d} from '../ops/tensor1d';
-import {Tensor1D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
-import {TypedArray} from '../types';
-
-import {binaryInsert} from './array_util';
-
 interface Candidate {
   score: number;
   boxIndex: number;
   suppressBeginIndex: number;
 }
 
+interface NonMaxSuppressionResult {
+  selectedIndices: number[];
+  selectedScores?: number[];
+  validOutputs?: number;
+}
+
 export function nonMaxSuppressionV3Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number): Tensor1D {
+    iouThreshold: number, scoreThreshold: number): NonMaxSuppressionResult {
   return nonMaxSuppressionImpl_(
-             boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-             0 /* softNmsSigma */)
-             .selectedIndices as Tensor1D;
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      0 /* softNmsSigma */);
 }
 
 export function nonMaxSuppressionV4Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
-    padToMaxOutputSize: boolean): NamedTensorMap {
+    padToMaxOutputSize: boolean): NonMaxSuppressionResult {
   return nonMaxSuppressionImpl_(
       boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
       0 /* softNmsSigma */, false /* returnScoresTensor */,
@@ -56,7 +55,7 @@ export function nonMaxSuppressionV4Impl(
 export function nonMaxSuppressionV5Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
-    softNmsSigma: number): NamedTensorMap {
+    softNmsSigma: number): NonMaxSuppressionResult {
   return nonMaxSuppressionImpl_(
       boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma,
       true /* returnScoresTensor */);
@@ -66,7 +65,7 @@ function nonMaxSuppressionImpl_(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number, softNmsSigma: number,
     returnScoresTensor = false, padToMaxOutputSize = false,
-    returnValidOutputs = false): NamedTensorMap {
+    returnValidOutputs = false): NonMaxSuppressionResult {
   // The list is sorted in ascending order, so that we can always pop the
   // candidate with the largest score in O(1) time.
   const candidates = [];
@@ -149,15 +148,14 @@ function nonMaxSuppressionImpl_(
     selectedScores.push(...new Array(elemsToPad).fill(0.0));
   }
 
-  const result:
-      NamedTensorMap = {selectedIndices: tensor1d(selectedIndices, 'int32')};
+  const result: NonMaxSuppressionResult = {selectedIndices};
 
   if (returnScoresTensor) {
-    result['selectedScores'] = tensor1d(selectedScores, 'float32');
+    result['selectedScores'] = selectedScores;
   }
 
   if (returnValidOutputs) {
-    result['validOutputs'] = scalar(validOutputs, 'int32');
+    result['validOutputs'] = validOutputs;
   }
 
   return result;

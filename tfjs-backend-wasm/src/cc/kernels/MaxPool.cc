@@ -24,9 +24,9 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/MaxPool.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/MaxPool.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 typedef std::array<size_t, 14> OperatorCacheKey;
@@ -95,7 +95,7 @@ void MaxPool(const size_t x_id, const size_t batch_size,
 
   xnn_status status = xnn_setup_max_pooling2d_nhwc_f32(
       max_pool_op, batch_size, input_height, input_width, x_buf, out_buf,
-      nullptr /* thread pool */);
+      tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_max_pooling2d_nhwc_f32 is not successful. "
@@ -104,7 +104,7 @@ void MaxPool(const size_t x_id, const size_t batch_size,
     return;
   }
 
-  xnn_run_operator(max_pool_op, nullptr /* thread pool */);
+  xnn_run_operator(max_pool_op, tfjs::backend::threadpool);
 }
 }  // extern "C"
 }  // namespace wasm

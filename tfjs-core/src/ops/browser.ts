@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {env} from '../environment';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
@@ -23,6 +24,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
+import {cast} from './cast';
 import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
@@ -48,11 +50,21 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  * @param numChannels The number of channels of the output tensor. A
  * numChannels value less than 4 allows you to ignore channels. Defaults to
  * 3 (ignores alpha channel of input image).
+ *
+ * @returns A Tensor3D with the shape `[height, width, numChannels]`.
+ *
+ * Note: fromPixels can be lossy in some cases, same image may result in
+ * slightly different tensor values, if rendered by different rendering
+ * engines. This means that results from different browsers, or even same
+ * browser with CPU and GPU rendering engines can be different. See discussion
+ * in details:
+ * https://github.com/tensorflow/tfjs/issues/5482
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
-/** @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true} */
 function fromPixels_(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-    HTMLVideoElement,
+    HTMLVideoElement|ImageBitmap,
     numChannels = 3): Tensor3D {
   // Sanity checks.
   if (numChannels > 4) {
@@ -67,6 +79,7 @@ function fromPixels_(
   let isVideo = false;
   let isImage = false;
   let isCanvasLike = false;
+  let isImageBitmap = false;
   if ((pixels as PixelData).data instanceof Uint8Array) {
     isPixelData = true;
   } else if (
@@ -83,6 +96,9 @@ function fromPixels_(
     // tslint:disable-next-line: no-any
   } else if ((pixels as any).getContext != null) {
     isCanvasLike = true;
+  } else if (
+      typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap) {
+    isImageBitmap = true;
   } else {
     throw new Error(
         'pixels passed to tf.browser.fromPixels() must be either an ' +
@@ -91,16 +107,6 @@ function fromPixels_(
         ` or {data: Uint32Array, width: number, height: number}, ` +
         `but was ${(pixels as {}).constructor.name}`);
   }
-  if (isVideo) {
-    const HAVE_CURRENT_DATA_READY_STATE = 2;
-    if (isVideo &&
-        (pixels as HTMLVideoElement).readyState <
-            HAVE_CURRENT_DATA_READY_STATE) {
-      throw new Error(
-          'The video element has not loaded data yet. Please wait for ' +
-          '`loadeddata` event on the <video> element.');
-    }
-  }
   // If the current backend has 'FromPixels' registered, it has a more
   // efficient way of handling pixel uploads, so we call that.
   const kernel = getKernel(FromPixels, ENGINE.backendName);
@@ -108,8 +114,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return ENGINE.runKernel(
-               FromPixels, inputs as {} as NamedTensorMap,
-               attrs as {} as NamedAttrMap) as Tensor3D;
+        FromPixels, inputs as {} as NamedTensorMap,
+        attrs as {} as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?
@@ -126,9 +132,23 @@ function fromPixels_(
         (pixels as any).getContext('2d').getImageData(0, 0, width, height).data;
   } else if (isImageData || isPixelData) {
     vals = (pixels as PixelData | ImageData).data;
-  } else if (isImage || isVideo) {
+  } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+      if (typeof document === 'undefined') {
+        if (typeof OffscreenCanvas !== 'undefined' &&
+            typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
+          // @ts-ignore
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
+        } else {
+          throw new Error(
+              'Cannot parse input in current context. ' +
+              'Reason: OffscreenCanvas Context2D rendering is not supported.');
+        }
+      } else {
+        fromPixels2DContext =
+            document.createElement('canvas').getContext(
+                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
+      }
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
@@ -152,6 +172,103 @@ function fromPixels_(
   return tensor3d(values, outShape, 'int32');
 }
 
+// Helper functions for |fromPixelsAsync| to check whether the input can
+// be wrapped into imageBitmap.
+function isPixelData(pixels: PixelData|ImageData|HTMLImageElement|
+                     HTMLCanvasElement|HTMLVideoElement|
+                     ImageBitmap): pixels is PixelData {
+  return (pixels != null) && ((pixels as PixelData).data instanceof Uint8Array);
+}
+
+function isImageBitmapFullySupported() {
+  return typeof window !== 'undefined' &&
+      typeof (ImageBitmap) !== 'undefined' &&
+      window.hasOwnProperty('createImageBitmap');
+}
+
+function isNonEmptyPixels(pixels: PixelData|ImageData|HTMLImageElement|
+                          HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+  return pixels != null && pixels.width !== 0 && pixels.height !== 0;
+}
+
+function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
+                                    HTMLImageElement|HTMLCanvasElement|
+                                    HTMLVideoElement|ImageBitmap) {
+  return isImageBitmapFullySupported() && !(pixels instanceof ImageBitmap) &&
+      isNonEmptyPixels(pixels) && !isPixelData(pixels);
+}
+
+/**
+ * Creates a `tf.Tensor` from an image in async way.
+ *
+ * ```js
+ * const image = new ImageData(1, 1);
+ * image.data[0] = 100;
+ * image.data[1] = 150;
+ * image.data[2] = 200;
+ * image.data[3] = 255;
+ *
+ * (await tf.browser.fromPixelsAsync(image)).print();
+ * ```
+ * This API is the async version of fromPixels. The API will first
+ * check |WRAP_TO_IMAGEBITMAP| flag, and try to wrap the input to
+ * imageBitmap if the flag is set to true.
+ *
+ * @param pixels The input image to construct the tensor from. The
+ * supported image types are all 4-channel. You can also pass in an image
+ * object with following attributes:
+ * `{data: Uint8Array; width: number; height: number}`
+ * @param numChannels The number of channels of the output tensor. A
+ * numChannels value less than 4 allows you to ignore channels. Defaults to
+ * 3 (ignores alpha channel of input image).
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
+ */
+export async function fromPixelsAsync(
+    pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+    HTMLVideoElement|ImageBitmap,
+    numChannels = 3) {
+  let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+      HTMLVideoElement|ImageBitmap = null;
+
+  // Check whether the backend needs to wrap |pixels| to imageBitmap and
+  // whether |pixels| can be wrapped to imageBitmap.
+  if (env().getBool('WRAP_TO_IMAGEBITMAP') &&
+      canWrapPixelsToImageBitmap(pixels)) {
+    // Force the imageBitmap creation to not do any premultiply alpha
+    // ops.
+    let imageBitmap;
+
+    try {
+      // wrap in try-catch block, because createImageBitmap may not work
+      // properly in some browsers, e.g.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1335594
+      // tslint:disable-next-line: no-any
+      imageBitmap = await (createImageBitmap as any)(
+          pixels as ImageBitmapSource, {premultiplyAlpha: 'none'});
+    } catch (e) {
+      imageBitmap = null;
+    }
+
+    // createImageBitmap will clip the source size.
+    // In some cases, the input will have larger size than its content.
+    // E.g. new Image(10, 10) but with 1 x 1 content. Using
+    // createImageBitmap will clip the size from 10 x 10 to 1 x 1, which
+    // is not correct. We should avoid wrapping such resouce to
+    // imageBitmap.
+    if (imageBitmap != null && imageBitmap.width === pixels.width &&
+        imageBitmap.height === pixels.height) {
+      inputs = imageBitmap;
+    } else {
+      inputs = pixels;
+    }
+  } else {
+    inputs = pixels;
+  }
+
+  return fromPixels_(inputs, numChannels);
+}
+
 /**
  * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
  * canvas.
@@ -162,14 +279,16 @@ function fromPixels_(
  *
  * Returns a promise that resolves when the canvas has been drawn to.
  *
- * @param img A rank-2 or rank-3 tensor. If rank-2, draws grayscale. If
- *     rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
+ * @param img A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
+ * of shape `[height, width, numChannels]`. If rank-2, draws grayscale. If
+ * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
  * grayscale. When depth of 3, we draw with the first three components of
  * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
  * 4, all four components of the depth dimension correspond to r, g, b, a.
  * @param canvas The canvas to draw to.
+ *
+ * @doc {heading: 'Browser', namespace: 'browser'}
  */
-/** @doc {heading: 'Browser', namespace: 'browser'} */
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     canvas?: HTMLCanvasElement): Promise<Uint8ClampedArray> {
@@ -177,7 +296,7 @@ export async function toPixels(
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
     const originalImgTensor = $img;
-    $img = originalImgTensor.toInt();
+    $img = cast(originalImgTensor, 'int32');
     originalImgTensor.dispose();
   }
   if ($img.rank !== 2 && $img.rank !== 3) {
@@ -193,60 +312,50 @@ export async function toPixels(
         `1, 3 or 4 but got ${depth}`);
   }
 
-  const data = await $img.data();
-  const minTensor = $img.min();
-  const maxTensor = $img.max();
-  const vals = await Promise.all([minTensor.data(), maxTensor.data()]);
-  const minVals = vals[0];
-  const maxVals = vals[1];
-  const min = minVals[0];
-  const max = maxVals[0];
-  minTensor.dispose();
-  maxTensor.dispose();
-  if ($img.dtype === 'float32') {
-    if (min < 0 || max > 1) {
-      throw new Error(
-          `Tensor values for a float32 Tensor must be in the ` +
-          `range [0 - 1] but got range [${min} - ${max}].`);
-    }
-  } else if ($img.dtype === 'int32') {
-    if (min < 0 || max > 255) {
-      throw new Error(
-          `Tensor values for a int32 Tensor must be in the ` +
-          `range [0 - 255] but got range [${min} - ${max}].`);
-    }
-  } else {
+  if ($img.dtype !== 'float32' && $img.dtype !== 'int32') {
     throw new Error(
         `Unsupported type for toPixels: ${$img.dtype}.` +
         ` Please use float32 or int32 tensors.`);
   }
+
+  const data = await $img.data();
   const multiplier = $img.dtype === 'float32' ? 255 : 1;
   const bytes = new Uint8ClampedArray(width * height * 4);
 
   for (let i = 0; i < height * width; ++i) {
-    let r, g, b, a;
-    if (depth === 1) {
-      r = data[i] * multiplier;
-      g = data[i] * multiplier;
-      b = data[i] * multiplier;
-      a = 255;
-    } else if (depth === 3) {
-      r = data[i * 3] * multiplier;
-      g = data[i * 3 + 1] * multiplier;
-      b = data[i * 3 + 2] * multiplier;
-      a = 255;
-    } else if (depth === 4) {
-      r = data[i * 4] * multiplier;
-      g = data[i * 4 + 1] * multiplier;
-      b = data[i * 4 + 2] * multiplier;
-      a = data[i * 4 + 3] * multiplier;
+    const rgba = [0, 0, 0, 255];
+
+    for (let d = 0; d < depth; d++) {
+      const value = data[i * depth + d];
+
+      if ($img.dtype === 'float32') {
+        if (value < 0 || value > 1) {
+          throw new Error(
+              `Tensor values for a float32 Tensor must be in the ` +
+              `range [0 - 1] but encountered ${value}.`);
+        }
+      } else if ($img.dtype === 'int32') {
+        if (value < 0 || value > 255) {
+          throw new Error(
+              `Tensor values for a int32 Tensor must be in the ` +
+              `range [0 - 255] but encountered ${value}.`);
+        }
+      }
+
+      if (depth === 1) {
+        rgba[0] = value * multiplier;
+        rgba[1] = value * multiplier;
+        rgba[2] = value * multiplier;
+      } else {
+        rgba[d] = value * multiplier;
+      }
     }
 
     const j = i * 4;
-    bytes[j + 0] = Math.round(r);
-    bytes[j + 1] = Math.round(g);
-    bytes[j + 2] = Math.round(b);
-    bytes[j + 3] = Math.round(a);
+    bytes[j + 0] = Math.round(rgba[0]);
+    bytes[j + 1] = Math.round(rgba[1]);
+    bytes[j + 2] = Math.round(rgba[2]);
+    bytes[j + 3] = Math.round(rgba[3]);
   }
 
   if (canvas != null) {

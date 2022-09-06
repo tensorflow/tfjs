@@ -20,11 +20,6 @@ yarn
 yarn rimraf dist/
 yarn tsc
 ./scripts/build-wasm.sh
-yarn rollup -c
-
-# Use minified files for miniprogram
-mkdir dist/miniprogram
-cp dist/tf-backend-wasm.js dist/miniprogram/index.js
-cp dist/tf-backend-wasm.js.map dist/miniprogram/index.js.map
+yarn rollup -c --npm
 
 echo "Stored standalone library at dist/tf-backend-wasm(.min).js"

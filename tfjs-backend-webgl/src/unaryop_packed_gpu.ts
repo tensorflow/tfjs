@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
 
-export const LOG = `
-  vec4 result = log(x);
-  vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
-  result.r = isNaN.r == 1.0 ? NAN : result.r;
-  result.g = isNaN.g == 1.0 ? NAN : result.g;
-  result.b = isNaN.b == 1.0 ? NAN : result.b;
-  result.a = isNaN.a == 1.0 ? NAN : result.a;
+export const ELU = `
+  vec4 result;
+
+  result.r = (x.r >= 0.0) ? x.r : (exp(x.r) - 1.0);
+  result.g = (x.g >= 0.0) ? x.g : (exp(x.g) - 1.0);
+  result.b = (x.b >= 0.0) ? x.b : (exp(x.b) - 1.0);
+  result.a = (x.a >= 0.0) ? x.a : (exp(x.a) - 1.0);
 
   return result;
 `;
@@ -54,26 +54,19 @@ export const RELU6 = `
   return result;
 `;
 
-export const ELU = `
-  vec4 result;
-
-  result.r = (x.r >= 0.0) ? x.r : (exp(x.r) - 1.0);
-  result.g = (x.g >= 0.0) ? x.g : (exp(x.g) - 1.0);
-  result.b = (x.b >= 0.0) ? x.b : (exp(x.b) - 1.0);
-  result.a = (x.a >= 0.0) ? x.a : (exp(x.a) - 1.0);
-
-  return result;
-`;
+export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 
 export class UnaryOpPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
+  enableShapeUniforms: boolean;
   outputShape: number[];
   packedInputs = true;
   packedOutput = true;
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
       vec4 unaryOperation(vec4 x) {
         ${opSnippet}

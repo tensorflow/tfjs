@@ -35,8 +35,9 @@ import {op} from './operation';
  * ```
  * @param a The first input tensor. Must be of dtype bool.
  * @param b The second input tensor. Must be of dtype bool.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function logicalOr_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'logicalOr', 'bool');
@@ -44,8 +45,6 @@ function logicalOr_<T extends Tensor>(
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   const inputs: LogicalOrInputs = {a: $a, b: $b};
-  return ENGINE.runKernelFunc(
-             backend => backend.logicalOr($a, $b),
-             inputs as {} as NamedTensorMap, null /* grad */, LogicalOr) as T;
+  return ENGINE.runKernel(LogicalOr, inputs as {} as NamedTensorMap);
 }
 export const logicalOr = op({logicalOr_});

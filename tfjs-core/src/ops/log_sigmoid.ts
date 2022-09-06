@@ -24,6 +24,7 @@ import {mul} from './mul';
 import {neg} from './neg';
 import {op} from './operation';
 import {sigmoid} from './sigmoid';
+import {softplus} from './softplus';
 
 /**
  * Computes log sigmoid of the input `tf.Tensor` element-wise:
@@ -35,8 +36,9 @@ import {sigmoid} from './sigmoid';
  * x.logSigmoid().print();  // or tf.logSigmoid(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function logSigmoid_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logSigmoid');
 
@@ -47,7 +49,7 @@ function logSigmoid_<T extends Tensor>(x: T|TensorLike): T {
     // TODO(yassogba) we can remove the chained softplus call here only
     // after backends have modualrized softplus at which point we can call
     // engine runKernel(..., Sotfplus, ...) directly.
-    const value = neg(neg(x).softplus());
+    const value = neg(softplus(neg(x)));
 
     const gradFunc = (dy: T) => {
       const derX = mul(dy, sigmoid(neg(x)));

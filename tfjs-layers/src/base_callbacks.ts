@@ -345,6 +345,9 @@ export interface CustomCallbackArgs {
   onBatchBegin?: (batch: number, logs?: Logs) => void | Promise<void>;
   onBatchEnd?: (batch: number, logs?: Logs) => void | Promise<void>;
   onYield?: (epoch: number, batch: number, logs: Logs) => void | Promise<void>;
+  // Used for test DI mocking.
+  nowFunc?: Function;
+  nextFrameFunc?: Function;
 }
 
 /**
@@ -366,9 +369,13 @@ export class CustomCallback extends BaseCallback {
 
   private yieldEvery: YieldEveryOptions;
   private currentEpoch = 0;
+  public nowFunc: Function;
+  public nextFrameFunc: Function;
 
   constructor(args: CustomCallbackArgs, yieldEvery?: YieldEveryOptions) {
     super();
+    this.nowFunc = args.nowFunc;
+    this.nextFrameFunc = args.nextFrameFunc || nextFrame;
     this.yieldEvery = yieldEvery || 'auto';
     if (this.yieldEvery === 'auto') {
       this.yieldEvery = DEFAULT_YIELD_EVERY_MS;
@@ -382,7 +389,7 @@ export class CustomCallback extends BaseCallback {
       // Decorate `maybeWait` so it will be called at most once every
       // `yieldEvery` ms.
       this.maybeWait = generic_utils.debounce(
-          this.maybeWait.bind(this), this.yieldEvery as number);
+          this.maybeWait.bind(this), this.yieldEvery as number, this.nowFunc);
     }
     this.trainBegin = args.onTrainBegin;
     this.trainEnd = args.onTrainEnd;
@@ -399,7 +406,7 @@ export class CustomCallback extends BaseCallback {
       await resolveScalarsInLogs(logs);
       ps.push(this.yield(epoch, batch, logs as Logs));
     }
-    ps.push(nextFrame());
+    ps.push(this.nextFrameFunc());
     await Promise.all(ps);
   }
 
@@ -418,7 +425,7 @@ export class CustomCallback extends BaseCallback {
       ps.push(this.epochEnd(epoch, logs as Logs));
     }
     if (this.yieldEvery === 'epoch') {
-      ps.push(nextFrame());
+      ps.push(this.nextFrameFunc());
     }
     await Promise.all(ps);
   }
@@ -437,7 +444,7 @@ export class CustomCallback extends BaseCallback {
       ps.push(this.batchEnd(batch, logs as Logs));
     }
     if (this.yieldEvery === 'batch') {
-      ps.push(nextFrame());
+      ps.push(this.nextFrameFunc());
     } else if (util.isNumber(this.yieldEvery)) {
       ps.push(this.maybeWait(this.currentEpoch, batch, logs));
     }

@@ -21,6 +21,8 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {gather} from './gather';
+import {reshape} from './reshape';
+import {squeeze} from './squeeze';
 import {whereAsync} from './where_async';
 
 /**
@@ -38,8 +40,9 @@ import {whereAsync} from './where_async';
  * @param axis A 0-D int Tensor representing the axis in tensor to mask from.
  *     By default, axis is 0 which will mask from the first dimension.
  *     Otherwise K + axis <= N.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 async function booleanMaskAsync_(
     tensor: Tensor|TensorLike, mask: Tensor|TensorLike,
     axis?: number): Promise<Tensor> {
@@ -62,10 +65,10 @@ async function booleanMaskAsync_(
   const targetTensorShape =
       tensorShape.slice(0, axisFrom)
           .concat([leadingSize], tensorShape.slice(axisFrom + maskDim));
-  const reshapedTensor = $tensor.reshape(targetTensorShape);
-  const reshapedMask = $mask.reshape([-1]);
+  const reshapedTensor = reshape($tensor, targetTensorShape);
+  const reshapedMask = reshape($mask, [-1]);
   const positivePositions = await whereAsync(reshapedMask);
-  const indices = positivePositions.squeeze([1]);
+  const indices = squeeze(positivePositions, [1]);
 
   const res = gather(reshapedTensor, indices, axisFrom);
 

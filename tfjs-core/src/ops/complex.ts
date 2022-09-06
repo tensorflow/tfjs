@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Complex, ComplexInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -41,8 +41,9 @@ import {op} from './operation';
  *
  * complex.print();
  * ```
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
   const $real = convertToTensor(real, 'real', 'complex');
   const $imag = convertToTensor(imag, 'imag', 'complex');
@@ -51,13 +52,8 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
       `real and imag shapes, ${$real.shape} and ${$imag.shape}, ` +
           `must match in call to tf.complex().`);
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.complex($real, $imag);
-  };
   const inputs: ComplexInputs = {real: $real, imag: $imag};
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Complex) as T;
+  return ENGINE.runKernel(Complex, inputs as {} as NamedTensorMap);
 }
 
 export const complex = op({complex_});

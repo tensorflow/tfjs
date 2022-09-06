@@ -17,8 +17,6 @@
 
 import {Min, MinAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import * as axis_util from '../ops/axis_util';
-import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 import * as util from '../util';
 
@@ -33,15 +31,10 @@ export const minGradConfig: GradConfig = {
     const {axis} = minAttrs;
     const [x, y] = saved;
     const origAxes = util.parseAxisParam(axis, x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(origAxes, x.rank);
-    const minGrad = gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
+    const minGrad = gradForMinAndMax(dy, y, x, origAxes);
     return {
       x: () => {
-        let out = minGrad['x']();
-        if (permutedAxes != null) {
-          out = transpose(out);
-        }
-        return out;
+        return minGrad['x']();
       }
     };
   }

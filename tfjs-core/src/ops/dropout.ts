@@ -20,7 +20,11 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './add';
+import {div} from './div';
 import {getNoiseShape} from './dropout_util';
+import {floor} from './floor';
+import {mul} from './mul';
 import {op} from './operation';
 import {randomUniform} from './random_uniform';
 
@@ -43,8 +47,9 @@ import {randomUniform} from './random_uniform';
  * size. Optional.
  * @param seed Used to create random seeds. Optional.
  * @returns A Tensor of the same shape of x.
+ *
+ * @doc {heading: 'Operations', subheading: 'Dropout'}
  */
-/** @doc {heading: 'Operations', subheading: 'Dropout'} */
 function dropout_(
     x: Tensor|TensorLike, rate: number, noiseShape?: number[],
     seed?: number|string): Tensor {
@@ -64,12 +69,11 @@ function dropout_(
 
   const $noiseShape = getNoiseShape($x, noiseShape);
   const keepProb = 1 - rate;
-  const multiplier = randomUniform($noiseShape, 0, 1, 'float32', seed)
-                         .add(keepProb)
-                         .floor()
-                         .div(keepProb);
+  const multiplier = div(
+      floor(add(randomUniform($noiseShape, 0, 1, 'float32', seed), keepProb)),
+      keepProb);
 
-  return $x.mul(multiplier);
+  return mul($x, multiplier);
 }
 
 export const dropout = op({dropout_});

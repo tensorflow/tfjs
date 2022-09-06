@@ -19,6 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {add, mul, scalar, Tensor, test_util} from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../executor/execution_context';
+import {ResourceManager} from '../executor/resource_manager';
 
 import {deregisterOp, registerOp} from './custom_op/register';
 import * as arithmetic from './executors/arithmetic_executor';
@@ -29,13 +30,16 @@ import * as creation from './executors/creation_executor';
 import * as dynamic from './executors/dynamic_executor';
 import * as evaluation from './executors/evaluation_executor';
 import * as graph from './executors/graph_executor';
+import * as hash_table from './executors/hash_table_executor';
 import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as slice_join from './executors/slice_join_executor';
+import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
+import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
 import {executeOp} from './operation_executor';
 import {Node} from './types';
@@ -58,9 +62,9 @@ describe('OperationExecutor', () => {
   });
 
   describe('executeOp', () => {
-    [arithmetic, basic_math, convolution, control, creation, dynamic,
-     evaluation, image, graph, logical, matrices, normalization, reduction,
-     slice_join, spectral, transformation]
+    [arithmetic, basic_math, control, convolution, creation, dynamic,
+     evaluation, graph, image, logical, matrices, normalization, reduction,
+     slice_join, sparse, spectral, string, transformation]
         .forEach(category => {
           it('should call ' + category.CATEGORY + ' executor', () => {
             spyOn(category, 'executeOp');
@@ -69,17 +73,27 @@ describe('OperationExecutor', () => {
             expect(category.executeOp).toHaveBeenCalledWith(node, {}, context);
           });
         });
-    [arithmetic, basic_math, convolution, creation, evaluation, image, graph,
-     logical, matrices, normalization, reduction, slice_join, spectral,
-     transformation]
+    [arithmetic, basic_math, convolution, creation, evaluation, graph, image,
+     logical, matrices, normalization, reduction, slice_join, sparse, spectral,
+     string, transformation]
         .forEach(category => {
           it('should call tidy around executor', () => {
-            spyOn(tfc, 'tidy');
+            const tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
+
             node.category = category.CATEGORY;
-            executeOp(node, {}, context);
-            expect(tfc.tidy).toHaveBeenCalled();
+            executeOp(node, {}, context, undefined, tidySpy as typeof tfc.tidy);
+            expect(tidySpy).toHaveBeenCalled();
           });
         });
+
+    it('hash_table executor should have been called.', () => {
+      const resourceManager = new ResourceManager();
+      spyOn(hash_table, 'executeOp');
+      node.category = hash_table.CATEGORY;
+      executeOp(node, {}, context, resourceManager);
+      expect(hash_table.executeOp)
+          .toHaveBeenCalledWith(node, {}, context, resourceManager);
+    });
   });
 
   describe('custom op executeOp', () => {

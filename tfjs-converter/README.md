@@ -7,8 +7,7 @@ or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
 into the browser and run inference through
 [TensorFlow.js](https://js.tensorflow.org).
 
-__Note__: _Session bundle format have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert session bundle, available in
-`tfjs-converter` [0.8.6](https://pypi.org/project/tensorflowjs/0.8.6/)._
+__Note__: _Session bundle format have been deprecated.
 
 A 2-step process to import your model:
 
@@ -18,7 +17,7 @@ using an already hosted model (e.g. MobileNet), skip this step.
 2. [JavaScript API](./src/executor/tf_model.ts), for loading and running
 inference.
 
-## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model) or [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) to a web-friendly format
+## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
 
 __0. Please make sure that you run in a Docker container or a virtual environment.__
 
@@ -48,16 +47,20 @@ virtualenv --no-site-packages venv
 
 __1. Install the TensorFlow.js pip package:__
 
+Install the library with interactive CLI:
 ```bash
- pip install tensorflowjs
+ pip install tensorflowjs[wizard]
 ```
 
 __2. Run the converter script provided by the pip package:__
 
-There are two way to trigger the model conversion:
+There are three way to trigger the model conversion, explain below:
 
-- The conversion wizard: `tensorflowjs_wizard`
-- Regular conversion script: `tensorflowjs_converter`
+- The conversion wizard: `tensorflowjs_wizard` ([go to section](#conversion-wizard-tensorflowjswizard))
+- Regular conversion script: `tensorflowjs_converter` ([go to section](#regular-conversion-script-tensorflowjsconverter))
+- Calling a converter function in Python (Flax/JAX) ([go to section](#calling-a-converter-function-in-python))
+
+## Conversion wizard: `tensorflowjs_wizard`
 
 To start the conversion wizard:
 ```bash
@@ -81,7 +84,7 @@ tensorflowjs_wizard --dryrun
 To convert a batch of models or integrate the conversion process into your own
 script, you should use the tensorflowjs_converter script.
 
-## Conversion flags
+## Regular conversion script: `tensorflowjs_converter`
 
 The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
 __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
@@ -141,6 +144,8 @@ Note that the input path used above is a subfolder that has a Unix epoch
 time (1542211770) and is generated automatically by tensorflow when it
 saved a tf.keras model in the SavedModel format.
 
+### Conversion Flags
+
 |Positional Arguments | Description |
 |---|---|
 |`input_path`  | Full path of the saved model directory or TensorFlow Hub module handle or path.|
@@ -151,16 +156,18 @@ saved a tf.keras model in the SavedModel format.
 |---|---|
 |`--input_format`     | The format of input model, use `tf_saved_model` for SavedModel, `tf_hub` for TensorFlow Hub module, `tfjs_layers_model` for TensorFlow.js JSON format, and `keras` for Keras HDF5. |
 |`--output_format`| The desired output format.  Must be `tfjs_layers_model`, `tfjs_graph_model` or `keras`. Not all pairs of input-output formats are supported.  Please file a [github issue](https://github.com/tensorflow/tfjs/issues) if your desired input-output pair is not supported.|
-|<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
+|<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. If there are no tags defined in the saved model, set it to empty string `saved_model_tags=''`. Defaults to `serve`.|
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
 |`--quantization_bytes`  | (Deprecated) How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
-|`--quantize_float16`  | Comma separated list of node names to apply float16 quantization. You can also use wildcard symbol (*) to apply quantization to multiple nodes (e.g., conv/*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
-|`--quantize_uint8`  | Comma separated list of node names to apply 1-byte affine quantization. You can also use wildcard symbol (*) to apply quantization to multiple nodes (e.g., conv/*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
-|`--quantize_uint16`  | Comma separated list of node names to apply 2-byte affine quantization. You can also use wildcard symbol (*) to apply quantization to multiple nodes (e.g., conv/*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--quantize_float16`  | Comma separated list of node names to apply float16 quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--quantize_uint8`  | Comma separated list of node names to apply 1-byte affine quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--quantize_uint16`  | Comma separated list of node names to apply 2-byte affine quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
 |`--weight_shard_size_bytes` | Shard size (in bytes) of the weight files. Only supported when `output_format` is `tfjs_layers_model` or `tfjs_graph_model`. Default size is 4 MB (4194304 bytes).|
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 |<nobr>`--control_flow_v2`</nobr>| Only applicable to TF 2.x Saved Model. This flag improve performance on models with control flow ops, default to False.|
+|<nobr>`--metadata`</nobr>| Comma separated list of metadata json file paths, indexed by name. Prefer absolute path. Example: 'metadata1:/metadata1.json,metadata2:/metadata2.json'.|
+|<nobr>`--use_structured_outputs_names`</nobr>| Changes output of graph model to match the structured_outputs format instead of list format. Defaults to `False`.|
 
 __Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
 
@@ -268,6 +275,53 @@ following location:
   ...
   https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/group1-shard5of5
 ```
+
+## Calling a Converter Function in Python (Flax/JAX)
+
+You can also convert your model to web format in Python by calling one of the
+conversion functions. This is currently the only way to convert a Flax or JAX
+model, since no standard serialization format exists to store a Module (only the
+checkpoints).
+
+Here we provide an example of how to convert a Flax function using the
+conversion function `tfjs.jax_conversion.convert_jax()`.
+
+```py
+import numpy as np
+from flax import linen as nn
+from jax import random
+import jax.numpy as jnp
+from tensorflowjs.converters import jax_conversion
+
+module = nn.Dense(features=4)
+inputs = jnp.ones((3, 4))
+params = module.init(random.PRNKey(0), inputs)['params']
+
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((3, 4), np.float32)],
+  model_dir=tfjs_model_dir)
+```
+
+Note that when using dynamic shapes, an additional argument `polymorphic_shapes`
+should be provided specifying values for the dynamic ("polymorphic")
+dimensions). So in order to convert the same model as before, but now with a
+dynamic first dimension, one should call `convert_jax` as follows:
+
+```py
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((None, 4), np.float32)],
+  polymorphic_shapes=["(b, 4)"],
+  model_dir=tfjs_model_dir)
+```
+
+See
+[here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
+for more details on the exact syntax for this argument.
+
 
 ## Step 2: Loading and running in the browser
 
@@ -435,41 +489,26 @@ yarn ts-node tools/pb2json_converter.ts pb_model_directory/ json_model_directory
 version is located.
 `json_model_directory` is the destination directory for the converted model.
 
-__7. I have a model formatted as a Session bundle. How do I convert it to TensorFlow.js?__
-
-You can install a previous version of TensorFlow.js in a virtual environment to
-convert the model to the JSON format. Here is how you can achieve this.
-
-* Set up the virtual environment:
-
-```bash
-virtualenv --no-site-packages venv
-. venv/bin/activate
-pip install tensorflowjs==0.8.6
-```
-
-`venv` is the name of the virtual environment.
-
-* Convert a session bundle model:
-
-```bash
-tensorflowjs_converter \
-    --input_format=tf_session_bundle \
-    --output_json=true \
-    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    /mobilenet/session_bundle \
-    /mobilenet/web_model
-```
 
 ## Development
 
-To build **TensorFlow.js converter** from source, we need to clone the project
-and prepare the dev environment:
+To build **TensorFlow.js converter** from source, we need to prepare the dev environment and clone the project.
+
+Bazel builds Python from source, so we install the dependencies required to build it. Since we will be using pip and C extensions, we also install the ssl, foreign functions, and zlib development packages. On debian, this is done with:
 
 ```bash
-git clone https://github.com/tensorflow/tfjs-converter.git
-cd tfjs-converter
-$ yarn # Installs dependencies.
+sudo apt-get build-dep python3
+sudo apt install libssl-dev libffi-dev zlib1g-dev
+```
+
+See the [python developer guide](https://devguide.python.org/setup/#install-dependencies) for instructions on installing these for other platforms.
+
+Then, we clone the project and install dependencies with:
+
+```bash
+git clone https://github.com/tensorflow/tfjs.git
+cd tfjs
+yarn # Installs dependencies.
 ```
 
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
@@ -484,6 +523,7 @@ Before submitting a pull request, make sure the code passes all the tests and is
 clean of lint errors:
 
 ```bash
+cd tfjs-converter
 yarn test
 yarn lint
 ```
@@ -500,4 +540,10 @@ To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
 yarn test --single-run
+```
+
+To run all the python tests
+
+```bash
+yarn run-python-tests
 ```

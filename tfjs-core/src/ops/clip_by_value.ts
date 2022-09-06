@@ -34,10 +34,11 @@ import {op} from './operation';
  * x.clipByValue(-2, 3).print();  // or tf.clipByValue(x, -2, 3)
  * ```
  * @param x The input tensor.
- * @param clipValueMin Lower-bound of range to be clipped to.
- * @param clipValueMax Upper-bound of range to be clipped to.
+ * @param clipValueMin Lower bound of range to be clipped to.
+ * @param clipValueMax Upper bound of range to be clipped to.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function clipByValue_<T extends Tensor>(
     x: T|TensorLike, clipValueMin: number, clipValueMax: number): T {
   const $x = convertToTensor(x, 'x', 'clipByValue');
@@ -49,14 +50,8 @@ function clipByValue_<T extends Tensor>(
   const inputs: ClipByValueInputs = {x: $x};
   const attrs: ClipByValueAttrs = {clipValueMin, clipValueMax};
 
-  return ENGINE.runKernelFunc(
-      (backend, save) => {
-        const res = backend.clip($x, clipValueMin, clipValueMax);
-        save([$x]);
-        return res;
-      },
-      inputs as {} as NamedTensorMap, null /* grad */, ClipByValue,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      ClipByValue, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const clipByValue = op({clipByValue_});

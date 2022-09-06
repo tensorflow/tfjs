@@ -14,20 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelBackend} from '../backends/backend';
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Min, MinAttrs, MinInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
-import * as axis_util from './axis_util';
 import {op} from './operation';
-import {reshape} from './reshape';
-import {transpose} from './transpose';
 
 /**
  * Computes the minimum value from the input.
@@ -55,45 +50,19 @@ import {transpose} from './transpose';
  * @param axis The dimension(s) to reduce. By default it reduces
  *     all dimensions.
  * @param keepDims If true, retains reduced dimensions with size 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function min_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'min');
 
-  const forward: ForwardFunc<Tensor> =
-      (backend: KernelBackend, save: GradSaveFunc) => {
-        const origAxes = parseAxisParam(axis, $x.shape);
-        let axes = origAxes;
-        const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-        let minInput = $x;
-        if (permutedAxes != null) {
-          minInput = transpose($x, permutedAxes);
-          axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-        }
-
-        const y = backend.min(minInput, axes);
-        if (permutedAxes != null) {
-          minInput.dispose();
-        }
-
-        let res = y;
-        if (keepDims) {
-          const expandedShape =
-              axis_util.expandShapeToKeepDim(res.shape, origAxes);
-          res = reshape(y, expandedShape) as T;
-          y.dispose();
-        }
-
-        save([$x, res]);
-        return res;
-      };
-
   const inputs: MinInputs = {x: $x};
   const attrs: MinAttrs = {axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Min,
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             Min, inputs as {} as NamedTensorMap,
              attrs as {} as NamedAttrMap) as T;
 }
 

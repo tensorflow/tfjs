@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {env, util} from '@tensorflow/tfjs-core';
+import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
@@ -97,6 +97,9 @@ export function createFragmentShader(
       'Unable to create fragment WebGLShader.');
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return fragmentShader;
+  }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(
         fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
@@ -106,7 +109,7 @@ export function createFragmentShader(
 }
 
 const lineNumberRegex = /ERROR: [0-9]+:([0-9]+):/g;
-function logShaderSourceAndInfoLog(
+export function logShaderSourceAndInfoLog(
     shaderSource: string, shaderInfoLog: string) {
   const lineNumberRegexResult = lineNumberRegex.exec(shaderInfoLog);
   if (lineNumberRegexResult == null) {
@@ -146,6 +149,9 @@ export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
 
 export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.linkProgram(program));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return;
+  }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Failed to link vertex and fragment shaders.');
@@ -362,8 +368,16 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  let maxSizeForNarrowTex =
+      env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+  if (maxSizeForNarrowTex === Infinity &&
+      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE')) {
+    maxSizeForNarrowTex = maxTexSize / 2;
+  }
+
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
 
     // This logic ensures we accurately count the number of packed texels needed
     // to accommodate the tensor. We can only pack values in the same texel if
@@ -389,30 +403,40 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
+  let textureShape: [number, number] = null;
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
       logShape[1] <= maxTexSize) {
-    return logShape as [number, number];
+    textureShape = logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
       logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
       logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+  }
+
+  // true if one edge length is 1 (1 or 2, if packed), while another edge
+  // length exceeds maxSizeForNarrowTex.
+  const isLongNarrowTex = textureShape != null &&
+      Math.max(...textureShape) > maxSizeForNarrowTex &&
+      Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
+      Math.min(...textureShape) > 0;
+
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
       // accommodate the texture data. However in order to squarify such that
@@ -426,10 +450,14 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+    } else {
+      textureShape = util.sizeToSquarishShape(size);
     }
-    return util.sizeToSquarishShape(size);
   }
+
+  return textureShape;
 }
 
 function isEven(n: number): boolean {
@@ -534,6 +562,7 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2) {
       return true;
     }
   } catch (e) {
+    console.log('Error when getting WebGL context: ', e);
     return false;
   }
   return false;
@@ -671,4 +700,19 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;
   return isEnabled;
+}
+
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors ` +
+              'in the WebGL backend.');
+    }
+  });
 }

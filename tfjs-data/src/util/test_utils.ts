@@ -17,7 +17,7 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, BROWSER_ENVS, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, BROWSER_ENVS, Constraints, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // Provide fake video stream
 export function setupFakeVideoStream() {
@@ -64,6 +64,11 @@ registerTestEnv({
   }
 });
 
+export const MEDIA_ENVS: Constraints = {
+  predicate: (env) => BROWSER_ENVS.predicate(env)
+    && navigator.mediaDevices != null
+};
+
 export function describeAllEnvs(testName: string, tests: () => void) {
   describeWithFlags(testName, ALL_ENVS, () => {
     tests();
@@ -83,15 +88,15 @@ export function describeNodeEnvs(testName: string, tests: () => void) {
 }
 
 /**
- * Testing Utilities for browser audeo stream.
+ * Testing Utilities for browser audio stream.
  */
-export function setupFakeAudeoStream() {
+export function setupFakeAudioStream() {
   navigator.mediaDevices.getUserMedia = async () => {
     const stream = new MediaStream();
     return stream;
   };
   // tslint:disable-next-line:no-any
-  (window as any).AudioContext = FakeAudioContext.createInstance;
+  (window as any).AudioContext = FakeAudioContext;
 }
 
 export class FakeAudioContext {

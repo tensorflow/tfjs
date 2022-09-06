@@ -32,16 +32,12 @@ import {op} from './operation';
  * x.acos().print();  // or tf.acos(x)
  * ```
  * @param x The input tensor.
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function acos_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'acos');
   const inputs: AcosInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.acos($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Acos);
+  return ENGINE.runKernel(Acos, inputs as {} as NamedTensorMap);
 }
 export const acos = op({acos_});

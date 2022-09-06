@@ -20,8 +20,17 @@ import * as shell from 'shelljs';
 import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
-  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri',
-  'annxingyuan', 'Kangyi Zhang', 'lina128'
+  'dsmilkov',
+  'kainino0x',
+  'davidsoergel',
+  'pyu10055',
+  'nkreeger',
+  'tafsiri',
+  'annxingyuan',
+  'Kangyi Zhang',
+  'lina128',
+  'mattsoulanille',
+  'jinjingforever',
 ];
 
 const rl =
@@ -50,6 +59,7 @@ export async function question(questionStr: string): Promise<string> {
 export interface Repo {
   name: string;
   identifier: string;
+  path: string;
   startVersion?: string;
   startCommit?: string;
   endVersion?: string;

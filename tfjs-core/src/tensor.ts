@@ -15,6 +15,10 @@
  * =============================================================================
  */
 
+// Workaround for: https://github.com/bazelbuild/rules_nodejs/issues/1265
+/// <reference types="@webgpu/types/dist" />
+
+import {getGlobal} from './global_util';
 import {tensorToString} from './tensor_format';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
@@ -34,8 +38,9 @@ export interface Backend {}
  * at locations before converting to an immutable `tf.Tensor`.
  *
  * See `tf.buffer` for creating a tensor buffer.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
   size: number;
   shape: ShapeMap[R];
@@ -68,8 +73,9 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    *
    * @param value The value to set.
    * @param locs  The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   set(value: SingleValueMap[D], ...locs: number[]): void {
     if (locs.length === 0) {
       locs = [0];
@@ -87,8 +93,9 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    * Returns the value in the buffer at the provided location.
    *
    * @param locs The location indices.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   get(...locs: number[]): SingleValueMap[D] {
     if (locs.length === 0) {
       locs = [0];
@@ -143,12 +150,27 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
 
   /**
    * Creates an immutable `tf.Tensor` object from the buffer.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Creation'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
     return trackerFn().makeTensor(this.values, this.shape, this.dtype) as
         Tensor<R>;
   }
+}
+
+export interface DataToGPUWebGLOption {
+  customTexShape?: [number, number];
+}
+
+export type DataToGPUOptions = DataToGPUWebGLOption;
+
+export interface GPUData {
+  tensorRef: Tensor;
+  texture?: WebGLTexture;
+  buffer?: GPUBuffer;
+  texShape?: [number, number];
+  bufSize?: number;
 }
 
 export interface TensorTracker {
@@ -163,6 +185,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
 /**
@@ -231,9 +254,16 @@ export declare namespace Tensor {}
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
  *
+ * For performance reasons, functions that create tensors do not necessarily
+ * perform a copy of the data passed to them (e.g. if the data is passed as a
+ * `Float32Array`), and changes to the data will change the tensor. This is not
+ * a feature and is not supported. To avoid this behavior, use the tensor before
+ * changing the input data or create a copy with `copy = tf.add(yourTensor, 0)`.
+ *
  * See `tf.tensor` for details on how to create a `tf.Tensor`.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class Tensor<R extends Rank = Rank> {
   /** Unique id of this tensor. */
   readonly id: number;
@@ -279,15 +309,18 @@ export class Tensor<R extends Rank = Rank> {
 
   /**
    * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async buffer<D extends DataType = 'float32'>(): Promise<TensorBuffer<R, D>> {
     const vals = await this.data<D>();
     return opHandler.buffer(this.shape, this.dtype as D, vals);
   }
 
-  /** Returns a `tf.TensorBuffer` that holds the underlying data. */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  /**
+   * Returns a `tf.TensorBuffer` that holds the underlying data.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   bufferSync<D extends DataType = 'float32'>(): TensorBuffer<R, D> {
     return opHandler.buffer(this.shape, this.dtype as D, this.dataSync());
   }
@@ -295,27 +328,33 @@ export class Tensor<R extends Rank = Rank> {
   /**
    * Returns the tensor data as a nested array. The transfer of data is done
    * asynchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
-    return toNestedArray(this.shape, vals) as ArrayMap[R];
+    return toNestedArray(this.shape, vals, this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
    * Returns the tensor data as a nested array. The transfer of data is done
    * synchronously.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   arraySync(): ArrayMap[R] {
-    return toNestedArray(this.shape, this.dataSync()) as ArrayMap[R];
+    return toNestedArray(
+               this.shape, this.dataSync(), this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
    * Asynchronously downloads the values from the `tf.Tensor`. Returns a
    * promise of `TypedArray` that resolves when the computation has finished.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]> {
     this.throwIfDisposed();
     const data = trackerFn().read(this.dataId);
@@ -333,10 +372,52 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use a user-defined size to create the buffer.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *        bufSize: number
+   *     }
+   *
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
+  dataToGPU(options?: DataToGPUOptions): GPUData {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
+  }
+
+  /**
    * Synchronously downloads the values from the `tf.Tensor`. This blocks the
    * UI thread until the values are ready, which can cause performance issues.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D] {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
@@ -366,8 +447,9 @@ export class Tensor<R extends Rank = Rank> {
 
   /**
    * Disposes `tf.Tensor` from memory.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dispose(): void {
     if (this.isDisposed) {
       return;
@@ -392,14 +474,17 @@ export class Tensor<R extends Rank = Rank> {
    *
    * @param verbose Whether to print verbose information about the tensor,
    *    including dtype and size.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   print(verbose = false): void {
     return opHandler.print(this, verbose);
   }
 
-  /** Returns a copy of the tensor. See `tf.clone` for details. */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
+  /**
+   * Returns a copy of the tensor. See `tf.clone` for details.
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
   clone<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.clone(this);
@@ -407,8 +492,9 @@ export class Tensor<R extends Rank = Rank> {
 
   /**
    * Returns a human-readable description of the tensor. Useful for logging.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   toString(verbose = false): string {
     const vals = this.dataSync();
     return tensorToString(vals, this.shape, this.dtype, verbose);
@@ -424,17 +510,36 @@ export class Tensor<R extends Rank = Rank> {
         Variable<R>;
   }
 }
+
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
-    return !!instance && instance.dataId != null && instance.shape != null &&
-        instance.dtype != null;
+    // Implementation note: we should use properties of the object that will be
+    // defined before the constructor body has finished executing (methods).
+    // This is because when this code is transpiled by babel, babel will call
+    // classCallCheck before the constructor body is run.
+    // See https://github.com/tensorflow/tfjs/issues/3384 for backstory.
+    return !!instance && instance.data != null && instance.dataSync != null &&
+        instance.throwIfDisposed != null;
   }
 });
+
+export function getGlobalTensorClass() {
+  // Use getGlobal so that we can augment the Tensor class across package
+  // boundaries becase the node resolution alg may result in different modules
+  // being returned for this file depending on the path they are loaded from.
+  return getGlobal('Tensor', () => {
+    return Tensor;
+  });
+}
+
+// Global side effect. Cache global reference to Tensor class
+getGlobalTensorClass();
 
 export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
   data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
+  dataToGPU(options?: DataToGPUOptions): GPUData;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {
@@ -460,8 +565,9 @@ export type Tensor6D = Tensor<Rank.R6>;
 
 /**
  * A mutable `tf.Tensor`, useful for persisting state, e.g. for training.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 export class Variable<R extends Rank = Rank> extends Tensor<R> {
   name: string;
 
@@ -478,8 +584,9 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
    * the same shape and dtype as the old `tf.Tensor`.
    *
    * @param newValue New tensor to be assigned to this variable.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   assign(newValue: Tensor<R>): void {
     if (newValue.dtype !== this.dtype) {
       throw new Error(

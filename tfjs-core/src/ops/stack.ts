@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
+import {Pack, PackAttrs, PackInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {concat} from './concat';
-import {expandDims} from './expand_dims';
 import {op} from './operation';
 
 /**
@@ -36,42 +38,27 @@ import {op} from './operation';
  *
  * @param tensors A list of tensor objects with the same shape and dtype.
  * @param axis The axis to stack along. Defaults to 0 (the first dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function stack_<T extends Tensor>(
     tensors: Array<T|TensorLike>, axis = 0): Tensor {
-  const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
+  const $tensors =
+      convertToTensorArray(tensors, 'tensors', 'stack', 'string_or_numeric');
 
   util.assert(
       $tensors.length >= 1, () => 'Pass at least one tensor to tf.stack');
 
-  if ($tensors.length === 1) {
-    return expandDims($tensors[0], axis);
+  if ($tensors.length > 0) {
+    util.assert(
+        axis <= $tensors[0].rank, () => 'Axis must be <= rank of the tensor');
   }
 
-  const rank = $tensors[0].rank;
-  const shape = $tensors[0].shape;
-  const dtype = $tensors[0].dtype;
+  const inputs: PackInputs = $tensors;
+  const attrs: PackAttrs = {axis};
 
-  util.assert(axis <= rank, () => 'Axis must be <= rank of the tensor');
-
-  $tensors.forEach(t => {
-    util.assertShapesMatch(
-        shape, t.shape,
-        'All tensors passed to stack must have matching shapes');
-    util.assert(
-        dtype === t.dtype,
-        () => 'All tensors passed to stack must have matching dtypes');
-  });
-
-  const expandedTensors = $tensors.map(t => expandDims(t, axis));
-  // Stack exists in the TensorFlow C++ API
-  // (https://www.tensorflow.org/api_docs/cc/class/tensorflow/ops/stack) but not
-  // in
-  // https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/core/ops/ops.pbtxt.
-  // Therefore we are treating it like a high-level op rather than
-  // creating a dedicated stack kernel.
-  return concat(expandedTensors, axis);
+  return ENGINE.runKernel(
+      Pack, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const stack = op({stack_});

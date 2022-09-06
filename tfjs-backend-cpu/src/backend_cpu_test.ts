@@ -17,7 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {engine, test_util, util} from '@tensorflow/tfjs-core';
-const {expectArraysClose, expectArraysEqual} = test_util;
+
+const {expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -130,20 +131,5 @@ describeWithFlags('memory cpu', ALL_ENVS, () => {
         'Memory usage by string tensors is approximate ' +
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReasonString) >= 0).toBe(true);
-  });
-});
-
-describeWithFlags('CPU backend has sync init', ALL_ENVS, () => {
-  it('can do matmul without waiting for ready', async () => {
-    tf.registerBackend('my-cpu', () => {
-      return new MathBackendCPU();
-    });
-    tf.setBackend('my-cpu');
-    const a = tf.tensor1d([5]);
-    const b = tf.tensor1d([3]);
-    const res = tf.dot(a, b);
-    expectArraysClose(await res.data(), 15);
-    tf.dispose([a, b, res]);
-    tf.removeBackend('my-cpu');
   });
 });

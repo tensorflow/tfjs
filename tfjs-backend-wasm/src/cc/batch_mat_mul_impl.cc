@@ -24,11 +24,14 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/elu_impl.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
-#include "src/cc/batch_mat_mul_impl.h"
+#include "tfjs-backend-wasm/src/cc/batch_mat_mul_impl.h"
 
 const size_t kBlockSize = 48;
 
@@ -150,7 +153,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const size_t batch_size = a_shape_ptr[1];
   xnn_status status =
       xnn_setup_fully_connected_nc_f32(fully_connected_op, batch_size, a_buf,
-                                       out_buf, nullptr /* thread pool */);
+                                       out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_fully_connected_nc_f32 is not successful. "
@@ -159,7 +162,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     return;
   }
 
-  xnn_run_operator(fully_connected_op, nullptr /* thread pool */);
+  xnn_run_operator(fully_connected_op, tfjs::backend::threadpool);
 }
 
 void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
@@ -232,9 +235,14 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               float sum = 0.0;
 
               for (size_t k = k0; k < k_block; ++k) {
+                const size_t batch_offset_a =
+                    std::min(b, a_shape[0] - 1) * a_batch;
+                const size_t batch_offset_b =
+                    std::min(b, b_shape[0] - 1) * b_batch;
                 sum +=
-                    a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
+                    a_buf[batch_offset_a + i * a_outer_step +
+                          k * a_inner_step] *
+                    b_buf[k * b_inner_step + j * b_outer_step + batch_offset_b];
               }
               size_t innermost_dim = i * right_dim + j;
               size_t out_buf_index = b * size + innermost_dim;
@@ -267,9 +275,10 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
                          const bool transpose_a, const bool transpose_b,
                          const FusableActivation activation,
                          const size_t bias_id, const size_t prelu_weights_id,
-                         const size_t out_id) {
+                         const float leakyrelu_alpha, const size_t out_id) {
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 
@@ -297,6 +306,12 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
   float* out_buf = out_info.f32_write();
   if (activation == FusableActivation::PRELU) {
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+  } else if (activation == FusableActivation::LEAKYRELU) {
+    leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
+  } else if (activation == FusableActivation::SIGMOID) {
+    sigmoid(out_buf, out_info.size, out_id);
+  } else if (activation == FusableActivation::ELU) {
+    elu(out_buf, out_info.size, out_id);
   }
 }
 }  // namespace wasm

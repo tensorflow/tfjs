@@ -19,22 +19,9 @@ import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {tensor5d} from './ops/ops';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
-import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {Rank, RecursiveArray, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {encodeStrings, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {Rank, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import {encodeString} from './util';
-
-/** Private method used by these tests. Encodes strings into utf-8 bytes. */
-function encodeStrings(a: RecursiveArray<{}>): RecursiveArray<Uint8Array> {
-  for (let i = 0; i < (a as Array<{}>).length; i++) {
-    const val = a[i];
-    if (Array.isArray(val)) {
-      encodeStrings(val);
-    } else {
-      a[i] = encodeString(val as string);
-    }
-  }
-  return a as RecursiveArray<Uint8Array>;
-}
 
 describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', async () => {
@@ -1567,6 +1554,20 @@ describeWithFlags('tensor dataSync', SYNC_BACKEND_ENVS, () => {
   });
 });
 
+describeWithFlags('tensor arraySync', SYNC_BACKEND_ENVS, () => {
+  it('.arraySync() with a non-complex tensor', () => {
+    const a = tf.tensor([1, 2, 3, 4, 5, 6], [2, 3]);
+    expect(a.arraySync()).toEqual([[1, 2, 3], [4, 5, 6]]);
+  });
+
+  it('.arraySync() with a complex tensor', () => {
+    const a = tf.complex([[1, 2], [3, 4]], [[11, 12], [13, 14]]);
+    expect(a.arraySync()).toEqual([[1, 11, 2, 12], [3, 13, 4, 14]]);
+  });
+
+  // The other cases should be covered by toNestedArray tests in util_test.ts.
+});
+
 describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
   it('scalar verbose', () => {
     const verbose = true;
@@ -2205,11 +2206,6 @@ describeWithFlags('tensor.data', ALL_ENVS, () => {
 describeWithFlags('x instanceof Tensor', ALL_ENVS, () => {
   it('x: Tensor', () => {
     const t = tf.scalar(1);
-    expect(t instanceof Tensor).toBe(true);
-  });
-
-  it('x: Tensor-like', () => {
-    const t = {shape: [2], dtype: 'float32', dataId: {}};
     expect(t instanceof Tensor).toBe(true);
   });
 

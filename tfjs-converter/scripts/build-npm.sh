@@ -17,15 +17,10 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-rimraf dist/
+yarn rimraf dist/
 yarn
 yarn build-ci
 yarn rollup -c --visualize --npm
-
-# Use minified files for miniprogram
-mkdir dist/miniprogram
-cp dist/tf-converter.min.js dist/miniprogram/index.js
-cp dist/tf-converter.min.js.map dist/miniprogram/index.js.map
 
 echo "Stored standalone library at dist/tf-converter(.min).js"
 npm pack

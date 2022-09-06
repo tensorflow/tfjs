@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
 import {ENGINE} from '../engine';
-import {BroadcastTo, BroadCastToAttrs, BroadcastToInputs} from '../kernel_names';
+import {Tile, TileAttrs, TileInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -32,15 +31,16 @@ import {reshape} from './reshape';
  * Broadcast an array to a compatible shape NumPy-style.
  *
  * The tensor's shape is compared to the broadcast shape from end to beginning.
- * Ones are prepended to the tensor's shape until is has the same length as
+ * Ones are prepended to the tensor's shape until it has the same length as
  * the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
  * already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
  * the input tensor is tiled N times along that axis (using tf.tile).
  *
  * @param input The tensor that is to be broadcasted.
  * @param shape The input is to be broadcast to this shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function broadcastTo_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
   let input = convertToTensor(x, 'broadcastTo', 'x');
@@ -79,14 +79,11 @@ function broadcastTo_<R extends Rank>(
     return clone(input) as Tensor<R>;
   }
 
-  const forward = (backend: KernelBackend) => backend.tile(input, reps);
-
-  const inputs: BroadcastToInputs = {x: input};
-  const attrs: BroadCastToAttrs = {shape, inputShape};
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, null /* grad */,
-             BroadcastTo, attrs as unknown as NamedAttrMap) as Tensor<R>;
+  // TODO call broadcastTo kernel directly once backends implement broadcstTo
+  const inputs: TileInputs = {x: input};
+  const attrs: TileAttrs = {reps};
+  return ENGINE.runKernel(
+      Tile, inputs as {} as NamedTensorMap, attrs as unknown as NamedAttrMap);
 }
 
 export const broadcastTo = op({broadcastTo_});

@@ -24,59 +24,82 @@
  *  - Make inference using each backends, and validate the results against TF
  *    results.
  */
-
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, GRAPH_MODELS, KARMA_SERVER, REGRESSION} from './constants';
+import {CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
-describe(`${REGRESSION} convert_predict`, () => {
-  GRAPH_MODELS.forEach(model => {
-    describe(`${model}`, () => {
-      let inputsNames: string[];
-      let inputsData: tfc.TypedArray[];
-      let inputsShapes: number[][];
-      let inputsDtypes: tfc.DataType[];
-      let tfOutputNames: string[];
-      let tfOutputData: tfc.TypedArray[];
-      let tfOutputShapes: number[][];
-      let tfOutputDtypes: tfc.DataType[];
-      beforeAll(async () => {
-        [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputNames,
-         tfOutputData, tfOutputShapes, tfOutputDtypes] =
-            await Promise.all([
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
-                  .then(response => response.json())
-            ]);
-      });
+describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, (env) => {
+  let originalTimeout: number;
 
-      BACKENDS.forEach(backend => {
-        it(`with ${backend}.`, async () => {
-          await tfc.setBackend(backend);
+  beforeAll(() => {
+    // This test needs more time to finish the async fetch, adjusting
+    // jasmine timeout for this test to avoid flakiness. See jasmine
+    // documentation for detail:
+    // https://jasmine.github.io/2.0/introduction.html#section-42
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+  for (const modelType in CONVERT_PREDICT_MODELS) {
+    const models =
+        (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];
+    for (const model of models) {
+      if (env.backendName === 'wasm' && model.includes('complex')) {
+        // WASM does not support complex
+        continue;
+      }
+      it(`${model}.`, async () => {
+        let inputsNames: string[];
+        let inputsData: tfc.TypedArray[];
+        let inputsShapes: number[][];
+        let inputsDtypes: tfc.DataType[];
+        let tfOutputNames: string[];
+        let tfOutputData: tfc.TypedArray[];
+        let tfOutputShapes: number[][];
+        let tfOutputDtypes: tfc.DataType[];
+
+        const fetches = [
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
+              .then(response => response.json())
+        ];
+        if (modelType === 'graph_model') {
+          fetches.push(
+              ...[fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
+                      .then(response => response.json())]);
+        }
+        [inputsData, inputsShapes, tfOutputData, tfOutputShapes, inputsNames,
+         inputsDtypes, tfOutputNames, tfOutputDtypes] =
+            await Promise.all(fetches);
+
+        if (modelType === 'graph_model') {
+          const numTensors = tfc.memory().numTensors;
 
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
-          const numTensors = tfc.memory().numTensors;
 
           const namedInputs = createInputTensors(
                                   inputsData, inputsShapes, inputsDtypes,
@@ -98,10 +121,35 @@ describe(`${REGRESSION} convert_predict`, () => {
           // Dispose all tensors;
           Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
           ys.forEach(tensor => tensor.dispose());
+          $model.dispose();
 
           expect(tfc.memory().numTensors).toEqual(numTensors);
-        });
+        }
+        if (modelType === 'layers_model') {
+          const $model = await tfl.loadLayersModel(
+              `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+
+          const xs =
+              createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
+
+          const result = $model.predict(xs);
+
+          const ys =
+              ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
+
+          // Validate outputs with keras results.
+          for (let i = 0; i < ys.length; i++) {
+            const y = ys[i];
+            expect(y.shape).toEqual(tfOutputShapes[i]);
+            tfc.test_util.expectArraysClose(
+                await y.data(), tfOutputData[i], 0.005);
+          }
+
+          // Dispose all tensors;
+          xs.forEach(tensor => tensor.dispose());
+          ys.forEach(tensor => tensor.dispose());
+        }
       });
-    });
-  });
+    }
+  }
 });

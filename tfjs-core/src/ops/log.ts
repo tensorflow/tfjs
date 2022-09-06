@@ -33,16 +33,13 @@ import {op} from './operation';
  * x.log().print();  // or tf.log(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function log_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'log');
+  const $x = convertToTensor(x, 'x', 'log', 'float32');
 
   const inputs: LogInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.log($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Log);
+  return ENGINE.runKernel(Log, inputs as {} as NamedTensorMap);
 }
 export const log = op({log_});

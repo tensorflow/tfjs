@@ -119,6 +119,11 @@ describeWithFlags('tanh', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.tanh('q'))
-        .toThrowError(/Argument 'x' passed to 'tanh' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'tanh' must be float32/);
+  });
+
+  it('throws for string tensor', () => {
+    expect(() => tf.tanh(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'tanh' must be float32/);
   });
 });

@@ -33,15 +33,14 @@ import {op} from './operation';
  * x.isInf().print();  // or tf.isNaN(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function isInf_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'isInf');
 
   const inputs: IsInfInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-      (backend) => backend.isInf($x), inputs as {} as NamedTensorMap,
-      null /* grad */, IsInf);
+  return ENGINE.runKernel(IsInf, inputs as {} as NamedTensorMap);
 }
 export const isInf = op({isInf_});

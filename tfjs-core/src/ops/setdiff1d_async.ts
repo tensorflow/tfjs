@@ -45,8 +45,9 @@ import * as util from '../util';
  * @returns Promise of Tensor tuple [out, indices].
  *  out: Tensor with the same type as x.
  *  indices: A Tensor of type int32.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 async function setdiff1dAsync_(
     x: Tensor|TensorLike, y: Tensor|TensorLike): Promise<[Tensor, Tensor]> {
   const $x = convertToTensor(x, 'x', 'setdiff1d');

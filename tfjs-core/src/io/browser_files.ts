@@ -20,9 +20,10 @@
  * user-selected files in browser.
  */
 
+import '../flags';
 import {env} from '../environment';
 
-import {basename, concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
+import {basename, concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelJSON, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
@@ -35,9 +36,9 @@ function defer<T>(f: () => T): Promise<T> {
 }
 
 export class BrowserDownloads implements IOHandler {
-  private readonly modelTopologyFileName: string;
+  private readonly modelJsonFileName: string;
   private readonly weightDataFileName: string;
-  private readonly jsonAnchor: HTMLAnchorElement;
+  private readonly modelJsonAnchor: HTMLAnchorElement;
   private readonly weightDataAnchor: HTMLAnchorElement;
 
   static readonly URL_SCHEME = 'downloads://';
@@ -58,7 +59,7 @@ export class BrowserDownloads implements IOHandler {
       fileNamePrefix = DEFAULT_FILE_NAME_PREFIX;
     }
 
-    this.modelTopologyFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
+    this.modelJsonFileName = fileNamePrefix + DEFAULT_JSON_EXTENSION_NAME;
     this.weightDataFileName =
         fileNamePrefix + DEFAULT_WEIGHT_DATA_EXTENSION_NAME;
   }
@@ -81,24 +82,19 @@ export class BrowserDownloads implements IOHandler {
         paths: ['./' + this.weightDataFileName],
         weights: modelArtifacts.weightSpecs
       }];
-      const modelTopologyAndWeightManifest: ModelJSON = {
-        modelTopology: modelArtifacts.modelTopology,
-        format: modelArtifacts.format,
-        generatedBy: modelArtifacts.generatedBy,
-        convertedBy: modelArtifacts.convertedBy,
-        weightsManifest
-      };
-      const modelTopologyAndWeightManifestURL =
-          window.URL.createObjectURL(new Blob(
-              [JSON.stringify(modelTopologyAndWeightManifest)],
-              {type: 'application/json'}));
+      const modelJSON: ModelJSON =
+          getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
+
+      const modelJsonURL = window.URL.createObjectURL(
+          new Blob([JSON.stringify(modelJSON)], {type: 'application/json'}));
 
       // If anchor elements are not provided, create them without attaching them
       // to parents, so that the downloaded file names can be controlled.
-      const jsonAnchor = this.jsonAnchor == null ? document.createElement('a') :
-                                                   this.jsonAnchor;
-      jsonAnchor.download = this.modelTopologyFileName;
-      jsonAnchor.href = modelTopologyAndWeightManifestURL;
+      const jsonAnchor = this.modelJsonAnchor == null ?
+          document.createElement('a') :
+          this.modelJsonAnchor;
+      jsonAnchor.download = this.modelJsonFileName;
+      jsonAnchor.href = modelJsonURL;
       // Trigger downloads by evoking a click event on the download anchors.
       // When multiple downloads are started synchronously, Firefox will only
       // save the last one.
@@ -120,7 +116,8 @@ export class BrowserDownloads implements IOHandler {
 }
 
 class BrowserFiles implements IOHandler {
-  private readonly files: File[];
+  private readonly jsonFile: File;
+  private readonly weightsFiles: File[];
 
   constructor(files: File[]) {
     if (files == null || files.length < 1) {
@@ -128,97 +125,90 @@ class BrowserFiles implements IOHandler {
           `When calling browserFiles, at least 1 file is required, ` +
           `but received ${files}`);
     }
-    this.files = files;
+    this.jsonFile = files[0];
+    this.weightsFiles = files.slice(1);
   }
 
   async load(): Promise<ModelArtifacts> {
-    const jsonFile = this.files[0];
-    const weightFiles = this.files.slice(1);
-
-    return new Promise<ModelArtifacts>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const jsonReader = new FileReader();
       jsonReader.onload = (event: Event) => {
         // tslint:disable-next-line:no-any
         const modelJSON = JSON.parse((event.target as any).result) as ModelJSON;
+
         const modelTopology = modelJSON.modelTopology;
         if (modelTopology == null) {
-          reject(new Error(
-              `modelTopology field is missing from file ${jsonFile.name}`));
+          reject(new Error(`modelTopology field is missing from file ${
+              this.jsonFile.name}`));
           return;
-        }
-
-        if (weightFiles.length === 0) {
-          resolve({modelTopology});
         }
 
         const weightsManifest = modelJSON.weightsManifest;
         if (weightsManifest == null) {
-          reject(new Error(
-              `weightManifest field is missing from file ${jsonFile.name}`));
+          reject(new Error(`weightManifest field is missing from file ${
+              this.jsonFile.name}`));
           return;
         }
 
-        let pathToFile: {[path: string]: File};
-        try {
-          pathToFile =
-              this.checkManifestAndWeightFiles(weightsManifest, weightFiles);
-        } catch (err) {
-          reject(err);
+        if (this.weightsFiles.length === 0) {
+          resolve({modelTopology});
           return;
         }
 
-        const weightSpecs: WeightsManifestEntry[] = [];
-        const paths: string[] = [];
-        const perFileBuffers: ArrayBuffer[] = [];
-        weightsManifest.forEach(weightsGroup => {
-          weightsGroup.paths.forEach(path => {
-            paths.push(path);
-            perFileBuffers.push(null);
-          });
-          weightSpecs.push(...weightsGroup.weights);
-        });
-
-        weightsManifest.forEach(weightsGroup => {
-          weightsGroup.paths.forEach(path => {
-            const weightFileReader = new FileReader();
-            weightFileReader.onload = (event: Event) => {
-              // tslint:disable-next-line:no-any
-              const weightData = (event.target as any).result as ArrayBuffer;
-              const index = paths.indexOf(path);
-              perFileBuffers[index] = weightData;
-              if (perFileBuffers.indexOf(null) === -1) {
-                resolve({
-                  modelTopology,
-                  weightSpecs,
-                  weightData: concatenateArrayBuffers(perFileBuffers),
-                  format: modelJSON.format,
-                  generatedBy: modelJSON.generatedBy,
-                  convertedBy: modelJSON.convertedBy,
-                  userDefinedMetadata: modelJSON.userDefinedMetadata
-                });
-              }
-            };
-            weightFileReader.onerror = error =>
-                reject(`Failed to weights data from file of path '${path}'.`);
-            weightFileReader.readAsArrayBuffer(pathToFile[path]);
-          });
-        });
+        const modelArtifactsPromise = getModelArtifactsForJSON(
+            modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
+        resolve(modelArtifactsPromise);
       };
+
       jsonReader.onerror = error => reject(
           `Failed to read model topology and weights manifest JSON ` +
-          `from file '${jsonFile.name}'. BrowserFiles supports loading ` +
+          `from file '${this.jsonFile.name}'. BrowserFiles supports loading ` +
           `Keras-style tf.Model artifacts only.`);
-      jsonReader.readAsText(jsonFile);
+      jsonReader.readAsText(this.jsonFile);
+    });
+  }
+
+  private loadWeights(weightsManifest: WeightsManifestConfig): Promise<[
+    /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+  ]> {
+    const weightSpecs: WeightsManifestEntry[] = [];
+    const paths: string[] = [];
+    for (const entry of weightsManifest) {
+      weightSpecs.push(...entry.weights);
+      paths.push(...entry.paths);
+    }
+
+    const pathToFile: {[path: string]: File} =
+        this.checkManifestAndWeightFiles(weightsManifest);
+
+    const promises: Array<Promise<ArrayBuffer>> =
+        paths.map(path => this.loadWeightsFile(path, pathToFile[path]));
+
+    return Promise.all(promises).then(
+        buffers => [weightSpecs, concatenateArrayBuffers(buffers)]);
+  }
+
+  private loadWeightsFile(path: string, file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const weightFileReader = new FileReader();
+      weightFileReader.onload = (event: Event) => {
+        // tslint:disable-next-line:no-any
+        const weightData = (event.target as any).result as ArrayBuffer;
+        resolve(weightData);
+      };
+      weightFileReader.onerror = error =>
+          reject(`Failed to weights data from file of path '${path}'.`);
+      weightFileReader.readAsArrayBuffer(file);
     });
   }
 
   /**
    * Check the compatibility between weights manifest and weight files.
    */
-  private checkManifestAndWeightFiles(
-      manifest: WeightsManifestConfig, files: File[]): {[path: string]: File} {
+  private checkManifestAndWeightFiles(manifest: WeightsManifestConfig):
+      {[path: string]: File} {
     const basenames: string[] = [];
-    const fileNames = files.map(file => basename(file.name));
+    const fileNames = this.weightsFiles.map(file => basename(file.name));
     const pathToFile: {[path: string]: File} = {};
     for (const group of manifest) {
       group.paths.forEach(path => {
@@ -233,16 +223,16 @@ class BrowserFiles implements IOHandler {
           throw new Error(
               `Weight file with basename '${pathBasename}' is not provided.`);
         } else {
-          pathToFile[path] = files[fileNames.indexOf(pathBasename)];
+          pathToFile[path] = this.weightsFiles[fileNames.indexOf(pathBasename)];
         }
       });
     }
 
-    if (basenames.length !== files.length) {
+    if (basenames.length !== this.weightsFiles.length) {
       throw new Error(
           `Mismatch in the number of files in weights manifest ` +
           `(${basenames.length}) and the number of weight files provided ` +
-          `(${files.length}).`);
+          `(${this.weightsFiles.length}).`);
     }
     return pathToFile;
   }
@@ -292,8 +282,7 @@ IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
  *      'foo.weights.bin', respectively.
  * @param config Additional configuration for triggering downloads.
  * @returns An instance of `BrowserDownloads` `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',
@@ -329,7 +318,7 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *   loading from files that contain Keras-style models (i.e., `tf.Model`s), for
  *   which an `Array` of `File`s is expected (in that order):
  *   - A JSON file containing the model topology and weight manifest.
- *   - Optionally, One or more binary files containing the binary weights.
+ *   - Optionally, one or more binary files containing the binary weights.
  *     These files must have names that match the paths in the `weightsManifest`
  *     contained by the aforementioned JSON file, or errors will be thrown
  *     during loading. These weights files have the same format as the ones
@@ -337,8 +326,7 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *     Python PIP package. If no weights files are provided, only the model
  *     topology will be loaded from the JSON file above.
  * @returns An instance of `Files` `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',

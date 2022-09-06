@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Elu, EluInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -25,7 +25,7 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 
 /**
- * Computes exponential linear element-wise: `x > 0 ? e ^ x - 1 : 0`.
+ * Computes exponential linear element-wise: `x > 0 ? x : (e ^ x) - 1`.
  *
  * ```js
  * const x = tf.tensor1d([-1, 1, -3, 2]);
@@ -33,22 +33,15 @@ import {op} from './operation';
  * x.elu().print();  // or tf.elu(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function elu_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'elu');
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const y = backend.elu($x);
-    save([y]);
-    return y;
-  };
+  const $x = convertToTensor(x, 'x', 'elu', 'float32');
 
   const inputs: EluInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Elu) as
-      T;
+  return ENGINE.runKernel(Elu, inputs as {} as NamedTensorMap);
 }
 
 export const elu = op({elu_});

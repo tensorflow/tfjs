@@ -34,17 +34,14 @@ import {op} from './operation';
  * x.rsqrt().print();  // or tf.rsqrt(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'rsqrt');
+  const $x = convertToTensor(x, 'x', 'rsqrt', 'float32');
 
   const inputs: RsqrtInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.rsqrt($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Rsqrt);
+  return ENGINE.runKernel(Rsqrt, inputs as {} as NamedTensorMap);
 }
 export const rsqrt = op({rsqrt_});

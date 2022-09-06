@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D, Tensor4D} from '../tensor';
@@ -37,7 +37,7 @@ import {reshape} from './reshape';
  * Mean, variance, scale, and offset can be of two shapes:
  *   - The same shape as the input.
  *   - In the common case, the depth dimension is the last dimension of x, so
- *     the values would be an `tf.Tensor1D` of shape [depth].
+ *     the values would be a `tf.Tensor1D` of shape [depth].
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that parameters passed are of given rank
@@ -51,8 +51,9 @@ import {reshape} from './reshape';
  * @param offset An offset Tensor.
  * @param scale A scale Tensor.
  * @param varianceEpsilon A small float number to avoid dividing by 0.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function batchNorm_<R extends Rank>(
     x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike,
@@ -89,14 +90,6 @@ function batchNorm_<R extends Rank>(
 
   const x4D: Tensor4D = xAs4D($x);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([x4D, $mean, $variance, $scale]);
-
-    return backend.batchNorm(
-        x4D, as1DOr4D($mean), as1DOr4D($variance), as1DOr4D($offset),
-        as1DOr4D($scale), varianceEpsilon);
-  };
-
   const inputs: FusedBatchNormInputs = {
     x: x4D,
     scale: $scale,
@@ -107,27 +100,12 @@ function batchNorm_<R extends Rank>(
 
   const attrs: FusedBatchNormAttrs = {varianceEpsilon};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      FusedBatchNorm, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  FusedBatchNorm, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as Tensor<R>;
 
   return reshape(res, $x.shape);
-}
-
-function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
-  if (x == null) {
-    return null;
-  }
-  if (x.rank === 0) {
-    return x.as1D();
-  } else if (x.rank === 1) {
-    return x as Tensor1D;
-  } else if (x.rank === 2) {
-    return x.as4D(1, 1, x.shape[0], x.shape[1]);
-  } else if (x.rank === 3) {
-    return x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-  }
-  return x as Tensor4D;
 }
 
 export const batchNorm = op({batchNorm_});

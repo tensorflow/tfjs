@@ -25,14 +25,15 @@ const delayCallback: Function = (() => {
 })();
 
 /**
- * Returns a promise that resolve when a requestAnimationFrame has completed.
+ * Returns a promise that resolves when a requestAnimationFrame has completed.
  *
  * On Node.js this uses setImmediate instead of requestAnimationFrame.
  *
  * This is simply a sugar method so that users can do the following:
  * `await tf.nextFrame();`
+ *
+ * @doc {heading: 'Performance', subheading: 'Timing'}
  */
-/** @doc {heading: 'Performance', subheading: 'Timing'} */
 function nextFrame(): Promise<void> {
   return new Promise<void>(resolve => delayCallback(() => resolve()));
 }

@@ -42,8 +42,9 @@ import * as util from '../util';
  * @param dtype The dtype of the buffer. Defaults to 'float32'.
  * @param values The values of the buffer as `TypedArray`. Defaults to
  * zeros.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function buffer<R extends Rank, D extends DataType = 'float32'>(
     shape: ShapeMap[R], dtype: D = 'float32' as D,
     values?: DataTypeMap[D]): TensorBuffer<R, D> {

@@ -42,8 +42,13 @@ import {Drawable} from '../types';
  * @param classLabels An array of string labels for the classes in
  * `classAccuracy`. Optional.
  *
+ * @doc {
+ *  heading: 'Models & Tensors',
+ *  subheading: 'Model Evaluation',
+ *  namespace: 'show'
+ * }
  */
-export async function showPerClassAccuracy(
+export async function perClassAccuracy(
     container: Drawable,
     classAccuracy: Array<{accuracy: number, count: number}>,
     classLabels?: string[]) {

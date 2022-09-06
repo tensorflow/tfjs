@@ -14,8 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from '../tensor';
-import {computeStrides} from '../util';
+import {TensorInfo} from '../kernel_registry';
+import {computeStrides, sizeFromShape} from '../util';
 
 /**
  * Validate gather nd inputs.
@@ -25,30 +25,32 @@ import {computeStrides} from '../util';
  *
  * @returns [resultShape, numUpdates, sliceSize, strides]
  */
-export function prepareAndValidate(
-    tensor: Tensor, indices: Tensor): [number[], number, number, number[]] {
-  if (tensor.rank < 1) {
+export function prepareAndValidate(tensor: TensorInfo, indices: TensorInfo):
+    [number[], number, number, number[]] {
+  const tensorRank = tensor.shape.length;
+  const indicesRank = indices.shape.length;
+  if (tensorRank < 1) {
     throw new Error(
         'tf.gatherND() expects the input to be rank 1 or higher,' +
-        ` but the rank was ${tensor.rank}.`);
+        ` but the rank was ${tensorRank}.`);
   }
-  if (indices.rank < 1) {
+  if (indicesRank < 1) {
     throw new Error(
         'tf.gatherND() expects the indices to be rank 1 or higher,' +
-        ` but the rank was ${indices.rank}.`);
+        ` but the rank was ${indicesRank}.`);
   }
   if (indices.dtype !== 'int32') {
     throw new Error(
         'tf.gatherND() expects the indices to be int32 type,' +
         ` but the dtype was ${indices.dtype}.`);
   }
-  if (indices.shape[indices.rank - 1] > tensor.rank) {
+  if (indices.shape[indicesRank - 1] > tensorRank) {
     throw new Error(
         'index innermost dimension length must be <= tensor rank; saw: ' +
-        `${indices.shape[indices.rank - 1]} vs. ${tensor.rank}`);
+        `${indices.shape[indicesRank - 1]} vs. ${tensorRank}`);
   }
 
-  if (tensor.size === 0) {
+  if (sizeFromShape(tensor.shape) === 0) {
     throw new Error(
         'Requested more than 0 entries, but input is empty.' +
         ` Input shape: ${tensor.shape}.`);
@@ -70,7 +72,7 @@ export function prepareAndValidate(
   resultShape.pop();
 
   let sliceSize = 1;
-  for (let i = sliceRank; i < tensor.rank; ++i) {
+  for (let i = sliceRank; i < tensorRank; ++i) {
     sliceSize *= inputShape[i];
     resultShape.push(inputShape[i]);
   }

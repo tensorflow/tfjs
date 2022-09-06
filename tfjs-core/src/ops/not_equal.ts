@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {NotEqual, NotEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -36,23 +36,20 @@ import {op} from './operation';
  * ```
  * @param a The first input tensor.
  * @param b The second input tensor. Must have the same dtype as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function notEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'notEqual');
-  let $b = convertToTensor(b, 'b', 'notEqual');
+  let $a = convertToTensor(a, 'a', 'notEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'notEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend) => backend.notEqual($a, $b);
-
   const inputs: NotEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             NotEqual) as T;
+  return ENGINE.runKernel(NotEqual, inputs as {} as NamedTensorMap);
 }
 
 export const notEqual = op({notEqual_});

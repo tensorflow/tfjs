@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {argMax} from '../../ops/arg_max';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.argMax = function<T extends Tensor>(axis?: number): T {
+getGlobalTensorClass().prototype.argMax = function<T extends Tensor>(
+    axis?: number): T {
   this.throwIfDisposed();
   return argMax(this, axis);
 };

@@ -21,7 +21,7 @@ import {OpExecutor, OpMapper} from '../types';
 const CUSTOM_OPS: {[key: string]: OpMapper} = {};
 
 /**
- * Register an Op for graph model executor. This allow you to register
+ * Register an Op for graph model executor. This allows you to register
  * TensorFlow custom op or override existing op.
  *
  * Here is an example of registering a new MatMul Op.
@@ -33,7 +33,7 @@ const CUSTOM_OPS: {[key: string]: OpMapper} = {};
  *
  * tf.registerOp('MatMul', customMatmul);
  * ```
- * The inputs and attrs of the node object is based on the TensorFlow op
+ * The inputs and attrs of the node object are based on the TensorFlow op
  * registry.
  *
  * @param name The Tensorflow Op name.
@@ -42,8 +42,9 @@ const CUSTOM_OPS: {[key: string]: OpMapper} = {};
  * has the following attributes:
  *    - attr: A map from attribute name to its value
  *    - inputs: A list of input tensors
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
 export function registerOp(name: string, opFunc: OpExecutor) {
   const opMapper: OpMapper = {
     tfOpName: name,
@@ -60,9 +61,9 @@ export function registerOp(name: string, opFunc: OpExecutor) {
  * Retrieve the OpMapper object for the registered op.
  *
  * @param name The Tensorflow Op name.
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
-
 export function getRegisteredOp(name: string): OpMapper {
   return CUSTOM_OPS[name];
 }
@@ -71,8 +72,9 @@ export function getRegisteredOp(name: string): OpMapper {
  * Deregister the Op for graph model executor.
  *
  * @param name The Tensorflow Op name.
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
 export function deregisterOp(name: string) {
   delete CUSTOM_OPS[name];
 }

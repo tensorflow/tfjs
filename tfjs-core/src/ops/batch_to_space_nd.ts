@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {BatchToSpaceND, BatchToSpaceNDAttrs, BatchToSpaceNDInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -58,7 +58,7 @@ import {op} from './operation';
  * blockShape[M-1], batch / prod(blockShape), x.shape[1], ...,
  * x.shape[N-1]]`
  *
- * 2. Permute dimensions of `reshaped`to produce `permuted` of shape `[batch /
+ * 2. Permute dimensions of `reshaped` to produce `permuted` of shape `[batch /
  * prod(blockShape),x.shape[1], blockShape[0], ..., x.shape[M],
  * blockShape[M-1],x.shape[M+1], ..., x.shape[N-1]]`
  *
@@ -71,8 +71,9 @@ import {op} from './operation';
  * prod(blockShape),x.shape[1] * blockShape[0] - crops[0,0] - crops[0,1],
  * ..., x.shape[M] * blockShape[M-1] - crops[M-1,0] -
  * crops[M-1,1],x.shape[M+1], ..., x.shape[N-1]]`
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function batchToSpaceND_<T extends Tensor>(
     x: T|TensorLike, blockShape: number[], crops: number[][]): T {
   const $x = convertToTensor(x, 'x', 'batchToSpaceND');
@@ -95,16 +96,12 @@ function batchToSpaceND_<T extends Tensor>(
                 $x.shape[0]} but is not divisible by the product of ` +
           `the elements of blockShape ${blockShape.join(' * ')} === ${prod}`);
 
-  const forward: ForwardFunc<T> = backend => {
-    return backend.batchToSpaceND($x, blockShape, crops);
-  };
-
   const inputs: BatchToSpaceNDInputs = {x: $x};
   const attrs: BatchToSpaceNDAttrs = {blockShape, crops};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      BatchToSpaceND, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      BatchToSpaceND, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const batchToSpaceND = op({batchToSpaceND_});

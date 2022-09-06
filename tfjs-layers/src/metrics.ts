@@ -39,19 +39,25 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
 
 function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    return tfc.logicalAnd(yTrue.equal(1), yPred.equal(1)).sum().cast('float32');
+    return tfc.cast(
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.equal(yPred, 1))),
+        'float32');
   });
 }
 
 function falseNegatives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    return tfc.logicalAnd(yTrue.equal(1), yPred.equal(0)).sum().cast('float32');
+    return tfc.cast(
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.equal(yPred, 0))),
+        'float32');
   });
 }
 
 function falsePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    return tfc.logicalAnd(yTrue.equal(0), yPred.equal(1)).sum().cast('float32');
+    return tfc.cast(
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 0), tfc.equal(yPred, 1))),
+        'float32');
   });
 }
 
@@ -60,10 +66,11 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
     const tp = truePositives(yTrue, yPred);
     const fp = falsePositives(yTrue, yPred);
 
-    const denominator = tp.add(fp);
+    const denominator = tfc.add(tp, fp);
 
-    return tfc.where(tfc.greater(denominator, 0), tp.div(denominator), 0)
-        .cast('float32');
+    return tfc.cast(
+        tfc.where(tfc.greater(denominator, 0), tfc.div(tp, denominator), 0),
+        'float32');
   });
 }
 
@@ -72,10 +79,11 @@ export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
     const tp = truePositives(yTrue, yPred);
     const fn = falseNegatives(yTrue, yPred);
 
-    const denominator = tp.add(fn);
+    const denominator = tfc.add(tp, fn);
 
-    return tfc.where(tfc.greater(denominator, 0), tp.div(denominator), 0)
-        .cast('float32');
+    return tfc.cast(
+        tfc.where(tfc.greater(denominator, 0), tfc.div(tp, denominator), 0),
+        'float32');
   });
 }
 
@@ -86,13 +94,13 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
 export function sparseCategoricalAccuracy(
     yTrue: Tensor, yPred: Tensor): Tensor {
   if (yTrue.rank === yPred.rank) {
-    yTrue = yTrue.squeeze([yTrue.rank - 1]);
+    yTrue = tfc.squeeze(yTrue, [yTrue.rank - 1]);
   }
-  yPred = yPred.argMax(-1);
+  yPred = tfc.argMax(yPred, -1);
   if (yPred.dtype !== yTrue.dtype) {
-    yPred = yPred.asType(yTrue.dtype);
+    yPred = tfc.cast(yPred, yTrue.dtype);
   }
-  return tfc.equal(yTrue, yPred).asType('float32');
+  return tfc.cast(tfc.equal(yTrue, yPred), 'float32');
 }
 
 export function topKCategoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {

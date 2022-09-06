@@ -32,8 +32,16 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(await r.data(), 3);
   });
 
-  it('ignores NaNs', async () => {
-    expectArraysClose(await tf.max([3, NaN, 2]).data(), 3);
+  it('with a large dimension', async () => {
+    const aData = new Float32Array(1000);
+    aData[0] = 1;
+    const a = tf.tensor1d(aData);
+    const r = tf.max(a);
+    expectArraysClose(await r.data(), 1);
+  });
+
+  it('return NaNs', async () => {
+    expectArraysClose(await tf.max([3, NaN, 2]).data(), NaN);
   });
 
   it('2D', async () => {
@@ -110,6 +118,12 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(await r.data(), 100);
   });
 
+  it('accepts int32 tensor', async () => {
+    const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3], 'int32');
+    expect(a.dtype).toEqual('int32');
+    expectArraysClose(await tf.max(a).data(), 100);
+  });
+
   it('max gradient: Scalar', async () => {
     const x = tf.scalar(42);
     const dy = tf.scalar(-1);
@@ -176,6 +190,13 @@ describeWithFlags('max', ALL_ENVS, () => {
     const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
     expectArraysClose(await gradients.data(), [-1, -1, 0, 0, 0, -1]);
     expect(gradients.shape).toEqual([2, 3]);
+  });
+
+  it('max gradient: 3D, axis=1 keepDims=false', async () => {
+    const x = tf.ones([2, 1, 250]);
+    const axis = 1;
+    const gradients = tf.grad(v => tf.max(v, axis))(x);
+    expect(gradients.shape).toEqual(x.shape);
   });
 
   it('max gradient: 3D, axes=[1, 2], keepDims=false', async () => {

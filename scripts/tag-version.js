@@ -22,7 +22,7 @@ const fs = require('fs');
 
 let dirName = process.argv[2];
 if (dirName.endsWith('/')) {
-  dirName = dirName.substr(0, dirName.length - 1);
+  dirName = dirName.slice(0, -1);
 }
 const packageJsonFile = dirName + '/package.json';
 if (!fs.existsSync(packageJsonFile)) {

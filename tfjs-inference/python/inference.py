@@ -21,7 +21,12 @@ from __future__ import print_function
 import subprocess
 
 
-def predict(binary_path, model_path, inputs_dir, outputs_dir, backend=None):
+def predict(binary_path,
+            model_path,
+            inputs_dir,
+            outputs_dir,
+            backend=None,
+            tf_output_name_file=None):
   """Use tfjs binary to make inference and store output in file.
 
   Args:
@@ -35,6 +40,8 @@ def predict(binary_path, model_path, inputs_dir, outputs_dir, backend=None):
       and dtype files.
     backend: Optional. Choose which TensorFlow.js backend to use. Supported
       backends include cpu and wasm. Default: cpu
+    tf_output_name_file: Optional. File name of the tf_output_name, if file does
+      not exist, will use the default outputs of the model.
   """
   model_path_option = '--model_path=' + model_path
   inputs_dir_option = '--inputs_dir=' + inputs_dir
@@ -44,6 +51,10 @@ def predict(binary_path, model_path, inputs_dir, outputs_dir, backend=None):
       binary_path, model_path_option, inputs_dir_option,
       outputs_dir_option
   ]
+
+  if tf_output_name_file:
+    tf_output_name_file_option = '--tf_output_name_file=' + tf_output_name_file
+    tfjs_inference_command.append(tf_output_name_file_option)
 
   if backend:
     backend_option = '--backend=' + backend

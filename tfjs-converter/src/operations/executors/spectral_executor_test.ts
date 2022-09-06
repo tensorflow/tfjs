@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as spectral from '../op_list/spectral';
@@ -22,13 +23,18 @@ import {Node} from '../types';
 
 import {executeOp} from './spectral_executor';
 import {createTensorAttr, validateParam} from './test_helper';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 
 describe('spectral', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
+  const input1 = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
+  let spyOps: RecursiveSpy<typeof tfOps>;
+  let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
+    spyOps = spyOnAllFunctions(tfOps);
+    spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     node = {
       name: 'test',
       op: '',
@@ -43,12 +49,12 @@ describe('spectral', () => {
 
   describe('executeOp', () => {
     describe('FFT', () => {
-      it('should call tfc.fft', () => {
-        spyOn(tfc, 'fft');
+      it('should call tfOps.fft', () => {
         node.op = 'FFT';
-        executeOp(node, {input1}, context);
+        spyOps.fft.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.fft).toHaveBeenCalledWith(input1[0]);
+        expect(spyOps.fft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'FFT';
@@ -57,12 +63,12 @@ describe('spectral', () => {
       });
     });
     describe('IFFT', () => {
-      it('should call tfc.ifft', () => {
-        spyOn(tfc, 'ifft');
+      it('should call tfOps.ifft', () => {
         node.op = 'IFFT';
-        executeOp(node, {input1}, context);
+        spyOps.ifft.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.ifft).toHaveBeenCalledWith(input1[0]);
+        expect(spyOps.ifft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'IFFT';
@@ -71,12 +77,12 @@ describe('spectral', () => {
       });
     });
     describe('RFFT', () => {
-      it('should call tfc.rfft', () => {
-        spyOn(tfc, 'rfft');
+      it('should call tfOps.rfft', () => {
         node.op = 'RFFT';
-        executeOp(node, {input1}, context);
+        spyOps.rfft.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.rfft).toHaveBeenCalledWith(input1[0]);
+        expect(spyOps.rfft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'RFFT';
@@ -85,12 +91,12 @@ describe('spectral', () => {
       });
     });
     describe('IRFFT', () => {
-      it('should call tfc.irfft', () => {
-        spyOn(tfc, 'irfft');
+      it('should call tfOps.irfft', () => {
         node.op = 'IRFFT';
-        executeOp(node, {input1}, context);
+        spyOps.irfft.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.irfft).toHaveBeenCalledWith(input1[0]);
+        expect(spyOps.irfft).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'IRFFT';

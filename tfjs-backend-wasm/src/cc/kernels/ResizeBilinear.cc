@@ -23,10 +23,10 @@
 #include <tuple>
 #include <vector>
 
-#include "src/cc/kernels/ResizeBilinear.h"
+#include "tfjs-backend-wasm/src/cc/kernels/ResizeBilinear.h"
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
@@ -50,7 +50,8 @@ EMSCRIPTEN_KEEPALIVE
 
 void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
                     size_t old_width, size_t num_channels, size_t new_height,
-                    size_t new_width, bool align_corners, size_t out_id) {
+                    size_t new_width, bool align_corners,
+                    bool half_pixel_centers, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -59,8 +60,12 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
 
   xnn_operator_t resize_bilinear_op = nullptr;
 
-  const uint32_t flags = XNN_FLAG_TENSORFLOW_LEGACY_MODE |
-                         (align_corners ? XNN_FLAG_ALIGN_CORNERS : 0);
+  uint32_t flags = 0;
+  if (align_corners) {
+    flags |= XNN_FLAG_ALIGN_CORNERS;
+  } else if (!half_pixel_centers) {
+    flags |= XNN_FLAG_TENSORFLOW_LEGACY_MODE;
+  }
 
   OperatorCacheKey cache_key = {num_channels, flags};
 
@@ -90,7 +95,7 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
 
   xnn_status status = xnn_setup_resize_bilinear2d_nhwc_f32(
       resize_bilinear_op, batch, old_height, old_width, new_height, new_width,
-      x_buf, out_buf, nullptr /* thread pool */);
+      x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_resize_bilinear2d_nhwc_f32 is not "
@@ -99,7 +104,7 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
     return;
   }
 
-  xnn_run_operator(resize_bilinear_op, nullptr /* thread pool */);
+  xnn_run_operator(resize_bilinear_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

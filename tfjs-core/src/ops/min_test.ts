@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('min', ALL_ENVS, () => {
   it('Tensor1D', async () => {
@@ -25,9 +26,9 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectArraysClose(await tf.min(a).data(), -7);
   });
 
-  it('ignores NaNs', async () => {
+  it('return NaNs', async () => {
     const a = tf.tensor1d([3, NaN, 2]);
-    expectArraysClose(await tf.min(a).data(), 2);
+    expectArraysClose(await tf.min(a).data(), NaN);
   });
 
   it('2D', async () => {
@@ -91,6 +92,15 @@ describeWithFlags('min', ALL_ENVS, () => {
 
   it('accepts a tensor-like object', async () => {
     expectArraysClose(await tf.min([3, -1, 0, 100, -7, 2]).data(), -7);
+  });
+
+  it('accpets int32 input', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([12345678, 12345679], 'int32');
+      expect(a.dtype).toEqual('int32');
+      expectArraysClose(await tf.min(a).data(), 12345678);
+    }
   });
 
   it('min gradient: Scalar', async () => {
@@ -159,6 +169,13 @@ describeWithFlags('min', ALL_ENVS, () => {
     const gradients = tf.grad(v => tf.min(v, axis, keepDims))(x, dy);
     expectArraysClose(await gradients.data(), [-1, -1, 0, 0, 0, -1]);
     expect(gradients.shape).toEqual([2, 3]);
+  });
+
+  it('max gradient: 3D, axis=1 keepDims=false', async () => {
+    const x = tf.ones([2, 1, 250]);
+    const axis = 1;
+    const gradients = tf.grad(v => tf.min(v, axis))(x);
+    expect(gradients.shape).toEqual(x.shape);
   });
 
   it('min gradient: 3D, axes=[1, 2], keepDims=false', async () => {

@@ -15,18 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Reverse, ReverseAttrs, ReverseInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
-import {clone} from './clone';
 import {op} from './operation';
-import {reshape} from './reshape';
 
 /**
  * Reverses a `tf.Tensor` along a specified axis.
@@ -56,27 +53,18 @@ import {reshape} from './reshape';
  * @param x The input tensor to be reversed.
  * @param axis The set of dimensions to reverse. Must be in the
  *     range [-rank(x), rank(x)). Defaults to all axes.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function reverse_<T extends Tensor>(
     x: T|TensorLike, axis?: number|number[]): T {
   const $x = convertToTensor(x, 'x', 'reverse');
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const axes = parseAxisParam(axis, $x.shape);
-    if ($x.rank === 0) {
-      return clone($x);
-    }
-    const res = backend.reverse($x, axes);
-    return reshape(res, $x.shape);
-  };
-
   const inputs: ReverseInputs = {x: $x};
   const attrs: ReverseAttrs = {dims: axis};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Reverse, attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Reverse, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const reverse = op({reverse_});

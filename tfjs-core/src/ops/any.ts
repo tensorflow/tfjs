@@ -15,16 +15,14 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Any, AnyAttrs, AnyInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
-import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
 
 /**
@@ -33,7 +31,7 @@ import {op} from './operation';
  * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
  * is true, the rank of the `tf.Tensor` is reduced by 1 for each entry in
  * `axes`. If `keepDims` is true, the reduced dimensions are retained with
- * length 1. If `axes` has no entries, all dimensions are reduced, and an
+ * length 1. If `axes` has no entries, all dimensions are reduced, and a
  * `tf.Tensor` with a single element is returned.
  *
  * ```js
@@ -53,34 +51,18 @@ import {op} from './operation';
  * @param axis The dimension(s) to reduce. By default it reduces
  *     all dimensions.
  * @param keepDims If true, retains reduced dimensions with size 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function any_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'any', 'bool');
-
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const origAxes = parseAxisParam(axis, $x.shape);
-    let axes = origAxes;
-    const permutedAxes = getAxesPermutation(axes, $x.rank);
-    if (permutedAxes != null) {
-      $x = $x.transpose(permutedAxes);
-      axes = getInnerMostAxes(axes.length, $x.rank);
-    }
-    const res = backend.any($x, axes);
-    if (keepDims) {
-      const newShape = expandShapeToKeepDim(res.shape, origAxes);
-      return res.reshape(newShape);
-    }
-    return res as T;
-  };
+  const $x = convertToTensor(x, 'x', 'any', 'bool');
 
   const inputs: AnyInputs = {x: $x};
   const attrs: AnyAttrs = {axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Any,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Any, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 // tslint:disable-next-line:variable-name

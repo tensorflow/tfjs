@@ -17,6 +17,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {div, max, min, sub} from '@tensorflow/tfjs-core';
 
 import {Dataset} from './dataset';
 
@@ -79,7 +80,7 @@ export function scaleTo01(min: number, max: number): (value: ElementArray) =>
       throw new Error('Can\'t scale a string.');
     } else {
       if (value instanceof tf.Tensor) {
-        const result = value.sub(minTensor).div(rangeTensor);
+        const result = div(sub(value, minTensor), rangeTensor);
         return result;
       } else if (value instanceof Array) {
         return value.map(v => (v - min) / range);
@@ -155,8 +156,8 @@ export async function computeDatasetStatistics(
         let combinedVariance = 0;
 
         if (value instanceof tf.Tensor) {
-          recordMin = value.min().dataSync()[0];
-          recordMax = value.max().dataSync()[0];
+          recordMin = min(value).dataSync()[0];
+          recordMax = max(value).dataSync()[0];
           const valueMoment = tf.moments(value);
           valueMean = valueMoment.mean.dataSync()[0];
           valueVariance = valueMoment.variance.dataSync()[0];

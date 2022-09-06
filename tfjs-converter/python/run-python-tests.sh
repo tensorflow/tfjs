@@ -16,6 +16,12 @@
 
 # A script that runs all Python unit tests in tfjs-layers.
 
+function print_usage() {
+  echo "Usage:"
+  echo "  run-python-tests.sh <requirments_file>"
+  echo
+}
+
 set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,8 +34,26 @@ TMP_VENV_DIR="$(mktemp -u).venv"
 virtualenv -p "python" "${TMP_VENV_DIR}"
 source "${TMP_VENV_DIR}/bin/activate"
 
-pip install -r "${SCRIPTS_DIR}/requirements-dev.txt"
+# There is one argument (requirements_file), please update this constant when
+# you adding more arguments.
+ARGS_COUNT=1
 
+# Default requirements file name.
+REQ_FILE="${SCRIPTS_DIR}/requirements-dev.txt"
+
+# Show the usage message if there are too many arguments.
+if [[ $# > ARGS_COUNT ]]; then
+  print_usage
+  exit 1
+fi
+
+# Use the user specified requirements file name.
+if [[ $# == 1 ]]; then
+  REQ_FILE=$1
+fi
+pip install -r "${REQ_FILE}"
+
+# Run pylint for tensorflowjs directory
 cd "${SCRIPTS_DIR}"
 pylint --rcfile=.pylintrc tensorflowjs
 
@@ -45,5 +69,6 @@ echo
 echo "All tests passed."
 echo
 
+# Clean up
 deactivate
 rm -rf "${TMP_VENV_DIR}"

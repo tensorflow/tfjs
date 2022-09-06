@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {dispose, maximum, scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs';
+import {dispose, maximum, scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs-core';
 
 import {HistogramStats, TypedArray} from '../types';
 
@@ -108,8 +108,7 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
     return [min, max, numZeros];
   });
 
-  return Promise
-      .all([input.data(), min.data(), max.data(), numZeros.data()])
+  return Promise.all([input.data(), min.data(), max.data(), numZeros.data()])
       .then(([tensorVal, minVal, maxVal, numZerosVal]) => {
         // We currently need to count NaNs on CPU.
         const numVals = tensorVal.length;
@@ -167,8 +166,6 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
  *  If weights is passed in then each prediction contributes its corresponding
  *  weight to the total value of the confusion matrix cell.
  *
- */
-/**
  * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
 export async function confusionMatrix(
@@ -190,12 +187,10 @@ export async function confusionMatrix(
   const predictionsInt = predictions.cast('int32');
 
   if (numClasses == null) {
-    numClasses =
-        tidy(() => {
-          const max =
-              maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
-          return max.dataSync()[0] + 1;
-        });
+    numClasses = tidy(() => {
+      const max = maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
+      return max.dataSync()[0] + 1;
+    });
   }
 
   let weightsPromise: Promise<null|TypedArray> = Promise.resolve(null);
@@ -239,8 +234,7 @@ export async function confusionMatrix(
  *
  * @param labels tensor of true values
  * @param predictions tensor of predicted values
- */
-/**
+ *
  * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
 export async function accuracy(
@@ -279,8 +273,7 @@ export async function accuracy(
  * @param numClasses Number of distinct classes. Optional. If not passed in
  *  numClasses will equal the highest number in either labels or predictions
  *  plus 1
- */
-/**
+ *
  * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
 export async function perClassAccuracy(

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
 
-export const cosConfig: KernelConfig = createUnaryKernelConfig('Cos');
+export const cosConfig: KernelConfig = createUnaryKernelConfig(Cos);

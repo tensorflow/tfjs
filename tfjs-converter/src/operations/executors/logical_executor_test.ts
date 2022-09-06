@@ -14,18 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './logical_executor';
-import {createTensorAttr} from './test_helper';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createTensorAttr, uncapitalize} from './test_helper';
 
 describe('logical', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
-  const input2 = [tfc.scalar(2)];
+  const input1 = [tfOps.scalar(1)];
+  const input2 = [tfOps.scalar(2)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -42,51 +44,68 @@ describe('logical', () => {
   });
 
   describe('executeOp', () => {
-    ['Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
-     'LogicalAnd', 'LogicalOr']
-        .forEach(op => {
-          it('should call tfc.' + op, () => {
-            const spy =
-                spyOn(tfc, op.charAt(0).toLowerCase() + op.slice(1) as 'equal');
-            node.op = op;
-            executeOp(node, {input1, input2}, context);
+    let spyOps: RecursiveSpy<typeof tfOps>;
+    let spyOpsAsTfOps: typeof tfOps;
 
-            expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
+    beforeEach(() => {
+      spyOps = spyOnAllFunctions(tfOps);
+      spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
+    });
+
+    ([
+      'Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
+      'LogicalAnd', 'LogicalOr'
+    ] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            // TODO(mattsoulanille): Remove type assertions after TS4
+            // tslint:disable-next-line no-any
+            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
+              .and.returnValue({});
+            executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+
+            // TODO(mattsoulanille): Remove type assertion after TS4
+            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+                .toHaveBeenCalledWith(input1[0], input2[0]);
           });
         });
     describe('LogicalNot', () => {
-      it('should call tfc.logicalNot', () => {
-        spyOn(tfc, 'logicalNot');
+      it('should call tfOps.logicalNot', () => {
         node.op = 'LogicalNot';
-        executeOp(node, {input1}, context);
+        spyOps.logicalNot.and.returnValue({});
 
-        expect(tfc.logicalNot).toHaveBeenCalledWith(input1[0]);
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.logicalNot).toHaveBeenCalledWith(input1[0]);
       });
     });
 
     describe('Select', () => {
-      it('should call tfc.where', () => {
-        spyOn(tfc, 'where');
+      it('should call tfOps.where', () => {
         node.op = 'Select';
         node.inputNames = ['input1', 'input2', 'input3'];
         node.inputParams.condition = createTensorAttr(2);
-        const input3 = [tfc.scalar(1)];
-        executeOp(node, {input1, input2, input3}, context);
+        const input3 = [tfOps.scalar(1)];
+        spyOps.where.and.returnValue({});
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+        expect(spyOps.where)
+            .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
 
     describe('SelectV2', () => {
-      it('should call tfc.where', () => {
-        spyOn(tfc, 'where');
+      it('should call tfOps.where', () => {
         node.op = 'SelectV2';
         node.inputNames = ['input1', 'input2', 'input3'];
         node.inputParams.condition = createTensorAttr(2);
-        const input3 = [tfc.scalar(1)];
-        executeOp(node, {input1, input2, input3}, context);
+        const input3 = [tfOps.scalar(1)];
+        spyOps.where.and.returnValue({});
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+        expect(spyOps.where)
+            .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
   });

@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GreaterEqual, GreaterEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -37,27 +37,20 @@ import {op} from './operation';
  *
  * @param a The first input tensor.
  * @param b The second input tensor. Must have the same dtype as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function greaterEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'greaterEqual');
-  let $b = convertToTensor(b, 'b', 'greaterEqual');
+  let $a = convertToTensor(a, 'a', 'greaterEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'greaterEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.greaterEqual($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: GreaterEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             GreaterEqual) as T;
+  return ENGINE.runKernel(GreaterEqual, inputs as {} as NamedTensorMap);
 }
 
 export const greaterEqual = op({greaterEqual_});

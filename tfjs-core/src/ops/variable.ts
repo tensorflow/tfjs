@@ -32,8 +32,9 @@ import {DataType, Rank} from '../types';
  * @param trainable If true, optimizers are allowed to update it.
  * @param name Name of the variable. Defaults to a unique id.
  * @param dtype If set, initialValue will be converted to the given type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function variable<R extends Rank>(
     initialValue: Tensor<R>, trainable = true, name?: string,
     dtype?: DataType): Variable<R> {

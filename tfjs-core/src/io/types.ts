@@ -103,9 +103,9 @@ export declare interface WeightsManifestEntry {
    * Information for dequantization of the weight.
    */
   quantization?: {
-    scale?: number,           // The scaling constant to multiply by.
-    min?: number,             // The (possibly nudged) minimum weight to add.
-    dtype: 'uint16'|'uint8'|'float16'  // The dtype of the quantized weights.
+    scale?: number,  // The scaling constant to multiply by.
+    min?: number,    // The (possibly nudged) minimum weight to add.
+       dtype: 'uint16'|'uint8'|'float16'  // The dtype of the quantized weights.
   };
 }
 
@@ -279,9 +279,19 @@ export declare interface ModelArtifacts {
   convertedBy?: string|null;
 
   /**
+   * Inputs and outputs signature for saved model.
+   */
+  signature?: {};
+
+  /**
    * User-defined metadata about the model.
    */
-  userDefinedMetadata?: {};
+  userDefinedMetadata?: {[key: string]: {}};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: {};
 }
 
 /**
@@ -339,9 +349,19 @@ export declare interface ModelJSON {
   convertedBy?: string|null;
 
   /**
+   * Inputs and outputs signature for saved model.
+   */
+  signature?: {};
+
+  /**
    * User-defined metadata about the model.
    */
-  userDefinedMetadata?: {};
+  userDefinedMetadata?: {[key: string]: {}};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: {};
 }
 
 /**
@@ -366,6 +386,28 @@ export interface IOHandler {
   save?: SaveHandler;
   load?: LoadHandler;
 }
+
+/**
+ * Type definition for handlers of synchronous loading operations.
+ */
+export type LoadHandlerSync = () => ModelArtifacts;
+
+/**
+ * Type definition for handlers of synchronous saving operations.
+ */
+export type SaveHandlerSync = (modelArtifact: ModelArtifacts) => SaveResult;
+
+/**
+ * Interface for a synchronous model import/export handler.
+ *
+ * The `save` and `load` handlers are both optional, in order to allow handlers
+ * that support only saving or loading.
+ */
+// tslint:disable-next-line:interface-name
+export type IOHandlerSync = {
+  save?: SaveHandlerSync;
+  load?: LoadHandlerSync;
+};
 
 /**
  * An interface for the manager of a model store.
@@ -464,6 +506,18 @@ export interface LoadOptions {
    * Default: `false`.
    */
   fromTFHub?: boolean;
+
+  /**
+   * An async function to convert weight file name to URL. The weight file
+   * names are stored in model.json's weightsManifest.paths field. By default we
+   * consider weight files are colocated with the model.json file. For example:
+   *     model.json URL: https://www.google.com/models/1/model.json
+   *     group1-shard1of1.bin url:
+   *        https://www.google.com/models/1/group1-shard1of1.bin
+   *
+   * With this func you can convert the weight file name to any URL.
+   */
+  weightUrlConverter?: (weightFileName: string) => Promise<string>;
 }
 
 /**

@@ -15,26 +15,22 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
-import {LRNBackprop, LRNBackpropAttrs, LRNBackpropInputs} from '../kernel_names';
+import {ENGINE} from '../engine';
+import {LRNGrad, LRNGradAttrs, LRNGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D} from '../tensor';
+import {Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
 import {op} from './operation';
 
 function localResponseNormalizationBackprop_<T extends Tensor4D>(
     x: T, y: T, dy: T, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-  const forward: ForwardFunc<Tensor> = backend =>
-      backend.LRNGrad(dy, x, y, depthRadius, bias, alpha, beta);
+  const inputs: LRNGradInputs = {x, y, dy};
 
-  const inputs: LRNBackpropInputs = {x, y, dy};
+  const attrs: LRNGradAttrs = {depthRadius, bias, alpha, beta};
 
-  const attrs: LRNBackpropAttrs = {depthRadius, bias, alpha, beta};
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             LRNBackprop, attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      LRNGrad, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const localResponseNormalizationBackprop =

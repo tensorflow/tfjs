@@ -32,14 +32,13 @@ import {op} from './operation';
  * x.floor().print();  // or tf.floor(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function floor_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'floor');
+  const $x = convertToTensor(x, 'x', 'floor', 'float32');
 
   const inputs: FloorInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.floor($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Floor);
+  return ENGINE.runKernel(Floor, inputs as {} as NamedTensorMap);
 }
 export const floor = op({floor_});

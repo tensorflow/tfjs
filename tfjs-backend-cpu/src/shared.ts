@@ -15,6 +15,50 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
+// Shared functionality among backends.
+export {simpleAbsImpl} from './kernels/Abs';
+export {addImpl} from './kernels/Add';
+export {bincountImpl, bincountReduceImpl} from './kernels/Bincount_impl';
+export {castImpl} from './kernels/Cast';
+export {ceilImpl} from './kernels/Ceil';
+export {concatImpl} from './kernels/Concat_impl';
+export {equalImpl} from './kernels/Equal';
+export {expImpl} from './kernels/Exp';
+export {expm1Impl} from './kernels/Expm1';
+export {floorImpl} from './kernels/Floor';
+export {gatherNdImpl} from './kernels/GatherNd_Impl';
+export {gatherV2Impl} from './kernels/GatherV2_impl';
+export {greaterImpl} from './kernels/Greater';
+export {greaterEqualImpl} from './kernels/GreaterEqual';
+export {lessImpl} from './kernels/Less';
+export {lessEqualImpl} from './kernels/LessEqual';
+export {linSpaceImpl} from './kernels/LinSpace_impl';
+export {logImpl} from './kernels/Log';
 export {maxImpl} from './kernels/Max_impl';
+export {maximumImpl} from './kernels/Maximum';
+export {minimumImpl} from './kernels/Minimum';
+export {multiplyImpl} from './kernels/Multiply';
+export {negImpl} from './kernels/Neg';
+export {notEqualImpl} from './kernels/NotEqual';
+export {prodImpl} from './kernels/Prod';
+export {raggedTensorToTensorImpl} from './kernels/RaggedTensorToTensor_impl';
+export {rangeImpl} from './kernels/Range_impl';
+export {rsqrtImpl} from './kernels/Rsqrt';
+export {scatterImpl} from './kernels/Scatter_impl';
+export {sigmoidImpl} from './kernels/Sigmoid';
+export {sliceImpl} from './kernels/Slice';
+export {sparseFillEmptyRowsImpl} from './kernels/SparseFillEmptyRows_impl';
+export {sparseReshapeImpl} from './kernels/SparseReshape_impl';
+export {sparseSegmentReductionImpl} from './kernels/SparseSegmentReduction_impl';
+export {sqrtImpl} from './kernels/Sqrt';
+export {squaredDifferenceImpl} from './kernels/SquaredDifference';
+export {stridedSliceImpl} from './kernels/StridedSlice_impl';
+export {stringNGramsImpl} from './kernels/StringNGrams_impl';
+export {stringSplitImpl} from './kernels/StringSplit_impl';
+export {stringToHashBucketFastImpl} from './kernels/StringToHashBucketFast_impl';
+export {subImpl} from './kernels/Sub';
+export {tileImpl} from './kernels/Tile_impl';
+export {topKImpl} from './kernels/TopK_impl';
 export {transposeImpl} from './kernels/Transpose_impl';
+export {uniqueImpl} from './kernels/Unique_impl';
+export {ComplexBinaryKernelImpl, SimpleBinaryKernelImpl} from './utils/binary_types';

@@ -11,7 +11,8 @@
     ],
     "exclude": [
       "src/run_tests.ts",
-      "src/**/*_test.ts"
+      "src/**/*_test.ts",
+      "src/proto/*"
     ],
     "cache": false,
     "sourceMap": true,

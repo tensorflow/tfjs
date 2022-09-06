@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
 #include <cmath>
@@ -29,10 +29,13 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/transpose_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/elu_impl.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
+#include "tfjs-backend-wasm/src/cc/transpose_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
@@ -118,7 +121,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
             const FusableActivation activation, const size_t prelu_weights_id,
-            const size_t out_id) {
+            const float leakyrelu_alpha, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -133,7 +136,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
   float* out_buf = out_info.f32_write();
   std::vector<float> intermediate_output;
 
-  if (prelu_weights_id != 0) {
+  if (prelu_weights_id != 0 || activation == FusableActivation::LEAKYRELU) {
     intermediate_output.resize(out_info.size);
     out_buf = intermediate_output.data();
   }
@@ -163,7 +166,8 @@ void conv2d(const size_t x_id, const size_t batch_size,
   }
 
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 
@@ -259,7 +263,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
 
   xnn_status status = xnn_setup_convolution2d_nhwc_f32(
       conv2d_op, batch_size, input_height, input_width, x_buf, out_buf,
-      nullptr /* thread pool */);
+      tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_convolution2d_nhwc_f32 is not successful. "
@@ -267,10 +271,19 @@ void conv2d(const size_t x_id, const size_t batch_size,
         status);
   }
 
-  xnn_run_operator(conv2d_op, nullptr /* thread pool */);
+  xnn_run_operator(conv2d_op, tfjs::backend::threadpool);
 
   if (activation == FusableActivation::PRELU) {
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+  }
+  if (activation == FusableActivation::LEAKYRELU) {
+    leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
+  }
+  if (activation == FusableActivation::SIGMOID) {
+    sigmoid(out_buf, out_info.size, out_id);
+  }
+  if (activation == FusableActivation::ELU) {
+    elu(out_buf, out_info.size, out_id);
   }
 }
 

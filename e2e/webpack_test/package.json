@@ -1,0 +1,16 @@
+{
+  "name": "webpack_test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build-deps": "cd ../../link-package && yarn build",
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs-core": "link:../../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-backend-cpu": "link:../../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "webpack": "^5.46.0",
+    "webpack-cli": "^4.7.2"
+  }
+}

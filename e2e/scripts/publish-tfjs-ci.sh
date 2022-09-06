@@ -52,10 +52,15 @@ else
   echo "Publishing version ${RELEASE_VERSION}"
 fi
 
-# Packages to publish.
+# All packages to publish. This includes Bazel packages.
 PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 "tfjs-backend-wasm" "tfjs-layers" "tfjs-converter" "tfjs-data" "tfjs" \
 "tfjs-node" "tfjs-node-gpu")
+
+# Packages that build with Bazel
+BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
+"tfjs-backend-webgl" "tfjs-backend-webgpu" "tfjs-layers" "tfjs-data"
+"tfjs-backend-wasm")
 
 for package in "${PACKAGES[@]}"
 do
@@ -69,17 +74,19 @@ do
   # Install dependencies.
   yarn
 
-  # Build npm.
-  yarn build-npm for-publish
+  if [[ " ${BAZEL_PACKAGES[@]} " =~ " ${package} " ]]; then
+    # Build and publish to local npm.
+    echo "Publishing $package using Bazel"
+    yarn publish-npm
+  else
+    echo "Publishing $package using npm"
+    # Build npm.
+    yarn build-npm for-publish
 
-  # Publish to local npm.
-  npm publish
+    # Publish to local npm.
+    npm publish
+  fi
   echo "Published ${package}@${RELEASE_VERSION}"
 
   cd ..
 done
-
-# Update e2e's package.json's all tfjs related packages to locally published
-# version.
-cd e2e
-yarn update-dependency --version=$RELEASE_VERSION

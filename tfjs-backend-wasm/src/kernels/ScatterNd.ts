@@ -27,7 +27,7 @@ let wasmScatterNd: (
     outputSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmScatterNd = backend.wasm.cwrap('ScatterNd', null /*void*/, [
+  wasmScatterNd = backend.wasm.cwrap(ScatterNd, null /*void*/, [
     'number',  // indicesId
     'number',  // updatesId
     'number',  // dtype

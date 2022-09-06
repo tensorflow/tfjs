@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {concat, DataType, keep, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
-import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
+import {assertShapesMatchAllowUndefinedSize, inferElementShape, mergeElementShape} from './tensor_utils';
 
 /**
  * TensorList stores a container of `tf.Tensor` objects, which are accessible
@@ -44,13 +44,14 @@ export class TensorList {
   /**
    *
    * @param tensors list of tensors
-   * @param elementShape shape of each tensor
+   * @param elementShape shape of each tensor, this can be a single number (any
+   * shape is allowed) or partial shape (dim = -1).
    * @param elementDtype data type of each tensor
    * @param maxNumElements The maximum allowed size of `tensors`. Defaults to -1
    *   meaning that the size of `tensors` is unbounded.
    */
   constructor(
-      readonly tensors: Tensor[], readonly elementShape: number[],
+      readonly tensors: Tensor[], readonly elementShape: number|number[],
       readonly elementDtype: DataType, maxNumElements = -1) {
     if (tensors != null) {
       tensors.forEach(tensor => {
@@ -80,8 +81,12 @@ export class TensorList {
   /**
    * Dispose the tensors and idTensor and clear the tensor list.
    */
-  clearAndClose() {
-    this.tensors.forEach(tensor => tensor.dispose());
+  clearAndClose(keepIds?: Set<number>) {
+    this.tensors.forEach(tensor => {
+      if (keepIds == null || !keepIds.has(tensor.id)) {
+        tensor.dispose();
+      }
+    });
     this.tensors.length = 0;
     this.idTensor.dispose();
   }
@@ -112,9 +117,11 @@ export class TensorList {
     }
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
+    const outputElementShape =
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     return tidy(() => {
       const reshapedTensors =
-          this.tensors.map(tensor => tensor.reshape(elementShape));
+          this.tensors.map(tensor => reshape(tensor, outputElementShape));
       return stack(reshapedTensors, 0);
     });
   }
@@ -133,11 +140,15 @@ export class TensorList {
     if (this.size() === 0) {
       throw new Error('Trying to pop from an empty list.');
     }
-
+    const outputElementShape =
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     const tensor = this.tensors.pop();
+    tensor.kept = false;
+
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
-    return tensor.reshape(elementShape);
+
+    return reshape(tensor, outputElementShape);
   }
 
   /**
@@ -174,7 +185,14 @@ export class TensorList {
       throw new Error(`TensorListResize input size ${
           size} is greater maxNumElement ${this.maxNumElements}.`);
     }
-    this.tensors.length = size;
+
+    const destTensorList: TensorList = new TensorList(
+        [], this.elementShape, this.elementDtype, this.maxNumElements);
+    destTensorList.tensors.length = size;
+    for (let i = 0; i < Math.min(this.tensors.length, size); ++i) {
+      destTensorList.tensors[i] = this.tensors[i];
+    }
+    return destTensorList;
   }
 
   /**
@@ -201,8 +219,9 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.tensors[elementIndex].shape, elementShape,
         'TensorList shape mismatch: ');
-
-    return this.tensors[elementIndex];
+    const outputElementShape =
+        inferElementShape(this.elementShape, this.tensors, elementShape);
+    return reshape(this.tensors[elementIndex], outputElementShape);
   }
 
   /**
@@ -225,6 +244,12 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensor.shape, 'TensorList shape mismatch: ');
     keep(tensor);
+
+    // dispose the previous value if it is replacing.
+    if (this.tensors[elementIndex] != null) {
+      this.tensors[elementIndex].kept = false;
+    }
+
     this.tensors[elementIndex] = tensor;
   }
 
@@ -248,13 +273,15 @@ export class TensorList {
     // When indices is greater than the size of the list, indices beyond the
     // size of the list are ignored.
     indices = indices.slice(0, this.size());
-
+    const outputElementShape =
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     if (indices.length === 0) {
-      return tensor([], [0].concat(this.elementShape));
+      return tensor([], [0].concat(outputElementShape));
     }
 
     return tidy(() => {
-      const tensors = indices.map(i => this.tensors[i].reshape(elementShape));
+      const tensors =
+          indices.map(i => reshape(this.tensors[i], outputElementShape));
       return stack(tensors, 0);
     });
   }
@@ -272,13 +299,14 @@ export class TensorList {
 
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, elementShape, 'TensorList shape mismatch: ');
+    const outputElementShape =
+        inferElementShape(this.elementShape, this.tensors, elementShape);
 
     if (this.size() === 0) {
-      return tensor([], [0].concat(this.elementShape));
+      return tensor([], [0].concat(outputElementShape));
     }
-
     return tidy(() => {
-      const tensors = this.tensors.map(t => t.reshape(elementShape));
+      const tensors = this.tensors.map(t => reshape(t, outputElementShape));
       return concat(tensors, 0);
     });
   }
@@ -300,11 +328,10 @@ export function fromTensor(
     throw new Error(`Invalid data types; op elements ${
         tensor.dtype}, but list elements ${elementDtype}`);
   }
-  const outputShape = tensor.shape.slice(1);
+  const tensorElementShape = tensor.shape.slice(1);
   assertShapesMatchAllowUndefinedSize(
-      outputShape, elementShape, 'TensorList shape mismatch: ');
-
-  const tensorList: Tensor[] = tensor.unstack();
+      tensorElementShape, elementShape, 'TensorList shape mismatch: ');
+  const tensorList: Tensor[] = unstack(tensor);
   return new TensorList(tensorList, elementShape, dtype);
 }
 
@@ -313,10 +340,12 @@ export function fromTensor(
  * @param elementShape the shape of the future elements of the list
  * @param elementDtype the desired type of elements in the list
  * @param numElements the number of elements to reserve
+ * @param maxNumElements the maximum number of elements in th list
  */
 export function reserve(
-    elementShape: number[], elementDtype: DataType, numElements: number) {
-  return new TensorList([], elementShape, elementDtype, numElements);
+    elementShape: number[], elementDtype: DataType, numElements: number,
+    maxNumElements: number) {
+  return new TensorList([], elementShape, elementDtype, maxNumElements);
 }
 
 /**
@@ -370,15 +399,19 @@ export function split(
         ${totalLength}, and tensor's shape is: ${tensor.shape}`);
   }
 
+  const shapeWithoutFirstDim = tensor.shape.slice(1);
+  const outputElementShape =
+      mergeElementShape(shapeWithoutFirstDim, elementShape);
   const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
   const tensors: Tensor[] = tidy(() => {
     const tensors = [];
-    tensor = tensor.reshape([1, totalLength, elementPerRow]);
+    tensor = reshape(tensor, [1, totalLength, elementPerRow]);
     for (let i = 0; i < length.length; ++i) {
       const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
       const indices = [0, previousLength, 0];
       const sizes = [1, length[i], elementPerRow];
-      tensors[i] = slice(tensor, indices, sizes).reshape(elementShape);
+      tensors[i] = reshape(
+          slice(tensor, indices, sizes), outputElementShape as number[]);
     }
     tensor.dispose();
     return tensors;

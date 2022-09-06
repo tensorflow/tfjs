@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {batchNorm} from '../../ops/batchnorm';
-import {Tensor, Tensor1D} from '../../tensor';
+import {getGlobalTensorClass, Tensor, Tensor1D} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -29,7 +29,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.batchNorm = function<R extends Rank>(
+getGlobalTensorClass().prototype.batchNorm = function<R extends Rank>(
     mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike,
     offset?: Tensor<R>|Tensor1D|TensorLike,

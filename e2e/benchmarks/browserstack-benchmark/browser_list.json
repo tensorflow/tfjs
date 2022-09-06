@@ -1,0 +1,631 @@
+[
+  {
+    "os": "Windows",
+    "os_version": "11",
+    "browser": "chrome",
+    "device": null,
+    "browser_version": "103.0",
+    "real_mobile": null
+  },
+  {
+    "os": "Windows",
+    "os_version": "10",
+    "browser": "ie",
+    "device": null,
+    "browser_version": "11.0",
+    "real_mobile": null
+  },
+  {
+    "os": "Windows",
+    "os_version": "11",
+    "browser": "edge",
+    "device": null,
+    "browser_version": "103.0",
+    "real_mobile": null
+  },
+  {
+    "os": "Windows",
+    "os_version": "11",
+    "browser": "firefox",
+    "device": null,
+    "browser_version": "103.0",
+    "real_mobile": null
+  },
+  {
+    "os": "OS X",
+    "os_version": "Monterey",
+    "browser": "chrome",
+    "device": null,
+    "browser_version": "103.0",
+    "real_mobile": null
+  },
+  {
+    "os": "OS X",
+    "os_version": "Monterey",
+    "browser": "safari",
+    "device": null,
+    "browser_version": "15.3",
+    "real_mobile": null
+  },
+  {
+    "os": "OS X",
+    "os_version": "Monterey",
+    "browser": "firefox",
+    "device": null,
+    "browser_version": "103.0",
+    "real_mobile": null
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13 Pro Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 12 Pro Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 12",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone XS",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone XS",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "iphone",
+    "device": "iPhone 11 Pro Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 11 Pro",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 11",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "iphone",
+    "device": "iPhone 8",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "iphone",
+    "device": "iPhone SE 2020",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "15",
+    "browser": "iphone",
+    "device": "iPhone 13",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "15",
+    "browser": "ipad",
+    "device": "iPad 9th",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "15",
+    "browser": "ipad",
+    "device": "iPad Air 5",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "14",
+    "browser": "ipad",
+    "device": "iPad Air 4",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "ios",
+    "os_version": "14",
+    "browser": "ipad",
+    "device": "iPad 8th",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "ipad",
+    "device": "iPad Pro 12.9 2020",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "ipad",
+    "device": "iPad Pro 11 2020",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "ipad",
+    "device": "iPad Mini 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "ipad",
+    "device": "iPad Air 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "ipad",
+    "device": "iPad 7th",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone XS",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone XS Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone XR",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone 8",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone 8 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone 7",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "iphone",
+    "device": "iPhone 6S",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "ipad",
+    "device": "iPad Pro 11 2018",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "ipad",
+    "device": "iPad Mini 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "12",
+    "browser": "ipad",
+    "device": "iPad Air 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22 Ultra",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S22",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S21",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 6 Pro",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 6",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
+    "browser_version": null,
+    "real_mobile": true
+  },{
+    "os": "android",
+    "os_version": "12.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Tab S8",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "11.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S20",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S20 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S20 Ultra",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Samsung Galaxy A51",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Samsung Galaxy A11",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Google Pixel 4 XL",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Google Pixel 4",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "Google Pixel 3",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "OnePlus 8",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "10.0",
+    "browser": "android",
+    "device": "OnePlus 7T",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S9 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S8 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S10e",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S10 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy S10",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Note 10 Plus",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Note 10",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy A10",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Google Pixel 3a XL",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Google Pixel 3a",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Google Pixel 3 XL",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Google Pixel 3",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Google Pixel 2",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Motorola Moto G7 Play",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "OnePlus 7",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "OnePlus 6T",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Xiaomi Redmi Note 8",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Xiaomi Redmi Note 7",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Tab S6",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "9.0",
+    "browser": "android",
+    "device": "Samsung Galaxy Tab S5e",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "8.1",
+    "browser": "android",
+    "device": "Samsung Galaxy Note 9",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "8.1",
+    "browser": "android",
+    "device": "Samsung Galaxy J7 Prime",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "8.1",
+    "browser": "android",
+    "device": "Samsung Galaxy Tab S4",
+    "browser_version": null,
+    "real_mobile": true
+  }
+]

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sqrt} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
-export const sqrtConfig: KernelConfig = createUnaryKernelConfig('Sqrt');
+export const sqrtConfig: KernelConfig = createUnaryKernelConfig(Sqrt);

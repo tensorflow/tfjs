@@ -33,17 +33,14 @@ import {op} from './operation';
  * x.atan().print();  // or tf.atan(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function atan_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'atan');
 
   const inputs: AtanInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.atan($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Atan);
+  return ENGINE.runKernel(Atan, inputs as {} as NamedTensorMap);
 }
 export const atan = op({atan_});

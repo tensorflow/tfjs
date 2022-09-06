@@ -11,42 +11,40 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tfjs.git"
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-inference"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "2.0.1",
-    "@tensorflow/tfjs-converter": "2.0.1",
-    "@tensorflow/tfjs-backend-cpu": "2.0.1",
-    "@tensorflow/tfjs-backend-wasm": "2.0.1",
+    "@tensorflow/tfjs-core": "3.19.0",
+    "@tensorflow/tfjs-converter": "3.19.0",
+    "@tensorflow/tfjs-backend-cpu": "3.19.0",
+    "@tensorflow/tfjs-backend-wasm": "3.19.0",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
-    "clang-format": "~1.2.4",
+    "clang-format": "~1.8.0",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
     "rimraf": "~3.0.2",
     "ts-node": "~8.8.2",
-    "tslint": "~5.11.0",
+    "tslint": "~6.1.3",
     "typescript": "3.5.3"
   },
   "scripts": {
     "build": "tsc",
-    "test": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
-    "test-ci": "yarn test",
-    "build-binary": "yarn build && pkg . --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
-    "test-python": "yarn build-binary && ./scripts/run_python.sh"
+    "test": "yarn build && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "test-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "build-binary": "yarn build && pkg . --targets=node12-macos-x64,node12-linux-x64,node12-win-x64 --out-path=binaries",
+    "test-python": "yarn build-binary && ./scripts/run_python.sh",
+    "test-python-ci": "./scripts/run_python.sh"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
+    "@types/seedrandom": "^2.4.28",
     "@types/yargs": "~15.0.5",
-    "seedrandom": "2.4.3",
+    "seedrandom": "^3.0.5",
     "yargs": "~15.3.1",
-    "pkg": "~4.4.8"
-  },
-  "peerDependencies": {
-    "@tensorflow/tfjs-core": "2.0.0",
-    "@tensorflow/tfjs-converter": "2.0.0",
-    "@tensorflow/tfjs-backend-cpu": "2.0.0"
+    "pkg": "~4.5.1"
   },
   "pkg": {
     "assets": "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm"

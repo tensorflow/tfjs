@@ -33,17 +33,14 @@ import {op} from './operation';
  * x.sin().print();  // or tf.sin(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sin_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sin');
+  const $x = convertToTensor(x, 'x', 'sin', 'float32');
 
   const inputs: SinInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sin($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sin);
+  return ENGINE.runKernel(Sin, inputs as {} as NamedTensorMap);
 }
 export const sin = op({sin_});

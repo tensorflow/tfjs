@@ -1,0 +1,21 @@
+{
+  "name": "link-package",
+  "version": "1.0.0",
+  "description": "A package to help resolve npm link dependencies during the Bazel transition. Other packages link to the packages installed in its node_modules directory. Should never be published.",
+  "license": "Apache 2.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn build-deps-for --all",
+    "build-deps-for": "yarn && ts-node build_deps.ts"
+  },
+  "devDependencies": {
+    "@types/rimraf": "^3.0.2",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.7.0"
+  },
+  "dependencies": {
+    "@bazel/bazelisk": "^1.12.0",
+    "@types/argparse": "^2.0.10",
+    "argparse": "^2.0.1"
+  }
+}

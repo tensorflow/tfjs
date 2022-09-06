@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
-import {Div, DivInputs} from '../kernel_names';
+import {ENGINE} from '../engine';
+import {RealDiv, RealDivInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
@@ -47,8 +47,9 @@ import {op} from './operation';
  * @param a The first tensor as the numerator.
  * @param b The second tensor as the denominator. Must have the same dtype as
  * `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'div');
   let $b = convertToTensor(b, 'b', 'div');
@@ -58,18 +59,11 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return floorDiv($a, $b);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.realDivide($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
-  const inputs: DivInputs = {a: $a, b: $b};
+  const inputs: RealDivInputs = {a: $a, b: $b};
   const attrs = {};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Div,
-             attrs) as T;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(RealDiv, inputs as {} as NamedTensorMap, attrs) as T;
 }
 
 export const div = op({div_});

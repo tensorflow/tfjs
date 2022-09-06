@@ -17,7 +17,7 @@ import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 const OCTET_STREAM_TYPE = 'application/octet-stream';
@@ -842,53 +842,51 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 
   it('loadLayersModel: no memory leak with nested LayersModel layer',
-    async() => {
-      const modelTopology =
-          JSON.parse(JSON.stringify(fakeSequentialModelWithNestedContainer))
-              .modelTopology;
+     async () => {
+       const modelTopology =
+           JSON.parse(JSON.stringify(fakeSequentialModelWithNestedContainer))
+               .modelTopology;
 
-      const weightsManifest: io.WeightsManifestConfig = [
-        {
-          'paths': ['weight_0'],
-          'weights': [
-            {'name': `dense_1/kernel`, 'dtype': 'float32', 'shape': [4, 2]},
-            {'name': `dense_1/bias`, 'dtype': 'float32', 'shape': [2]},
-            {'name': `dense_2/kernel`, 'dtype': 'float32', 'shape': [2, 1]},
-            {'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}
-          ],
-        }
-      ];
+       const weightsManifest: io.WeightsManifestConfig = [{
+         'paths': ['weight_0'],
+         'weights': [
+           {'name': `dense_1/kernel`, 'dtype': 'float32', 'shape': [4, 2]},
+           {'name': `dense_1/bias`, 'dtype': 'float32', 'shape': [2]},
+           {'name': `dense_2/kernel`, 'dtype': 'float32', 'shape': [2, 1]},
+           {'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}
+         ],
+       }];
 
-      spyOn(env().platform, 'fetch').and.callFake((path: string) => {
-        return new Promise((resolve, reject) => {
-          if (path === 'model/model.json') {
-            resolve(new Response(
-                JSON.stringify({
-                  modelTopology,
-                  weightsManifest,
-                }),
-                {'headers': {'Content-Type': JSON_TYPE}}));
-          } else if (path === 'model/weight_0') {
-            resolve(new Response(
-                new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
-                {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
-          } else {
-            reject(new Error(`Invalid path: ${path}`));
-          }
-        });
-      });
+       spyOn(env().platform, 'fetch').and.callFake((path: string) => {
+         return new Promise((resolve, reject) => {
+           if (path === 'model/model.json') {
+             resolve(new Response(
+                 JSON.stringify({
+                   modelTopology,
+                   weightsManifest,
+                 }),
+                 {'headers': {'Content-Type': JSON_TYPE}}));
+           } else if (path === 'model/weight_0') {
+             resolve(new Response(
+                 new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+                 {'headers': {'Content-Type': OCTET_STREAM_TYPE}}));
+           } else {
+             reject(new Error(`Invalid path: ${path}`));
+           }
+         });
+       });
 
-      const numTensors0 = memory().numTensors;
-      const model = await tfl.loadLayersModel('model/model.json');
-      const mem = await memory();
-      const numTensors1 = mem.numTensors;
-      expect(numTensors1).toEqual(numTensors0 + 4);
+       const numTensors0 = memory().numTensors;
+       const model = await tfl.loadLayersModel('model/model.json');
+       const mem = await memory();
+       const numTensors1 = mem.numTensors;
+       expect(numTensors1).toEqual(numTensors0 + 4);
 
-      const disposeResult = model.dispose();
-      expect(disposeResult.numDisposedVariables).toEqual(4);
-      const numTensors2 = memory().numTensors;
-      expect(numTensors2).toEqual(numTensors0);
-    });
+       const disposeResult = model.dispose();
+       expect(disposeResult.numDisposedVariables).toEqual(4);
+       const numTensors2 = memory().numTensors;
+       expect(numTensors2).toEqual(numTensors0);
+     });
 
   it('load topology and weights from implicit relative http path: HDF5 format',
      async () => {
@@ -1261,7 +1259,7 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 });
 
-describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
+describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
   it('SGD', async () => {
     const model1 = tfl.sequential();
     model1.add(tfl.layers.dense(
@@ -1903,16 +1901,15 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
     expect(model.outputs[0].shape).toEqual([null, 1]);
   });
 
-  it('IOHandler without load method causes error', async done => {
+  it('IOHandler without load method causes error', async () => {
     loadLayersModelInternal(new IOHandlerWithoutLoad())
         .then(model => {
-          done.fail(
+          fail(
               'Loading with an IOHandler without load method succeeded ' +
               'unexpectedly.');
         })
         .catch(err => {
           expect(err.message).toMatch(/does not have .*load.* method/);
-          done();
         });
   });
 });
@@ -2121,8 +2118,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
-    expect(history.history['loss'][0]).toBe(121);
-    expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
+    expectTensorsClose(
+        history.history['loss'] as number[], [121, 0.015178224071860313]);
   });
 
   it('calling fit twice in a row leads to error', async () => {
@@ -2282,99 +2279,85 @@ const fakeSequentialModelWithNestedContainer: ModelAndWeightsConfig = {
       'class_name': 'Model',
       'config': {
         'name': 'model_1',
-        'layers': [{
-          'name': 'dense_1_input',
-          'class_name': 'InputLayer',
-          'config': {
-            'batch_input_shape': [null, 4],
-            'dtype': 'float32',
-            'sparse': false,
-            'name': 'dense_1_input'
+        'layers': [
+          {
+            'name': 'dense_1_input',
+            'class_name': 'InputLayer',
+            'config': {
+              'batch_input_shape': [null, 4],
+              'dtype': 'float32',
+              'sparse': false,
+              'name': 'dense_1_input'
+            },
+            'inbound_nodes': []
           },
-          'inbound_nodes': []
-        }, {
-          'name': 'dense_1',
-          'class_name': 'Dense',
-          'config': {
+          {
             'name': 'dense_1',
-            'trainable': true,
-            'batch_input_shape': [null, 4],
-            'dtype': 'float32',
-            'units': 2,
-            'activation': 'relu',
-            'use_bias': true,
-            'kernel_initializer': {
-              'class_name': 'VarianceScaling',
-              'config': {
-                'scale': 1.0,
-                'mode': 'fan_avg',
-                'distribution': 'uniform',
-                'seed': null
-              }
+            'class_name': 'Dense',
+            'config': {
+              'name': 'dense_1',
+              'trainable': true,
+              'batch_input_shape': [null, 4],
+              'dtype': 'float32',
+              'units': 2,
+              'activation': 'relu',
+              'use_bias': true,
+              'kernel_initializer': {
+                'class_name': 'VarianceScaling',
+                'config': {
+                  'scale': 1.0,
+                  'mode': 'fan_avg',
+                  'distribution': 'uniform',
+                  'seed': null
+                }
+              },
+              'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+              'kernel_regularizer': null,
+              'bias_regularizer': null,
+              'activity_regularizer': null,
+              'kernel_constraint': null,
+              'bias_constraint': null
             },
-            'bias_initializer': {
-              'class_name': 'Zeros',
-              'config': {}
-            },
-            'kernel_regularizer': null,
-            'bias_regularizer': null,
-            'activity_regularizer': null,
-            'kernel_constraint': null,
-            'bias_constraint': null
+            'inbound_nodes': [[['dense_1_input', 0, 0, {}]]]
           },
-          'inbound_nodes': [
-            [
-              ['dense_1_input', 0, 0, {}]
-            ]
-          ]
-        }, {
-          'name': 'sequential_2',
-          'class_name': 'Sequential',
-          'config': {
+          {
             'name': 'sequential_2',
-            'layers': [{
-              'class_name': 'Dense',
-              'config': {
-                'name': 'dense_2',
-                'trainable': true,
-                'batch_input_shape': [null, 2],
-                'dtype': 'float32',
-                'units': 1,
-                'activation': 'softmax',
-                'use_bias': true,
-                'kernel_initializer': {
-                  'class_name': 'VarianceScaling',
-                  'config': {
-                    'scale': 1.0,
-                    'mode': 'fan_avg',
-                    'distribution': 'uniform',
-                    'seed': null
-                  }
-                },
-                'bias_initializer': {
-                  'class_name': 'Zeros',
-                  'config': {}
-                },
-                'kernel_regularizer': null,
-                'bias_regularizer': null,
-                'activity_regularizer': null,
-                'kernel_constraint': null,
-                'bias_constraint': null
-              }
-            }]
-          },
-          'inbound_nodes': [
-            [
-              ['dense_1', 0, 0, {}]
-            ]
-          ]
-        }],
-        'input_layers': [
-          ['dense_1_input', 0, 0]
+            'class_name': 'Sequential',
+            'config': {
+              'name': 'sequential_2',
+              'layers': [{
+                'class_name': 'Dense',
+                'config': {
+                  'name': 'dense_2',
+                  'trainable': true,
+                  'batch_input_shape': [null, 2],
+                  'dtype': 'float32',
+                  'units': 1,
+                  'activation': 'softmax',
+                  'use_bias': true,
+                  'kernel_initializer': {
+                    'class_name': 'VarianceScaling',
+                    'config': {
+                      'scale': 1.0,
+                      'mode': 'fan_avg',
+                      'distribution': 'uniform',
+                      'seed': null
+                    }
+                  },
+                  'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+                  'kernel_regularizer': null,
+                  'bias_regularizer': null,
+                  'activity_regularizer': null,
+                  'kernel_constraint': null,
+                  'bias_constraint': null
+                }
+              }]
+            },
+            'inbound_nodes': [[['dense_1', 0, 0, {}]]]
+          }
         ],
-        'output_layers': [
-          ['sequential_2', 1, 0]
-        ]
+        'input_layers': [['dense_1_input', 0, 0]],
+        'output_layers': [['sequential_2', 1, 0]]
       }
     }
   }

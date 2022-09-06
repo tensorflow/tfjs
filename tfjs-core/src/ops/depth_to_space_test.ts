@@ -67,6 +67,15 @@ describeWithFlags('depthToSpace', ALL_ENVS, () => {
             blockSize * blockSize} but is ${
             t.shape[3]} for depthToSpace with input shape ${t.shape}`);
   });
+
+  it('throws for int32 input', async () => {
+    const t = tf.tensor4d([[[[1, 2, 3, 4]]]], [1, 1, 1, 4], 'int32');
+    const blockSize = 2;
+    const dataFormat = 'NHWC';
+
+    expect(() => tf.depthToSpace(t, blockSize, dataFormat))
+        .toThrowError(/Argument 'x' passed to 'depthToSpace' must be float32/);
+  });
 });
 
 describeWithFlags('depthToSpace', BROWSER_ENVS, () => {

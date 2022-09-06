@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Cartoonizer</title>
+
+<head>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Google+Sans:400,500,700">
+  <style>
+    body {
+      font-family: 'Google Sans';
+      padding: 20px;
+    }
+
+    h1 {
+      color: #425066;
+      font-size: 31px;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .loading-msg {
+      color: #999;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+
+    img {
+      height: 224px;
+      width: 224px;
+    }
+
+    canvas {
+      border-radius: 8px;
+      height: 224px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 200ms;
+      width: 224px;
+    }
+
+    canvas.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .imgs-container {
+      display: flex;
+      margin-top: 40px;
+    }
+
+    .img-container {
+      display: flex;
+      flex-direction: column;
+      margin-right: 4px;
+      position: relative;
+    }
+
+    .img-container img {
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .credit {
+      position: absolute;
+      font-size: 11px;
+      color: #eee;
+      top: 202px;
+      left: 10px;
+    }
+
+    .loading {
+      color: #999;
+    }
+
+    .trigger {
+      align-items: center;
+      border-radius: 8px;
+      background-image: url('magic.svg');
+      background-size: 32px 32px;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      border: 1px dashed #d8d8d8;
+      box-sizing: border-box;
+      color: #999;
+      cursor: pointer;
+      display: flex;
+      font-size: 13px;
+      height: 224px;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms;
+      width: 224px;
+    }
+
+    .trigger.show {
+      opacity: 1;
+    }
+
+    .trigger.processing {
+      background-image: none !important;
+    }
+
+    span.magic {
+      background-image: url('magic.svg');
+      background-size: 24px 24px;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      display: inline-block;
+      height: 24px;
+      margin: 0 8px;
+      margin-top: -6px;
+      width: 24px;
+    }
+
+    .trigger:hover {
+      background-color: #f1f1f1;
+    }
+
+    .stats {
+      color: #999;
+      font-size: 12px;
+      height: 30px;
+      line-height: 30px;
+      opacity: 0;
+      text-align: center;
+      transition: all 200ms;
+    }
+
+    .stats.show {
+      opacity: 1;
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    video {
+      border-radius: 8px;
+      height: 224px;
+      margin-bottom: 4px;
+    }
+
+    #cam-canvas.show {
+      cursor: pointer;
+    }
+
+    #cam-canvas:hover {
+      opacity: .9;
+    }
+
+    .take-pic {
+      align-items: center;
+      background-color: rgba(255, 255, 255, .9);
+      color: #425066;
+      display: flex;
+      font-size: 13px;
+      height: 24px;
+      justify-content: center;
+      padding-bottom: 3px;
+      pointer-events: none;
+      position: absolute;
+      top: 425px;
+      width: 224px;
+    }
+  </style>
+</head>
+
+<body class="disabled">
+  <h1>Cartoonizer Demo</h1>
+
+  <div class="loading-msg">Loading...</div>
+
+  <div class="imgs-container hide">
+    <div class="img-container">
+      <img id="img5" src="cat.jpg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/FilM6ng7VGQ" target="_blank">
+        source
+      </a>
+    </div>
+    <div class="img-container">
+      <img id="img1" src="mountain.jpg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/uCrRPJBZzk4" target="_blank">
+        source
+      </a>
+    </div>
+    <div class="img-container">
+      <img id="img2" src="room.jpg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/1RT4txDDAbM" target="_blank">
+        source
+      </a>
+    </div>
+    <div class="img-container">
+      <img id="img3" src="pizza.jpg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/BMVAYjPf6mU" target="_blank">
+        source
+      </a>
+    </div>
+    <div class="img-container">
+      <img id="img4" src="people.jpg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/Do1GQljlNk8" target="_blank">
+        source
+      </a>
+    </div>
+    <div class="img-container">
+      <video autoplay></video>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px" id="cam-canvas"></canvas>
+      <div class="take-pic hide">Click to take another picture</div>
+      <div class="stats"></div>
+    </div>
+  </div>
+</body>
+
+<script type="module" src="./script.ts"></script>
+</html>

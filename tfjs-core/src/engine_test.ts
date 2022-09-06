@@ -32,17 +32,17 @@ describe('Backend registration', () => {
   });
 
   let registeredBackends: string[] = [];
+  let registerBackend: typeof tf.registerBackend;
 
   beforeEach(() => {
     // Registering a backend changes global state (engine), so we wrap
     // registration to automatically remove registered backend at the end
     // of each test.
-    spyOn(tf, 'registerBackend')
-        .and.callFake(
-            (name: string, factory: () => KernelBackend, priority: number) => {
-              registeredBackends.push(name);
-              return ENGINE.registerBackend(name, factory, priority);
-            });
+    registerBackend = (name, factory, priority) => {
+      registeredBackends.push(name);
+      return tf.registerBackend(name, factory, priority);
+    };
+
     ENGINE.reset();
   });
 
@@ -67,7 +67,7 @@ describe('Backend registration', () => {
       return newBackend;
     };
 
-    tf.registerBackend('test-backend', factory);
+    registerBackend('test-backend', factory);
 
     expect(tf.findBackend('test-backend') != null).toBe(true);
     expect(tf.findBackend('test-backend')).toBe(backend);
@@ -90,7 +90,7 @@ describe('Backend registration', () => {
       }
       return newBackend;
     };
-    tf.registerBackend('custom-cpu', factory);
+    registerBackend('custom-cpu', factory);
 
     expect(tf.findBackend('custom-cpu') != null).toBe(true);
     expect(tf.findBackend('custom-cpu')).toBe(backend);
@@ -100,7 +100,7 @@ describe('Backend registration', () => {
   it('custom backend registration', () => {
     let backend: KernelBackend;
     const priority = 103;
-    tf.registerBackend('custom-cpu', () => {
+    registerBackend('custom-cpu', () => {
       const newBackend = new TestKernelBackend();
       if (backend == null) {
         backend = newBackend;
@@ -116,11 +116,11 @@ describe('Backend registration', () => {
     let lowPriorityBackend: KernelBackend;
     const lowPriority = 103;
     const highPriority = 104;
-    tf.registerBackend('custom-low-priority', () => {
+    registerBackend('custom-low-priority', () => {
       lowPriorityBackend = new TestKernelBackend();
       return lowPriorityBackend;
     }, lowPriority);
-    tf.registerBackend('custom-high-priority', () => {
+    registerBackend('custom-high-priority', () => {
       throw new Error(`High priority backend fails`);
     }, highPriority);
 
@@ -134,11 +134,11 @@ describe('Backend registration', () => {
     let highPriorityBackend: KernelBackend;
     const lowPriority = 103;
     const highPriority = 104;
-    tf.registerBackend('custom-low-priority', () => {
+    registerBackend('custom-low-priority', () => {
       lowPriorityBackend = new TestKernelBackend();
       return lowPriorityBackend;
     }, lowPriority);
-    tf.registerBackend('custom-high-priority', () => {
+    registerBackend('custom-high-priority', () => {
       highPriorityBackend = new TestKernelBackend();
       return highPriorityBackend;
     }, highPriority);
@@ -160,14 +160,14 @@ describe('Backend registration', () => {
 
   it('allow custom backend', () => {
     const backend = new TestKernelBackend();
-    const success = tf.registerBackend('custom', () => backend);
+    const success = registerBackend('custom', () => backend);
     expect(success).toBeTruthy();
     expect(tf.findBackend('custom')).toEqual(backend);
   });
 
   it('sync backend with await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    tf.registerBackend('sync', () => testBackend);
+    registerBackend('sync', () => testBackend);
     tf.setBackend('sync');
 
     expect(tf.getBackend()).toEqual('sync');
@@ -177,7 +177,7 @@ describe('Backend registration', () => {
 
   it('sync backend without await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    tf.registerBackend('sync', () => testBackend);
+    registerBackend('sync', () => testBackend);
     tf.setBackend('sync');
 
     expect(tf.getBackend()).toEqual('sync');
@@ -186,7 +186,7 @@ describe('Backend registration', () => {
 
   it('async backend with await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    tf.registerBackend('async', async () => {
+    registerBackend('async', async () => {
       await tf.nextFrame();
       return testBackend;
     });
@@ -199,7 +199,7 @@ describe('Backend registration', () => {
 
   it('async backend without await ready does not work', async () => {
     const testBackend = new TestKernelBackend();
-    tf.registerBackend('async', async () => {
+    registerBackend('async', async () => {
       await tf.nextFrame();
       return testBackend;
     });
@@ -212,7 +212,7 @@ describe('Backend registration', () => {
 
   it('tf.square() fails if user does not await ready on async backend',
      async () => {
-       tf.registerBackend('async', async () => {
+       registerBackend('async', async () => {
          await tf.nextFrame();
          return new TestKernelBackend();
        });
@@ -222,7 +222,7 @@ describe('Backend registration', () => {
      });
 
   it('tf.square() works when user awaits ready on async backend', async () => {
-    tf.registerBackend('async', async () => {
+    registerBackend('async', async () => {
       await tf.nextFrame();
       return new TestKernelBackend();
     });
@@ -234,11 +234,11 @@ describe('Backend registration', () => {
   it('Registering async2 (higher priority) fails, async1 becomes active',
      async () => {
        const testBackend = new TestKernelBackend();
-       tf.registerBackend('async1', async () => {
+       registerBackend('async1', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 100 /* priority */);
-       tf.registerBackend('async2', async () => {
+       registerBackend('async2', async () => {
          await tf.nextFrame();
          throw new Error('failed to create async2');
        }, 101 /* priority */);
@@ -253,8 +253,8 @@ describe('Backend registration', () => {
   it('Registering sync as higher priority and async as lower priority',
      async () => {
        const testBackend = new TestKernelBackend();
-       tf.registerBackend('sync', () => testBackend, 101 /* priority */);
-       tf.registerBackend('async', async () => {
+       registerBackend('sync', () => testBackend, 101 /* priority */);
+       registerBackend('async', async () => {
          await tf.nextFrame();
          return new TestKernelBackend();
        }, 100 /* priority */);
@@ -267,11 +267,11 @@ describe('Backend registration', () => {
   it('async as higher priority and sync as lower priority with await ready',
      async () => {
        const testBackend = new TestKernelBackend();
-       tf.registerBackend('async', async () => {
+       registerBackend('async', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 101 /* priority */);
-       tf.registerBackend(
+       registerBackend(
            'sync', () => new TestKernelBackend(), 100 /* priority */);
 
        await tf.ready();
@@ -282,11 +282,11 @@ describe('Backend registration', () => {
   it('async as higher priority and sync as lower priority w/o await ready',
      async () => {
        const testBackend = new TestKernelBackend();
-       tf.registerBackend('async', async () => {
+       registerBackend('async', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 101 /* priority */);
-       tf.registerBackend(
+       registerBackend(
            'sync', () => new TestKernelBackend(), 100 /* priority */);
 
        expect(() => tf.backend())
@@ -295,7 +295,7 @@ describe('Backend registration', () => {
      });
 
   it('Registering and setting a backend that fails to register', async () => {
-    tf.registerBackend('async', async () => {
+    registerBackend('async', async () => {
       await tf.nextFrame();
       throw new Error('failed to create async');
     });
@@ -368,6 +368,12 @@ describeWithFlags('memory', ALL_ENVS, () => {
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReason) >= 0).toBe(true);
   });
+
+  it('makeTensorFromDataId creates a tensor', () => {
+    const tensor = ENGINE.makeTensorFromDataId({}, [3], 'float32');
+    expect(tensor).toBeDefined();
+    expect(tensor.shape).toEqual([3]);
+  });
 });
 
 describeWithFlags('profile', ALL_ENVS, () => {
@@ -387,26 +393,40 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
-    expect(profile.kernels).toEqual([
-      {
-        'name': 'Square',
-        'bytesAdded': 12,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 2,
-        'inputShapes': [[3]],
-        'outputShapes': [[3]]
-      },
-      {
-        'name': 'Square',
-        'bytesAdded': 12,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 2,
-        'inputShapes': [[3]],
-        'outputShapes': [[3]]
-      }
-    ]);
+    expect(profile.kernels.length).toBe(2);
+
+    // Test the types for `kernelTimeMs` and `extraInfo` to confirm the promises
+    // are resolved.
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
+    expect(profile.kernels[1].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[1].extraInfo instanceof Promise).toBe(false);
+
+    // The specific values of `kernelTimeMs` and `extraInfo` are tested in the
+    // tests of Profiler.profileKernel, so their values are not tested here.
+    expect(profile.kernels[0]).toEqual({
+      'name': 'Square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
+
+    expect(profile.kernels[1]).toEqual({
+      'name': 'Square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[1].kernelTimeMs,
+      'extraInfo': profile.kernels[1].extraInfo
+    });
   });
 
   it('squaring without disposing', async () => {
@@ -422,15 +442,20 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(2);
     expectArraysClose(await result.data(), [1, 4, 9]);
-    expect(profile.kernels).toEqual([{
+    expect(profile.kernels.length).toBe(1);
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
+    expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }]);
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
   });
 
   it('squaring in async query', async () => {
@@ -448,15 +473,33 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
-    expect(profile.kernels).toEqual([{
+    expect(profile.kernels.length).toBe(1);
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
+    expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }]);
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
+  });
+
+  it('reports correct kernelNames', async () => {
+    const profile = await tf.profile(() => {
+      const x = tf.tensor1d([1, 2, 3]);
+      const x2 = x.square();
+      const x3 = x2.abs();
+      return x3;
+    });
+
+    expect(profile.kernelNames).toEqual(jasmine.arrayWithExactContents([
+      'Square', 'Abs'
+    ]));
   });
 });
 
@@ -522,6 +565,10 @@ describeWithFlags(
       });
 
       it('can execute op with data from mixed backends', async () => {
+        const kernelFunc = tf.getKernel('Add', 'cpu').kernelFunc;
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu1', kernelFunc});
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu2', kernelFunc});
+
         tf.setBackend('cpu1');
         // This scalar lives in cpu1.
         const a = tf.scalar(5);
@@ -538,13 +585,8 @@ describeWithFlags(
         tf.setBackend('cpu2');
         expectArraysClose(await tf.add(a, b).data(), [8]);
         ENGINE.endScope();
-        expect(tf.memory().numTensors).toBe(2);
-        expect(tf.memory().numDataBuffers).toBe(2);
 
         tf.dispose([a, b]);
-
-        expect(tf.memory().numTensors).toBe(0);
-        expect(tf.memory().numDataBuffers).toBe(0);
       });
     });
 
@@ -557,6 +599,8 @@ describeWithFlags(
  * have coverage for when these backends are enabled and ensure they work with
  * the engine.
  */
+// TODO(#5632): Re-enable these tests
+/*
 describeWithFlags(
     'Switching WebGL + CPU backends', {
       predicate: testEnv => testEnv.backendName === 'webgl' &&
@@ -645,7 +689,7 @@ describeWithFlags(
         tf.unregisterKernel('Square', 'webgl2');
       });
     });
-
+*/
 interface TestStorage extends KernelBackend {
   id: number;
 }
@@ -742,7 +786,7 @@ describe('Memory allocation outside a test scope', () => {
         },
         read: async (dataId: object) => storedValues,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
+        disposeData: (dataId: {}) => null
       } as TestStorage;
     });
     tf.setBackend(backendName);

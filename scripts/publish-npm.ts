@@ -24,9 +24,11 @@
 
 import * as argparse from 'argparse';
 import chalk from 'chalk';
-import * as mkdirp from 'mkdirp';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase} from './release-util';
+import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
+import * as fs from 'fs';
+
+import {BAZEL_PACKAGES} from './bazel_packages';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 
@@ -39,7 +41,7 @@ parser.addArgument('--git-protocol', {
 async function main() {
   const args = parser.parseArgs();
 
-  RELEASE_UNITS.forEach((_, i) => printReleaseUnit(i));
+  RELEASE_UNITS.forEach(printReleaseUnit);
   console.log();
 
   const releaseUnitStr =
@@ -52,7 +54,8 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const {name, phases} = RELEASE_UNITS[releaseUnitInt];
+  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases} = releaseUnit;
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -66,41 +69,18 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  // Infer release branch name.
-  let releaseBranch = '';
-
-  // Get a list of branches sorted by timestamp in descending order.
-  const branchesStr = $(
-      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
-  const branches =
-      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
-
-  // Find the latest matching branch, e.g. tfjs_1.7.1
-  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
-  const exp = '^' + name + '_([^_]+)$';
-  const regObj = new RegExp(exp);
-  const maybeBranch = branches.find(branch => branch.match(regObj));
-  releaseBranch = await question(`Which branch to publish from
-  (leave empty for ${maybeBranch}): `);
-  if (releaseBranch === '') {
-    releaseBranch = maybeBranch;
+  let releaseBranch: string;
+  if (releaseUnit === ALPHA_RELEASE_UNIT) {
+    // Alpha release unit is published with the tfjs release unit.
+    releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
+  } else {
+    releaseBranch = await getReleaseBranch(name);
   }
   console.log();
 
-  console.log(chalk.magenta.bold(
-      `~~~ Checking out release branch ${releaseBranch} ~~~`));
-  $(`rm -f -r ${TMP_DIR}`);
-  mkdirp(TMP_DIR, err => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
-
-  const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-      TMP_DIR} --depth=1`);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
   shell.cd(TMP_DIR);
+
   // Yarn in the top-level and in the directory.
   $('yarn');
   console.log();
@@ -111,22 +91,24 @@ async function main() {
     const pkg = packages[i];
     shell.cd(pkg);
 
+    // Check the package.json for 'link:' and 'file:' dependencies.
+    const packageJson = JSON.parse(fs.readFileSync('package.json')
+        .toString('utf8')) as {dependencies: Record<string, string>};
+    if (packageJson.dependencies) {
+      for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+        const start = depVersion.slice(0,5);
+        if (start === 'link:' || start === 'file:') {
+          throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                          + 'Refusing to publish.');
+        }
+      }
+    }
+
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
-    }
-
-    // tfjs-backend-wasm needs emsdk to build.
-    if (pkg === 'tfjs-backend-wasm') {
-      shell.cd('..');
-      $('git clone https://github.com/emscripten-core/emsdk.git');
-      shell.cd('./emsdk');
-      $('./emsdk install 1.39.15');
-      $('./emsdk activate 1.39.15');
-      shell.cd('..');
-      shell.cd(pkg);
     }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
@@ -135,25 +117,29 @@ async function main() {
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
-    if (pkg === 'tfjs-backend-wasm') {
-      // tfjs-backend-wasm needs emsdk env variables to build.
-      $('source ../emsdk/emsdk_env.sh && yarn build-npm for-publish');
-    } else if (pkg === 'tfjs-react-native') {
+    if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
       $('yarn build-npm');
     } else {
       $('yarn build-npm for-publish');
     }
 
-    console.log(chalk.magenta('~~~ Tag version ~~~'));
-    shell.cd('..');
-    const tagVersion = $(`./scripts/tag-version.js ${pkg}`);
-    console.log(tagVersion);
-
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
-    shell.cd(pkg);
+
     const otp =
         await question(`Enter one-time password from your authenticator: `);
-    $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+
+    if (BAZEL_PACKAGES.has(pkg)) {
+      let dashes = '-- --';
+      if (pkg === 'tfjs-backend-webgpu') {
+        // Special case for webgpu, which has an additional call to `yarn`
+        // in publish-npm.
+        dashes = '-- -- --';
+      }
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes}`
+        + ` --otp=${otp}`);
+    } else {
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+    }
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');

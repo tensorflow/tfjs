@@ -17,7 +17,7 @@ import {scalar, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-cor
 
 import {epsilon} from './backend/common';
 import * as losses from './losses';
-import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('meanSquaredError', () => {
   it('1D', () => {
@@ -154,7 +154,7 @@ describeMathCPUAndGPU('logcosh', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy ', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy ', () => {
   it('from logits', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
@@ -212,7 +212,7 @@ describeMathCPUAndGPU('categoricalCrossentropy ', () => {
   });
 });
 
-describeMathCPUAndGPU('sparseCategoricalCrossentropy ', () => {
+describeMathCPUAndWebGL2('sparseCategoricalCrossentropy ', () => {
   // Reference Python TensorFlow code:
   // ```py
   // import numpy as np
@@ -291,7 +291,7 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor2d([[1, 0], [0, 1]], [2, 2]);
     const yPred = yTrue;
@@ -301,7 +301,7 @@ describeMathCPUAndGPU('categoricalCrossentropy', () => {
   });
 });
 
-describeMathCPUAndGPU('sparseCategoricalCrossentropy', () => {
+describeMathCPUAndWebGL2('sparseCategoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor1d([0, 1]);
     const yPred = tensor2d([[1, 0], [0, 1]], [2, 2]);
@@ -331,7 +331,7 @@ describeMathCPUAndGPU('binaryCrossentropy', () => {
   });
 });
 
-describeMathCPUAndGPU('kullbackLeiblerDivergence', () => {
+describeMathCPUAndWebGL2('kullbackLeiblerDivergence', () => {
   function klElement(actual: number, predicted: number): number {
     actual = Math.max(actual, epsilon());
     predicted = Math.max(predicted, epsilon());
@@ -397,7 +397,7 @@ describe('losses get', () => {
   });
 });
 
-describeMathCPUAndGPU('l2Normalize', () => {
+describeMathCPUAndWebGL2('l2Normalize', () => {
   it('normalizes with no axis defined.', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const norm = Math.sqrt(1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);

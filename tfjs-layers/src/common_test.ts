@@ -12,8 +12,8 @@
  * Unit tests for common.ts.
  */
 
-import {checkDataFormat, checkPaddingMode, checkPoolMode, getUniqueTensorName, isValidTensorName} from './common';
-import {VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './keras_format/common';
+import {checkDataFormat, checkInterpolationFormat, checkPaddingMode, checkPoolMode, getUniqueTensorName, isValidTensorName} from './common';
+import {VALID_DATA_FORMAT_VALUES, VALID_INTERPOLATION_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './keras_format/common';
 
 describe('checkDataFormat', () => {
   it('Valid values', () => {
@@ -38,6 +38,29 @@ describe('checkDataFormat', () => {
   });
 });
 
+describe('checkIntorpolationFormat', () => {
+  it('Valid values', () => {
+    const extendedValues =
+        VALID_INTERPOLATION_FORMAT_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkInterpolationFormat(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(() => checkInterpolationFormat('foo')).toThrowError(/foo/);
+    try {
+      checkInterpolationFormat('bad');
+    } catch (e) {
+      expect(e).toMatch('InterpolationFormat');
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_INTERPOLATION_FORMAT_VALUES) {
+        expect(e).toMatch(validValue);
+      }
+    }
+  });
+});
 describe('checkPaddingMode', () => {
   it('Valid values', () => {
     const extendedValues = VALID_PADDING_MODE_VALUES.concat([undefined, null]);

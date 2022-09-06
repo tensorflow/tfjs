@@ -66,6 +66,10 @@ function deepMapInternal(
   if (input == null) {
     return null;
   }
+  if (typeof Blob === 'function' && input instanceof Blob) {
+    return input.slice();
+  }
+
   if (containedIn.has(input)) {
     throw new Error('Circular references are not supported.');
   }
@@ -92,6 +96,9 @@ function deepMapInternal(
       mappedIterable[k] = childResult;
     }
     containedIn.delete(input);
+    if (input.__proto__) {
+      mappedIterable.__proto__ = input.__proto__;
+    }
     return mappedIterable;
   } else {
     throw new Error(`Can't recurse into non-iterable type: ${input}`);
@@ -215,7 +222,7 @@ export type DeepMapAsyncResult = {
  */
 export async function deepMapAndAwaitAll(
     input: any, mapFn: (x: any) => DeepMapAsyncResult): Promise<any|any[]> {
-  const seen: Map<any, Promise<any>> = new Map();
+  const seen: Map<any, any> = new Map();
 
   // First do a normal deepMap, collecting Promises in 'seen' as a side effect.
   deepMapInternal(input, mapFn, seen);
@@ -226,7 +233,7 @@ export async function deepMapAndAwaitAll(
   // (There's no advantage to Promise.all(), and that would be tricky anyway.)
   for (const key of Array.from(seen.keys())) {
     const value = seen.get(key);
-    if (value instanceof Promise) {
+    if (tf.util.isPromise(value)) {
       const mappedValue = await value;
       seen.set(key, mappedValue);
     }
@@ -246,9 +253,18 @@ export async function deepMapAndAwaitAll(
  */
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
+  let isTextDecoder = false;
+  if (tf.env().get('IS_BROWSER')) {
+    isTextDecoder = obj instanceof TextDecoder;
+  } else {
+    // tslint:disable-next-line:no-require-imports
+    const {StringDecoder} = require('string_decoder');
+    isTextDecoder = obj instanceof StringDecoder;
+  }
   return obj != null && (!ArrayBuffer.isView(obj)) &&
       (Array.isArray(obj) ||
-       (typeof obj === 'object' && !(obj instanceof tf.Tensor)));
+       (typeof obj === 'object' && !(obj instanceof tf.Tensor) &&
+        !(obj instanceof Promise) && !isTextDecoder));
 }
 
 /**

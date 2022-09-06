@@ -1,18 +1,263 @@
-load("@npm_bazel_typescript//:defs.bzl", "ts_library")
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@npm//@bazel/jasmine:index.bzl", "jasmine_node_test")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:enumerate_tests.bzl", "enumerate_tests")
+load("//tools:make_version_test_file.bzl", "make_version_test_file")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+
+package(default_visibility = ["//visibility:public"])
 
 TEST_SRCS = [
-  "jasmine_*",
-  "test_*",
-  "**/*_test.ts"
+    "**/*_test.ts",
+    "image_test_util.ts",
 ]
 
+TEST_ENTRYPOINTS = [
+    "test_node.ts",
+    "setup_test.ts",
+    "worker_test.ts",
+    "worker_node_test.ts",
+    "ops/from_pixels_worker_test.ts",
+]
+
+# Used for test-snippets
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**/*.ts"]),
+)
+
+make_version_test_file(
+    name = "version_test",
+    package_json = "//tfjs-core:package.json",
+    version_name = "version_core",
+)
+
+filegroup(
+    name = "shared_test_srcs",
+    srcs = glob(
+        ["**/*_test.ts"],
+        exclude = TEST_ENTRYPOINTS,
+    ) + [
+        ":version_test",
+    ],
+)
+
+# Generates the 'tests.ts' file that imports all test entrypoints.
+enumerate_tests(
+    name = "tests",
+    srcs = [":shared_test_srcs"],
+    root_path = "tfjs-core/src",
+)
+
+# Compiles the majority of tfjs-core using the `@tensorflow/tfjs-core/dist`
+# module name.
 ts_library(
-    name = "src",
+    name = "tfjs-core_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        # exclude = TEST_SRCS,
+        exclude = TEST_SRCS + TEST_ENTRYPOINTS + ["index.ts"],
     ),
+    module_name = "@tensorflow/tfjs-core/dist",
     deps = [
-      "@npm//@types",
-    ]
+        "@npm//@types/jasmine",
+        "@npm//@types/long",
+        "@npm//@types/node",
+        "@npm//@types/seedrandom",
+        "@npm//@webgpu/types",
+        "@npm//jasmine",
+        "@npm//long",
+        "@npm//node-fetch",
+        "@npm//seedrandom",
+    ],
+)
+
+# Compiles the `index.ts` entrypoint of tfjs-core separately from the rest of
+# the sources in order to use the `@tensorflow/tfjs-core` module name instead
+# of `@tensorflow/tfjs-core/dist`,
+ts_library(
+    name = "tfjs-core_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-core",
+    deps = [
+        ":tfjs-core_src_lib",
+    ],
+)
+
+ts_library(
+    name = "tfjs-core_test_lib",
+    srcs = glob(
+        TEST_SRCS,
+        exclude = TEST_ENTRYPOINTS,
+    ) + [
+        ":tests",
+        ":version_test",
+    ],
+    # TODO(msoulanille): Mark this as testonly once it's no longer needed in the
+    # npm package (for other downstream packages' tests).
+    module_name = "@tensorflow/tfjs-core/dist",
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+    ],
+)
+
+ts_library(
+    name = "setup_test_lib",
+    srcs = [
+        "setup_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_src_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+ts_library(
+    name = "test_node_lib",
+    srcs = [
+        "test_node.ts",
+    ],
+    deps = [
+        # test_node.ts depends on setup_test.js as a runtime dependency,
+        # so it is not listed here (it is listed in the nodejs_test, instead).
+        ":tfjs-core_src_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+esbuild(
+    name = "tfjs-core_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":setup_test_lib",
+        ":tfjs-core_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+ts_library(
+    name = "worker_node_test_lib",
+    srcs = [
+        "worker_node_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+jasmine_node_test(
+    name = "worker_node_test",
+    deps = [
+        ":worker_node_test_lib",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+    ],
+)
+
+ts_library(
+    name = "worker_test_lib",
+    srcs = [
+        "worker_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+tfjs_web_test(
+    name = "worker_test",
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    static_files = [
+        # For the webworker
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+    ],
+    deps = [
+        ":worker_test_lib",
+        "@npm//long:long__umd",
+        "@npm//seedrandom:seedrandom__umd",
+    ],
+)
+
+ts_library(
+    name = "from_pixels_worker_test_lib",
+    srcs = [
+        "ops/from_pixels_worker_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+tfjs_web_test(
+    name = "from_pixels_worker_test",
+    browsers = [
+        "bs_chrome_mac",
+        # Omit Firefox since it does not support offscreen canvas.
+        "bs_safari_mac",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    static_files = [
+        # For the webworker
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+    ],
+    deps = [
+        ":from_pixels_worker_test_lib",
+        "@npm//long:long__umd",
+        "@npm//seedrandom:seedrandom__umd",
+    ],
 )

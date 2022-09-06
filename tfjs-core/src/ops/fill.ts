@@ -32,15 +32,14 @@ import {DataType, Rank, ShapeMap} from '../types';
  * @param value The scalar value to fill the tensor with.
  * @param dtype The type of an element in the resulting tensor. Defaults to
  * 'float'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
   const attrs: FillAttrs = {shape, value, dtype};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.fill(shape, value, dtype), {}, null, Fill,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Fill, {}, attrs as {} as NamedAttrMap);
 }
 
 export {fill};

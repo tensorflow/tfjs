@@ -33,14 +33,13 @@ import {op} from './operation';
  * x.ceil().print();  // or tf.ceil(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function ceil_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'ceil');
+  const $x = convertToTensor(x, 'x', 'ceil', 'float32');
 
   const inputs: CeilInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.ceil($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Ceil);
+  return ENGINE.runKernel(Ceil, inputs as {} as NamedTensorMap);
 }
 export const ceil = op({ceil_});

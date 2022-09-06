@@ -16,7 +16,7 @@
  */
 
 import {tile} from '../../ops/tile';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.tile = function<T extends Tensor>(reps: number[]): T {
+getGlobalTensorClass().prototype.tile = function<T extends Tensor>(
+    reps: number[]): T {
   this.throwIfDisposed();
   return tile(this, reps) as T;
 };

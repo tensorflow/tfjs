@@ -61,6 +61,10 @@
       "path": "tfjs-react-native"
     },
     {
+      "name": "TFLite",
+      "path": "tfjs-tflite"
+    },
+    {
       "name": "Vis",
       "path": "tfjs-vis"
     },
