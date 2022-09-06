@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
+
+import {HashTable} from '../executor/hash_table';
 import {TensorArray} from '../executor/tensor_array';
 import {TensorList} from '../executor/tensor_list';
 
@@ -32,6 +34,10 @@ export type TensorArrayMap = {
 
 export type TensorListMap = {
   [key: number]: TensorList
+};
+
+export type HashTableMap = {
+  [key: number]: HashTable
 };
 
 export interface TensorInfo {

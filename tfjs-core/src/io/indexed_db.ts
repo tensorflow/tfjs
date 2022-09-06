@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import '../flags';
+
 import {env} from '../environment';
 
 import {getModelArtifactsInfoForJSON} from './io_utils';
-import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
 
@@ -349,15 +350,5 @@ export class BrowserIndexedDBManager implements ModelStoreManager {
       };
       openRequest.onerror = error => reject(openRequest.error);
     });
-  }
-}
-
-if (env().getBool('IS_BROWSER')) {
-  // Wrap the construction and registration, to guard against browsers that
-  // don't support Local Storage.
-  try {
-    ModelStoreManagerRegistry.registerManager(
-        BrowserIndexedDB.URL_SCHEME, new BrowserIndexedDBManager());
-  } catch (err) {
   }
 }

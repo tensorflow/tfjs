@@ -21,7 +21,8 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('cos', ALL_ENVS, () => {
   it('basic', async () => {
-    const values = [1, -3, 2, 7, -4];
+    // Covers every 1/4pi range from -4pi to 4pi.
+    const values = [1, 3, 4, 6, 7, 9, 10, 12, -1, -3, -4, -6, -7, -9, -10, -12];
     const a = tf.tensor1d(values);
     const result = tf.cos(a);
 
@@ -112,6 +113,11 @@ describeWithFlags('cos', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.cos('q'))
-        .toThrowError(/Argument 'x' passed to 'cos' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'cos' must be float32/);
+  });
+
+  it('throws for int32 tensor', async () => {
+    expect(() => tf.cos(tf.tensor([10], [1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'cos' must be float32/);
   });
 });

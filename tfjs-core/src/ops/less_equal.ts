@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {LessEqual, LessEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -37,27 +37,20 @@ import {op} from './operation';
  *
  * @param a The first input tensor.
  * @param b The second input tensor. Must have the same dtype as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function lessEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'lessEqual');
-  let $b = convertToTensor(b, 'b', 'lessEqual');
+  let $a = convertToTensor(a, 'a', 'lessEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'lessEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.lessEqual($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: LessEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             LessEqual) as T;
+  return ENGINE.runKernel(LessEqual, inputs as {} as NamedTensorMap);
 }
 
 export const lessEqual = op({lessEqual_});

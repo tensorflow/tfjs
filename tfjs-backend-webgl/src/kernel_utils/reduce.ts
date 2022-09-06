@@ -18,22 +18,59 @@
 import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {MeanProgram} from '../mean_gpu';
 import {ReduceProgram} from '../reduce_gpu';
 
-type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
+type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod'|'mean';
+
+// Returns an array of configuration objects that describe each stage of the
+// reduction.
+function getReductionStages(inShape: number[]):
+    Array<{inSize: number, windowSize: number, outSize: number}> {
+  const stages = [];
+
+  while (stages.length === 0 || stages[stages.length - 1].outSize !== 1) {
+    const outSize: number =
+        stages.length ? stages[stages.length - 1].outSize : inShape[1];
+    const windowSize = backend_util.computeOptimalWindowSize(outSize);
+    stages.push({
+      inSize: outSize,
+      windowSize,
+      outSize: Math.ceil(outSize / windowSize)
+    });
+  }
+
+  return stages;
+}
 
 export function reduce(
     x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
-  const [batchSize, inSize] = x.shape;
-  const windowSize = backend_util.computeOptimalWindowSize(inSize);
-  const reduceInfo = {windowSize, inSize, batchSize};
-  const program = new ReduceProgram(reduceInfo, reductionType);
-  const output = backend.runWebGLProgram(program, [x], dtype);
+  const reductionStages = getReductionStages(x.shape);
 
-  if (output.shape[1] === 1) {
-    return output;
+  let result = x;
+  for (let i = 0; i < reductionStages.length; i++) {
+    const {inSize, windowSize, outSize} = reductionStages[i];
+
+    let program: ReduceProgram|MeanProgram;
+    let previousResult: TensorInfo;
+    if (reductionType === 'mean') {
+      program = i === 0 ?
+          new MeanProgram(
+              {windowSize, inSize, batchSize: x.shape[0], outSize}, inSize) :
+          new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
+    } else {
+      program = new ReduceProgram(
+          {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);
+    }
+
+    previousResult = result;
+    result = backend.runWebGLProgram(program, [result], dtype);
+
+    if (previousResult.dataId !== x.dataId) {
+      backend.disposeIntermediateTensorInfo(previousResult);
+    }
   }
 
-  return reduce(output, dtype, reductionType, backend);
+  return result;
 }

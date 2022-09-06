@@ -26,10 +26,7 @@ export class ArgMinMaxProgram implements GPGPUProgram {
   constructor(
       reduceInfo: backend_util.ReduceInfo, op: 'max'|'min',
       firstPass: boolean) {
-    const windowSize = reduceInfo.windowSize;
-    const batchSize = reduceInfo.batchSize;
-    const inSize = reduceInfo.inSize;
-    const outSize = Math.ceil(inSize / windowSize);
+    const {windowSize, batchSize, outSize} = reduceInfo;
     if (!firstPass) {
       this.variableNames.push('bestIndicesA');
     }

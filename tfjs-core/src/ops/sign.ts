@@ -33,13 +33,12 @@ import {op} from './operation';
  * x.sign().print();  // or tf.sign(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sign_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sign');
   const inputs: SignInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.sign($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Sign);
+  return ENGINE.runKernel(Sign, inputs as {} as NamedTensorMap);
 }
 export const sign = op({sign_});

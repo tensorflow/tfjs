@@ -19,8 +19,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -30,6 +30,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
+// Note that the following implementation also works with int32 since it just
+// moves values around.
 void Reverse(const size_t x_id, const size_t* axes_ptr,
              const size_t axes_length, const size_t* out_shape_ptr,
              const size_t out_shape_length, const size_t out_id) {

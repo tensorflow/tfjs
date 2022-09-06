@@ -80,6 +80,12 @@
         "name": "dtype",
         "type": "dtype",
         "notSupported": true
+      },
+      {
+        "tfName": "data_format",
+        "name": "dataFormat",
+        "type": "string",
+        "notSupported": true
       }
     ]
   },
@@ -241,6 +247,14 @@
         "name": "b",
         "type": "tensor"
       }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
     ]
   },
   {
@@ -256,6 +270,14 @@
         "start": 1,
         "name": "b",
         "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
       }
     ]
   },

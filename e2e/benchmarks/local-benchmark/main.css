@@ -1,0 +1,160 @@
+/**
+* @license
+* Copyright 2019 Google LLC. All Rights Reserved.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* =============================================================================
+*/
+
+html,
+body {
+  box-sizing: border-box;
+  display: flex;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  flex-direction: column;
+  position: relative;
+}
+
+body {
+  margin: 20px 100px;
+}
+
+h2 {
+  margin-bottom: 30px;
+}
+
+#kernels {
+  max-width: 750px;
+}
+
+#container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.box {
+  margin-bottom: 30px;
+  margin-right: 30px;
+}
+
+.box pre {
+  border: 1px solid #ccc;
+  font-size: 10px;
+  margin: 0;
+  padding: 8px;
+}
+
+div[id*='trendline-container'] svg {
+  border-bottom: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  overflow: visible;
+}
+
+div[id*='trendline-container'] .label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+div[id*='trendline-container'] path {
+  fill: none;
+  stroke: #222;
+}
+
+.trendline {
+  margin-top: 20px;
+  position: relative;
+}
+
+.trendline .yMax,
+.trendline .yMin {
+  font-size: 11px;
+  position: absolute;
+  right: calc(100% + 6px);
+  white-space: nowrap;
+}
+
+.trendline .yMin {
+  bottom: 0;
+}
+
+.trendline .yMax {
+  top: 0;
+}
+
+#modal-msg {
+  border-radius: 5px;
+  background-color: black;
+  color: white;
+  display: none;
+  left: 45%;
+  padding: 7px;
+  position: absolute;
+  top: 15px;
+  z-index: 100;
+}
+
+.table {
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-right: 30px;
+  margin-bottom: 30px;
+}
+
+.table caption {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.table tr {
+  border-bottom: 1px solid #ddd;
+}
+
+.table tr:nth-child(even) {
+  background-color: #f1f1f1;
+}
+
+.table th {
+  font-weight: bold;
+}
+
+.table td,
+th {
+  font-size: 13px;
+  padding: 8px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table td:first-child,
+th:first-child {
+  padding-left: 16px;
+}
+
+#gui select {
+  width: 100%;
+}
+
+#gui input[type=checkbox] {
+  margin: 7 auto;
+  width: 100%;
+}
+
+#gui .dg .property-name {
+  width: 25%;
+}
+
+#gui .dg .c {
+  width: 75%;
+}

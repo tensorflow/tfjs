@@ -35,16 +35,16 @@ import {op} from './operation';
  * ```
  * @param x The input tensor.
  * @param alpha The gradient when input is negative.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
   const $x = convertToTensor(x, 'x', 'step');
 
   const inputs: StepInputs = {x: $x};
   const attrs: StepAttrs = {alpha};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.step($x, alpha), inputs as {} as NamedTensorMap,
-      null /* grad */, Step, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Step, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 export const step = op({step_});

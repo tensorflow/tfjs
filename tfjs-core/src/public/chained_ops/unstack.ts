@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {unstack} from '../../ops/unstack';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.unstack = function<T extends Tensor>(axis?: number): T[] {
+getGlobalTensorClass().prototype.unstack = function<T extends Tensor>(
+    axis?: number): T[] {
   this.throwIfDisposed();
   return unstack(this, axis) as T[];
 };

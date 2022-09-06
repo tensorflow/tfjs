@@ -22,13 +22,14 @@ describe('kernel2op metadata file', () => {
   it('has kernel2op.json', () => {
     expect(() => {
       // tslint:disable-next-line:no-require-imports
-      require('../metadata/kernel2op.json');
+      require('tfjs-converter/metadata/kernel2op.json');
     }).not.toThrow();
   });
 
   it('only known unmapped kernel are unmmapped', () => {
     const knownUnmappedKernels = [
       'Const',
+      'EmptyTensorList',
       'Enter',
       'Exit',
       'FakeQuantWithMinMaxVars',
@@ -56,21 +57,32 @@ describe('kernel2op metadata file', () => {
       'TensorArrayV3',
       'TensorArrayWriteV3',
       'TensorListConcat',
+      'TensorListConcatV2',
       'TensorListFromTensor',
       'TensorListGather',
       'TensorListGetItem',
+      'TensorListLength',
       'TensorListPopBack',
       'TensorListPushBack',
       'TensorListReserve',
+      'TensorListResize',
       'TensorListScatter',
       'TensorListScatterV2',
       'TensorListSetItem',
       'TensorListSplit',
       'TensorListStack',
       'While',
+      'HashTable',
+      'HashTableV2',
+      'LookupTableImport',
+      'LookupTableImportV2',
+      'LookupTableFind',
+      'LookupTableFindV2',
+      'LookupTableSize',
+      'LookupTableSizeV2'
     ];
     // tslint:disable-next-line:no-require-imports
-    const kernel2op = require('../metadata/kernel2op.json');
+    const kernel2op = require('tfjs-converter/metadata/kernel2op.json');
     const kernels: string[] = Object.keys(kernel2op);
 
     for (const kernelName of kernels) {

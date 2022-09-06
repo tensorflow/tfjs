@@ -51,6 +51,12 @@
         "defaultValue": false
       },
       {
+        "tfName": "leakyrelu_alpha",
+        "name": "leakyreluAlpha",
+        "type": "number",
+        "defaultValue": 0.2
+      },
+      {
         "tfName": "T",
         "name": "dtype",
         "type": "dtype",
@@ -187,6 +193,36 @@
         "name": "dtype",
         "type": "dtype",
         "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "Einsum",
+    "category": "matrices",
+    "inputs": [
+      {
+        "start": 0,
+        "end": 0,
+        "name": "tensors",
+        "type": "tensors"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "equation",
+        "name": "equation",
+        "type": "string"
+      },
+      {
+        "tfName": "N",
+        "name": "n",
+        "type": "number",
+        "defaultValue": 2
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype"
       }
     ]
   }

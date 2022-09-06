@@ -4,13 +4,14 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
+    "inlineSources": true,
     "removeComments": false,
     "preserveConstEnums": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "target": "es2017",
     "lib": [
-      "es2017",
+      "es2019",
       "dom"
     ],
     "outDir": "./dist",
@@ -21,12 +22,24 @@
     "noUnusedParameters": false,
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false
+    "allowUnreachableCode": false,
+    "incremental": true
   },
   "include": [
-    "src/"
+    "**/src/"
   ],
   "exclude": [
-    "node_modules/"
+    "bazel-out",
+    "dist",
+    "tfjs",
+    "tfjs-automl",
+    "tfjs-backend-nodegl",
+    "tfjs-backend-wasm",
+    "tfjs-backend-webgpu",
+    "tfjs-node",
+    "tfjs-node-gpu",
+    "tfjs-react-native",
+    "tfjs-vis",
+    "node_modules"
   ]
 }

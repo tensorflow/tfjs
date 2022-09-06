@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Add, AddInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -44,24 +44,17 @@ import {op} from './operation';
  * ```
  * @param a The first `tf.Tensor` to add.
  * @param b The second `tf.Tensor` to add. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'add');
   let $b = convertToTensor(b, 'b', 'add');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.add($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: AddInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Add) as T;
+  return ENGINE.runKernel(Add, inputs as {} as NamedTensorMap);
 }
 
 export const add = op({add_});

@@ -35,8 +35,9 @@ import {tile} from './tile';
  * @param dtype Data type.
  * @returns Identity matrix of the specified size and data type, possibly
  *   with batch repetition if `batchShape` is specified.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function eye_(
     numRows: number, numColumns?: number,
     batchShape?:

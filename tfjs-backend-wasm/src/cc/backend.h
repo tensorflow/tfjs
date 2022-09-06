@@ -29,7 +29,15 @@ enum DType {
 };
 
 // Must match enum in kernels/types.ts.
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
+enum FusableActivation {
+  LINEAR = 0,
+  RELU = 1,
+  RELU6 = 2,
+  PRELU = 3,
+  LEAKYRELU = 4,
+  SIGMOID = 5,
+  ELU = 6
+};
 
 // Holds the memory offset and the size of a tensor.
 struct TensorInfo {
@@ -90,6 +98,12 @@ namespace wasm {
 extern "C" {
 // Initializes the WASM backend.
 void init();
+
+// Initializes the WASM backend with the given threads count.
+void init_with_threads_count(const int threads_count);
+
+// Get the actual number of threads used in the XNNPACK threadpool.
+int get_threads_count();
 
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.

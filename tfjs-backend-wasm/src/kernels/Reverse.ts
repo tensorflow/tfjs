@@ -60,7 +60,11 @@ export function reverse(
   wasmReverse(
       xId, axesBytes, axes.length, outShapeBytes, x.shape.length, outId);
 
-  return reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
+  const reshaped =
+      reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
+
+  backend.disposeData(out.dataId);
+  return reshaped;
 }
 
 export const reverseConfig: KernelConfig = {

@@ -11,7 +11,6 @@
 /**
  * Unit tests for core.ts.
  */
-
 import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -22,7 +21,7 @@ import {ActivationIdentifier} from '../keras_format/activation_config';
 import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
@@ -116,18 +115,20 @@ describeMathCPUAndGPU('Dropout Layer', () => {
     }
   });
 
-  describe('tensor with seed get specific value', () => {
-    const training = true;
-    const rate = 0.5;
-    const noiseShape = [2, 3, 4];
-    const x = ones([2, 3, 4]);
-    const seed = 23;
-    const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
-    const y = dropoutLayer.apply(x, {training}) as Tensor;
-    const yValuesExpected = [
-      0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
-    ];
-    expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
+  describe('tensor with seed', () => {
+    it('get specific value.', () => {
+      const training = true;
+      const rate = 0.5;
+      const noiseShape = [2, 3, 4];
+      const x = ones([2, 3, 4]);
+      const seed = 23;
+      const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
+      const y = dropoutLayer.apply(x, {training}) as Tensor;
+      const yValuesExpected = [
+        0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
+      ];
+      expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
+    });
   });
 });
 
@@ -809,7 +810,7 @@ describeMathCPUAndGPU('Permute Layer: Tensor', () => {
   });
 });
 
-describeMathCPUAndGPU('Masking Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Masking Layer: Tensor', () => {
   // Reference Python code:
   // ```py
   // import numpy as np

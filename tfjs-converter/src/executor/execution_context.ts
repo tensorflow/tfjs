@@ -175,13 +175,13 @@ export class ExecutionContext {
     return this.tensorListMap[id];
   }
 
-  dispose() {
+  dispose(keepIds: Set<number>) {
     for (const key in this.tensorArrayMap) {
-      this.tensorArrayMap[key].clearAndClose();
+      this.tensorArrayMap[key].clearAndClose(keepIds);
     }
 
     for (const key in this.tensorListMap) {
-      this.tensorListMap[key].clearAndClose();
+      this.tensorListMap[key].clearAndClose(keepIds);
     }
   }
 }

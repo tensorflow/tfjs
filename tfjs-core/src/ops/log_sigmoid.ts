@@ -36,8 +36,9 @@ import {softplus} from './softplus';
  * x.logSigmoid().print();  // or tf.logSigmoid(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function logSigmoid_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logSigmoid');
 

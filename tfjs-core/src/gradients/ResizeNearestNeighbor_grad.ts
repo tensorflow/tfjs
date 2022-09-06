@@ -14,8 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
-import {ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborGrad, ResizeNearestNeighborGradInputs} from '../kernel_names';
+import {ENGINE} from '../engine';
+import {ResizeNearestNeighbor, ResizeNearestNeighborGrad, ResizeNearestNeighborGradInputs} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D} from '../tensor';
@@ -27,16 +27,12 @@ export const resizeNearestNeighborGradConfig: GradConfig = {
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
     const [images] = saved;
 
-    const backPropKernelFunc: ForwardFunc<Tensor> = (backend) => {
-      const {alignCorners} = attrs as {} as ResizeNearestNeighborAttrs;
-      return backend.resizeNearestNeighborBackprop(
-          dy, images as Tensor4D, alignCorners);
-    };
-
-    const inputs: ResizeNearestNeighborGradInputs = {images};
-    const imagesDer = () => ENGINE.runKernelFunc(
-        backPropKernelFunc, inputs as {} as NamedTensorMap, null /* gradient */,
-        ResizeNearestNeighborGrad, attrs);
+    const inputs: ResizeNearestNeighborGradInputs = {dy, images};
+    const imagesDer = () =>
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        ENGINE.runKernel(
+            ResizeNearestNeighborGrad, inputs as {} as NamedTensorMap, attrs) as
+        Tensor4D;
 
     return {images: imagesDer};
   }

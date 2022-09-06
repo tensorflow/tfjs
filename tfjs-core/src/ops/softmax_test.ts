@@ -131,6 +131,11 @@ describeWithFlags('softmax', ALL_ENVS, () => {
         .toThrowError(/Argument 'logits' passed to 'softmax' must be a Tensor/);
   });
 
+  it('throws when passed an int32 tensor', async () => {
+    expect(() => tf.softmax(tf.tensor1d([2, 1, 3], 'int32')))
+        .toThrowError(/Argument 'logits' passed to 'softmax' must be float32/);
+  });
+
   it('accepts a tensor-like object', async () => {
     const y = tf.softmax([2, 1, 3]);
 

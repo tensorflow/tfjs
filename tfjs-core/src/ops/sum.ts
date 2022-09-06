@@ -14,20 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Sum, SumAttrs, SumInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
-import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {cast} from './cast';
 import {op} from './operation';
-import {reshape} from './reshape';
-import {transpose} from './transpose';
 
 /**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
@@ -56,8 +52,9 @@ import {transpose} from './transpose';
  * @param axis The dimension(s) to reduce. By default it reduces
  *     all dimensions.
  * @param keepDims If true, retains reduced dimensions with size 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function sum_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'sum');
@@ -65,31 +62,11 @@ function sum_<T extends Tensor>(
     $x = cast($x, 'int32');
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$x]);
-    const axes = parseAxisParam(axis, $x.shape);
-
-    const permutation = getAxesPermutation(axes, $x.rank);
-    let reductionAxes = axes;
-    let permutedX = $x;
-    if (permutation != null) {
-      permutedX = transpose($x, permutation);
-      reductionAxes = getInnerMostAxes(reductionAxes.length, $x.rank);
-    }
-    let value = backend.sum(permutedX, reductionAxes);
-    if (keepDims) {
-      const newShape = expandShapeToKeepDim(value.shape, axes);
-      value = reshape(value, newShape);
-    }
-    return value;
-  };
-
   const inputs: SumInputs = {x: $x};
   const attrs: SumAttrs = {axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Sum,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Sum, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const sum = op({sum_});

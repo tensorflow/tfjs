@@ -12,12 +12,12 @@
  * Unit tests for normalization layers.
  */
 
-import {dispose, memory, onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {dispose, div, memory, onesLike, scalar, sub, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
@@ -320,7 +320,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
+describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
   const dimensions = [2, 3, 4];
   const axisValues = [0, -1];
 
@@ -607,7 +607,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
       xsData.push(i);
     }
     const xs =
-        (tensor4d(xsData, [2, 5, 5, 1]).sub(scalar(25))).div(scalar(100));
+        div(sub(tensor4d(xsData, [2, 5, 5, 1]), scalar(25)), scalar(100));
     const ys = tensor2d([0, 1], [2, 1]);
 
     const h = await model.fit(xs, ys, {epochs: 2});
@@ -669,7 +669,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   });
 });
 
-describe('LayerNormalization Layer: Symbolic', () => {
+describeMathCPUAndGPU('LayerNormalization Layer: Symbolic', () => {
   it('Invalid axis value leads to constructor error', () => {
     expect(() => tfl.layers.layerNormalization({
       // tslint:disable-next-line:no-any
@@ -734,6 +734,15 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     dispose(layer.apply(xs) as Tensor);  // Warm up.
     const numTensors0 = memory().numTensors;
     dispose(layer.apply(xs) as Tensor);
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
+  it('Forward: configuration change', () => {
+    const layer = tfl.layers.layerNormalization({scale: false, center: false});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    dispose(layer.apply(xs) as Tensor);  // Warm up.
+    const numTensors0 = memory().numTensors;
+    dispose(layer.apply(xs, {scale: true, center: true}) as Tensor);
     expect(memory().numTensors).toEqual(numTensors0);
   });
 

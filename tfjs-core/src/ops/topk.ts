@@ -18,7 +18,7 @@
 import {ENGINE} from '../engine';
 import {TopK, TopKAttrs, TopKInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {NumericTensor, Tensor} from '../tensor';
+import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -46,8 +46,9 @@ import {op} from './operation';
  * @param k Number of top elements to look for along the last dimension.
  * @param sorted If true, the resulting `k` elements will be sorted by the
  *     values in descending order.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 function topk_<T extends Tensor>(
     x: T|TensorLike, k = 1, sorted = true): {values: T, indices: T} {
   const $x = convertToTensor(x, 'x', 'topk');
@@ -55,6 +56,11 @@ function topk_<T extends Tensor>(
     throw new Error('topk() expects the input to be of rank 1 or higher');
   }
   const lastDim = $x.shape[$x.shape.length - 1];
+
+  if (k < 0) {
+    throw new Error(`'k' passed to topk() must be >= 0 but got ${k}`);
+  }
+
   if (k > lastDim) {
     throw new Error(
         `'k' passed to topk() must be <= the last dimension (${lastDim}) ` +
@@ -64,10 +70,8 @@ function topk_<T extends Tensor>(
   const inputs: TopKInputs = {x: $x};
   const attrs: TopKAttrs = {k, sorted};
 
-  const [values, indices] = ENGINE.runKernelFunc(
-      b => b.topk($x as NumericTensor, k, sorted),
-      inputs as {} as NamedTensorMap, null /* grad */, TopK,
-      attrs as {} as NamedAttrMap);
+  const [values, indices] = ENGINE.runKernel(
+      TopK, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 
   return {values, indices} as {values: T, indices: T};
 }

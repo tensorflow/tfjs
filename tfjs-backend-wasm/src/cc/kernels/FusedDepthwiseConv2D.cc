@@ -18,10 +18,10 @@
 
 #include <cstddef>
 
-#include "src/cc/kernels/FusedDepthwiseConv2D.h"
+#include "tfjs-backend-wasm/src/cc/kernels/FusedDepthwiseConv2D.h"
 
-#include "src/cc/backend.h"
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 namespace tfjs {
 namespace wasm {
@@ -40,14 +40,15 @@ void FusedDepthwiseConv2D(
     const size_t dilation_width, const size_t stride_height,
     const size_t stride_width, const size_t input_channels,
     const size_t output_channels, const FusableActivation activation,
-    const size_t prelu_weights_id, const size_t out_id) {
+    const size_t prelu_weights_id, const float leakyrelu_alpha,
+    const size_t out_id) {
   const bool is_depthwise = true;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
                      filter_height, filter_width, bias_id, pad_top, pad_right,
                      pad_bottom, pad_left, is_same_pad, dilation_height,
                      dilation_width, stride_height, stride_width,
                      input_channels, output_channels, is_depthwise, activation,
-                     prelu_weights_id, out_id);
+                     prelu_weights_id, leakyrelu_alpha, out_id);
 }
 
 }  // extern "C"

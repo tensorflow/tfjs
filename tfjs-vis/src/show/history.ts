@@ -98,8 +98,7 @@ import {subSurface} from '../util/dom';
  *  object. Using this allows you to control which metrics appear on the same
  *  plot.
  * @param opts Optional parameters for the line charts.
- */
-/**
+ *
  * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
  * 'show'}
  */
@@ -248,8 +247,7 @@ function getValues(
  *
  * @param metrics List of metrics to plot.
  * @param opts Optional parameters
- */
-/**
+ *
  * @doc {heading: 'Models & Tensors', subheading: 'Model Training', namespace:
  * 'show'}
  */

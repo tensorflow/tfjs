@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-import {backend_util, DataId, DataType, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataId, DataType, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 export enum PackingScheme {
   /**
@@ -70,6 +69,10 @@ export enum PhysicalTextureType {
   PACKED_2X2_FLOAT16
 }
 
+export interface Texture {
+  texture: WebGLTexture;
+  texShape: [number, number];
+}
 export interface TextureData {
   // Required.
   shape: number[];
@@ -77,15 +80,17 @@ export interface TextureData {
 
   // Optional.
   values?: backend_util.BackendValues;
-  texture?: WebGLTexture;
+  texture?: Texture;
   // For complex numbers, the real and imaginary parts are stored as their own
-  // individual tensors, with a parent joining the two with the
+  // individual tensorInfos, with a parent joining the two with the
   // complexTensors field. When this is defined, texture will be null.
-  complexTensors?: {real: Tensor, imag: Tensor};
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo};
   /** [rows, columns] shape of the texture. */
   texShape?: [number, number];
   usage?: TextureUsage;
   isPacked?: boolean;
+
+  refCount: number;
 
   // Available when the tensor has been sliced.
   slice?: {
@@ -204,6 +209,7 @@ export function getTextureConfig(
     defaultNumChannels = 1;
     textureTypeHalfFloat = glany.HALF_FLOAT;
     textureTypeFloat = glany.FLOAT;
+    downloadTextureFormat = glany.RGBA8;
   } else {
     internalFormatFloat = gl.RGBA;
     internalFormatHalfFloat = gl.RGBA;
@@ -216,8 +222,8 @@ export function getTextureConfig(
         textureHalfFloatExtension.HALF_FLOAT_OES :
         null;
     textureTypeFloat = gl.FLOAT;
+    downloadTextureFormat = gl.RGBA;
   }
-  downloadTextureFormat = gl.RGBA;
 
   return {
     internalFormatFloat,

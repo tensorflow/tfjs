@@ -21,7 +21,8 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('sin', ALL_ENVS, () => {
   it('basic', async () => {
-    const values = [1, -3, 2, 7, -4];
+    // Covers every 1/4pi range from -4pi to 4pi.
+    const values = [1, 3, 4, 6, 7, 9, 10, 12, -1, -3, -4, -6, -7, -9, -10, -12];
     const a = tf.tensor1d(values);
     const result = tf.sin(a);
 
@@ -106,6 +107,11 @@ describeWithFlags('sin', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.sin('q'))
-        .toThrowError(/Argument 'x' passed to 'sin' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'sin' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.sin(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'sin' must be float32/);
   });
 });

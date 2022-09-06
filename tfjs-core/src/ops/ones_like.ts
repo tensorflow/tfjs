@@ -15,18 +15,14 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {OnesLike, OnesLikeInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {complex} from './complex';
-import {imag} from './imag';
 import {op} from './operation';
-import {real} from './real';
-import {zerosLike} from './zeros_like';
 
 /**
  * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
@@ -37,25 +33,14 @@ import {zerosLike} from './zeros_like';
  * tf.onesLike(x).print();
  * ```
  * @param x A tensor.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function onesLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'onesLike');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    if ($x.dtype === 'complex64') {
-      const r = onesLike(real($x));
-      const i = zerosLike(imag($x));
-      return complex(r, i);
-    }
-
-    return backend.onesLike($x);
-  };
-
   const inputs: OnesLikeInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             OnesLike) as T;
+  return ENGINE.runKernel(OnesLike, inputs as {} as NamedTensorMap);
 }
 
 export const onesLike = op({onesLike_});

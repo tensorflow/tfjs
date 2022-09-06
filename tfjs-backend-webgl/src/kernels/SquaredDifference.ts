@@ -15,23 +15,17 @@
  * =============================================================================
  */
 
-import {env, KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {BinaryOpProgram} from '../binaryop_gpu';
-import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
+
+export const squaredDifference = binaryKernelFunc(
+    {opSnippet: SQUARED_DIFFERENCE, packedOpSnippet: SQUARED_DIFFERENCE});
 
 export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as SquaredDifferenceInputs;
-    const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-    const webGLBackend = backend as MathBackendWebGL;
-
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(SQUARED_DIFFERENCE, a.shape, b.shape) :
-        new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
-    return webGLBackend.compileAndRun(program, [a, b]);
-  }
+  kernelFunc: squaredDifference,
 };

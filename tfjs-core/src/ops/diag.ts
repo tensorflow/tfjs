@@ -15,17 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Diag, DiagInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 
 import {op} from './operation';
-import {reshape} from './reshape';
 
 /**
- * Returns a diagonal tensor with a given diagonal values.
+ * Returns a diagonal tensor with given diagonal values.
  *
  * Given a diagonal, this operation returns a tensor with the diagonal and
  * everything else padded with zeros.
@@ -39,27 +38,20 @@ import {reshape} from './reshape';
  * tf.diag(x).print()
  * ```
  * ```js
- * const x = tf.tensor1d([1, 2, 3, 4, 5, 6, 6, 8], [4, 2])
+ * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 6, 8], [4, 2])
  *
  * tf.diag(x).print()
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag');
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const flat = reshape($x, [$x.size]);
-    const result = backend.diag(flat);
-    const outShape = [...x.shape, ...x.shape];
-
-    return reshape(result, outShape);
-  };
-
   const inputs: DiagInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Diag);
+  return ENGINE.runKernel(Diag, inputs as {} as NamedTensorMap);
 }
 
 export const diag = op({diag_});

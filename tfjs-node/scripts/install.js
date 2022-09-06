@@ -42,8 +42,12 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+const CDN_STORAGE = process.env.TFJS_NODE_CDN_STORAGE ||
+    process.env.npm_config_TFJS_NODE_CDN_STORAGE || process.env.CDN_STORAGE;
+const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
+const BASE_URI = process.env.TFJS_NODE_BASE_URI ||
+    process.env.npm_config_TFJS_NODE_BASE_URI ||
+    `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
 
 const platform = os.platform();
 // Use windows path
@@ -84,6 +88,9 @@ function revertAddonName(orig) {
 function getPlatformLibtensorflowUri() {
   // Exception for mac+gpu user
   if (platform === 'darwin') {
+    if (os.arch() === 'arm64') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_7_darwin_arm64_cpu.tar.gz`;
+    }
     system = `cpu-${PLATFORM_MAPPING[platform]}-${ARCH_MAPPING[os.arch()]}`;
   }
 
@@ -91,8 +98,12 @@ function getPlatformLibtensorflowUri() {
     return customTFLibUri;
   }
 
-  if (platform === 'linux' && os.arch() === 'arm') {
-    return 'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
+  if (platform === 'linux') {
+    if (os.arch() === 'arm') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_5_linux_arm7l.tar.gz`;
+    } else if (os.arch() === 'arm64') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_7_linux_arm64.tar.gz`;
+    }
   }
 
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
@@ -129,6 +140,7 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   console.warn('* Downloading libtensorflow');
+  console.log(getPlatformLibtensorflowUri());
   resources.downloadAndUnpackResource(
       getPlatformLibtensorflowUri(), depsPath, async () => {
         if (platform === 'win32') {
@@ -171,10 +183,16 @@ async function build() {
   cp.exec(`node-pre-gyp install ${buildOption}`, (err) => {
     if (err) {
       console.log('node-pre-gyp install failed with error: ' + err);
+      process.exit(1);
     }
     if (platform === 'win32') {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
-      cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
+      cp.exec('node scripts/deps-stage.js symlink ' + modulePath, (error) => {
+        if (error) {
+          console.error('symlink ' + modulePath + ' failed: ', error);
+          process.exit(1);
+        }
+      });
     }
     revertAddonName(origBinary);
   });

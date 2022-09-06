@@ -16,7 +16,7 @@
  */
 
 import {where} from '../../ops/where';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.where = function<T extends Tensor>(
+getGlobalTensorClass().prototype.where = function<T extends Tensor>(
     condition: Tensor|TensorLike, x: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return where(condition, this, x) as T;

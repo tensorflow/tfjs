@@ -16,8 +16,8 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/Prelu.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Prelu.h"
 
 TEST(BACKEND, register_tensor) {
   tfjs::wasm::init();

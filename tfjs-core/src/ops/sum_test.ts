@@ -107,6 +107,14 @@ describeWithFlags('sum', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [7]);
   });
 
+  it('4D, axis=[2, 2, 1], need permutation.', async () => {
+    const a = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const res = tf.sum(a, 0);
+
+    expect(res.shape).toEqual([2, 2, 1]);
+    expectArraysClose(await res.data(), [1, 2, 3, 4]);
+  });
+
   it('gradients: sum(2d)', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const dy = tf.scalar(10);

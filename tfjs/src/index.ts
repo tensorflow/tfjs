@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+
 export * from '@tensorflow/tfjs-core';
 export * from '@tensorflow/tfjs-layers';
 export * from '@tensorflow/tfjs-converter';

@@ -24,7 +24,7 @@ export class ResizeNearestNeighborProgram implements GPGPUProgram {
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
-      newWidth: number, alignCorners: boolean) {
+      newWidth: number, alignCorners: boolean, halfPixelCenters: boolean) {
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
 
@@ -41,6 +41,14 @@ export class ResizeNearestNeighborProgram implements GPGPUProgram {
     // When align corners is false, we rounds the value with floor.
     const roundBase = alignCorners ? '0.5' : '0.0';
 
+    let sourceFracIndexRC: string;
+    if (halfPixelCenters) {
+      sourceFracIndexRC =
+          `max((vec2(yRC) + vec2(0.5)) * effectiveInputOverOutputRatioRC` +
+          `, vec2(0.0))`;
+    } else {
+      sourceFracIndexRC = `vec2(yRC) * effectiveInputOverOutputRatioRC`;
+    }
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
           ${effectiveInSize[0] / effectiveOutSize[0]},
@@ -54,12 +62,11 @@ export class ResizeNearestNeighborProgram implements GPGPUProgram {
         ivec2 yRC = coords.yz;
 
         // Fractional source index.
-        vec2 sourceFracIndexRC = vec2(yRC) * effectiveInputOverOutputRatioRC;
+        vec2 sourceFracIndexRC = ${sourceFracIndexRC};
 
         // Compute the coordinators of nearest neighbor point.
         ivec2 sourceNearestRC = ivec2(
           min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
-
         float newValue = getA(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
         setOutput(newValue);

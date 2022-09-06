@@ -15,18 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {ArgMin, ArgMinAttrs, ArgMinInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import * as util from '../util';
 
-import * as axis_util from './axis_util';
 import {op} from './operation';
-import {transpose} from './transpose';
 
 /**
  * Returns the indices of the minimum values along an `axis`.
@@ -50,32 +47,16 @@ import {transpose} from './transpose';
  * @param x The input tensor.
  * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
  *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
-  let $x = convertToTensor(x, 'x', 'argMin');
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$x]);
-
-    if (axis == null) {
-      axis = 0;
-    }
-    let axes = util.parseAxisParam(axis, $x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-    if (permutedAxes != null) {
-      $x = transpose($x, permutedAxes);
-      axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-    }
-    return backend.argMin($x, axes[0]);
-  };
+  const $x = convertToTensor(x, 'x', 'argMin');
 
   const inputs: ArgMinInputs = {x: $x};
   const attrs: ArgMinAttrs = {axis};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, ArgMin,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      ArgMin, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const argMin = op({argMin_});

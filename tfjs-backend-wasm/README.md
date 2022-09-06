@@ -1,12 +1,18 @@
 # Usage
 
-This package adds a WebAssembly backend to TensorFlow.js. This is currently in
-**alpha** and has enough op support to run the following models
-from our [models](https://github.com/tensorflow/tfjs-models) repo:
-- MobileNet
+This package adds a WebAssembly backend to TensorFlow.js. It currently supports
+the following models from our
+[models](https://github.com/tensorflow/tfjs-models) repo:
+- BlazeFace
 - BodyPix
-- PoseNet
 - CocoSSD
+- Face landmarks detection
+- HandPose
+- KNN classifier
+- MobileNet
+- PoseDetection
+- Q&A
+- Universal sentence encoder
 - AutoML Image classification
 - AutoML Object detection
 
@@ -27,13 +33,93 @@ tf.setBackend('wasm').then(() => main());
 
 ```html
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
 
 <!-- Adds the WASM backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script>
 <script>
 tf.setBackend('wasm').then(() => main());
 </script>
+```
+
+## Setting up cross-origin isolation
+
+Starting from Chrome 92 (to be released around July 2021), **cross-origin
+isolation** needs to be set up in your site in order to take advantage of
+the multi-threading support in WASM backend. Without this, the backend
+will fallback to the WASM binary with SIMD-only support (or the vanila version
+if SIMD is not enabled). Without multi-threading support, certain models might
+not achieve the best performance.
+
+Here are the high-level steps to set up the cross-origin isolation. You can
+learn more about this topic [here](https://web.dev/coop-coep/).
+
+1. Send the following two HTTP headers when your main document (e.g.index.html)
+   that uses the WASM backend is served. You may need to configure or ask your
+   web host provider to enable these headers.
+
+   - `Cross-Origin-Opener-Policy: same-origin`
+   - `Cross-Origin-Embedder-Policy: require-corp`
+
+1. If you are loading the WASM backend from `jsdelivr` through the script tag,
+   you are good to go. No more steps are needed.
+
+   If you are loading the WASM backend from your own or other third-party
+   servers, you need to make sure the script is served with either CORS or CORP
+   header.
+
+   - CORS header: `Access-Control-Allow-Origin: *`. In addition, you will also
+     need to add the "crossorigin" attribute to your script tags.
+
+   - CORP header:
+
+     - If the resource is loaded from the *same origin* as your main site
+       (e.g. main site: mysite.com/, script: mysite.com/script.js), set:
+
+       `Cross-Origin-Resource-Policy: same-origin`
+     - If the resource is loaded from the *same site but cross origin*
+       (e.g. main site: mysite.com/, script: static.mysite.com:8080/script.js),
+       set:
+
+
+       `Cross-Origin-Resource-Policy: same-site`
+     - If the resource is loaded from the *cross origin(s)*
+       (e.g. main site: mysite.com/, script: mystatic.com/script.js), set:
+
+       `Cross-Origin-Resource-Policy: cross-origin`
+
+If the steps above are correctly done, you can check the Network tab from the
+console and make sure the
+<code>tfjs-backend-wasm-<b>threaded-simd</b>.wasm</code> WASM binary is loaded.
+
+## Threads count
+
+By default, the backend will use the number of logical CPU cores as the
+threads count when creating the threadpool used by XNNPACK. You can use the
+`setThreadsCount` API to manually set it (must be called before calling
+`tf.setBackend('wasm')`). `getThreadsCount` API can be used to get the actual
+number of threads being used (must be called after the WASM backend is
+initialized).
+
+### Via NPM
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import {getThreadsCount, setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+
+setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(getThreadsCount());
+});
+```
+
+### Via script tag
+
+```js
+tf.wasm.setThreadsCount(2);
+tf.setBackend('wasm').then(() => {
+  console.log(tf.wasm.getThreadsCount());
+});
 ```
 
 ## Running MobileNet
@@ -79,22 +165,30 @@ backend:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-// setWasmPaths accepts a `prefix` argument which indicates the path to the
-// directory where your WASM binaries are located.
-setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
+// setWasmPaths accepts a `prefixOrFileMap` argument which can be either a
+// string or an object. If passing in a string, this indicates the path to
+// the directory where your WASM binaries are located.
+setWasmPaths('www.yourdomain.com/');
 tf.setBackend('wasm').then(() => {...});
 ```
 
-Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
-each binary (SIMD-enabled, threading-enabled, etc.) However you can specify
-overrides for individual WASM binaries via the second `fileMap` argument of
-`setWasmPaths`. This is also helpful in case your binaries have been renamed.
+If the WASM backend is imported through `<script>` tag, `setWasmPaths` needs to
+be called on the `tf.wasm` object:
+
+```ts
+tf.wasm.setWasmPaths('www.yourdomain.com/');
+```
+
+Note that if you call `setWasmPaths` with a string, it will be used to load
+each binary (SIMD-enabled, threading-enabled, etc.) Alternatively you can specify
+overrides for individual WASM binaries via a file map object. This is also helpful
+in case your binaries have been renamed.
 
 For example:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-setWasmPaths(null /* custom prefix */, {
+setWasmPaths({
   'tfjs-backend-wasm.wasm': 'www.yourdomain.com/renamed.wasm',
   'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/renamed-simd.wasm',
   'tfjs-backend-wasm-threaded-simd.wasm': 'www.yourdomain.com/renamed-threaded-simd.wasm'
@@ -108,9 +202,43 @@ optional `usePlatformFetch` argument to `true`:
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch);
+setWasmPaths(yourCustomPathPrefix, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
+
+## JS Minification
+
+If your bundler is capable of minifying JS code, please turn off the option
+that transforms ```typeof foo == "undefined"``` into ```foo === void 0```. For
+example, in [terser](https://github.com/terser/terser), the option is called
+"typeofs" (located under the
+[Compress options](https://github.com/terser/terser#compress-options) section).
+Without this feature turned off, the minified code will throw "_scriptDir is not
+defined" error from web workers when running in browsers with
+SIMD+multi-threading support.
+
+## Use with Angular
+
+If you see the `Cannot find name 'EmscriptenModule'` error when building your
+Angular app, make sure to add `"@types/emscripten"` to the
+`compilerOptions.types` field in your `tsconfig.app.json` (or `tsconfig.json`):
+
+```
+{
+  ...
+  "compilerOptions": {
+    "types": [
+      "@types/emscripten"
+    ]
+  },
+  ...
+}
+```
+
+By default, the generated Angular app sets this field to an empty array
+which will prevent the Angular compiler from automatically adding
+"global types" (such as `EmscriptenModule`) defined in `d.ts` files to your app.
+
 
 ## Benchmarks
 
@@ -127,17 +255,17 @@ MobileNet is a medium-sized model with 3.48M params and ~300M multiply-adds.
 For this model, the WASM backend is between ~3X-11.5X faster than the plain
 JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
-<img src="./mobilenet-v2-bench.svg">
+<img src="./mobilenet-v2-bench.png" width="750">
 
 | MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |--------------------------|-------|-------|----------|-------------|----------------------
 | iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         | N/A                 |
 | iPhone XS                | 140   | 18.1  | 426.4    | N/A         | N/A                 |
-| Pixel 4                  | 197.3 | 68.3  | 2228.2   | 142.4       | N/A                 |
-| Desktop Linux            | 91.5  | 17.1  | 1049     | 61.9        | 30.0                |
+| Pixel 4                  | 182   | 76.4  | 1628     | 82          | N/A                 |
+| ThinkPad X1 Gen6 w/Linux | 122.7 | 44.8  | 1489.4   | 34.6        | 12.4                |
 | Desktop Windows          | 123.1 | 41.6  | 1117     | 37.2        | N/A                 |
-| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        | 10.3                |
-
+| Macbook Pro 15 2019      | 98.4  | 19.6  | 893.5    | 30.2        | 10.3                |
+| Node v.14 on Macbook Pro | 290   | N/A   | 1404.3   | 64.2        | N/A                 |
 
 
 ### Face Detector
@@ -147,13 +275,13 @@ the WASM backend is between ~8.2-19.8X faster than the plain JS backend and
 comparable to the WebGL backend (up to ~1.7X faster, or 2X slower, depending on
 the device).
 
-<img src="./face-detector-bench.svg">
+<img src="./face-detector-bench.png" width="750">
 
 | Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |------------------------------|------|-------|----------|-------------|----------------------
 | iPhone X                     | 22.4 | 13.5  | 318      | N/A         | N/A                 |
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         | N/A                 |
-| Pixel 4                      | 32.2 | 30.6  | 478.8    | 24.0        | N/A                 |
+| Pixel 4                      | 28   | 28    | 368      | 15.9        | N/A                 |
 | Desktop Linux                | 12.6 | 12.7  | 249.5    | 8.0         | 6.2                 |
 | Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         | N/A                 |
 | Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         | 4.0                 |
@@ -176,7 +304,7 @@ performance. We plan to follow the WebAssembly standard closely and benefit from
 its upcoming features such as multi-threading.
 
 ### How many ops have you implemented?
-See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
+See [`register_all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/register_all_kernels.ts)
 for an up-to-date list of supported ops. We love contributions. See the
 [contributing](https://github.com/tensorflow/tfjs/blob/master/CONTRIBUTING.md#adding-functionality)
 document for more info.
@@ -199,30 +327,7 @@ We'd love your feedback as we develop this backend! Please file an issue
 # Development
 
 ## Emscripten installation
-
-Install the Emscripten SDK (version 1.39.15):
-
-```sh
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install 1.39.15
-./emsdk activate 1.39.15
-```
-
-## Prepare the environment
-
-Before developing, make sure the environment variable `EMSDK` points to the
-emscripten directory (e.g. `~/emsdk`). Emscripten provides a script that does
-the setup for you:
-
-Cd into the emsdk directory and run:
-
-```sh
-source ./emsdk_env.sh
-```
-
-For details, see instructions
-[here](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions).
+The Emscripten installation necessary to build the WASM backend is managed automatically by the [Bazel Emscripten Toolchain](https://github.com/emscripten-core/emsdk/tree/master/bazel).
 
 ## Building
 

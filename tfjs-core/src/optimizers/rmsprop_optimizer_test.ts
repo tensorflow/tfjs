@@ -21,6 +21,7 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
@@ -76,11 +77,12 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
 
     x.dispose();
     optimizer.dispose();
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining is the argument to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('gradient with centered momentum', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
@@ -144,8 +146,8 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
 
     x.dispose();
     optimizer.dispose();
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining is the argument to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('Save and load weights: centered = false', async () => {

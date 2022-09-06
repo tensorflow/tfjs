@@ -47,8 +47,9 @@ import {randomUniform} from './random_uniform';
  * size. Optional.
  * @param seed Used to create random seeds. Optional.
  * @returns A Tensor of the same shape of x.
+ *
+ * @doc {heading: 'Operations', subheading: 'Dropout'}
  */
-/** @doc {heading: 'Operations', subheading: 'Dropout'} */
 function dropout_(
     x: Tensor|TensorLike, rate: number, noiseShape?: number[],
     seed?: number|string): Tensor {

@@ -21,6 +21,8 @@ export type DataType = 'float32'|'int32'|'bool'|'complex64'|'string';
 export type DataFormat = 'channelsFirst'|'channelsLast';
 export const VALID_DATA_FORMAT_VALUES = ['channelsFirst', 'channelsLast'];
 
+export type InterpolationFormat = 'nearest'|'bilinear';
+export const VALID_INTERPOLATION_FORMAT_VALUES = ['nearest', 'bilinear'];
 // These constants have a snake vs. camel distinction.
 export type DataFormatSerialization = 'channels_first'|'channels_last';
 

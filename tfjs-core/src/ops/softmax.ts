@@ -43,8 +43,9 @@ import {op} from './operation';
  * @param logits The logits array.
  * @param dim The dimension softmax would be performed on. Defaults to `-1`
  *     which indicates the last dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
   const $logits = convertToTensor(logits, 'logits', 'softmax', 'float32');
 
@@ -60,14 +61,8 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
   const inputs: SoftmaxInputs = {logits: $logits};
   const attrs: SoftmaxAttrs = {dim};
 
-  return ENGINE.runKernelFunc(
-      (backend, save) => {
-        const y = backend.softmax($logits, dim);
-        save([y]);
-        return y;
-      },
-      inputs as {} as NamedTensorMap, null /* grad */, Softmax,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Softmax, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const softmax = op({softmax_});

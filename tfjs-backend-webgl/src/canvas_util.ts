@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
+
 const contexts: {[key: string]: WebGLRenderingContext} = {};
 
 const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
@@ -27,17 +29,29 @@ const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
   failIfMajorPerformanceCaveat: true
 };
 
+export function clearWebGLContext(webGLVersion: number) {
+  delete contexts[webGLVersion];
+}
+
 export function setWebGLContext(
     webGLVersion: number, gl: WebGLRenderingContext) {
   contexts[webGLVersion] = gl;
 }
 
-export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
-  if (!(webGLVersion in contexts)) {
-    contexts[webGLVersion] = getWebGLRenderingContext(webGLVersion);
+export function getWebGLContext(
+    webGLVersion: number,
+    customCanvas?: HTMLCanvasElement|OffscreenCanvas): WebGLRenderingContext {
+  if (!(webGLVersion in contexts) || customCanvas != null) {
+    const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
+    if (newCtx !== null) {
+      contexts[webGLVersion] = newCtx;
+    } else {
+      console.log('Could not get context for WebGL version', webGLVersion);
+      return null;
+    }
   }
   const gl = contexts[webGLVersion];
-  if (gl.isContextLost()) {
+  if (gl == null || gl.isContextLost()) {
     delete contexts[webGLVersion];
     return getWebGLContext(webGLVersion);
   }
@@ -65,16 +79,24 @@ function createCanvas(webGLVersion: number) {
   }
 }
 
-function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
+function getWebGLRenderingContext(
+    webGLVersion: number,
+    customCanvas?: HTMLCanvasElement|OffscreenCanvas): WebGLRenderingContext {
   if (webGLVersion !== 1 && webGLVersion !== 2) {
     throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
   }
-  const canvas = createCanvas(webGLVersion);
+  const canvas =
+      customCanvas == null ? createCanvas(webGLVersion) : customCanvas;
 
   canvas.addEventListener('webglcontextlost', (ev: Event) => {
     ev.preventDefault();
     delete contexts[webGLVersion];
   }, false);
+
+  if (env().getBool('SOFTWARE_WEBGL_ENABLED')) {
+    WEBGL_ATTRIBUTES.failIfMajorPerformanceCaveat = false;
+  }
+
   if (webGLVersion === 1) {
     return (canvas.getContext('webgl', WEBGL_ATTRIBUTES) ||
             canvas.getContext('experimental-webgl', WEBGL_ATTRIBUTES)) as

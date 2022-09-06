@@ -31,6 +31,7 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
+
 import {deserialize} from './serialization';
 
 /**
@@ -167,7 +168,7 @@ export function rnn(
     }
 
     if (mask != null) {
-      mask = mask.asType('bool').asType('float32');
+      mask = tfc.cast(tfc.cast(mask, 'bool'), 'float32');
       if (mask.rank === ndim - 1) {
         mask = tfc.expandDims(mask, -1);
       }
@@ -211,12 +212,15 @@ export function rnn(
       } else {
         const maskedOutputs = tfc.tidy(() => {
           const stepMask = perStepMasks[t];
-          const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
+          const negStepMask = tfc.sub(tfc.onesLike(stepMask), stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output =
-              stepOutputs[0].mul(stepMask).add(states[0].mul(negStepMask));
+          const output = tfc.add(
+              tfc.mul(stepOutputs[0], stepMask),
+              tfc.mul(states[0], negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask).add(state.mul(negStepMask));
+            return tfc.add(
+                tfc.mul(stepOutputs[1][i], stepMask),
+                tfc.mul(state, negStepMask));
           });
           return {output, newStates};
         });
@@ -249,7 +253,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     Porting Node: PyKeras overrides the `call()` signature of RNN cells,
    *       which are Layer subtypes, to accept two arguments. tfjs-layers does
    *       not do such overriding. Instead we preseve the `call()` signature,
-   *       which due to its `Tensor|Tensor[]` argument and return value, is
+   *       which due to its `Tensor|Tensor[]` argument and return value is
    *       flexible enough to handle the inputs and states.
    *   - a `stateSize` attribute. This can be a single integer (single state)
    *     in which case it is the size of the recurrent state (which should be
@@ -311,8 +315,8 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
 
   /**
    * If `true`, the network will be unrolled, else a symbolic loop will be
-   * used. Unrolling can speed-up a RNN, although it tends to be more memory-
-   * intensive. Unrolling is only suitable for short sequences (default:
+   * used. Unrolling can speed up a RNN, although it tends to be more
+   * memory-intensive. Unrolling is only suitable for short sequences (default:
    * `false`).
    * Porting Note: tfjs-layers has an imperative backend. RNNs are executed with
    *   normal TypeScript control flow. Hence this property is inapplicable and
@@ -348,14 +352,14 @@ export class RNN extends Layer {
   public readonly unroll: boolean;
 
   public stateSpec: InputSpec[];
-  private states_: Tensor[];
+  protected states_: Tensor[];
 
   // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
   // away when new states are set, because the old states may need to be used
   // later for backpropagation through time (BPTT) and other purposes. So we
   // keep them here for final disposal when the state is reset completely
   // (i.e., through no-arg call to `resetStates()`).
-  private keptStates: Tensor[][];
+  protected keptStates: Tensor[][];
 
   private numConstants: number;
 
@@ -499,8 +503,8 @@ export class RNN extends Layer {
     inputShape = inputShape as Shape;
 
     const batchSize: number = this.stateful ? inputShape[0] : null;
-    const inputDim = inputShape[inputShape.length - 1];
-    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, inputDim]});
+    const inputDim = inputShape.slice(2);
+    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, ...inputDim]});
 
     // Allow cell (if RNNCell Layer) to build before we set or validate
     // stateSpec.
@@ -807,6 +811,8 @@ export class RNN extends Layer {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       returnSequences: this.returnSequences,
       returnState: this.returnState,
@@ -814,17 +820,22 @@ export class RNN extends Layer {
       stateful: this.stateful,
       unroll: this.unroll,
     };
+
     if (this.numConstants != null) {
       config['numConstants'] = this.numConstants;
     }
+
     const cellConfig = this.cell.getConfig();
-    config['cell'] = {
-      'className': this.cell.getClassName(),
-      'config': cellConfig,
-    } as serialization.ConfigDictValue;
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    if (this.getClassName() === RNN.className) {
+      config['cell'] = {
+        'className': this.cell.getClassName(),
+        'config': cellConfig,
+      } as serialization.ConfigDictValue;
+    }
+
+    // this order is necessary, to prevent cell name from replacing layer name
+    return {...cellConfig, ...baseConfig, ...config};
   }
 
   /** @nocollapse */
@@ -839,19 +850,22 @@ export class RNN extends Layer {
 }
 serialization.registerClass(RNN);
 
-/**
- * An RNNCell layer.
- */
 // Porting Note: This is a common parent class for RNN cells. There is no
 // equivalent of this in PyKeras. Having a common parent class forgoes the
 //  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
-/** @doc {heading: 'Layers', subheading: 'Classes'} */
+/**
+ * An RNNCell layer.
+ *
+ * @doc {heading: 'Layers', subheading: 'Classes'}
+ */
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.
    * For RNN cells with only a single state, this is a single integer.
    */
-  public stateSize: number|number[];
+  // See
+  // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#properties-overriding-accessors-and-vice-versa-is-an-error
+  public abstract stateSize: number|number[];
   public dropoutMask: Tensor|Tensor[];
   public recurrentDropoutMask: Tensor|Tensor[];
 }
@@ -917,7 +931,7 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraintfunction applied to the bias vector.
+   * Constraint function applied to the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
@@ -932,6 +946,11 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 export class SimpleRNNCell extends RNNCell {
@@ -955,6 +974,7 @@ export class SimpleRNNCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
 
@@ -998,6 +1018,7 @@ export class SimpleRNNCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
@@ -1042,16 +1063,21 @@ export class SimpleRNNCell extends RNNCell {
       const training = kwargs['training'] == null ? false : kwargs['training'];
 
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training) as Tensor;
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training,
+                             dropoutFunc: this.dropoutFunc,
+                           }) as Tensor;
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(prevOutput), this.recurrentDropout,
-                training) as Tensor;
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(prevOutput),
+                                      rate: this.recurrentDropout,
+                                      training,
+                                      dropoutFunc: this.dropoutFunc,
+                                    }) as Tensor;
       }
       let h: Tensor;
       const dpMask: Tensor = this.dropoutMask as Tensor;
@@ -1078,6 +1104,8 @@ export class SimpleRNNCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1095,9 +1123,8 @@ export class SimpleRNNCell extends RNNCell {
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(SimpleRNNCell);
@@ -1180,6 +1207,11 @@ export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 /**
@@ -1216,88 +1248,6 @@ export class SimpleRNN extends RNN {
           kwargs == null ? null : kwargs['initialState'];
       return super.call(inputs, {mask, training, initialState});
     });
-  }
-
-  // TODO(cais): Research possibility of refactoring out the tedious all
-  //   the getters that delegate to `this.cell` below.
-  get units(): number {
-    return (this.cell as SimpleRNNCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as SimpleRNNCell).activation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as SimpleRNNCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).biasInitializer;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as SimpleRNNCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as SimpleRNNCell).recurrentDropout;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
   }
 
   /** @nocollapse */
@@ -1366,6 +1316,7 @@ export class GRUCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
   readonly implementation: number;
@@ -1421,6 +1372,7 @@ export class GRUCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = this.units;
     this.dropoutMask = null;
@@ -1466,16 +1418,23 @@ export class GRUCell extends RNNCell {
       // implementation 2, regardless of the actual value of
       // config.implementation.
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training, 3) as Tensor[];
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training,
+                             count: 3,
+                             dropoutFunc: this.dropoutFunc,
+                           }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
-                3) as Tensor[];
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(hTMinus1),
+                                      rate: this.recurrentDropout,
+                                      training,
+                                      count: 3,
+                                      dropoutFunc: this.dropoutFunc,
+                                    }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
       const recDpMask = this.recurrentDropoutMask as [Tensor, Tensor, Tensor];
@@ -1517,6 +1476,8 @@ export class GRUCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1537,9 +1498,8 @@ export class GRUCell extends RNNCell {
       implementation: this.implementation,
       resetAfter: false
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(GRUCell);
@@ -1604,97 +1564,6 @@ export class GRU extends RNN {
     });
   }
 
-  get units(): number {
-    return (this.cell as GRUCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as GRUCell).activation;
-  }
-
-  get recurrentActivation(): Activation {
-    return (this.cell as GRUCell).recurrentActivation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as GRUCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as GRUCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as GRUCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as GRUCell).biasInitializer;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as GRUCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as GRUCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as GRUCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as GRUCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as GRUCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as GRUCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as GRUCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as GRUCell).recurrentDropout;
-  }
-
-  get implementation(): number {
-    return (this.cell as GRUCell).implementation;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      recurrentActivation: serializeActivation(this.recurrentActivation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-      implementation: this.implementation,
-      resetAfter: false
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
-  }
-
   /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
@@ -1724,7 +1593,7 @@ export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1767,6 +1636,7 @@ export class LSTMCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number[];
   readonly implementation: number;
@@ -1820,6 +1690,7 @@ export class LSTMCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = [this.units, this.units];
     this.dropoutMask = null;
@@ -1881,16 +1752,23 @@ export class LSTMCell extends RNNCell {
       const cTMinus1 = inputs[2];  // Previous carry state.
       inputs = inputs[0];
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training, 4) as Tensor[];
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training,
+                             count: 4,
+                             dropoutFunc: this.dropoutFunc
+                           }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
-                4) as Tensor[];
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(hTMinus1),
+                                      rate: this.recurrentDropout,
+                                      training,
+                                      count: 4,
+                                      dropoutFunc: this.dropoutFunc
+                                    }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
       const recDpMask =
@@ -1929,6 +1807,8 @@ export class LSTMCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1949,9 +1829,8 @@ export class LSTMCell extends RNNCell {
       recurrentDropout: this.recurrentDropout,
       implementation: this.implementation,
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(LSTMCell);
@@ -1973,7 +1852,7 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -2023,101 +1902,6 @@ export class LSTM extends RNN {
     });
   }
 
-  get units(): number {
-    return (this.cell as LSTMCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as LSTMCell).activation;
-  }
-
-  get recurrentActivation(): Activation {
-    return (this.cell as LSTMCell).recurrentActivation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as LSTMCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as LSTMCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as LSTMCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as LSTMCell).biasInitializer;
-  }
-
-  get unitForgetBias(): boolean {
-    return (this.cell as LSTMCell).unitForgetBias;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as LSTMCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as LSTMCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as LSTMCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as LSTMCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as LSTMCell).recurrentDropout;
-  }
-
-  get implementation(): number {
-    return (this.cell as LSTMCell).implementation;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      recurrentActivation: serializeActivation(this.recurrentActivation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      unitForgetBias: this.unitForgetBias,
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-      implementation: this.implementation,
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
-  }
-
   /** @nocollapse */
   static fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
@@ -2132,7 +1916,7 @@ serialization.registerClass(LSTM);
 
 export declare interface StackedRNNCellsArgs extends LayerArgs {
   /**
-   * A `Array` of `RNNCell` instances.
+   * An `Array` of `RNNCell` instances.
    */
   cells: RNNCell[];
 }
@@ -2229,17 +2013,20 @@ export class StackedRNNCells extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
-    const cellConfigs: serialization.ConfigDict[] = [];
-    for (const cell of this.cells) {
-      cellConfigs.push({
+    const baseConfig = super.getConfig();
+
+    const getCellConfig = (cell: RNNCell) => {
+      return {
         'className': cell.getClassName(),
         'config': cell.getConfig(),
-      });
-    }
-    const config: serialization.ConfigDict = {'cells': cellConfigs};
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+      };
+    };
+
+    const cellConfigs = this.cells.map(getCellConfig);
+
+    const config = {'cells': cellConfigs};
+
+    return {...baseConfig, ...config};
   }
 
   /** @nocollapse */
@@ -2315,19 +2102,26 @@ export class StackedRNNCells extends RNNCell {
 }
 serialization.registerClass(StackedRNNCells);
 
-function generateDropoutMask(
-    ones: () => Tensor, rate: number, training: boolean = null,
-    count = 1): Tensor|Tensor[] {
-  function droppedInputs(): Tensor {
-    return K.dropout(ones(), rate);
+export function generateDropoutMask(args: {
+  ones: () => tfc.Tensor,
+  rate: number,
+  training?: boolean,
+  count?: number,
+  dropoutFunc?: Function,
+}): tfc.Tensor|tfc.Tensor[] {
+  const {ones, rate, training = false, count = 1, dropoutFunc} = args;
+
+  const droppedInputs = () =>
+      dropoutFunc != null ? dropoutFunc(ones(), rate) : K.dropout(ones(), rate);
+
+  const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
+
+  // just in case count is provided with null or undefined
+  if (!count || count <= 1) {
+    return tfc.keep(createMask().clone());
   }
-  if (count > 1) {
-    const mask: Tensor[] = [];
-    for (let i = 0; i < count; i++) {
-      mask.push(K.inTrainPhase(droppedInputs, ones, training));
-    }
-    return mask.map(m => tfc.keep(m.clone()));
-  } else {
-    return tfc.keep(K.inTrainPhase(droppedInputs, ones, training).clone());
-  }
+
+  const masks = Array(count).fill(undefined).map(createMask);
+
+  return masks.map(m => tfc.keep(m.clone()));
 }

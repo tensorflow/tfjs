@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, Tensor4D} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, Tensor4D, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -54,6 +54,19 @@ function maxPool(
 
   const x = inputs.x as Tensor4D;
   const xId = backend.dataIdMap.get(x.dataId).id;
+
+  // TF API supports int32 input. CPU and WebGL backend also support int32
+  // input. WASM backend doesn't support it because it uses xnnpack which only
+  // supports float32.
+  //
+  // Add the following assert only for the WASM backend instead of at core op
+  // level.
+  //
+  // TODO: add support for int32 input.
+  util.assert(
+      x.dtype === 'float32',
+      () =>
+          `Error in MaxPool: only float32 input is supported. Got ${x.dtype}.`);
 
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
   const convInfo = backend_util.computePool2DInfo(

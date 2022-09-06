@@ -29,15 +29,14 @@ import {Tensor1D} from '../tensor';
  * @param start The start value of the sequence.
  * @param stop The end value of the sequence.
  * @param num The number of values to generate.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
 
   const attrs: LinSpaceAttrs = {start, stop, num};
-  return ENGINE.runKernelFunc(
-      backend => backend.linspace(start, stop, num), {} /* inputs */,
-      null /* grad */, LinSpace, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(LinSpace, {}, attrs as {} as NamedAttrMap);
 }

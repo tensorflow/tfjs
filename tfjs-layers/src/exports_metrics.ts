@@ -25,8 +25,8 @@ import * as metrics from './metrics';
  *
  * `yTrue` and `yPred` can also have floating-number values between 0 and 1, in
  * which case the values will be thresholded at 0.5 to yield 0-1 values (i.e.,
- * a value >= 0.5 and <= 1.0 is interpreted as 1.
- * )
+ * a value >= 0.5 and <= 1.0 is interpreted as 1).
+ *
  * Example:
  * ```js
  * const x = tf.tensor1d([1, 1, 1, 1, 0, 0, 0, 0]);
@@ -38,8 +38,9 @@ import * as metrics from './metrics';
  * @param yTrue Binary Tensor of truth.
  * @param yPred Binary Tensor of prediction.
  * @return Accuracy Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.binaryAccuracy(yTrue, yPred);
 }
@@ -58,8 +59,9 @@ export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue Binary Tensor of truth.
  * @param yPred Binary Tensor of prediction, probabilities for the `1` case.
  * @return Accuracy Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.binaryCrossentropy(yTrue, yPred);
 }
@@ -80,8 +82,9 @@ export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue True labels: indices.
  * @param yPred Predicted probabilities or logits.
  * @returns Accuracy tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function sparseCategoricalAccuracy(
     yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.sparseCategoricalAccuracy(yTrue, yPred);
@@ -102,8 +105,9 @@ export function sparseCategoricalAccuracy(
  * @param yPred Binary Tensor of prediction: probabilities or logits for the
  *   same categories as in `yTrue`.
  * @return Accuracy Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.categoricalAccuracy(yTrue, yPred);
 }
@@ -116,8 +120,9 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
  *  `true`, in which case `output` is expected to be the logits).
  * @param fromLogits Boolean, whether `output` is the result of a softmax, or is
  *   a tensor of logits.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.categoricalCrossentropy(yTrue, yPred);
 }
@@ -151,11 +156,12 @@ export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * precision.print();
  * ```
  *
- * @param yTrue The ground truth values. Expected to be contain only 0-1 values.
- * @param yPred The predicted values. Expected to be contain only 0-1 values.
+ * @param yTrue The ground truth values. Expected to contain only 0-1 values.
+ * @param yPred The predicted values. Expected to contain only 0-1 values.
  * @return Precision Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.precision(yTrue, yPred);
 }
@@ -189,11 +195,12 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
  * recall.print();
  * ```
  *
- * @param yTrue The ground truth values. Expected to be contain only 0-1 values.
- * @param yPred The predicted values. Expected to be contain only 0-1 values.
+ * @param yTrue The ground truth values. Expected to contain only 0-1 values.
+ * @param yPred The predicted values. Expected to contain only 0-1 values.
  * @return Recall Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
   return metrics.recall(yTrue, yPred);
 }
@@ -216,8 +223,9 @@ export function recall(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue Truth Tensor.
  * @param yPred Prediction Tensor.
  * @return Cosine proximity Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function cosineProximity(yTrue: Tensor, yPred: Tensor): Tensor {
   return losses.cosineProximity(yTrue, yPred);
 }
@@ -239,8 +247,9 @@ export function cosineProximity(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue Truth Tensor.
  * @param yPred Prediction Tensor.
  * @return Mean absolute error Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function meanAbsoluteError(yTrue: Tensor, yPred: Tensor): Tensor {
   return losses.meanAbsoluteError(yTrue, yPred);
 }
@@ -260,8 +269,9 @@ export function meanAbsoluteError(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue Truth Tensor.
  * @param yPred Prediction Tensor.
  * @return Mean absolute percentage error Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function meanAbsolutePercentageError(
     yTrue: Tensor, yPred: Tensor): Tensor {
   return losses.meanAbsolutePercentageError(yTrue, yPred);
@@ -290,8 +300,9 @@ export function mape(yTrue: Tensor, yPred: Tensor): Tensor {
  * @param yTrue Truth Tensor.
  * @param yPred Prediction Tensor.
  * @return Mean squared error Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
  */
-/** @doc {heading: 'Metrics', namespace: 'metrics'} */
 export function meanSquaredError(yTrue: Tensor, yPred: Tensor): Tensor {
   return losses.meanSquaredError(yTrue, yPred);
 }

@@ -32,8 +32,6 @@ Note that if you are using in a managed expo app the install instructions may be
 
   - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules) (can be skipped if in an expo app)
   - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-  - Install and configure [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-  - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
   - Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
   - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
   - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
@@ -43,7 +41,7 @@ Note that if you are using in a managed expo app the install instructions may be
 
 > After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
-### Step 3: Configure [Metro](https://facebook.github.io/metro/en/)
+### Step 3: Configure [Metro](https://facebook.github.io/metro/)
 
 This step is only needed if you want to use the [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO) loader.
 
@@ -97,6 +95,35 @@ export class App extends React.Component {
     //
   }
 }
+```
+
+If you use expo and encounter a build failure when running `npm run web` due to
+`You may need an appropriate loader to handle this file type...` error, follow
+the steps below to make expo correctly transpile tfjs packages:
+
+- Run: `expo customize:web`
+  - Use the space key to select the `webpack.config.js` entry, then press "enter".
+  - This will create a bare-minimum `webpack.config.js` file.
+- Edit the `webpack.config.js` file as follows:
+
+```
+const createExpoWebpackConfigAsync = require('@expo/webpack-config');
+
+module.exports = async function(env, argv) {
+  const config = await createExpoWebpackConfigAsync(
+      {
+        ...env,
+        babel: {
+          dangerouslyAddModulePathsToTranspile: [
+            // Ensure that all packages starting with @tensorflow are
+            // transpiled.
+            '@tensorflow',
+          ],
+        },
+      },
+      argv);
+  return config;
+};
 ```
 
 You can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like. In future we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.

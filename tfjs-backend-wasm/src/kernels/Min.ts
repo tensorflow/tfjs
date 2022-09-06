@@ -20,11 +20,18 @@ import {backend_util, KernelConfig, KernelFunc, Min, MinAttrs, MinInputs, Tensor
 import {BackendWasm} from '../backend_wasm';
 
 import {permuteAxesAndTranspose} from './kernel_utils';
+import {CppDType} from './types';
 
-let wasmMin: (xId: number, reduceSize: number, outId: number) => void;
+let wasmMin: (xId: number, dtype: number, reduceSize: number, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
-  wasmMin = backend.wasm.cwrap(Min, null /*void*/, ['number, number, number']);
+  wasmMin = backend.wasm.cwrap(Min, null /*void*/, [
+    'number',  // x_id
+    'number',  // dtype
+    'number',  // reduce_size
+    'number',  // out_id
+  ]);
 }
 
 function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
@@ -59,7 +66,7 @@ function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
   const out = backend.makeOutput(outShape, input.dtype);
   if (util.sizeFromShape(input.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    wasmMin(inputId, reduceSize, outId);
+    wasmMin(inputId, CppDType[x.dtype], reduceSize, outId);
   }
 
   if (inputWasTransposed) {

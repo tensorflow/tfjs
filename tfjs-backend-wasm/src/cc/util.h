@@ -143,6 +143,15 @@ inline size_t offset(size_t i1, size_t i2, size_t i3, size_t i4, size_t i5,
 // are of length R-1 where R is the rank of the tensor.
 const std::vector<size_t> compute_strides(const std::vector<size_t> shape);
 
+// Returns the broadcasted new shape given two shapes.
+const std::vector<size_t> assert_and_get_broadcast_shape(
+    const std::vector<size_t> shape_a, const std::vector<size_t> shape_b);
+
+// Returns the dimensions in the input shape that are broadcasted to produce the
+// provided output shape.
+const std::vector<size_t> get_broadcast_dims(
+    const std::vector<size_t> in_shape, const std::vector<size_t> out_shape);
+
 }  // namespace util
 }  // namespace tfjs
 #endif  // UTIL_H_

@@ -35,8 +35,9 @@ import {tensor} from './tensor';
  * @param targets 1-D or higher `tf.Tensor`.
  * @param k Optional Number of top elements to look at for computing precision,
  *     default to 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 async function inTopKAsync_<T extends Tensor, U extends Tensor>(
     predictions: T|TensorLike, targets: U|TensorLike, k = 1): Promise<U> {
   const $predictions = convertToTensor(predictions, 'predictions', 'inTopK');

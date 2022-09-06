@@ -14,14 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropFilterAttrs, Conv3DBackpropFilterInputs, Conv3DBackpropFilterV2} from '../kernel_names';
+import {ENGINE} from '../engine';
+import {Conv3DBackpropFilterV2, Conv3DBackpropFilterV2Attrs, Conv3DBackpropFilterV2Inputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -73,22 +72,14 @@ function conv3DBackpropFilter_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3dDerFilter: depth of dy (${dy5D.shape[4]}) must ` +
           `match output depth for filter (${filterShape[4]}).`);
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const dilations = 1;
+  const inputs: Conv3DBackpropFilterV2Inputs = {x: x5D, dy: dy5D};
 
-    const convInfo = conv_util.computeConv3DInfo(
-        x5D.shape, filterShape, strides, dilations, pad);
+  const attrs: Conv3DBackpropFilterV2Attrs = {strides, pad, filterShape};
 
-    return backend.conv3dDerFilter(x5D, dy5D, convInfo);
-  };
-
-  const inputs: Conv3DBackpropFilterInputs = {x: x5D, y: dy5D};
-
-  const attrs: Conv3DBackpropFilterAttrs = {strides, pad};
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null,
-             Conv3DBackpropFilterV2, attrs as {} as NamedAttrMap) as Tensor5D;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             Conv3DBackpropFilterV2, inputs as {} as NamedTensorMap,
+             attrs as {} as NamedAttrMap) as Tensor5D;
 }
 
 export const conv3DBackpropFilter = op({conv3DBackpropFilter_});

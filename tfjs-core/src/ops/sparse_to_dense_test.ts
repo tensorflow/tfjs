@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 let defaultValue: tf.Scalar;
 describeWithFlags('sparseToDense', ALL_ENVS, () => {
@@ -58,6 +58,16 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
     expect(result.shape).toEqual(shape);
     expect(result.dtype).toEqual(values.dtype);
     expectArraysClose(await result.data(), [0, 5, 0, 6]);
+  });
+  it('should work for string', async () => {
+    const indices = tf.tensor2d([0, 1, 1, 1], [2, 2], 'int32');
+    const values = tf.tensor1d(['a', 'b'], 'string');
+    const shape = [2, 2];
+    const result =
+        tf.sparseToDense(indices, values, shape, tf.scalar('c', 'string'));
+    expect(result.shape).toEqual(shape);
+    expect(result.dtype).toEqual(values.dtype);
+    expectArraysEqual(await result.data(), ['c', 'a', 'c', 'b']);
   });
 
   it('should throw exception if default value does not match dtype', () => {

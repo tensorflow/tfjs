@@ -12,10 +12,9 @@
  *  Advanced activation layers.
  */
 
-import {clipByValue, elu, leakyRelu, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {cast, clipByValue, elu, greater, leakyRelu, mul, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
-import {cast} from '../backend/tfjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -286,7 +285,7 @@ export class ThresholdedReLU extends Layer {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = getExactlyOneTensor(inputs);
-    return x.mul(cast(x.greater(this.theta), 'float32'));
+    return mul(x, cast(greater(x, this.theta), 'float32'));
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

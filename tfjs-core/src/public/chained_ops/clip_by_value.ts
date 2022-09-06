@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {clipByValue} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.clipByValue = function<T extends Tensor>(
+getGlobalTensorClass().prototype.clipByValue = function<T extends Tensor>(
     min: number, max: number): T {
   this.throwIfDisposed();
   return clipByValue(this, min, max) as T;

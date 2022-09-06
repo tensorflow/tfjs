@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Unpack, UnpackAttrs, UnpackInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -38,24 +37,21 @@ import {op} from './operation';
  *
  * @param x A tensor object.
  * @param axis The axis to unstack along. Defaults to 0 (the first dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
-  const $x = convertToTensor(x, 'x', 'unstack');
+  const $x = convertToTensor(x, 'x', 'unstack', 'string_or_numeric');
   util.assert(
       axis >= -$x.shape.length && axis < $x.shape.length,
       () =>
           `Axis = ${axis} is not in [-${$x.shape.length}, ${$x.shape.length})`);
-  if (axis < 0) {
-    axis += $x.shape.length;
-  }
+
   const inputs: UnpackInputs = {value: $x};
   const attrs: UnpackAttrs = {axis};
-  const forward: ForwardFunc<Tensor[]> = (backend: KernelBackend) =>
-      backend.unstack($x, axis);
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Unpack,
-      attrs as {} as NamedAttrMap);
+
+  return ENGINE.runKernel(
+      Unpack, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const unstack = op({unstack_});

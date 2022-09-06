@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Pow, PowInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -49,8 +49,9 @@ import {op} from './operation';
  *
  * @param base The base `tf.Tensor` to pow element-wise.
  * @param exp The exponent `tf.Tensor` to pow element-wise.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function pow_<T extends Tensor>(
     base: Tensor|TensorLike, exp: Tensor|TensorLike): T {
   let $base = convertToTensor(base, 'base', 'pow');
@@ -58,15 +59,8 @@ function pow_<T extends Tensor>(
   [$base, $exp] = makeTypesMatch($base, $exp);
 
   const inputs: PowInputs = {a: $base, b: $exp};
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const y = backend.pow($base, $exp);
-    save([$base, $exp, y]);
-    return y;
-  };
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Pow) as T;
+  return ENGINE.runKernel(Pow, inputs as {} as NamedTensorMap);
 }
 
 export const pow = op({pow_});

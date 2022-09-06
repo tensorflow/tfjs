@@ -39,8 +39,9 @@ import {UniformRandom} from './rand_util';
  * @param maxval The upper bound on the range of random values to generate.
  *   Defaults to 1.
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
 function randomUniform_<R extends Rank>(
     shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
     seed?: number|string): Tensor<R> {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Prelu, PreluInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -37,22 +37,15 @@ import {op} from './operation';
  * ```
  * @param x The input tensor.
  * @param alpha Scaling factor for negative values.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'prelu');
   const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.prelu($x, $alpha);
-    save([$x, $alpha]);
-    return res;
-  };
-
   const inputs: PreluInputs = {x: $x, alpha: $alpha};
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Prelu) as
-      T;
+  return ENGINE.runKernel(Prelu, inputs as {} as NamedTensorMap);
 }
 
 export const prelu = op({prelu_});

@@ -80,6 +80,17 @@ function config({plugins = [], output = {}}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
+  // Node
+  bundles.push(config({
+    output: {
+      format: 'cjs',
+      name: 'tf.automl',
+      extend: true,
+      file: `dist/tf-automl.node.js`,
+      freeze: false
+    },
+    tsCompilerOptions: {target: 'es5'}
+  }));
 
   // tf-automl.js
   bundles.push(config({

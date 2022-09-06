@@ -44,3 +44,7 @@ export interface WebGLContextAttributes {
   stencil?: boolean;
   failIfMajorPerformanceCaveat?: boolean;
 }
+
+export interface WebGLParallelCompilationExtension {
+  COMPLETION_STATUS_KHR: number;
+}

@@ -1,0 +1,33 @@
+steps:
+
+# Install packages.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e/benchmarks/browserstack-benchmark'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+
+# Run benchmarks.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e/benchmarks/browserstack-benchmark'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['run-cloud-benchmarks']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_ACCESS_KEY', 'FIREBASE_KEY']
+  waitFor: ['yarn']
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/834911136599/secrets/BROWSERSTACK_ACCESS_KEY/versions/latest
+      env: 'BROWSERSTACK_ACCESS_KEY'
+    - versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
+      env: 'FIREBASE_KEY'
+timeout: 3600s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
+  substitution_option: 'ALLOW_LOOSE'

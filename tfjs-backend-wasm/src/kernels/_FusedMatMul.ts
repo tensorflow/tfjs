@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs, broadcast_util, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {FusableActivation} from './types';
 
-let wasmFusedMatMul: (
-    aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
-    bShape: Uint8Array, bShapeSize: number, transposeA: boolean,
-    transposeB: boolean, activation: number, biasId: number,
-    preluActivationWeightsId: number, outId: number) => void;
+let wasmFusedMatMul:
+    (aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
+     bShape: Uint8Array, bShapeSize: number, transposeA: boolean,
+     transposeB: boolean, activation: number, biasId: number,
+     preluActivationWeightsId: number, leakyreluAlpha: number, outId: number) =>
+        void;
 
 function setup(backend: BackendWasm) {
   wasmFusedMatMul = backend.wasm.cwrap(_FusedMatMul, null /* void */, [
@@ -40,6 +41,7 @@ function setup(backend: BackendWasm) {
     'number',  // activation
     'number',  // biasId
     'number',  // preluActivationWeightsId
+    'number',  // leakyreluAlpha
     'number'   // out_id
   ]);
 }
@@ -57,7 +59,7 @@ function fusedBatchMatMul(args: {
         `_FusedMatMul for non non-float32 tensors not yet supported.`);
   }
 
-  const {transposeA, transposeB, activation} = attrs;
+  const {transposeA, transposeB, activation, leakyreluAlpha} = attrs;
   const aId = backend.dataIdMap.get(a.dataId).id;
   const bId = backend.dataIdMap.get(b.dataId).id;
 
@@ -84,9 +86,10 @@ function fusedBatchMatMul(args: {
 
   const leftDim = transposeA ? a.shape[2] : a.shape[1];
   const rightDim = transposeB ? b.shape[1] : b.shape[2];
-  const batchDim = a.shape[0];
+  const batchDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
 
-  const out = backend.makeOutput([batchDim, leftDim, rightDim], a.dtype);
+  const out = backend.makeOutput([...batchDims, leftDim, rightDim], a.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
@@ -95,12 +98,12 @@ function fusedBatchMatMul(args: {
   wasmFusedMatMul(
       aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
       transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId,
-      outId);
+      leakyreluAlpha || 0, outId);
 
   return out;
 }
 
-export const fusedMatMulConfig: KernelConfig = {
+export const _fusedMatMulConfig: KernelConfig = {
   kernelName: _FusedMatMul,
   backendName: 'wasm',
   setupFunc: setup,

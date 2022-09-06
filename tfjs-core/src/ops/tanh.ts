@@ -33,17 +33,14 @@ import {op} from './operation';
  * x.tanh().print();  // or tf.tanh(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function tanh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tanh');
+  const $x = convertToTensor(x, 'x', 'tanh', 'float32');
 
   const inputs: TanhInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.tanh($x);
-    save([y]);
-    return y;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Tanh);
+  return ENGINE.runKernel(Tanh, inputs as {} as NamedTensorMap);
 }
 export const tanh = op({tanh_});

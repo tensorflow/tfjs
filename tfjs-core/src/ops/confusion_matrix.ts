@@ -52,8 +52,9 @@ import {transpose} from './transpose';
  * @returns The confusion matrix as a int32-type 2D tensor. The value at
  *   row `r` and column `c` is the number of times examples of actual class
  *   `r` were predicted as class `c`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 export function confusionMatrix_(
     labels: Tensor1D|TensorLike, predictions: Tensor1D|TensorLike,
     numClasses: number): Tensor2D {
@@ -88,7 +89,8 @@ export function confusionMatrix_(
   const oneHotPredictions =
       oneHot(cast($predictions, 'int32'), numClasses) as Tensor2D;
   const oneHotLabelsT: Tensor2D = transpose(oneHotLabels);
-  return cast(matMul(oneHotLabelsT, oneHotPredictions), 'int32');
+  const product: Tensor2D = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, 'int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

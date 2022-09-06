@@ -17,7 +17,7 @@
 
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
-import {scalar, tensor2d} from './ops/ops';
+import {complex, scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
 
@@ -36,6 +36,26 @@ describe('Util', () => {
     expect(util.arraysEqual([1, 2, 3, 6], [1, 2, 3, 6])).toBe(true);
     expect(util.arraysEqual([1, 2], [1, 2, 3])).toBe(false);
     expect(util.arraysEqual([1, 2, 5], [1, 2])).toBe(false);
+  });
+
+  it('Arrays shuffle randomly', () => {
+    // Create 1000 numbers ordered
+    const a = Array.apply(0, {length: 1000}).map(Number.call, Number).slice(1);
+    const b = [].concat(a);  // copy ES5 style
+    util.shuffle(a);
+    expect(a).not.toEqual(b);
+    expect(a.length).toEqual(b.length);
+  });
+
+  it('Multiple arrays shuffle together', () => {
+    // Create 1000 numbers ordered
+    const a = Array.apply(0, {length: 1000}).map(Number.call, Number).slice(1);
+    const b = [].concat(a);  // copies
+    const c = [].concat(a);
+    util.shuffleCombo(a, b);
+    expect(a).not.toEqual(c);
+    expect(a).toEqual(b);
+    expect(a.length).toEqual(c.length);
   });
 
   it('Is integer', () => {
@@ -85,6 +105,11 @@ describe('Util', () => {
 
   it('infer shape of typed array', () => {
     const a = new Float32Array([1, 2, 3, 4, 5]);
+    expect(inferShape(a)).toEqual([5]);
+  });
+
+  it('infer shape of clamped typed array', () => {
+    const a = new Uint8ClampedArray([1, 2, 3, 4, 5]);
     expect(inferShape(a)).toEqual([5]);
   });
 
@@ -514,9 +539,53 @@ describeWithFlags('util.toNestedArray', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('util.toNestedArray for a complex tensor', ALL_ENVS, () => {
+  it('2 dimensions', () => {
+    const a = new Float32Array([1, 11, 2, 12, 3, 13, 4, 14, 5, 15, 6, 16]);
+    expect(util.toNestedArray([2, 3], a, true)).toEqual([
+      [1, 11, 2, 12, 3, 13], [4, 14, 5, 15, 6, 16]
+    ]);
+  });
+
+  it('3 dimensions (2x2x3)', () => {
+    const a = new Float32Array([
+      0, 50, 1, 51, 2, 52, 3, 53, 4,  54, 5,  55,
+      6, 56, 7, 57, 8, 58, 9, 59, 10, 60, 11, 61
+    ]);
+    expect(util.toNestedArray([2, 2, 3], a, true)).toEqual([
+      [[0, 50, 1, 51, 2, 52], [3, 53, 4, 54, 5, 55]],
+      [[6, 56, 7, 57, 8, 58], [9, 59, 10, 60, 11, 61]]
+    ]);
+  });
+
+  it('3 dimensions (3x2x2)', () => {
+    const a = new Float32Array([
+      0, 50, 1, 51, 2, 52, 3, 53, 4,  54, 5,  55,
+      6, 56, 7, 57, 8, 58, 9, 59, 10, 60, 11, 61
+    ]);
+    expect(util.toNestedArray([3, 2, 2], a, true)).toEqual([
+      [[0, 50, 1, 51], [2, 52, 3, 53]], [[4, 54, 5, 55], [6, 56, 7, 57]],
+      [[8, 58, 9, 59], [10, 60, 11, 61]]
+    ]);
+  });
+
+  it('invalid dimension', () => {
+    const a = new Float32Array([1, 11, 2, 12, 3, 13]);
+    expect(() => util.toNestedArray([2, 2], a, true)).toThrowError();
+  });
+
+  it('tensor to nested array', async () => {
+    const x = complex([[1, 2], [3, 4]], [[11, 12], [13, 14]]);
+    expect(util.toNestedArray(x.shape, await x.data(), true)).toEqual([
+      [1, 11, 2, 12], [3, 13, 4, 14]
+    ]);
+  });
+});
+
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(tf.env().platform, 'fetch').and.callFake(() => {});
+    spyOn(tf.env().platform, 'fetch').and
+      .callFake(async () => ({} as unknown as Response));
 
     util.fetch('test/path', {method: 'GET'});
 
@@ -585,5 +654,14 @@ describe('util.decodeString', () => {
     } else {
       expect(s).toEqual(expected);
     }
+  });
+
+  it('assert promise', () => {
+    const promise = new Promise(() => {});
+    expect(util.isPromise(promise)).toBeTruthy();
+    const promise2 = {then: () => {}};
+    expect(util.isPromise(promise2)).toBeTruthy();
+    const promise3 = {};
+    expect(util.isPromise(promise3)).toBeFalsy();
   });
 });

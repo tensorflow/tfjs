@@ -17,7 +17,7 @@
 
 #ifndef NDEBUG
 
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 #define DCHECK(condition, message, ...) \
   if (!(condition)) {                   \
     util::warn(message, __VA_ARGS__);   \

@@ -34,7 +34,7 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
   it('1d, axis=-3', () => {
     expect(() => {
       tf.tensor1d([1, 2, 3]).expandDims(-3);
-    }).toThrowError('Axis must be in the interval [-2, 1]');
+    }).toThrowError();
   });
 
   it('1d, axis=-2', async () => {
@@ -64,7 +64,7 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
   it('2d, axis=-4', () => {
     expect(() => {
       tf.tensor2d([[1, 2], [3, 4], [5, 6]]).expandDims(-4 /* axis */);
-    }).toThrowError('Axis must be in the interval [-3, 2]');
+    }).toThrowError();
   });
 
   it('2d, axis=-3', async () => {
@@ -147,5 +147,22 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
     const res3 = a.expandDims(2);
     expect(res3.shape).toEqual([0, 3, 1]);
     expectArraysClose(await res3.data(), []);
+  });
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const t = tf.scalar(1);
+    const res = t.expandDims();
+    expect(res.shape).toEqual([1]);
+    expectArraysClose(await res.data(), [1]);
+
+    res.dispose();
+    t.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

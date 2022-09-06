@@ -21,14 +21,15 @@ import {BackendWasm} from '../backend_wasm';
 
 import {FusableActivation} from './types';
 
-let wasmFusedConv2d: (
-    xId: number, batchSize: number, inputHeight: number, inputWidth: number,
-    filterId: number, filterHeight: number, filterWidth: number, biasId: number,
-    padTop: number, padRight: number, padBottom: number, padLeft: number,
-    isSamePad: number, dilationHeight: number, dilationWidth: number,
-    strideHeight: number, strideWidth: number, inputChannels: number,
-    outputChannels: number, activation: number,
-    preluActivationWeightsId: number, outId: number) => void;
+let wasmFusedConv2d:
+    (xId: number, batchSize: number, inputHeight: number, inputWidth: number,
+     filterId: number, filterHeight: number, filterWidth: number,
+     biasId: number, padTop: number, padRight: number, padBottom: number,
+     padLeft: number, isSamePad: number, dilationHeight: number,
+     dilationWidth: number, strideHeight: number, strideWidth: number,
+     inputChannels: number, outputChannels: number, activation: number,
+     preluActivationWeightsId: number, leakyreluAlpha: number, outId: number) =>
+        void;
 
 function setup(backend: BackendWasm) {
   wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null /* void */, [
@@ -53,6 +54,7 @@ function setup(backend: BackendWasm) {
     'number',  // outputChannels
     'number',  // activation
     'number',  // preluActivationWeightsId
+    'number',  // leakyreluAlpha
     'number',  // outId
   ]);
 }
@@ -64,8 +66,15 @@ function fusedConv2d(args: {
 }) {
   const {inputs, attrs, backend} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dataFormat, dimRoundingMode, activation} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dilations,
+    dataFormat,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  } = attrs;
 
   const convInfo = backend_util.computeConv2DInfo(
       (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
@@ -127,11 +136,13 @@ function fusedConv2d(args: {
   const preluActivationWeightsId = preluActivationWeights == null ?
       0 :
       backend.dataIdMap.get(preluActivationWeights.dataId).id;
+
   wasmFusedConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      fusedActivation, preluActivationWeightsId, outId);
+      fusedActivation, preluActivationWeightsId, leakyreluAlpha || 0, outId);
+
   return out;
 }
 

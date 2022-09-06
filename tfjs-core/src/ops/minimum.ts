@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Minimum, MinimumInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -51,8 +51,9 @@ import {op} from './operation';
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function minimum_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'minimum');
@@ -66,16 +67,9 @@ function minimum_<T extends Tensor>(
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.minimum($a, $b);
-    save([$a, $b]);
-    return res;
-  };
   const inputs: MinimumInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Minimum) as T;
+  return ENGINE.runKernel(Minimum, inputs as {} as NamedTensorMap);
 }
 
 export const minimum = op({minimum_});

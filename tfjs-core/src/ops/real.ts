@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Real, RealInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -35,19 +35,14 @@ import {op} from './operation';
  * const x = tf.complex([-2.25, 3.25], [4.75, 5.75]);
  * tf.real(x).print();
  * ```
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function real_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'real');
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.real($input);
-  };
-
   const inputs: RealInputs = {input: $input};
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Real) as T;
+  return ENGINE.runKernel(Real, inputs as {} as NamedTensorMap);
 }
 
 export const real = op({real_});

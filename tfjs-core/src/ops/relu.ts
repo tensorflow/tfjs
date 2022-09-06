@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Relu, ReluInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -23,7 +23,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
-import { cast } from './cast';
 
 /**
  * Computes rectified linear element-wise: `max(x, 0)`.
@@ -34,27 +33,16 @@ import { cast } from './cast';
  * x.relu().print();  // or tf.relu(x)
  * ```
  * @param x The input tensor. If the dtype is `bool`, the output dtype will be
- *     `int32'.
+ *     `int32`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function relu_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'relu');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$x]);
-
-    if ($x.dtype === 'bool') {
-      return cast($x, 'int32');
-    }
-
-    return backend.relu($x);
-  };
-
   const inputs: ReluInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Relu) as
-      T;
+  return ENGINE.runKernel(Relu, inputs as {} as NamedTensorMap);
 }
 
 export const relu = op({relu_});

@@ -44,8 +44,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1*1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat Specify the data format of the input and output data.
  *      Defaults to 'NHWC'. Only 'NHWC' is currently supported. With the
  *      default format "NHWC", the data is stored in the order of: [batch,
@@ -55,8 +55,9 @@ import {reshape} from './reshape';
  *     for atrous morphological dilation. Defaults to `[1, 1]`. If `dilations`
  *     is a single number, then `dilationHeight == dilationWidth`. If it is
  *     greater than 1, then all values of `strides` must be 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function dilation2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike,
     strides: [number, number]|number, pad: 'valid'|'same',
@@ -89,6 +90,7 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dilations};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
                   Dilation2D, inputs as {} as NamedTensorMap,
                   attrs as {} as NamedAttrMap) as T;

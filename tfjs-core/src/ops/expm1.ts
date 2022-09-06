@@ -34,16 +34,13 @@ import {op} from './operation';
  * x.expm1().print();  // or tf.expm1(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function expm1_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'expm1');
 
   const inputs: Expm1Inputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.expm1($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Expm1);
+  return ENGINE.runKernel(Expm1, inputs as {} as NamedTensorMap);
 }
 export const expm1 = op({expm1_});

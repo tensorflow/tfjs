@@ -41,8 +41,9 @@ import {tanh} from './tanh';
  * @param data The input to the cell.
  * @param c Previous cell state.
  * @param h Previous cell output.
+ *
+ * @doc {heading: 'Operations', subheading: 'RNN'}
  */
-/** @doc {heading: 'Operations', subheading: 'RNN'} */
 function basicLSTMCell_(
     forgetBias: Scalar|TensorLike, lstmKernel: Tensor2D|TensorLike,
     lstmBias: Tensor1D|TensorLike, data: Tensor2D|TensorLike,

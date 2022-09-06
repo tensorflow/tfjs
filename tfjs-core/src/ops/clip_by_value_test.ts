@@ -30,6 +30,16 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2]);
   });
 
+  it('basic vec4', async () => {
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2, 5, NaN]);
+    const min = -1;
+    const max = 50;
+
+    const result = tf.clipByValue(a, min, max);
+
+    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, NaN]);
+  });
+
   it('propagates NaNs', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2, NaN]);
     const min = -1;
@@ -134,5 +144,14 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
   it('throws for string tensor', () => {
     expect(() => tf.clipByValue('q', 0, 1))
         .toThrowError(/Argument 'x' passed to 'clipByValue' must be numeric/);
+  });
+
+  it('clip int32 tensor', async () => {
+    const min = -1;
+    const max = 50;
+    const tensor = tf.tensor([2, 3, 4], [3], 'int32');
+    const result = tf.clipByValue(tensor, min, max);
+    expectArraysClose(await result.data(), [2, 3, 4]);
+    expect(result.dtype).toEqual('int32');
   });
 });

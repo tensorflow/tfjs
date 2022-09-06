@@ -17,12 +17,32 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
-  coverageOptions: {instrumentation: false}
+  coverageOptions: {instrumentation: false},
+  bundlerOptions: {
+    sourceMap: true,
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {targets: {browsers: ['defaults', 'IE 11']}}]
+        ]
+      }),
+    ]
+  }
 };
+
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
 
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'integration_tests/setup_test.ts',
     {pattern: 'integration_tests/**/*.ts'},
     {
@@ -32,24 +52,71 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    {
+      pattern: 'integration_tests/metadata/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve program bundles as files
+    {
+      pattern: 'custom_module/*/dist/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve model assets as files
+    {
+      pattern: 'custom_module/*/model/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve wasm files
+    {
+      pattern: 'node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/*.wasm',
+      watched: true,
+      included: false,
+      served: true,
+    },
   ],
+  basePath: '',
+  proxies: {
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-threaded-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm',
+  },
+  exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
     '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
   },
   karmaTypescriptConfig,
-  reporters: ['progress', 'karma-typescript']
+  reporters: ['spec', 'karma-typescript']
 };
 
 const browserstackConfig = {
   ...devConfig,
   hostname: 'bs-local.com',
-  singleRun: true
+  singleRun: true,
+  port: 9816
 };
 
 module.exports = function(config) {
   const args = [];
 
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
+  }
   if (config.grep) {
     args.push('--grep', config.grep);
   }
@@ -70,7 +137,9 @@ module.exports = function(config) {
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 1800,
+      tunnelIdentifier: `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
@@ -100,7 +169,7 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
@@ -117,13 +186,12 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Windows has WebGL problems:
-        // https://github.com/tensorflow/tfjs/issues/2272
-        browser_version: '77.0',
+        browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
       }
     },
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args, captureConsole: true},
+    logLevel: 'info'
   });
 };

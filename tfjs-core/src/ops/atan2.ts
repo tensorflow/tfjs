@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Atan2, Atan2Inputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -39,24 +39,17 @@ import {op} from './operation';
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
  *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function atan2_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'atan2');
   let $b = convertToTensor(b, 'b', 'atan2');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.atan2($a, $b);
-    save([$a, $b]);
-    return res;
-  };
   const inputs: Atan2Inputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Atan2) as T;
+  return ENGINE.runKernel(Atan2, inputs as {} as NamedTensorMap);
 }
 
 export const atan2 = op({atan2_});

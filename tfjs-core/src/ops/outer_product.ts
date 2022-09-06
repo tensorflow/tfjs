@@ -34,8 +34,9 @@ import {reshape} from './reshape';
  * ```
  * @param v1 The first vector in the outer product operation.
  * @param v2 The second vector in the outer product operation.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function outerProduct_(
     v1: Tensor1D|TensorLike, v2: Tensor1D|TensorLike): Tensor2D {
   const $v1 = convertToTensor(v1, 'v1', 'outerProduct');
@@ -48,7 +49,7 @@ function outerProduct_(
 
   const v12D = reshape($v1, [-1, 1]);
   const v22D = reshape($v2, [1, -1]);
-  return matMul(v12D, v22D) as Tensor2D;
+  return matMul(v12D, v22D);
 }
 
 export const outerProduct = op({outerProduct_});

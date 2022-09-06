@@ -30,17 +30,13 @@ import {op} from './operation';
  * x.square().print();  // or tf.square(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
   const attrs = {};
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [];
-  return ENGINE.runKernelFunc((backend, save) => {
-    save([$x]);
-    return backend.square($x);
-  }, {x: $x}, null /* grad */, 'Square', attrs, inputsToSave, outputsToSave);
+  return ENGINE.runKernel('Square', {x: $x}, attrs);
 }
 
 export const square = op({square_});

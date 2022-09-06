@@ -10,9 +10,10 @@
 
 /* Original source: utils/generic_utils.py */
 
-import {DataType, serialization, util, fused} from '@tensorflow/tfjs-core';
+import {DataType, fused, serialization, util} from '@tensorflow/tfjs-core';
 
 import {AssertionError, ValueError} from '../errors';
+
 // tslint:enable
 
 /**
@@ -484,11 +485,12 @@ export function formatAsFriendlyString(value: any): string {
  * @param waitMs The time between two consecutive calls to `f` in ms.
  */
 export function debounce<T>(
-    f: (...args: Array<{}>) => T, waitMs: number): (...args: Array<{}>) => T {
-  let lastTime = util.now();
+    f: (...args: Array<{}>) => T, waitMs: number,
+    nowFunc?: Function): (...args: Array<{}>) => T {
+  let lastTime = nowFunc != null ? nowFunc() : util.now();
   let lastResult: T;
   const f2 = (...args: Array<{}>) => {
-    const now = util.now();
+    const now = nowFunc != null ? nowFunc() : util.now();
     if (now - lastTime < waitMs) {
       return lastResult;
     }
@@ -506,15 +508,56 @@ export function debounce<T>(
  * @return The name of the fusable activation.
  */
 export function mapActivationToFusedKernel(activationName: string):
-  fused.Activation {
+    fused.Activation {
   if (activationName === 'relu') {
     return 'relu';
   }
   if (activationName === 'linear') {
     return 'linear';
   }
-  if(activationName === 'elu') {
+  if (activationName === 'elu') {
     return 'elu';
   }
   return null;
+}
+
+type PossibleValues = Array<Array<boolean|string|number>>;
+
+/**
+ * Returns the cartesian product of sets of values.
+ * This works the same as itertools.product in Python.
+ *
+ * Example:
+ *
+ * filters = [128, 256, 512]
+ * paddings = ['same', 'valid']
+ *
+ * product = [ [128, 'same'], [128, 'valid'], [256, 'same'], [256, 'valid'],
+ * [512, 'same'], [512, 'valid']]
+ *
+ * @param arrayOfValues List/array of values.
+ * @return The cartesian product.
+ */
+export function getCartesianProductOfValues(...arrayOfValues: PossibleValues):
+    PossibleValues {
+  assert(arrayOfValues.length > 0, 'arrayOfValues is empty');
+
+  for (const values of arrayOfValues) {
+    assert(Array.isArray(values), 'one of the values is not an array');
+    assert(values.length > 0, 'one of the values is empty');
+  }
+
+  return arrayOfValues.reduce((products, values) => {
+    if (products.length === 0) {
+      return values.map(value => [value]);
+    }
+
+    return values
+        .map(value => {
+          return products.map((prevValue) => [...prevValue, value]);
+        })
+        .reduce((flattenedProduct, unflattenedProduct) => {
+          return flattenedProduct.concat(unflattenedProduct);
+        }, []);
+  }, [] as PossibleValues);
 }

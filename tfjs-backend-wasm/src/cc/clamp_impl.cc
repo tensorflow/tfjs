@@ -12,15 +12,15 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/clamp_impl.h"
+#include "tfjs-backend-wasm/src/cc/clamp_impl.h"
 
 #include <xnnpack.h>
 #include <cstddef>
 #include <map>
 #include <tuple>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // These values are keys to creating the xnn clamp operator. We use

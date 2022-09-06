@@ -16,20 +16,21 @@
  */
 
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
 export class EncodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  enableShapeUniforms: boolean;
+  customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
   constructor(
-      outputShape: [number, number, number], texShape: [number, number],
-      inputIsUnsignedByte = false) {
+      outputShape: [number, number, number], inputIsUnsignedByte = false) {
     const glsl = getGlslDifferences();
-    const [height, width] = texShape;
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     let output = `result`;
     if (inputIsUnsignedByte) {
@@ -37,7 +38,9 @@ export class EncodeMatrixProgram implements GPGPUProgram {
     }
 
     this.userCode = `
-      ${shader_util.getFlatIndexFrom3D(outputShape)}
+      ${
+        this.enableShapeUniforms ? shader_util.getFlatIndexFrom3DOutput() :
+                                   shader_util.getFlatIndexFrom3D(outputShape)}
 
       void main() {
         ivec3 coords = getOutputCoords();
@@ -47,9 +50,9 @@ export class EncodeMatrixProgram implements GPGPUProgram {
 
         flatIndex = idiv(flatIndex, 4, 1.);
 
-        int r = flatIndex / ${width};
-        int c = imod(flatIndex, ${width});
-        vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+        int r = flatIndex / texShape[1];
+        int c = imod(flatIndex, texShape[1]);
+        vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
         vec4 values = ${glsl.texture2D}(A, uv);
 
         float result;

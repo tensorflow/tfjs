@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {cumsum} from '../../ops/cumsum';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.cumsum = function<R extends Rank>(
+getGlobalTensorClass().prototype.cumsum = function<R extends Rank>(
     axis?: number, exclusive?: boolean, reverse?: boolean): Tensor<R> {
   this.throwIfDisposed();
   return cumsum(this, axis, exclusive, reverse);

@@ -38,8 +38,9 @@ import {reshape} from './reshape';
  * ```
  * @param t1 The first tensor in the dot operation.
  * @param t2 The second tensor in the dot operation.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function dot_(t1: Tensor|TensorLike, t2: Tensor|TensorLike): Tensor {
   const $t1 = convertToTensor(t1, 't1', 'dot');
   const $t2 = convertToTensor(t2, 't2', 'dot');

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -26,6 +25,8 @@
 // tslint:disable-next-line: no-require-imports
 require('@tensorflow/tfjs-backend-cpu');
 import './index';
+import './public/chained_ops/register_all_chained_ops';
+import './register_all_gradients';
 import {setTestEnvs} from './jasmine_util';
 import {registerBackend, engine} from './globals';
 import {KernelBackend} from './backends/backend';
@@ -88,5 +89,5 @@ setTestEnvs([{
 
 const runner = new jasmine();
 
-runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});
+runner.loadConfig({spec_files: ['tfjs-core/src/**/**_test.js'], random: false});
 runner.execute();

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {squeeze} from '../../ops/squeeze';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.squeeze = function<T extends Tensor>(axis?: number[]): T {
+getGlobalTensorClass().prototype.squeeze = function<T extends Tensor>(
+    axis?: number[]): T {
   this.throwIfDisposed();
   return squeeze(this, axis);
 };

@@ -378,8 +378,9 @@ export interface SequentialArgs {
  *  await model.fit(xs, ys);
  *  model.predict(tf.tensor2d([5], [1, 1])).print();
  * ```
+ *
+ * @doc {heading: 'Models', subheading: 'Classes'}
  */
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Sequential extends LayersModel {
   /** @nocollapse */
   static className = 'Sequential';
@@ -432,8 +433,9 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case the `layer` argument has multiple output
    *   tensors, or is already connected somewhere else (forbidden in
    *   `Sequential` models).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   add(layer: Layer): void {
     const isLayerModelInstance =
         layer instanceof Sequential || layer instanceof LayersModel;
@@ -641,8 +643,9 @@ export class Sequential extends LayersModel {
    * @param printFn Custom print function. Can be used to replace the default
    *   `console.log`. For example, you can use `x => {}` to mute the printed
    *   messages in the console.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   summary(
       lineLength?: number, positions?: number[],
       printFn:
@@ -696,8 +699,7 @@ export class Sequential extends LayersModel {
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
    *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   evaluate(
@@ -715,7 +717,7 @@ export class Sequential extends LayersModel {
   /**
    * Evaluate model using a dataset object.
    *
-   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`).
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
@@ -723,14 +725,13 @@ export class Sequential extends LayersModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
    * @param args A configuration object for the dataset-based evaluation.
    * @returns Loss and metric values as an Array of `Scalar` objects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
@@ -748,7 +749,7 @@ export class Sequential extends LayersModel {
    * Computation is done in batches.
    *
    * Note: the "step" mode of predict() is currently not supported.
-   *   This is because the TensorFow.js core backend is imperative only.
+   *   This is because the TensorFlow.js core backend is imperative only.
    *
    * ```js
    * const model = tf.sequential({
@@ -766,8 +767,7 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
@@ -847,8 +847,7 @@ export class Sequential extends LayersModel {
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and what the model expects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fit(
@@ -906,7 +905,7 @@ export class Sequential extends LayersModel {
    *   The `value` field is expected to be an object of with fields
    *   `xs` and `ys`, which point to the feature tensor and the target tensor,
    *   respectively. This case is for models with exactly one input and one
-   *   output (e.g.. a sequential model). For example:
+   *   output (e.g. a sequential model). For example:
    *   ```js
    *   {value: {xs: xsTensor, ys: ysTensor}, done: false}
    *   ```
@@ -945,8 +944,7 @@ export class Sequential extends LayersModel {
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
@@ -965,7 +963,7 @@ export class Sequential extends LayersModel {
    * This method differs from `fit()` and `fitDataset()` in the following
    * regards:
    *   - It operates on exactly one batch of data.
-   *   - It returns only the loss and matric values, instead of
+   *   - It returns only the loss and metric values, instead of
    *     returning the batch-by-batch loss and metric values.
    *   - It doesn't support fine-grained options such as verbosity and
    *     callbacks.
@@ -975,12 +973,11 @@ export class Sequential extends LayersModel {
    *     multiple inputs).
    *   - An Object mapping input names to corresponding `tf.Tensor` (if the
    *     model has named inputs).
-   * @param y Target darta. It could be either a `tf.Tensor` a multiple
+   * @param y Target data. It could be either a `tf.Tensor` or multiple
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async trainOnBatch(

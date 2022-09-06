@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -56,8 +56,8 @@ import {reshape} from './reshape';
  *   - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
  *     in which we sample input values across the height and width dimensions
  *     in atrous convolution. Defaults to `[1, 1]`. If `rate` is a single
@@ -67,19 +67,21 @@ import {reshape} from './reshape';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels]. Only "NHWC" is currently supported.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
-  const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
+  const $x = convertToTensor(x, 'x', 'depthwiseConv2d', 'float32');
+  const $filter =
+      convertToTensor(filter, 'filter', 'depthwiseConv2d', 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;
@@ -95,49 +97,26 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
       $filter.rank === 4,
       () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
+  const inChannels = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
+      inChannels === $filter.shape[2],
       () => `Error in depthwiseConv2d: number of input channels ` +
-          `(${x4D.shape[3]}) must match the inChannels dimension in ` +
+          `(${inChannels}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in depthwiseConv2d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    if (dilations == null) {
-      dilations = [1, 1];
-    }
-
-    util.assert(
-        conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-        () => 'Error in depthwiseConv2d: Either strides or dilations must be ' +
-            `1. Got strides ${strides} and dilations '${dilations}'`);
-
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
-        true /* depthwise */);
-    const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
-    save([x4D, $filter]);
-    return res;
-  };
-
+  conv_util.checkPadOnDimRoundingMode('depthwiseConv2d', pad, dimRoundingMode);
   const inputs: DepthwiseConv2dNativeInputs = {x: x4D, filter: $filter};
   const attrs: DepthwiseConv2dNativeAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      DepthwiseConv2dNative, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  DepthwiseConv2dNative, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const depthwiseConv2d = op({depthwiseConv2d_});

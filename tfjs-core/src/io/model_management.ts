@@ -71,7 +71,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getManager(scheme: string): ModelStoreManager {
-    const manager = this.getInstance().managers[scheme];
+    const manager = ModelStoreManagerRegistry.getInstance().managers[scheme];
     if (manager == null) {
       throw new Error(`Cannot find model manager for scheme '${scheme}'`);
     }
@@ -79,7 +79,7 @@ export class ModelStoreManagerRegistry {
   }
 
   static getSchemes(): string[] {
-    return Object.keys(this.getInstance().managers);
+    return Object.keys(ModelStoreManagerRegistry.getInstance().managers);
   }
 }
 
@@ -187,8 +187,7 @@ async function cloneModelInternal(
  * their model artifacts info. URLs include medium-specific schemes, e.g.,
  *   'indexeddb://my/model/1'. Model artifacts info include type of the
  * model's topology, byte sizes of the topology, weights, etc.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Management',
@@ -211,7 +210,7 @@ async function listModels(): Promise<{[url: string]: ModelArtifactsInfo}> {
 }
 
 /**
- * Remove a model specified by URL from a reigstered storage medium.
+ * Remove a model specified by URL from a registered storage medium.
  *
  * ```js
  * // First create and save a model.
@@ -235,8 +234,7 @@ async function listModels(): Promise<{[url: string]: ModelArtifactsInfo}> {
  * @returns ModelArtifactsInfo of the deleted model (if and only if deletion
  *   is successful).
  * @throws Error if deletion fails, e.g., if no model exists at `path`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Management',
@@ -289,8 +287,7 @@ async function removeModel(url: string): Promise<ModelArtifactsInfo> {
  *   is successful).
  * @throws Error if copying fails, e.g., if no model exists at `sourceURL`, or
  *   if `oldPath` and `newPath` are identical.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Management',
@@ -342,8 +339,7 @@ async function copyModel(
  *   is successful).
  * @throws Error if moving fails, e.g., if no model exists at `sourceURL`, or
  *   if `oldPath` and `newPath` are identical.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Management',

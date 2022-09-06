@@ -15,37 +15,46 @@
  * =============================================================================
  */
 
-import {backend_util, kernel_impls, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
-import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
+import {backend_util, kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+
 const nonMaxSuppressionV5Impl = kernel_impls.nonMaxSuppressionV5Impl;
 import {MathBackendWebGL} from '../backend_webgl';
+
+export function nonMaxSuppressionV5(args: {
+  inputs: NonMaxSuppressionV5Inputs,
+  backend: MathBackendWebGL,
+  attrs: NonMaxSuppressionV5Attrs
+}): [TensorInfo, TensorInfo] {
+  backend_util.warn(
+      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+      'Call tf.nonMaxSuppressionAsync() instead');
+
+  const {inputs, backend, attrs} = args;
+  const {boxes, scores} = inputs;
+  const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} = attrs;
+
+  const boxesVals = backend.readSync(boxes.dataId) as TypedArray;
+  const scoresVals = backend.readSync(scores.dataId) as TypedArray;
+
+  const maxOutputSizeVal = maxOutputSize;
+  const iouThresholdVal = iouThreshold;
+  const scoreThresholdVal = scoreThreshold;
+  const softNmsSigmaVal = softNmsSigma;
+
+  const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
+      boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
+      scoreThresholdVal, softNmsSigmaVal);
+
+  return [
+    backend.makeTensorInfo(
+        [selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
+    backend.makeTensorInfo(
+        [selectedScores.length], 'float32', new Float32Array(selectedScores))
+  ];
+}
 
 export const nonMaxSuppressionV5Config: KernelConfig = {
   kernelName: NonMaxSuppressionV5,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend, attrs}) => {
-    backend_util.warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-        'Call tf.nonMaxSuppressionAsync() instead');
-
-    const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
-    const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
-        attrs as unknown as NonMaxSuppressionV5Attrs;
-
-    const gpuBackend = backend as MathBackendWebGL;
-
-    const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
-    const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
-
-    const maxOutputSizeVal = maxOutputSize;
-    const iouThresholdVal = iouThreshold;
-    const scoreThresholdVal = scoreThreshold;
-    const softNmsSigmaVal = softNmsSigma;
-
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
-        boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
-        scoreThresholdVal, softNmsSigmaVal);
-
-    return [selectedIndices, selectedScores];
-  }
+  kernelFunc: nonMaxSuppressionV5 as {} as KernelFunc
 };

@@ -33,16 +33,13 @@ import {op} from './operation';
  * x.reciprocal().print();  // or tf.reciprocal(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'reciprocal');
 
   const inputs: ReciprocalInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.reciprocal($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Reciprocal);
+  return ENGINE.runKernel(Reciprocal, inputs as {} as NamedTensorMap);
 }
 export const reciprocal = op({reciprocal_});

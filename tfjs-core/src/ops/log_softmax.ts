@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
-import {LogSoftmax, LogSoftmaxAttrs, LogSoftmaxInputs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
+import {customGrad} from '../gradients';
+
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {GradSaveFunc} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
@@ -27,6 +26,7 @@ import {cast} from './cast';
 import {exp} from './exp';
 import {log} from './log';
 import {max} from './max';
+import {mul} from './mul';
 import {op} from './operation';
 import {sub} from './sub';
 import {sum} from './sum';
@@ -49,8 +49,9 @@ import {sum} from './sum';
  * @param logits The logits array.
  * @param axis The dimension softmax would be performed on. Defaults to `-1`
  *     which indicates the last dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
   const $logits = convertToTensor(logits, 'logits', 'logSoftmax');
 
@@ -63,22 +64,43 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
         `Logits was rank ${$logits.rank} and axis was ${axis}`);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
+  // const forward: ForwardFunc<Tensor> = (backend, save) => {
+  //   const keepDims = true;
+  //   const xMax = max(logits, axis, true);
+  //   const shifted = sub(logits, xMax);
+  //   const value =
+  //       sub(cast(shifted, 'float32'), log(sum(exp(shifted), axis,
+  //       keepDims)));
+  //   save([value]);
+  //   return value;
+  // };
+
+  // Use a custom gradient for numerical stability.
+  const customOp = customGrad((logits: Tensor, save: GradSaveFunc) => {
     const keepDims = true;
     const xMax = max(logits, axis, true);
     const shifted = sub(logits, xMax);
     const value =
         sub(cast(shifted, 'float32'), log(sum(exp(shifted), axis, keepDims)));
     save([value]);
-    return value;
-  };
 
-  const inputs: LogSoftmaxInputs = {logits: $logits};
-  const attrs: LogSoftmaxAttrs = {axis};
+    const gradFunc = (dy: Tensor, saved: Tensor[]) => {
+      const [value] = saved;
+      const keepDims = true;
+      const softmax = exp(value);
+      return sub(dy, mul(sum(dy, axis, keepDims), softmax));
+    };
+    return {value, gradFunc};
+  });
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             LogSoftmax, attrs as {} as NamedAttrMap) as T;
+  return customOp($logits) as T;
+
+  // TODO Use Engine.runKernel when CPU/WebGL/WASM backends implement this.
+  // const inputs: LogSoftmaxInputs = {logits: $logits};
+  // const attrs: LogSoftmaxAttrs = {axis};
+  // return ENGINE.runKernel(
+  //            LogSoftmax, inputs as {} as NamedTensorMap,
+  //            attrs as {} as NamedAttrMap);
 }
 
 export const logSoftmax = op({logSoftmax_});

@@ -12,7 +12,7 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 #include <gtest/gtest.h>
 

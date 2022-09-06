@@ -16,12 +16,13 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
+  customUniforms = [{name: 'value', type: 'float' as UniformType}];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -44,7 +45,7 @@ export class PadProgram implements GPGPUProgram {
         void main() {
           int outC = getOutputCoords();
           if (outC < start || outC >= end) {
-            setOutput(float(${constantValue}));
+            setOutput(value);
           } else {
             setOutput(getX(outC - start));
           }
@@ -59,7 +60,7 @@ export class PadProgram implements GPGPUProgram {
       void main() {
         ${type} outC = getOutputCoords();
         if (any(lessThan(outC, start)) || any(greaterThanEqual(outC, end))) {
-          setOutput(float(${constantValue}));
+          setOutput(value);
         } else {
           ${type} coords = outC - start;
           setOutput(getX(${unpackedCoords}));

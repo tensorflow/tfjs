@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Slice, SliceAttrs, SliceInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -24,7 +24,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 
 import {op} from './operation';
-import * as slice_util from './slice_util';
 
 /**
  * Extracts a slice from a `tf.Tensor` starting at coordinates `begin`
@@ -57,29 +56,22 @@ import * as slice_util from './slice_util';
  *     x - the rest of the axes will have implicit -1. A value of -1 requests
  *     the rest of the dimensions in the axis. Can also be a single number,
  *     in which case it specifies the size of the first axis.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function slice_<R extends Rank, T extends Tensor<R>>(
     x: T|TensorLike, begin: number|number[], size?: number|number[]): T {
-  const $x = convertToTensor(x, 'x', 'slice');
+  const $x = convertToTensor(x, 'x', 'slice', 'string_or_numeric');
 
   if ($x.rank === 0) {
     throw new Error('Slicing scalar is not possible');
   }
-  const [begin_, size_] = slice_util.parseSliceParams($x, begin, size);
-  slice_util.assertParamsValid($x, begin_, size_);
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$x]);
-    return backend.slice($x, begin_, size_);
-  };
 
   const inputs: SliceInputs = {x: $x};
   const attrs: SliceAttrs = {begin, size};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Slice,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Slice, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const slice = op({slice_});

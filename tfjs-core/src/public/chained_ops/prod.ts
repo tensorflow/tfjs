@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {prod} from '../../ops/prod';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.prod = function<T extends Tensor>(
+getGlobalTensorClass().prototype.prod = function<T extends Tensor>(
     this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return prod(this, axis, keepDims);

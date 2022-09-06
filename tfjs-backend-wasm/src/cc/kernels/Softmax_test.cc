@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/Softmax.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Softmax.h"
 
 TEST(SOFTMAX, xnn_operator_lifetime) {
   tfjs::wasm::init();

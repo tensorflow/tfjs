@@ -40,8 +40,9 @@ import {whereAsync} from './where_async';
  * @param axis A 0-D int Tensor representing the axis in tensor to mask from.
  *     By default, axis is 0 which will mask from the first dimension.
  *     Otherwise K + axis <= N.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 async function booleanMaskAsync_(
     tensor: Tensor|TensorLike, mask: Tensor|TensorLike,
     axis?: number): Promise<Tensor> {

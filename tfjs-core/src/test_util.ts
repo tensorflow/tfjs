@@ -18,7 +18,7 @@
 import {ENGINE} from './engine';
 import {inferShape} from './tensor_util_env';
 import {RecursiveArray, TensorLike, TypedArray} from './types';
-import {arraysEqual, flatten, isString, isTypedArray} from './util';
+import {arraysEqual, encodeString, flatten, isString, isTypedArray} from './util';
 
 const TEST_EPSILON_FLOAT32 = 1e-3;
 export const TEST_EPSILON_FLOAT16 = 1e-1;
@@ -93,6 +93,9 @@ function expectArraysPredicate(
           `Expected: ${expectedFlat}.`);
     }
   }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export interface DoneFn {
@@ -102,6 +105,9 @@ export interface DoneFn {
 
 export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
   fn().then(() => done.fail(), () => done());
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export function expectArraysEqual(actual: TensorLike, expected: TensorLike) {
@@ -124,6 +130,9 @@ export function expectNumbersClose(a: number, e: number, epsilon?: number) {
   }
   if (!areClose(a, e, epsilon)) {
     throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
+  }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
   }
 }
 
@@ -149,7 +158,67 @@ export function expectValuesInRange(
 
 export function expectArrayBuffersEqual(
     actual: ArrayBuffer, expected: ArrayBuffer) {
-  // Safari & Jasmine don't like comparing ArrayBuffers directly. Wrapping in
+  // Safari does not like comparing ArrayBuffers directly. Wrapping in
   // a Float32Array solves this issue.
-  expect(new Float32Array(actual)).toEqual(new Float32Array(expected));
+  const actualArray = new Float32Array(actual);
+  const expectedArray = new Float32Array(expected);
+  if (actualArray.length !== expectedArray.length) {
+    throw new Error(
+        'Expected ArrayBuffer to be of length ' +
+        `${expectedArray.length}, but it was ${actualArray.length}`);
+  }
+
+  for (let i = 0; i < expectedArray.length; i++) {
+    if (actualArray[i] !== expectedArray[i]) {
+      throw new Error(
+          `Expected ArrayBuffer value at ${i} to be ` +
+          `${expectedArray[i]} but got ${actualArray[i]} instead`);
+    }
+  }
+}
+
+/** Encodes strings into utf-8 bytes. */
+export function encodeStrings(a: RecursiveArray<{}>):
+    RecursiveArray<Uint8Array> {
+  for (let i = 0; i < (a as Array<{}>).length; i++) {
+    const val = a[i];
+    if (Array.isArray(val)) {
+      encodeStrings(val);
+    } else {
+      a[i] = encodeString(val as string);
+    }
+  }
+  return a as RecursiveArray<Uint8Array>;
+}
+
+/** Creates an HTMLVideoElement with autoplay-friendly default settings. */
+export function createVideoElement(source: HTMLSourceElement):
+    Promise<HTMLVideoElement> {
+  const video = document.createElement('video');
+  if ('playsInline' in video) {
+    // tslint:disable-next-line:no-any
+    (video as any).playsInline = true;
+  }
+  video.muted = true;
+  video.loop = true;
+  video.style.position = 'fixed';
+  video.style.left = '0px';
+  video.style.top = '0px';
+
+  video.preload = 'auto';
+  video.appendChild(source);
+  return new Promise(resolve => {
+    video.addEventListener('loadeddata', _ => resolve(video));
+    video.load();
+  });
+}
+
+export async function play(video: HTMLVideoElement) {
+  await video.play();
+  if ('requestVideoFrameCallback' in video) {
+    await new Promise(resolve => {
+      // tslint:disable-next-line:no-any
+      (video as any).requestVideoFrameCallback(resolve);
+    });
+  }
 }

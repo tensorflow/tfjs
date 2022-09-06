@@ -36,8 +36,9 @@ import {op} from './operation';
  *
  * @param a The first input tensor. Must be of dtype bool.
  * @param b The second input tensor. Must be of dtype bool.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function logicalAnd_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'logicalAnd', 'bool');
@@ -46,9 +47,7 @@ function logicalAnd_<T extends Tensor>(
 
   const inputs: LogicalAndInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             backend => backend.logicalAnd($a, $b),
-             inputs as {} as NamedTensorMap, null /* grad */, LogicalAnd) as T;
+  return ENGINE.runKernel(LogicalAnd, inputs as {} as NamedTensorMap);
 }
 
 export const logicalAnd = op({logicalAnd_});

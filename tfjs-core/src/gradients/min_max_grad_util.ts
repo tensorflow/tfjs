@@ -20,14 +20,13 @@ import {cast} from '../ops/cast';
 import {equal} from '../ops/equal';
 import {mul} from '../ops/mul';
 import {reshape} from '../ops/reshape';
-import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 
 /**
  * Gradient helper function for the min and max operations.
  */
 export function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
+    dy: T, y: T, xOrig: Tensor, origAxes: number[]) {
   if (y.rank < xOrig.rank) {
     y = reshape(y, axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
   }
@@ -37,7 +36,7 @@ export function gradForMinAndMax<T extends Tensor>(
   return {
     x: () => {
       const dx = mul(dy, cast(equal(xOrig, y), dy.dtype));
-      return permutedAxes == null ? dx : transpose(dx, permutedAxes);
+      return dx;
     }
   };
 }

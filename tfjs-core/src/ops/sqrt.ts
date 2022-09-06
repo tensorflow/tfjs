@@ -33,17 +33,14 @@ import {op} from './operation';
  * x.sqrt().print();  // or tf.sqrt(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sqrt_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sqrt');
+  const $x = convertToTensor(x, 'x', 'sqrt', 'float32');
 
   const inputs: SqrtInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sqrt($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sqrt);
+  return ENGINE.runKernel(Sqrt, inputs as {} as NamedTensorMap);
 }
 export const sqrt = op({sqrt_});

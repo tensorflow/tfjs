@@ -19,8 +19,3 @@
 import './base_side_effects';
 // All exports from this package should be in base.
 export * from './base';
-
-// Register all the gradients.
-import './register_all_gradients';
-// Import all op chainers and add type info to Tensor.
-import './public/chained_ops/register_all_chained_ops';

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {sub} from '../../ops/sub';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.sub = function<T extends Tensor>(b: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.sub = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return sub(this, b);
 };

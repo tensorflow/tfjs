@@ -19,11 +19,13 @@
 import {tensor2d, tensor3d, test_util} from '@tensorflow/tfjs-core';
 // TODO(kangyizhang): import from index once microphone is exported.
 import * as tfd from '../readers';
-import {describeBrowserEnvs, setupFakeAudeoStream} from '../util/test_utils';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {MEDIA_ENVS, setupFakeAudioStream} from '../util/test_utils';
 
-describeBrowserEnvs('MicrophoneIterator', () => {
+describeWithFlags('MicrophoneIterator', MEDIA_ENVS, () => {
   beforeEach(() => {
-    setupFakeAudeoStream();
+    setupFakeAudioStream();
   });
 
   it('gets tensor with default shape with no config', async () => {
@@ -34,14 +36,13 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect((result.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
   });
 
-  it('throws error when sample rate is not available', async done => {
+  it('throws error when sample rate is not available', async () => {
     try {
       await tfd.microphone({sampleRateHz: 48000});
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'Mismatch in sampling rate: Expected: 48000; Actual: 44100');
-      done();
     }
   });
 
@@ -64,15 +65,14 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect((result.value as any).spectrogram.shape).toEqual([43, 16, 1]);
   });
 
-  it('throws error with invalid fftSize', async done => {
+  it('throws error with invalid fftSize', async () => {
     try {
       await tfd.microphone({fftSize: 1000});
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'Invalid fftSize: it must be a power of 2 between 2 to 4 and ' +
           '2 to 14, but got 1000');
-      done();
     }
   });
 
@@ -85,27 +85,29 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     expect((result.value as any).spectrogram.shape).toEqual([43, 232, 1]);
   });
 
-  it('gets tensor in correct shape with numFramesPerSpectrogram', async () => {
-    const microphoneIterator =
-        await tfd.microphone({numFramesPerSpectrogram: 3, fftSize: 16});
-    const result = await microphoneIterator.next();
-    expect(result.done).toBeFalsy();
-    // tslint:disable-next-line:no-any
-    expect((result.value as any).spectrogram.shape).toEqual([3, 16, 1]);
-  });
+  it('gets tensor in correct shape with numFramesPerSpectrogram',
+     async () => {
+       const microphoneIterator =
+           await tfd.microphone({numFramesPerSpectrogram: 3, fftSize: 16});
+       const result = await microphoneIterator.next();
+       expect(result.done).toBeFalsy();
+       // tslint:disable-next-line:no-any
+       expect((result.value as any).spectrogram.shape).toEqual([3, 16, 1]);
+     });
 
-  it('gets tensor in correct shape with full spectrogram config', async () => {
-    const microphoneIterator = await tfd.microphone({
-      sampleRateHz: 44100,
-      fftSize: 16,
-      numFramesPerSpectrogram: 10,
-      columnTruncateLength: 10
-    });
-    const result = await microphoneIterator.next();
-    expect(result.done).toBeFalsy();
-    // tslint:disable-next-line:no-any
-    expect((result.value as any).spectrogram.shape).toEqual([10, 10, 1]);
-  });
+  it('gets tensor in correct shape with full spectrogram config',
+     async () => {
+       const microphoneIterator = await tfd.microphone({
+         sampleRateHz: 44100,
+         fftSize: 16,
+         numFramesPerSpectrogram: 10,
+         columnTruncateLength: 10
+       });
+       const result = await microphoneIterator.next();
+       expect(result.done).toBeFalsy();
+       // tslint:disable-next-line:no-any
+       expect((result.value as any).spectrogram.shape).toEqual([10, 10, 1]);
+     });
 
   it('provides both spectrogram and waveform', async () => {
     const microphoneIterator = await tfd.microphone(
@@ -173,8 +175,8 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     test_util.expectArraysClose(
         await value.waveform.array(),
         await tensor2d([
-          [-16], [-17], [-18], [-19], [-20], [-21], [-22], [-23], [-24], [-25],
-          [-26], [-27], [-28], [-29], [-30], [-31]
+          [-16], [-17], [-18], [-19], [-20], [-21], [-22], [-23], [-24],
+          [-25], [-26], [-27], [-28], [-29], [-30], [-31]
         ]).array());
   });
 
@@ -184,8 +186,8 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     const microphoneIterator = await tfd.microphone(
         {numFramesPerSpectrogram: 10, columnTruncateLength: 10, fftSize: 32});
 
-    // This function will be called 3 times. Between each call there is a 200ms
-    // interval. The spectrogram tensor will be returned after 464ms.
+    // This function will be called 3 times. Between each call there is a
+    // 200ms interval. The spectrogram tensor will be returned after 464ms.
     /**
      * The events happen in sequence are:
      * call 1st at 0ms,    timesRun:1, tensorsReturned:0;

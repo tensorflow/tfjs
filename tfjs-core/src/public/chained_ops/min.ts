@@ -16,7 +16,7 @@
  */
 
 import {min} from '../../ops/min';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.min = function<T extends Tensor>(
+getGlobalTensorClass().prototype.min = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return min(this, axis, keepDims);

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {mean} from '../../ops/mean';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.mean = function<T extends Tensor>(
+getGlobalTensorClass().prototype.mean = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return mean(this, axis, keepDims);

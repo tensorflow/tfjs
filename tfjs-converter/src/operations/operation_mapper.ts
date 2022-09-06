@@ -18,8 +18,8 @@
 import {DataType, env} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
-import {getRegisteredOp} from './custom_op/register';
 
+import {getRegisteredOp} from './custom_op/register';
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
@@ -29,13 +29,16 @@ import * as creation from './op_list/creation';
 import * as dynamic from './op_list/dynamic';
 import * as evaluation from './op_list/evaluation';
 import * as graph from './op_list/graph';
+import * as hashTable from './op_list/hash_table';
 import * as image from './op_list/image';
 import * as logical from './op_list/logical';
 import * as matrices from './op_list/matrices';
 import * as normalization from './op_list/normalization';
 import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
+import * as sparse from './op_list/sparse';
 import * as spectral from './op_list/spectral';
+import * as string from './op_list/string';
 import * as transformation from './op_list/transformation';
 import {Graph, InputParamValue, Node, OpMapper, ParamValue} from './types';
 
@@ -53,8 +56,8 @@ export class OperationMapper {
   private constructor() {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
-      evaluation, logical, image, graph, matrices, normalization, reduction,
-      sliceJoin, spectral, transformation
+      evaluation, graph, hashTable, image, logical, matrices, normalization,
+      reduction, sliceJoin, sparse, spectral, string, transformation
     ];
     const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
@@ -66,21 +69,23 @@ export class OperationMapper {
         {});
   }
 
-  // Converts the model from Tensorflow GraphDef to local representation for
-  // TensorFlow.js API
+  // Converts the model inference graph from Tensorflow GraphDef to local
+  // representation for TensorFlow.js API
   transformGraph(
       graph: tensorflow.IGraphDef,
       signature: tensorflow.ISignatureDef = {}): Graph {
     const tfNodes = graph.node;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
+    const initNodes: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (node.op.startsWith('Placeholder')) {
         placeholders.push(map[node.name]);
-      }
-      if (node.op === 'Const') {
+      } else if (node.op === 'Const') {
         weights.push(map[node.name]);
+      } else if (node.input == null || node.input.length === 0) {
+        initNodes.push(map[node.name]);
       }
       return map;
     }, {});
@@ -96,10 +101,19 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
+        }
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 
@@ -144,15 +158,14 @@ export class OperationMapper {
       }, {} as {[key: string]: Graph});
     }
 
-    return {
-      nodes,
-      inputs,
-      outputs,
-      weights,
-      placeholders,
-      signature,
-      functions
-    };
+    const result: Graph =
+        {nodes, inputs, outputs, weights, placeholders, signature, functions};
+
+    if (initNodes.length > 0) {
+      result.initNodes = initNodes;
+    }
+
+    return result;
   }
 
   private mapSignatureEntries(entries: {[k: string]: tensorflow.ITensorInfo}) {
@@ -178,12 +191,13 @@ export class OperationMapper {
       category: mapper.category,
       inputNames:
           (node.input ||
-           []).map(input => input.startsWith('^') ? input.substr(1) : input),
+           []).map(input => input.startsWith('^') ? input.slice(1) : input),
       inputs: [],
       children: [],
       inputParams: {},
       attrParams: {},
-      rawAttrs: node.attr
+      rawAttrs: node.attr,
+      outputs: mapper.outputs
     };
 
     if (mapper.inputs != null) {
@@ -359,10 +373,19 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
+        }
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 
@@ -463,6 +486,7 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
   }
   switch (value) {
     case tensorflow.DataType.DT_FLOAT:
+    case tensorflow.DataType.DT_HALF:
       return 'float32';
     case tensorflow.DataType.DT_INT32:
     case tensorflow.DataType.DT_INT64:

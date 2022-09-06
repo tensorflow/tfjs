@@ -14,23 +14,26 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ExplicitPadding} from '../../ops/conv_util';
 import {avgPool} from '../../ops/avg_pool';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     avgPool<T extends Tensor3D|Tensor4D>(
         filterSize: [number, number]|number, strides: [number, number]|number,
-        pad: 'valid'|'same'|number,
+        pad: 'valid'|'same'|number|ExplicitPadding,
         dimRoundingMode?: 'floor'|'round'|'ceil'): T;
   }
 }
 
-Tensor.prototype.avgPool = function<T extends Tensor3D|Tensor4D>(
-    this: T, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+getGlobalTensorClass().prototype.avgPool =
+    function<T extends Tensor3D|Tensor4D>(
+        this: T, filterSize: [number, number]|number,
+        strides: [number, number]|number,
+        pad: 'valid'|'same'|number|ExplicitPadding,
+        dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   this.throwIfDisposed();
   return avgPool(this, filterSize, strides, pad, dimRoundingMode);
 };

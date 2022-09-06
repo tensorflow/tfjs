@@ -16,7 +16,7 @@
  */
 
 import {reshape} from '../../ops/reshape';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,9 +25,11 @@ declare module '../../tensor' {
   }
 }
 
-/** Flatten a Tensor to a 1D array. */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
-Tensor.prototype.flatten = function<T extends Tensor>(): T {
+/**
+ * Flatten a Tensor to a 1D array.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
+ */
+getGlobalTensorClass().prototype.flatten = function<T extends Tensor>(): T {
   this.throwIfDisposed();
   return reshape(this, [this.size]) as T;
 };

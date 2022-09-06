@@ -21,6 +21,7 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const rho = .95;
     const optimizer = tf.train.adadelta(learningRate, rho);
@@ -72,8 +73,8 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
     x.dispose();
     optimizer.dispose();
 
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining is the argument to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('Save, load weights and continue training', async () => {

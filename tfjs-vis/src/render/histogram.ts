@@ -44,8 +44,9 @@ const defaultOpts = {
  * const surface = { name: 'Histogram', tab: 'Charts' };
  * tfvis.render.histogram(surface, data);
  * ```
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function histogram(
     container: Drawable, data: Array<{value: number}>|number[]|TypedArray,
     opts: HistogramOpts = {}) {
