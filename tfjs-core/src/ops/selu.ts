@@ -27,7 +27,7 @@ import {op} from './operation';
 /**
  * Computes scaled exponential linear element-wise.
  *
- * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
+ * `x < 0 ? scale * alpha * (exp(x) - 1) : scale * x`
  *
  * ```js
  * const x = tf.tensor1d([-1, 2, -3, 4]);
