@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
-function runRaggedGather(
+async function runRaggedGather(
     indicesShape: number[], indices: number[], paramsNestedSplits: number[][],
     paramsDenseValuesShape: number[], paramsDenseValues: number[]) {
   const paramsRaggedRank = paramsNestedSplits.length;
@@ -46,7 +46,7 @@ function runRaggedGather(
   });
 
   return {
-    outputDenseValues: output.outputDenseValues.dataSync(),
+    outputDenseValues: await output.outputDenseValues.data(),
     outputDenseValuesShape: output.outputDenseValues.shape,
     outputNestedSplits:
         output.outputNestedSplits.map(splits => splits.dataSync()),
@@ -56,7 +56,7 @@ function runRaggedGather(
 
 describeWithFlags('raggedGather ', ALL_ENVS, () => {
   it('RaggedGather', async () => {
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [4], [2, 1, 0, 3], [[0, 3, 3, 7, 9]], [9],
         [.1, .2, .3, .4, .5, .6, .7, .8, .9]);
 
@@ -69,7 +69,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
   });
 
   it('RaggedGather3DParams', async () => {
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [5], [2, 1, 0, 2, 3], [[0, 1, 3, 3, 5, 6], [0, 0, 2, 3, 5, 8, 9]], [9],
         [.1, .2, .3, .4, .5, .6, .7, .8, .9]);
 
@@ -83,7 +83,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
   });
 
   it('RaggedGather4DParams', async () => {
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [4], [2, 1, 0, 2], [[0, 1, 3, 3], [0, 0, 3, 4]], [4, 2],
         [1, 2, 3, 4, 5, 6, 7, 8]);
 
@@ -96,7 +96,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
   });
 
   it('RaggedGather2DIndices', async () => {
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [2, 2], [2, 1, 0, 3], [[0, 3, 3, 7, 9]], [9],
         [.1, .2, .3, .4, .5, .6, .7, .8, .9]);
 
@@ -110,7 +110,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
   });
 
   it('RaggedGatherScalarIndices', async () => {
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [], [2], [[0, 3, 3, 7, 9]], [9], [.1, .2, .3, .4, .5, .6, .7, .8, .9]);
 
     expect(result.outputNestedSplits.length).toEqual(0);
@@ -121,7 +121,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
 
   it('OutOfBounds', async () => {
     expect(
-        () => runRaggedGather(
+        () => await runRaggedGather(
             [2], [2, 10], [[0, 3, 3, 7, 9]], [9],
             [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
         .toThrowError('indices[1] = 10 is not in [0, 4)');
@@ -129,7 +129,7 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
 
   it('InvalidSplitsNotSorted', async () => {
     expect(
-        () => runRaggedGather(
+        () => await runRaggedGather(
             [2], [0, 2], [[0, 3, 5, 2, 9]], [9],
             [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
         .toThrowError('Ragged splits must be sorted');
@@ -137,34 +137,34 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
 
   it('InvalidSplitsNegative', async () => {
     expect(
-        () => runRaggedGather(
+        () => await runRaggedGather(
             [2], [0, 2], [[-1, 3, 2, 7, 9]], [9],
             [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
         .toThrowError('Ragged splits must be non-negative');
   });
 
   it('InvalidSplitsEmpty', async () => {
-    expect(() => runRaggedGather([0], [], [[]], [0], []))
+    expect(() => await runRaggedGather([0], [], [[]], [0], []))
         .toThrowError('Ragged splits may not be empty');
   });
 
   it('InvalidSplitsTooBig', async () => {
     expect(
-        () => runRaggedGather(
+        () => await runRaggedGather(
             [2], [0, 2], [[0, 20, 40, 80, 100]], [9],
             [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
         .toThrowError('Ragged splits must not point past values');
   });
 
   it('BadValuesShape', async () => {
-    expect(() => runRaggedGather([0], [], [[0]], [], [.1]))
+    expect(() => await runRaggedGather([0], [], [[0]], [], [.1]))
         .toThrowError('params.rank must be nonzero');
   });
 
   it('does not have memory leak.', async () => {
     const beforeDataIds = tf.engine().backend.numDataIds();
 
-    const result = runRaggedGather(
+    const result = await runRaggedGather(
         [4], [2, 1, 0, 3], [[0, 3, 3, 7, 9]], [9],
         [.1, .2, .3, .4, .5, .6, .7, .8, .9]);
 
