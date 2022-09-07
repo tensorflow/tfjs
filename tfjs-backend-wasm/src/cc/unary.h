@@ -24,6 +24,19 @@
 namespace tfjs {
 namespace wasm {
 
+inline void unary_bool(const int x_id, const int out_id,
+                       bool operation(bool)) {
+  auto& a_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  const bool* a_buf = a_info.b();
+  bool* out_buf = out_info.b_write();
+
+  for (size_t i = 0; i < a_info.size; ++i) {
+    out_buf[i] = operation(a_buf[i]);
+  }
+}
+
 inline void unary_f32(const size_t x_id, const size_t out_id,
                       float operation(float)) {
   auto& a_info = backend::get_tensor_info(x_id);

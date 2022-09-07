@@ -44,6 +44,12 @@ describeWithFlags('log', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.log(1), NaN]);
   });
 
+  it('negtive values', async () => {
+    const a = tf.tensor1d([1, -1]);
+    const r = tf.log(a);
+    expectArraysClose(await r.data(), [Math.log(1), NaN]);
+  });
+
   it('gradients: Scalar', async () => {
     const a = tf.scalar(5);
     const dy = tf.scalar(3);

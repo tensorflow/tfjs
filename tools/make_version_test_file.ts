@@ -50,9 +50,13 @@ const parser = new ArgumentParser({
 });
 
 parser.addArgument('package_json', {action: 'store', type: String});
+parser.addArgument('version_name', {
+  action: 'store',
+  type: String,
+});
 parser.addArgument('output', {
   action: 'store',
-  type: String
+  type: String,
 });
 
 const args = parser.parseArgs();
@@ -66,11 +70,11 @@ const version = JSON.parse(package_json).version as string;
 
 const versionTestContent = `${LICENSE}
 ${AUTOGEN_CLAUSE}
-import {version_core} from './index';
+import {${args.version_name}} from './index';
 
 describe('version', () => {
   it('version is contained', () => {
-    expect(version_core).toBe('${version}');
+    expect(${args.version_name}).toBe('${version}');
   });
 });
 `;

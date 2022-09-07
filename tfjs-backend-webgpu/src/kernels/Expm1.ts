@@ -18,7 +18,7 @@
 import {Expm1, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {expm1ImplCPU} from '../kernel_utils/shared';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const expm1 =
     unaryKernelFunc({opType: UnaryOpType.EXPM1, cpuKernelImpl: expm1ImplCPU});

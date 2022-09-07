@@ -274,14 +274,14 @@ export function sizeToSquarishShape(size: number): [number, number] {
 }
 
 /**
- * Creates a new array with randomized indicies to a given quantity.
+ * Creates a new array with randomized indices to a given quantity.
  *
  * ```js
  * const randomTen = tf.util.createShuffledIndices(10);
  * console.log(randomTen);
  * ```
  *
- * @param number Quantity of how many shuffled indicies to create.
+ * @param number Quantity of how many shuffled indices to create.
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */

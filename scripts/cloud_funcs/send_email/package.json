@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "humanize-duration": "3.10.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   }

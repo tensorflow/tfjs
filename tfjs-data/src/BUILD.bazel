@@ -26,7 +26,7 @@ filegroup(
 
 TEST_SRCS = [
     "**/*_test.ts",
-    "run_tests.ts",
+    "setup_tests.ts",
 ]
 
 filegroup(
@@ -59,6 +59,7 @@ ts_library(
         "//tfjs-core/src:tfjs-core_src_lib",
         "@npm//@types/seedrandom",
         "@npm//seedrandom",
+        "@npm//string_decoder",
     ],
 )
 

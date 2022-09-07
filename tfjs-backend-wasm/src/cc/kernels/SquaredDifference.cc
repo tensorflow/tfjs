@@ -38,10 +38,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void SquaredDifference(
-    const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
-    const size_t b_id, const size_t* b_shape_ptr, const size_t b_shape_len,
-    const DType dtype, const size_t out_id) {
+void SquaredDifference(const size_t a_id, const size_t* a_shape_ptr,
+                       const size_t a_shape_len, const size_t b_id,
+                       const size_t* b_shape_ptr, const size_t b_shape_len,
+                       const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
       binary_xnn_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
@@ -51,14 +51,18 @@ void SquaredDifference(
                     xnn_setup_square_nc_f32);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, squared_diff<int32_t>);
+      binary_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, squared_diff<int32_t>);
       break;
     case DType::boolean:
-      binary_bool(a_id, b_id, out_id, squared_diff<bool>);
+      binary_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                  b_shape_len, out_id, squared_diff<bool>);
       break;
     default:
-      util::warn("SquaredDifference for tensor ids %d and %d failed. "
-                 "Unknown dtype %d", a_id, b_id, dtype);
+      util::warn(
+          "SquaredDifference for tensor ids %d and %d failed. "
+          "Unknown dtype %d",
+          a_id, b_id, dtype);
   }
 }
 

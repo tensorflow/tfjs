@@ -92,15 +92,8 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
       outDepth === filter.shape[3],
       () => `Error in conv2dDerInput: depth of output (${outDepth}) must ` +
           `match output depth for filter ${filter.shape[3]}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv2dDerInput: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv2dDerInput', pad, dimRoundingMode);
   const inputs: Conv2DBackpropInputInputs = {dy: dy4D, filter};
-
   const attrs: Conv2DBackpropInputAttrs =
       {strides, pad, dataFormat, dimRoundingMode, inputShape: xShape4D};
 

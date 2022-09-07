@@ -41,13 +41,16 @@ void Equal(const size_t a_id, const size_t* a_shape_ptr,
            const DType input_type, const size_t out_id) {
   switch (input_type) {
     case DType::float32:
-      compare_f32(a_id, b_id, out_id, equal<float>);
+      compare_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                  b_shape_len, out_id, equal<float>);
       break;
     case DType::int32:
-      compare_i32(a_id, b_id, out_id, equal<int>);
+      compare_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                  b_shape_len, out_id, equal<int>);
       break;
     case DType::boolean:
-      compare_bool(a_id, b_id, out_id, equal<bool>);
+      compare_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                   b_shape_len, out_id, equal<bool>);
       break;
     default:
       util::warn(

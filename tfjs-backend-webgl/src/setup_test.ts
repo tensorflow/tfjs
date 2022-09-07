@@ -22,19 +22,26 @@ import './index';
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
-import './backend_webgl_test_registry';
+import {registerTestEnvs} from './backend_webgl_test_registry';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
+registerTestEnvs();
+
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
-  const toExclude =
-      ['isBrowser: false', 'dilation gradient'];
+  const toExclude = [
+    'isBrowser: false', 'dilation gradient',
+    'throws when index is out of bound',
+    // otsu tests for threshold op is failing on windows
+    'method otsu'
+  ];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
       return false;
     }
   }
+  // TODO(msoulanille): Prefer TEST_FILTERS over customInclude.
   return true;
 };
 setupTestFilters(TEST_FILTERS, customInclude);

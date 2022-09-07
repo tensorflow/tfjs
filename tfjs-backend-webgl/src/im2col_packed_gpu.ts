@@ -27,7 +27,7 @@ export class Im2ColPackedProgram implements GPGPUProgram {
   userCode: string;
   enableShapeUniforms: boolean;
   customUniforms = [
-    {name: 'inputShape', type: 'ivec3' as const },
+    {name: 'inputShape', type: 'ivec4' as const },
     {name: 'pad', type: 'ivec2' as const },
     {name: 'stride', type: 'ivec2' as const },
     {name: 'dilation', type: 'ivec2' as const },
@@ -42,19 +42,19 @@ export class Im2ColPackedProgram implements GPGPUProgram {
     const {dataFormat} = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === 'channelsLast';
-    const rowDim = isChannelsLast ? 0 : 1;
-    const colDim = isChannelsLast ? 1 : 2;
+    const rowDim = isChannelsLast ? 1 : 2;
+    const colDim = isChannelsLast ? 2 : 3;
 
     const boundsCheckingSnippet = this.enableShapeUniforms ?
-        'if(blockIndex < outShape[1] && pos < outShape[0]) {' :
-        `if(blockIndex < ${outputShape[1]} && pos < ${outputShape[0]}) {`;
+        'if(blockIndex < outShape[2] && pos < outShape[1]) {' :
+        `if(blockIndex < ${outputShape[2]} && pos < ${outputShape[1]}) {`;
     let unrolled = ``;
 
     for (let row = 0; row <= 1; row++) {
       for (let col = 0; col <= 1; col++) {
         unrolled += `
-          blockIndex = rc.y + ${col};
-          pos = rc.x + ${row};
+          blockIndex = rc.z + ${col};
+          pos = rc.y + ${row};
 
           ${boundsCheckingSnippet}
             offsetY = int(blockIndex / outWidth) * stride[0] - pad[0];
@@ -75,12 +75,12 @@ export class Im2ColPackedProgram implements GPGPUProgram {
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);
                   result[${row * 2 + col}] = getChannel(
-                    getA(d0, int(innerDims.x),
+                    getA(rc.x, d0, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 } else {
                   innerDims = vec2(d0, d1);
                   result[${row * 2 + col}] = getChannel(
-                    getA(ch, int(innerDims.x),
+                    getA(rc.x, ch, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 }
               }
@@ -92,7 +92,7 @@ export class Im2ColPackedProgram implements GPGPUProgram {
 
     this.userCode = `
       void main() {
-        ivec2 rc = getOutputCoords();
+        ivec3 rc = getOutputCoords();
 
         vec4 result = vec4(0);
 

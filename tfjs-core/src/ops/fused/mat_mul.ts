@@ -63,7 +63,7 @@ function fusedMatMul_({
   bias,
   activation = 'linear',
   preluActivationWeights,
-  leakyreluAlpha,
+  leakyreluAlpha = 0.2,
 }: {
   a: Tensor|TensorLike,
   b: Tensor|TensorLike,

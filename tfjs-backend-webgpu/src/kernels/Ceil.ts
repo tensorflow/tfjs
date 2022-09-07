@@ -18,7 +18,7 @@
 import {Ceil, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {ceilImplCPU} from '../kernel_utils/shared';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const ceil =
     unaryKernelFunc({opType: UnaryOpType.CEIL, cpuKernelImpl: ceilImplCPU});

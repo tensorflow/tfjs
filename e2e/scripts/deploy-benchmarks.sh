@@ -22,10 +22,17 @@ set -e
 PROJECT="jstensorflow"
 
 if [[ "$1" == "--dev" ]]; then
-  firebase serve \
-    --config benchmarks/firebase_staging.json \
-    --only hosting:tfjs-benchmarks-staging \
-    --project ${PROJECT}
+  # Deploy to the preview channel.
+  #
+  # Use the second command line parameter as the feature name which will be
+  # part of the preview URL. Use the current date+time as fallback.
+  feature_name="${2:-$(date '+%Y%m%d-%H%M%S')}"
+  firebase hosting:channel:deploy \
+    "${feature_name}" \
+    --config benchmarks/firebase.json \
+    --only tfjs-benchmarks \
+    --project ${PROJECT} \
+    --expires 14d
 elif [[ "$1" == "--staging"  ]]; then
   firebase deploy \
     --config benchmarks/firebase_staging.json \

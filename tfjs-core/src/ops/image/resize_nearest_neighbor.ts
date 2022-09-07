@@ -38,8 +38,8 @@ import {reshape} from '../reshape';
  *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
  *     corners of images and resized images. If false, rescale by
  *     `new_height / height`. Treat similarly the width dimension.
- * @param halfPixelCenters Defaults to `false`. Whether to assumes pixels are of
- *      half the actual dimensions, and yields more accurate resizes. This flag
+ * @param halfPixelCenters Defaults to `false`. Whether to assume pixels are of
+ *      half the actual dimensions, and yield more accurate resizes. This flag
  *      would also make the floating point coordinates of the top left pixel
  *      0.5, 0.5.
  *

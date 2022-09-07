@@ -64,12 +64,15 @@ Please reach out to us if you'd like to put your project on the list.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
+- [Arabic Font Classification](https://mhmoodlan.github.io/blog/arabic-font-classification) - Tackling the visual font recognition problem for Arabic fonts by synthesizing a [dataset](https://github.com/mhmoodlan/arabic-font-classification/releases/tag/v0.1.0) and addressing domain mismatch challenges, by [Mahmoud Aslan](https://mhmoodlan.github.io)
 - [NSFW Filter](https://github.com/nsfw-filter/nsfw-filter) - A browser extension to block NSFW images.
 - [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli. [[demo](https://mirnet-tfjs.rishit.tech/)][[repo](https://github.com/Rishit-dagli/MIRNet-TFJS)]
 - [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
 - [audiate](https://cjbayron.github.io/audiate/) - Ear training game using Pitch Transcription model in the browser - By CJ Bayron [[demo](https://www.youtube.com/watch?v=VZ3i4V7i7Iw&t=2s)][[repo](https://github.com/cjbayron/audiate)]
 - [Plant AI](https://github.com/Rishit-dagli/Greenathon-Plant-AI) - This web app identifies diseases in plants across 38 healthy and unhealthy plant categories by species and diseases all in the browser - By Rishit Dagli, Rishabh Singh and Rucha Yagnik. [[demo](https://www.plant-ai.tech/)][[repo](https://github.com/Rishit-dagli/Greenathon-Plant-AI)]
-
+- [Brainchop.org](https://neuroneural.github.io/brainchop/) - Brings automatic 3D MRI segmentation capability to neuroimaging by running a deep learning model in the web-browser on the user side - By Mohamed Masoud and Sergey Plis. [[demo](https://neuroneural.github.io/brainchop/)][[repo](https://github.com/neuroneural/brainchop)][[wiki](https://github.com/neuroneural/brainchop/wiki)]
+- [chestxray.ai](https://github.com/jordimassaguerpla/chestxray.ai) - X-Ray image of you Chest, and predicts the probability of having any of these 4 diseases:Cardiomegaly,Mass,Pneumotorax,Edema - By Jordi Massaguer Pla. [[repo](https://github.com/jordimassaguerpla/chestxray.ai)]
+  
 ## Tutorials / Codelabs
 
 These tutorials augment the [official tutorials](https://js.tensorflow.org/tutorials/).

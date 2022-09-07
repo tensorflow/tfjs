@@ -18,8 +18,8 @@
 import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Conv2DDerInputMMProgram} from './conv_backprop_mm_webgpu';
-import {Conv2DDerInputProgram} from './conv_backprop_webgpu';
+import {Conv2DDerInputMMProgram} from '../conv_backprop_mm_webgpu';
+import {Conv2DDerInputProgram} from '../conv_backprop_webgpu';
 
 export function conv2DBackpropInput(args: {
   inputs: Conv2DBackpropInputInputs,
@@ -54,13 +54,16 @@ export function conv2DBackpropInput(args: {
     },
   ];
   let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
-  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE')) {
-    // Keep Conv2DDerInputProgram for reference.
+  // When filter size is small, Conv2DDerInputProgram is much faster than
+  // Conv2DDerInputMMProgram.
+  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE') ||
+      convInfo.filterHeight <= 2 && convInfo.filterWidth <= 2 &&
+          convInfo.outChannels <= 16 && convInfo.inChannels === 1) {
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);
-    const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
-    const dimBOuter = convInfo.inShape[3];
+    const dimAOuter = convInfo.inHeight * convInfo.inWidth;
+    const dimBOuter = convInfo.inChannels;
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
     dimensions.push(

@@ -26,27 +26,44 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext):
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps):
         Tensor[] => {
           switch (node.op) {
+            case 'LowerBound': {
+              const sortedSequence =
+                  getParamValue('sortedSequence', node, tensorMap, context) as
+                  Tensor;
+              const values =
+                  getParamValue('values', node, tensorMap, context) as Tensor;
+              return [ops.lowerBound(sortedSequence, values)];
+            }
             case 'TopKV2': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
               const k = getParamValue('k', node, tensorMap, context) as number;
               const sorted =
                   getParamValue('sorted', node, tensorMap, context) as boolean;
-              const result = tfOps.topk(x, k, sorted);
+              const result = ops.topk(x, k, sorted);
               return [result.values, result.indices];
+            }
+            case 'UpperBound': {
+              const sortedSequence =
+                  getParamValue('sortedSequence', node, tensorMap, context) as
+                  Tensor;
+              const values =
+                  getParamValue('values', node, tensorMap, context) as Tensor;
+              return [ops.upperBound(sortedSequence, values)];
             }
             case 'Unique': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
-              const result = tfOps.unique(x);
+              const result = ops.unique(x);
               return [result.values, result.indices];
             }
             case 'UniqueV2': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
               const axis =
                   getParamValue('axis', node, tensorMap, context) as number;
-              const result = tfOps.unique(x, axis);
+              const result = ops.unique(x, axis);
               return [result.values, result.indices];
             }
             default:

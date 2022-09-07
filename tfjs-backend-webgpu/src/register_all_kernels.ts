@@ -22,6 +22,7 @@ import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
+import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -35,6 +36,8 @@ import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
+import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
@@ -57,6 +60,8 @@ import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
+import {isNaNConfig} from './kernels/IsNaN';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -83,6 +88,7 @@ import {prodConfig} from './kernels/Prod';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -123,6 +129,7 @@ const kernelConfigs: KernelConfig[] = [
   addNConfig,
   argMaxConfig,
   argMinConfig,
+  atan2Config,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -136,13 +143,15 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
+  cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
-  expandDimsConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
   flipLeftRightConfig,
@@ -158,6 +167,8 @@ const kernelConfigs: KernelConfig[] = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  isNaNConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -178,12 +189,13 @@ const kernelConfigs: KernelConfig[] = [
   onesLikeConfig,
   packConfig,
   padV2Config,
+  powConfig,
   preluConfig,
   prodConfig,
-  powConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
+  reciprocalConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
@@ -201,8 +213,8 @@ const kernelConfigs: KernelConfig[] = [
   stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
-  splitVConfig,
   sparseToDenseConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

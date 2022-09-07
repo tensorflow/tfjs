@@ -51,22 +51,22 @@ steps:
   waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# The following steps build the link packages, which are temporary packages
-# that help packages that don't build with Bazel load outputs from packages
+# The following step builds the link package, which is a temporary package
+# that helps packages that don't build with Bazel load outputs from packages
 # that build with Bazel.
 - name: 'gcr.io/learnjs-174218/release'
-  dir: 'link-package-core'
+  dir: 'link-package'
   entrypoint: 'yarn'
-  id: 'yarn-link-package-core'
+  id: 'yarn-link-package'
   args: ['install']
   waitFor: ['bazel-tests']
 
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'link-package'
   entrypoint: 'yarn'
-  id: 'yarn-link-package'
-  args: ['install']
-  waitFor: ['bazel-tests', 'yarn-link-package-core']
+  id: 'yarn-link-package-build'
+  args: ['build', '--bazel_options=--config=ci']
+  waitFor: ['yarn-link-package']
 
 # General configuration
 secrets:

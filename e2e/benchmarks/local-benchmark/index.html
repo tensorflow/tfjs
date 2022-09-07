@@ -20,6 +20,7 @@ limitations under the License.
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link href="./main.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="loader.js"></script>
   <link rel="shortcut icon"
         href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
 </head>
@@ -91,6 +92,7 @@ limitations under the License.
 
     let urlState = null;
     let runTimes = 50;
+    let profileTimes = 1;
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
@@ -101,6 +103,9 @@ limitations under the License.
         return null;
       if (params.has('run')) {
         runTimes = Number(params.get('run'));
+      }
+      if (params.has('profile')) {
+        profileTimes = Number(params.get('profile'));
       }
       if (params.has('warmup')) {
         warmupTimes = Number(params.get('warmup'));
@@ -114,6 +119,7 @@ limitations under the License.
     let modelController = null;
     let numWarmupsController = null;
     let numRunsController = null;
+    let numProfilesController = null;
     let modelParameterFolder = null;
     let runButton = null;
     let correctnessButton = null;
@@ -126,28 +132,25 @@ limitations under the License.
       if (urlState == null)
         return;
       if (tunableFlagsControllers != null) {
-        if (tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'] != null &&
-          urlState.has('WEBGL_USE_SHAPES_UNIFORMS')) {
-          const value = urlState.get('WEBGL_USE_SHAPES_UNIFORMS');
-          if (value === 'true') {
-            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
-          } else {
-            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
+        const urlFlagStrings = ['WEBGL_USE_SHAPES_UNIFORMS',
+                                'KEEP_INTERMEDIATE_TENSORS',
+                                'CHECK_COMPUTATION_FOR_ERRORS'];
+        for (let i = 0; i < urlFlagStrings.length; i++) {
+          if (tunableFlagsControllers[urlFlagStrings[i]] != null &&
+              urlState.has(urlFlagStrings[i])) {
+            const value = urlState.get(urlFlagStrings[i]);
+            if (value === 'true') {
+              tunableFlagsControllers[urlFlagStrings[i]].setValue(true);
+            } else {
+              tunableFlagsControllers[urlFlagStrings[i]].setValue(false);
+            }
           }
         }
+
         if (tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] != null &&
           urlState.has('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE')) {
           const value = Number(urlState.get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'));
           tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'].setValue(value);
-        }
-        if (tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'] != null &&
-            urlState.has('KEEP_INTERMEDIATE_TENSORS')) {
-          const value = urlState.get('KEEP_INTERMEDIATE_TENSORS');
-          if (value === 'true') {
-            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(true);
-          } else {
-            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(false);
-          }
         }
       }
       // The model parameter will be update automically by onChange.
@@ -157,6 +160,8 @@ limitations under the License.
         numWarmupsController.setValue(urlState.get('warmup'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
+      if (numProfilesController != null && urlState.has('profile'))
+        numProfilesController.setValue(urlState.get('profile'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
         correctnessButton.domElement.click();
@@ -192,7 +197,8 @@ limitations under the License.
     const state = {
       numWarmups: warmupTimes,
       numRuns: runTimes,
-      benchmark: 'mobilenet_v2',
+      numProfiles: profileTimes,
+      benchmark: 'MobileNetV3',
       run: (v) => {
         runBenchmark().catch(e => {
           showMsg('Error: ' + e.message);
@@ -241,7 +247,20 @@ limitations under the License.
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
+
+          // willReadFrequently is set to true for CPU backend. So to compare
+          // the result, we also set it to true for GPU backends.
+          let savedWillReadFrequently;
+          if (state.backend === 'webgl' || state.backend === 'webgpu') {
+            savedWillReadFrequently = tf.env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
+            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
+          }
+
           predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+
+          if (state.backend === 'webgl' || state.backend === 'webgpu') {
+            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
+          }
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
@@ -261,11 +280,11 @@ limitations under the License.
           appendRow(timeTable, '', '');
         }
       },
-      backend: 'wasm',
+      backend: 'webgl',
       kernelTiming: 'aggregate',
       inputSize: 0,
       inputType: '',
-      architecture: '',
+      architecture: 'small_075',
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
@@ -283,7 +302,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, predict, chartWidth;
+    let model, tfliteModel, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -315,10 +334,12 @@ limitations under the License.
       appendRow(parameterTable, 'task', 'Performance Benchmark');
       appendRow(parameterTable, 'benchmark', state.benchmark);
       appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      appendRow(parameterTable, 'convertedBy', model?.artifacts?.convertedBy || 'Unknown');
       if (state.benchmark === 'custom') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', state.numRuns);
+      appendRow(parameterTable, 'numProfiles', state.numProfiles);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
       if (isParameterDefined('inputSizes')) {
@@ -355,6 +376,7 @@ limitations under the License.
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', 1);
+      appendRow(parameterTable, 'numProfiles', 1);
       appendRow(parameterTable, 'backend', state.backend);
 
       await tf.nextFrame();
@@ -375,24 +397,27 @@ limitations under the License.
     }
 
     async function warmUpAndRecordTime() {
-      if (warmupTimes == 0) {
+      const numWarmups = state.numWarmups;
+      if (numWarmups == 0) {
         await showMsg('Skip warming up');
         appendRow(timeTable, 'backend', state.backend);
         appendRow(timeTable, 'Warmup time', '0 ms');
         return;
       }
-      await showMsg(`Warming up for ${warmupTimes} time(s)`);
+      await showMsg(`Warming up for ${numWarmups} time(s)`);
 
       let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = await timeModelInference(model, input, warmupTimes);
+          timeInfo = isTflite() ?
+              await timeInference(()=>predict(input), numWarmups) :
+              await timeModelInference(model, input, numWarmups);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await timeInference(() => predict(model), warmupTimes);
+        timeInfo = await timeInference(() => predict(model), numWarmups);
       }
 
       await showMsg(null);
@@ -405,9 +430,10 @@ limitations under the License.
         // the input table for the model have been constructed
         return;
       }
-      let variableShape = false;
+      let needInputShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
-      if (model['inputs'] == null) {
+      const inputs = isTflite() ? tfliteModel.inputs : model.inputs;
+      if (inputs == null) {
         modelInputsElement.style.display = 'none';
       } else {
         modelInputsElement.style.display = '';
@@ -415,14 +441,22 @@ limitations under the License.
         state.inputs.forEach((modelInput, inputIndex) => {
           if (modelInput.shape != null) {
             let shape = modelInput.shape;
-            variableShape = modelInput.shape.some(e => e == -1);
+            let shapeName = modelInput.name.concat('Shape');
+            let variableShape = modelInput.shape.some(e => e == -1);
             if (variableShape && state.benchmark === 'custom') {
               const shapeInput = document.createElement("INPUT");
               shapeInput.setAttribute('type', 'text');
-              shapeInput.setAttribute('value', shape);
+              if (urlState != null && urlState.has(shapeName)) {
+                shapeInput.setAttribute('value', urlState.get(shapeName));
+                state.inputs[inputIndex].shape =
+                  shapeInput.value.split(',').map(Number);
+              } else {
+                shapeInput.setAttribute('value', shape);
+                needInputShape = true;
+              }
               shapeInput.addEventListener('focusout', () => {
                 state.inputs[inputIndex].shape =
-                  shapeInput.value.split(',').map(x => +x);
+                  shapeInput.value.split(',').map(Number);
               });
               shape = shapeInput;
             }
@@ -449,7 +483,7 @@ limitations under the License.
       }
 
       await tf.nextFrame();
-      return state.benchmark === 'custom' && variableShape;
+      return needInputShape;
     }
 
     function createRangeInput(range, index) {
@@ -467,8 +501,12 @@ limitations under the License.
         return;
       if (urlState.has('run'))
         state.numRuns = Number(urlState.get('run'));
+      if (urlState.has('profile'))
+        state.numProfiles = Number(urlState.get('profile'));
       if (urlState.has('benchmark'))
         state.benchmark = urlState.get('benchmark');
+      if (urlState.has('modelUrl'))
+        state.modelUrl = urlState.get('modelUrl');
       if (urlState.has('backend'))
         state.backend = urlState.get('backend');
       if (urlState.has('inputSize'))
@@ -488,16 +526,24 @@ limitations under the License.
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
       }
+      if ((benchmark['loadTflite'] == null) && isTflite()) {
+        throw new Error(`Please provide a loadTflite method for '${state.benchmark}' model.`);
+      }
 
       await showMsg('Loading the model');
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
-      model = await benchmark.load(inputSize, state.architecture, state.inputType);
+      if (isTflite()) {
+        await loadTfliteModel();
+      } else {
+        model = await benchmark.load(inputSize, state.architecture, state.inputType);
+      }
       state.inputs = [];
-      if (model.inputs) {
+      const inputs = isTflite() ? tfliteModel.inputs : model.inputs
+      if (inputs) {
         // construct the input state for the model
-        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
-          let modelInput = model.inputs[modelInputIndex];
+        for (let modelInputIndex = 0; modelInputIndex < inputs.length; modelInputIndex++) {
+          let modelInput = inputs[modelInputIndex];
           if (modelInput.shape == null) continue;
           let shape = modelInput.shape.map(e => e == null ? -1 : e);
           state.inputs.push({
@@ -549,7 +595,9 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = await timeModelInference(model, input, numRuns);
+          timeInfo = isTflite() ?
+              await timeInference(()=>predict(input), numRuns) :
+              await timeModelInference(model, input, numRuns);
         } finally {
           tf.dispose(input);
         }
@@ -568,26 +616,46 @@ limitations under the License.
     }
 
     async function profileMemoryAndKernelTime() {
+      if (state.numProfiles == 0) {
+        return;
+      }
       await showMsg('Profile memory and kernels');
+
+      // Reload tflite model with profiling enabled.
+      if (isTflite()) {
+        await loadTfliteModel(true);
+        // This will make sure the model will be reloaded (with profiling disabled) next time
+        // when "Run benchmark" is clicked.
+        //
+        // Without this, the model with profiling *enabled* will continued to be used to measure
+        // the total run time when "Run benchmark" is clicked, which is not accurate.
+        state.isModelChanged = true;
+        state.isModelLoaded = false;
+      }
+
       const start = performance.now();
 
       let profileInfo;
+      const numProfiles = state.numProfiles;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          profileInfo = await profileModelInference(model, input);
+          profileInfo = await profileModelInference(model, input, isTflite(), numProfiles);
         } finally {
           tf.dispose(input);
         }
       } else {
-        profileInfo = await profileInference(() => predict(model));
+        profileInfo = await profileInference(() => predict(model), isTflite(), numProfiles);
       }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
-      appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
-      appendRow(timeTable, 'Profile time', printTime(elapsed));
+      // TODO: These are not supported by tflite models yet.
+      if (!isTflite()) {
+        appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
+        appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
+      }
+      appendRow(timeTable, 'Profile time', printTime(elapsed / numProfiles));
 
       if (state.backend === 'webgl' && !queryTimerIsEnabled()) {
         await showMsg('Query timer extension is not available. <br/> ' +
@@ -623,7 +691,10 @@ limitations under the License.
               inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
             }
           });
-          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputInfo, kernel.outputShapes, kernel.extraInfo);
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2),
+                    inputInfo || '-',
+                    kernel.outputShapes.length !== 0 ? kernel.outputShapes : '-',
+                    kernel.extraInfo || '-');
         });
       } else {
         profileInfo.aggregatedKernels.forEach(r => {
@@ -659,7 +730,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      if (!tf.engine().backendNames().includes(state.backend)) {
+      if (!tf.engine().backendNames().includes(state.backend) && !isTflite()) {
         return;
       }
       await tf.ready();
@@ -705,67 +776,17 @@ limitations under the License.
       return false;
     }
 
-    // Promise is used to guarantee scripts are loaded in order.
-    async function loadScript(url) {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.onload = resolve;
-        script.onerror = reject;
-        script.src = url;
-        if (url.startsWith('http')) {
-          script.crossOrigin = 'anonymous';
-        }
-        document.body.append(script);
-      })
-    }
-
-    function processUrls(urls, localBuild) {
-      for (let i = 0; i < urls.length; i++) {
-        let name = urls[i].split('/')[0].replace('tfjs-', '').replace('backend-', '');
-        if (localBuild.includes(name)) {
-          urls[i] = `../../../dist/bin/${urls[i]}`;
-        } else {
-          urls[i] = `https://unpkg.com/@tensorflow/${urls[i].replace('/', '@latest/')}`;
-        }
-      }
-    }
-
     async function onPageLoad() {
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
       urlState = getURLState(location.search);
-
-      let urls = [
-        'tfjs-core/dist/tf-core.js',
-        'tfjs-backend-cpu/dist/tf-backend-cpu.js',
-        'tfjs-backend-webgl/dist/tf-backend-webgl.js',
-        'tfjs-backend-webgpu/dist/tf-backend-webgpu.js',
-        'tfjs-layers/dist/tf-layers.js',
-        'tfjs-converter/dist/tf-converter.js',
-        'tfjs-backend-wasm/dist/tf-backend-wasm.js',
-        'tfjs-automl/dist/tf-automl.js',
-      ];
       let localBuild = [];
       if (urlState && urlState.has('localBuild')) {
         localBuild = urlState.get('localBuild').split(',');
       }
-      processUrls(urls, localBuild);
-      urls = urls.concat([
-        'https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder',
-        'https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands',
-        'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
-        'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
-        'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
-        '../model_config.js',
-        '../benchmark_util.js',
-        './util.js',
-        './index.js',
-      ]);
 
-      for (let url of urls) {
-        await loadScript(url);
-      }
+      await loadTFJS(localBuild);
 
       if (urlState && urlState.has('backend'))
         state.backend = urlState.get('backend');
@@ -826,7 +847,7 @@ limitations under the License.
           modelArchitectureController.setValue(defaultModelArchitecture);
           state.architecture = defaultModelArchitecture;
         } else {
-          // Model doesn't support input size.
+          // Model doesn't support architecture.
           state.architecture = '';
         }
 
@@ -848,6 +869,9 @@ limitations under the License.
           // Model doesn't support input type.
           state.inputType = '';
         }
+
+        // Unfolding the model parameter UI if any model parameters are deinfed
+        // in the current model.
         if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
         }
@@ -861,6 +885,9 @@ limitations under the License.
             });
             modelUrlController.domElement.querySelector('input').placeholder =
               'https://your-domain.com/model-path/model.json';
+            if (modelUrlController != null && urlState && urlState.has('modelUrl')) {
+              modelUrlController.setValue(urlState.get('modelUrl'));
+            }
           }
         } else if (modelUrlController != null) {
           modelFolder.remove(modelUrlController);
@@ -872,24 +899,36 @@ limitations under the License.
       const parameterFolder = gui.addFolder('Parameters');
       numWarmupsController = parameterFolder.add(state, 'numWarmups');
       numRunsController = parameterFolder.add(state, 'numRuns');
+      numProfilesController = parameterFolder.add(state, 'numProfiles');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
+      // Show model parameter UI when loading the page.
       modelParameterFolder = gui.addFolder('Model Parameters');
+      // For each model parameter, show it only if it is defined in the
+      // pre-selected model.
       if (isParameterDefined('architectures')) {
-        modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
+        modelArchitectureController = modelParameterFolder.add(state, 'architecture', benchmarks[state.benchmark]['architectures']);
+        modelArchitectureController.setValue(state.architecture);
       }
       if (isParameterDefined('inputSizes')) {
-        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmarks[state.benchmark]['inputSizes']);
+        inputSizeController.setValue(state.inputSize);
       }
       if (isParameterDefined('inputTypes')) {
-        inputTypeController = modelParameterFolder.add(state, 'inputType', []);
+        inputTypeController = modelParameterFolder.add(state, 'inputType', benchmarks[state.benchmark]['inputTypes']);
+        inputTypeController.setValue(state.inputType);
       }
 
-      modelParameterFolder.open();
+      // Unfolding the model parameter UI if any model parameters are deinfed
+      // in the pre-selected model.
+      if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
+          modelParameterFolder.open();
+      }
 
       const envFolder = gui.addFolder('Environment');
-      const backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
+      const backendsController = envFolder.add(
+        state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu', 'tflite']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
@@ -899,7 +938,31 @@ limitations under the License.
         } else {
           showMsg(null);
         }
-        await tf.setBackend(backend);
+        if (isTflite()) {
+          // Remove the "Test correctness" button which doesn't apply to tfjs-tflite.
+          correctnessButton.remove();
+          correctnessButton = null;
+
+          // Update models drop down to only show models that support tflite.
+          const tfliteBenchmarks = Object.keys(benchmarks)
+            .filter(name => benchmarks[name].loadTflite);
+          updateModelsDropdown(tfliteBenchmarks);
+          modelController.setValue(tfliteBenchmarks[0]);
+          state.isModelLoaded = false;
+          state.isModelChanged = true;
+        } else {
+          // Show the "Test correctness" button and re-populate models dropdown when changed from
+          // tflite to non-tflite backend.
+          if (correctnessButton == null) {
+            correctnessButton = gui.add(state, 'testCorrectness');
+            const allBenchmarks = Object.keys(benchmarks);
+            updateModelsDropdown(allBenchmarks);
+            modelController.setValue(allBenchmarks[0]);
+            state.isModelLoaded = false;
+            state.isModelChanged = true;
+          }
+          await tf.setBackend(backend);
+        }
         await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       });
       envFolder.open();
@@ -913,6 +976,23 @@ limitations under the License.
       showVersions();
       await showEnvironment();
       updateGUIFromURLState();
+    }
+
+    function isTflite() {
+      return state.backend === 'tflite';
+    }
+
+    async function loadTfliteModel(enableProfiling = false) {
+      if (tfliteModel) {
+        tfliteModel.modelRunner.cleanUp();
+      }
+      const benchmark = benchmarks[state.benchmark];
+      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture);
+    }
+
+    function updateModelsDropdown(newValues) {
+      const tfliteBenchmarksHtml = newValues.map(name => `<option value="${name}">${name}</option>`);
+      modelController.domElement.children[0].innerHTML = tfliteBenchmarksHtml;
     }
 
     onPageLoad();

@@ -25,7 +25,7 @@ const delayCallback: Function = (() => {
 })();
 
 /**
- * Returns a promise that resolve when a requestAnimationFrame has completed.
+ * Returns a promise that resolves when a requestAnimationFrame has completed.
  *
  * On Node.js this uses setImmediate instead of requestAnimationFrame.
  *

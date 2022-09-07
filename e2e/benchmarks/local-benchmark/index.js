@@ -31,6 +31,7 @@ const BACKEND_FLAGS_MAP = {
     'CHECK_COMPUTATION_FOR_ERRORS', 'WEBGL_USE_SHAPES_UNIFORMS',
     'KEEP_INTERMEDIATE_TENSORS'
   ],
+  tflite: [],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
   BACKEND_FLAGS_MAP['webgpu'] =

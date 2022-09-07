@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {scatterImplCPU} from '../kernel_utils/shared';
 import {ScatterProgram} from '../scatter_gpu';
+
 import {reshape} from './Reshape';
 
 export function sparseToDense(args: {
@@ -30,10 +32,20 @@ export function sparseToDense(args: {
   const {sparseIndices, sparseValues, defaultValue} = inputs;
   const {outputShape} = attrs;
 
-  const {sliceRank, numUpdates, strides, outputSize} =
+  const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
       backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
-
   const sumDupeIndices = false;
+
+  if (sparseValues.dtype === 'string') {
+    const indicesBuf = backend.bufferSync<Rank, 'int32'>(sparseIndices);
+    const updatesBuf = backend.bufferSync<Rank, 'string'>(sparseValues);
+    const $defaultValue = util.decodeString(
+        backend.readSync(defaultValue.dataId)[0] as Uint8Array);
+    const outBuf = scatterImplCPU(
+        indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates,
+        sliceRank, strides, $defaultValue, sumDupeIndices);
+    return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
+  }
   const program = new ScatterProgram(
       numUpdates, sliceRank, sparseIndices.shape.length,
       sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);

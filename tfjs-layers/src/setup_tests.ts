@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+// Register Layers' flags.
+import './flags_layers';
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';

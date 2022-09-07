@@ -149,6 +149,12 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       input: ['BiasAdd'],
       attr: {DstT: {type: tensorflow.DataType.DT_UINT8}}
     },
+    {
+      name: 'Cast3',
+      op: 'Cast',
+      input: ['BiasAdd'],
+      attr: {DstT: {type: tensorflow.DataType.DT_HALF}}
+    },
   ],
   library: {
     function: [
@@ -301,7 +307,7 @@ describe('operationMapper without signature', () => {
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
           'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
 
@@ -315,7 +321,7 @@ describe('operationMapper without signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
     });
@@ -477,7 +483,7 @@ describe('operationMapper with signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
     });
@@ -538,6 +544,10 @@ describe('operationMapper with signature', () => {
       it('should map params with uint8 dtype', () => {
         expect(convertedGraph.nodes['Cast2'].attrParams['dtype'].value)
             .toEqual('int32');
+      });
+      it('should map params with half dtype', () => {
+        expect(convertedGraph.nodes['Cast3'].attrParams['dtype'].value)
+            .toEqual('float32');
       });
     });
   });

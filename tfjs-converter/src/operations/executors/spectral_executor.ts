@@ -26,23 +26,23 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext):
-        Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
           switch (node.op) {
             case 'FFT': {
-              return [tfOps.fft(
+              return [ops.fft(
                   getParamValue('x', node, tensorMap, context) as Tensor)];
             }
             case 'IFFT': {
-              return [tfOps.ifft(
+              return [ops.ifft(
                   getParamValue('x', node, tensorMap, context) as Tensor)];
             }
             case 'RFFT': {
-              return [tfOps.rfft(
+              return [ops.rfft(
                   getParamValue('x', node, tensorMap, context) as Tensor)];
             }
             case 'IRFFT': {
-              return [tfOps.irfft(
+              return [ops.irfft(
                   getParamValue('x', node, tensorMap, context) as Tensor)];
             }
             default:

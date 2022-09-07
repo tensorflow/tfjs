@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {DataType, NamedTensorMap} from '@tensorflow/tfjs-core';
 
 import {TFLiteModel} from './tflite_model';
-import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
+import {ProfileItem, TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 // A mock TFLiteWebModelRunner that doubles the data from input tensors to
 // output tensors during inference.
@@ -60,6 +60,14 @@ class MockModelRunner implements TFLiteWebModelRunner {
   }
 
   cleanUp() {}
+
+  getProfilingResults(): ProfileItem[] {
+    return [];
+  }
+
+  getProfilingSummary(): string {
+    return '';
+  }
 
   private getTensorInfos(firstTensorType: TFLiteDataType = 'int32'):
       TFLiteWebModelRunnerTensorInfo[] {

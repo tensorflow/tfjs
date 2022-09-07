@@ -47,7 +47,7 @@ gen_op = rule(
         ),
         "gen_op_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tfjs-converter/scripts:gen_op_bin"),
             doc = "The script that generates ts ops from json",
         ),

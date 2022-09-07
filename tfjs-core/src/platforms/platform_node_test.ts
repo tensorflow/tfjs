@@ -49,7 +49,7 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
        // Null out the system fetch so we force it to require node-fetch.
        platform_node.resetSystemFetch();
 
-       const testFetch = {fetch: (url: string, init: RequestInit) => {}};
+       const testFetch = {fetch: (url: string, init: RequestInit) => () => {}};
 
        // Mock the actual fetch call.
        spyOn(testFetch, 'fetch').and.returnValue(() => {});
@@ -71,7 +71,7 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
      });
 
   it('now should use process.hrtime', async () => {
-    const time = [100, 200];
+    const time: [number, number] = [100, 200];
     spyOn(process, 'hrtime').and.returnValue(time);
     expect(tf.env().platform.now()).toEqual(time[0] * 1000 + time[1] / 1000000);
   });

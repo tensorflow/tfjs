@@ -73,6 +73,9 @@ void Min(const size_t x_id, const DType dtype, const size_t reduce_size,
     case DType::int32:
       min<int32_t>(x_info.i32(), out_size, reduce_size, out_info.i32_write());
       break;
+    case DType::boolean:
+      min<bool>(x_info.b(), out_size, reduce_size, out_info.b_write());
+      break;
     default:
       util::warn("Min failed. Unknown dtype %d", dtype);
   }

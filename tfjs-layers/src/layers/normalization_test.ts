@@ -737,6 +737,15 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     expect(memory().numTensors).toEqual(numTensors0);
   });
 
+  it('Forward: configuration change', () => {
+    const layer = tfl.layers.layerNormalization({scale: false, center: false});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    dispose(layer.apply(xs) as Tensor);  // Warm up.
+    const numTensors0 = memory().numTensors;
+    dispose(layer.apply(xs, {scale: true, center: true}) as Tensor);
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
   // Reference Python code:
   // ```py
   // import numpy as np

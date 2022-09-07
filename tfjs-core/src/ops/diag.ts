@@ -24,7 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {op} from './operation';
 
 /**
- * Returns a diagonal tensor with a given diagonal values.
+ * Returns a diagonal tensor with given diagonal values.
  *
  * Given a diagonal, this operation returns a tensor with the diagonal and
  * everything else padded with zeros.

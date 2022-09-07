@@ -22,7 +22,7 @@ import {stridedSliceImplCPU} from '../kernel_utils/shared';
 
 import {reshape} from './Reshape';
 import {slice} from './Slice';
-import {StridedSliceProgram} from './strided_slice_webgpu';
+import {StridedSliceProgram} from '../strided_slice_webgpu';
 
 export function stridedSlice(args: {
   inputs: StridedSliceInputs,

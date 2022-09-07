@@ -95,7 +95,10 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
  */
 export function describeMathCPUAndWebGL2(testName: string, tests: () => void) {
   describeWithFlags(
-      testName, {predicate: testEnv => testEnv.flags['WEBGL_VERSION'] !== 1},
+      testName, {
+        predicate: testEnv =>
+            (testEnv.flags == null || testEnv.flags['WEBGL_VERSION'] === 2)
+      },
       () => {
         tests();
       });
@@ -134,7 +137,8 @@ export function describeMathWebGL2(testName: string, tests: () => void) {
   describeWithFlags(
       testName, {
         predicate: testEnv => testEnv.backendName === 'webgl' &&
-            testEnv.flags['WEBGL_VERSION'] !== 1
+            (testEnv.flags == null || testEnv.flags['WEBGL_VERSION'] === 2)
+
       },
       () => {
         tests();

@@ -18,7 +18,7 @@
 import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {CropAndResizeProgram} from './crop_and_resize_webgpu';
+import {CropAndResizeProgram} from '../crop_and_resize_webgpu';
 
 export const cropAndResize = (args: {
   inputs: CropAndResizeInputs,

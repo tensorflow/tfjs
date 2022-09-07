@@ -19,7 +19,7 @@
 import {Floor, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {floorImplCPU} from '../kernel_utils/shared';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const floor =
     unaryKernelFunc({opType: UnaryOpType.FLOOR, cpuKernelImpl: floorImplCPU});

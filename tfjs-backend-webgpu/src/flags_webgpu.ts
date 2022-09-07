@@ -29,26 +29,17 @@ ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
- * Thread register block size for matmul kernel.
+ * This flag is used to test different types of matmul programs.
+ *
+ * See MatMulProgramType in webgpu_util.ts for a list of available values.
  */
-ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
-
-/**
- * Whether to use conv2d_naive which directly implement the conv2d logic rather
- * than using a matmul to simulate.
- */
-ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
+ENV.registerFlag('WEBGPU_MATMUL_PROGRAM_TYPE', () => -1);
 
 /**
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => false);
-
-/**
- * Whether we will run im2col as a separate shader for convolution.
- */
-ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
 
 /**
  * Whether we use low power GPU. Otherwise, a high performance GPU will be
@@ -73,4 +64,4 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
 /**
  * Whether to use import API.
  */
-ENV.registerFlag('WEBGPU_USE_IMPORT', () => false);
+ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);

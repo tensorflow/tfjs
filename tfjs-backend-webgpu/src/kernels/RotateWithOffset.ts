@@ -19,7 +19,7 @@ import {backend_util, KernelConfig, Tensor4D} from '@tensorflow/tfjs-core';
 import {RotateWithOffset, RotateWithOffsetAttrs, RotateWithOffsetInputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {RotateProgram} from './rotate_webgpu';
+import {RotateProgram} from '../rotate_webgpu';
 
 export const rotateWithOffsetConfig: KernelConfig = {
     kernelName: RotateWithOffset,

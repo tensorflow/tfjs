@@ -20,15 +20,16 @@ import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
 import {Add, Cast, Identity} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
+import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
-import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
+import {DataId, DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
-import * as log from './log';
+
 /**
  * A function that computes an output. The save function is for saving tensors
  * computed in the forward pass, that we need in the backward pass.
@@ -348,8 +349,7 @@ export class Engine implements TensorTracker, DataMover {
                     return false;
                   }
                   this.pendingBackendInit = null;
-                  log.warn(
-                      `Initialization of backend ${backendName} failed`);
+                  log.warn(`Initialization of backend ${backendName} failed`);
                   log.warn(err.stack || err.message);
                   return false;
                 });
@@ -654,8 +654,7 @@ export class Engine implements TensorTracker, DataMover {
           if ((outInfo as Tensor).rank != null) {
             return outInfo as Tensor;
           }
-          const {dataId, shape, dtype} = outInfo as TensorInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
 
         // Save any required inputs and outputs.
@@ -828,11 +827,24 @@ export class Engine implements TensorTracker, DataMover {
    * Internal method used by backends. Makes a new tensor
    * that is a wrapper around an existing data id. It doesn't create
    * a new data id, only increments the ref count used in memory tracking.
+   * @deprecated
    */
   makeTensorFromDataId(
-      dataId: DataId, shape: number[], dtype: DataType,
-      backend?: KernelBackend): Tensor {
+    dataId: DataId, shape: number[], dtype: DataType,
+    backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
+    const tensorInfo: TensorInfo = {dataId, shape, dtype};
+    return this.makeTensorFromTensorInfo(tensorInfo, backend);
+  }
+
+  /**
+   * Internal method used by backends. Makes a new tensor that is a wrapper
+   * around an existing data id in TensorInfo. It doesn't create a new data id,
+   * only increments the ref count used in memory tracking.
+   */
+  makeTensorFromTensorInfo(tensorInfo: TensorInfo, backend?: KernelBackend):
+      Tensor {
+    const {dataId, shape, dtype} = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend);
     return t;
@@ -1209,6 +1221,12 @@ export class Engine implements TensorTracker, DataMover {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
+  }
+
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData {
+    // Route the read to the correct backend.
+    const info = this.state.tensorInfo.get(dataId);
+    return info.backend.readToGPU(dataId, options);
   }
 
   async time(query: () => void): Promise<TimingInfo> {

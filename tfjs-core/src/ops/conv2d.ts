@@ -84,13 +84,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       $filter.rank === 4,
       () => `Error in conv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv2d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv2d', pad, dimRoundingMode);
   const inDepth = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
       inDepth === $filter.shape[2],

@@ -237,3 +237,34 @@ ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
  * Default value is 128.
  */
 ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
+
+/** Whether we will use the experimental conv op. */
+ENV.registerFlag('WEBGL_EXP_CONV', () => false);
+
+/**
+ * If the device performance is low or if no hardware GPU is available, whether
+ * software WebGL will be used.
+ */
+ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
+
+/**
+ * For narrow texture (physical height or physical width is 1), if the length of
+ * any texture edges exceed the threshold, the texture will be reshaped to be
+ * more squarish.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
+ */
+ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
+
+/**
+ * If the flag is set to true, the max size of the narrow texture will be auto
+ * computed and it will be considerred as a threshold to reshape the narrow
+ * texture to be more squarish.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
+ */
+ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);

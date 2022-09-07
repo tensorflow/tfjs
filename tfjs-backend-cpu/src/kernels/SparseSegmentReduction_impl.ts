@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseSegmentReductionImpl(
     input: TypedArray, inputShape: number[], inputDType: DataType,
     indices: TypedArray, segmentIds: TypedArray, isMean = false,
     defaultValue = 0): [TypedArray, number[]] {
   const numIndices = indices.length;
-  if (numIndices !== segmentIds.length) {
-    throw new Error(`segmentIds and indices should have same size.`);
-  }
 
   // Flatten the array to two dimensions
   const inputFlat: number[] = [inputShape[0], input.length / inputShape[0]];
@@ -36,7 +33,8 @@ export function sparseSegmentReductionImpl(
   const outputRows = lastSegmentIdPlusOne;
 
   if (outputRows < 0) {
-    throw new Error(`segment ids must be >= 0`);
+    throw new Error(
+        backend_util.getSparseSegmentReductionNegativeSegmentIdsErrorMessage());
   }
 
   const outputShape = inputShape.slice();
@@ -57,7 +55,8 @@ export function sparseSegmentReductionImpl(
   }
 
   if (outputRows <= 0) {
-    throw new Error(`segment ids must be >= 0`);
+    throw new Error(
+        backend_util.getSparseSegmentReductionNegativeSegmentIdsErrorMessage());
   }
 
   let start = 0, end = 1;
@@ -76,13 +75,15 @@ export function sparseSegmentReductionImpl(
       }
       // We have a new segment here.  Verify that the segment ids are growing.
       if (outIndex >= nextIndex) {
-        throw new Error(`segment ids are not increasing`);
+        throw new Error(backend_util
+            .getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage());
       }
     }
 
     if (outIndex < 0 || outIndex >= outputRows) {
-      throw new Error(`Segment id ${outIndex} out of range [0, ${
-          outputRows}), possibly because segmentIds input is not sorted.`);
+      throw new Error(
+          backend_util.getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(
+              outIndex, outputRows));
     }
 
     // If there is a gap between two indices, we need to set that gap to the
@@ -94,8 +95,9 @@ export function sparseSegmentReductionImpl(
     for (let i = start; i < end; ++i) {
       const index = indices[i];
       if (index < 0 || index >= inputFlat[0]) {
-        throw new Error(`Bad: indices[${i}] == ${indices[i]} out of range [0, ${
-            inputFlat[0]})`);
+        throw new Error(
+            backend_util.getSparseSegmentReductionIndicesOutOfRangeErrorMessage(
+                i, indices[i], inputFlat[0]));
       }
       for (let j = 0; j < numCol; j++) {
         output[outIndex * numCol + j] += input[index * numCol + j];

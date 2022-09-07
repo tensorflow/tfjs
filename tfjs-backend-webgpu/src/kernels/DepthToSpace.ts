@@ -18,7 +18,7 @@
 import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthToSpaceProgram} from './depth_to_space_webgpu';
+import {DepthToSpaceProgram} from '../depth_to_space_webgpu';
 
 export function depthToSpace(args: {
   inputs: DepthToSpaceInputs,

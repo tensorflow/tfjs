@@ -24,7 +24,7 @@ describeWithFlags('nextFrame', ALL_ENVS, () => {
     await tf.nextFrame();
     const t1 = tf.util.now();
     // tf.util.now should give sufficient accuracy on all supported envs.
-    expect(t1 > t0);
+    expect(t1).toBeGreaterThan(t0);
   });
 
   it('does not block timers', async () => {

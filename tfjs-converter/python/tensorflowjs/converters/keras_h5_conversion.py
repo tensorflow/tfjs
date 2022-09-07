@@ -16,7 +16,7 @@
 
 Used primarily to convert saved weights, or saved_models from their
 hdf5 format to a JSON + binary weights format that the TS codebase can use.
-."""
+"""
 
 from __future__ import absolute_import
 from __future__ import division

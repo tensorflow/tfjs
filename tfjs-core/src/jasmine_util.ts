@@ -117,7 +117,8 @@ export function setupTestFilters(
   const env = jasmine.getEnv();
 
   // Account for --grep flag passed to karma by saving the existing specFilter.
-  const grepFilter = env.specFilter;
+  const config = env.configuration();
+  const grepFilter = config.specFilter;
 
   /**
    * Filter method that returns boolean, if a given test should run or be
@@ -126,7 +127,7 @@ export function setupTestFilters(
    * list, it will be exluded.
    */
   // tslint:disable-next-line: no-any
-  env.specFilter = (spec: any) => {
+  const specFilter = (spec: any) => {
     // Filter out tests if the --grep flag is passed.
     if (!grepFilter(spec)) {
       return false;
@@ -159,6 +160,8 @@ export function setupTestFilters(
     // Otherwise ignore the test.
     return false;
   };
+
+  env.configure({...config, specFilter});
 }
 
 export function parseTestEnvFromKarmaFlags(

@@ -41,7 +41,7 @@ import {op} from './operation';
  *
  * x.gather(indices).print();
  * ```
- * @param x The input tensor whose slices to be gathered.
+ * @param x The input tensor whose slices are to be gathered.
  * @param indices The indices of the values to extract.
  * @param axis The axis over which to select values. Defaults to 0.
  * @param batchDims Optional. The number of batch dimensions. It must be less

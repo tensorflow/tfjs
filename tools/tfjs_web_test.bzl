@@ -15,14 +15,43 @@
 
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 
+PEER_DEPS = [
+    "@npm//karma",
+    "@npm//karma-jasmine",
+    "@npm//karma-requirejs",
+    "@npm//karma-sourcemap-loader",
+    "@npm//requirejs",
+    "@npm//@bazel/concatjs",
+    # The above dependencies are the default when 'peer_deps' is not
+    # specified. They are manually spefied here so we can append
+    # extra dependencies.
+    "@npm//karma-jasmine-html-reporter",
+    "@npm//karma-jasmine-order-reporter",
+]
+
+GrepProvider = provider(fields = ["grep"])
+
+def _grep_flag_impl(ctx):
+    return GrepProvider(grep = ctx.build_setting_value)
+
+grep_flag = rule(
+    implementation = _grep_flag_impl,
+    build_setting = config.string(flag = True),
+)
+
 def _make_karma_config_impl(ctx):
+    grep = ctx.attr._grep[GrepProvider].grep
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
+    args = ctx.attr.args
+    if grep:
+        args = args + ["--grep=" + grep]
+
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
-            "TEMPLATE_args": str(ctx.attr.args),
+            "TEMPLATE_args": str(args),
             "TEMPLATE_browser": ctx.attr.browser,
         },
     )
@@ -47,17 +76,21 @@ _make_karma_config = rule(
             allow_single_file = True,
             doc = "The karma config template to expand",
         ),
+        "_grep": attr.label(default = "@//:grep"),
     },
     outputs = {"config_file": "%{name}.js"},
 )
 
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
+    local_browser = kwargs.pop("local_browser", "")
+    headless = kwargs.pop("headless", True)
+
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ])
@@ -77,6 +110,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
     _make_karma_config(
         name = config_file,
         args = args,
+        browser = local_browser,
     )
 
     karma_web_test(
@@ -84,8 +118,9 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         timeout = timeout,
         name = name,
         config_file = config_file,
-        configuration_env_vars = ["DISPLAY"],
-        tags = ["native"] + tags,
+        configuration_env_vars = [] if headless else ["DISPLAY"],
+        peer_deps = PEER_DEPS,
+        tags = ["native", "no-remote-exec"] + tags,
         **kwargs
     )
 
@@ -98,7 +133,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
             args = args,
         )
 
-        additional_tags = []
+        additional_tags = ["no-remote-exec"]
         if ci:
             # Tag to be run in nightly.
             additional_tags.append("nightly")
@@ -109,19 +144,9 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         karma_web_test(
             size = size,
             timeout = timeout,
-            name = "browserstack_{}_{}".format(browser, name),
+            name = "{}_{}".format(browser, name),
             config_file = config_file,
-            peer_deps = [
-                "@npm//karma",
-                "@npm//karma-jasmine",
-                "@npm//karma-requirejs",
-                "@npm//karma-sourcemap-loader",
-                "@npm//requirejs",
-                # The above dependencies are the default when 'peer_deps' is not
-                # specified. They are manually spefied here so we can append
-                # karma-browserstack-launcher.
-                "@npm//karma-browserstack-launcher",
-            ],
+            peer_deps = PEER_DEPS + ["@npm//karma-browserstack-launcher"],
             tags = tags + additional_tags,
             **kwargs
         )

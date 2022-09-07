@@ -53,10 +53,19 @@ export function getGlslDifferences(): GLSL {
     // Use custom isnan definition to work across differences between
     // implementations on various platforms. While this should happen in ANGLE
     // we still see differences between android and windows (on chrome) when
-    // using isnan directly.
+    // using isnan directly. Since WebGL2 supports uint type and
+    // floatBitsToUinT built-in function, we could implment isnan following
+    // IEEE 754 rules.
+    // NaN defination in IEEE 754-1985 is :
+    //   - sign = either 0 or 1.
+    //   - biased exponent = all 1 bits.
+    //   - fraction = anything except all 0 bits (since all 0 bits represents
+    //   infinity).
+    // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+        uint floatToUint = floatBitsToUint(val);
+        return (floatToUint & 0x7fffffffu) > 0x7f800000u;
       }
 
       bvec4 isnan_custom(vec4 val) {

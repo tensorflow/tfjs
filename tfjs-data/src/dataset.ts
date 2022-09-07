@@ -48,7 +48,7 @@ export type DatasetContainer = Container<Dataset<TensorContainer>>;
  * dataset may be iterated over multiple times; each iteration starts the data
  * loading anew and recapitulates the transformations.
  *
- * A `Dataset` is typically processed as a stream of unbatched examples --i.e.,
+ * A `Dataset` is typically processed as a stream of unbatched examples -- i.e.,
  * its transformations are applied one example at a time. Batching produces a
  * new `Dataset` where each element is a batch. Batching should usually come
  * last in a pipeline, because data transformations are easier to express on a
@@ -82,12 +82,12 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    * Groups elements into batches.
    *
    * It is assumed that each of the incoming dataset elements has the same
-   * structure-- i.e. the same set of keys at each location in an object
+   * structure -- i.e. the same set of keys at each location in an object
    * hierarchy.  For each key, the resulting `Dataset` provides a batched
    * element collecting all of the incoming values for that key.
    *
    *  * Incoming primitives are grouped into a 1-D Tensor.
-   *  * Incoming Tensors are grouped into a new Tensor where the 0'th axis is
+   *  * Incoming Tensors are grouped into a new Tensor where the 0th axis is
    *    the batch dimension.
    *  * Incoming arrays are converted to Tensor and then batched.
    *  * A nested array is interpreted as an n-D Tensor, so the batched result

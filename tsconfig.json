@@ -11,7 +11,7 @@
     "declaration": true,
     "target": "es2017",
     "lib": [
-      "es2017",
+      "es2019",
       "dom"
     ],
     "outDir": "./dist",
@@ -23,17 +23,7 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "@bazel/tsetse",
-        "disabledRules": [
-          "must-use-promises",
-          "must-type-assert-json-parse",
-          "ban-promise-as-condition"
-        ]
-      }
-    ]
+    "incremental": true
   },
   "include": [
     "**/src/"

@@ -110,7 +110,7 @@ export declare interface ZeroPadding2DLayerArgs extends LayerArgs {
    * Integer, or `Array` of 2 integers, or `Array` of 2 `Array`s, each of
    * which is an `Array` of 2 integers.
    * - If integer, the same symmetric padding is applied to width and height.
-   * - If Array` of 2 integers, interpreted as two different symmetric values
+   * - If `Array` of 2 integers, interpreted as two different symmetric values
    *   for height and width:
    *   `[symmetricHeightPad, symmetricWidthPad]`.
    * - If `Array` of 2 `Array`s, interpreted as:

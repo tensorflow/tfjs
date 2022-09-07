@@ -154,7 +154,7 @@ describeMathCPUAndGPU('categoricalAccuracy', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy metric', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy metric', () => {
   it('1D', () => {
     const x = tensor1d([0, 0, 0, 1]);
     const y = tensor1d([0.1, 0.8, 0.05, 0.05]);
