@@ -119,7 +119,7 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate, fuzzy) {
 }
 
 function shouldCompareWithFuzzy(benchmarkInfo) {
-  const benchmarkInfos = ['bodypix', 'FaceLandmarkDetection-attention_mesh'];
+  const benchmarkInfos = ['FaceLandmarkDetection-attention_mesh'];
   return benchmarkInfos.includes(benchmarkInfo);
 }
 
@@ -171,9 +171,6 @@ function expectArraysClose(actual, expected, epsilon, predicate, fuzzy) {
   }
 
   if (fuzzy) {
-    // For bodypix, the value in data memeber means "1 for the pixels that are
-    // part of the person, and 0 otherwise". So for these models, we don't
-    // expect all data is exactly match. Default use error rate 0.001 (1/1000).
     // For FaceLandmarkDetection(attention_mesh), the predict result contains
     // pixel coordinates. These coordinates need a big epsilon from areClose.
     const ERROR_RATE = 0.001;
