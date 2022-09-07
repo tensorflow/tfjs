@@ -49,7 +49,6 @@ export function concat(
     return identity({inputs: {x: $inputs[0]}, backend});
   }
 
-
   if ($inputs[0].dtype === 'complex64') {
     const reals = $inputs.map((t) => real({inputs: {input: t}, backend}));
     const imags = $inputs.map((t) => imag({inputs: {input: t}, backend}));
