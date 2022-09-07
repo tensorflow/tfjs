@@ -26,7 +26,8 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
   it('does not leak memory', async () => {
     const x = tf.tensor2d([[.1], [.2]], [2, 1]);
     const startNumBytesInGPU = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
-    await tf.browser.toPixels(x);
+    const canvas = document.createElement('canvas');
+    await tf.browser.toPixels(x, canvas);
     expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
         .toEqual(startNumBytesInGPU);
   });
@@ -34,7 +35,8 @@ describeWithFlags('toPixels', WEBGL_ENVS, () => {
   it('does not leak memory given a tensor-like object', async () => {
     const x = [[10], [20]];  // 2x1;
     const startNumBytesInGPU = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
-    await tf.browser.toPixels(x);
+    const canvas = document.createElement('canvas');
+    await tf.browser.toPixels(x, canvas);
     expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
         .toEqual(startNumBytesInGPU);
   });

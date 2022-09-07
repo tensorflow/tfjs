@@ -290,7 +290,8 @@ export async function fromPixelsAsync(
  */
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
-    canvas: HTMLCanvasElement): Promise<void> {
+    // tslint:disable-next-line:no-any
+    canvas: HTMLCanvasElement): Promise<any> {
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -382,7 +383,7 @@ export async function toPixels(
   if ($img !== img) {
     $img.dispose();
   }
-  return;
+  return bytes;
 }
 
 export const fromPixels = op({fromPixels_});

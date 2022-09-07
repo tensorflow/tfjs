@@ -131,76 +131,60 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         // tslint:disable-next-line:no-any
-        () => tf.browser.toPixels(tf.scalar(1) as any, canvas) as Promise<any>,
-        done);
+        () => tf.browser.toPixels(tf.scalar(1) as any, canvas), done);
   });
 
   it('throws for rank-1 tensors', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         // tslint:disable-next-line:no-any
-        () => tf.browser.toPixels(tf.tensor1d([1]) as any, canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
-        done);
+        () => tf.browser.toPixels(tf.tensor1d([1]) as any, canvas), done);
   });
   it('throws for rank-4 tensors', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         // tslint:disable-next-line:no-any
-        () =>
-            tf.browser.toPixels(
-                // tslint:disable-next-line:no-any
-                tf.tensor4d([1], [1, 1, 1, 1]) as any, canvas) as Promise<any>,
+        () => tf.browser.toPixels(
+            // tslint:disable-next-line:no-any
+            tf.tensor4d([1], [1, 1, 1, 1]) as any, canvas),
         done);
   });
   it('throws for bool dtype', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
-        () => tf.browser.toPixels(tf.tensor2d([1], [1, 1], 'bool'), canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
+        () => tf.browser.toPixels(tf.tensor2d([1], [1, 1], 'bool'), canvas),
         done);
   });
   it('throws for rank-3 depth = 2', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
-        () => tf.browser.toPixels(tf.tensor3d([1, 2], [1, 1, 2]), canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
+        () => tf.browser.toPixels(tf.tensor3d([1, 2], [1, 1, 2]), canvas),
         done);
   });
   it('throws for rank-3 depth = 5', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         () => tf.browser.toPixels(
-                  tf.tensor3d([1, 2, 3, 4, 5], [1, 1, 5]), canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
+            tf.tensor3d([1, 2, 3, 4, 5], [1, 1, 5]), canvas),
         done);
   });
   it('throws for float32 tensor with values not in [0 - 1]', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
-        () => tf.browser.toPixels(tf.tensor2d([-1, .5], [1, 2]), canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
-        done);
+        () => tf.browser.toPixels(tf.tensor2d([-1, .5], [1, 2]), canvas), done);
   });
   it('throws for int32 tensor with values not in [0 - 255]', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         () => tf.browser.toPixels(
-                  tf.tensor2d([-1, 100], [1, 2], 'int32'), canvas) as
-                  // tslint:disable-next-line:no-any
-                  Promise<any>,
+            tf.tensor2d([-1, 100], [1, 2], 'int32'), canvas),
         done);
   });
   it('throws when passed a non-tensor', done => {
     const canvas = document.createElement('canvas');
     expectPromiseToFail(
         // tslint:disable-next-line:no-any
-        () => tf.browser.toPixels({} as any, canvas) as Promise<any>, done);
+        () => tf.browser.toPixels({} as any, canvas), done);
   });
 
   it('accepts a tensor-like object', async () => {
