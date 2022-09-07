@@ -28,12 +28,12 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
   workGroupSize: [number, number, number] = [4, 4, 4];
+  workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
   isVec4 = true;
-  private xNumber: number;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -41,7 +41,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [4, 4, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [4, this.workPerThread, 1]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -58,16 +59,17 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
-    // Here 4 is the work per thread in X dimension.
-    this.xNumber =
-        (4 - 1) * this.convInfo.strideWidth + this.convInfo.filterWidth;
 
     this.shaderKey =
         `depthwiseVec4_${activation}_${this.convInfo.filterHeight}_${
-            this.convInfo.filterWidth}_${this.xNumber}`;
+            this.convInfo.filterWidth}_${this.convInfo.strideHeight}_${
+            this.convInfo.strideWidth}_${this.workPerThread}`;
   }
 
   getUserCode(): string {
+    const xNumber = (this.workPerThread - 1) * this.convInfo.strideWidth +
+        this.convInfo.filterWidth;
+
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, true, 4)}
       fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
@@ -85,36 +87,36 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
       fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
-        let c = i32(globalId.y) * 4;
+        let c = i32(globalId.y) * ${this.workPerThread};
         let d1 = i32(globalId.x) * 4;
         let xRCCorner = vec2<i32>(r, c) * vec2<i32>(strideHeight, strideWidth) - uniforms.pad;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
-        var xVals : array<vec4<f32>, ${this.xNumber}>;
-        var dotProd : array<vec4<f32>, 4>;
-        dotProd[0] = vec4<f32>(0.0);
-        dotProd[1] = vec4<f32>(0.0);
-        dotProd[2] = vec4<f32>(0.0);
-        dotProd[3] = vec4<f32>(0.0);
+        var xVals : array<vec4<f32>, ${xNumber}>;
+        var dotProd : array<vec4<f32>, ${this.workPerThread}>;
+        for (var i = 0; i < ${this.workPerThread}; i++)
+        {
+          dotProd[i] = vec4<f32>(0.0);
+        }
 
         // Use constant instead of uniform can give better performance.
         for (var wR = 0; wR < ${this.convInfo.filterHeight}; wR = wR + 1) {
           let xR = xRCorner + wR;
-          for (var i = 0; i < ${this.xNumber}; i++)
+          for (var i = 0; i < ${xNumber}; i++)
           {
             xVals[i] = readX(batch, xR, xCCorner + i, d1);
           }
           for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
             let wValue = getW(wR, wC, d1, 0);
-            dotProd[0] = dotProd[0] + xVals[0 * strideWidth + wC] * wValue;
-            dotProd[1] = dotProd[1] + xVals[1 * strideWidth + wC] * wValue;
-            dotProd[2] = dotProd[2] + xVals[2 * strideWidth + wC] * wValue;
-            dotProd[3] = dotProd[3] + xVals[3 * strideWidth + wC] * wValue;
+            for (var i = 0; i < ${this.workPerThread}; i++)
+            {
+              dotProd[i] = dotProd[i] + xVals[i * strideWidth + wC] * wValue;
+            }
           }
         }
 
-        for (var i = 0; i < 4; i = i + 1) {
+        for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let coords = vec4<i32>(batch, r, c + i, d1);
           if (coordsInBounds4D(coords, uniforms.outShape)) {
             var value = dotProd[i];
