@@ -48,8 +48,8 @@ async function runRaggedGather(
   return {
     outputDenseValues: await output.outputDenseValues.data(),
     outputDenseValuesShape: output.outputDenseValues.shape,
-    outputNestedSplits:
-        output.outputNestedSplits.map(splits => splits.dataSync()),
+    outputNestedSplits: await Promise.all(
+        output.outputNestedSplits.map(splits => splits.data())),
     tensors: output.outputNestedSplits.concat([output.outputDenseValues])
   };
 }
