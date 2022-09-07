@@ -120,45 +120,40 @@ describeWithFlags('raggedGather ', ALL_ENVS, () => {
   });
 
   it('OutOfBounds', async () => {
-    expect(
-        () => runRaggedGather(
-            [2], [2, 10], [[0, 3, 3, 7, 9]], [9],
-            [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
-        .toThrowError('indices[1] = 10 is not in [0, 4)');
+    await expectAsync(runRaggedGather([2], [2, 10], [[0, 3, 3, 7, 9]], [9], [
+      .1, .2, .3, .4, .5, .6, .7, .8, .9
+    ])).toBeRejectedWithError('indices[1] = 10 is not in [0, 4)');
   });
 
   it('InvalidSplitsNotSorted', async () => {
-    expect(
-        () => runRaggedGather(
-            [2], [0, 2], [[0, 3, 5, 2, 9]], [9],
-            [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
-        .toThrowError('Ragged splits must be sorted');
+    await expectAsync(runRaggedGather(
+                          [2], [0, 2], [[0, 3, 5, 2, 9]], [9],
+                          [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
+        .toBeRejectedWithError(
+            'Ragged splits must be sorted in ascending order');
   });
 
   it('InvalidSplitsNegative', async () => {
-    expect(
-        () => runRaggedGather(
-            [2], [0, 2], [[-1, 3, 2, 7, 9]], [9],
-            [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
-        .toThrowError('Ragged splits must be non-negative');
+    await expectAsync(runRaggedGather([2], [0, 2], [[-1, 3, 2, 7, 9]], [9], [
+      .1, .2, .3, .4, .5, .6, .7, .8, .9
+    ])).toBeRejectedWithError('Ragged splits must be non-negative');
   });
 
   it('InvalidSplitsEmpty', async () => {
-    expect(() => runRaggedGather([0], [], [[]], [0], []))
-        .toThrowError('Ragged splits may not be empty');
+    await expectAsync(runRaggedGather([0], [], [[]], [0], []))
+        .toBeRejectedWithError('Ragged splits may not be empty');
   });
 
   it('InvalidSplitsTooBig', async () => {
-    expect(
-        () => runRaggedGather(
-            [2], [0, 2], [[0, 20, 40, 80, 100]], [9],
-            [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
-        .toThrowError('Ragged splits must not point past values');
+    await expectAsync(runRaggedGather(
+                          [2], [0, 2], [[0, 20, 40, 80, 100]], [9],
+                          [.1, .2, .3, .4, .5, .6, .7, .8, .9]))
+        .toBeRejectedWithError('Ragged splits must not point past values');
   });
 
   it('BadValuesShape', async () => {
-    expect(() => runRaggedGather([0], [], [[0]], [], [.1]))
-        .toThrowError('params.rank must be nonzero');
+    await expectAsync(runRaggedGather([0], [], [[0]], [], [.1]))
+        .toBeRejectedWithError('params.rank must be nonzero');
   });
 
   it('does not have memory leak.', async () => {
