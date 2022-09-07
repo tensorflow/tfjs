@@ -113,7 +113,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
               let wValue = getW(wR, wC, d1, 0);
               for (var i = 0; i < ${this.workPerThread}; i++)
               {
-                dotProd[i] = dotProd[i] + xVals[i * strideWidth + wC] * wValue;
+                dotProd[i] = fma(xVals[i * strideWidth + wC], wValue, dotProd[i]);
               }
             }
           }
