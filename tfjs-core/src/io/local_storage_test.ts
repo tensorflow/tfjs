@@ -256,7 +256,8 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
          return;  // Success
        }
        fail(
-           'Loading of model with missing weight specs succeeded unexpectedly.');
+           'Loading of model with missing weight specs ' +
+           'succeeded unexpectedly.');
      }));
 
   it('Loading model with missing weight data fails.', runWithLock(async () => {
@@ -271,7 +272,8 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
        try {
          await handler2.load();
          fail(
-             'Loading of model with missing weight data succeeded unexpectedly.');
+             'Loading of model with missing weight data ' +
+             'succeeded unexpectedly.');
        } catch (err) {
          expect(err.message)
              .toEqual(
