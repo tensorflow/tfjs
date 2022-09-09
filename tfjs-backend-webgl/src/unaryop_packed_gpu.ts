@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
@@ -66,7 +67,9 @@ export class UnaryOpPackedProgram implements GPGPUProgram {
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
-    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    this.enableShapeUniforms =
+        env().getBool('WEBGL_ENABLE_UNARY_SHAPES_UNIFORMS') &&
+        useShapeUniforms(this.outputShape.length);
     this.userCode = `
       vec4 unaryOperation(vec4 x) {
         ${opSnippet}

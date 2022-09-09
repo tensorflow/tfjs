@@ -67,6 +67,7 @@ export function makeShader(
       const {uniformShape} = getUniformInfoFromShape(
           program.packedInputs, x.shapeInfo.logicalShape, x.shapeInfo.texShape);
       switch (uniformShape.length) {
+        case 0:
         case 1:
           prefixSnippets.push(`uniform int ${x.name}Shape;`);
           break;
@@ -88,6 +89,7 @@ export function makeShader(
 
   if (program.enableShapeUniforms) {
     switch (outputShape.logicalShape.length) {
+      case 0:
       case 1:
         prefixSnippets.push(`uniform int outShape;`);
         break;

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
@@ -30,7 +31,9 @@ export class EncodeMatrixProgram implements GPGPUProgram {
       outputShape: [number, number, number], inputIsUnsignedByte = false) {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
-    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    this.enableShapeUniforms =
+        env().getBool('WEBGL_ENABLE_ENCODE_MATRIX_SHAPES_UNIFORMS') &&
+        useShapeUniforms(this.outputShape.length);
 
     let output = `result`;
     if (inputIsUnsignedByte) {

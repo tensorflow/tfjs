@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels, getSourceCoords} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
@@ -29,7 +30,9 @@ export class UnpackProgram implements GPGPUProgram {
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
-    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    this.enableShapeUniforms =
+        env().getBool('WEBGL_ENABLE_UNARY_SHAPES_UNIFORMS') &&
+        useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
 
     const channels = getChannels('rc', rank);
