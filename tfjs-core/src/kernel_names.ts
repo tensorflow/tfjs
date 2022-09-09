@@ -659,6 +659,14 @@ export interface ProdAttrs {
   keepDims: boolean;
 }
 
+export const RaggedGather = 'RaggedGather';
+export type RaggedGatherInputs = {
+  paramsNestedSplits: TensorInfo[]
+}&Pick<NamedTensorInfoMap, 'paramsDenseValues'|'indices'>;
+export interface RaggedGatherAttrs {
+  outputRaggedRank: number;
+}
+
 export const RaggedTensorToTensor = 'RaggedTensorToTensor';
 export type RaggedTensorToTensorInputs =
     Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
