@@ -190,9 +190,9 @@ function parseIntermediateIndex(intermediateIndexStr, maxIndex) {
       const end = Number(value[1]);
       const arrayLength = end - start + 1;
       const subArray = Array.from({length: arrayLength}, (v, i) => i + start);
-      flatArray = [...flatArray, ...subArray];
+      flatArray.push(...subArray);
     } else if (value.length == 1) {
-      flatArray = [...flatArray, ...[Number(value)]];
+      flatArray.push(Number(value));
     } else {
       throw new Error(`${intermediateIndexStr} is not supported!`);
     }
