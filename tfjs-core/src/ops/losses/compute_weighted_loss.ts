@@ -32,7 +32,7 @@ import {sum} from '../sum';
 /**
  * Computes the weighted loss between two tensors.
  *
- * @param losses Tensor of shape `[batch_size, d1, ... dN]`.
+ * @param losses Tensor of shape `[batch_size, d1, ..., dN]`.
  * @param weights Tensor whose rank is either 0, or the same rank as
  *    `losses`, and must be broadcastable to `losses` (i.e., all
  *    dimensions must be either `1`, or the same as the corresponding

@@ -33,7 +33,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
 /**
  * An input layer is an entry point into a `tf.LayersModel`.
  *
- * `InputLayer` is generated automatically for `tf.Sequential`` models by
+ * `InputLayer` is generated automatically for `tf.Sequential` models by
  * specifying the `inputshape` or `batchInputShape` for the first layer.  It
  * should not be specified explicitly. However, it can be useful sometimes,
  * e.g., when constructing a sequential model from a subset of another
@@ -71,7 +71,7 @@ export function inputLayer(args: InputLayerArgs) {
 // Advanced Activation Layers.
 
 /**
- * Exponetial Linear Unit (ELU).
+ * Exponential Linear Unit (ELU).
  *
  * It follows:
  * `f(x) =  alpha * (exp(x) - 1.) for x < 0`,
@@ -283,7 +283,7 @@ export function conv2d(args: ConvLayerArgs) {
  *   4D tensor with shape:
  *   `[batch, channels, rows, cols]` if `dataFormat` is `'channelsFirst'`.
  *   or 4D tensor with shape
- *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast`.
+ *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast'`.
  *
  * Output shape:
  *   4D tensor with shape:
@@ -432,7 +432,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs) {
  *
  * Depthwise Separable convolutions consists in performing just the first step
  * in a depthwise spatial convolution (which acts on each input channel
- * separately). The `depthMultplier` argument controls how many output channels
+ * separately). The `depthMultiplier` argument controls how many output channels
  * are generated per input channel in the depthwise step.
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
@@ -667,7 +667,7 @@ export function permute(args: PermuteLayerArgs) {
 
 /**
  * Maps positive integers (indices) into dense vectors of fixed size.
- * eg. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
+ * E.g. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
  *
  * **Input shape:** 2D tensor with shape: `[batchSize, sequenceLength]`.
  *
@@ -753,9 +753,9 @@ export function concatenate(args?: ConcatenateLayerArgs) {
 }
 
 /**
- * Layer that computes the element-wise maximum an `Array` of inputs.
+ * Layer that computes the element-wise maximum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -777,7 +777,7 @@ export function maximum(args?: LayerArgs) {
 /**
  * Layer that computes the element-wise minimum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -877,8 +877,8 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs) {
  *
  * Normalizes the activations of the previous layer for each given example in a
  * batch independently, instead of across a batch like in `batchNormalization`.
- * In other words, this layer applies a transformation that maintanis the mean
- * activation within each example close to0 and activation variance close to 1.
+ * In other words, this layer applies a transformation that maintains the mean
+ * activation within each example close to 0 and activation variance close to 1.
  *
  * Input shape:
  *   Arbitrary. Use the argument `inputShape` when using this layer as the first
@@ -963,10 +963,10 @@ export function avgPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *  - If `dataFormat === CHANNEL_LAST`:
  *      4D tensor with shape:
- *      `[batchSize, pooleRows, pooledCols, channels]`
+ *      `[batchSize, pooledRows, pooledCols, channels]`
  *  - If `dataFormat === CHANNEL_FIRST`:
  *      4D tensor with shape:
- *      `[batchSize, channels, pooleRows, pooledCols]`
+ *      `[batchSize, channels, pooledRows, pooledCols]`
  *
  * `tf.avgPool2d` is an alias.
  *
@@ -1022,7 +1022,7 @@ export function avgPooling3d(args: Pooling3DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1053,7 +1053,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1106,10 +1106,10 @@ export function maxPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *   - If `dataFormat=CHANNEL_LAST`:
  *       4D tensor with shape:
- *       `[batchSize, pooleRows, pooledCols, channels]`
+ *       `[batchSize, pooledRows, pooledCols, channels]`
  *   - If `dataFormat=CHANNEL_FIRST`:
  *       4D tensor with shape:
- *       `[batchSize, channels, pooleRows, pooledCols]`
+ *       `[batchSize, channels, pooledRows, pooledCols]`
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1376,7 +1376,7 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs) {
 /**
  * Convolutional LSTM layer - Xingjian Shi 2015.
  *
- * This is an `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
+ * This is a `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
  * unlike the underlying `ConvLSTM2DCell`, the `apply` method of `ConvLSTM2D`
  * operates on a sequence of inputs. The shape of the input (not including the
  * first, batch dimension) needs to be 4-D, with the first dimension being time
@@ -1496,8 +1496,8 @@ export function convLstm2dCell(args: ConvLSTM2DCellArgs) {
  *   You can pass "external" constants to the cell using the `constants`
  *   keyword argument of `RNN.call` method. This requires that the `cell.call`
  *   method accepts the same keyword argument `constants`. Such constants
- *   can be used to conditon the cell transformation on additional static inputs
- *   (not changing over time), a.k.a an attention mechanism.
+ *   can be used to condition the cell transformation on additional static
+ *   inputs (not changing over time), a.k.a. an attention mechanism.
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
@@ -1592,15 +1592,15 @@ export {Layer, RNN, RNNCell, input /* alias for tf.input */};
  * for real valued inputs.
  *
  * # Arguments
- *     stddev: float, standard deviation of the noise distribution.
+ * stddev: float, standard deviation of the noise distribution.
  *
  * # Input shape
- *         Arbitrary. Use the keyword argument `input_shape`
- *         (tuple of integers, does not include the samples axis)
- *         when using this layer as the first layer in a model.
+ * Arbitrary. Use the keyword argument `input_shape`
+ * (tuple of integers, does not include the samples axis)
+ * when using this layer as the first layer in a model.
  *
  * # Output shape
- *         Same shape as input.
+ * Same shape as input.
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */

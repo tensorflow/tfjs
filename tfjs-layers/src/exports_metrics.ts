@@ -25,8 +25,8 @@ import * as metrics from './metrics';
  *
  * `yTrue` and `yPred` can also have floating-number values between 0 and 1, in
  * which case the values will be thresholded at 0.5 to yield 0-1 values (i.e.,
- * a value >= 0.5 and <= 1.0 is interpreted as 1.
- * )
+ * a value >= 0.5 and <= 1.0 is interpreted as 1).
+ *
  * Example:
  * ```js
  * const x = tf.tensor1d([1, 1, 1, 1, 0, 0, 0, 0]);
@@ -156,8 +156,8 @@ export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
  * precision.print();
  * ```
  *
- * @param yTrue The ground truth values. Expected to be contain only 0-1 values.
- * @param yPred The predicted values. Expected to be contain only 0-1 values.
+ * @param yTrue The ground truth values. Expected to contain only 0-1 values.
+ * @param yPred The predicted values. Expected to contain only 0-1 values.
  * @return Precision Tensor.
  *
  * @doc {heading: 'Metrics', namespace: 'metrics'}
@@ -195,8 +195,8 @@ export function precision(yTrue: Tensor, yPred: Tensor): Tensor {
  * recall.print();
  * ```
  *
- * @param yTrue The ground truth values. Expected to be contain only 0-1 values.
- * @param yPred The predicted values. Expected to be contain only 0-1 values.
+ * @param yTrue The ground truth values. Expected to contain only 0-1 values.
+ * @param yPred The predicted values. Expected to contain only 0-1 values.
  * @return Recall Tensor.
  *
  * @doc {heading: 'Metrics', namespace: 'metrics'}

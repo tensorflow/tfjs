@@ -276,7 +276,7 @@ export declare interface Pooling2DLayerArgs extends LayerArgs {
    * Factors by which to downscale in each dimension [vertical, horizontal].
    * Expects an integer or an array of 2 integers.
    *
-   * For example, `[2, 2]` will halve the input in both spatial dimension.
+   * For example, `[2, 2]` will halve the input in both spatial dimensions.
    * If only one integer is specified, the same window length
    * will be used for both dimensions.
    */
@@ -625,7 +625,7 @@ export declare interface GlobalPooling2DLayerArgs extends LayerArgs {
    * One of `CHANNEL_LAST` (default) or `CHANNEL_FIRST`.
    *
    * The ordering of the dimensions in the inputs. `CHANNEL_LAST` corresponds
-   * to inputs with shape `[batch, height, width, channels[` while
+   * to inputs with shape `[batch, height, width, channels]` while
    * `CHANNEL_FIRST` corresponds to inputs with shape
    * `[batch, channels, height, width]`.
    */

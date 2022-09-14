@@ -133,9 +133,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'matmul',
     excludes: [
-      'has zero in its shape',           // Test times out.
-      'valueAndGradients',               // backend.sum() not yet implemented.
-      'upcasts when dtypes dont match',  // GLSL compilation failed
+      'has zero in its shape',  // Test times out.
+      'valueAndGradients',      // backend.sum() not yet implemented.
     ]
   },
   {
@@ -299,6 +298,7 @@ const TEST_FILTERS: TestFilter[] = [
       'reverse3d ',
       'reverse4d ',
       'reverse webgpu',
+      'raggedGather ',
       'raggedTensorToTensor ',
       'RFFT ',
       'round webgpu',
