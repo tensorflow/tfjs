@@ -22,6 +22,10 @@ import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
 export const CHECK_NAN_SNIPPET = `
+  result.r = isNaN.r ? nanValue.r : result.r;
+  result.g = isNaN.g ? nanValue.g : result.g;
+  result.b = isNaN.b ? nanValue.b : result.b;
+  result.a = isNaN.a ? nanValue.a : result.a;
 `;
 
 export const ELU_DER = `

@@ -25,7 +25,8 @@ const MOD = `if (b == 0.0) return NAN;
 
 const MOD_PACKED = `
   vec4 result = mod(a, b);
-  vec4 isNaN = vec4(equal(b, vec4(0.0)));
+  vec4 nanValue = vec4(NAN);
+  bvec4 isNaN = equal(b, vec4(0.0));
   ` +
     CHECK_NAN_SNIPPET + `
   return result;

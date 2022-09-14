@@ -44,7 +44,10 @@ const POW_PACKED = `
   result.b = isExpZero.b ? 1.0 : result.b;
   result.a = isExpZero.a ? 1.0 : result.a;
 
-  vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
+  vec4 nanValue = vec4(NAN);
+  bvec4 isNaN1 = lessThan(a, vec4(0.0));
+  bvec4 isNaN2 = lessThan(floor(b), b);
+  bvec4 isNaN = bvec4(isNaN1.x && isNaN2.x, isNaN1.y && isNaN2.y, isNaN1.z && isNaN2.z, isNaN1.w && isNaN2.w);
   ` +
     CHECK_NAN_SNIPPET + `
   return result;

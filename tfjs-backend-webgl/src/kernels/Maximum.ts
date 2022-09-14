@@ -28,7 +28,12 @@ const MAXIMUM = CHECK_NAN_SNIPPET + `
 
 const MAXIMUM_PACKED = `
   vec4 result = vec4(max(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  vec4 nanValue = a;
+  bvec4 isNaN = isnan(a);
+  ` +
+    CHECK_NAN_SNIPPET_PACKED + `
+  nanValue = b;
+  isNaN = isnan(b);
   ` +
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
