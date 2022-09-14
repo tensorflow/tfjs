@@ -72,7 +72,7 @@ const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
 const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
-const LOG = `if (a < 0.0) { return 1.0/0.0; }
+const LOG = `if (a < 0.0) { return uniforms.NAN; }
   return log(a);`;
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
