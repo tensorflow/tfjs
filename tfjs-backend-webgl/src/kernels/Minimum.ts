@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, Minimum} from '@tensorflow/tfjs-core';
 
 import {CHECK_NAN_SNIPPET} from '../binaryop_gpu';
-import {CHECK_NAN_SNIPPET as CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {minimumImplCPU} from '../kernel_utils/shared';
 

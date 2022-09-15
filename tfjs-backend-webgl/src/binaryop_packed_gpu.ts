@@ -21,7 +21,7 @@ import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
-export const CHECK_NAN_SNIPPET = `
+export const CHECK_NAN_SNIPPET_PACKED = `
   result.r = isNaN.r ? nanValue.r : result.r;
   result.g = isNaN.g ? nanValue.g : result.g;
   result.b = isNaN.b ? nanValue.b : result.b;

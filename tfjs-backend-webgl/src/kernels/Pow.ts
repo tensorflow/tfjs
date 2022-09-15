@@ -17,7 +17,7 @@
 
 import {KernelConfig, KernelFunc, Pow} from '@tensorflow/tfjs-core';
 
-import {CHECK_NAN_SNIPPET} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const POW = `
@@ -49,7 +49,7 @@ const POW_PACKED = `
   bvec4 isNaN2 = lessThan(floor(b), b);
   bvec4 isNaN = bvec4(isNaN1.x && isNaN2.x, isNaN1.y && isNaN2.y, isNaN1.z && isNaN2.z, isNaN1.w && isNaN2.w);
   ` +
-    CHECK_NAN_SNIPPET + `
+    CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 

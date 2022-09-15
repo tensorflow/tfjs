@@ -17,7 +17,7 @@
 
 import {KernelConfig, KernelFunc, Mod} from '@tensorflow/tfjs-core';
 
-import {CHECK_NAN_SNIPPET} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const MOD = `if (b == 0.0) return NAN;
@@ -28,7 +28,7 @@ const MOD_PACKED = `
   vec4 nanValue = vec4(NAN);
   bvec4 isNaN = equal(b, vec4(0.0));
   ` +
-    CHECK_NAN_SNIPPET + `
+    CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 
