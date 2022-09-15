@@ -220,12 +220,6 @@ ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
 /** Whether we will use shapes uniforms. */
 ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
 
-ENV.registerFlag('WEBGL_ENABLE_UNARY_SHAPES_UNIFORMS', () => true);
-
-ENV.registerFlag('WEBGL_ENABLE_BINARY_SHAPES_UNIFORMS', () => true);
-
-ENV.registerFlag('WEBGL_ENABLE_ENCODE_MATRIX_SHAPES_UNIFORMS', () => true);
-
 /**
  * Threshold for last dimension of input tensor that determines whether
  * WebGL backend for the Top K op will delegate computation to CPU. If input

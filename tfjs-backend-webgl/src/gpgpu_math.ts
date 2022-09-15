@@ -282,9 +282,6 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       const {uniformShape} = shader_compiler.getUniformInfoFromShape(
           binary.program.packedInputs, input.shape, input.texData.texShape);
       switch (uniformShape.length) {
-        case 0:
-          gpgpu.gl.uniform1iv(varShapeLoc, new Int32Array([1]));
-          break;
         case 1:
           gpgpu.gl.uniform1iv(varShapeLoc, new Int32Array(uniformShape));
           break;
@@ -336,9 +333,6 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   const outShapeLoc = binary.outShapeLocation;
   if (outShapeLoc) {
     switch (output.shape.length) {
-      case 0:
-        gpgpu.gl.uniform1iv(outShapeLoc, new Int32Array([1]));
-        break;
       case 1:
         gpgpu.gl.uniform1iv(outShapeLoc, new Int32Array(output.shape));
         break;

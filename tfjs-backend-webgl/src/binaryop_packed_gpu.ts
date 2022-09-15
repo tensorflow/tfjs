@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
@@ -51,9 +51,7 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
       checkOutOfBounds = false) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     const rank = this.outputShape.length;
-    this.enableShapeUniforms =
-        env().getBool('WEBGL_ENABLE_BINARY_SHAPES_UNIFORMS') &&
-        useShapeUniforms(rank);
+    this.enableShapeUniforms = useShapeUniforms(rank);
     let checkOutOfBoundsString = '';
     if (checkOutOfBounds) {
       if (rank === 0 || util.sizeFromShape(this.outputShape) === 1) {

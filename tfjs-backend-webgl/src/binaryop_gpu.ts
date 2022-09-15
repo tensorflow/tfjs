@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
@@ -33,9 +33,7 @@ export class BinaryOpProgram implements GPGPUProgram {
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-    this.enableShapeUniforms =
-        env().getBool('WEBGL_ENABLE_BINARY_SHAPES_UNIFORMS') &&
-        useShapeUniforms(this.outputShape.length);
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
       float binaryOperation(float a, float b) {
         ${op}
