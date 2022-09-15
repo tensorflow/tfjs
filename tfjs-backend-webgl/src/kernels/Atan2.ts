@@ -27,7 +27,6 @@ const ATAN2 = CHECK_NAN_SNIPPET + `
 
 const ATAN2_PACKED = `
   vec4 result = atan(a, b);
-  vec4 nanValue = vec4(NAN);
   bvec4 isNaNA = isnan(a);
   bvec4 isNaNB = isnan(b);
   bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);

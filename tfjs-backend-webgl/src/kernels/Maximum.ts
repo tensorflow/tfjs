@@ -28,12 +28,9 @@ const MAXIMUM = CHECK_NAN_SNIPPET + `
 
 const MAXIMUM_PACKED = `
   vec4 result = vec4(max(a, b));
-  vec4 nanValue = a;
-  bvec4 isNaN = isnan(a);
-  ` +
-    CHECK_NAN_SNIPPET_PACKED + `
-  nanValue = b;
-  isNaN = isnan(b);
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
   ` +
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
