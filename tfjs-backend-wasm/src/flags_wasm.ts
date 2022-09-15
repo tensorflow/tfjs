@@ -23,14 +23,19 @@ const ENV = env();
  * True if SIMD is supported.
  */
 // From: https://github.com/GoogleChromeLabs/wasm-feature-detect
-ENV.registerFlag(
+ENV.registerFlag('WASM_HAS_SIMD_SUPPORT', async () => {
+  try {
     // This typed array passed in to WebAssembly.validate is WebAssembly binary
     // code. In this case it is a small program that contains SIMD
     // instructions.
-    'WASM_HAS_SIMD_SUPPORT', async () => WebAssembly.validate(new Uint8Array([
+    return WebAssembly.validate(new Uint8Array([
       0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
       2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
-    ])));
+    ]));
+  } catch (e) {
+    return false;
+  }
+});
 
 /**
  * True if threads are supported.

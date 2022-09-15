@@ -22,6 +22,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+import {fill} from './fill';
 
 import {op} from './operation';
 
@@ -46,6 +47,10 @@ function clipByValue_<T extends Tensor>(
       (clipValueMin <= clipValueMax),
       () => `Error in clip: min (${clipValueMin}) must be ` +
           `less than or equal to max (${clipValueMax}).`);
+
+  if (clipValueMin === clipValueMax) {
+    return fill($x.shape, clipValueMin, $x.dtype) as T;
+  }
 
   const inputs: ClipByValueInputs = {x: $x};
   const attrs: ClipByValueAttrs = {clipValueMin, clipValueMax};
