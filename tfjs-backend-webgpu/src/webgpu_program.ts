@@ -629,6 +629,14 @@ function getOutputCoordsSnippet(
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
+  const dims = [x, y, z];
+  let rank = dims[0].length + dims[1].length + dims[2].length;
+  if (rank !== outRank) {
+    // getOutputCoords is only meaningful when the output rank is same with
+    // dispatch layout rank.
+    return '';
+  }
+
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
     const snippet = `fn getOutputCoords() -> ${dtype}{
@@ -640,18 +648,12 @@ function getOutputCoordsSnippet(
   }
 
   let gatherDimensionsStr = '';
-  const dims = [x, y, z];
-
-  let rank = 0;
-
   for (let i = 0; i < dims.length; i++) {
     const arr = dims[i];
 
     if (arr.length === 0) {
       continue;
     }
-
-    rank += arr.length;
 
     if (arr.length === 1) {
       gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
