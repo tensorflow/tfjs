@@ -85,6 +85,14 @@ export function computeWorkGroupInfoForMatMul(
     if (dimInner <= 16 && dimBOuter <= 16) {
       workGroupSize[0] = 4;
     }
+
+    const dispatchY =
+        Math.ceil(dimAOuter / (workGroupSize[1] * elementsPerThread[1]));
+    const dispatchX =
+        Math.ceil(dimBOuter / (workGroupSize[0] * elementsPerThread[0]));
+    if (dispatchY * dispatchX <= 32) {
+      elementsPerThread[1] = 1;
+    }
   }
 
   return {workGroupSize, elementsPerThread};
