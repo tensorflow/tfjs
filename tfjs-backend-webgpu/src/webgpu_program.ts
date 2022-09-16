@@ -630,7 +630,7 @@ function getOutputCoordsSnippet(
 
   const outRank = outShape.length;
   const dims = [x, y, z];
-  let rank = dims[0].length + dims[1].length + dims[2].length;
+  const rank = dims[0].length + dims[1].length + dims[2].length;
   if (rank !== outRank) {
     // getOutputCoords is only meaningful when the output rank is same with
     // dispatch layout rank.
