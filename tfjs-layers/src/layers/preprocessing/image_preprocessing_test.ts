@@ -1,0 +1,47 @@
+import { Tensor, randomNormal, mul, add} from '@tensorflow/tfjs-core';
+import { Rescaling } from './image_preprocessing'
+import { expectTensorsClose } from '../../utils/test_utils';
+
+describe("Rescaling Layer", () => {
+
+  it("Check if input shape matches output shape", () => {
+    const scale = 1.0 / 127.5;
+    const offset = 0;
+    const input = randomNormal([2, 4, 5, 3]);
+    const expectedOutputTensor = add(mul(input, scale), offset);
+    const scalingLayer = new Rescaling({scale: scale, offset: offset});
+    const layerOutputTensor = scalingLayer.apply(input) as Tensor;
+    expect(expectedOutputTensor.shape).toEqual(layerOutputTensor.shape);
+  });
+
+  it("Rescales input layer based on specified scaling factor and offset", () => {
+    const scale = 1.0 / 127.5;
+    const offset = -1.0;
+    const input = randomNormal([2, 4, 5, 3]);
+    const expectedOutputTensor = add(mul(input, scale), offset);
+    const scalingLayer = new Rescaling({scale: scale, offset: offset});
+    const layerOutputTensor = scalingLayer.apply(input) as Tensor;
+    expectTensorsClose(layerOutputTensor, expectedOutputTensor);
+  });
+
+  it("Recasts dtype to float32", () => {
+    const scale = 1.0 / 127.5;
+    const offset = -1.0;
+    const intTensor = randomNormal([2, 4, 5, 3], 7, 2, "int32");
+    const expectedOutputTensor = add(mul(intTensor, scale), offset);
+    const scalingLayer = new Rescaling({scale: scale , offset: offset});
+    const outputTensor = scalingLayer.apply(intTensor) as Tensor;
+    expect(outputTensor.dtype).toBe("float32"); // check dtype here
+    expectTensorsClose(outputTensor, expectedOutputTensor); // check actual values here
+  });
+
+  it("Config holds correct name", () => {
+    const scale = 1.0 / 127.5;
+    const offset = -1.0;
+    const scalingLayer = new Rescaling({scale: scale , offset: offset, name: "Rescaling"});
+    const config = scalingLayer.getConfig()
+    expect(config.name).toEqual("Rescaling"); // check dtype here
+  });
+
+});
+
