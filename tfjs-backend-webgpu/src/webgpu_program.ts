@@ -629,11 +629,10 @@ function getOutputCoordsSnippet(
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
-  const dims = [x, y, z];
-  const rank = dims[0].length + dims[1].length + dims[2].length;
+  const rank = x.length + y.length + z.length;
+  // getOutputCoords is only meaningful when the output rank is same with
+  // dispatch layout rank.
   if (rank !== outRank) {
-    // getOutputCoords is only meaningful when the output rank is same with
-    // dispatch layout rank.
     return '';
   }
 
@@ -648,6 +647,8 @@ function getOutputCoordsSnippet(
   }
 
   let gatherDimensionsStr = '';
+  const dims = [x, y, z];
+
   for (let i = 0; i < dims.length; i++) {
     const arr = dims[i];
 
