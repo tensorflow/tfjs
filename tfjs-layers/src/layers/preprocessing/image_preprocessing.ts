@@ -58,6 +58,7 @@
      if(inputs.dtype != 'float32') {
          inputs = K.cast(inputs, "float32");
      }
+
      return add(mul(inputs, this.scale), this.offset)
    }
  }
