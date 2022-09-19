@@ -1,8 +1,8 @@
 import { Tensor, randomNormal, mul, add} from '@tensorflow/tfjs-core';
 import { Rescaling } from './image_preprocessing'
-import { expectTensorsClose } from '../../utils/test_utils';
+import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_utils';
 
-describe("Rescaling Layer", () => {
+describeMathCPUAndGPU("Rescaling Layer", () => {
 
   it("Check if input shape matches output shape", () => {
     const scale = 1.0 / 127.5;
