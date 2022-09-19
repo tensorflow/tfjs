@@ -24,7 +24,6 @@ import {computeDispatch} from './webgpu_util';
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];

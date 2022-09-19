@@ -186,7 +186,6 @@ export function conv2DImpl({
       convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
-
   const useNaiveConv2d = env().getBool('WEBGPU_USE_NAIVE_CONV2D_DEBUG');
 
   if (!useNaiveConv2d &&
@@ -208,17 +207,15 @@ export function conv2DImpl({
     });
   }
 
-  let dimensions;
   let program: WebGPUProgram;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
+  const dimensions = [
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [...padInfo]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
+  ];
   if (useNaiveConv2d) {
-    dimensions = [
-      {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
-      {type: 'int32', data: [...padInfo]},
-      {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-      {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
-    ];
-
     program = new Conv2DNaiveProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
@@ -228,14 +225,9 @@ export function conv2DImpl({
                                        convInfo.outHeight * convInfo.outWidth;
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
-    dimensions = [
-      {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
-      {type: 'int32', data: [...padInfo]},
-      {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-      {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-      {type: 'int32', data: [dimInner]}
-    ];
+    dimensions.push(
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
 
     program = new Conv2DMMProgram(
         convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
