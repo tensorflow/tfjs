@@ -8,26 +8,25 @@
  * =============================================================================
  */
 
-import {LayerArgs, Layer} from '../../engine/topology'
-import { serialization, Tensor} from '@tensorflow/tfjs-core';
+import {LayerArgs, Layer} from '../../engine/topology';
+import { serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor } from '../../utils/types_utils';
 import * as K from '../../backend/tfjs_backend';
-import { mul, add, tidy } from "@tensorflow/tfjs-core";
-import { Kwargs } from "../../types";
+import { Kwargs } from '../../types';
 
 export declare interface RescalingArgs extends LayerArgs {
   scale: number;
-  offset?: number
+  offset?: number;
 }
 
 /**
-* Preprocessing Rescaling Layer
-*
-* This rescales images by a scaling and offset factor
-*/
+ * Preprocessing Rescaling Layer
+ *
+ * This rescales images by a scaling and offset factor
+ */
 export class Rescaling extends Layer {
   /** @nocollapse */
-  static className = "Rescaling";
+  static className = 'Rescaling';
   private readonly scale: number;
   private readonly offset: number;
   constructor(args: RescalingArgs) {
@@ -44,8 +43,8 @@ export class Rescaling extends Layer {
 
   getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
-      "scale": this.scale,
-      "offset": this.offset
+      'scale': this.scale,
+      'offset': this.offset
     };
 
     const baseConfig = super.getConfig();
@@ -56,8 +55,8 @@ export class Rescaling extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
-      if(inputs.dtype != 'float32') {
-          inputs = K.cast(inputs, "float32");
+      if(inputs.dtype !== 'float32') {
+          inputs = K.cast(inputs, 'float32');
       }
       return add(mul(inputs, this.scale), this.offset);
     });
