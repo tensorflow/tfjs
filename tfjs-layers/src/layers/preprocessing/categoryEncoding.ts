@@ -8,31 +8,25 @@
  * =============================================================================
  */
 
- import {LayerArgs, Layer} from '../../engine/topology';
- import { serialization, Tensor, tidy } from '@tensorflow/tfjs-core';
- import { Shape } from '../../keras_format/common';
- import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils';
- import { Kwargs } from '../../types';
- import * as K from '../../backend/tfjs_backend';
+import {LayerArgs, Layer} from '../../engine/topology';
+import { serialization, Tensor, tidy, Tensor1D, Tensor2D, TensorLike } from '@tensorflow/tfjs-core';
+import { max, min, greater, greaterEqual } from '@tensorflow/tfjs-core';
+import { Shape } from '../../keras_format/common';
+import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils';
+import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
+import * as utils from '../../utils/preprocessing_utils'
 
-
-
-
-
- export declare interface CategoryEncodingArgs extends LayerArgs {
+export declare interface CategoryEncodingArgs extends LayerArgs {
   numTokens: number;
   outputMode?: string;
-  sparse?: boolean;
-
  }
 
- export abstract class CategoryEncoding extends Layer {
+export class CategoryEncoding extends Layer {
   /** @nocollapse */
   static className = 'CategoryEncoding';
   private readonly numTokens: number;
   private readonly outputMode: string;
-  private readonly sparse: boolean;
 
   constructor(args: CategoryEncodingArgs) {
     super(args);
@@ -41,21 +35,14 @@ import { ValueError } from '../../errors';
     if(args.outputMode) {
     this.outputMode = args.outputMode;
     } else {
-      this.outputMode = "multiHot";
+      this.outputMode = utils.multiHot;
     }
-
-    if(args.sparse) {
-      this.sparse = args.sparse;
-      } else {
-        this.sparse = false;
-      }
   }
 
   getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'numTokens': this.numTokens,
       'outputMode': this.outputMode,
-      'sparse': this.sparse
     };
 
     const baseConfig = super.getConfig();
@@ -70,7 +57,7 @@ import { ValueError } from '../../errors';
       return [this.numTokens]
     }
 
-    if(this.outputMode == "oneHot" && inputShape[-1] !== 1) {
+    if(this.outputMode == utils.oneHot && inputShape[-1] !== 1) {
       inputShape.push(this.numTokens)
       return inputShape
     }
@@ -81,28 +68,40 @@ import { ValueError } from '../../errors';
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
     return tidy(() => {
-      inputs = getExactlyOneTensor(inputs);
-      if(inputs.dtype !== 'int32') {
-          inputs = K.cast(inputs, 'int32');
-      }
-      if(kwargs && kwargs["countWeights"]) {
 
-        if(this.outputMode !== "count") {
-          throw new ValueError(`countWeights is not used when outputMode is not
-          count. Received countWeights=${kwargs["countWeights"]}`)
+      inputs = getExactlyOneTensor(inputs)
+
+      let countWeights = [] as TensorLike|Tensor1D|Tensor2D
+
+      if(kwargs["countWeights"] !== null) {
+        if(this.outputMode !== utils.count) {
+          throw new ValueError(
+            `countWeights is not used when outputMode !== count.
+             Received countWeights=${kwargs['countWeights']}`)
         }
+         let countWeightsRanked = getExactlyOneTensor(kwargs["countWeights"])
 
-        const countWeights = getExactlyOneTensor(kwargs["countWeights"])
+         if(countWeightsRanked.rank === 1) {
+          countWeights = countWeightsRanked as Tensor1D
+         } if(countWeightsRanked.rank === 2) {
+          countWeights = countWeightsRanked as Tensor2D
+          }
       }
 
-      /// convert sparseToDense if necessary?
       const depth = this.numTokens
+      const maxValue = max(inputs)
+      const minValue = min(inputs)
 
+      if(!greater(depth, maxValue) || ! greaterEqual(minValue, 0)) {
+        throw new ValueError(`Input values must be in the range 0 <= values < numTokens"
+         with numTokens=${depth}`)
+      }
 
-
-      return inputs;
+    return utils.encodeCategoricalInputs(inputs, this.outputMode, depth, countWeights, null)
     });
   }
 }
+
+serialization.registerClass(CategoryEncoding);
 
 
