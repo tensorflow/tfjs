@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import 'jszip';
 import * as tfdfWebApiClient from './tfdf_web_api_client';
 
 describe('TFDFWebAPIClient', () => {

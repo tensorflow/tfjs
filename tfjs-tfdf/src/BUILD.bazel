@@ -44,6 +44,7 @@ ts_library(
     module_name = "@tensorflow/tfjs-tfdf",
     deps = [
         ":tfjs-tfdf_src_lib",
+        "@npm//jszip",
     ],
 )
 
