@@ -171,27 +171,17 @@ limitations under the License.
       }
     }
 
-    async function printTensors(tensorsMap) {
-      if (!tensorsMap) {
-        return;
-      }
-      const keysOfTensors = Object.keys(tensorsMap);
-      for (let i = 0; i < keysOfTensors.length; i++) {
-        console.warn(keysOfTensors[i]);
-        for (let j = 0; j < tensorsMap[keysOfTensors[i]].length; j++) {
-          console.warn(await (tensorsMap[keysOfTensors[i]][j]).data());
-        }
-      }
-    }
-
     async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
       const prediction = await predict(model, inferenceInput);
+      let intermediateData = {};
       if (debug) {
-        await printTensors(model.getIntermediateTensors());
-        model.disposeIntermediateTensors();
+        intermediateData = await getIntermediateTensorsData(model.getIntermediateTensors());
       }
       const predictionData = await getPredictionData(prediction);
-      return predictionData;
+      if (debug) {
+        model.disposeIntermediateTensors();
+      }
+      return {data: predictionData, intermediateData};
     }
 
     const state = {
@@ -222,14 +212,15 @@ limitations under the License.
 
         // load model and run inference
         try {
-          tf.setBackend('cpu');
+          const referenceBackend = 'cpu';
+          tf.setBackend(referenceBackend);
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg('Runing on cpu');
+          await showMsg(`Runing on ${referenceBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -243,7 +234,8 @@ limitations under the License.
           }
 
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          referenceData = referenceResult['data'];;
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -256,8 +248,17 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          predictionData = predictionResult['data'];;
+          if (debug) {
+            const predictionIntermediateObject = predictionResult['intermediateData'];
+            const referenceIntermediateObject = referenceResult['intermediateData'];
 
+            const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')): 0;
+            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')): -1;
+            const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
+            await dump([predictionIntermediateObject, referenceIntermediateObject], [state.backend, referenceBackend], dumpPrefix, modelUrl, dumpLevel, dumpLength);
+          }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
           }
@@ -302,7 +303,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, tfliteModel, predict, chartWidth;
+    let model, modelUrl, tfliteModel, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -536,7 +537,9 @@ limitations under the License.
       if (isTflite()) {
         await loadTfliteModel();
       } else {
-        model = await benchmark.load(inputSize, state.architecture, state.inputType);
+        const [modelTemp, modelUrlTemp]= await benchmark.load(inputSize, state.architecture, state.inputType);
+        model = modelTemp;
+        modelUrl = modelUrlTemp;
       }
       state.inputs = [];
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs
