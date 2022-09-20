@@ -19,4 +19,4 @@ export * from './tfdf_model';
 export * from './types/tfdf_web_model_runner';
 
 import jszip from 'jszip';
-(global as any).JSZip = jszip;
+(window as any).JSZip = jszip;

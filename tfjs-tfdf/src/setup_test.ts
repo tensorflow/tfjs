@@ -17,5 +17,8 @@
 
 import '@tensorflow/tfjs-backend-cpu';
 
+import jszip from 'jszip';
+(window as any).JSZip = jszip;
+
 // import './tfdf_model_test';
 import './tfdf_web_api_client_test';
