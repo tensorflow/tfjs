@@ -9,10 +9,15 @@
  */
 
  import {LayerArgs, Layer} from '../../engine/topology';
- import { serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
- import { getExactlyOneTensor } from '../../utils/types_utils';
- import * as K from '../../backend/tfjs_backend';
+ import { serialization, Tensor, tidy } from '@tensorflow/tfjs-core';
+ import { Shape } from '../../keras_format/common';
+ import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils';
  import { Kwargs } from '../../types';
+ import * as K from '../../backend/tfjs_backend';
+import { ValueError } from '../../errors';
+
+
+
 
 
  export declare interface CategoryEncodingArgs extends LayerArgs {
@@ -46,7 +51,58 @@
       }
   }
 
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      'numTokens': this.numTokens,
+      'outputMode': this.outputMode,
+      'sparse': this.sparse
+    };
+
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+
+  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+    inputShape = getExactlyOneShape(inputShape);
+
+    if(inputShape == null) {
+      return [this.numTokens]
+    }
+
+    if(this.outputMode == "oneHot" && inputShape[-1] !== 1) {
+      inputShape.push(this.numTokens)
+      return inputShape
+    }
+
+    inputShape[-1] = this.numTokens
+    return inputShape
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
+    return tidy(() => {
+      inputs = getExactlyOneTensor(inputs);
+      if(inputs.dtype !== 'int32') {
+          inputs = K.cast(inputs, 'int32');
+      }
+      if(kwargs && kwargs["countWeights"]) {
+
+        if(this.outputMode !== "count") {
+          throw new ValueError(`countWeights is not used when outputMode is not
+          count. Received countWeights=${kwargs["countWeights"]}`)
+        }
+
+        const countWeights = getExactlyOneTensor(kwargs["countWeights"])
+      }
+
+      /// convert sparseToDense if necessary?
+      const depth = this.numTokens
 
 
 
- }
+      return inputs;
+    });
+  }
+}
+
+
