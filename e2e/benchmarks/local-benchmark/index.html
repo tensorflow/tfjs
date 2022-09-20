@@ -174,14 +174,17 @@ limitations under the License.
     async function predictAndGetData(predict, model, inferenceInput, enableDump) {
       const prediction = await predict(model, inferenceInput);
       let intermediateData = {};
+      let graphModel = null;
       if (enableDump) {
-        const graphModel = getGraphModel(model);
+        graphModel = getGraphModel(model);
         if (graphModel) {
           intermediateData = await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
-          graphModel.disposeIntermediateTensors();
         }
       }
       const predictionData = await getPredictionData(prediction);
+      if (graphModel) {
+        graphModel.disposeIntermediateTensors();
+      }
       return {data: predictionData, intermediateData};
     }
 
