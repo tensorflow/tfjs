@@ -75,10 +75,7 @@ export class CategoryEncoding extends Layer {
         inputs = K.cast(inputs, 'int32');
     }
 
-      let countWeights = [] as TensorLike|Tensor1D|Tensor2D
-      console.log(`THIS IS KWARGS ${kwargs["countWeights"]}`)
-      console.log(`THIS IS KWARGS TYPE ${typeof kwargs["countWeights"]}`)
-      console.log(`THIS IS KWARGS ==undefined truthvalue ${kwargs["countWeights"] === undefined}` )
+      let countWeights = [] as TensorLike|Tensor1D|Tensor2D /// rethink this logic
 
       if(kwargs["countWeights"] !== undefined) {
         if(this.outputMode !== utils.count) {
