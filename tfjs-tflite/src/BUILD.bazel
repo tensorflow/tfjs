@@ -56,7 +56,10 @@ copy_to_bin(
 
 ts_library(
     name = "tfjs-tflite_test_lib",
-    srcs = glob(TEST_SRCS, exclude = ["worker_test.ts"]),
+    srcs = glob(
+        TEST_SRCS,
+        exclude = ["worker_test.ts"],
+    ),
     module_name = "@tensorflow/tfjs-tflite/dist",
     deps = [
         ":tfjs-tflite_lib",
@@ -91,9 +94,9 @@ ts_library(
         "worker_test.ts",
     ],
     deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
     ],
 )
 
@@ -127,4 +130,3 @@ tfjs_web_test(
         "@npm//seedrandom:seedrandom__umd",
     ],
 )
-
