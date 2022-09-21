@@ -22,6 +22,7 @@ import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
 import {BiasActivationProgram, MatMulSplitKProgram} from '../matmul_splitK_webgpu';
+import {MatMulProgram} from '../matmul_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
 import {MatMulProgramType} from '../webgpu_util';
 
@@ -115,20 +116,15 @@ export function batchMatMulImpl({
         innerShapeB >= 2000) {
       matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
     } else if (
-        // When the output size is absolutely small or relatively small, we may
-        // use MatMulSmallOutputSizeProgram to get better performance.
-        // Absolutely small size means that the output size is smaller than [16,
-        // 512]. Relatively small size means that one demension size of the
-        // output is smaller than 16, and the output size is also more than or
-        // equal two times smaller than each of the two input sizes. For
-        // example, if input sizes are [12, 2048] and [2048, 1024], the output
-        // size is [12, 1024], which is relatively small compared to input
-        // sizes.
-        (outerShapeA <= 16 &&
-         (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
-        (outerShapeB <= 16 &&
-         (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
+        // outerShapeB should be relatively small.
+        ((outerShapeA <= 256 && outerShapeB <= 64) ||
+         (outerShapeA <= 64 && outerShapeB <= 256)) &&
+        innerShapeA <= 512) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+    } else if (
+        innerShapeA <= 96 && outerShapeB <= 64 && innerShapeA % 4 === 0 &&
+        outerShapeB % 4 === 0) {
+      matmulProgramType = MatMulProgramType.MatMulProgram;
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
@@ -178,6 +174,11 @@ export function batchMatMulImpl({
       }
       break;
     }
+    case MatMulProgramType.MatMulProgram:
+      program = new MatMulProgram(
+          outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
+          bias, activation, preluActivationWeights);
+      break;
     case MatMulProgramType.MatMulSmallOutputSizeProgram:
       program = new MatMulSmallOutputSizeProgram(
           a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
