@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
+import {Conv2DNaiveProgram} from '../conv2d_naive_webgpu';
+import {WebGPUProgram} from '../webgpu_program';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
 import {reshape} from './Reshape';
@@ -184,12 +186,15 @@ export function conv2DImpl({
       convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
-  if (sameSize ||
-      (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-       (convInfo.padInfo.type === 'SAME' ||
-        convInfo.padInfo.type === 'VALID'))) {
+  const useNaiveConv2d = env().getBool('WEBGPU_USE_NAIVE_CONV2D_DEBUG');
+
+  if (!useNaiveConv2d &&
+      (sameSize ||
+       (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')))) {
     return conv2dByMatMul({
       x,
       filter,
@@ -202,25 +207,32 @@ export function conv2DImpl({
     });
   }
 
-  const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
-                                     convInfo.outChannels;
-  const dimBOuter = isChannelsLast ? convInfo.outChannels :
-                                     convInfo.outHeight * convInfo.outWidth;
-  const dimInner =
-      convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+  let program: WebGPUProgram;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
     {type: 'int32', data: [...padInfo]},
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-    {type: 'int32', data: [dimInner]}
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
   ];
+  if (useNaiveConv2d) {
+    program = new Conv2DNaiveProgram(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+  } else {
+    const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
+                                       convInfo.outChannels;
+    const dimBOuter = isChannelsLast ? convInfo.outChannels :
+                                       convInfo.outHeight * convInfo.outWidth;
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+    dimensions.push(
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
 
-  const program = new Conv2DMMProgram(
-      convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-      hasPreluActivationWeights);
+    program = new Conv2DMMProgram(
+        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
+        hasPreluActivationWeights);
+  }
 
   const intermediates: TensorInfo[] = [];
   const inputVar: TensorInfo[] = [x, filter];
