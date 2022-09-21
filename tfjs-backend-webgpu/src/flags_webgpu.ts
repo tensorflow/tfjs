@@ -70,3 +70,8 @@ ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
  * Whether to use conv2dNaive for debugging.
  */
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
+
+/**
+ * Default hardware Execution units number.
+ */
+ENV.registerFlag('WEBGPU_HARDWARE_EU_NUM', () => 96);

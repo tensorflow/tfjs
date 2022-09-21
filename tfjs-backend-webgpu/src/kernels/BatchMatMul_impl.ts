@@ -104,6 +104,19 @@ export function batchMatMulImpl({
   const outputShape: [number, number, number] =
       [batchDim, outerShapeA, outerShapeB];
   let matmulProgramType = env().get('WEBGPU_MATMUL_PROGRAM_TYPE') as number;
+  // Experiments show that when the hardware has more execution units, it's
+  // better to go to MatMulSmallOutputSizeProgram path for small sized output.
+  // Currently, we use threshold 16, which means when the parallel workgroups
+  // number is less than 16 by tiling 32x32. In the satisfied GPUs, increasing
+  // workgroups by a smaller tiling size can get better performance.
+  const matMulSmallOutputSizeProgramContidion =
+      backend.adapterInfo.isIntelGen12GPU &&
+          env().get('WEBGPU_HARDWARE_EU_NUM') as number >= 96 ?
+      Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32) <= 16 :
+      (outerShapeA <= 16 &&
+       (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
+          (outerShapeB <= 16 &&
+           (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA));
   if (matmulProgramType < 0) {
     if (outerShapeA * outerShapeB <= 128) {
       matmulProgramType = MatMulProgramType.MatMulReduceProgram;
@@ -114,20 +127,7 @@ export function batchMatMulImpl({
         batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 &&
         innerShapeB >= 2000) {
       matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
-    } else if (
-        // When the output size is absolutely small or relatively small, we may
-        // use MatMulSmallOutputSizeProgram to get better performance.
-        // Absolutely small size means that the output size is smaller than [16,
-        // 512]. Relatively small size means that one demension size of the
-        // output is smaller than 16, and the output size is also more than or
-        // equal two times smaller than each of the two input sizes. For
-        // example, if input sizes are [12, 2048] and [2048, 1024], the output
-        // size is [12, 1024], which is relatively small compared to input
-        // sizes.
-        (outerShapeA <= 16 &&
-         (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
-        (outerShapeB <= 16 &&
-         (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
+    } else if (matMulSmallOutputSizeProgramContidion) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;

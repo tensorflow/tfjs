@@ -17,14 +17,22 @@
 
 export class AdapterInfo {
   private vendor: string;
+  private architecture: string;
 
   constructor(adapterInfo: GPUAdapterInfo) {
     if (adapterInfo) {
       this.vendor = adapterInfo.vendor;
+      this.architecture = adapterInfo.architecture;
     }
   }
 
   isIntel(): boolean {
     return this.vendor === 'intel';
+  }
+
+  isIntelGen12GPU(): boolean {
+    return this.isIntel() &&
+        (this.architecture.startsWith('gen-12') ||
+         this.architecture.startsWith('xe'));
   }
 }
