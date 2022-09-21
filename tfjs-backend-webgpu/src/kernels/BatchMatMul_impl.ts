@@ -186,7 +186,8 @@ export function batchMatMulImpl({
     case MatMulProgramType.MatMulPackedProgram:
       program = new MatMulPackedProgram(
           a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights);
+          transposeB, bias, activation, preluActivationWeights,
+          backend.isIntel());
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);

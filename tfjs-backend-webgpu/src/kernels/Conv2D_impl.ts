@@ -220,7 +220,7 @@ export function conv2DImpl({
 
   const program = new Conv2DMMProgram(
       convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-      hasPreluActivationWeights);
+      hasPreluActivationWeights, backend.isIntel());
 
   const intermediates: TensorInfo[] = [];
   const inputVar: TensorInfo[] = [x, filter];
