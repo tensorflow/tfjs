@@ -15,6 +15,7 @@ import { Shape } from '../../keras_format/common';
 import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
+import * as K from '../../backend/tfjs_backend';
 import * as utils from '../../utils/preprocessing_utils'
 
 export declare interface CategoryEncodingArgs extends LayerArgs {
@@ -70,10 +71,16 @@ export class CategoryEncoding extends Layer {
     return tidy(() => {
 
       inputs = getExactlyOneTensor(inputs)
+      if(inputs.dtype !== 'int32') {
+        inputs = K.cast(inputs, 'int32');
+    }
 
       let countWeights = [] as TensorLike|Tensor1D|Tensor2D
+      console.log(`THIS IS KWARGS ${kwargs["countWeights"]}`)
+      console.log(`THIS IS KWARGS TYPE ${typeof kwargs["countWeights"]}`)
+      console.log(`THIS IS KWARGS ==undefined truthvalue ${kwargs["countWeights"] === undefined}` )
 
-      if(kwargs["countWeights"] !== null) {
+      if(kwargs["countWeights"] !== undefined) {
         if(this.outputMode !== utils.count) {
           throw new ValueError(
             `countWeights is not used when outputMode !== count.
