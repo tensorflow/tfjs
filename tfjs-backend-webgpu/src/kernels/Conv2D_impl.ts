@@ -231,7 +231,7 @@ export function conv2DImpl({
 
     program = new Conv2DMMProgram(
         convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-        hasPreluActivationWeights);
+        hasPreluActivationWeights, backend.isIntel());
   }
 
   const intermediates: TensorInfo[] = [];

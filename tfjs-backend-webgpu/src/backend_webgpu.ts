@@ -130,12 +130,13 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
+  private adapterInfo: GPUAdapterInfo;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
   }
 
-  constructor(device: GPUDevice) {
+  constructor(device: GPUDevice, adapterInfo?: GPUAdapterInfo) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
@@ -146,6 +147,7 @@ export class WebGPUBackend extends KernelBackend {
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
     this.supportTimeQuery = device.features.has('timestamp-query');
+    this.adapterInfo = adapterInfo;
 
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
@@ -172,6 +174,21 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
+  }
+
+  isIntel(): boolean {
+    if (this.adapterInfo) {
+      return this.adapterInfo.vendor === 'intel';
+    }
+    return false;
+  }
+
+  isGen12GPU(): boolean {
+    if (this.adapterInfo) {
+      return this.adapterInfo.architecture.startsWith('gen-12') ||
+          this.adapterInfo.architecture.startsWith('xe');
+    }
+    return false;
   }
 
   floatPrecision(): 32 {

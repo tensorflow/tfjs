@@ -176,12 +176,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
   tileInner: number;
   innerElementSize: number;
   isVec4?: boolean;
+  private sequentialAccess: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
       dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false) {
+      hasPreluActivationWeights = false, sequentialAccess = false) {
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
     this.isVec4 =
@@ -229,6 +230,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
       }
     }
 
+    this.sequentialAccess = sequentialAccess;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
@@ -244,7 +246,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
         this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${
-        this.innerElementSize}_${this.isChannelsLast}`;
+        this.innerElementSize}_${this.isChannelsLast}_${this.sequentialAccess}`;
   }
 
   getUserCode(): string {
@@ -254,7 +256,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
             this.tileInner) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
-            this.tileInner);
+            this.tileInner, false, null, this.sequentialAccess);
     const elementsSize =
         this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `
