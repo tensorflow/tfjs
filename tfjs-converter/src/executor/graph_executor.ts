@@ -544,7 +544,13 @@ export class GraphExecutor implements FunctionExecutor {
           getParamValue('isConstant', item.node, tensorMap, context)) {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
-
+      if (item.node.name ===
+          'StatefulPartitionedCall_1/StatefulPartitionedCall/simple_ml/SimpleMLLoadModelFromPathWithHandle') {
+        console.log(3);
+      }
+      console.log(
+          'PROCESSING: ' + item.node.name + ' ' +
+          item.node.children.map(n => n.name));
       // only process nodes that are not in the tensorMap yet, this include
       // inputNodes and internal initNodes.
       if (tensorMap[item.node.name] == null) {
@@ -556,6 +562,10 @@ export class GraphExecutor implements FunctionExecutor {
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
           promises.push(tensors.then(t => {
+            if (item.node.name ===
+                'StatefulPartitionedCall_1/StatefulPartitionedCall/simple_ml/SimpleMLLoadModelFromPathWithHandle') {
+              console.log('TENSORS: ' + t);
+            }
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
@@ -585,6 +595,11 @@ export class GraphExecutor implements FunctionExecutor {
       node: Node, stack: NodeWithContexts[], context: ExecutionContext,
       tensorMap: NamedTensorsMap, added: {[key: string]: boolean},
       usedNodes: Set<string>) {
+    if (node.name ===
+        'StatefulPartitionedCall_1/StatefulPartitionedCall/simple_ml/SimpleMLLoadModelFromPathWithHandle') {
+      console.log('5');
+    }
+
     node.children.forEach((childNode) => {
       const [nodeName, ] = getNodeNameAndIndex(childNode.name, context);
       if (added[nodeName] || !usedNodes.has(childNode.name)) {

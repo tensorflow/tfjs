@@ -57,6 +57,7 @@ export function executeOp(
     Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
+        console.log('NODE: ' + node.name + ' ' + node.op);
         switch (node.category) {
           case 'arithmetic':
             return tidy(() => arithmetic.executeOp(node, tensorMap, context));
@@ -100,6 +101,7 @@ export function executeOp(
             return hashTable.executeOp(
                 node, tensorMap, context, resourceManager);
           case 'custom':
+          default:
             const opMapper = getRegisteredOp(node.op);
             if (opMapper && opMapper.customExecutor) {
               return opMapper.customExecutor(
@@ -107,11 +109,11 @@ export function executeOp(
             } else {
               throw TypeError(`Custom op ${node.op} is not registered.`);
             }
-          default:
-            throw TypeError(
-                `Unknown op '${node.op}'. File an issue at ` +
-                `https://github.com/tensorflow/tfjs/issues so we can add it` +
-                `, or register a custom execution with tf.registerOp()`);
+            // throw TypeError(
+            //     `Unknown op '${node.op}'. File an issue at ` +
+            //     `https://github.com/tensorflow/tfjs/issues so we can add it`
+            //     +
+            //     `, or register a custom execution with tf.registerOp()`);
         }
       })(node, tensorMap, context);
   if (tfc.util.isPromise(value)) {

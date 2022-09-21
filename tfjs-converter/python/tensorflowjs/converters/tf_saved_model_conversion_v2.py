@@ -20,7 +20,11 @@ from __future__ import print_function
 
 import json
 import os
+import shutil
+import tempfile
+from zipfile import ZipFile
 
+import tensorflow_decision_forests
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
@@ -414,6 +418,33 @@ def _check_signature_in_model(saved_model, signature_name):
                      "are available: %s" % (signature_name,
                                             saved_model.signatures.keys()))
 
+def _copy_assets(saved_model_dir, output_dir):
+  input_assets_path = os.path.join(saved_model_dir, common.ASSETS_DIRECTORY_NAME)
+
+  if os.path.isdir(input_assets_path) and os.path.isdir(input_assets_path):
+
+    tmp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(tmp_dir, common.ASSETS_DIRECTORY_NAME + '.zip')
+
+    with ZipFile(zip_path, 'w') as archive:
+      for (input_dir_path, _, file_names) in tf.io.gfile.walk(input_assets_path):
+
+        relative_dir_path = os.path.relpath(input_dir_path, input_assets_path)
+
+        for file_name in file_names:
+
+          input_file_path = os.path.join(input_dir_path, file_name)
+          relative_file_path = os.path.join(relative_dir_path, file_name)
+
+          with tf.io.gfile.GFile(input_file_path, 'rb') as input_file:
+            with archive.open(relative_file_path, 'w') as relative_file:
+              shutil.copyfileobj(input_file, relative_file)
+
+    output_assets_path = os.path.join(output_dir, common.ASSETS_DIRECTORY_NAME + '.zip')
+    tf.io.gfile.copy(zip_path, output_assets_path)
+
+    if os.path.isdir(tmp_dir):
+      shutil.rmtree(tmp_dir)
 
 def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                            output_node_names):
@@ -726,6 +757,7 @@ def _convert_tf_saved_model(output_dir,
     model = _load_model(saved_model_dir, saved_model_tags_list)
     _check_signature_in_model(model, signature_def)
     concrete_func = model.signatures[signature_def]
+    _copy_assets(saved_model_dir, output_dir)
   elif keras_model:
     model = keras_model
     input_signature = None
