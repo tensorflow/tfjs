@@ -16,7 +16,6 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 const str2workerURL = (str: string): string => {
   const blob =
@@ -54,7 +53,7 @@ describe('tflite in worker', () => {
     const worker = new Worker(str2workerURL(workerTest));
     worker.onmessage = (msg) => {
       const data = msg.data.data;
-      expectArraysClose(data, [6, 8, 10, 12]);
+      expect([...data]).toEqual([6, 8, 10, 12]);
       done();
     };
   });
