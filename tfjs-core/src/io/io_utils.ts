@@ -514,7 +514,6 @@ export function getWeightSpecs(weightsManifest: WeightsManifestConfig):
   return weightSpecs;
 }
 
-
 /**
  * Computes mantisa table for casting Float16 to Float32
  * See http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf

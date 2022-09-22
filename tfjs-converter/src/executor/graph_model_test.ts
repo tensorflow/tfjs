@@ -472,7 +472,8 @@ describe('loadGraphModelSync', () => {
       weightsManifest: [{paths: [], weights: weightsManifest}],
     };
     expect(() => {
-      return loadGraphModelSync([modelJson] as any);
+      return loadGraphModelSync([modelJson] as unknown as [io.ModelJSON,
+                                                           ArrayBuffer]);
     }).toThrowMatching(err =>
       err.message.includes('weights must be the second element'));
   });
@@ -483,7 +484,7 @@ describe('loadGraphModelSync', () => {
     };
     const weights = new Int32Array([5]).buffer;
     expect(() => {
-      return loadGraphModelSync([badInput as any, weights]);
+      return loadGraphModelSync([badInput as io.ModelJSON, weights]);
     }).toThrowMatching(err =>
       err.message.includes('missing \'modelTopology\''));
   });
@@ -494,7 +495,7 @@ describe('loadGraphModelSync', () => {
     };
     const weights = new Int32Array([5]).buffer;
     expect(() => {
-      return loadGraphModelSync([badInput as any, weights]);
+      return loadGraphModelSync([badInput as io.ModelJSON, weights]);
     }).toThrowMatching(err =>
       err.message.includes('missing \'weightsManifest\''));
   });
@@ -502,7 +503,7 @@ describe('loadGraphModelSync', () => {
   it('Throws an error if modelSource is an unknown format', () => {
     const badInput = {foo: 'bar'};
     expect(() => {
-      return loadGraphModelSync(badInput as any);
+      return loadGraphModelSync(badInput as io.ModelArtifacts);
     }).toThrowMatching(err =>
       err.message.includes('Unknown model format'));
   });
