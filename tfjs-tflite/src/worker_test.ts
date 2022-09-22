@@ -56,5 +56,5 @@ describe('tflite in worker', () => {
       expect([...data]).toEqual([6, 8, 10, 12]);
       done();
     };
-  });
+  }, 15_000);
 });
