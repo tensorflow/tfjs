@@ -20,6 +20,7 @@ import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -175,6 +176,49 @@ export class MathBackendWebGL extends KernelBackend {
   numDataIds() {
     return this.texData.numDataIds() - this.pendingDeletes;
   }
+
+  // Writes a new entry to the data store with a WebGL texture, and registers it
+  // to the texture manager.
+  writeTexture(
+      texture: WebGLTexture, shape: number[], dtype: DataType,
+      texShape: [number, number]): DataId {
+    const shapeAs3D = webgl_util.getShapeAs3D(shape);
+    const inData = {
+      shape,
+      dtype,
+      texture,
+      texShape,
+      usage: TextureUsage.RENDER,
+      isPacked: false,
+      refCount: 1
+    };
+    const inputTensorData = {shape, texData: inData, isUniform: false};
+    const output = this.makeTensorInfo(shape, dtype);
+    const outputData = this.texData.get(output.dataId);
+    const outputTensorData: TensorData = {
+      shape: output.shape,
+      texData: outputData,
+      isUniform: false
+    };
+
+    this.uploadToGPU(output);
+
+    const program = new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */);
+
+    const key =
+        gpgpu_math.makeShaderKey(program, [inputTensorData], outputTensorData);
+
+
+    const binary = this.getAndSaveBinary(key, () => {
+      return gpgpu_math.compileProgram(
+          this.gpgpu, program, inputTensorData, outputTensorData);
+    });
+
+    gpgpu_math.runProgram(
+        this.gpgpu, binary, inputTensorData, outputTensorData,
+        null /* customUniformValues */);
+  }
+
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
