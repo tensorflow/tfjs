@@ -499,9 +499,11 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         modelArtifacts.weightData.byteLength,
   };
 }
+
 /**
  * Concatenate the weights stored in a WeightsManifestConfig into a list of
  * WeightsManifestEntry
+ *
  * @param weightsManifest The WeightsManifestConfig to extract weights from.
  * @returns A list of WeightsManifestEntry of the weights in the weightsManifest
  */
