@@ -403,19 +403,20 @@ export function getModelJSONForModelArtifacts(
 }
 
 /**
- * Create `ModelArtifacts` from a JSON file.
+ * Create `ModelArtifacts` from a JSON file and weights.
  *
  * @param modelJSON Object containing the parsed JSON of `model.json`
- * @param loadWeights Function that takes the JSON file's weights manifest,
- *     reads weights from the listed path(s), and returns a Promise of the
- *     weight manifest entries along with the weights data.
+ * @param weightSpecs The list of WeightsManifestEntry for the model. Must be
+ *     passed if the modelJSON has a weightsManifest.
+ * @param weightData An ArrayBuffer of weight data for the model corresponding
+ *     to the weights in weightSpecs. Must be passed if the modelJSON has a
+ *     weightsManifest.
  * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
  */
-export async function getModelArtifactsForJSON(
-    modelJSON: ModelJSON,
-    loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
-      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
-    ]>): Promise<ModelArtifacts> {
+export function getModelArtifactsForJSONSync(
+    modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
+    weightData?: ArrayBuffer): ModelArtifacts {
+
   const modelArtifacts: ModelArtifacts = {
     modelTopology: modelJSON.modelTopology,
     format: modelJSON.format,
@@ -427,8 +428,12 @@ export async function getModelArtifactsForJSON(
     modelArtifacts.trainingConfig = modelJSON.trainingConfig;
   }
   if (modelJSON.weightsManifest != null) {
-    const [weightSpecs, weightData] =
-        await loadWeights(modelJSON.weightsManifest);
+    if (!weightSpecs) {
+      throw new Error('modelJSON has weightsManifest but weightSpecs is null');
+    }
+    if (!weightData) {
+      throw new Error('modelJSON has weightsManifest but weightData is null');
+    }
     modelArtifacts.weightSpecs = weightSpecs;
     modelArtifacts.weightData = weightData;
   }
@@ -443,6 +448,30 @@ export async function getModelArtifactsForJSON(
   }
 
   return modelArtifacts;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param loadWeights Function that takes the JSON file's weights manifest,
+ *     reads weights from the listed path(s), and returns a Promise of the
+ *     weight manifest entries along with the weights data.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export async function getModelArtifactsForJSON(
+    modelJSON: ModelJSON,
+    loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
+      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+    ]>): Promise<ModelArtifacts> {
+  let weightSpecs: WeightsManifestEntry[] | undefined;
+  let weightData: ArrayBuffer | undefined;
+
+  if (modelJSON.weightsManifest != null) {
+    [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);
+  }
+
+  return getModelArtifactsForJSONSync(modelJSON, weightSpecs, weightData);
 }
 
 /**
@@ -470,6 +499,21 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         modelArtifacts.weightData.byteLength,
   };
 }
+/**
+ * Concatenate the weights stored in a WeightsManifestConfig into a list of
+ * WeightsManifestEntry
+ * @param weightsManifest The WeightsManifestConfig to extract weights from.
+ * @returns A list of WeightsManifestEntry of the weights in the weightsManifest
+ */
+export function getWeightSpecs(weightsManifest: WeightsManifestConfig):
+    WeightsManifestEntry[] {
+  const weightSpecs: WeightsManifestEntry[] = [];
+  for (const entry of weightsManifest) {
+    weightSpecs.push(...entry.weights);
+  }
+  return weightSpecs;
+}
+
 
 /**
  * Computes mantisa table for casting Float16 to Float32

@@ -456,6 +456,57 @@ describe('loadGraphModelSync', () => {
     checkModel(model);
   });
 
+  it('Pass the model JSON and weights', () => {
+    const modelJson: tfc.io.ModelJSON = {
+      modelTopology: SIMPLE_MODEL,
+      weightsManifest: [{paths: [], weights: weightsManifest}],
+    };
+    const weights = new Int32Array([5]).buffer;
+    const model = loadGraphModelSync([modelJson, weights]);
+    checkModel(model);
+  });
+
+  it('Throws an error if ModelJSON is passed without weights', () => {
+    const modelJson: tfc.io.ModelJSON = {
+      modelTopology: SIMPLE_MODEL,
+      weightsManifest: [{paths: [], weights: weightsManifest}],
+    };
+    expect(() => {
+      return loadGraphModelSync([modelJson] as any);
+    }).toThrowMatching(err =>
+      err.message.includes('weights must be the second element'));
+  });
+
+  it('Throws an error if modelJSON is missing \'modelTopology\'', () => {
+    const badInput = {
+      weightsManifest: [{paths: [] as string[], weights: weightsManifest}],
+    };
+    const weights = new Int32Array([5]).buffer;
+    expect(() => {
+      return loadGraphModelSync([badInput as any, weights]);
+    }).toThrowMatching(err =>
+      err.message.includes('missing \'modelTopology\''));
+  });
+
+  it('Throws an error if modelJSON is missing \'weightsManifest\'', () => {
+    const badInput = {
+      modelTopology: SIMPLE_MODEL,
+    };
+    const weights = new Int32Array([5]).buffer;
+    expect(() => {
+      return loadGraphModelSync([badInput as any, weights]);
+    }).toThrowMatching(err =>
+      err.message.includes('missing \'weightsManifest\''));
+  });
+
+  it('Throws an error if modelSource is an unknown format', () => {
+    const badInput = {foo: 'bar'};
+    expect(() => {
+      return loadGraphModelSync(badInput as any);
+    }).toThrowMatching(err =>
+      err.message.includes('Unknown model format'));
+  });
+
   it('Expect an error when moderUrl is null', () => {
     let errorMsg = 'no error';
     try {
