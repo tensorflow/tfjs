@@ -75,7 +75,7 @@ export class CategoryEncoding extends Layer {
         inputs = K.cast(inputs, 'int32');
     }
 
-      let countWeights = [] as TensorLike|Tensor1D|Tensor2D /// rethink this logic
+      let countWeights = [] as TensorLike|Tensor1D|Tensor2D
 
       if(kwargs["countWeights"] !== undefined) {
         if(this.outputMode !== utils.count) {

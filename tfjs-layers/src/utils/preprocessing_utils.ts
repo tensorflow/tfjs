@@ -15,32 +15,42 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[], outputMode: str
                              idfWeights: Tensor1D|Tensor2D|null): Tensor|Tensor[] {
 
   inputs = getExactlyOneTensor(inputs)
-  console.log(`INPUTS HERE ${inputs}`)
-  console.log(`INPUTS SHAPE ${inputs.shape}`)
-  console.log(`INPUT RANK HERE ${inputs.rank}`)
+  // console.log(`INPUTS HERE ${inputs}`)
+  // console.log(`INPUTS SHAPE ${inputs.shape}`)
+  // console.log(`INPUTS SHAPE TYPE ${typeof inputs.shape}`)
+  // console.log(`INPUTS SHAPE LENGTH ${inputs.shape.length}`)
+
+  // console.log(`INPUTS SHAPE @ 0  ${inputs.shape[0]}`)
+  // console.log(`INPUTS SHAPE @ 1  ${ inputs.shape[1]}`)
+  // console.log(` TYPEOF INPUTS SHAPE @ 0  ${typeof inputs.shape[0]}`)
+  // console.log(` TYPEOF INPUTS SHAPE @ 1  ${typeof inputs.shape[1]}`)
+
+  // console.log(`INPUTS SHAPE @ LENGTH - 1 ${inputs.shape[inputs.shape.length - 1]}`)
+
+
+  // console.log(`INPUT RANK HERE ${inputs.rank}`)
   if(outputMode === int) {
     return inputs
   }
 
   const originalShape = inputs.shape
-  console.log(`INPUT SHAPE HERE ${inputs.shape}`)
 
   if(inputs.rank === 0) {
     inputs = expandDims(inputs, -1)
-    console.log(`RANK 0 PRINT INPUT ${inputs}`)
+    // console.log(`RANK 0 PRINT INPUT ${inputs}`)
 
   }
   if(outputMode === oneHot) {
-    if(inputs.shape[-1] !== 1) {
-      console.log(`inputs.shape[-1] = ${inputs.shape[-1]}`)
-      console.log(`typeof inputs.shape[-1] = ${typeof inputs.shape[-1]}`)
+    if(inputs.shape[inputs.shape.length - 1] !== 1) {
+      // console.log(`inputs.shape.length - 1 THIS COMMENT = ${inputs.shape[inputs.shape.length - 1]}`)
+      // console.log(`inputs.shape.length - 1 = ${typeof (inputs.shape.length - 1)}`)
       inputs = expandDims(inputs, -1)
-      console.log(`0utputMode === oneHot && inputs.shape[-1] !== 1 PRINT INPUT ${inputs}`)
+      // console.log(`0utputMode === oneHot && inputs.shape[-1] !== 1 PRINT INPUT ${inputs}`)
     }
   }
   if(inputs.rank > 2) {
-    console.log(`INPUT RANK TOO BIG - INPUT ${inputs}`)
-    console.log(`INPUT RANK TOO BIG - RANK ${inputs.rank}`)
+    // console.log(`INPUT RANK TOO BIG - INPUT ${inputs}`)
+    // console.log(`INPUT RANK TOO BIG - RANK ${inputs.rank}`)
 
     throw new ValueError(`When output_mode is not 'int', maximum supported output rank is 2.
     Received outputMode ${outputMode} and input shape ${originalShape}
@@ -53,6 +63,7 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[], outputMode: str
     denseBincountInput = inputs as Tensor1D
   }
   if(inputs.rank === 2) {
+    // console.log(`WEIGHTS HERE ${countWeights} `)
     denseBincountInput = inputs as Tensor2D
   }
   const binCounts = denseBincount(denseBincountInput, countWeights, depth, binaryOutput)
