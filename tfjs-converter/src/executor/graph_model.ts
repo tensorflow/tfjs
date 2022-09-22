@@ -499,23 +499,29 @@ export async function loadGraphModel(
 /**
  * Load a graph model given a synchronous IO handler with a 'load' method.
  *
- * @param modelSource The `io.IOHandlerSync` that loads the model.
+ * @param modelSource The `io.IOHandlerSync` that loads the model or the
+ *     io.ModelArtifacts that encode the model.
  *
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
-
-export function loadGraphModelSync(modelSource: io.IOHandlerSync):
-    GraphModel<io.IOHandlerSync> {
+export function loadGraphModelSync(modelSource: io.IOHandlerSync
+  | io.ModelArtifacts): GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
-        'modelUrl in loadGraphModelSync() cannot be null. Please provide a ' +
-        'url or an IOHandler that loads the model');
+        'modelUrl in loadGraphModelSync() cannot be null. Please provide ' +
+        'model artifacts or an IOHandler that loads the model');
   }
-  if (!modelSource.load) {
-    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
-  }
-  const model = new GraphModel(modelSource);
 
+  let ioHandler: io.IOHandlerSync;
+  if ('load' in modelSource) {
+    ioHandler = modelSource;
+  } else if ('modelTopology' in modelSource) {
+    ioHandler = io.fromMemorySync(modelSource);
+  } else {
+    throw new Error('Unknown model source');
+  }
+
+  const model = new GraphModel(ioHandler);
   model.load();
   return model;
 }

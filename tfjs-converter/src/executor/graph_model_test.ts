@@ -425,6 +425,13 @@ describe('loadGraphModel', () => {
 });
 
 describe('loadGraphModelSync', () => {
+  function checkModel(model: GraphModel<unknown>) {
+    expect(model).toBeDefined();
+    const bias = model.weights['Const'][0];
+    expect(bias.dtype).toBe('int32');
+    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+  }
+
   it('Pass a custom io handler', () => {
     const customLoader: tfc.io.IOHandlerSync = {
       load: () => {
@@ -436,10 +443,17 @@ describe('loadGraphModelSync', () => {
       }
     };
     const model = loadGraphModelSync(customLoader);
-    expect(model).toBeDefined();
-    const bias = model.weights['Const'][0];
-    expect(bias.dtype).toBe('int32');
-    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+    checkModel(model);
+  });
+
+  it('Pass the model artifacts directly', () => {
+    const modelArtifacts: tfc.io.ModelArtifacts = {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: new Int32Array([5]).buffer,
+    };
+    const model = loadGraphModelSync(modelArtifacts);
+    checkModel(model);
   });
 
   it('Expect an error when moderUrl is null', () => {
