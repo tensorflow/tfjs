@@ -25,7 +25,7 @@ import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooli
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
-import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/categoryEncoding';
+import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).
@@ -1768,6 +1768,5 @@ export function rescaling(args?: RescalingArgs) {
  * @doc {heading: 'Layers', subheading: 'CategoryEncoding', namespace: 'layers'}
  */
 export function categoryEncoding(args: CategoryEncodingArgs) {
-  return new CategoryEncoding(args)
+  return new CategoryEncoding(args);
 }
-

@@ -8,15 +8,15 @@
  * =============================================================================
  */
 
-import {LayerArgs, Layer} from '../../engine/topology';
-import { serialization, Tensor, tidy, Tensor1D, Tensor2D, TensorLike } from '@tensorflow/tfjs-core';
-import { max, min, greater, greaterEqual } from '@tensorflow/tfjs-core';
+import { LayerArgs, Layer } from '../../engine/topology';
+import { serialization, Tensor, tidy, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
+import { greater, greaterEqual, max, min} from '@tensorflow/tfjs-core';
 import { Shape } from '../../keras_format/common';
 import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import * as K from '../../backend/tfjs_backend';
-import * as utils from '../../utils/preprocessing_utils'
+import * as utils from './preprocessing_utils'
 
 export declare interface CategoryEncodingArgs extends LayerArgs {
   numTokens: number;
@@ -75,9 +75,11 @@ export class CategoryEncoding extends Layer {
         inputs = K.cast(inputs, 'int32');
     }
 
-      let countWeights = [] as TensorLike|Tensor1D|Tensor2D
 
-      if(kwargs["countWeights"] !== undefined) {
+       let countWeights
+
+      if((typeof kwargs["countWeights"]) !== 'undefined') {
+
         if(this.outputMode !== utils.count) {
           throw new ValueError(
             `countWeights is not used when outputMode !== count.
@@ -86,9 +88,9 @@ export class CategoryEncoding extends Layer {
          let countWeightsRanked = getExactlyOneTensor(kwargs["countWeights"])
 
          if(countWeightsRanked.rank === 1) {
-          countWeights = countWeightsRanked as Tensor1D
+           countWeights = countWeightsRanked as Tensor1D
          } if(countWeightsRanked.rank === 2) {
-          countWeights = countWeightsRanked as Tensor2D
+           countWeights = countWeightsRanked as Tensor2D
           }
       }
 
@@ -96,12 +98,15 @@ export class CategoryEncoding extends Layer {
       const maxValue = max(inputs)
       const minValue = min(inputs)
 
-      if(!greater(depth, maxValue) || ! greaterEqual(minValue, 0)) {
-        throw new ValueError(`Input values must be in the range 0 <= values < numTokens"
-         with numTokens=${depth}`)
+      const greaterEqualMax = greater(depth, maxValue).bufferSync().get(0)
+      const greaterMin = greaterEqual(minValue, 0).bufferSync().get(0)
+
+      if(!(greaterEqualMax && greaterMin)) {
+        throw new ValueError(
+        `Input values must be between 0 < values <= numTokens`)
       }
 
-    return utils.encodeCategoricalInputs(inputs, this.outputMode, depth, countWeights, null)
+    return utils.encodeCategoricalInputs(inputs, this.outputMode, depth, countWeights)
     });
   }
 }
