@@ -28,7 +28,8 @@ import '@tensorflow/tfjs-backend-webgl';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-registerTestEnv({
+// Register test environments.
+const webgl1TestEnv = {
   name: 'webgl1',
   backendName: 'webgl',
   flags: {
@@ -37,6 +38,17 @@ registerTestEnv({
     'WEBGL_SIZE_UPLOAD_UNIFORM': 0
   },
   isDataSync: true
+};
+registerTestEnv(webgl1TestEnv);
+registerTestEnv({name: 'cpu', backendName: 'cpu'});
+registerTestEnv({
+  name: 'webgl2',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  }
 });
 
 // Allow flags to override test envs
@@ -44,8 +56,13 @@ registerTestEnv({
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
   const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
+
   if (testEnv != null) {
     setTestEnvs([testEnv]);
+  } else {
+    // Exclude webgl1 unless it is specifically requested because it causes
+    // test flakiness when switching between webgl1 and webgl2.
+    setTestEnvs(TEST_ENVS.filter(env => env !== webgl1TestEnv));
   }
 }
 
