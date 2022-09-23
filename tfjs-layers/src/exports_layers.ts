@@ -25,7 +25,7 @@ import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooli
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
-
+import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).
@@ -1728,4 +1728,45 @@ export function masking(args?: MaskingArgs) {
  */
 export function rescaling(args?: RescalingArgs) {
   return new Rescaling(args);
+}
+
+/**
+ * A preprocessing layer which encodes integer features.
+ *
+ * This layer provides options for condensing data into a categorical encoding
+ * when the total number of tokens are known in advance. It accepts integer
+ * values as inputs, and it outputs a dense or sparse representation of those
+ * inputs.
+ *
+ * Arguments:
+ *
+ * numTokens: The total number of tokens the layer should support. All
+ *  inputs to the layer must integers in the range `0 <= value <
+ *  num_tokens`, or an error will be thrown.
+ *
+ * outputMode: Specification for the output of the layer.
+ *  Defaults to `"multiHot". Values can be "oneHot", "multiHot" or
+ *  "count", configuring the layer as follows:
+ *
+ *    oneHot: Encodes each individual element in the input into an
+ *      array of numTokens size, containing a 1 at the element index. If
+ *      the last dimension is size 1, will encode on that dimension. If the
+ *      last dimension is not size 1, will append a new dimension for the
+ *      encoded output.
+ *
+ *    multiHot: Encodes each sample in the input into a single array
+ *     of `num_tokens` size, containing a 1 for each vocabulary term
+ *     present in the sample. Treats the last dimension as the sample
+ *     dimension, if input shape is `(..., sample_length)`, output shape
+ *     will be `(..., numTokens)`.
+ *
+ *    count: Like "multiHot", but the int array contains a count of
+ *     the number of times the token at that index appeared in the sample.
+ *
+ *  For all output modes, currently only output up to rank 2 is supported.
+ *
+ * @doc {heading: 'Layers', subheading: 'CategoryEncoding', namespace: 'layers'}
+ */
+export function categoryEncoding(args: CategoryEncodingArgs) {
+  return new CategoryEncoding(args);
 }
