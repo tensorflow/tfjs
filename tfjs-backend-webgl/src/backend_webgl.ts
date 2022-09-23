@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, Reshape, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
@@ -32,6 +32,7 @@ import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {getUniformLocations, GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {simpleAbsImplCPU} from './kernel_utils/shared';
+import {reshape} from './kernels/Reshape';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import * as tex_util from './tex_util';
@@ -180,43 +181,37 @@ export class MathBackendWebGL extends KernelBackend {
   // Writes a new entry to the data store with a WebGL texture, and registers it
   // to the texture manager.
   writeTexture(
-      texture: WebGLTexture, shape: number[], dtype: DataType,
-      texShape: [number, number]): DataId {
-    const shapeAs3D = webgl_util.getShapeAs3D(shape);
-    const inData = {
-      shape,
-      dtype,
-      texture,
-      texShape,
-      usage: TextureUsage.RENDER,
-      isPacked: false,
-      refCount: 1
-    };
-    const inputTensorData = {shape, texData: inData, isUniform: false};
-    const output = this.makeTensorInfo(shape, dtype);
-    const outputData = this.texData.get(output.dataId);
-    const outputTensorData: TensorData = {
-      shape: output.shape,
-      texData: outputData,
-      isUniform: false
-    };
+      texture: Texture, shape: number[], dtype: DataType,
+      isPacked: boolean): DataId {
+    // Temporarily create an tensor info to make the texture compatible with
+    // the runWebGLProgram's input.
+    const input = this.makeTensorInfo(shape, dtype);
+    const inData = this.texData.get(input.dataId);
+    inData.isPacked = false;
 
-    this.uploadToGPU(output);
+    // Bind texture to the input tensor.
+    inData.texture = texture;
+    console.log('usage', inData.usage);
+    console.log('usage? ', inData.usage === TextureUsage.RENDER);
 
-    const program = new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */);
+    let output;
+    if (isPacked) {
+      const shapeAs3D = webgl_util.getShapeAs3D(shape);
+      const program =
+          new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */);
+      const output =
+          this.runWebGLProgram(program, [input], dtype, [texture.texShape]);
+      output.shape = shape;
+    } else {
+      const program = new UnaryOpProgram(shape, unary_op.CLONE);
+      output = this.runWebGLProgram(program, [input], dtype);
+    }
 
-    const key =
-        gpgpu_math.makeShaderKey(program, [inputTensorData], outputTensorData);
+    // Unbind the texture from the input tensor to avoid being released.
+    inData.texture = null;
+    this.disposeIntermediateTensorInfo(input);
 
-
-    const binary = this.getAndSaveBinary(key, () => {
-      return gpgpu_math.compileProgram(
-          this.gpgpu, program, inputTensorData, outputTensorData);
-    });
-
-    gpgpu_math.runProgram(
-        this.gpgpu, binary, inputTensorData, outputTensorData,
-        null /* customUniformValues */);
+    return output;
   }
 
 

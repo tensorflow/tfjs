@@ -19,7 +19,6 @@ import {DataType, engine, env, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_util from './gpgpu_util';
-import {WebGLTextureFormat, WebGLTextureInternalFormat, WebGLTextureType} from './tex_util';
 import * as webgl_util from './webgl_util';
 
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
@@ -44,9 +43,9 @@ type TensorFromTextureConfig = {
   shape: number[],
   dtype: DataType,
   texShapeRC: [number, number],
-  internalFormat: WebGLTextureInternalFormat,
-  textureFormat: WebGLTextureFormat,
-  textureType: WebGLTextureType
+  internalFormat: number,
+  textureFormat: number,
+  textureType: number
 };
 
 /**
@@ -134,16 +133,19 @@ export function createTensorFromTexture({
   const texConfig = backend.gpgpu.textureConfig;
   let params: gpgpu_util.TextureCreationParams;
 
-  if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED') === true) {
-    params = gpgpu_util.getFloat32MatrixTextureParams(gl, texConfig);
+  const isPacked = textureFormat === gl.RGBA;
+
+  if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
+    params = isPacked ? gpgpu_util.getPackedMatrixTextureParams(gl, texConfig) :
+                        gpgpu_util.getFloat32MatrixTextureParams(gl, texConfig);
   } else {
-    params = gpgpu_util.getFloat16MatrixTextureParams(gl, texConfig);
+    params = isPacked ?
+        gpgpu_util.getFloat16PackedMatrixTextureParams(gl, texConfig) :
+        gpgpu_util.getFloat16MatrixTextureParams(gl, texConfig);
   }
 
   // Ensure that the properties of the texture match the expectations of the
   // WebGL backend.
-  console.log(`internalFormat is ${internalFormat}`);
-  console.log(`params internalFormat is ${params.internalFormat}`);
   util.assert(
       internalFormat === params.internalFormat,
       () => `The internalFormat must be ${params.internalFormat}.`);
@@ -154,6 +156,9 @@ export function createTensorFromTexture({
       textureType === params.textureType,
       () => `The textureType must be ${params.textureType}.`);
 
-  const dataId = backend.writeTexture(texture, shape, dtype, texShapeRC);
+  // Check size
+
+  const dataId = backend.writeTexture(
+      {texture, texShape: texShapeRC}, shape, dtype, isPacked);
   return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
 }
