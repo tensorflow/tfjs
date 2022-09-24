@@ -135,6 +135,14 @@ export function createTensorFromTexture({
 
   const isPacked = textureFormat === gl.RGBA;
 
+  // Ensure that the size of texture matches the size of expected tensor.
+  const texSize = util.sizeFromShape(texShapeRC);
+  const tensorSize = util.sizeFromShape(shape);
+  util.assert(
+      texSize === (isPacked ? Math.ceil(tensorSize / 4) : tensorSize),
+      () => `The size of ${isPacked ? 'packed ' : ''}texture ${texSize} does ` +
+          `not match the size of expected tensor ${tensorSize}.`);
+
   if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
     params = isPacked ? gpgpu_util.getPackedMatrixTextureParams(gl, texConfig) :
                         gpgpu_util.getFloat32MatrixTextureParams(gl, texConfig);
@@ -158,7 +166,7 @@ export function createTensorFromTexture({
 
   // Check size
 
-  const dataId = backend.writeTexture(
-      {texture, texShape: texShapeRC}, shape, dtype, isPacked);
+  const dataId =
+      backend.writeTexture(texture, shape, dtype, texShapeRC, isPacked);
   return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
 }
