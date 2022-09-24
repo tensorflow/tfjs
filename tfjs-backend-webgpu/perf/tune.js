@@ -41,16 +41,16 @@ function createCell(cell, text, classes, id, onclick) {
 
 function initPage() {
   // get the reference for the body
-  let mybody = document.getElementsByTagName("body")[0];
+  const mybody = document.getElementsByTagName("body")[0];
   mybody.innerHTML = '';
-  myMessage = document.createElement("p");
+  const myMessage = document.createElement("p");
   myMessage.id = 'message';
   mybody.appendChild(myMessage);
 
   // creates INFO labels
   for (let info of INFO) {
-    let labelDiv = document.createElement('div');
-    let label = document.createElement('label');
+    const labelDiv = document.createElement('div');
+    const label = document.createElement('label');
     label.innerHTML = `${info}`;
     labelDiv.appendChild(label);
     mybody.appendChild(labelDiv);
@@ -91,7 +91,7 @@ function initPage() {
   document.body.appendChild(btn);
 
   // creates <table> and <tbody> elements
-  mytable = document.createElement("table");
+  const mytable = document.createElement("table");
   mytable.id = 'my-table';
   mytablebody = document.createElement("tbody");
 
@@ -130,22 +130,21 @@ function initPage() {
   run();
 }
 
-async function timeMatmul(rowNum) {
-  await tf.setBackend('webgpu');
+async function timeMatmul(backend, rowNum) {
+  await tf.setBackend(backend);
   let tensors = [];
   let tensorsWarmUp = [];
   let tensorsToDispose = [];
   let inputs = [];
-  const numWarmUp = 500;
 
   // Prepare data
   const warmA = tf.tensor2d(
-    Array.from({ length: 12544 * 16 }, () => Math.floor(Math.random())),
-    [12544, 16]
+    Array.from({ length: 512 * 512 }, () => Math.floor(Math.random())),
+    [512, 512]
   );
   const warmB = tf.tensor2d(
-    Array.from({ length: 16 * 96 }, () => Math.floor(Math.random())),
-    [16, 96]
+    Array.from({ length: 512 * 512 }, () => Math.floor(Math.random())),
+    [512, 512]
   );
   tensorsWarmUp = { tensorA: warmA, tensorB: warmB };
   tensorsToDispose.push(warmA);
@@ -177,71 +176,42 @@ async function timeMatmul(rowNum) {
     tensorsToDispose.push(tensorB);
   }
 
-  const profile_webgpu = await tf.profile(() => {
+  tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+  const profile_data = await tf.profile(() => {
     // Warmup model
-    for (let j = 0; j < 50; j++) {
-      for (let i = 0; i < inputs.length; i++) {
-        document.getElementById('message').innerHTML =
-          `Testing on webgpu ...`;
-        let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
-        result.dispose();
-      }
-    }
-    // Warmup gpu, keep gpu frequency at a high level
-    document.getElementById('message').innerHTML =
-      `Warming up testing on webgpu ...`;
-    //for (let i = 0; i < numWarmUp; i++) {
-    //  let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-    //  m.dispose();
-    //}
-    // Collect result from here
     for (let i = 0; i < inputs.length; i++) {
-      document.getElementById('message').innerHTML =
-        `Testing on webgpu ...`;
-      for (let i = 0; i < numWarmUp; i++) {
-        let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-        m.dispose();
-      }
       let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
       result.dispose();
     }
-  });
-  const webgpu_kernels = profile_webgpu.kernels;
-
-  await tf.setBackend('webgl');
-  const profile_webgl = await tf.profile(() => {
-    // Warmup model
-    for (let j = 0; j < 50; j++) {
-      for (let i = 0; i < inputs.length; i++) {
-        document.getElementById('message').innerHTML =
-          `Testing on webgl ...`;
-        let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
-        result.dispose();
-      }
-    }
     // Warmup gpu, keep gpu frequency at a high level
     document.getElementById('message').innerHTML =
-      `Warming up testing on webgl ...`;
-    //for (let i = 0; i < numWarmUp; i++) {
-    //  let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-    //  m.dispose();
-    //}
+      `Warming up testing on ${backend} ...`;
+    for (let i = 0; i < numWarmUp; i++) {
+      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+      m.dispose();
+    }
     // Collect result from here
     for (let i = 0; i < inputs.length; i++) {
       document.getElementById('message').innerHTML =
-        `Testing on webgl ...`;
-      for (let i = 0; i < numWarmUp; i++) {
-        let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+        `Testing on ${backend} ...`;
+      for (let j = 0; j < numAvg; j++) {
+        const result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+        const m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+        result.dispose();
         m.dispose();
       }
-      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
-      result.dispose();
     }
   });
-  const webgl_kernels = profile_webgl.kernels;
+  const profile_kernels = profile_data.kernels;
 
-  //for (let i = numWarmUp + inputs.length * 50; i < profile_webgpu.kernels.length; i++) {
-  for (let i = numWarmUp + inputs.length * 50; i < profile_webgpu.kernels.length; i = i + 1 + numWarmUp) {
+  for (let tensor of tensorsToDispose) {
+    tensor.dispose();
+  }
+  return profile_kernels;
+}
+
+function drawTable(webgpu_kernels, webgl_kernels, rowNum) {
+  for (let i = numWarmUp + INPUTS.length; i < webgpu_kernels.length; i += numAvg * 2) {
     let inputInfo;
     webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
       if (inputInfo == null) {
@@ -255,13 +225,17 @@ async function timeMatmul(rowNum) {
         inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
       }
     });
+
     let mkn = webgpu_kernels[i].inputShapes[0][0] * webgpu_kernels[i].inputShapes[0][1] * webgpu_kernels[i].inputShapes[1][1];
+
+    const avgWebgpu = getAvgKernelTime(webgpu_kernels.slice(i, i + 2 * numAvg));
+    const avgWebgl = getAvgKernelTime(webgl_kernels.slice(i, i + 2 * numAvg));
 
     const result = {};
     result.name = webgpu_kernels[i].name;
     result.input = `${inputInfo}`;
-    result.webgpu = `${parseFloat(webgpu_kernels[i].kernelTimeMs).toFixed(2)}`; // WebGPU
-    result.webgl = `${parseFloat(webgl_kernels[i].kernelTimeMs).toFixed(2)}`; // WebGL
+    result.webgpu = `${parseFloat(avgWebgpu).toFixed(2)}`; // WebGPU
+    result.webgl = `${parseFloat(avgWebgl).toFixed(2)}`; // WebGL
     result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
     result.scale = `${parseInt(mkn)}`;  // Scale
     result.program = `${webgpu_kernels[i].extraInfo.split(':')[0]}`;  // Program
@@ -276,10 +250,17 @@ async function timeMatmul(rowNum) {
       webglCompResults.push(result.webglComp);
     }
   }
+}
 
-  for (let tensor of tensorsToDispose) {
-    tensor.dispose();
-  }
+function updateTable(avgWebgpu, avgWebgl, rowNum) {
+  const webglComp = `${parseFloat((avgWebgl / avgWebgpu) * 100).toFixed(0)}`;
+  const result = {};
+  result.webgpu = `${parseFloat(avgWebgpu).toFixed(2)}`;
+  result.webgl = `${parseFloat(avgWebgl).toFixed(2)}`;
+  result.webglComp = webglComp;
+  updateRow(result, rowNum);
+  webglCompResults[rowNum] = webglComp;
+
 }
 
 function updateColor() {
@@ -321,7 +302,6 @@ async function run() {
     table.deleteRow(i - 1);
   }
   const scaleSelected = [];
-  const iterationSelected = [];
 
   // clear compared result
   webglCompResults = [];
@@ -337,14 +317,20 @@ async function run() {
     let mySet = getTestSet(scale);
     INPUTS = INPUTS.concat([...mySet]);
   }
-  await timeMatmul();
+  const profile_webgl = await timeMatmul('webgl');
+  const profile_webgpu = await timeMatmul('webgpu');
+  drawTable(profile_webgpu, profile_webgl);
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
   document.getElementById('run').disabled = false;
 }
 
 async function rerun(rowNum) {
-  await timeMatmul(rowNum);
+  const profile_webgl = await timeMatmul('webgl', rowNum);
+  const profile_webgpu = await timeMatmul('webgpu', rowNum);
+  const avgWebgl = getAvgKernelTime(profile_webgl.slice(-numAvg * 2));
+  const avgWebgpu = getAvgKernelTime(profile_webgpu.slice(-numAvg * 2));
+  updateTable(avgWebgpu, avgWebgl, rowNum);
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
 }
@@ -402,11 +388,25 @@ function getPrimeFactor(num) {
   return prime_factor;
 }
 
+function getAvgKernelTime(kernels) {
+  const avg = kernels.reduce(
+    (a, b, index) => {
+      if (index % 2 === 0) {
+        return a + b.kernelTimeMs;
+      }
+      return a;
+    },
+    0,
+  ) / numAvg;
+  return avg;
+}
+
 let webglCompResults = [];
 
 let SCALES = [1016064, 5013504, 10838016, 33554432];
 let currentScale = [];
 let defaultInputs = [
+  //'512, 512, 512',
   '12544, 8, 24',
   '12544, 16, 96',
   '49, 320, 1280',
@@ -415,9 +415,12 @@ let defaultInputs = [
   '12544, 32, 16',
   '3136, 144, 24',
   '49, 960, 160',
+  '36, 1568, 18',
 ];
 
 let INPUTS = [];
+const numWarmUp = 1000;
+const numAvg = 20;
 const INFO = [
   '0. Run under flag: --enable-unsafe-webgpu --disable-dawn-features=disallow_unsafe_apis',
   '1. Sortable by clicking table column title',
