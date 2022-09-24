@@ -1402,10 +1402,9 @@ describeWithFlags('create tensor from dense packed texture', WEBGL_ENVS, () => {
     } else {
       internalFormat = gl.RGBA;
       textureFormat = gl.RGBA;
-      // OES_texture_half_float
       const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
       const textureHalfFloatExtension =
-          webglBackend.gpgpu.gl.getExtension(TEXTURE_HALF_FLOAT) as any;
+          webglBackend.gpgpu.gl.getExtension(TEXTURE_HALF_FLOAT)
       textureType =
           (textureHalfFloatExtension != null ?
                textureHalfFloatExtension.HALF_FLOAT_OES :

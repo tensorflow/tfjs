@@ -177,7 +177,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.texData.numDataIds() - this.pendingDeletes;
   }
 
-
   // Writes a new entry to the data store with a WebGL texture, and registers it
   // to the texture manager.
   writeTexture(

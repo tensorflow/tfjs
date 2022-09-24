@@ -37,7 +37,6 @@ export function forceHalfFloat(): void {
   env().set('WEBGL_FORCE_F16_TEXTURES', true);
 }
 
-
 type TensorFromTextureConfig = {
   texture: WebGLTexture,
   shape: number[],
