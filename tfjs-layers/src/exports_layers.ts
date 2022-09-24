@@ -24,6 +24,7 @@ import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, MaxPooling3D, Pooling1DLayerArgs, Pooling2DLayerArgs, Pooling3DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
+import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -1696,4 +1697,35 @@ export function alphaDropout(args: AlphaDropoutArgs) {
  */
 export function masking(args?: MaskingArgs) {
   return new Masking(args);
+}
+
+/**
+ * A preprocessing layer which rescales input values to a new range.
+ *
+ * This layer rescales every value of an input (often an image) by multiplying
+ * by `scale` and adding `offset`.
+ *
+ * For instance:
+ * 1. To rescale an input in the ``[0, 255]`` range
+ * to be in the `[0, 1]` range, you would pass `scale=1/255`.
+ * 2. To rescale an input in the ``[0, 255]`` range to be in the `[-1, 1]`
+ * range, you would pass `scale=1./127.5, offset=-1`.
+ * The rescaling is applied both during training and inference. Inputs can be
+ * of integer or floating point dtype, and by default the layer will output
+ * floats.
+ *
+ * Arguments:
+ *   - `scale`: Float, the scale to apply to the inputs.
+ *   - `offset`: Float, the offset to apply to the inputs.
+ *
+ * Input shape:
+ *   Arbitrary.
+ *
+ * Output shape:
+ *   Same as input.
+ *
+ * @doc {heading: 'Layers', subheading: 'Rescaling', namespace: 'layers'}
+ */
+export function rescaling(args?: RescalingArgs) {
+  return new Rescaling(args);
 }
