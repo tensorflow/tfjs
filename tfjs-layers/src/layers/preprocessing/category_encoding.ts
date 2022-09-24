@@ -16,7 +16,7 @@ import { getExactlyOneShape, getExactlyOneTensor } from '../../utils/types_utils
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import * as K from '../../backend/tfjs_backend';
-import * as utils from './preprocessing_utils'
+import * as utils from './preprocessing_utils';
 
 export declare interface CategoryEncodingArgs extends LayerArgs {
   numTokens: number;
@@ -55,62 +55,60 @@ export class CategoryEncoding extends Layer {
     inputShape = getExactlyOneShape(inputShape);
 
     if(inputShape == null) {
-      return [this.numTokens]
+      return [this.numTokens];
     }
 
-    if(this.outputMode == utils.oneHot && inputShape[-1] !== 1) {
-      inputShape.push(this.numTokens)
-      return inputShape
+    if(this.outputMode === utils.oneHot && inputShape[-1] !== 1) {
+      inputShape.push(this.numTokens);
+      return inputShape;
     }
 
-    inputShape[-1] = this.numTokens
-    return inputShape
+    inputShape[-1] = this.numTokens;
+    return inputShape;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
     return tidy(() => {
 
-      inputs = getExactlyOneTensor(inputs)
+      inputs = getExactlyOneTensor(inputs);
       if(inputs.dtype !== 'int32') {
         inputs = K.cast(inputs, 'int32');
     }
 
+       let countWeights;
 
-       let countWeights
-
-      if((typeof kwargs["countWeights"]) !== 'undefined') {
+      if((typeof kwargs['countWeights']) !== 'undefined') {
 
         if(this.outputMode !== utils.count) {
           throw new ValueError(
             `countWeights is not used when outputMode !== count.
-             Received countWeights=${kwargs['countWeights']}`)
+             Received countWeights=${kwargs['countWeights']}`);
         }
-         let countWeightsRanked = getExactlyOneTensor(kwargs["countWeights"])
+         const countWeightsRanked = getExactlyOneTensor(kwargs['countWeights']);
 
          if(countWeightsRanked.rank === 1) {
-           countWeights = countWeightsRanked as Tensor1D
+           countWeights = countWeightsRanked as Tensor1D;
          } if(countWeightsRanked.rank === 2) {
-           countWeights = countWeightsRanked as Tensor2D
+           countWeights = countWeightsRanked as Tensor2D;
           }
       }
 
-      const depth = this.numTokens
-      const maxValue = max(inputs)
-      const minValue = min(inputs)
+      const depth = this.numTokens;
+      const maxValue = max(inputs);
+      const minValue = min(inputs);
 
-      const greaterEqualMax = greater(depth, maxValue).bufferSync().get(0)
-      const greaterMin = greaterEqual(minValue, 0).bufferSync().get(0)
+      const greaterEqualMax = greater(depth, maxValue).bufferSync().get(0);
+      const greaterMin = greaterEqual(minValue, 0).bufferSync().get(0);
 
       if(!(greaterEqualMax && greaterMin)) {
         throw new ValueError(
-        `Input values must be between 0 < values <= numTokens`)
+        `Input values must be between 0 < values <= numTokens`);
       }
 
-    return utils.encodeCategoricalInputs(inputs, this.outputMode, depth, countWeights)
+    return utils.encodeCategoricalInputs(inputs,
+      this.outputMode, depth, countWeights);
     });
   }
 }
 
 serialization.registerClass(CategoryEncoding);
-
-
