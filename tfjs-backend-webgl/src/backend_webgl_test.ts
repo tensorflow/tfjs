@@ -1404,7 +1404,7 @@ describeWithFlags('create tensor from dense packed texture', WEBGL_ENVS, () => {
       textureFormat = gl.RGBA;
       const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
       const textureHalfFloatExtension =
-          webglBackend.gpgpu.gl.getExtension(TEXTURE_HALF_FLOAT)
+          webglBackend.gpgpu.gl.getExtension(TEXTURE_HALF_FLOAT);
       textureType =
           (textureHalfFloatExtension != null ?
                textureHalfFloatExtension.HALF_FLOAT_OES :
