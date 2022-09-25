@@ -1735,27 +1735,13 @@ export function rescaling(args?: RescalingArgs) {
  *
  * This layer provides options for condensing data into a categorical encoding
  * when the total number of tokens are known in advance. It accepts integer
-<<<<<<< HEAD
- * values as inputs, and it outputs a dense or sparse representation of those
-=======
  * values as inputs, and it outputs a dense representation of those
->>>>>>> 94a1db84668683e929e00704d9793e865297fe61
  * inputs.
  *
  * Arguments:
  *
  * numTokens: The total number of tokens the layer should support. All
  *  inputs to the layer must integers in the range `0 <= value <
-<<<<<<< HEAD
- *  num_tokens`, or an error will be thrown.
- *
- * outputMode: Specification for the output of the layer.
- *  Defaults to `"multiHot". Values can be "oneHot", "multiHot" or
- *  "count", configuring the layer as follows:
- *
- *    oneHot: Encodes each individual element in the input into an
- *      array of numTokens size, containing a 1 at the element index. If
-=======
  *  numTokens`, or an error will be thrown.
  *
  * outputMode: Specification for the output of the layer.
@@ -1764,23 +1750,11 @@ export function rescaling(args?: RescalingArgs) {
  *
  *    oneHot: Encodes each individual element in the input into an
  *      array of `numTokens` size, containing a 1 at the element index. If
->>>>>>> 94a1db84668683e929e00704d9793e865297fe61
  *      the last dimension is size 1, will encode on that dimension. If the
  *      last dimension is not size 1, will append a new dimension for the
  *      encoded output.
  *
  *    multiHot: Encodes each sample in the input into a single array
-<<<<<<< HEAD
- *     of `num_tokens` size, containing a 1 for each vocabulary term
- *     present in the sample. Treats the last dimension as the sample
- *     dimension, if input shape is `(..., sample_length)`, output shape
- *     will be `(..., numTokens)`.
- *
- *    count: Like "multiHot", but the int array contains a count of
- *     the number of times the token at that index appeared in the sample.
- *
- *  For all output modes, currently only output up to rank 2 is supported.
-=======
  *     of `numTokens` size, containing a 1 for each vocabulary term
  *     present in the sample. Treats the last dimension as the sample
  *     dimension, if input shape is `(..., sampleLength)`, output shape
@@ -1796,7 +1770,6 @@ export function rescaling(args?: RescalingArgs) {
  *    weight for each sample value when summing up in `count` mode. Not used
  *    in `multiHot` or `oneHot` modes.
  *
->>>>>>> 94a1db84668683e929e00704d9793e865297fe61
  *
  * @doc {heading: 'Layers', subheading: 'CategoryEncoding', namespace: 'layers'}
  */
