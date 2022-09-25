@@ -24,7 +24,6 @@ export declare interface RescalingArgs extends LayerArgs {
  *
  * This rescales images by a scaling and offset factor
  */
-
 export class Rescaling extends Layer {
   /** @nocollapse */
   static className = 'Rescaling';
