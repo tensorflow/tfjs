@@ -181,7 +181,7 @@ export class MathBackendWebGL extends KernelBackend {
   // to the texture manager.
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
-      texShape: [number, number], isPacked: boolean): DataId {
+      texHeight: number, texWidth: number, isPacked: boolean): DataId {
     // Temporarily create an tensor info to make the texture compatible with
     // the runWebGLProgram's input.
     const input = this.makeTensorInfo(shape, dtype);
@@ -192,15 +192,16 @@ export class MathBackendWebGL extends KernelBackend {
     inData.isPacked = false;
 
     // Bind texture to the input tensor.
-    inData.texture = {texture, texShape};
-    inData.texShape = texShape;
+    inData.texture = {texture, texShape: [texHeight, texWidth]};
+    inData.texShape = [texHeight, texWidth];
 
     let output;
     if (isPacked) {
       const shapeAs3D = webgl_util.getShapeAs3D(shape);
       const program =
           new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */);
-      output = this.runWebGLProgram(program, [input], dtype, [texShape]);
+      output = this.runWebGLProgram(
+          program, [input], dtype, [[texHeight, texWidth]]);
       output.shape = shape;
     } else {
       const program = new UnaryOpProgram(shape, unary_op.CLONE);

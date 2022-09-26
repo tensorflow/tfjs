@@ -41,20 +41,21 @@ type TensorFromTextureConfig = {
   texture: WebGLTexture,
   shape: number[],
   dtype: DataType,
-  texShapeRC: [number, number],
+  height: number,
+  width: number,
   internalFormat: number,
   textureFormat: number,
   textureType: number
 };
 
 /**
- * Create a TF.js tensor out of an existing WebGL texture. The texture is added
- * to the WebGL texture registry.
+ * Create a TF.js tensor out of an existing WebGL texture. The texture is
+ * added to the WebGL texture registry.
  *
  * This makes it possible for TF.js applications to avoid GPU / CPU sync. For
  * example, if your application includes a preprocessing step on the GPU, you
- * could upload the GPU output directly to TF.js, rather than first downloading
- * the values.
+ * could upload the GPU output directly to TF.js, rather than first
+ * downloading the values.
  *
  * ```js
  * // Example for WebGL2:
@@ -84,37 +85,41 @@ type TensorFromTextureConfig = {
  *
  * ```
  *
- * For postprocessing on the GPU, it's possible to retrieve the texture backing
- * any tensor by calling the WebGL backend's `getTexture` method like so:
+ * For postprocessing on the GPU, it's possible to retrieve the texture
+ * backing any tensor by calling the WebGL backend's `getTexture` method like
+ * so:
  *
  * ```js
  * const a = tf.tensor1d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
  * const tex = tf.backend().getTexture(a.dataId);
  * ```
  *
- * @param obj An object with the following properties:
+ *  @param obj An object with the following properties:
  *  @param texture The WebGL texture to create a tensor from. The texture must
  * be unpacked - each texel should only store a single value. The flattened
- * values of the tensor will be read from left to right, and top to bottom. The
- * texture can have empty texels at the end, but the values must be written
- * densely - in other words, all empty texels must be contiguous.
+ * values of the tensor will be read from left to right, and top to bottom.
+ * The texture can have empty texels at the end, but the values must be
+ * written densely - in other words, all empty texels must be contiguous.
  *  @param shape The logical shape of the texture.
  *  @param dtype The dtype of the tensor to be created.
- *  @param texShapeRC The physical dimensions of the texture expressed as [rows,
- * columns].
+ *  @param height The height of the texture provided to gl.texImage2D during
+ * texture creation.
+ *  @param width The width of the texture provided to gl.texImage2D during
+ * texture creation.
  *  @param internalFormat The internalFormat of the texture provided to
  * gl.texImage2D during texture creation.
  *  @param textureFormat The textureFormat of the texture provided to
  * gl.texImage2D during texture creation.
- *  @param textureType The textureType of the texture provided to gl.texImage2D
- * during texture creation.
+ *  @param textureType The textureType of the texture provided to
+ * gl.texImage2D during texture creation.
  * @doc {heading: 'Environment', namespace: 'webgl'}
  */
 export function createTensorFromTexture({
   texture,
   shape,
   dtype,
-  texShapeRC,
+  height,
+  width,
   internalFormat,
   textureFormat,
   textureType
@@ -135,7 +140,7 @@ export function createTensorFromTexture({
   const isPacked = textureFormat === gl.RGBA;
 
   // Ensure that the size of texture matches the size of expected tensor.
-  const texSize = util.sizeFromShape(texShapeRC);
+  const texSize = util.sizeFromShape([height, width]);
   const tensorSize = util.sizeFromShape(shape);
   util.assert(
       texSize === (isPacked ? Math.ceil(tensorSize / 4) : tensorSize),
@@ -166,6 +171,6 @@ export function createTensorFromTexture({
   // Check size
 
   const dataId =
-      backend.writeTexture(texture, shape, dtype, texShapeRC, isPacked);
+      backend.writeTexture(texture, shape, dtype, height, width, isPacked);
   return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
 }

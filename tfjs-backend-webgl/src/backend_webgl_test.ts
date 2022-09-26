@@ -1141,12 +1141,12 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
         dataForUpload);
 
     const logicalShape: [number, number] = [height, width];
-    const physicalShape: [number, number] = [height, width];
     const a = createTensorFromTexture({
       texture,
       shape: logicalShape,
       dtype: 'float32',
-      texShapeRC: physicalShape,
+      height,
+      width,
       internalFormat,
       textureFormat,
       textureType
@@ -1188,12 +1188,12 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
         dataForUpload);
 
     const logicalShape = [2, 6];
-    const physicalShape: [number, number] = [height, width];
     const a = createTensorFromTexture({
       texture,
       shape: logicalShape,
       dtype: 'float32',
-      texShapeRC: physicalShape,
+      height,
+      width,
       internalFormat,
       textureFormat,
       textureType
@@ -1232,7 +1232,6 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const height = 4;
 
     const logicalShape: [number, number] = [height, width];
-    const physicalShape: [number, number] = [height, width];
     const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], logicalShape);
     const b = tf.relu(a);
     const bTexture = (tf.backend() as MathBackendWebGL).getTexture(b.dataId);
@@ -1240,7 +1239,8 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
       texture: bTexture,
       shape: logicalShape,
       dtype: 'float32',
-      texShapeRC: physicalShape,
+      height,
+      width,
       internalFormat: glany.R16F,
       textureFormat: glany.RED,
       textureType: glany.HALF_FLOAT
@@ -1292,12 +1292,12 @@ describeWithFlags(
             textureType, dataForUpload);
 
         const logicalShape: [number, number] = [4, 4];
-        const physicalShape: [number, number] = [height, width];
         const a = createTensorFromTexture({
           texture,
           shape: logicalShape,
           dtype: 'float32',
-          texShapeRC: physicalShape,
+          height,
+          width,
           internalFormat,
           textureFormat,
           textureType
@@ -1344,12 +1344,12 @@ describeWithFlags(
             textureType, dataForUpload);
 
         const logicalShape = [3, 5];
-        const physicalShape: [number, number] = [height, width];
         const a = createTensorFromTexture({
           texture,
           shape: logicalShape,
           dtype: 'float32',
-          texShapeRC: physicalShape,
+          height,
+          width,
           internalFormat,
           textureFormat,
           textureType
@@ -1392,7 +1392,6 @@ describeWithFlags(
         const height = 2;
 
         const logicalShape: [number, number] = [4, 4];
-        const physicalShape: [number, number] = [height, width];
         const a = tf.tensor2d(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
             logicalShape);
@@ -1421,7 +1420,8 @@ describeWithFlags(
           texture: bTexture,
           shape: logicalShape,
           dtype: 'float32',
-          texShapeRC: physicalShape,
+          height,
+          width,
           internalFormat,
           textureFormat,
           textureType
