@@ -68,8 +68,7 @@ export class Resizing extends Layer {
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
-    // inputShape.slice(inputShape.length - 1)[0];
-    const numChannels = inputShape.slice()[2];
+    const numChannels = inputShape[2];
     const outputShape = [];
     outputShape.push(this.height);
     outputShape.push(this.width);
