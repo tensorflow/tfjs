@@ -14,21 +14,9 @@
 
 import {memory, Tensor, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {ValueError} from '../errors';
-
-// Register backends.
-registerTestEnv({name: 'cpu', backendName: 'cpu'});
-registerTestEnv({
-  name: 'webgl2',
-  backendName: 'webgl',
-  flags: {
-    'WEBGL_VERSION': 2,
-    'WEBGL_CPU_FORWARD': false,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-  }
-});
 
 /**
  * Expect values are close between a Tensor or number array.
