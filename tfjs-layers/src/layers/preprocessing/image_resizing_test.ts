@@ -31,7 +31,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const expectedOutputShape = [height, width, numChannels];
     const resizingLayer = new Resizing({height, width});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
-    expect(expectedOutputShape).toEqual(layerOutputTensor.shape);
+    expect(layerOutputTensor.shape).toEqual(expectedOutputShape);
   });
 
   it('Returns correctly downscaled tensor', () => {
