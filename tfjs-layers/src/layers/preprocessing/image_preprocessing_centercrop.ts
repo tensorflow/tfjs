@@ -1,9 +1,14 @@
-import { serialization, Tensor} from '@tensorflow/tfjs-core';
-
+import { serialization, Tensor,  ResizeBilinear} from '@tensorflow/tfjs-core';
+import { getExactlyOneTensor } from '../../utils/types_utils';
+import { crop_to_bounding_box } from './crop_to_bounding_box';
 import {LayerArgs, Layer} from '../../engine/topology';
 import { Kwargs } from '../../types';
 
-import {cropAndResize} from '../../tfjs-backend-cpu'
+
+
+
+
+
 import * as K from '../../backend/tfjs_backend';
 
 const h_axis = -3
@@ -23,12 +28,23 @@ export class CenterCrop extends Layer {
   }
 
   call(inputs: Tensor, kwargs: Kwargs): Tensor[]|Tensor{
+    inputs = getExactlyOneTensor(inputs)
     const inputShape = inputs.shape
     let h_diff = inputShape[h_axis] - this.height
     let w_diff = inputShape[w_axis] - this.width
 
 
-    cropAndResize
+
+    function centercrop(){
+      let h_start = K.cast(h_diff/2 , "float32") //issue with tensor rank
+      let w_start = K.cast(w_diff/2, 'float32')
+
+      return crop_to_bounding_box(inputs, h_start, w_start, this.height, width)
+    }
+
+
+
+
 
     return inputs
   }
