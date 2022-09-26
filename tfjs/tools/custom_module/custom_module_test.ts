@@ -267,7 +267,7 @@ describe('getCustomConverterOpsModule', () => {
 
   it('namespaced ops', () => {
     const result = getCustomConverterOpsModule(
-        ['image.resizeBilinear', 'image.resizeNearestNeighbor'],
+        ['image.', 'image.resizeNearestNeighbor'],
         mockImportProvider);
 
     expect(result).toContain(

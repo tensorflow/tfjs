@@ -26,8 +26,7 @@ import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLa
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
 import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
-import {Resizing, ResizingArgs} from './layers/preprocessing/image_resizing';
-
+import { Resizing, ResizingArgs } from './layers/preprocessing/image_resizing';
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).
