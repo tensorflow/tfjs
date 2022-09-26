@@ -5,8 +5,13 @@ on:
     paths:
     - "e2e/benchmarks/**"
 
+permissions:
+  contents: read
+
 jobs:
   build_and_preview:
+    permissions:
+      pull-requests: write # for FirebaseExtended/action-hosting-deploy to comment on PRs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
