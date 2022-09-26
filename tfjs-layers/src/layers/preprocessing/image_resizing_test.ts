@@ -47,7 +47,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
     const expectedArr = [[5, 7], [13, 15]];
     const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
-    expectTensorsClose(expectedOutput, layerOutputTensor);
+    expectTensorsClose(layerOutputTensor, expectedOutput);
   });
 
   it('Returns correctly upscaled tensor', () => {
@@ -63,7 +63,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
     const expectedArr = [[0,0,1,1], [0,0,1,1], [2,2,3,3], [2,2,3,3]];
     const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
-    expectTensorsClose(expectedOutput, layerOutputTensor);
+    expectTensorsClose(layerOutputTensor, expectedOutput);
   });
 
   it('Returns the same tensor when given same shape as input', () => {
@@ -74,7 +74,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const inputTensor = randomNormal([height, width, numChannels]);
     const resizingLayer = new Resizing({height, width});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
-    expectTensorsClose(inputTensor, layerOutputTensor);
+    expectTensorsClose(layerOutputTensor, inputTensor);
   });
 
   it('Returns a tensor of the correct dtype', () => {
