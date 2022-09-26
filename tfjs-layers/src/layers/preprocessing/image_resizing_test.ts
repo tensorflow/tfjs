@@ -35,34 +35,50 @@ describeMathCPUAndGPU('Resizing Layer', () => {
   });
 
   it('Returns correctly downscaled tensor', () => {
-    // resize and check output content
+    // resize and check output content (not batched)
     const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
     const inputArr = [];
-    while(rangeArr.length) inputArr.push(rangeArr.splice(0,4)); // reshape
-    const inputTensor = tensor([inputArr]) as Tensor<Rank.R4>;
+    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,4));} // reshape
+    const inputTensor = tensor(inputArr, [4,4,1]);
     const height = 2;
     const width = 2;
     const interpolation = 'nearest';
     const resizingLayer = new Resizing({height, width, interpolation});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
-    const expectedArr = [[5, 7], [13, 15]];
-    const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
+    const expectedArr = [[0, 3], [12, 15]];
+    const expectedOutput = tensor(expectedArr, [2,2,1]);
+    expectTensorsClose(layerOutputTensor, expectedOutput);
+  });
+
+  it('Returns correctly downscaled tensor', () => {
+    // resize and check output content (batched)
+    const rangeArr = [...Array(36).keys()]; // equivalent to np.arange(0,16)
+    const inputArr = [];
+    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,6));} // reshape
+    const inputTensor = tensor([inputArr], [1,6,6,1]);
+    const height = 3;
+    const width = 3;
+    const interpolation = 'nearest';
+    const resizingLayer = new Resizing({height, width, interpolation});
+    const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
+    const expectedArr = [[0,3,5], [18,21,23], [30,33,35]];
+    const expectedOutput = tensor([expectedArr], [1,3,3,1]);
     expectTensorsClose(layerOutputTensor, expectedOutput);
   });
 
   it('Returns correctly upscaled tensor', () => {
-    // resize and check output content
+    // resize and check output content (batched)
     const rangeArr = [...Array(4).keys()]; // equivalent to np.arange(0,4)
     const inputArr = [];
-    while(rangeArr.length) inputArr.push(rangeArr.splice(0,2)); // reshape
-    const inputTensor = tensor([inputArr]) as Tensor<Rank.R4>;
+    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,2));} // reshape
+    const inputTensor = tensor([inputArr], [1,2,2,1]);
     const height = 4;
     const width = 4;
     const interpolation = 'nearest';
     const resizingLayer = new Resizing({height, width, interpolation});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
     const expectedArr = [[0,0,1,1], [0,0,1,1], [2,2,3,3], [2,2,3,3]];
-    const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
+    const expectedOutput = tensor([expectedArr], [1,4,4,1]);
     expectTensorsClose(layerOutputTensor, expectedOutput);
   });
 
@@ -79,8 +95,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
 
   it('Returns a tensor of the correct dtype', () => {
     // do a same resizing operation, cheeck tensors dtypes and content
-    const height = 40
-    const width = 60
+    const height = 40;
+    const width = 60;
     const numChannels = 3;
     const inputTensor: Tensor<Rank.R3> =
         randomNormal([height, width, numChannels]);
