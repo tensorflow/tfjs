@@ -82,7 +82,7 @@ describeMathCPUAndGPU('Layer Output', () => {
     const expectedOutput = tensor([0, 0, 0, 1, 0, 0]);
     const numTokens = 6;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                outputMode: utils.oneHot});
+                                outputMode: utils.multiHot});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
