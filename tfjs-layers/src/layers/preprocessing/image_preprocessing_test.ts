@@ -1,9 +1,23 @@
-import { Tensor, randomNormal, mul, add} from '@tensorflow/tfjs-core';
-import { Rescaling } from './image_preprocessing';
-import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_utils';
+/**
+ * @license
+ * Copyright 2022 CodeSmith LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+
+/**
+ * Unit Tests for image rescaling layer.
+ */
+
+import {add, mul, randomNormal, Tensor} from '@tensorflow/tfjs-core';
+import {describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
+
+import {Rescaling} from './image_preprocessing';
 
 describeMathCPUAndGPU('Rescaling Layer', () => {
-
   it('Check if input shape matches output shape', () => {
     const scale = 1.0 / 127.5;
     const offset = 0;
@@ -42,5 +56,4 @@ describeMathCPUAndGPU('Rescaling Layer', () => {
     const config = scalingLayer.getConfig();
     expect(config.name).toEqual('Rescaling');
   });
-
 });
