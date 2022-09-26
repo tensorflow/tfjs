@@ -120,6 +120,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
   });
 
   it('Config holds correct name', () => {
+    // layer name property set properly
     const height = 40;
     const width = 60;
     const resizingLayer = new Resizing({height, width, name:'Resizing'});

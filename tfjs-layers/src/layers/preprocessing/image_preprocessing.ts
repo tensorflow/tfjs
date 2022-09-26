@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import { LayerArgs, Layer } from '../../engine/topology';
+import {LayerArgs, Layer} from '../../engine/topology';
 import { serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor } from '../../utils/types_utils';
 import * as K from '../../backend/tfjs_backend';
