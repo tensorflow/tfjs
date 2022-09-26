@@ -12,7 +12,7 @@
  * Unit Tests for image resizing layer.
  */
 
-import {image, randomNormal, Rank, Tensor} from '@tensorflow/tfjs-core';
+import {image, randomNormal, Rank, Tensor, tensor} from '@tensorflow/tfjs-core';
 
 // import {Shape} from '../../keras_format/common';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
@@ -34,19 +34,36 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     expect(expectedOutputShape).toEqual(layerOutputTensor.shape);
   });
 
-  it('Returns correctly resized tensor', () => {
-    // resize twice; once to make it smaller, once to return it to original size
-    const maxHeight = 100;
-    const height = Math.floor(Math.random() * maxHeight);
-    const maxWidth = 100;
-    const width = Math.floor(Math.random() * maxWidth);
-    const numChannels = 3;
-    const inputTensor = randomNormal([maxHeight, maxWidth, numChannels]);
-    const resizingFirst = new Resizing({height, width});
-    const layerFirstTensor = resizingFirst.apply(inputTensor) as Tensor;
-    const resizingSecond = new Resizing({height: maxHeight, width: maxWidth});
-    const layerOutputTensor = resizingSecond.apply(layerFirstTensor) as Tensor;
-    expectTensorsClose(inputTensor, layerOutputTensor);
+  it('Returns correctly downscaled tensor', () => {
+    // resize and check output content
+    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
+    const inputArr = [];
+    while(rangeArr.length) inputArr.push(rangeArr.splice(0,4)); // reshape
+    const inputTensor = tensor([inputArr]) as Tensor<Rank.R4>;
+    const height = 2;
+    const width = 2;
+    const interpolation = 'nearest';
+    const resizingLayer = new Resizing({height, width, interpolation});
+    const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
+    const expectedArr = [[5, 7], [13, 15]];
+    const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
+    expectTensorsClose(expectedOutput, layerOutputTensor);
+  });
+
+  it('Returns correctly upscaled tensor', () => {
+    // resize and check output content
+    const rangeArr = [...Array(4).keys()]; // equivalent to np.arange(0,4)
+    const inputArr = [];
+    while(rangeArr.length) inputArr.push(rangeArr.splice(0,2)); // reshape
+    const inputTensor = tensor([inputArr]) as Tensor<Rank.R4>;
+    const height = 4;
+    const width = 4;
+    const interpolation = 'nearest';
+    const resizingLayer = new Resizing({height, width, interpolation});
+    const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
+    const expectedArr = [[0,0,1,1], [0,0,1,1], [2,2,3,3], [2,2,3,3]];
+    const expectedOutput = tensor([expectedArr]) as Tensor<Rank.R4>;
+    expectTensorsClose(expectedOutput, layerOutputTensor);
   });
 
   it('Returns the same tensor when given same shape as input', () => {
@@ -62,13 +79,11 @@ describeMathCPUAndGPU('Resizing Layer', () => {
 
   it('Returns a tensor of the correct dtype', () => {
     // do a same resizing operation, cheeck tensors dtypes and content
-    const maxHeight = 40;
-    const height = Math.floor(Math.random() * maxHeight);
-    const maxWidth = 60;
-    const width = Math.floor(Math.random() * maxWidth);
+    const height = 40
+    const width = 60
     const numChannels = 3;
     const inputTensor: Tensor<Rank.R3> =
-        randomNormal([height * 2, width * 2, numChannels]);
+        randomNormal([height, width, numChannels]);
     const size: [number, number] = [height, width];
     const expectedOutputTensor = image.resizeBilinear(inputTensor, size);
     const resizingLayer = new Resizing({height, width});
