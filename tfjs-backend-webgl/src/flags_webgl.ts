@@ -273,4 +273,4 @@ ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
  * Whether to use the customized isnan. It's only useful for webgl2 since webgl1
  * doesn't have the builtin isnan.
  */
-ENV.registerFlag('WEBGL_ISNAN_CUSTOM', () => false);
+ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
