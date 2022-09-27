@@ -96,7 +96,6 @@ export class GraphExecutor implements FunctionExecutor {
     return this._outputs.map(node => {
       return {
         name: node.name,
-        signatureKey: node.signatureKey ? node.signatureKey : undefined,
         shape: node.attrParams['shape'] ?
             node.attrParams['shape'].value as number[] :
             undefined,

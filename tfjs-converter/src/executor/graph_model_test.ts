@@ -768,7 +768,7 @@ describe('Model', () => {
       it('should expose outputs', async () => {
         await model.load();
         expect(model.outputs).toEqual([
-          {name: 'Add', signatureKey: 'y', shape: undefined, dtype: undefined}
+          {name: 'Add', shape: undefined, dtype: undefined}
         ]);
       });
     });
