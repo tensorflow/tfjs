@@ -172,10 +172,17 @@ export interface GPUData {
   texShape?: [number, number];
   bufSize?: number;
 }
+export interface WebGLData {
+  texture: WebGLTexture;
+  height: number;
+  width: number;
+  format: number;
+  type: number;
+}
 
 export interface TensorTracker {
   makeTensor(
-      values: DataValues, shape: number[], dtype: DataType,
+      values: DataValues|WebGLData, shape: number[], dtype: DataType,
       backend?: Backend): Tensor;
   makeVariable(
       initialValue: Tensor, trainable?: boolean, name?: string,
@@ -615,3 +622,8 @@ Object.defineProperty(Variable, Symbol.hasInstance, {
         instance.assign instanceof Function;
   }
 });
+
+export function createTensorFromTexture(
+    values: WebGLData, shape: number[], dtype?: DataType) {
+  return trackerFn().makeTensor(values, shape, dtype);
+}
