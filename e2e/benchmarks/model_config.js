@@ -95,8 +95,7 @@ const benchmarks = {
     load: async (inputResolution = 224, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_${
           modelArchitecture}_224/classification/5/default/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     loadTflite: async (
         enableProfiling = false, modelArchitecture = 'small_075') => {
@@ -119,8 +118,7 @@ const benchmarks = {
     load: async (inputResolution = 224, modelArchitecture = '050') => {
       const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_${
           modelArchitecture}_224/classification/3/default/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
@@ -158,8 +156,7 @@ const benchmarks = {
       const url =
           `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/detector/${
               modelArchitecture}/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 192, 192, 3]);
@@ -173,8 +170,7 @@ const benchmarks = {
       const url =
           `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/landmark/${
               modelArchitecture}/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 224, 224, 3]);
@@ -188,8 +184,7 @@ const benchmarks = {
       const modelType = inputResolution === 192 ? 'lightning' : 'thunder';
       const url = `https://tfhub.dev/google/tfjs-model/movenet/singlepose/${
           modelType}/4`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: (inputResolution = 192) => {
       const input = tf.zeros([1, inputResolution, inputResolution, 3], 'int32');
@@ -201,8 +196,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://tfhub.dev/google/tfjs-model/movenet/multipose/lightning/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 256, 3], 'int32');
@@ -214,8 +208,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://tfhub.dev/mediapipe/tfjs-model/blazeposedetector/1/default/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 224, 224, 3]);
@@ -228,8 +221,7 @@ const benchmarks = {
     load: async (inputResolution = 256, modelArchitecture = 'lite') => {
       const url = `https://tfhub.dev/mediapipe/tfjs-model/blazeposelandmark_${
           modelArchitecture}/2/default/2`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 256, 3]);
@@ -246,8 +238,7 @@ const benchmarks = {
       const mobileNetVersion = modelArchitecture.split('MobileNetV')[1];
       const url = `https://storage.googleapis.com/tfjs-models/savedmodel/ssd${
           tfliteBased}_mobilenet_v${mobileNetVersion}/model.json`;
-      const model = await tf.loadGraphModel(url);
-      return [model, url];
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const input = tf.zeros([1, 227, 227, 3], 'int32');
@@ -263,8 +254,7 @@ const benchmarks = {
       const url =
           `https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/deeplab/${
               modelArchitecture}/1/quantized/2/1/model.json`;
-      const model = await tf.loadGraphModel(url);
-      return [model, url];
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const input = tf.zeros([1, 227, 500, 3], 'int32');
@@ -278,8 +268,7 @@ const benchmarks = {
       const modelSize = inputResolution === 128 ? 'short' : 'full';
       const url = `https://tfhub.dev/mediapipe/tfjs-model/face_detection/${
           modelSize}/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: (inputResolution = 128) => {
       const input = tf.zeros([1, inputResolution, inputResolution, 3]);
@@ -294,8 +283,7 @@ const benchmarks = {
       const url =
           `https://tfhub.dev/mediapipe/tfjs-model/face_landmarks_detection/${
               modelArchitecture}/1`;
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 192, 192, 3]);
@@ -306,8 +294,7 @@ const benchmarks = {
     type: 'GraphModel',
     load: async () => {
       const url = 'https://tfhub.dev/tensorflow/tfjs-model/ar_portrait_depth/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 192, 3]);
@@ -319,8 +306,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://tfhub.dev/mediapipe/tfjs-model/selfie_segmentation/general/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 256, 3]);
@@ -332,8 +318,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://tfhub.dev/mediapipe/tfjs-model/selfie_segmentation/landscape/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, url];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 144, 256, 3]);
@@ -346,8 +331,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
-      const model = await tf.loadGraphModel(url);
-      return [model, url];
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 224, 224, 3]);
@@ -360,8 +344,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
-      const model = await tf.loadGraphModel(url);
-      return [model, url];
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const OUTPUT_NODE_NAMES =
@@ -374,8 +357,7 @@ const benchmarks = {
     type: 'GraphModel',
     supportDebug: false,
     load: async () => {
-      const model = await use.load();
-      return [model, ''];
+      return use.load();
     },
     predictFunc: () => {
       const sentences30 = sentences.slice(0, 30);
@@ -389,8 +371,7 @@ const benchmarks = {
     type: 'GraphModel',
     supportDebug: false,
     load: async () => {
-      const model = await use.load();
-      return [model, ''];
+      return use.load();
     },
     predictFunc: () => {
       return async model => {
@@ -407,8 +388,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/toxicity/1/default/1/model.json';
-      const model = await tf.loadGraphModel(url);
-      return [model, ''];
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const indices = tf.tensor2d(
@@ -423,8 +403,7 @@ const benchmarks = {
     type: 'GraphModel',
     load: async () => {
       const url = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1';
-      const model = await tf.loadGraphModel(url, {fromTFHub: true});
-      return [model, ''];
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const batchSize = 1;
@@ -472,7 +451,7 @@ const benchmarks = {
       } else {
         model.input = await loadImage('tennis_standing.jpg');
       }
-      return [model, ''];
+      return model;
     },
     predictFunc: () => {
       return async model => {
@@ -502,7 +481,7 @@ const benchmarks = {
       } else {
         model.input = await loadImage('tennis_standing.jpg');
       }
-      return [model, ''];
+      return model;
     },
     predictFunc: (internalResolution = 0.5) => {
       return async model => {
@@ -517,7 +496,7 @@ const benchmarks = {
     load: async () => {
       const recognizer = speechCommands.create('BROWSER_FFT');
       await recognizer.ensureModelLoaded();
-      return [recognizer, ''];
+      return recognizer;
     },
     predictFunc: () => {
       return async (model) => {
@@ -537,7 +516,7 @@ const benchmarks = {
   'custom': {
     type: '',
     load: async () => {
-      return [await loadModelByUrlWithState(state.modelUrl, {}, state), ''];
+      return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     loadTflite: async (enableProfiling = false) => {
       return tflite.loadTFLiteModel(state.modelUrl, {enableProfiling});

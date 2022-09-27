@@ -15,23 +15,6 @@
  * =============================================================================
  */
 
-async function readFileAsync(url) {
-  const loadOption = {fromTFHub: true};
-  if (!url.includes('model.json')) {
-    url = url + '/' +
-        'model.json?tfjs-format=file';
-  }
-  const handler = tf.io.getLoadHandlers(url, loadOption)[0];
-  if (handler.load == null) {
-    throw new Error(
-        'Cannot proceed with model loading because the IOHandler provided ' +
-        'does not have the `load` method implemented.');
-  }
-
-  const loadResult = await handler.load();
-  return loadResult;
-}
-
 function compareData(data1, data2, level = 0) {
   if (level == 0) {
     let notMatch = false;
@@ -46,6 +29,24 @@ function compareData(data1, data2, level = 0) {
   } else if (level == 2) {
     return true;
   }
+}
+
+function getGraphModel(model, benchmark) {
+  let graphModel = null;
+  if (benchmark === 'bodypix' || benchmark === 'posenet') {
+    graphModel = model.baseModel.model;
+  } else if (
+      benchmark === 'USE - batchsize 30' || benchmark === 'USE - batchsize 1') {
+    graphModel = model.model;
+  } else {
+    graphModel = model;
+  }
+
+  if (graphModel instanceof tf.GraphModel) {
+    return graphModel;
+  }
+  console.warn(`Model ${benchmark} doesn't support dump op!`);
+  return null;
 }
 
 async function getIntermediateTensorsData(tensorsMap) {
@@ -71,32 +72,29 @@ async function getIntermediateTensorsData(tensorsMap) {
   return jsonObject;
 }
 
-function downloadArray(contents, fileNames) {
-  for (let i = 0; i < contents.length; i++) {
-    const content = contents[i];
-    const fileName = fileNames[i];
-    var a = document.createElement('a');
-    var file = new Blob([JSON.stringify(content)], {type: 'application/json'});
-    a.href = URL.createObjectURL(file);
-    a.download = fileName;
-    a.click();
-  }
-}
-
-async function downloadHelper(
-    jsonObjects, backends, level, errorCount, prefix) {
+async function saveObjectsToFile(
+    jsonObjects, backends, level, diffCount, prefix) {
   const backend1 = backends[0];
   const backend2 = backends[1];
   let newPrefix = '';
   if (prefix !== '') {
     newPrefix = `${prefix.replace(/\//g, '-')}_`;
   }
-  if (((level < 2) && errorCount) || (level === 2)) {
-    downloadArray(
-        jsonObjects,
-        [`${newPrefix}${backend1}.json`, `${newPrefix}${backend2}.json`]);
-    // This ensures downloading seperated files works.
-    await sleep(150);
+  if (((level < 2) && diffCount) || (level === 2)) {
+    const fileNames =
+        [`${newPrefix}${backend1}.json`, `${newPrefix}${backend2}.json`];
+    for (let i = 0; i < jsonObjects.length; i++) {
+      const object = jsonObjects[i];
+      const fileName = fileNames[i];
+      const a = document.createElement('a');
+      const file =
+          new Blob([JSON.stringify(object)], {type: 'application/json'});
+      a.href = URL.createObjectURL(file);
+      a.download = fileName;
+      a.click();
+      console.log(fileName);
+      await sleep(150);
+    }
   }
 }
 
@@ -106,23 +104,23 @@ async function compareAndDownload(
     download = true) {
   const jsonObject1 = jsonObjects[0];
   const jsonObject2 = jsonObjects[1];
-  var errorCount = 0;
-  const errorObjects1 = {};
-  const errorObjects2 = {};
+  let diffCount = 0;
+  const diffObjects1 = {};
+  const diffObjects2 = {};
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     if (compareData(jsonObject1[key], jsonObject2[key], level)) {
       if (jsonObject1[key]['index']) {
-        errorObjects1[`${key}`] = jsonObject1[key];
-        errorObjects2[`${key}`] = jsonObject2[key];
+        diffObjects1[`${key}`] = jsonObject1[key];
+        diffObjects2[`${key}`] = jsonObject2[key];
       } else {
-        errorObjects1[`${key}`] = {index: i, ...jsonObject1[key]};
-        errorObjects2[`${key}`] = {index: i, ...jsonObject2[key]};
+        diffObjects1[`${key}`] = {index: i, ...jsonObject1[key]};
+        diffObjects2[`${key}`] = {index: i, ...jsonObject2[key]};
       }
-      errorCount++;
+      diffCount++;
     }
-    // Break when error count is 10 to avoid downloading large file.
-    if (length != -1 && errorCount == length) {
+    // Break when diff count equals dumpLength to avoid downloading large file.
+    if (length != -1 && diffCount == length) {
       break;
     }
   }
@@ -130,13 +128,13 @@ async function compareAndDownload(
     prefix += '_' + keys[0];
   }
   if (download) {
-    await downloadHelper(
-        [errorObjects1, errorObjects2], backends, level, errorCount, prefix);
+    await saveObjectsToFile(
+        [diffObjects1, diffObjects2], backends, level, diffCount, prefix);
   }
-  if (errorCount) {
-    console.error('Total error items: ' + errorCount);
+  if (diffCount) {
+    console.error('Total diff items: ' + diffCount);
   }
-  return errorObjects1;
+  return diffObjects1;
 }
 
 /**
@@ -166,7 +164,11 @@ async function createTensorMap(outputNodeName, modelJson, dumpedJson) {
 
   let tensorMap = {};
   for (let i = 0; i < inputs.length; i++) {
-    const key = inputs[i];
+    const key = inputs[i].split(':')[0];
+    if (dumpedJson[key] == null || dumpedJson[key][0] == null) {
+      console.warn('Tensor ' + key + ' is null!');
+      return null;
+    }
     const tensorInfo = dumpedJson[key][0];
     const tensor = tf.tensor(
         Object.values(tensorInfo.value[0]), tensorInfo.shape, tensorInfo.dtype);
@@ -232,27 +234,32 @@ async function dumpOp(
 }
 
 async function dumpDiff(
-    model, objectDiff, dumpedJson, backends, benchmark, modelUrl, level) {
-  const keys = Object.keys(objectDiff);
+    model, objectsDiff, dumpedJson, backends, benchmark, level) {
+  if (model == null || model.artifacts == null) {
+    console.warn(`${benchmark} doesn't support dump op!`);
+    return;
+  }
+
+  const keys = Object.keys(objectsDiff);
   if (keys.length === 0) {
     console.warn('Ops have no diff!');
     return;
   }
-  const modelJson = await readFileAsync(modelUrl);
+
+  const modelJson = model.artifacts;
+
   await dumpOp(
       model, modelJson, dumpedJson, backends, keys, level,
       `dumpops_${benchmark}_${level}`);
 }
 
 async function dump(
-    jsonObjects, backends, benchmark, modelUrl, level = 0, length = -1) {
-  const objectsHasDiff = await compareAndDownload(
+    model, jsonObjects, backends, benchmark, level = 0, length = -1) {
+  const objectsDiff = await compareAndDownload(
       jsonObjects, backends, level, length, Object.keys(jsonObjects[0]),
       `dumpmodel_${benchmark}_${level}`, true);
 
-  if (modelUrl && modelUrl !== '') {
-    await dumpDiff(
-        model, objectsHasDiff, jsonObjects[1], backends, benchmark, modelUrl,
-        level);
-  }
+  const graphModel = getGraphModel(model, benchmark);
+  await dumpDiff(
+      graphModel, objectsDiff, jsonObjects[1], backends, benchmark, level);
 }
