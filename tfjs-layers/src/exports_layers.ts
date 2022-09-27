@@ -27,6 +27,8 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
 import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
 import { Resizing, ResizingArgs } from './layers/preprocessing/image_resizing';
+import { CenterCrop, CenterCropArgs } from './layers/preprocessing/image_preprocessing_centercrop';
+
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
 //   (b/74074458).
@@ -1802,4 +1804,15 @@ export function categoryEncoding(args: CategoryEncodingArgs) {
 
 export function resizing(args?: ResizingArgs) {
   return new Resizing(args);
+}
+
+
+/**
+ * CenterCrop
+ *
+ *  @doc {heading: 'Layers', subheading: 'Resizing', namespace: 'layers'}
+ */
+
+ export function centerCrop(args?: CenterCropArgs) {
+  return new CenterCrop(args);
 }
