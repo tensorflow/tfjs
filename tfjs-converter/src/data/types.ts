@@ -42,7 +42,6 @@ export type HashTableMap = {
 
 export interface TensorInfo {
   name: string;
-  signatureKey?: string;
   shape?: number[];
   dtype: DataType;
 }

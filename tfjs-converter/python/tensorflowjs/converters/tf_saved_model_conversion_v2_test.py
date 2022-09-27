@@ -125,7 +125,7 @@ class ConvertTest(tf.test.TestCase):
     """Create a TensorFlow SavedModel V2 with hash table for testing."""
 
     class Table(tf.Module):
-        def __init__(self, **kwargs):
+        def __init__(self):
             super(Table, self).__init__()
             keys = tf.constant(['a', 'b'])
             vals= tf.constant([0, 1])
