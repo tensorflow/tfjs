@@ -268,11 +268,13 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
                       'let ACached = mm_Asub[tileRow + innerRow][k];';
 };
 
+// sequentialAccess means that the adjacent threads are accessing contiguous
+// data in memory. By default, it's interval access in threads, which means that
+// the access is continuous in one thread, but not in theads.
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
-    sequentialAccess =
-        false /**By default, it's interval access in threads */): string {
+    sequentialAccess = false): string {
   const tileAOuter = workPerThread[1] * workGroupSize[1];
   const tileBOuter = workPerThread[0] * workGroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
