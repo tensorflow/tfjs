@@ -171,15 +171,16 @@ limitations under the License.
       }
     }
 
-    async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
+    async function predictAndGetPredictionData(predict, model, inferenceInput, benchmark, debug) {
       const prediction = await predict(model, inferenceInput);
+      const graphModel = getGraphModel(model, benchmark);
       let intermediateData = {};
-      if (debug) {
-        intermediateData = await getIntermediateTensorsData(model.getIntermediateTensors());
+      if (debug && graphModel) {
+        intermediateData = await getIntermediateTensorsData(graphModel.getIntermediateTensors());
       }
       const predictionData = await getPredictionData(prediction);
-      if (debug) {
-        model.disposeIntermediateTensors();
+      if (debug && graphModel) {
+        graphModel.disposeIntermediateTensors();
       }
       return {data: predictionData, intermediateData};
     }
@@ -234,8 +235,8 @@ limitations under the License.
           }
 
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
-          referenceData = referenceResult['data'];;
+          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, state.benchmark, debug);
+          referenceData = referenceResult['data'];
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -248,8 +249,8 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
-          predictionData = predictionResult['data'];;
+          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, state.benchmark, debug);
+          predictionData = predictionResult['data'];
           if (debug) {
             const predictionIntermediateObject = predictionResult['intermediateData'];
             const referenceIntermediateObject = referenceResult['intermediateData'];
@@ -257,7 +258,7 @@ limitations under the License.
             const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')): 0;
             const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')): -1;
             const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
-            await dump([predictionIntermediateObject, referenceIntermediateObject], [state.backend, referenceBackend], dumpPrefix, modelUrl, dumpLevel, dumpLength);
+            await dump(model, [predictionIntermediateObject, referenceIntermediateObject], [state.backend, referenceBackend], dumpPrefix, dumpLevel, dumpLength);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
@@ -303,7 +304,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, modelUrl, tfliteModel, predict, chartWidth;
+    let model, tfliteModel, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -537,9 +538,7 @@ limitations under the License.
       if (isTflite()) {
         await loadTfliteModel();
       } else {
-        const [modelTemp, modelUrlTemp]= await benchmark.load(inputSize, state.architecture, state.inputType);
-        model = modelTemp;
-        modelUrl = modelUrlTemp;
+        model= await benchmark.load(inputSize, state.architecture, state.inputType);
       }
       state.inputs = [];
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs
