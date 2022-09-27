@@ -30,7 +30,9 @@ const {
   endFirebaseInstance
 } = require('./firestore.js');
 const {PromiseQueue} = require('./promise_queue');
+const JSONStream = require('JSONStream');
 
+const jsonwriter = JSONStream.stringify();
 const port = process.env.PORT || 8001;
 let io;
 let parser;
@@ -66,7 +68,7 @@ function runServer() {
     });
   });
   app.listen(port, () => {
-    console.log(`  > Running socket on port: ${port}`);
+    console.log(`  > Running socket on: 127.0.0.1:${port}`);
   });
 
   io = socketio(app);
@@ -111,17 +113,35 @@ async function benchmarkAll(config) {
 
   for (backend of benchmarkInfo.backend) {
     for (model of benchmarkInfo.model) {
-      console.log(
-          `\nRunning ${model} model benchmarks over ${backend} backend...`);
-      const result = await benchmark({
-        'benchmark': {
-          'model': model,
-          'numRuns': benchmarkInfo.numRuns,
-          'backend': backend
-        },
-        'browsers': config.browsers
-      });
-      allResults.push(result);
+      if (model === 'codeSnippet') {
+        for (codeSnippetPair of benchmarkInfo.codeSnippets) {
+          console.log(
+              `\nRunning codeSnippet benchmarks over ${backend} backend...`);
+          const result = await benchmark({
+            'benchmark': {
+              'model': model,
+              'numRuns': benchmarkInfo.numRuns,
+              'backend': backend,
+              'codeSnippet': codeSnippetPair.codeSnippet || '',
+              'setupCodeSnippetEnv': codeSnippetPair.setupCodeSnippetEnv || ''
+            },
+            'browsers': config.browsers
+          });
+          allResults.push(result);
+        }
+      } else {
+        console.log(
+            `\nRunning ${model} model benchmarks over ${backend} backend...`);
+        const result = await benchmark({
+          'benchmark': {
+            'model': model,
+            'numRuns': benchmarkInfo.numRuns,
+            'backend': backend
+          },
+          'browsers': config.browsers
+        });
+        allResults.push(result);
+      }
     }
   }
   console.log('\nAll benchmarks complete!');
@@ -164,28 +184,41 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   const results = [];
 
   // Runs and gets result of each queued benchmark
+  let tabIndex = 1;
   for (const tabId in config.browsers) {
     results.push(promiseQueue.add(() => {
-      return runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
+      return runOneBenchmark(tabId, cliArgs?.maxTries, tabIndex++).then((value) => {
         value.deviceInfo = config.browsers[tabId];
         value.modelInfo = config.benchmark;
         return value;
-      });
+      }).catch(error => {
+        console.log(
+            `${tabId} ${config.benchmark.model} ${config.benchmark.backend}`,
+            error);
+        return {
+          error, deviceInfo: config.browsers[tabId], modelInfo: config.benchmark
+        }});
     }));
   }
 
   // Optionally written to an outfile or pushed to a database once all
   // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
-  if (cliArgs?.outfile) {
-    await write('./benchmark_results.json', fulfilled);
-  } else {
-    console.log('\Benchmarks complete.\n');
+  if (cliArgs?.outfile === 'html' || cliArgs?.outfile === 'json') {
+    for (const benchmarkResult of fulfilled) {
+      jsonwriter.write(benchmarkResult);
+    }
   }
   if (cliArgs?.firestore) {
     await pushToFirestore(fulfilled);
   }
+  console.log(
+      `\n${config.benchmark?.model} model benchmark over ${config.benchmark?.backend} backend complete.\n`);
   return fulfilled;
+}
+
+function sleep(timeMs) {
+  return new Promise(resolve => setTimeout(resolve, timeMs));
 }
 
 /**
@@ -196,13 +229,24 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
  *
  * @param tabId Indicates browser-device pairing for benchmark
  * @param triesLeft Number of tries left for a benchmark to succeed
+ * @param tabIndex Indicates the sequential position for the browser-device
+ *     pairing, which is used to delay initiating runner.
  * @param runOneBenchmark Function that runs a singular BrowserStack
  *     performance test
  * @param retyOneBenchmark Function that retries a singular BrowserStack
  *     performance test
  */
 async function getOneBenchmarkResult(
-    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark) {
+    tabId, triesLeft, tabIndex = 0,
+    runOneBenchmark = runBrowserStackBenchmark) {
+  // Since karma will throw out `spawn ETXTBSY` error if initiating multiple
+  // benchmark runners at the same time, adds delays between initiating runners
+  // to resolve this race condition.
+  const numFailed = cliArgs.maxTries - triesLeft;
+  // The delay increase exponentially when benchmark fails.
+  const delayInitiatingRunnerTimeMs = tabIndex * (3 ** numFailed) * 1000;
+  await sleep(delayInitiatingRunnerTimeMs);
+
   triesLeft--;
   try {
     const result = await runOneBenchmark(tabId);
@@ -280,26 +324,6 @@ function runBrowserStackBenchmark(tabId) {
 }
 
 /**
- * Writes a passed message to a passed JSON file.
- *
- * @param filePath Relative filepath of target file
- * @param msg Message to be written
- */
-function write(filePath, msg) {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
-      if (err) {
-        console.log(`Error: ${err}.`);
-        return reject(err);
-      } else {
-        console.log('\nOutput written.');
-        return resolve();
-      }
-    });
-  })
-}
-
-/**
  * Pushes all benchmark results to Firestore.
  *
  * @param benchmarkResults List of all benchmark results
@@ -355,8 +379,14 @@ function setupHelpMessage() {
     help: 'Store benchmark results in Firestore database',
     action: 'store_true'
   });
-  parser.add_argument(
-      '--outfile', {help: 'write results to outfile', action: 'store_true'});
+  parser.add_argument('--outfile', {
+    help: 'write results to outfile. Expects \'html\' or \'json\'. ' +
+        'If you set it as \'html\', benchmark_results.js will be generated ' +
+        'and you could review the benchmark results by openning ' +
+        'benchmark_result.html file.',
+    type: 'string',
+    action: 'store'
+  });
   parser.add_argument('-v', '--version', {action: 'version', version});
   parser.add_argument('--localBuild', {
     help: 'local build name list, separated by comma. The name is in short ' +
@@ -377,34 +407,85 @@ function setupHelpMessage() {
  * @param file Relative filepath to preset benchmark configuration
  * @param runBenchmark Function to run a benchmark configuration
  */
-function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
+async function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
-  runBenchmark(file);
+  await runBenchmark(file);
+}
+
+async function initializeWriting() {
+  if (cliArgs.firestore) {
+    db = await runFirestore(firebaseConfig)
+  };
+
+  let file;
+   if (cliArgs?.outfile === 'html') {
+     await fs.writeFile(
+         './benchmark_results.js', 'const benchmarkResults = ', 'utf8', err => {
+           if (err) {
+             console.log(`Error: ${err}.`);
+             return reject(err);
+           } else {
+             return resolve();
+           }
+         });
+     file = fs.createWriteStream('benchmark_results.js', {'flags': 'a'});
+   } else if (cliArgs?.outfile === 'json') {
+     file = fs.createWriteStream('./benchmark_results.json');
+   } else {
+     return;
+   }
+
+   // Pipe the JSON data to the file.
+   jsonwriter.pipe(file);
+   console.log(`\nStart writing.`);
+
+   // If having outfile, add a listener to Ctrl+C to finalize writing.
+   process.on('SIGINT', async () => {
+     await finalizeWriting();
+     process.exit();
+   });
+}
+
+
+async function finalizeWriting() {
+  if (cliArgs.firestore) {
+    await endFirebaseInstance();
+  }
+
+  if (cliArgs?.outfile === 'html') {
+    jsonwriter.end();
+    console.log('\nOutput written to ./benchmark_results.js.');
+  } else if (cliArgs?.outfile === 'json') {
+    jsonwriter.end();
+    console.log('\nOutput written to ./benchmark_results.json.');
+  }
 }
 
 /** Sets up the local or remote environment for benchmarking. */
 async function prebenchmarkSetup() {
   checkBrowserStackAccount();
-  if (cliArgs.firestore) {
-    db = await runFirestore(firebaseConfig)
-  };
+  await initializeWriting();
+
   if (!cliArgs.cloud) {
     runServer()
   };
-  if (cliArgs.benchmarks) {
-    const filePath = resolve(cliArgs.benchmarks);
-    if (fs.existsSync(filePath)) {
-      console.log(`\nFound file at ${filePath}`);
-      const config = require(filePath);
-      runBenchmarkFromFile(config);
-    } else {
-      throw new Error(
-          `File could not be found at ${filePath}. ` +
-          `Please provide a valid path.`);
+
+  try {
+    if (cliArgs.benchmarks) {
+      const filePath = resolve(cliArgs.benchmarks);
+      if (fs.existsSync(filePath)) {
+        console.log(`\nFound file at ${filePath}`);
+        const config = require(filePath);
+        await runBenchmarkFromFile(config);
+        console.log('finish')
+      } else {
+        throw new Error(
+            `File could not be found at ${filePath}. ` +
+            `Please provide a valid path.`);
+      }
     }
-  }
-  if (cliArgs.firestore) {
-    endFirebaseInstance();
+  } finally {
+    finalizeWriting();
   }
 }
 
@@ -417,4 +498,3 @@ if (require.main === module) {
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
 exports.getOneBenchmarkResult = getOneBenchmarkResult;
 exports.benchmark = benchmark;
-exports.write = write;

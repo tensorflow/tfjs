@@ -33,6 +33,10 @@ export function concat(
   const {axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
+
+  const shapes = inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, $axis);
+
   let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
   if (util.sizeFromShape(outShape) === 0) {
@@ -44,9 +48,6 @@ export function concat(
   if ($inputs.length === 1) {
     return identity({inputs: {x: $inputs[0]}, backend});
   }
-
-  const shapes = $inputs.map(t => t.shape);
-  backend_util.assertParamsConsistent(shapes, $axis);
 
   if ($inputs[0].dtype === 'complex64') {
     const reals = $inputs.map((t) => real({inputs: {input: t}, backend}));

@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ReduceProgram implements WebGPUProgram {
@@ -90,7 +90,7 @@ export class ReduceProgram implements WebGPUProgram {
             'outputCoords[0]'} * uniforms.reduceSize;
           return offset;
        }
-       ${getMainHeaderAndGlobalIndexString()}
+       ${main('index')} {
          let outputIndex = index / i32(workGroupSizeX);
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};

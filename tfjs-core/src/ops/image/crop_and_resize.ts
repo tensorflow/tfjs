@@ -36,7 +36,7 @@ import {op} from '../operation';
  *     batch of images from which to take crops
  * @param boxes 2d float32 tensor of shape `[numBoxes, 4]`. Each entry is
  *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the normalized
- *     coordinates of the box in the boxInd[i]'th image in the batch
+ *     coordinates of the box in the `boxInd[i]`th image in the batch
  * @param boxInd 1d int32 tensor of shape `[numBoxes]` with values in range
  *     `[0, batch)` that specifies the image that the `i`-th box refers to.
  * @param cropSize 1d int32 tensor of 2 elements `[cropHeigh, cropWidth]`

@@ -59,7 +59,7 @@ export const compileProgram =
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: 'main'},
+        compute: {module, entryPoint: '_start'},
         label: program.constructor.name,
         layout: 'auto'
       });
@@ -103,23 +103,45 @@ export function getCoordsXYZ(index: number): string {
   }
 }
 
-export function getMainHeaderAndGlobalIndexString(): string {
-  return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
-`;
-}
+export function getMainHeaderString(): string;
+export function getMainHeaderString(index: string): string;
+export function getMainHeaderString(...params: string[]): string {
+  let snippet: string;
+  switch (params.length) {
+    case 0:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main();
+        }
 
-export function getMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-`;
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        ${getWorkGroupSizeString()}
+        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+          localId = LocalId;
+          globalId = GlobalId;
+          numWorkgroups = NumWorkgroups;
+          main(getGlobalIndex());
+        }
+
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error('Unreachable');
+  }
+  return snippet;
 }
 
 export function getWorkGroupSizeString(): string {
@@ -607,6 +629,13 @@ function getOutputCoordsSnippet(
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
+  const rank = x.length + y.length + z.length;
+  // getOutputCoords is only meaningful when the output rank is same with
+  // dispatch layout rank.
+  if (rank !== outRank) {
+    return '';
+  }
+
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
     const snippet = `fn getOutputCoords() -> ${dtype}{
@@ -620,16 +649,12 @@ function getOutputCoordsSnippet(
   let gatherDimensionsStr = '';
   const dims = [x, y, z];
 
-  let rank = 0;
-
   for (let i = 0; i < dims.length; i++) {
     const arr = dims[i];
 
     if (arr.length === 0) {
       continue;
     }
-
-    rank += arr.length;
 
     if (arr.length === 1) {
       gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;

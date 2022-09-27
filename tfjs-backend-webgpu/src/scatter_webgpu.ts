@@ -15,91 +15,125 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {DataType} from '@tensorflow/tfjs-core';
+import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterProgram implements WebGPUProgram {
-  variableNames = ['updates', 'indices', 'defaultValue'];
+  variableNames = ['updates', 'indices'];
   uniforms: string;
   outputShape: number[];
+  sumDupeIndices: boolean;
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  workPerThread = 4;
-  size = true;
-  indicesSnippet: string;
-  strideString: string;
-  updatesSnippet: string;
+  updatesRank: number;
+  indicesRank: number;
+  sliceDimGreaterThanOne: boolean;
+  atomic = true;
+  type: DataType;
 
   constructor(
-      updateSize: number, sliceDim: number, indicesRank: number,
+      flattenXShape: number[], sliceDim: number, indicesRank: number,
       updatesRank: number, strides: number[], shape: number[],
-      summingDupeIndex = true) {
+      outputDtype: DataType, sumDupeIndices = true) {
     this.outputShape = shape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    const sliceDimGreaterThanOne = sliceDim > 1;
-    this.shaderKey =
-        `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
+    this.type = outputDtype;
+    this.sumDupeIndices = sumDupeIndices;
+    this.dispatchLayout = flatDispatchLayout(flattenXShape);
+    // Dispatching based on |updates| shape instead of output shape.
+    this.dispatch =
+        computeDispatch(this.dispatchLayout, flattenXShape, this.workGroupSize);
+    this.sliceDimGreaterThanOne = sliceDim > 1;
+    this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
+        this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms =
-        `updateSize : i32, sliceDim : i32, strides: ${stridesType},`;
-    let indicesString = '';
-    if (indicesRank === 1) {
-      indicesString = 'i';
-    } else if (indicesRank === 2) {
-      indicesString = 'i, j';
-    }
-    this.indicesSnippet = `getIndices(${indicesString})`;
-
-    let updatesString = '';
-    if (updatesRank === 1) {
-      updatesString = 'i';
-    } else if (updatesRank === 2) {
-      updatesString = 'i, coords[1]';
-    }
-    this.updatesSnippet = `getUpdates(${updatesString})`;
-
-    this.strideString =
-        sliceDimGreaterThanOne ? 'uniforms.strides[j]' : 'uniforms.strides';
+    this.uniforms = `sliceDim : i32, strides: ${stridesType}, size: i32,`;
+    this.updatesRank = updatesRank;
+    this.indicesRank = indicesRank;
   }
 
   getUserCode(): string {
-    const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+    let indicesString = '';
+    if (this.indicesRank === 1) {
+      indicesString = 'coords[0]';
+    } else if (this.indicesRank === 2) {
+      indicesString = 'coords[0], j';
+    }
+    const indicesSnippet = `getIndices(${indicesString})`;
 
-        let globalIndex = index * ${this.workPerThread};
-        if (globalIndex < uniforms.size) {
-          var sum = vec4<f32>(0.0);
-          var found = vec4<bool>(false);
-          for (var i = 0; i < uniforms.updateSize; i = i + 1) {
-            var flattenedIndex = 0;
-            for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
-              let indexInside = i32(round(${this.indicesSnippet}));
-              flattenedIndex = flattenedIndex + indexInside * ${
-        this.strideString};
-            }
-            for (var innerIndex = 0; innerIndex < ${
-        this.workPerThread}; innerIndex = innerIndex + 1) {
-              let curIndex = globalIndex + innerIndex;
-              let coords = getCoordsFromIndex(curIndex);
-              if (flattenedIndex == coords[0]) {
-                sum[innerIndex] = sum[innerIndex] + ${this.updatesSnippet};
-                found[innerIndex] = true;
+    const strideString = this.sliceDimGreaterThanOne ? 'uniforms.strides[j]' :
+                                                       'uniforms.strides';
+
+    let outCoordsString = '';
+    let getUpdatesCoordsFromFlatIndex = '';
+    if (this.dispatchLayout.x.length === 1) {
+      outCoordsString = 'flattenedIndex';
+      getUpdatesCoordsFromFlatIndex = `
+      fn getUpdatesCoordsFromFlatIndex(index : i32) -> i32 {
+        return index;
+      }
+      `;
+    } else if (this.dispatchLayout.x.length === 2) {
+      outCoordsString = 'vec2<i32>(flattenedIndex, coords[1])';
+      getUpdatesCoordsFromFlatIndex = `
+      fn getUpdatesCoordsFromFlatIndex(index : i32) -> vec2<i32> {
+        // N.B. |updates| could be a scalar tensor, conceptually representing a
+        // 2D tensor with all values equal to that. By design, its size must be
+        // the same as |outShape[1]| in one dimension, and |indicesShape[0]|
+        // gives the other.
+        let sliceSize = uniforms.outShape[1];
+        let d0 = index / sliceSize;
+        let d1 = index - d0 * sliceSize;
+        return vec2<i32>(d0, d1);
+      }
+      `;
+    }
+    const updatesString =
+        Array.from({length: this.updatesRank}, (_, idx) => `coords[${idx}]`);
+    const updatesSnippet = `getUpdates(${updatesString.join(', ')})`;
+
+    const atomicRMW = (ptr: string, val: string) => {
+      let atomicAddSnippet = `atomicAdd(${ptr}, bitcast<i32>(${val}))`;
+      if (this.type === 'float32') {
+        atomicAddSnippet = `
+          {
+            var oldBits = 0;
+            var newBits = bitcast<i32>(${val});
+            loop {
+              let info = atomicCompareExchangeWeak(${ptr}, oldBits, newBits);
+              if (info.exchanged) {
+                break;
               }
+              oldBits = info.old_value;
+              let oldValue = bitcast<f32>(oldBits);
+              let newValue = oldValue + (${val});
+              newBits = bitcast<i32>(newValue);
             }
           }
-          for (var innerIndex = 0; innerIndex < ${
-        this.workPerThread}; innerIndex = innerIndex + 1) {
-            let curIndex = globalIndex + innerIndex;
-            if (curIndex < uniforms.size)
-            {
-              setOutputAtIndex(curIndex, mix(getDefaultValue(), sum[innerIndex], f32(found[innerIndex])));
-            }
+        `;
+      }
+      const atomicStoreSnippet = `atomicStore(${ptr}, bitcast<i32>(${val}));`;
+      return this.sumDupeIndices ? atomicAddSnippet : atomicStoreSnippet;
+    };
+
+    const userCode = `
+    ${getUpdatesCoordsFromFlatIndex}
+
+      ${main('index')} {
+        if (index < uniforms.size) {
+          let coords = getUpdatesCoordsFromFlatIndex(index);
+          var flattenedIndex = 0;
+          for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
+            let indexInside = i32(round(${indicesSnippet}));
+            flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
+          let updateValue =
+              ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
+          let flatIndex = getOutputIndexFromCoords(${outCoordsString});
+
+          ${atomicRMW('&result[flatIndex]', 'updateValue')};
         }
       }`;
     return userCode;

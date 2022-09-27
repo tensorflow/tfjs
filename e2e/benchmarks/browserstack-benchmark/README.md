@@ -112,9 +112,9 @@ The following are supported options arguments which trigger options features:
     node app.js --maxTries=positive_integer
     ```
   * --outfile
-    - Writes results to an accessible external file, benchmark_results.json.
+    - Writes results to an accessible external file, benchmark_results.js or benchmark_results.json. Expects 'html' or 'json'. If you set it as \'html\', benchmark_results.js will be generated and you could review the benchmark results by openning benchmark_result.html file.
     ``` shell
-    node app.js --outfile
+    node app.js --outfile=js
     ```
   * --v, --version
     - Shows node version in use.

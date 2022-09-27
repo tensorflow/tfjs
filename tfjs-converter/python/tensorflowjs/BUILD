@@ -30,11 +30,38 @@ py_library(
 )
 
 py_library(
+    name = "expect_flax_installed",
+    # This is a dummy rule used as a Flax dependency in open-source.
+    # We expect JAX to already be installed on the system, e.g. via
+    # `pip install flax`.
+    deps = [requirement("flax")],
+)
+
+py_library(
     name = "expect_h5py_installed",
     # This is a dummy rule used as a h5py dependency in open-source.
     # We expect h5py to already be installed on the system, e.g. via
     # `pip install h5py`.
     deps = [requirement("h5py")],
+)
+
+py_library(
+    name = "expect_jax_installed",
+    # This is a dummy rule used as a JAX dependency in open-source.
+    # We expect JAX to already be installed on the system, e.g. via
+    # `pip install jax`.
+    deps = [
+        requirement("jax"),
+        requirement("importlib_resources"),
+    ],
+)
+
+py_library(
+    name = "expect_jax2tf_installed",
+    # This is a dummy rule used as a jax2tf dependency in open-source.
+    # We expect jax2tf to already be installed on the system, e.g. via
+    # `pip install jax`.
+    deps = [requirement("jax")],
 )
 
 py_library(

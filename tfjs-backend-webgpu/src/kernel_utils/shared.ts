@@ -28,6 +28,7 @@ export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
 export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
 const {
   addImpl: addImplCPU,
+  castImpl: castImplCPU,
   ceilImpl: ceilImplCPU,
   concatImpl: concatImplCPU,
   equalImpl: equalImplCPU,
@@ -64,6 +65,7 @@ const {
 
 export {
   addImplCPU,
+  castImplCPU,
   ceilImplCPU,
   concatImplCPU,
   equalImplCPU,

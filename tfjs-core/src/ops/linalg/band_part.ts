@@ -41,7 +41,7 @@ import {zeros} from '../zeros';
  * `[I, J, K, ..., M, N]`, then the output is a tensor with the same shape where
  * `band[i, j, k, ..., m, n] = in_band(m, n) * input[i, j, k, ..., m, n]`.
  * The indicator function
- * `in_band(m, n) = (num_lower < 0 || (m-n) <= num_lower))`
+ * `in_band(m, n) = (num_lower < 0 || (m-n) <= num_lower)`
  * `&& (num_upper < 0 || (n-m) <= num_upper)`
  *
  * ```js

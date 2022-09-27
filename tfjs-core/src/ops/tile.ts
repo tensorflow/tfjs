@@ -30,9 +30,9 @@ import {op} from './operation';
  * Construct a tensor by repeating it the number of times given by reps.
  *
  * This operation creates a new tensor by replicating `input` `reps`
- * times. The output tensor's i'th dimension has `input.shape[i] *
+ * times. The output tensor's `i`th dimension has `input.shape[i] *
  * reps[i]` elements, and the values of `input` are replicated
- * `reps[i]` times along the i'th dimension. For example, tiling
+ * `reps[i]` times along the `i`th dimension. For example, tiling
  * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
  *
  * ```js

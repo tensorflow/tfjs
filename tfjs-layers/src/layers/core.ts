@@ -310,7 +310,7 @@ export class Dense extends Layer {
 serialization.registerClass(Dense);
 
 export declare interface FlattenLayerArgs extends LayerArgs {
-  /** Image data format: channeLast (default) or channelFirst. */
+  /** Image data format: channelsLast (default) or channelsFirst. */
   dataFormat?: DataFormat;
 }
 

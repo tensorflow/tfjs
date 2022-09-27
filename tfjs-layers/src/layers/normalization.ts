@@ -424,8 +424,8 @@ serialization.registerClass(BatchNormalization);
 
 export interface LayerNormalizationLayerArgs extends LayerArgs {
   /**
-   * The axis or axes that should be normalized (typically, the feature axis.)
-   * Defaults to -1 (the last axis.)
+   * The axis or axes that should be normalized (typically, the feature axis).
+   * Defaults to -1 (the last axis).
    */
   axis?: number|number[];
 

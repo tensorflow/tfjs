@@ -364,7 +364,7 @@ export function registerBackend(
 /**
  * Gets the current backend. If no backends have been initialized, this will
  * attempt to initialize the best backend. Will throw an error if the highest
- * priority backend has async initialization, in which case, you should call
+ * priority backend has async initialization, in which case you should call
  * 'await tf.ready()' before running other code.
  *
  * @doc {heading: 'Backends'}

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
@@ -50,7 +50,7 @@ export class SwapProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+        ${main('index')} {
           if (index < uniforms.size) {
             let outC = getCoordsFromIndex(index);
             let batch = outC[0];
@@ -146,7 +146,7 @@ export class MergeProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+        ${main('index')} {
           if (index < uniforms.size) {
             let outC = getCoordsFromIndex(index);
             let batch = outC[0];

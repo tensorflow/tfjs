@@ -18,8 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {makeMatMulPackedSource} from './matmul_packed_webgpu';
+import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
@@ -251,14 +250,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-            this.tileInner, this.innerElementSize, !this.isChannelsLast) :
+            this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
+            this.tileInner) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
             this.tileInner);
-    const elementsSize = this.isVec4 ?
-        [this.isChannelsLast ? this.innerElementSize : 4, 4, 4] :
-        [1, 1, 1];
+    const elementsSize =
+        this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `
     ${
         conv2dCommonSnippet(

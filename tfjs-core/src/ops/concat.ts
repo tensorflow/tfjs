@@ -62,7 +62,7 @@ import {op} from './operation';
  * tf.concat([a, b], axis).print();
  * ```
  * @param tensors A list of tensors to concatenate.
- * @param axis The axis to concate along. Defaults to 0 (the first dim).
+ * @param axis The axis to concatenate along. Defaults to 0 (the first dim).
  *
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
