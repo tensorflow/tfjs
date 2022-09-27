@@ -229,9 +229,11 @@ export function conv2DImpl({
         {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
         {type: 'int32', data: [dimInner]});
 
+    // Experiments show that sequential access is more friendly for Intel GPUs.
+    const sequentialAccess = backend.adapterInfo.isIntel();
     program = new Conv2DMMProgram(
         convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-        hasPreluActivationWeights, backend.isIntel());
+        hasPreluActivationWeights, sequentialAccess);
   }
 
   const intermediates: TensorInfo[] = [];

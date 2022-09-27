@@ -19,6 +19,7 @@ import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
+import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
@@ -107,6 +108,7 @@ const reshapeDispatch =
 
 export class WebGPUBackend extends KernelBackend {
   bufferManager: BufferManager;
+  adapterInfo: AdapterInfo;
   device: GPUDevice;
   queue: GPUQueue;
   tensorMap: DataStorage<TensorData>;
@@ -130,7 +132,6 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
-  private adapterInfo: GPUAdapterInfo;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -147,7 +148,7 @@ export class WebGPUBackend extends KernelBackend {
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
     this.supportTimeQuery = device.features.has('timestamp-query');
-    this.adapterInfo = adapterInfo;
+    this.adapterInfo = new AdapterInfo(adapterInfo);
 
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
@@ -174,21 +175,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-  }
-
-  isIntel(): boolean {
-    if (this.adapterInfo) {
-      return this.adapterInfo.vendor === 'intel';
-    }
-    return false;
-  }
-
-  isGen12GPU(): boolean {
-    if (this.adapterInfo) {
-      return this.adapterInfo.architecture.startsWith('gen-12') ||
-          this.adapterInfo.architecture.startsWith('xe');
-    }
-    return false;
   }
 
   floatPrecision(): 32 {
