@@ -593,7 +593,8 @@ def _find_signature(saved_model_dir, saved_model_tags, signature_def):
 
 def _get_resource_initializer_concrete_function(model):
   """Create a tf.function that creates and initializes all the resources used by the model.
-
+  For more information on resources, please see the TensorFlow code:
+  https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/trackable/resource.py#L232
   Args:
     model: Loaded saved model.
 
@@ -606,23 +607,39 @@ def _get_resource_initializer_concrete_function(model):
   if not model_resources:
     return None
 
+  # A list holding tuples of (TrackableResource, captured_input_index) where
+  # TrackableResource represents one resource in the model
+  # (a hash table for example), and captured_input_index is the resource
+  # initialization function's captured input index corresponding
+  # to the TrackableResource. Captured inputs are simply inputs not provided
+  # directly be user, but by the model.
   model_resources_with_captured_input_index = []
   for model_resource in model_resources:
+    # A runtime id that is unique across different resources, and constant
+    # across graphs.
     resource_handle_id = model_resource.resource_handle._id
+    # the _initialize function initializes the resource, so one of its captured
+    # inputs must be the resource, so search for that input.
     captured_inputs = model_resource._initialize.get_concrete_function()._captured_inputs
-    for i in range(len(captured_inputs)):
-      if captured_inputs[i]._id == resource_handle_id:
-        model_resources_with_captured_input_index.append((model_resource, i))
+    for captured_input_index in range(len(captured_inputs)):
+      if captured_inputs[captured_input_index]._id == resource_handle_id:
+        model_resources_with_captured_input_index.append((model_resource, captured_input_index))
 
   @tf.function()
   def resource_initializer():
     # Recreate resources to capture them in this tf.function.
     new_resources = []
-    for (model_resource, i) in model_resources_with_captured_input_index:
+    for (model_resource, captured_input_index) in model_resources_with_captured_input_index:
+      # Make a new resource (that is identical to the old, but captured in
+      # this functon only).
       new_resource = model_resource._create_resource()
       new_resources.append(new_resource)
 
-      model_resource._initialize.get_concrete_function()._captured_inputs[i] = new_resource
+      # Since we precomputed the captured input corresponding to this resource,
+      # we can directly replace it with the copy new_resource. If we don't do
+      # this, then _initialize will not get capture in this graph since the
+      # old resource was already initialized in TF model load.
+      model_resource._initialize.get_concrete_function()._captured_inputs[captured_input_index] = new_resource
       model_resource._initialize()
 
     return new_resources
@@ -637,7 +654,7 @@ def _get_resource_ids_maps(model, concrete_func, resource_init_concrete_func):
   Args:
     model: Loaded saved model.
     concrete_func: Concrete function of the inference graph.
-    model: Concrete function of the initializer graph.
+    resource_init_concrete_func: Concrete function of the initializer graph.
 
   Returns:
     A dictionary mapping inference input names to resource id.
@@ -646,18 +663,31 @@ def _get_resource_ids_maps(model, concrete_func, resource_init_concrete_func):
   trackable_view = TrackableView(model)
   model_resources = [obj for obj in trackable_view.descendants() if isinstance(obj, TrackableResource)]
 
-  resource_id_to_captured_input_index = {captured_input._id : i for i, captured_input in enumerate(concrete_func._captured_inputs)}
+
+  # Each resource has a unique runtime resource id associated with it which
+  # can be used across graphs, so we extract it here from inference
+  # graph for use later.
+  resource_id_to_captured_input_index = {
+    captured_input._id : captured_input_index for \
+    captured_input_index, captured_input in \
+    enumerate(concrete_func._captured_inputs)
+  }
+  # Captured inputs always come after user provided inputs.
   captured_input_index_offset = len(concrete_func.inputs) - len(concrete_func._captured_inputs)
 
   model_input_to_resource_id = {}
   init_output_to_resource_id = {}
   for i, resource in enumerate(model_resources):
     _id = resource.resource_handle._id
+    # Get input from inference graph corresponding to this resource.
     captured_input_index = resource_id_to_captured_input_index[_id]
     model_input = concrete_func.inputs[captured_input_index + captured_input_index_offset]
 
+    # Get output from initializer graph corresponding to this resource.
     init_output = resource_init_concrete_func.outputs[i]
 
+    # Match both with the same id (initializer output will be passed in to
+    # corresponding input in inference input).
     model_input_to_resource_id[model_input.name] = _id
     init_output_to_resource_id[init_output.name] = _id
 

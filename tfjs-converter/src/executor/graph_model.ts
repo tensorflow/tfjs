@@ -359,7 +359,8 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     let inputIndex = 0;
     return this.inputNodes.reduce((map, inputName) => {
-      const signature = this.signature.inputs[inputName];
+      const signature =
+          this.signature ? this.signature.inputs[inputName] : null;
       if (signature != null && signature.resourceId != null) {
         map[inputName] = this.resourceIdToCapturedInput[signature.resourceId];
       } else {
