@@ -1,13 +1,12 @@
 {
   "benchmark": {
-    "model": ["MobileNetV3", "MobileNetV2", "HandPoseDetector",
-    "HandPoseLandmark", "MoveNet-SinglePose", "MoveNet-MultiPose",
-    "BlazePoseDetector", "BlazePoseLandmark", "Coco-SSD", "DeepLabV3",
-    "FaceDetection", "FaceLandmarkDetection", "ArPortraitDepth",
-    "SelfieSegmentation-General", "SelfieSegmentation-Landscape",
-    "AutoML Image", "AutoML Object", "USE - batchsize 30", "USE - batchsize 1",
-    "TextToxicity", "MobileBert", "posenet", "bodypix", "speech-commands"],
-    "numRuns": 10,
+    "model": ["codeSnippet"],
+    "codeSnippets": [
+      {"codeSnippet": "benchmarkTarget = 'pointwise';", "setupCodeSnippetEnv": ""},
+      {"codeSnippet": "benchmarkTarget = 'conv2d';", "setupCodeSnippetEnv": ""},
+      {"codeSnippet": "benchmarkTarget = 'depthwise';", "setupCodeSnippetEnv": ""}
+    ],
+    "numRuns": 50,
     "backend": ["webgl"]
   },
   "browsers": {
