@@ -50,7 +50,7 @@ limitations under the License.
     let benchmarkTargetName =
       benchmarkReocrd?.value?.modelInfo?.model;
       if (benchmarkTargetName === 'codeSnippet') {
-        benchmarkTargetName = benchmarkReocrd?.value?.codeSnippet || 'NA'
+        benchmarkTargetName = benchmarkReocrd?.value?.modelInfo?.codeSnippet || 'NA'
       }
     return `${benchmarkTargetName.replaceAll('\n', '').replaceAll('\t', '')}`;
   }
