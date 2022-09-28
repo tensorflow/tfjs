@@ -1806,7 +1806,6 @@ export function resizing(args?: ResizingArgs) {
   return new Resizing(args);
 }
 
-
 /**
  * CenterCrop
  *

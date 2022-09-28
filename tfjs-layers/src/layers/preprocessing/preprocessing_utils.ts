@@ -45,7 +45,6 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
   }
 
   const binaryOutput = [multiHot, oneHot].includes(outputMode);
-
   let denseBincountInput;
 
   if(inputs.rank === 1) {
@@ -59,13 +58,9 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
   let binCounts;
 
   if((typeof weights) !== 'undefined' && outputMode === count) {
-
     binCounts = denseBincount(denseBincountInput, weights, depth, binaryOutput);
-
    } else {
-
     binCounts = denseBincount(denseBincountInput, [], depth, binaryOutput);
-
    }
 
   if(outputMode !== tfIdf) {
@@ -77,8 +72,6 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
       `When outputMode is 'tfIdf', weights must be provided.`
       );
   } else {
-
     return mul(binCounts, weights);
-
   }
 }

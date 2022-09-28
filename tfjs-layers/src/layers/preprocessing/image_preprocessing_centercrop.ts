@@ -1,10 +1,11 @@
-import {serialization, Tensor, Tensor3D, Tensor4D, tensor, Tensor2D, Tensor1D, stack, unstack} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor3D, Tensor4D, tensor, Tensor2D, Tensor1D, stack, unstack, DataType} from '@tensorflow/tfjs-core';
 import {getExactlyOneShape, getExactlyOneTensor} from '../../utils/types_utils';
 import {resizeBilinear} from '@tensorflow/tfjs-core/ops/image/resize_bilinear';
 import {cropAndResize} from '@tensorflow/tfjs-core/ops/image/crop_and_resize';
 import {LayerArgs, Layer} from '../../engine/topology';
 import {Kwargs} from '../../types';
 import {Shape} from '../../keras_format/common';
+import * as K from '../../backend/tfjs_backend';
 
 export declare interface CenterCropArgs extends LayerArgs{
   height: number;
@@ -21,89 +22,77 @@ export class CenterCrop extends Layer {
     this.width = args.width;
   }
 
+  centerCrop(inputs: Tensor3D|Tensor4D, hBuffer: number, wBuffer: number,
+            height: number, width: number, inputHeight: number,
+            inputWidth:number, dtype: DataType): Tensor|Tensor[] {
+
+    let rank3      = false;
+    const top      = hBuffer / inputHeight;
+    const left     = wBuffer / inputWidth;
+    const bottom   = ((height) + hBuffer) / inputHeight;
+    const right    = ((width) + wBuffer) / inputWidth;
+    const bound    = [top, left, bottom, right];
+    const boxesArr = [];
+
+    if(inputs.rank === 3) {
+      rank3  = true;
+      inputs = stack([inputs]) as Tensor4D;
+    }
+
+    for (let i = 0; i < inputs.shape[0]; i++) {
+      boxesArr.push(bound);
+    }
+
+    const boxes: Tensor2D  = tensor(boxesArr, [boxesArr.length, 4]);
+    const boxInd: Tensor1D = tensor([...Array(boxesArr.length).keys()],
+                          [boxesArr.length], 'int32');
+
+    const cropSize: [number, number] = [height, width];
+    inputs = inputs as Tensor4D;
+    const cropped = cropAndResize(inputs, boxes, boxInd, cropSize, 'nearest');
+
+    if(rank3) {
+      return K.cast(getExactlyOneTensor(unstack(cropped)), dtype);
+    }
+      return K.cast(cropped, dtype);
+  }
+
+  upsize(inputs : Tensor3D|Tensor4D, height: number,
+         width: number, dtype: DataType): Tensor|Tensor[] {
+
+    const outputs = resizeBilinear(inputs, [height, width]);
+    return K.cast(outputs, dtype);
+}
+
   call(inputs: Tensor3D|Tensor4D , kwargs: Kwargs): Tensor[]|Tensor {
-    let rankedInputs = getExactlyOneTensor(inputs) as Tensor3D|Tensor4D;
+    const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D|Tensor4D;
+    const dtype = rankedInputs.dtype;
     const hAxis = rankedInputs.shape.length - 3;
-    console.log(`hAxis: ${hAxis}`);
     const wAxis = rankedInputs.shape.length - 2;
-    console.log(`wAxis: ${wAxis}`);
     const inputShape = rankedInputs.shape;
     const inputHeight = inputShape[hAxis];
     const inputWidth = inputShape[wAxis];
 
-    let hBuffer : number;
+    let hBuffer = 0;
     if (inputHeight !== this.height) {
       hBuffer =  Math.floor((inputHeight - this.height) / 2);
-    } else {
-      hBuffer = 0;
     }
 
-    let wBuffer : number;
+    let wBuffer = 0;
     if (inputWidth !== this.width) {
       wBuffer = Math.floor((inputWidth - this.width) / 2);
+
       if (wBuffer === 0) {
         wBuffer = 1;
       }
-    } else {
-      wBuffer = 0;
-    }
-
-    console.log(` hBuffer ${hBuffer}`)
-    console.log(` wBuffer ${wBuffer}`)
-
-
-    function centerCrop(hBuffer: number, wBuffer: number, height: number, width: number): Tensor|Tensor[] {
-      console.log('TOP')
-      let rank3: boolean = false
-      const top = hBuffer / inputHeight;
-      const left = wBuffer / inputWidth;
-      const bottom = ((height) + hBuffer) / inputHeight;
-      const right = ((width) + wBuffer) / inputWidth;
-      const bound = [top, left, bottom, right];
-      const boxesArr = [];
-
-      if(rankedInputs.rank === 3) {
-        rankedInputs = stack([rankedInputs]) as Tensor4D;
-        rank3 = true
-        console.log(`rankedShape ${rankedInputs.shape}`);
-      }
-
-      for (let i = 0; i < rankedInputs.shape[0]; i++) {
-        boxesArr.push(bound);
-      }
-
-      const boxes = tensor(boxesArr, [boxesArr.length, 4]) as Tensor2D;
-      console.log(`boxes.shape ${boxes.shape}`);
-      const boxInd = tensor([...Array(boxesArr.length).keys()],
-                            [boxesArr.length], 'int32') as Tensor1D;
-
-      const cropSize: [number, number] = [height, width];
-
-
-      rankedInputs = rankedInputs as Tensor4D;
-
-      console.log(`Inputs ${rankedInputs.bufferSync().values}`);
-      console.log(`Inputs shape ${rankedInputs.shape}`);
-      console.log(`boxes ${boxes}`);
-      console.log(`boxInd ${boxInd}`);
-      console.log(`cropSize ${cropSize}`);
-      const cropped = cropAndResize(rankedInputs, boxes, boxInd, cropSize, 'nearest');
-      if(rank3) {
-        return unstack(cropped)
-      } else {
-        return cropped
-      }
-    }
-
-    function upsize(inputs : Tensor3D|Tensor4D, height: number, width: number): Tensor|Tensor[] {
-      const outputs = resizeBilinear(rankedInputs, [height, width]);
-      return outputs;
     }
 
     if(hBuffer >= 0 && wBuffer >= 0) {
-      return centerCrop(hBuffer, wBuffer, this.height, this.width);
+      return this.centerCrop(rankedInputs, hBuffer, wBuffer,
+                             this.height, this.width, inputHeight,
+                             inputWidth, dtype);
     } else {
-      return upsize(inputs, this.height, this.width);
+      return this.upsize(inputs, this.height, this.width, dtype);
     }
   }
 
