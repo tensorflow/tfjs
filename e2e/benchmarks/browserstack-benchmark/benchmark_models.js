@@ -91,10 +91,25 @@ async function benchmarkModel(benchmarkParameters) {
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
   let predict = null;
+  let benchmarkTarget;
 
   const setupCodeSnippetEnv = benchmarkParameters.setupCodeSnippetEnv || '';
   const codeSnippet = benchmarkParameters.codeSnippet || ''
   eval(setupCodeSnippetEnv.concat(codeSnippet));
+
+  if (benchmarkTarget === 'pointwise') {
+    const image = tf.ones([1, 2, 2, 128]);
+    const filter = tf.ones([1, 1, 128, 128]);
+    predict = () => tf.conv2d(image, filter, 1, 'valid');
+  } else if (benchmarkTarget === 'depthwise') {
+    const image = tf.ones([1, 4, 4, 288]);
+    const filter = tf.ones([3, 3, 288, 4]);
+    predict = () => tf.depthwiseConv2d(image, filter, 1, 'valid');
+  } else if (benchmarkTarget === 'conv2d') {
+    const image = tf.ones([1, 224, 224, 4]);
+    const filter = tf.ones([3, 3, 4, 16]);
+    predict = () => tf.depthwiseConv2d(image, filter, 1, 'valid');
+  }
 
   if (predict == null) {
     throw new Error(
