@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 
 import {toPixelsNoCanvas, toPixelsTestCase, toPixelsWithCanvas} from './to_pixels_util_test';
 
@@ -48,7 +48,7 @@ describeWithFlags('toPixels no canvas, returns data', ALL_ENVS, () => {
   toPixelsTestCase(toPixelsNoCanvas);
 });
 
-describeWithFlags('toPixels canvas, returns void', ALL_ENVS, () => {
+describeWithFlags('toPixels canvas, returns void', BROWSER_ENVS, () => {
   let toPixelsReturnVoidSaved: boolean;
   beforeAll(() => {
     toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
@@ -62,7 +62,7 @@ describeWithFlags('toPixels canvas, returns void', ALL_ENVS, () => {
   toPixelsTestCase(toPixelsWithCanvas);
 });
 
-describeWithFlags('toPixels canvas, returns data', ALL_ENVS, () => {
+describeWithFlags('toPixels canvas, returns data', BROWSER_ENVS, () => {
   let toPixelsReturnVoidSaved: boolean;
   beforeAll(() => {
     toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');

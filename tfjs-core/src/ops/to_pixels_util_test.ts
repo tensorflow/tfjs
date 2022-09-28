@@ -48,6 +48,11 @@ export async function toPixelsNoCanvas(x: tf.Tensor2D|tf.Tensor3D|
 
 export function toPixelsTestCase(
     toPixels: (x: tf.Tensor2D|tf.Tensor3D|tf.TensorLike) => Promise<{}>) {
+  if (navigator && navigator.platform.startsWith('Mac')) {
+    console.warn(
+        'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
+    return;
+  }
   it('draws a rank-2 float32 tensor', async () => {
     const x = tf.tensor2d([.15, .2], [2, 1], 'float32');
     const data = await toPixels(x);
