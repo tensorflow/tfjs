@@ -86,7 +86,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     // create a resizing layer with same shape as input
     const height = 64;
     const width = 32;
-    const numChannels = 3;
+    const numChannels = 1;
     const rangeArr = [...Array(height * width).keys()];
     const inputArr = [];
     while(rangeArr.length) {
