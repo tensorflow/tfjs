@@ -539,11 +539,15 @@ export class GPGPUContext {
       return;
     }
     // Start a new loop that polls.
+    let scheduleFn = undefined;
+    if ('setTimeoutCustom' in env().platform) {
+      scheduleFn = env().platform.setTimeoutCustom.bind(env().platform);
+    }
     util.repeatedTry(() => {
       this.pollItems();
       // End the loop if no more items to poll.
       return this.itemsToPoll.length === 0;
-    });
+    }, () => 0, null, scheduleFn);
   }
 
   private bindTextureToFrameBuffer(texture: WebGLTexture) {
