@@ -19,7 +19,9 @@ export class AdapterInfo {
   private vendor: string;
 
   constructor(adapterInfo: GPUAdapterInfo) {
-    this.vendor = adapterInfo.vendor;
+    if (adapterInfo) {
+      this.vendor = adapterInfo.vendor;
+    }
   }
 
   isIntel(): boolean {
