@@ -17,16 +17,26 @@
 
 
 function isConv2D(kernel) {
-  return kernel.name.includes('Conv2D');
+  return kernel.name.includes('Conv2D') &&
+      (!kernel.name.includes('"Conv2DBackpropInput"'));
+}
+
+function isDepthwise(kernel) {
+  return kernel.name.includes('Depthwise');
 }
 
 function isNotDepthwise(kernel) {
-  return !kernel.name.includes('Depthwise');
+  return !isDepthwise(kernel);
 }
 
 function is1x1Filter(kernel) {
   return kernel.inputShapes.length >= 2 && kernel.inputShapes[1].length === 4 &&
       kernel.inputShapes[1][0] === 1 && kernel.inputShapes[1][1] === 1;
+}
+
+function isNot1x1Filter(kernel) {
+  return kernel.inputShapes.length >= 2 && kernel.inputShapes[1].length === 4 &&
+      (kernel.inputShapes[1][0] > 1 || kernel.inputShapes[1][1] > 1);
 }
 
 async function getKernels(modelKey) {
@@ -103,7 +113,7 @@ function aggregatedArrayToStr(aggregatedArray) {
       .join('<br/>');
 }
 
-function presentPointwiseKernels(tableElem, name, kernels) {
+function presentKernels(tableElem, name, kernels) {
   // Check kernels
   kernels.forEach(kernel => {
     if (kernel.inputShapes.length < 2 || kernel.inputShapes[0].length !== 4 ||
@@ -116,7 +126,7 @@ function presentPointwiseKernels(tableElem, name, kernels) {
 
   const row = tableElem.insertRow(tableElem.rows.length);
   let nameCell = row.insertCell(0);
-  nameCell.innerHTML = name;
+  nameCell.innerHTML = `${name}\n(total: ${kernels.length})`;
 
   const cell1 = row.insertCell(1);
   const imageWidthAgg = aggregate(kernels.map(e => e.inputShapes[0][1]));
@@ -140,11 +150,16 @@ function presentPointwiseKernels(tableElem, name, kernels) {
   cell5.innerHTML = aggregatedArrayToStr(imgAgg);
 
   const cell6 = row.insertCell(6);
-  const filterAgg = aggregate(kernels.map(e => `[${e.inputShapes[1]}]`));
-  cell6.innerHTML = aggregatedArrayToStr(filterAgg);
+  const filterShapeAgg = aggregate(
+      kernels.map(e => `[${e.inputShapes[1][0]}x${e.inputShapes[1][1]}]`));
+  cell6.innerHTML = aggregatedArrayToStr(filterShapeAgg);
 
   const cell7 = row.insertCell(7);
+  const filterAgg = aggregate(kernels.map(e => `[${e.inputShapes[1]}]`));
+  cell7.innerHTML = aggregatedArrayToStr(filterAgg);
+
+  const cell8 = row.insertCell(8);
   const opAgg = aggregate(
       kernels.map(e => `Img:${e.inputShapes[0]}, Filter:${e.inputShapes[1]}`));
-  cell7.innerHTML = aggregatedArrayToStr(opAgg);
+  cell8.innerHTML = aggregatedArrayToStr(opAgg);
 }

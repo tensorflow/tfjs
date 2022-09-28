@@ -46,19 +46,19 @@ limitations under the License.
 const showTopNum = 10;
 allKernels = [];
 
-async function summarize() {
+async function summarize(opName) {
   const tableHeaderfileds = [
     `Top${showTopNum} popular image height`,
     `Top${showTopNum} popular image shape`,
     `Top${showTopNum} popular inputChannel`,
     `Top${showTopNum} popular outputChannel`,
     `Top${showTopNum} popular image size`,
+    `Top${showTopNum} popular filter shape`,
     `Top${showTopNum} popular filter size`,
     `Top${showTopNum} popular image & filter`
   ];
-  const tableElem = initializeTable('Pointwise_summary', tableHeaderfileds);
+  const tableElem = initializeTable(opName, tableHeaderfileds);
   document.body.appendChild(tableElem);
-
 
   for (const modelKey of Object.keys(benchmarks)) {
     if (modelKey === 'custom' || modelKey === 'MobileNetV2Lite') {
@@ -66,14 +66,26 @@ async function summarize() {
     }
 
     kernels = await getKernels(modelKey);
-    pointwiseKernels =
-        kernels.filter(isConv2D).filter(isNotDepthwise).filter(is1x1Filter);
-    presentPointwiseKernels(tableElem, modelKey, pointwiseKernels);
-    allKernels.push(...pointwiseKernels);
+    let selectedKernels = [];
+    switch (opName) {
+      case 'Pointwise':
+        selectedKernels =  kernels.filter(isConv2D).filter(isNotDepthwise).filter(is1x1Filter);
+        break;
+      case 'Conv2D(Non-Pointwise)':
+        selectedKernels = kernels.filter(isConv2D).filter(isNotDepthwise).filter(isNot1x1Filter);
+        break;
+      case 'Depthwise':
+        selectedKernels = kernels.filter(isConv2D).filter(isDepthwise);
+        break;
+    }
+
+    presentKernels(tableElem, modelKey, selectedKernels);
+    allKernels.push(...selectedKernels);
   }
-  presentPointwiseKernels(tableElem, 'Overall', allKernels);
+  presentKernels(tableElem, 'Overall', allKernels);
+  document.getElementById(opName).caption.innerText = `${opName} Summary (total ${allKernels.length})`;
 }
 
-summarize();
+summarize('Conv2D(Non-Pointwise)');
 </script>
 </html>
