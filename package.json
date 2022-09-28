@@ -68,7 +68,7 @@
     "tslib": "^2.4.0",
     "tslint": "^6.1.3",
     "tslint-no-circular-imports": "~0.7.0",
-    "typescript": "3.5.3"
+    "typescript": "4.8.4"
   },
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
