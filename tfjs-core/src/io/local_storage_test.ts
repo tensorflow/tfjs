@@ -180,7 +180,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
        expect(loaded.convertedBy).toEqual('1.13.1');
        expect(loaded.userDefinedMetadata).toEqual({});
        expect(loaded.modelInitializer).toEqual({});
-       expect(loaded.initializerSignature).toEqual({});
+       expect(loaded.initializerSignature).toBeUndefined();
        expect(loaded.trainingConfig).toEqual(trainingConfig1);
      }));
 
