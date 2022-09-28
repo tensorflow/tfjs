@@ -42,4 +42,5 @@ describeMathCPUAndGPU('Rescaling Layer', () => {
     const config = scalingLayer.getConfig();
     expect(config.name).toEqual('Rescaling'); 
   });
+  
 });
