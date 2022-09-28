@@ -12,7 +12,7 @@
  * Unit Tests for image resizing layer.
  */
 
-import {image, randomNormal, Rank, Tensor, tensor} from '@tensorflow/tfjs-core';
+import {image, randomNormal, Rank, Tensor, tensor, zeros} from '@tensorflow/tfjs-core';
 
 // import {Shape} from '../../keras_format/common';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
@@ -27,7 +27,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const maxWidth = 60;
     const width = Math.floor(Math.random() * maxWidth);
     const numChannels = 3;
-    const inputTensor = randomNormal([height * 2, width * 2, numChannels]);
+    const inputTensor = zeros([height * 2, width * 2, numChannels]);
     const expectedOutputShape = [height, width, numChannels];
     const resizingLayer = new Resizing({height, width});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
@@ -87,7 +87,12 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const height = 64;
     const width = 32;
     const numChannels = 3;
-    const inputTensor = randomNormal([height, width, numChannels]);
+    const rangeArr = [...Array(height * width).keys()];
+    const inputArr = [];
+    while(rangeArr.length) {
+      inputArr.push(rangeArr.splice(0, width));
+    }
+    const inputTensor = tensor(inputArr, [height, width, numChannels]);
     const resizingLayer = new Resizing({height, width});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
     expectTensorsClose(layerOutputTensor, inputTensor);
@@ -99,7 +104,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const width = 60;
     const numChannels = 3;
     const inputTensor: Tensor<Rank.R3> =
-        randomNormal([height, width, numChannels]);
+        zeros([height, width, numChannels]);
     const size: [number, number] = [height, width];
     const expectedOutputTensor = image.resizeBilinear(inputTensor, size);
     const resizingLayer = new Resizing({height, width});

@@ -18,7 +18,7 @@ import {getExactlyOneShape} from '../../utils/types_utils';  //, getExactlyOneTe
 
 // tf methods unimplemented in tfjs: 'bicubic', 'area', 'lanczos3', 'lanczos5',
 //                                   'gaussian', 'mitchellcubic'
-const validInterpolationMethods = ['bilinear', 'nearest'];
+const INTERPOLATION_METHODS = new Set(['bilinear', 'nearest']);
 
 export declare interface ResizingArgs extends LayerArgs {
   height: number;
@@ -50,7 +50,7 @@ export class Resizing extends Layer {
     this.width = args.width;
 
     if (args.interpolation) {
-      if (validInterpolationMethods.includes(args.interpolation)) {
+      if (INTERPOLATION_METHODS.has(args.interpolation)) {
         this.interpolation = args.interpolation;
       } else {
         throw new ValueError(`Invalid interpolation parameter: ${
@@ -59,21 +59,13 @@ export class Resizing extends Layer {
     } else {
       this.interpolation = 'bilinear';
     }
-    if (args.cropToAspectRatio) {
-      this.cropToAspectRatio = args.cropToAspectRatio;
-    } else {
-      this.cropToAspectRatio = false;
-    }
+    this.cropToAspectRatio = Boolean(args.cropToAspectRatio);
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const numChannels = inputShape[2];
-    const outputShape = [];
-    outputShape.push(this.height);
-    outputShape.push(this.width);
-    outputShape.push(numChannels);
-    return outputShape;
+    return [this.height, this.width, numChannels];
   }
 
   getConfig(): serialization.ConfigDict {
@@ -99,7 +91,7 @@ export class Resizing extends Layer {
         return image.resizeNearestNeighbor(
             inputs, size, !this.cropToAspectRatio);
       } else {
-        throw new Error('interpolation error encountered in image_resizing.ts');
+        throw new Error(`mode is ${this.interpolation} but only ${[...INTERPOLATION_METHODS]} are supported`);
       }
     });
   }
