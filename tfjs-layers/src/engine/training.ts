@@ -1564,7 +1564,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       //  scope, we don't have equivalents of PyKeras's
       //  `_make_train_funciton`.
       const trainFunction = this.makeTrainFunction();
-      const outLabels = this.getDedupedMetricsNames() as string[];
+      const outLabels = this.getDedupedMetricsNames();
 
       let valFunction: (data: Tensor[]) => Scalar[];
       let callbackMetrics: string[];

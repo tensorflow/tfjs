@@ -18,7 +18,6 @@ import {expandDims, gather, sliceAlongFirstAxis} from '../backend/tfjs_backend';
 import {BaseCallback, CustomCallbackArgs, ModelLoggingVerbosity, YieldEveryOptions} from '../base_callbacks';
 import {ClassWeight, ClassWeightMap} from './training_utils';
 
-
 /**
  * Interface configuration model training based on data as `tf.Tensor`s.
  */
