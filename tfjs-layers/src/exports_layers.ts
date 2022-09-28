@@ -27,7 +27,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
 import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
 import { Resizing, ResizingArgs } from './layers/preprocessing/image_resizing';
-import { CenterCrop, CenterCropArgs } from './layers/preprocessing/image_preprocessing_centercrop';
+import { CenterCrop, CenterCropArgs } from './layers/preprocessing/center_crop';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -1807,9 +1807,33 @@ export function resizing(args?: ResizingArgs) {
 }
 
 /**
- * CenterCrop
+ *  A preprocessing layer which center crops images.
  *
- *  @doc {heading: 'Layers', subheading: 'Resizing', namespace: 'layers'}
+ *   This layers crops the central portion of the images to a target size. If an
+ *   image is smaller than the target size, it will be resized and cropped so as
+ *   to return the largest possible window in the image that matches the target
+ *   aspect ratio.
+ *
+ *   Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+ *   of integer or floating point dtype.
+ *
+ *   If the input height/width is even and the target height/width is odd (or
+ *   inversely), the input image is left-padded by 1 pixel.
+ *
+ *   Arguments:
+ *     `height`: Integer, the height of the output shape.
+ *     `width`: Integer, the width of the output shape.
+ *
+ *   Input shape:
+ *     3D (unbatched) or 4D (batched) tensor with shape:
+ *     `(..., height, width, channels)`, in `channelsLast` format.
+ *
+ *   Output shape:
+ *     3D (unbatched) or 4D (batched) tensor with shape:
+ *     `(..., targetHeight, targetWidth, channels)`.
+ *
+ *
+ *  @doc {heading: 'Layers', subheading: 'CenterCrop', namespace: 'layers'}
  */
 
  export function centerCrop(args?: CenterCropArgs) {
