@@ -18,6 +18,7 @@
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {MatMulOptimizedProgram} from '../matmul_optimized';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
@@ -129,6 +130,9 @@ export function batchMatMulImpl({
         (outerShapeB <= 16 &&
          (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+    } else if (
+        outerShapeA === 49 && innerShapeA % 4 === 0 && outerShapeB % 4 === 0) {
+      matmulProgramType = MatMulProgramType.MatMulOptimizedProgram;
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
@@ -180,6 +184,11 @@ export function batchMatMulImpl({
     }
     case MatMulProgramType.MatMulSmallOutputSizeProgram:
       program = new MatMulSmallOutputSizeProgram(
+          a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
+          activation, preluActivationWeights);
+      break;
+    case MatMulProgramType.MatMulOptimizedProgram:
+      program = new MatMulOptimizedProgram(
           a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
           activation, preluActivationWeights);
       break;
