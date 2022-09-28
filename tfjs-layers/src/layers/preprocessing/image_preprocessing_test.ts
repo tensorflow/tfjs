@@ -31,8 +31,8 @@ describeMathCPUAndGPU('Rescaling Layer', () => {
     const expectedOutputTensor = add(mul(intTensor, scale), offset);
     const scalingLayer = new Rescaling({scale, offset});
     const outputTensor = scalingLayer.apply(intTensor) as Tensor;
-    expect(outputTensor.dtype).toBe('float32');
-    expectTensorsClose(outputTensor, expectedOutputTensor);
+    expect(outputTensor.dtype).toBe('float32'); 
+    expectTensorsClose(outputTensor, expectedOutputTensor); 
   });
 
   it('Config holds correct name', () => {
@@ -40,6 +40,6 @@ describeMathCPUAndGPU('Rescaling Layer', () => {
     const offset = -1.0;
     const scalingLayer = new Rescaling({scale, offset, name: 'Rescaling'});
     const config = scalingLayer.getConfig();
-    expect(config.name).toEqual('Rescaling');
+    expect(config.name).toEqual('Rescaling'); 
   });
 });
