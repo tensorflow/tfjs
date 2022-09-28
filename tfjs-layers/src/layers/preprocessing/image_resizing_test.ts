@@ -12,7 +12,7 @@
  * Unit Tests for image resizing layer.
  */
 
-import {image, randomNormal, Rank, Tensor, tensor, zeros} from '@tensorflow/tfjs-core';
+import {image, Rank, Tensor, tensor, zeros} from '@tensorflow/tfjs-core';
 
 // import {Shape} from '../../keras_format/common';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
