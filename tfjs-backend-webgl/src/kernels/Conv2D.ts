@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {Conv2DProgram} from '../conv_gpu';
-import {Conv2DPackedProgram} from '../conv_packed_gpu';
-import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
+import {Conv2DDensePackedProgram} from '../conv_gpu_dense';
+
 import {reshape} from './Reshape';
 
 export function conv2d(
@@ -29,38 +28,17 @@ export function conv2d(
   const {inputs, backend, attrs} = args;
   const {x, filter} = inputs;
   const {strides, pad, dataFormat, dilations, dimRoundingMode} = attrs;
+  let out: TensorInfo;
 
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, dilations, pad,
       dimRoundingMode, false /* depthwise */, $dataFormat);
-  let out: TensorInfo;
+  const conv2dProgram = new Conv2DDensePackedProgram(convInfo);
+  out = backend.runWebGLProgram(conv2dProgram, [x, filter], 'float32');
 
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul({x, filter, convInfo, backend});
-  } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
-    && env().getBool('WEBGL_EXP_CONV')
-    ) {
-    const program = new Conv2DPackedProgram(convInfo);
-    const customValues = [
-      [convInfo.padInfo.top, convInfo.padInfo.left],
-      [convInfo.strideHeight, convInfo.strideWidth],
-      [convInfo.dilationHeight, convInfo.dilationWidth],
-      [convInfo.inHeight, convInfo.inWidth]
-    ];
-    out =
-        backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
-  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
-    out = conv2dWithIm2Row({x, filter, convInfo, backend});
-  } else {
-    const program = new Conv2DProgram(convInfo);
-    out = backend.runWebGLProgram(program, [x, filter], 'float32');
-  }
-
+  // This reshaping is just to align with the original implementation of conv2d.
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: convInfo.outShape}});
   backend.disposeIntermediateTensorInfo(out);

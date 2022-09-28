@@ -172,6 +172,19 @@ export class GPGPUContext {
         this.gl, texture, width, height, data, this.textureConfig);
   }
 
+  public createFloat16ColPackedMatrixTexture(rows: number, columns: number):
+      Texture {
+    this.throwIfDisposed();
+    return gpgpu_util.createFloat16ColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
+  public createColPackedMatrixTexture(rows: number, columns: number): Texture {
+    this.throwIfDisposed();
+    return gpgpu_util.createColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
   public createFloat16PackedMatrixTexture(rows: number, columns: number):
       Texture {
     this.throwIfDisposed();
@@ -539,15 +552,11 @@ export class GPGPUContext {
       return;
     }
     // Start a new loop that polls.
-    let scheduleFn = undefined;
-    if ('setTimeoutCustom' in env().platform) {
-      scheduleFn = env().platform.setTimeoutCustom.bind(env().platform);
-    }
     util.repeatedTry(() => {
       this.pollItems();
       // End the loop if no more items to poll.
       return this.itemsToPoll.length === 0;
-    }, () => 0, null, scheduleFn);
+    });
   }
 
   private bindTextureToFrameBuffer(texture: WebGLTexture) {

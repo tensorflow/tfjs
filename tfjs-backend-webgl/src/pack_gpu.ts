@@ -38,48 +38,36 @@ export class PackProgram implements GPGPUProgram {
 
     if (this.rank === 0) {
       this.userCode = `
-        void main() {
-          setOutput(vec4(getA(), 0., 0., 0.));
-        }
-      `;
+         void main() {
+           setOutput(vec4(getA(), 0., 0., 0.));
+         }
+       `;
     } else {
       const channels = getChannels('rc', this.rank);
       const dtype = getCoordsDataType(this.rank);
       const outOfBoundsCondition = this.getOutOfBoundsCondition(channels);
-      const setup = this.getSetup(channels);
       const output = this.getOutput(channels);
 
       this.userCode = `
-        void main() {
-          ${dtype} rc = getOutputCoords();
+         void main() {
+           ${dtype} rc = getOutputCoords();
 
-          if(${outOfBoundsCondition}) {
-            setOutput(vec4(0));
-          } else {
-            ${setup}
-
-            setOutput(vec4(${output}));
-          }
-        }
-      `;
+           if(${outOfBoundsCondition}) {
+             setOutput(vec4(0));
+           } else {
+             setOutput(vec4(${output}));
+           }
+         }
+       `;
     }
   }
 
-  private getSourceCoordsArr(dims: string[]): string[] {
-    const coords = [];
-
-    for (let row = 0; row <= 1; row++) {
-      for (let col = 0; col <= 1; col++) {
-        let coord = `${row === 0 ? 'r' : 'rp1'}, ${col === 0 ? 'c' : 'cp1'}`;
-
-        for (let d = 2; d < this.rank; d++) {
-          coord = `${dims[dims.length - 1 - d]},` + coord;
-        }
-
-        coords.push(coord);
-      }
+  private getSourceCoordsPrefix(dims: string[]): string {
+    let coord = '';
+    for (let d = 1; d < this.rank; d++) {
+      coord = `${dims[dims.length - 1 - d]}, ` + coord;
     }
-    return coords;
+    return coord;
   }
 
   private getOutOfBoundsCondition(dims: string[]): string {
@@ -88,51 +76,29 @@ export class PackProgram implements GPGPUProgram {
           this.enableShapeUniforms ? 'outShape' : this.outputShape[0]}`;
     }
 
-    let cond = '';
-    for (let i = this.rank - 2; i < this.rank; i++) {
-      cond += `${dims[i]} >= ${
-          this.enableShapeUniforms ? `outShape[${i}]` : this.outputShape[i]}`;
-      if (i < this.rank - 1) {
-        cond += '||';
-      }
-    }
-
+    let cond = `${dims[this.rank - 1]} >= ${
+        this.enableShapeUniforms ? `outShape[${this.rank - 1}]` :
+                                   this.outputShape[this.rank - 1]}`;
     return cond;
   }
 
-  private getSetup(dims: string[]): string {
-    if (this.rank === 1) {
-      return '';
-    }
-
-    const innerDims = dims.slice(-2);
-    const col = this.enableShapeUniforms ? `outShape[${this.rank} - 1]` :
-                                           this.outputShape[this.rank - 1];
-    const row = this.enableShapeUniforms ? `outShape[${this.rank} - 2]` :
-                                           this.outputShape[this.rank - 2];
-
-    return `
-      int r = ${innerDims[0]};
-      int c = ${innerDims[1]};
-      int rp1 = r + 1;
-      int cp1 = c + 1;
-
-      bool cEdge = cp1 >= ${col};
-      bool rEdge = rp1 >= ${row};
-    `;
-  }
-
   private getOutput(dims: string[]): string {
-    const sourceCoords = this.getSourceCoordsArr(dims);
+    const sourceCoordsPrefix = this.getSourceCoordsPrefix(dims);
+    const lastDim = this.rank === 1 ? 'rc' : dims[this.rank - 1];
+    let lastDimSize;
     if (this.rank === 1) {
-      const outShape =
-          this.enableShapeUniforms ? 'outShape' : this.outputShape[0];
-      return `getA(rc), (rc + 1 >= ${outShape} ? 0. : getA(rc + 1)), 0, 0`;
+      lastDimSize = this.enableShapeUniforms ? 'outShape' : this.outputShape[0];
+    } else {
+      lastDimSize = this.enableShapeUniforms ? `outShape[${this.rank} - 1]` :
+                                               this.outputShape[this.rank - 1];
     }
 
-    return `getA(${sourceCoords[0]}),
-            cEdge ? 0. : getA(${sourceCoords[1]}),
-            rEdge ? 0. : getA(${sourceCoords[2]}),
-            rEdge || cEdge ? 0. : getA(${sourceCoords[3]})`;
+    return `getA(${sourceCoordsPrefix}${lastDim}),
+     ${lastDim} + 1 >= ${lastDimSize} ? 0. : getA(${sourceCoordsPrefix}${
+        lastDim} + 1),
+         ${lastDim} + 2 >= ${lastDimSize} ? 0. : getA(${sourceCoordsPrefix}${
+        lastDim} + 2),
+         ${lastDim} + 3 >= ${lastDimSize} ? 0. : getA(${sourceCoordsPrefix}${
+        lastDim} + 3)`;
   }
 }

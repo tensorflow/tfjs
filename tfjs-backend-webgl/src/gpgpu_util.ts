@@ -25,15 +25,15 @@ import * as webgl_util from './webgl_util';
 export function createVertexShader(gl: WebGLRenderingContext): WebGLShader {
   const glsl = getGlslDifferences();
   const vertexShaderSource = `${glsl.version}
-    precision highp float;
-    ${glsl.attribute} vec3 clipSpacePos;
-    ${glsl.attribute} vec2 uv;
-    ${glsl.varyingVs} vec2 resultUV;
+     precision highp float;
+     ${glsl.attribute} vec3 clipSpacePos;
+     ${glsl.attribute} vec2 uv;
+     ${glsl.varyingVs} vec2 resultUV;
 
-    void main() {
-      gl_Position = vec4(clipSpacePos, 1);
-      resultUV = uv;
-    }`;
+     void main() {
+       gl_Position = vec4(clipSpacePos, 1);
+       resultUV = uv;
+     }`;
   return webgl_util.createVertexShader(gl, vertexShaderSource);
 }
 
@@ -135,6 +135,26 @@ export function createUnsignedBytesMatrixTexture(
 export function getInternalFormatForPackedMatrixTexture(
     textureConfig: TextureConfig) {
   return textureConfig.internalFormatPackedFloat;
+}
+
+export function createColPackedMatrixTexture(
+    gl: WebGLRenderingContext, debug: boolean, rows: number, columns: number,
+    textureConfig: TextureConfig): Texture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTexture(
+      gl, width, height, textureConfig.internalFormatPackedFloat, gl.RGBA,
+      gl.FLOAT);
+}
+
+export function createFloat16ColPackedMatrixTexture(
+    gl: WebGLRenderingContext, debug: boolean, rows: number, columns: number,
+    textureConfig: TextureConfig): Texture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTexture(
+      gl, width, height, textureConfig.internalFormatPackedHalfFloat, gl.RGBA,
+      textureConfig.textureTypeHalfFloat);
 }
 
 export function createPackedMatrixTexture(

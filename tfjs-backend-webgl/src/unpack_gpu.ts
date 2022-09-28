@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
+import {GPGPUProgram} from './gpgpu_math';
 import {getChannels, getSourceCoords} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -29,22 +29,23 @@ export class UnpackProgram implements GPGPUProgram {
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
-    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
 
     const channels = getChannels('rc', rank);
     const dtype = getCoordsDataType(rank);
     const sourceCoords = getSourceCoords(rank, channels);
-    const innerDims = channels.slice(-2);
-    const coords = rank <= 1 ? 'rc' : `vec2(${innerDims.join(',')})`;
 
     this.userCode = `
-      void main() {
-        ${dtype} rc = getOutputCoords();
-        vec4 packedInput = getA(${sourceCoords});
-
-        setOutput(getChannel(packedInput, ${coords}));
-      }
-    `;
+       void main() {
+         ${dtype} rc = getOutputCoords();
+         vec4 packedInput = getA(${sourceCoords});
+         int offset = imod(rc[${rank}-1], 4);
+         float res = offset == 0 ? packedInput.x
+         : offset == 1 ? packedInput.y
+         : offset == 2 ? packedInput.z
+         : packedInput.w;
+         setOutput(res);
+       }
+     `;
   }
 }

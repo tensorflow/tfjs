@@ -16,7 +16,7 @@
  */
 
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
+import {GPGPUProgram} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
 /*
@@ -45,73 +45,60 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
   customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
   constructor(
-      outputShape: [number, number, number], inputIsUnsignedByte = false) {
+      outputShape: [number, number, number], texShape: [number, number],
+      inputIsUnsignedByte = false) {
     const glsl = getGlslDifferences();
+    const [height, width] = texShape;
     this.outputShape = outputShape;
-    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
-    let mainLoop = '';
     let output = 'result';
     if (inputIsUnsignedByte) {
       output = 'floor(result * 255. + 0.5)';
     }
 
-    for (let row = 0; row <= 1; row++) {
-      for (let col = 0; col <= 1; col++) {
-        const channel = row * 2 + col;
+    let mainLoop = ``;
 
-        mainLoop += `
-          localCoords = coords;
-          if(localCoords[2] + ${col} < ${
-            this.enableShapeUniforms ? 'outShape[2]' : `${outputShape[2]}`}) {
-          localCoords[2] += ${col};
-          if (localCoords[1] + ${row} < ${
-            this.enableShapeUniforms ? 'outShape[1]' : `${outputShape[1]}`}) {
-            localCoords[1] += ${row};
+    for (let col = 0; col < 4; col++) {
+      mainLoop += `
+     if(localCoords[2] + ${col} < ${outputShape[2]}) {
+       localCoords[2] += ${col};
+       flatIndex = getFlatIndex(localCoords);
+       offset = imod(flatIndex, 4);
 
-            flatIndex = getFlatIndex(localCoords);
-            offset = imod(flatIndex, 4);
+       flatIndex = idiv(flatIndex, 4, 1.);
 
-            flatIndex = idiv(flatIndex, 4, 1.);
-
-            int r = flatIndex / texShape[1];
-            int c = imod(flatIndex, texShape[1]);
-            vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
-            values = ${glsl.texture2D}(A, uv);
-
-            if (offset == 0) {
-              result[${channel}] = values[0];
-            } else if (offset == 1) {
-              result[${channel}] = values[1];
-            } else if (offset == 2) {
-              result[${channel}] = values[2];
-            } else {
-              result[${channel}] = values[3];
-            }
-          }
-        }
-        `;
-      }
+       r = flatIndex / ${width};
+       c = imod(flatIndex, ${width});
+       uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+       values = ${glsl.texture2D}(A, uv);
+       if(offset == 0) {
+         result[${col}] = values[0];
+       } else if(offset == 1) {
+         result[${col}] = values[1];
+       } else if(offset == 2) {
+         result[${col}] = values[2];
+       } else {
+         result[${col}] = values[3];
+       }
+       localCoords[2] -= ${col};
+     }
+     `;
     }
-
     this.userCode = `
-        ${
-        this.enableShapeUniforms ? shader_util.getFlatIndexFrom3DOutput() :
-                                   shader_util.getFlatIndexFrom3D(outputShape)}
+     ${shader_util.getFlatIndexFrom3D(outputShape)}
 
-        void main() {
-          ivec3 coords = getOutputCoords();
+     void main() {
+       ivec3 coords = getOutputCoords();
 
-          vec4 result = vec4(0.);
-          int flatIndex, r, c, offset;
-          ivec3 localCoords;
-          vec2 uv;
-          vec4 values;
-
-          ${mainLoop}
-
-          ${glsl.output} = ${output};
-        }
-    `;
+       vec4 result = vec4(0.);
+       int flatIndex, r, c, offset;
+       ivec3 localCoords;
+       vec2 uv;
+       vec4 values;
+       localCoords = coords;
+       ${mainLoop}
+       ${glsl.output} = ${output};
+     }
+   `;
   }
 }

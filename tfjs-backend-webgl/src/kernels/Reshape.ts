@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {packedReshape} from '../kernel_utils/reshape';
+// import {packedReshape} from '../kernel_utils/reshape';
 import {isReshapeFree} from '../webgl_util';
 
 export function reshape(args: {
@@ -44,7 +44,8 @@ export function reshape(args: {
   const xTexData = webglBackend.texData.get(x.dataId);
   if (xTexData.isPacked && !isReshapeFree(x.shape, $shape) &&
       !(xTexData.texture !== null && isReshapeFree(xTexData.shape, $shape))) {
-    return packedReshape(x, $shape, webglBackend);
+    throw new Error(`Reshaping from ${shape} to ${$shape}.`);
+    // return packedReshape(x, $shape, webglBackend);
   }
 
   webglBackend.incRef(x.dataId);

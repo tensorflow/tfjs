@@ -472,18 +472,35 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private getValuesFromTexture(dataId: DataId): Float32Array {
-    const {shape, dtype, isPacked} = this.texData.get(dataId);
+    const {texShape, shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      const tmpTarget = this.decode(dataId);
-      const tmpData = this.texData.get(tmpTarget.dataId);
-      const vals =
-          this.gpgpu
-              .downloadMatrixFromPackedTexture(
-                  tmpData.texture.texture, ...tex_util.getDenseTexShape(shape))
-              .subarray(0, size);
+      let vals;
+      if (!isPacked) {
+        // For unpacked texture, we need to use `decode` to pack it before
+        // downloading. `decode` uses `tex_util.getDenseTexShape(shape)` as the
+        // real physical texture shape, SquarishShape.
+        const tmpTarget = this.decode(dataId);
+        const tmpData = this.texData.get(tmpTarget.dataId);
+        vals = this.gpgpu
+                   .downloadMatrixFromPackedTexture(
+                       tmpData.texture.texture,
+                       ...tex_util.getDenseTexShape(shape))
+                   .subarray(0, size);
 
-      this.disposeIntermediateTensorInfo(tmpTarget);
+        this.disposeIntermediateTensorInfo(tmpTarget);
+      } else {
+        // For dense-packed texture, we do not need to re-pack it before
+        // downloading and the real physical texture shape could be calculated
+        // with texShape.
+        const [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
+            texShape[0], texShape[1]);
+        const tmpData = this.texData.get(dataId);
+        vals = this.gpgpu
+                   .downloadMatrixFromPackedTexture(
+                       tmpData.texture.texture, height, width)
+                   .subarray(0, size);
+      }
 
       return vals;
     }
@@ -1077,7 +1094,10 @@ export class MathBackendWebGL extends KernelBackend {
     if (texShape == null) {
       // This texShape may not be the final texture shape. For packed or dense
       // textures, the texShape will be changed when textures are created.
-      texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
+        texShape = webgl_util.getTextureShapeFromLogicalShapeColPacked(shape);
+      } else {
+        texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
+      }
       texData.texShape = texShape;
     }
 
@@ -1097,7 +1117,7 @@ export class MathBackendWebGL extends KernelBackend {
       }
 
       if (isPacked) {
-        program = new EncodeMatrixPackedProgram(shapeAs3D, isByteArray);
+        program = new EncodeMatrixPackedProgram(shapeAs3D, [height, width]);
       } else {
         program = new EncodeMatrixProgram(shapeAs3D, isByteArray);
       }
