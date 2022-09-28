@@ -1,5 +1,5 @@
 import { tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
-import { CenterCrop } from './image_preprocessing_centercrop';
+import { CenterCrop } from './center_crop';
 import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_utils';
 
 describeMathCPUAndGPU('CenterCrop Layer', () => {
