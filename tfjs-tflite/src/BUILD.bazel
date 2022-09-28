@@ -15,6 +15,7 @@
 
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -55,7 +56,10 @@ copy_to_bin(
 
 ts_library(
     name = "tfjs-tflite_test_lib",
-    srcs = glob(TEST_SRCS),
+    srcs = glob(
+        TEST_SRCS,
+        exclude = ["worker_test.ts"],
+    ),
     module_name = "@tensorflow/tfjs-tflite/dist",
     deps = [
         ":tfjs-tflite_lib",
@@ -81,5 +85,48 @@ esbuild(
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-tflite/wasm:wasm_files",
+    ],
+)
+
+ts_library(
+    name = "worker_test_lib",
+    srcs = [
+        "worker_test.ts",
+    ],
+    deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+    ],
+)
+
+tfjs_web_test(
+    name = "worker_test",
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    static_files = [
+        # For the webworker
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+        "//tfjs-tflite:tf-tflite.min.js",
+        "//tfjs-tflite:tf-tflite.min.js.map",
+        "//tfjs-tflite/wasm:wasm_files",
+        "//tfjs-tflite/test_files:add4.tflite",
+    ],
+    deps = [
+        ":worker_test_lib",
+        "@npm//long:long__umd",
+        "@npm//seedrandom:seedrandom__umd",
     ],
 )
