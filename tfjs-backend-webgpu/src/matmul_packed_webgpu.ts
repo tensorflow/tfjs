@@ -268,13 +268,12 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
                       'let ACached = mm_Asub[tileRow + innerRow][k];';
 };
 
-// sequentialAccess means that the adjacent threads are accessing contiguous
-// data in memory. By default, it's interval access in threads, which means that
-// the access is continuous in one thread, but not in theads.
+// sequentialAccessByThreads means sequential data in memory is accessed by
+// threads, instead of a single thread (default behavior).
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
-    sequentialAccess = false): string {
+    sequentialAccessByThreads = false): string {
   const tileAOuter = workPerThread[1] * workGroupSize[1];
   const tileBOuter = workPerThread[0] * workGroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -291,7 +290,7 @@ export function makeMatMulPackedSource(
   const rowPerThreadA = tileAHight / workGroupSize[1];
   const colPerThreadA = tileAWidth / workGroupSize[0];
   const rowPerThreadB = tileInner / workGroupSize[1];
-  const matmulSnippet = sequentialAccess ?
+  const matmulSnippet = sequentialAccessByThreads ?
       `
       let localRow = i32(localId.y);
       let localCol = i32(localId.x);
@@ -530,14 +529,15 @@ export class MatMulPackedProgram implements WebGPUProgram {
   tileInner: number;
   isVectorA: boolean;
   isVec4: boolean;
-  private sequentialAccess: boolean;
+  private sequentialAccessByThreads: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
       transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
-      preluActivationWeights: TensorInfo = null, sequentialAccess = false) {
+      preluActivationWeights: TensorInfo = null,
+      sequentialAccessByThreads = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const dimInner = transposeA ? aShape[1] : aShape[2];
@@ -571,7 +571,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    this.sequentialAccess = sequentialAccess;
+    this.sequentialAccessByThreads = sequentialAccessByThreads;
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
@@ -584,7 +584,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
         this.fitInner}_${this.isVec4}_${this.isVectorA}_${
-        this.batchAEqualOne}_${this.batchBEqualOne}_${this.sequentialAccess}`;
+        this.batchAEqualOne}_${this.batchBEqualOne}_${
+        this.sequentialAccessByThreads}`;
   }
 
   getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
@@ -627,7 +628,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
                               makeMatMulPackedSource(
                                   this.elementsPerThread, this.workGroupSize,
                                   this.transposeA, this.tileInner, false, null,
-                                  this.sequentialAccess))}
+                                  this.sequentialAccessByThreads))}
     `;
     return userCode;
   }
