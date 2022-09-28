@@ -18,7 +18,7 @@
 
 function isConv2D(kernel) {
   return kernel.name.includes('Conv2D') &&
-      (!kernel.name.includes('"Conv2DBackpropInput"'));
+      (!kernel.name.includes('Conv2DBackpropInput'));
 }
 
 function isDepthwise(kernel) {
