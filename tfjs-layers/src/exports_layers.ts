@@ -25,8 +25,6 @@ import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooli
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
 import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
-import { CategoryEncoding, CategoryEncodingArgs } from './layers/preprocessing/category_encoding';
-import { Resizing, ResizingArgs } from './layers/preprocessing/image_resizing';
 import { CenterCrop, CenterCropArgs } from './layers/preprocessing/center_crop';
 
 // TODO(cais): Add doc string to all the public static functions in this
