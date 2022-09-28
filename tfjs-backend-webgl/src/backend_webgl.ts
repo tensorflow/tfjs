@@ -1094,6 +1094,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (texShape == null) {
       // This texShape may not be the final texture shape. For packed or dense
       // textures, the texShape will be changed when textures are created.
+      if (isPacked) {
         texShape = webgl_util.getTextureShapeFromLogicalShapeColPacked(shape);
       } else {
         texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
