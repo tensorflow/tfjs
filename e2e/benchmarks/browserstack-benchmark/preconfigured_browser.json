@@ -2,9 +2,10 @@
   "benchmark": {
     "model": ["codeSnippet"],
     "codeSnippets": [
-      {"codeSnippet": "benchmarkTarget = 'pointwise';", "setupCodeSnippetEnv": ""},
-      {"codeSnippet": "benchmarkTarget = 'conv2d';", "setupCodeSnippetEnv": ""},
-      {"codeSnippet": "benchmarkTarget = 'depthwise';", "setupCodeSnippetEnv": ""}
+      {"codeSnippet": "benchmarkTarget = 'pointwise';", "setupCodeSnippetEnv": "tf.env().set('WEBGL_EXP_CONV', true);"},
+      {"codeSnippet": "benchmarkTarget = 'conv2d-largeImage';", "setupCodeSnippetEnv": "tf.env().set('WEBGL_EXP_CONV', true);"},
+      {"codeSnippet": "benchmarkTarget = 'conv2d-largeInChannel';", "setupCodeSnippetEnv": "tf.env().set('WEBGL_EXP_CONV', true);"},
+      {"codeSnippet": "benchmarkTarget = 'depthwise';", "setupCodeSnippetEnv": "tf.env().set('WEBGL_EXP_CONV', true);"}
     ],
     "numRuns": 50,
     "backend": ["webgl"]
