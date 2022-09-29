@@ -24,7 +24,8 @@ import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, MaxPooling3D, Pooling1DLayerArgs, Pooling2DLayerArgs, Pooling3DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
-import { Rescaling, RescalingArgs } from './layers/preprocessing/image_preprocessing';
+import {Rescaling, RescalingArgs} from './layers/preprocessing/image_preprocessing';
+import {Resizing, ResizingArgs} from './layers/preprocessing/image_resizing';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -1728,4 +1729,30 @@ export function masking(args?: MaskingArgs) {
  */
 export function rescaling(args?: RescalingArgs) {
   return new Rescaling(args);
+}
+
+/**
+ * A preprocessing layer which resizes images.
+ * This layer resizes an image input to a target height and width. The input
+ * should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+ * format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
+ * 255]`) and of interger or floating point dtype. By default, the layer will
+ * output floats.
+ *
+ * Arguments:
+ *   - `height`: number, the height for the output tensor.
+ *   - `width`: number, the width for the output tensor.
+ *   - `interpolation`: string, the method for image resizing interpolation.
+ *   - `cropToAspectRatio`: boolean, whether to keep image aspect ratio.
+ *
+ * Input shape:
+ *   Arbitrary.
+ *
+ * Output shape:
+ *   height, width, num channels.
+ *
+ * @doc {heading: 'Layers', subheading: 'Resizing', namespace: 'layers'}
+ */
+export function resizing(args?: ResizingArgs) {
+  return new Resizing(args);
 }
