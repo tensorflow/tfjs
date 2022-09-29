@@ -175,11 +175,12 @@ limitations under the License.
       const prediction = await predict(model, inferenceInput);
       const graphModel = getGraphModel(model, benchmark);
       let intermediateData = {};
-      if (debug && graphModel) {
+      const dump = debug && graphModel;
+      if (dump) {
         intermediateData = await getIntermediateTensorsData(graphModel.getIntermediateTensors());
       }
       const predictionData = await getPredictionData(prediction);
-      if (debug && graphModel) {
+      if (dump) {
         graphModel.disposeIntermediateTensors();
       }
       return {data: predictionData, intermediateData};
@@ -538,7 +539,7 @@ limitations under the License.
       if (isTflite()) {
         await loadTfliteModel();
       } else {
-        model= await benchmark.load(inputSize, state.architecture, state.inputType);
+        model = await benchmark.load(inputSize, state.architecture, state.inputType);
       }
       state.inputs = [];
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs
