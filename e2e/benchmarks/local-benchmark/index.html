@@ -171,13 +171,13 @@ limitations under the License.
       }
     }
 
-    async function predictAndGetPredictionData(predict, model, inferenceInput, benchmark, debug) {
+    async function predictAndGetData(predict, model, inferenceInput, benchmark, debug) {
       const prediction = await predict(model, inferenceInput);
       const graphModel = getGraphModel(model, benchmark);
       let intermediateData = {};
       const dump = debug && graphModel;
       if (dump) {
-        intermediateData = await getIntermediateTensorsData(graphModel.getIntermediateTensors());
+        intermediateData = await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
       }
       const predictionData = await getPredictionData(prediction);
       if (dump) {
@@ -237,7 +237,7 @@ limitations under the License.
           }
 
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          const referenceResult = await predictAndGetPredictionData(predict, model, inferenceInput, state.benchmark, debug);
+          const referenceResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, debug);
           referenceData = referenceResult['data'];
 
           await tf.setBackend(state.backend);
@@ -251,14 +251,14 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetPredictionData(predict, model, inferenceInput, state.benchmark, debug);
+          const predictionResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, debug);
           predictionData = predictionResult['data'];
           if (debug) {
             const predictionIntermediateObject = predictionResult['intermediateData'];
             const referenceIntermediateObject = referenceResult['intermediateData'];
 
             const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')): 0;
-            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')): -1;
+            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')): 1;
             const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
             await dump(model, [predictionIntermediateObject, referenceIntermediateObject], [state.backend, referenceBackend], dumpPrefix, dumpLevel, dumpLength);
           }
