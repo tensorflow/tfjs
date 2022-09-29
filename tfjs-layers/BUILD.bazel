@@ -57,6 +57,7 @@ tfjs_web_test(
         "win_10_chrome",
     ],
     headless = False,
+    seed = "12345",
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
@@ -77,6 +78,7 @@ tfjs_web_test(
         "bs_ios_12",
     ],
     headless = False,
+    seed = "12345",
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
