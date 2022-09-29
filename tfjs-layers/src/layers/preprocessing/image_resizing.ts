@@ -91,7 +91,7 @@ export class Resizing extends Layer {
         return image.resizeNearestNeighbor(
             inputs, size, !this.cropToAspectRatio);
       } else {
-        throw new Error(`mode is ${this.interpolation} but only ${[...INTERPOLATION_METHODS]} are supported`);
+        throw new Error(`Interpolation is ${this.interpolation} but only ${[...INTERPOLATION_METHODS]} are supported`);
       }
     });
   }
