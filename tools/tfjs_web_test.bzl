@@ -74,17 +74,17 @@ _make_karma_config = rule(
             default = "",
             doc = "The browser to run",
         ),
-        "template": attr.label(
-            default = Label("@//tools:karma_template.conf.js"),
-            allow_single_file = True,
-            doc = "The karma config template to expand",
-        ),
         "seed": attr.string(
             default = "",
             doc = """Use this seed for test order.
 
             If not specified or empty, use a random seed every time.
             """,
+        ),
+        "template": attr.label(
+            default = Label("@//tools:karma_template.conf.js"),
+            allow_single_file = True,
+            doc = "The karma config template to expand",
         ),
         "_grep": attr.label(default = "@//:grep"),
     },
