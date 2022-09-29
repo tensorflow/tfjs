@@ -20,6 +20,7 @@ import './flags_webgpu';
 import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
+import {GPUDeviceValidation} from './gpudevice_validation';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
@@ -107,7 +108,7 @@ const reshapeDispatch =
 
 export class WebGPUBackend extends KernelBackend {
   bufferManager: BufferManager;
-  device: GPUDevice;
+  deviceValidation: GPUDeviceValidation;
   queue: GPUQueue;
   tensorMap: DataStorage<TensorData>;
   textureManager: TextureManager;
@@ -141,17 +142,17 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error('WebGPU is not supported on this device');
     }
     this.pipelineCache = {};
-    this.device = device;
+    this.deviceValidation = new GPUDeviceValidation(device);
     this.queue = device.queue;
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
     this.supportTimeQuery = device.features.has('timestamp-query');
 
-    this.bufferManager = new BufferManager(this.device);
-    this.textureManager = new TextureManager(this.device);
+    this.bufferManager = new BufferManager(this.deviceValidation);
+    this.textureManager = new TextureManager(this.deviceValidation);
     this.tensorMap = new DataStorage(this, engine());
     if (this.supportTimeQuery) {
-      this.querySet = this.device.createQuerySet({
+      this.querySet = this.deviceValidation.createQuerySet({
         type: 'timestamp',
         count: 2,
       });
@@ -228,6 +229,14 @@ export class WebGPUBackend extends KernelBackend {
       numBytesAllocatedInGPU: this.bufferManager.numBytesAllocated,
       unreliable: false
     } as WebGPUMemoryInfo;
+  }
+
+  getDeviceLimits(): GPUSupportedLimits {
+    return this.getDevice().device.limits;
+  }
+
+  getDevice(): GPUDeviceValidation {
+    return this.deviceValidation;
   }
 
   releaseResource(dataId: DataId) {
@@ -322,7 +331,7 @@ export class WebGPUBackend extends KernelBackend {
 
   ensureCommandEncoderReady() {
     if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder();
+      this.currentCommandEncoder = this.getDevice().createCommandEncoder();
     }
   }
 
@@ -366,7 +375,7 @@ export class WebGPUBackend extends KernelBackend {
           () => `Fail to get context for profiling tool`);
       this.dummyContext.getCurrentTexture();
     }
-
+    await this.getDevice().checkValidationErrors();
     return values as backend_util.BackendValues;
   }
 
@@ -705,7 +714,7 @@ export class WebGPUBackend extends KernelBackend {
       return output;
     }
     this.uploadToGPU(output.dataId);
-    program.dispatch = reshapeDispatch(this.device, program);
+    program.dispatch = reshapeDispatch(this.getDevice().device, program);
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
@@ -753,7 +762,7 @@ export class WebGPUBackend extends KernelBackend {
       pipeline = this.pipelineCache[key];
     } else {
       pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
+          this.getDevice(), program, inputsData, output);
       this.pipelineCache[key] = pipeline;
     }
 
@@ -765,7 +774,7 @@ export class WebGPUBackend extends KernelBackend {
       this.makeUniforms(programUniform)
     ];
 
-    const bindGroup = this.device.createBindGroup({
+    const bindGroup = this.getDevice().createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
       entries: bindings.map((b, i) => ({binding: i, resource: b})),
     });
@@ -853,6 +862,7 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.bufferManager.dispose();
     this.textureManager.dispose();
+    this.getDevice().destroy();
     this.disposed = true;
   }
 }
