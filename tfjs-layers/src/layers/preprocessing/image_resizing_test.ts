@@ -36,10 +36,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
 
   it('Returns correctly downscaled tensor', () => {
     // resize and check output content (not batched)
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,4));} // reshape
-    const inputTensor = tensor(inputArr, [4,4,1]);
+    const rangeTensor = range(0, 16);
+    const inputTensor = reshape(rangeTensor, [4,4,1]);
     const height = 2;
     const width = 2;
     const interpolation = 'nearest';
@@ -52,10 +50,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
 
   it('Returns correctly downscaled tensor', () => {
     // resize and check output content (batched)
-    const rangeArr = [...Array(36).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,6));} // reshape
-    const inputTensor = tensor([inputArr], [1,6,6,1]);
+    const rangeTensor = range(0, 36);
+    const inputTensor = reshape(rangeTensor, [1,6,6,1]);
     const height = 3;
     const width = 3;
     const interpolation = 'nearest';
@@ -67,11 +63,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
   });
 
   it('Returns correctly upscaled tensor', () => {
-    // resize and check output content (batched)
-    const rangeArr = [...Array(4).keys()]; // equivalent to np.arange(0,4)
-    const inputArr = [];
-    while(rangeArr.length) {inputArr.push(rangeArr.splice(0,2));} // reshape
-    const inputTensor = tensor([inputArr], [1,2,2,1]);
+    const rangeTensor = range(0, 4);
+    const inputTensor = reshape(rangeTensor, [1, 2, 2, 1]);
     const height = 4;
     const width = 4;
     const interpolation = 'nearest';
