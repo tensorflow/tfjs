@@ -61,7 +61,7 @@ const CUSTOM_LAUNCHERS = {
   win_10_chrome: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '101.0',
+    browser_version: '104.0',
     os: 'Windows',
     os_version: '10'
   },

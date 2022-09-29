@@ -62,7 +62,7 @@ export function getGlslDifferences(): GLSL {
     //   - fraction = anything except all 0 bits (since all 0 bits represents
     //   infinity).
     // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
-    defineSpecialNaN = `
+    defineSpecialNaN = env().getBool('WEBGL2_ISNAN_CUSTOM') ? `
       bool isnan_custom(float val) {
         uint floatToUint = floatBitsToUint(val);
         return (floatToUint & 0x7fffffffu) > 0x7f800000u;
@@ -74,7 +74,8 @@ export function getGlslDifferences(): GLSL {
       }
 
       #define isnan(value) isnan_custom(value)
-    `;
+    ` :
+                                                              '';
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
     defineSpecialInf = ``;
