@@ -12,7 +12,7 @@
  * Unit Tests for image resizing layer.
  */
 
-import {image, Rank, Tensor, tensor, zeros} from '@tensorflow/tfjs-core';
+import {image, Rank, Tensor, tensor, zeros, range, reshape} from '@tensorflow/tfjs-core';
 
 // import {Shape} from '../../keras_format/common';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
@@ -87,12 +87,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const height = 64;
     const width = 32;
     const numChannels = 1;
-    const rangeArr = [...Array(height * width).keys()];
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0, width));
-    }
-    const inputTensor = tensor(inputArr, [height, width, numChannels]);
+    const rangeTensor = range(0, height * width);
+    const inputTensor = reshape(rangeTensor, [height, width, numChannels]);
     const resizingLayer = new Resizing({height, width});
     const layerOutputTensor = resizingLayer.apply(inputTensor) as Tensor;
     expectTensorsClose(layerOutputTensor, inputTensor);
