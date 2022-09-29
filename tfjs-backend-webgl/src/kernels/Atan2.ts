@@ -17,18 +17,21 @@
 
 import {Atan2} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
+import {CHECK_NAN_SNIPPET} from '../binaryop_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc, CHECK_NAN_SNIPPET_BINARY, CHECK_NAN_SNIPPET_BINARY_PACKED} from '../kernel_utils/kernel_funcs_utils';
-
-const ATAN2 = CHECK_NAN_SNIPPET_BINARY + `
+const ATAN2 = CHECK_NAN_SNIPPET + `
   return atan(a, b);
 `;
 
 const ATAN2_PACKED = `
   vec4 result = atan(a, b);
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
   ` +
-    CHECK_NAN_SNIPPET_BINARY_PACKED + `
+    CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 
