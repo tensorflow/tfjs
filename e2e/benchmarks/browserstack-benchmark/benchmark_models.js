@@ -105,9 +105,13 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
     const image = tf.ones([1, 4, 4, 288]);
     const filter = tf.ones([3, 3, 288, 4]);
     predict = () => tf.depthwiseConv2d(image, filter, 1, 'valid');
-  } else if (benchmarkTarget === 'conv2d') {
+  } else if (benchmarkTarget === 'conv2d-largeImage') {
     const image = tf.ones([1, 224, 224, 4]);
     const filter = tf.ones([3, 3, 4, 16]);
+    predict = () => tf.depthwiseConv2d(image, filter, 1, 'valid');
+  } else if (benchmarkTarget === 'conv2d-largeInChannel') {
+    const image = tf.ones([1, 9, 9, 256]);
+    const filter = tf.ones([3, 3, 256, 256]);
     predict = () => tf.depthwiseConv2d(image, filter, 1, 'valid');
   }
 

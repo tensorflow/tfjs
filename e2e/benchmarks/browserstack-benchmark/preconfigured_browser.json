@@ -3,7 +3,8 @@
     "model": ["codeSnippet"],
     "codeSnippets": [
       {"codeSnippet": "benchmarkTarget = 'pointwise';", "setupCodeSnippetEnv": ""},
-      {"codeSnippet": "benchmarkTarget = 'conv2d';", "setupCodeSnippetEnv": ""},
+      {"codeSnippet": "benchmarkTarget = 'conv2d-largeImage';", "setupCodeSnippetEnv": ""},
+      {"codeSnippet": "benchmarkTarget = 'conv2d-largeInChannel';", "setupCodeSnippetEnv": ""},
       {"codeSnippet": "benchmarkTarget = 'depthwise';", "setupCodeSnippetEnv": ""}
     ],
     "numRuns": 50,
