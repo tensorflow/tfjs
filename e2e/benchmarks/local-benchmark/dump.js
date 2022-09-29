@@ -74,39 +74,35 @@ async function getIntermediateTensorsData(tensorsMap) {
 
 async function saveObjectsToFile(
     jsonObjects, backends, level, diffCount, prefix) {
-  const backend1 = backends[0];
-  const backend2 = backends[1];
   let newPrefix = '';
   if (prefix !== '') {
     newPrefix = `${prefix.replace(/\//g, '-')}_`;
   }
   if (((level < 2) && diffCount) || (level === 2)) {
-    const fileNames =
-        [`${newPrefix}${backend1}.json`, `${newPrefix}${backend2}.json`];
     for (let i = 0; i < jsonObjects.length; i++) {
       const object = jsonObjects[i];
-      const fileName = fileNames[i];
+      const fileName = `${newPrefix}${backends[i]}.json`;
       const a = document.createElement('a');
       const file =
           new Blob([JSON.stringify(object)], {type: 'application/json'});
       a.href = URL.createObjectURL(file);
       a.download = fileName;
       a.click();
+      // This log informs tools file has been saved.
       console.log(fileName);
       await sleep(150);
     }
   }
 }
 
-// level: 0, dump default diffs. 1, dump any diffs. 2, dump all.
 async function compareAndDownload(
     jsonObjects, backends, level, length, keys = [''], prefix = '',
     download = true) {
   const jsonObject1 = jsonObjects[0];
   const jsonObject2 = jsonObjects[1];
-  let diffCount = 0;
   const diffObjects1 = {};
   const diffObjects2 = {};
+  let diffCount = 0;
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     if (compareData(jsonObject1[key], jsonObject2[key], level)) {
@@ -202,20 +198,18 @@ async function predictOp(
   return intermediateData;
 }
 
-async function dumpOp(
-    model, modelJson, dumpedJson, backends, outputNodeNames, level,
-    prefix = '') {
-  const predictBackend = backends[0];
-  const referenceBackend = backends[1];
+async function dumpOps(
+    model, dumpedJson, backends, outputNodeNames, level, prefix = '') {
   const objects1 = {};
   const objects2 = {};
+  const modelJson = model.artifacts;
   for (let i = 0; i < outputNodeNames.length; i++) {
     const outputNodeName = outputNodeNames[i];
     const opReferenceIntermediateObject = await predictOp(
-        model, modelJson, dumpedJson, outputNodeName, referenceBackend);
+        model, modelJson, dumpedJson, outputNodeName, backends[1]);
 
     const opPredictionIntermediateObject = await predictOp(
-        model, modelJson, dumpedJson, outputNodeName, predictBackend);
+        model, modelJson, dumpedJson, outputNodeName, backends[0]);
     if (opPredictionIntermediateObject && opReferenceIntermediateObject) {
       objects1[`${outputNodeName}`] = {
         index: i,
@@ -246,18 +240,26 @@ async function dumpDiff(
     return;
   }
 
-  const modelJson = model.artifacts;
-
-  await dumpOp(
-      model, modelJson, dumpedJson, backends, keys, level,
+  await dumpOps(
+      model, dumpedJson, backends, keys, level,
       `dumpops_${benchmark}_${level}`);
 }
 
+/**
+ * Dump the predict results of two backends and save diffs to files.
+ * @param model The loaded model.
+ * @param jsonObjects The predicted results from backends.
+ * @param backends [predict backend, reference backend].
+ * @param benchmark Used for generating dump file name.
+ * @param level 0, dump default diffs. 1, dump any diffs. 2, dump all tensors.
+ * @param length Used for controling how many tensors will be dumped.
+ */
 async function dump(
     model, jsonObjects, backends, benchmark, level = 0, length = -1) {
+  const download = level == 2 ? true : false;
   const objectsDiff = await compareAndDownload(
       jsonObjects, backends, level, length, Object.keys(jsonObjects[0]),
-      `dumpmodel_${benchmark}_${level}`, true);
+      `dumpmodel_${benchmark}_${level}`, download);
 
   const graphModel = getGraphModel(model, benchmark);
   await dumpDiff(
