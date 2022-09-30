@@ -51,7 +51,9 @@ export function fromPixels(args: {
       pixels instanceof HTMLImageElement;
   const isCanvas = (typeof (HTMLCanvasElement) !== 'undefined' &&
                     pixels instanceof HTMLCanvasElement) ||
+      // @ts-ignore
       (typeof (OffscreenCanvas) !== 'undefined' &&
+       // @ts-ignore
        pixels instanceof OffscreenCanvas);
   const isImageBitmap =
       typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
