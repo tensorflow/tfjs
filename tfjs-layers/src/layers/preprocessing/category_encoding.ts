@@ -20,7 +20,7 @@ import * as utils from './preprocessing_utils';
 
 export declare interface CategoryEncodingArgs extends LayerArgs {
   numTokens: number;
-  outputMode?: string;
+  outputMode?: OutputMode;
  }
 
 export class CategoryEncoding extends Layer {
