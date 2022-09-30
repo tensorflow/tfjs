@@ -73,8 +73,6 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
       `When outputMode is 'tfIdf', weights must be provided.`
       );
   } else {
-
     return mul(binCounts, weights);
-
   }
 }
