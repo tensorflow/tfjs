@@ -3,7 +3,7 @@ import { Tensor, tensor} from '@tensorflow/tfjs-core';
 import { CategoryEncoding } from './category_encoding';
 import * as utils from './preprocessing_utils';
 
-describeMathCPUAndGPU('Layer Output', () => {
+describeMathCPUAndGPU('Category Encoding', () => {
 
    it('Calculates correct output for Count outputMode rank 0', () => {
     const categoryData = tensor(0);
