@@ -27,7 +27,7 @@ export class CategoryEncoding extends Layer {
   /** @nocollapse */
   static className = 'CategoryEncoding';
   private readonly numTokens: number;
-  private readonly outputMode: string;
+  private readonly outputMode: OutputMode;
 
   constructor(args: CategoryEncodingArgs) {
     super(args);
