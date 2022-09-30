@@ -12,7 +12,7 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
                                         weights?: Tensor1D|Tensor2D|TensorLike):
                                         Tensor|Tensor[] {
 
-  inputs = getExactlyOneTensor(inputs);
+  let input = getExactlyOneTensor(inputs);
 
   if(inputs.dtype !== 'int32') {
         inputs = K.cast(inputs, 'int32');
