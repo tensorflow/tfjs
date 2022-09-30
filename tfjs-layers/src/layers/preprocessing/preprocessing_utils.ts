@@ -52,7 +52,7 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
     denseBincountInput = inputs as Tensor2D;
   }
 
-  let binCounts;
+  let binCounts: Tensor1D | Tensor2D;
 
   if ((typeof weights) !== 'undefined' && outputMode === count) {
     binCounts = denseBincount(denseBincountInput, weights, depth, binaryOutput);
