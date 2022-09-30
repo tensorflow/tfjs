@@ -36,7 +36,7 @@ export class CategoryEncoding extends Layer {
     if(args.outputMode) {
     this.outputMode = args.outputMode;
     } else {
-      this.outputMode = utils.multiHot;
+      this.outputMode = 'multiHot';
     }
   }
 
