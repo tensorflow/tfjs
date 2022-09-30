@@ -230,7 +230,7 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
         use_node_name_sharing: {b: false},
         key_dtype: {type: tensorflow.DataType.DT_STRING},
         container: {s: ''},
-        shared_name: {s: 'tablename'}
+        shared_name: {s: 'dGFibGVuYW1l' /* base64 'tablename' */}
       }
     },
     {
@@ -277,7 +277,7 @@ const HASH_TABLE_MODEL: tensorflow.IGraphDef = {
         use_node_name_sharing: {b: false},
         key_dtype: {type: tensorflow.DataType.DT_STRING},
         container: {s: ''},
-        shared_name: {s: 'tablename'}
+        shared_name: {s: 'dGFibGVuYW1l' /* base64 'tablename' */}
       }
     },
     {
