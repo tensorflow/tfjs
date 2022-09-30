@@ -63,7 +63,7 @@ export class CategoryEncoding extends Layer {
       return inputShape;
     }
 
-    inputShape[-1] = this.numTokens;
+    inputShape[inputShape.length - 1] = this.numTokens;
     return inputShape;
   }
 
