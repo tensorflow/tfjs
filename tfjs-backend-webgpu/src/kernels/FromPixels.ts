@@ -97,7 +97,7 @@ export function fromPixels(args: {
           willReadFrequently = newWillReadFrequently;
           fromPixels2DContext =
               document.createElement('canvas').getContext(
-                  '2d', {willReadFrequently}) as CanvasRenderingContext2D;
+                  '2d', {willReadFrequently});
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;
