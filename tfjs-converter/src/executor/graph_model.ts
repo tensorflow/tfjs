@@ -499,23 +499,57 @@ export async function loadGraphModel(
 /**
  * Load a graph model given a synchronous IO handler with a 'load' method.
  *
- * @param modelSource The `io.IOHandlerSync` that loads the model.
+ * @param modelSource The `io.IOHandlerSync` that loads the model, or the
+ *     `io.ModelArtifacts` that encode the model, or a tuple of
+ *     `[io.ModelJSON, ArrayBuffer]` of which the first element encodes the
+ *      model and the second contains the weights.
  *
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
+export function loadGraphModelSync(modelSource: io.IOHandlerSync
+  | io.ModelArtifacts | [io.ModelJSON, /* Weights */ ArrayBuffer]):
+  GraphModel<io.IOHandlerSync> {
 
-export function loadGraphModelSync(modelSource: io.IOHandlerSync):
-    GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
-        'modelUrl in loadGraphModelSync() cannot be null. Please provide a ' +
-        'url or an IOHandler that loads the model');
+        'modelUrl in loadGraphModelSync() cannot be null. Please provide ' +
+        'model artifacts or an IOHandler that loads the model');
   }
-  if (!modelSource.load) {
-    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
-  }
-  const model = new GraphModel(modelSource);
 
+  let ioHandler: io.IOHandlerSync;
+  if (modelSource instanceof Array) {
+    const [modelJSON, weights] = modelSource;
+    if (!modelJSON) {
+      throw new Error('modelJSON must be the first element of the array');
+    }
+    if (!weights || !(weights instanceof ArrayBuffer)) {
+      throw new Error('An ArrayBuffer of weights must be the second element of'
+                      + ' the array');
+    }
+    if (!('modelTopology' in modelJSON)) {
+      throw new Error('Model JSON is missing \'modelTopology\'');
+    }
+    if (!('weightsManifest' in modelJSON)) {
+      throw new Error('Model JSON is missing \'weightsManifest\'');
+    }
+
+    const weightSpecs = io.getWeightSpecs(modelJSON.weightsManifest);
+    const modelArtifacts = io.getModelArtifactsForJSONSync(modelJSON,
+                                                           weightSpecs,
+                                                           weights);
+    ioHandler = io.fromMemorySync(modelArtifacts);
+  } else if ('load' in modelSource) {
+    // Then modelSource is already an IOHandlerSync.
+    ioHandler = modelSource;
+  } else if ('modelTopology' in modelSource && 'weightSpecs' in modelSource
+      && 'weightData' in modelSource) {
+    // modelSource is of type ModelArtifacts.
+    ioHandler = io.fromMemorySync(modelSource);
+  } else {
+    throw new Error('Unknown model format');
+  }
+
+  const model = new GraphModel(ioHandler);
   model.load();
   return model;
 }
