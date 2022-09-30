@@ -17,26 +17,10 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {mapActivationToShaderProgram} from './activation_util';
-import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {makeMatMulPackedSource} from './matmul_packed_webgpu';
+import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
+import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
-
-const typeSnippet = (innerElementSize: number) => {
-  switch (innerElementSize) {
-    case 1:
-      return 'f32';
-    case 2:
-      return 'vec2<f32>';
-    case 3:
-      return 'vec3<f32>';
-    case 4:
-      return 'vec4<f32>';
-    default:
-      throw new Error(`innerElementSize ${innerElementSize} is not supported.`);
-  }
-};
 
 function conv2dCommonSnippet(
     isChannelsLast: boolean, fitAOuter: boolean, fitBOuter: boolean,
@@ -76,14 +60,14 @@ function conv2dCommonSnippet(
       `;
 
   const coordResSnippet = isChannelsLast ? `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row / outWidth,
         row % outWidth,
         col);
       ` :
                                            `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row,
         col / outWidth,
@@ -142,54 +126,28 @@ function conv2dCommonSnippet(
                                  typeSnippet(innerElementSizeW);
   const bType = isChannelsLast ? typeSnippet(innerElementSizeW) :
                                  typeSnippet(innerElementSizeX);
-  let activationSnippet = '', applyActivationSnippet = '';
-  if (activation) {
-    const activationOp =
-        mapActivationToShaderProgram(activation, innerElementSize === 4);
-    if (hasPreluActivationWeights) {
-      activationSnippet =
-          `fn activation(a: ${resType}, outCoord : vec4<i32>) -> ${resType} {
-              let b = getPreluActivationWeightsByOutputCoords(outCoord);
-              ${activationOp}
-           }`;
-    } else {
-      activationSnippet = `
-           fn activation(a : ${resType}, outCoord : vec4<i32>) -> ${resType} {
-             ${activationOp}
-           }`;
-    }
-
-    applyActivationSnippet = `value = activation(value, outCoord);`;
-  }
-
-  const addBiasSnippet =
-      addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
   const userCode = `
-      ${activationSnippet}
-      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        let batch = i32(globalId.z);
+      ${
+      activationFnSnippet(
+          activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
+      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        let batch = i32(globalId.z);
+      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(row : i32, colIn : i32, valueIn : ${
-      resType}, globalId : vec3<u32>) {
+      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
         let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        let batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
         ${coordResSnippet}
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
-        setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3], value);
+        ${biasActivationSnippet(addBias, activation)}
+        setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }`;
   return userCode;
@@ -292,14 +250,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-            this.tileInner, this.innerElementSize, !this.isChannelsLast) :
+            this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
+            this.tileInner) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
             this.tileInner);
-    const elementsSize = this.isVec4 ?
-        [this.isChannelsLast ? this.innerElementSize : 4, 4, 4] :
-        [1, 1, 1];
+    const elementsSize =
+        this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `
     ${
         conv2dCommonSnippet(

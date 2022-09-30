@@ -37,7 +37,7 @@ import {tensor1d} from '../tensor1d';
  *     Defaults to 0.5 (50% box overlap).
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
- * @param padToMaxOutputSize Defalts to false. If true, size of output
+ * @param padToMaxOutputSize Defaults to false. If true, size of output
  *     `selectedIndices` is padded to maxOutputSize.
  * @return A map with the following properties:
  *     - selectedIndices: A 1D tensor with the selected box indices.

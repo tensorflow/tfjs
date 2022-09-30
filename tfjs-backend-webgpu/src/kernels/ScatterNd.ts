@@ -18,10 +18,10 @@
 import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {ScatterProgram} from '../scatter_webgpu';
 
 import {fill} from './Fill';
 import {reshape} from './Reshape';
-import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
 export function scatterNd(args: {
   inputs: ScatterNdInputs,
@@ -54,7 +54,7 @@ export function scatterNd(args: {
     {type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides},
     {type: 'int32', data: [size]}
   ];
-  const program = new ScatterOptimizedProgram(
+  const program = new ScatterProgram(
       flattenX.shape, sliceRank, flattenIndices.shape.length,
       flattenX.shape.length, strides, flattenShape, type);
   const res = backend.runWebGPUProgram(

@@ -22,6 +22,7 @@ package(default_visibility = ["//visibility:public"])
 TEST_SRCS = [
     "**/*_test.ts",
     "test_node.ts",
+    "test_util.ts",
 ]
 
 TEST_ENTRYPOINTS = [
@@ -96,6 +97,7 @@ ts_library(
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
         "@npm//@types/jasmine",
+        "@npm//core-js",
         "@npm//jasmine",
     ],
 )
@@ -114,6 +116,7 @@ esbuild(
         "os",
     ],
     sources_content = True,
+    target = "es6",
     deps = [
         ":tfjs-backend-wasm_lib",
         ":tfjs-backend-wasm_test_lib",

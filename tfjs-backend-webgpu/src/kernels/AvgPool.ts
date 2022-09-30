@@ -14,13 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {identity} from './Identity';
-import {Pool2DProgram} from '../pool2d_webgpu';
-import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
+import {poolImpl} from './Pool_impl';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):
@@ -32,30 +29,8 @@ export function avgPool(
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-    return identity({inputs: {x}, backend});
-  }
 
-  let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
-  const dimensions =
-      [{type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}];
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-    program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
-  } else {
-    program = new Pool2DProgram(convInfo, 'avg');
-    dimensions.push(
-        {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]}, {
-          type: 'int32',
-          data: [convInfo.dilationHeight, convInfo.dilationWidth]
-        },
-        {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}, {
-          type: 'int32',
-          data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
-        });
-  }
-
-  return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
+  return poolImpl(x, convInfo, 'avg', backend);
 }
 
 export const avgPoolConfig: KernelConfig = {

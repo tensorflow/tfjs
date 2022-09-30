@@ -96,18 +96,21 @@ cc_binary(
 wasm_cc_binary(
     name = "tfjs-backend-wasm",
     cc_target = ":tfjs-backend-wasm.js",
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
     cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
     cc_target = ":tfjs-backend-wasm-threaded-simd.js",
     simd = True,
+    tags = ["local"],
     threads = "emscripten",
 )
 
@@ -343,6 +346,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ResizeNearestNeighbor",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
@@ -801,6 +805,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":unary",
         ":util",
     ],
 )
@@ -1033,6 +1038,16 @@ tfjs_cc_library(
     name = "ResizeBilinear",
     srcs = ["kernels/ResizeBilinear.cc"],
     hdrs = ["kernels/ResizeBilinear.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighbor",
+    srcs = ["kernels/ResizeNearestNeighbor.cc"],
+    hdrs = ["kernels/ResizeNearestNeighbor.h"],
     deps = [
         ":backend",
         ":util",

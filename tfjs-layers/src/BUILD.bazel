@@ -78,9 +78,7 @@ ts_library(
 
 ts_library(
     name = "tfjs-layers_test_lib",
-    # disable testonly for the issue in the nodejs build target.
-    # https://github.com/bazelbuild/rules_nodejs/pull/2984
-    #testonly = True,
+    testonly = True,
     srcs = glob(TEST_SRCS) + [":tests"],
     module_name = "@tensorflow/tfjs-layers/dist",
     deps = [

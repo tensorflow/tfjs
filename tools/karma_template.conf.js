@@ -17,7 +17,6 @@
 
 const browserstackConfig = {
   hostname: 'bs-local.com',
-  reporters: ['dots'],
   port: 9876,
 };
 
@@ -45,11 +44,11 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra'
   },
-  bs_ios_11: {
+  bs_ios_12: {
     base: 'BrowserStack',
-    device: 'iPhone X',
+    device: 'iPhone XS',
     os: 'ios',
-    os_version: '11.0',
+    os_version: '12.3',
     real_mobile: true
   },
   bs_android_9: {
@@ -62,7 +61,7 @@ const CUSTOM_LAUNCHERS = {
   win_10_chrome: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '101.0',
+    browser_version: '104.0',
     os: 'Windows',
     os_version: '10'
   },
@@ -70,11 +69,27 @@ const CUSTOM_LAUNCHERS = {
     base: 'Chrome',
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
   },
+  chrome_autoplay: {
+    base: 'Chrome',
+    flags: ['--autoplay-policy=no-user-gesture-required'],
+  },
+  chrome_webgpu_linux: {
+    base: 'ChromeCanary',
+    flags: [
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-begin',
+      '--enable-unsafe-webgpu',
+      '--enable-features=Vulkan,UseSkiaRenderer',
+      '--flag-switches-end',
+    ]
+  },
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-begin',
       '--enable-unsafe-webgpu',
-      '--disable-dawn-features=disallow_unsafe_apis'
+      '--flag-switches-end',
     ]
   },
   chrome_debugging:
@@ -120,6 +135,16 @@ module.exports = function(config) {
   }
 
   config.set({
+    reporters: [
+      'kjhtml',
+      'jasmine-order',
+    ],
+    frameworks: ['jasmine'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+      require('karma-jasmine-order-reporter'),
+    ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,

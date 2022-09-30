@@ -22,7 +22,7 @@ import {norm} from './norm';
 import {op} from './operation';
 
 /**
- * Computes the euclidean norm of scalar, vectors, and matrices.
+ * Computes the Euclidean norm of scalar, vectors, and matrices.
  *
  * ```js
  * const x = tf.tensor1d([1, 2, 3, 4]);
@@ -34,12 +34,12 @@ import {op} from './operation';
  * @param axis Optional. If axis is null (the default), the input is
  * considered a vector and a single vector norm is computed over the entire
  * set of values in the Tensor, i.e. euclideanNorm(x) is equivalent
- * to euclideanNorm(x.reshape([-1])). If axis is a integer, the input
+ * to euclideanNorm(x.reshape([-1])). If axis is an integer, the input
  * is considered a batch of vectors, and axis determines the axis in x
  * over which to compute vector norms. If axis is a 2-tuple of integer it is
  * considered a batch of matrices and axis determines the axes in NDArray
  * over which to compute a matrix norm.
- * @param keepDims Optional. If true, the norm have the same dimensionality
+ * @param keepDims Optional. If true, the norm has the same dimensionality
  * as the input.
  *
  * @doc {heading: 'Operations', subheading: 'Matrices'}

@@ -18,6 +18,7 @@
 export enum BinaryOpType {
   MUL,
   ADD,
+  ATAN2,
   SUB,
   DIV,
   EQUAL,
@@ -36,6 +37,31 @@ export enum BinaryOpType {
   COMPLEX_MULTIPLY_REAL,
   COMPLEX_MULTIPLY_IMAG
 }
+
+const CHECK_NAN_SNIPPET = `
+  if (isnan(a)) { return a; }
+  if (isnan(b)) { return b; }
+  `;
+
+const CHECK_NAN_SNIPPET_VEC4_INNER = `
+  if (isNaN.r) {
+    resultTemp.r = valueForNaN;
+  }
+  if (isNaN.g) {
+    resultTemp.g = valueForNaN;
+  }
+  if (isNaN.b) {
+    resultTemp.b = valueForNaN;
+  }
+  if (isNaN.a) {
+    resultTemp.a = valueForNaN;
+  }
+  `;
+
+const CHECK_NAN_SNIPPET_VEC4 = `
+  let isNaN = isnanVec4(a) | isnanVec4(b);
+  ${CHECK_NAN_SNIPPET_VEC4_INNER}
+  `;
 
 const ADD = 'return a + b;';
 // (Ar + Ai)(Br + Bi) =
@@ -61,24 +87,6 @@ const LESS_EQUAL_VEC4 = 'return vec4<f32>(a <= b);';
 const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
-const CHECK_NAN_SNIPPET = `
-  if (isnan(a)) { return a; }
-  if (isnan(b)) { return b; }
-  `;
-const CHECK_NAN_SNIPPET_VEC4 = `
-  if (isNaN.r) {
-    resultTemp.r = uniforms.NAN;
-  }
-  if (isNaN.g) {
-    resultTemp.g = uniforms.NAN;
-  }
-  if (isNaN.b) {
-    resultTemp.b = uniforms.NAN;
-  }
-  if (isNaN.a) {
-    resultTemp.a = uniforms.NAN;
-  }
-  `;
 const INT_DIV = `
   let s = sign(a) * sign(b);
   let ia = i32(round(a));
@@ -109,8 +117,19 @@ const INT_DIV_VEC4 = `
   return vec4<f32>(resultTemp);
   `;
 
-const NOT_EQUAL = 'return f32(a != b);';
-const NOT_EQUAL_VEC4 = 'return vec4<f32>(a != b);';
+const NOT_EQUAL = `
+  if (isnan(a) || isnan(b)) {
+    return 1.0;
+  }
+  return f32(a != b);
+`;
+const NOT_EQUAL_VEC4 = `
+  var resultTemp = vec4<f32>(a != b);
+  let valueForNaN = 1.0;
+  ${CHECK_NAN_SNIPPET_VEC4}
+
+  return resultTemp;
+`;
 const POW = `
   if(a < 0.0 && floor(b) < b) {
     return uniforms.NAN;
@@ -143,8 +162,9 @@ const POW_VEC4 = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
-  ${CHECK_NAN_SNIPPET_VEC4}
+  let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
+  let valueForNaN = uniforms.NAN;
+  ${CHECK_NAN_SNIPPET_VEC4_INNER}
   return resultTemp;
   `;
 
@@ -154,11 +174,12 @@ const PRELU_VEC4 = `
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
   `;
 
-function getMinMaxString(op: string, useVec4: boolean) {
+function getBinaryWithNanString(
+    op: string, useVec4: boolean, valueForNaN = 'uniforms.NAN') {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
+    let valueForNaN = ${valueForNaN};
     var resultTemp = vec4<f32>(${op}(a, b));
-    let isNaN = isnanVec4(a) | isnanVec4(b);
     ` + checkNanSnippet +
           `
     return resultTemp;
@@ -175,6 +196,8 @@ export function getBinaryOpString(
       return MUL;
     case BinaryOpType.ADD:
       return ADD;
+    case BinaryOpType.ATAN2:
+      return getBinaryWithNanString('atan2', useVec4);
     case BinaryOpType.SUB:
       return SUB;
     case BinaryOpType.DIV:
@@ -200,9 +223,9 @@ export function getBinaryOpString(
     case BinaryOpType.PRELU:
       return useVec4 ? PRELU_VEC4 : PRELU;
     case BinaryOpType.MAX:
-      return getMinMaxString('max', useVec4);
+      return getBinaryWithNanString('max', useVec4);
     case BinaryOpType.MIN:
-      return getMinMaxString('min', useVec4);
+      return getBinaryWithNanString('min', useVec4);
     case BinaryOpType.POW:
       return useVec4 ? POW_VEC4 : POW;
     case BinaryOpType.COMPLEX_MULTIPLY_REAL:

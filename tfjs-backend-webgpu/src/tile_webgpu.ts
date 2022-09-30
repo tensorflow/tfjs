@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TileProgram implements WebGPUProgram {
@@ -45,7 +45,7 @@ export class TileProgram implements WebGPUProgram {
     const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           setOutputAtIndex(index, getA(${sourceCoords}));

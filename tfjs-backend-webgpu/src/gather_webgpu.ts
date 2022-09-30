@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class GatherProgram implements WebGPUProgram {
@@ -41,7 +41,7 @@ export class GatherProgram implements WebGPUProgram {
   getUserCode(): string {
     const sourceCoords = getSourceCoords(this.aShape);
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           let indexZ = i32(getIndices(resRC.x, resRC.z));

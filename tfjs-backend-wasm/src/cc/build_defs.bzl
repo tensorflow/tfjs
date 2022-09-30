@@ -8,6 +8,9 @@ def tfjs_unit_test(name, srcs, deps = [], **kwargs):
             need to be explicitly specified.
     """
 
+    linkopts = kwargs.pop("linkopts", [])
+    linkopts += ["-lm"]  # Link math.h.
+
     native.cc_test(
         name = name,
         srcs = srcs,
@@ -15,6 +18,7 @@ def tfjs_unit_test(name, srcs, deps = [], **kwargs):
         deps = [
             "@com_google_googletest//:gtest_main",
         ] + deps,
+        linkopts = linkopts,
         **kwargs
     )
 

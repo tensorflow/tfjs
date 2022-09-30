@@ -207,14 +207,14 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
            inputShape);
        const w = tf.tensor4d(
            [
-             0., 1., 2., 3., 4., 5., 6., 7., 8.,
-             9., 10., 11., 12., 13., 14., 15.
+             0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.,
+             15.
            ],
            [fSize, fSize, origInputDepth, origOutputDepth]);
 
        expect(
            () => tf.conv2dTranspose(
-              x, w, [1, 3, 3, 1], origStride, origPad, dimRoundingMode))
+               x, w, [1, 3, 3, 1], origStride, origPad, dimRoundingMode))
            .toThrowError();
      });
 
@@ -239,14 +239,14 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
            inputShape);
        const w = tf.tensor4d(
            [
-             0., 1., 2., 3., 4., 5., 6., 7., 8.,
-             9., 10., 11., 12., 13., 14., 15.
+             0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.,
+             15.
            ],
            [fSize, fSize, origInputDepth, origOutputDepth]);
 
        expect(
            () => tf.conv2dTranspose(
-              x, w, [1, 3, 3, 1], origStride, origPad, dimRoundingMode))
+               x, w, [1, 3, 3, 1], origStride, origPad, dimRoundingMode))
            .toThrowError();
      });
 
@@ -664,6 +664,46 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     const expected = [6, 2, 10, 0];
 
     expect(result.shape).toEqual([2, 2, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('input=8x8x8,output=4x4x8,f=8,s=1,inDepth=8,p=same vec4', async () => {
+    const origInputDepth = 8;
+    const origOutputDepth = 8;
+    const inputShape: [number, number, number, number] =
+        [1, 8, 8, origOutputDepth];
+    const fSize = 8;
+    const origPad = 'same';
+    const origStride: [number, number] = [1, 1];
+    const wShape: [number, number, number, number] =
+        [fSize, fSize, origInputDepth, origOutputDepth];
+
+    const inputData = [];
+    for (let i = 0; i < fSize * fSize * origInputDepth; i++) {
+      inputData.push(i % 5);
+    }
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * origInputDepth * origOutputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, wShape);
+    const result = tf.conv2dTranspose(
+        x, w, [1, 4, 4, origInputDepth], origStride, origPad);
+    expect(result.shape).toEqual([1, 4, 4, 8]);
+
+    const expected = [
+      512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506,
+      512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506,
+      512, 533, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533,
+      469, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533,
+      469, 550, 506, 512, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550,
+      506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550,
+      506, 512, 533, 469, 550, 506, 469, 550, 506, 512, 533, 469, 550, 506, 512,
+      533, 469, 550, 506, 512, 533, 469, 550, 506, 512, 533, 469, 550, 506, 512,
+      533, 469, 550, 506, 512, 533, 469, 550
+    ];
     expectArraysClose(await result.data(), expected);
   });
 });

@@ -438,7 +438,7 @@ describe('control', () => {
       };
       const condExecutor = new GraphExecutor(graph);
       let firstTime = true;
-      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(() => {
+      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(async () => {
         if (firstTime) {
           firstTime = false;
           return input1;
@@ -447,7 +447,8 @@ describe('control', () => {
       });
       const bodyExecutor = new GraphExecutor(graph);
       const input3 = [tfOps.scalar(3, 'int32')];
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
+      spyOn(bodyExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input3));
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -488,7 +489,7 @@ describe('control', () => {
       };
       const condExecutor = new GraphExecutor(graph);
       let firstTime = true;
-      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(() => {
+      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(async () => {
         if (firstTime) {
           firstTime = false;
           return input1;
@@ -497,7 +498,8 @@ describe('control', () => {
       });
       const bodyExecutor = new GraphExecutor(graph);
       const input3 = [tfOps.scalar(3, 'int32')];
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
+      spyOn(bodyExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input3));
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -538,9 +540,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -569,9 +573,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -612,9 +618,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -643,9 +651,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);

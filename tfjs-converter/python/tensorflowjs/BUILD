@@ -1,5 +1,5 @@
-load("@//:python_toolchain.bzl", requirement = "dev_requirement")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@tensorflowjs_dev_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [
@@ -19,7 +19,7 @@ py_library(
     data = [
         "//tfjs-converter/python/tensorflowjs/op_list:ops",
     ],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         ":resource_loader",
@@ -30,11 +30,38 @@ py_library(
 )
 
 py_library(
+    name = "expect_flax_installed",
+    # This is a dummy rule used as a Flax dependency in open-source.
+    # We expect JAX to already be installed on the system, e.g. via
+    # `pip install flax`.
+    deps = [requirement("flax")],
+)
+
+py_library(
     name = "expect_h5py_installed",
     # This is a dummy rule used as a h5py dependency in open-source.
     # We expect h5py to already be installed on the system, e.g. via
     # `pip install h5py`.
     deps = [requirement("h5py")],
+)
+
+py_library(
+    name = "expect_jax_installed",
+    # This is a dummy rule used as a JAX dependency in open-source.
+    # We expect JAX to already be installed on the system, e.g. via
+    # `pip install jax`.
+    deps = [
+        requirement("jax"),
+        requirement("importlib_resources"),
+    ],
+)
+
+py_library(
+    name = "expect_jax2tf_installed",
+    # This is a dummy rule used as a jax2tf dependency in open-source.
+    # We expect jax2tf to already be installed on the system, e.g. via
+    # `pip install jax`.
+    deps = [requirement("jax")],
 )
 
 py_library(
@@ -77,7 +104,7 @@ py_library(
 py_library(
     name = "quantization",
     srcs = ["quantization.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":expect_numpy_installed",
     ],
@@ -86,7 +113,7 @@ py_library(
 py_library(
     name = "write_weights",
     srcs = ["write_weights.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":expect_numpy_installed",
         ":expect_tensorflow_installed",
@@ -98,7 +125,7 @@ py_library(
 py_library(
     name = "read_weights",
     srcs = ["read_weights.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [
         ":expect_numpy_installed",
         ":quantization",
@@ -108,13 +135,13 @@ py_library(
 py_library(
     name = "resource_loader",
     srcs = ["resource_loader.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
 )
 
 py_library(
     name = "version",
     srcs = ["version.py"],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     deps = [],
 )
 
@@ -122,7 +149,7 @@ py_test(
     name = "quantization_test",
     srcs = ["quantization_test.py"],
     imports = [".."],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["ci"],
     deps = [
         ":expect_numpy_installed",
@@ -134,7 +161,7 @@ py_test(
     name = "write_weights_test",
     srcs = ["write_weights_test.py"],
     imports = [".."],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["ci"],
     deps = [
         ":expect_numpy_installed",
@@ -147,7 +174,7 @@ py_test(
     name = "read_weights_test",
     srcs = ["read_weights_test.py"],
     imports = [".."],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["ci"],
     deps = [
         ":expect_numpy_installed",
@@ -162,7 +189,7 @@ py_test(
     srcs = ["resource_loader_test.py"],
     data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     imports = [".."],
-    srcs_version = "PY2AND3",
+    srcs_version = "PY3",
     tags = ["ci"],
     deps = [
         ":resource_loader",

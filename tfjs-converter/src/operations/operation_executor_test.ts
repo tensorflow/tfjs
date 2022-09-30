@@ -81,7 +81,7 @@ describe('OperationExecutor', () => {
             const tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
 
             node.category = category.CATEGORY;
-            executeOp(node, {}, context, undefined, tidySpy);
+            executeOp(node, {}, context, undefined, tidySpy as typeof tfc.tidy);
             expect(tidySpy).toHaveBeenCalled();
           });
         });

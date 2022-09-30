@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FillProgram implements WebGPUProgram {
@@ -39,7 +39,7 @@ export class FillProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-    ${getMainHeaderAndGlobalIndexString()}
+    ${main('index')} {
       if (index < uniforms.size) {
         setOutputAtIndex(index, uniforms.value);
       }

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ClipProgram implements WebGPUProgram {
@@ -41,7 +41,7 @@ export class ClipProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
           if (isnan(value)) {

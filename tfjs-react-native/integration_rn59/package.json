@@ -29,7 +29,7 @@
     "expo-gl-cpp": "^7.0.0",
     "expo-image-manipulator": "^6.0.0",
     "jasmine-core": "^3.4.0",
-    "jpeg-js": "^0.4.3",
+    "jpeg-js": "^0.4.4",
     "react": "16.8.3",
     "react-native": "0.59.10",
     "react-native-fs": "2.14.1",

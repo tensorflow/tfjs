@@ -165,7 +165,7 @@ describe('CSVDataset', () => {
     ]);
   });
 
-  it('throw error when column configs mismatch column names', async done => {
+  it('throw error when column configs mismatch column names', async () => {
     try {
       const source = new FileDataSource(csvData, {chunkSize: 10});
       const dataset = new CSVDataset(source, {
@@ -174,27 +174,25 @@ describe('CSVDataset', () => {
         columnConfigs: {'A': {required: true}}
       });
       await dataset.columnNames();
-      done.fail();
+      fail();
     } catch (error) {
       expect(error.message)
           .toBe(
               'The key "A" provided in columnConfigs does not ' +
               'match any of the column names (foo,bar,baz).');
-      done();
     }
   });
 
   it('throw error when no header line and no column names provided',
-     async done => {
+     async () => {
        try {
          const source = new FileDataSource(csvData, {chunkSize: 10});
          const dataset = new CSVDataset(source, {hasHeader: false});
          await dataset.columnNames();
-         done.fail();
+         fail();
        } catch (error) {
          expect(error.message)
              .toBe('Column names must be provided if there is no header line.');
-         done();
        }
      });
 
@@ -233,7 +231,7 @@ describe('CSVDataset', () => {
     expect(elements[4].value).toEqual({A: 5, B: 2, C: 3});
   });
 
-  it('throw error when required column is empty', async done => {
+  it('throw error when required column is empty', async () => {
     try {
       const source = new FileDataSource(csvData, {chunkSize: 10});
       const dataset = new CSVDataset(source, {
@@ -244,11 +242,10 @@ describe('CSVDataset', () => {
       expect(await dataset.columnNames()).toEqual(['foo', 'bar', 'baz']);
       const iter = await dataset.iterator();
       await iter.toArrayForTest();
-      done.fail();
+      fail();
     } catch (error) {
       expect(error.message)
           .toBe('Required column foo is empty in this line: ,mn,op');
-      done();
     }
   });
 
@@ -333,18 +330,17 @@ describe('CSVDataset', () => {
     ]);
   });
 
-  it('reads CSV with wrong column', async done => {
+  it('reads CSV with wrong column', async () => {
     try {
       const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
       const dataset =
           new CSVDataset(source, {columnNames: ['bar', 'foooooooo']});
       await dataset.columnNames();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'The length of provided columnNames (2) does not match the length ' +
           'of the header line read from file (3).');
-      done();
     }
   });
 
@@ -366,7 +362,7 @@ describe('CSVDataset', () => {
     ]);
   });
 
-  it('reads CSV with missing label value', async done => {
+  it('reads CSV with missing label value', async () => {
     try {
       const source = new FileDataSource(csvDataWithHeaders, {chunkSize: 10});
       const dataset =
@@ -378,11 +374,10 @@ describe('CSVDataset', () => {
       // unrelated tests to fail (See
       // https://github.com/tensorflow/tfjs/issues/1330.
       await iter.toArray();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'Required column baz is empty in this line: qrs,tu,');
-      done();
     }
   });
 
@@ -419,7 +414,7 @@ describe('CSVDataset', () => {
     ]);
   });
 
-  it('check duplicate column names', async done => {
+  it('check duplicate column names', async () => {
     try {
       const csvStringWithDuplicateColumnNames = `foo,bar,foo
     ` + csvString;
@@ -430,13 +425,13 @@ describe('CSVDataset', () => {
           new FileDataSource(csvDataWithDuplicateColumnNames, {chunkSize: 10});
       const dataset = new CSVDataset(source);
       await dataset.columnNames();
+      fail();
     } catch (e) {
       expect(e.message).toEqual('Duplicate column names found: foo');
-      done();
     }
   });
 
-  it('throw error with missing elements', async done => {
+  it('throw error with missing elements', async () => {
     try {
       const source =
           new FileDataSource(csvDataWithMissingElement, {chunkSize: 10});
@@ -444,12 +439,11 @@ describe('CSVDataset', () => {
       expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
       const iter = await dataset.iterator();
       await iter.toArrayForTest();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'Invalid row in csv file. Should have 3 elements in a row, ' +
           'but got 2,');
-      done();
     }
   });
 
@@ -482,18 +476,17 @@ describe('CSVDataset', () => {
   });
 
   it('throw error when delimiter is provided and delimWhitespace is true',
-     async done => {
+     async () => {
        try {
          const source =
              new FileDataSource(csvDataWithMultiWhitespaces, {chunkSize: 10});
          const dataset =
              new CSVDataset(source, {delimiter: ',', delimWhitespace: true});
          expect(await dataset.columnNames()).toEqual(['A', 'B', 'C']);
-         done.fail();
+         fail();
        } catch (e) {
          expect(e.message).toEqual(
              'Delimiter should not be provided when delimWhitespace is true.');
-         done();
        }
      });
 

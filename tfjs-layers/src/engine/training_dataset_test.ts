@@ -2944,7 +2944,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
     expect(onYieldBatchesIds).toEqual([2, 0]);
   });
 
-  it('fails when onYield is provided, but yieldEvery is never', async done => {
+  it('fails when onYield is provided, but yieldEvery is never', async () => {
     const model = createDenseModel();
     model.compile(
         {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
@@ -2975,10 +2975,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
         yieldEvery: 'never',
         callbacks: {onYield: async (_epoch, _batch, _logs) => {}},
       });
-      done.fail('Model.fit should fail');
-    } catch {
-      done();
-    }
+      fail('Model.fit should fail');
+    } catch {}
   });
 });
 

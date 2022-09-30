@@ -29,7 +29,7 @@ import {op} from './operation';
  * Pads a `tf.Tensor` with a given value and paddings.
  *
  * This operation implements `CONSTANT` mode. For `REFLECT` and `SYMMETRIC`,
- * refer to `tf.mirrorPad`
+ * refer to `tf.mirrorPad`.
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that `paddings` is of given length.

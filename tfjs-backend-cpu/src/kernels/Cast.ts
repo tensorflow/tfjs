@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {Cast, CastAttrs, CastInputs, DataType, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
@@ -23,6 +23,28 @@ import {zeros} from '../utils/zeros_impl';
 import {complex} from './Complex';
 import {identity} from './Identity';
 import {real} from './Real';
+
+export function castImpl(
+    values: TypedArray, shape: number[], inputType: DataType,
+    dtype: DataType): [number[], DataType, TypedArray] {
+  if (dtype === 'int32') {
+    const resultValues = Int32Array.from(values);
+    return [shape, 'int32', resultValues];
+  }
+
+  if (dtype === 'bool') {
+    // This is essentially the result of notEqual(x, 0). We avoid using
+    // kernel notEqual to avoid circular dependency, i.e. binary_utils ->
+    // cast -> notEqual -> binary_utils.
+    const zero = util.toTypedArray([0], inputType);
+
+    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
+        (a, b) => (a !== b) ? 1 : 0)(shape, [], values, zero, 'bool');
+
+    return [resultShape, 'bool', resultData];
+  }
+  throw new Error(`Error in Cast: failed to cast ${inputType} to ${dtype}`);
+}
 
 export function cast(
     args: {inputs: CastInputs, backend: MathBackendCPU, attrs: CastAttrs}):
@@ -66,26 +88,10 @@ export function cast(
     return {dataId: result.dataId, shape: result.shape, dtype};
   }
 
-  if (dtype === 'int32') {
-    const values = backend.data.get(x.dataId).values as TypedArray;
-    const resultValues = Int32Array.from(values);
-    return backend.makeTensorInfo(x.shape, 'int32', resultValues);
-  }
-
-  if (dtype === 'bool') {
-    // This is essentially the result of notEqual(x, 0). We avoid using
-    // kernel notEqual to avoid circular dependency, i.e. binary_utils ->
-    // cast -> notEqual -> binary_utils.
-    const xVals = backend.data.get(x.dataId).values as TypedArray;
-    const zero = util.toTypedArray([0], x.dtype);
-
-    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
-        (a, b) => (a !== b) ? 1 : 0)(x.shape, [], xVals, zero, 'bool');
-
-    return backend.makeTensorInfo(resultShape, 'bool', resultData);
-  }
-
-  throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
+  const values = backend.data.get(x.dataId).values as TypedArray;
+  const [resultShape, resultType, resultData] =
+      castImpl(values, x.shape, x.dtype, dtype);
+  return backend.makeTensorInfo(resultShape, resultType, resultData);
 }
 
 export const castConfig: KernelConfig = {

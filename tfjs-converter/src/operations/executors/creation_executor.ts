@@ -26,8 +26,8 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Fill': {
           const shape =
@@ -64,7 +64,9 @@ export const executeOp: InternalOpExecutor =
               getParamValue('onValue', node, tensorMap, context) as number;
           const offValue =
               getParamValue('offValue', node, tensorMap, context) as number;
-          return [ops.oneHot(indices, depth, onValue, offValue)];
+          const dtype =
+              getParamValue('dtype', node, tensorMap, context) as DataType;
+          return [ops.oneHot(indices, depth, onValue, offValue, dtype)];
         }
         case 'Ones': {
           return [ops.ones(

@@ -22,8 +22,7 @@ import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/d
 
 import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath, setWasmPaths} from './index';
-
-const VALID_PREFIX = '/base/tfjs/tfjs-backend-wasm/wasm-out/';
+import {VALID_PREFIX, setupCachedWasmPaths} from './test_util';
 
 /**
  * Tests specific to the wasm backend. The name of these tests must start with
@@ -68,7 +67,8 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setupCachedWasmPaths();
     registerBackend('wasm-test', async () => {
       const {wasm} = await init();
       return new BackendWasm(wasm);
@@ -79,19 +79,20 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     spyOn(console, 'log');
   });
 
-  afterEach(() => {
-    resetWasmPath();
-    setWasmPaths(VALID_PREFIX);
+  afterEach(async () => {
     removeBackend('wasm-test');
   });
 
+  afterAll(setupCachedWasmPaths);
+
   it('backend init fails when the path is invalid', async () => {
+    resetWasmPath();
     setWasmPath('invalid/path');
     let wasmPath: string;
-    const realFetch = fetch;
     spyOn(self, 'fetch').and.callFake((path: string) => {
       wasmPath = path;
-      return realFetch(path);
+      return Promise.reject(
+        new TypeError('Failed to fetch because invalid path'));
     });
     expect(await tf.setBackend('wasm-test')).toBe(false);
     expect(wasmPath).toBe('invalid/path');
@@ -100,12 +101,13 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid prefix',
      async () => {
+       resetWasmPath();
        setWasmPaths('invalid/prefix/');
        let wasmPath: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPath = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid prefix'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPath).toContain('invalid/prefix');
@@ -114,16 +116,17 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid fileMap',
      async () => {
+       resetWasmPath();
        setWasmPaths({
          'tfjs-backend-wasm.wasm': 'invalid/path',
          'tfjs-backend-wasm-simd.wasm': 'invalid/path',
          'tfjs-backend-wasm-threaded-simd.wasm': 'invalid/path'
        });
        let wasmPathPrefix: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPathPrefix = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid paths'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPathPrefix).toBe('invalid/path');
@@ -154,6 +157,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
 
     it('backend init works when the path is valid', async () => {
       const usePlatformFetch = true;
+      resetWasmPath();
       setWasmPaths(VALID_PREFIX, usePlatformFetch);
       let wasmPath: string;
       fetchSpy.and.callFake((path: string) => {
@@ -214,7 +218,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
       let wasmPath: string;
       fetchSpy.and.callFake((path: string) => {
         wasmPath = path;
-        return realFetch(path);
+        return Promise.reject(
+          new TypeError('Failed to fetch because invalid path'));
       });
       expect(await tf.setBackend('wasm-test')).toBe(false);
       expect(wasmPath).toBe('invalid/path');
@@ -234,29 +239,4 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
-});
-
-describe('wasm pre.js', () => {
-  // Temporarily disabled due to node 16 incompatability
-  // it('works if process variable is undefined', async () => {
-  //   tf.engine().reset();
-
-  //   const savedProcess = process;
-  //   // This test is not perfect since checks like `if (process)` will not
-  //   // throw errors if process is set to undefined, however, process can not
-  //   // be `delete`d due to strict mode.
-
-  //   process = undefined;
-
-  //   try {
-  //     await tf.setBackend('wasm');
-  //   } catch (e) {
-  //     fail(e);
-  //   } finally {
-  //     process = savedProcess;
-  //   }
-
-  //   tf.engine().disposeVariables();
-  //   tf.engine().reset();
-  // });
 });

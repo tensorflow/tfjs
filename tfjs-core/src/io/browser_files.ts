@@ -318,7 +318,7 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *   loading from files that contain Keras-style models (i.e., `tf.Model`s), for
  *   which an `Array` of `File`s is expected (in that order):
  *   - A JSON file containing the model topology and weight manifest.
- *   - Optionally, One or more binary files containing the binary weights.
+ *   - Optionally, one or more binary files containing the binary weights.
  *     These files must have names that match the paths in the `weightsManifest`
  *     contained by the aforementioned JSON file, or errors will be thrown
  *     during loading. These weights files have the same format as the ones
