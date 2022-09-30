@@ -47,12 +47,15 @@ def _make_karma_config_impl(ctx):
     if grep:
         args = args + ["--grep=" + grep]
 
+    seed = ctx.attr.seed
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
             "TEMPLATE_args": str(args),
             "TEMPLATE_browser": ctx.attr.browser,
+            "TEMPLATE_jasmine_random": "false" if seed else "true",
+            "TEMPLATE_jasmine_seed": seed if seed else "undefined",
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -71,6 +74,13 @@ _make_karma_config = rule(
             default = "",
             doc = "The browser to run",
         ),
+        "seed": attr.string(
+            default = "",
+            doc = """Use this seed for test order.
+
+            If not specified or empty, use a random seed every time.
+            """,
+        ),
         "template": attr.label(
             default = Label("@//tools:karma_template.conf.js"),
             allow_single_file = True,
@@ -84,6 +94,7 @@ _make_karma_config = rule(
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
     local_browser = kwargs.pop("local_browser", "")
+    seed = kwargs.pop("seed", "")
     headless = kwargs.pop("headless", True)
 
     browsers = kwargs.pop("browsers", [
@@ -111,6 +122,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         name = config_file,
         args = args,
         browser = local_browser,
+        seed = seed,
     )
 
     karma_web_test(
@@ -131,6 +143,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
             name = config_file,
             browser = browser,
             args = args,
+            seed = seed,
         )
 
         additional_tags = ["no-remote-exec"]
