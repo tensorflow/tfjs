@@ -58,14 +58,10 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
 
   let binCounts;
 
-  if((typeof weights) !== 'undefined' && outputMode === count) {
-
+  if ((typeof weights) !== 'undefined' && outputMode === count) {
     binCounts = denseBincount(denseBincountInput, weights, depth, binaryOutput);
-
    } else {
-
     binCounts = denseBincount(denseBincountInput, [], depth, binaryOutput);
-
    }
 
   if(outputMode !== tfIdf) {
