@@ -4,11 +4,7 @@ import { expandDims} from '@tensorflow/tfjs-core';
 import { ValueError } from '../../errors';
 import * as K from '../../backend/tfjs_backend';
 
-export const int = 'int';
-export const oneHot = 'oneHot';
-export const multiHot = 'multiHot';
-export const count = 'count';
-export const tfIdf = 'tfIdf';
+export type OutputMode = 'int' | 'oneHot' | 'multiHot' | 'count' | 'tfIdf';
 
 export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
                                         outputMode: string,
