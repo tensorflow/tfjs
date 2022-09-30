@@ -75,7 +75,7 @@ export class CategoryEncoding extends Layer {
         inputs = K.cast(inputs, 'int32');
     }
 
-       let countWeights;
+       let countWeights: Tensor1D | Tensor2D;
 
       if((typeof kwargs['countWeights']) !== 'undefined') {
 
