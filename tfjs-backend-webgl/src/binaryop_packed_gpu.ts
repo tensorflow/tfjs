@@ -21,11 +21,11 @@ import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
-export const CHECK_NAN_SNIPPET = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
+export const CHECK_NAN_SNIPPET_PACKED = `
+  result.r = isNaN.r ? NAN : result.r;
+  result.g = isNaN.g ? NAN : result.g;
+  result.b = isNaN.b ? NAN : result.b;
+  result.a = isNaN.a ? NAN : result.a;
 `;
 
 export const ELU_DER = `
