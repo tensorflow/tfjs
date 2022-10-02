@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '../tensor';
+import {Tensor, WebGLData} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
@@ -51,7 +51,8 @@ import {makeTensor} from './tensor_ops_util';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 export function tensor<R extends Rank>(
-    values: TensorLike, shape?: ShapeMap[R], dtype?: DataType): Tensor<R> {
+    values: TensorLike|WebGLData, shape?: ShapeMap[R],
+    dtype?: DataType): Tensor<R> {
   const inferredShape = inferShape(values, dtype);
   return makeTensor(values, shape, inferredShape, dtype) as Tensor<R>;
 }

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {WebGLData} from './tensor';
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
@@ -504,8 +505,8 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}):
-  a is Float32Array|Int32Array|Uint8Array|Uint8ClampedArray {
+export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
+    Uint8ClampedArray {
   return a instanceof Float32Array || a instanceof Int32Array ||
       a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
@@ -550,15 +551,15 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike): DataType {
+export function inferDtype(values: TensorLike|WebGLData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array
-             || values instanceof Uint8Array
-             || values instanceof Uint8ClampedArray) {
+  } else if (
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';

@@ -17,11 +17,12 @@
 
 import {ENGINE} from './engine';
 import {env} from './environment';
-import {Tensor} from './tensor';
+import {Tensor, WebGLData} from './tensor';
 import {DataType, TensorLike} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
 
-export function inferShape(val: TensorLike, dtype?: DataType): number[] {
+export function inferShape(
+    val: TensorLike|WebGLData, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
@@ -29,6 +30,10 @@ export function inferShape(val: TensorLike, dtype?: DataType): number[] {
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
+  }
+  if ('texture' in val) {
+    val = val as WebGLData;
+    return [val.height, val.width];
   }
   const shape: number[] = [];
 

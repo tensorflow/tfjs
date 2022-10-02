@@ -41,7 +41,6 @@ import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
-import {gpgpu_util} from './webgl';
 import * as webgl_util from './webgl_util';
 
 const whereImpl = kernel_impls.whereImpl;
@@ -1385,12 +1384,10 @@ export class MathBackendWebGL extends KernelBackend {
     // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
     // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
 
-    const {texture, height, width, format, type} = values;
+    const {texture, height, width, format} = values;
 
     const backend = engine().backend as MathBackendWebGL;
     const gl = backend.gpgpu.gl;
-    const texConfig = backend.gpgpu.textureConfig;
-    let params: gpgpu_util.TextureCreationParams;
 
     const isPacked = format === gl.RGBA;
 
@@ -1402,29 +1399,6 @@ export class MathBackendWebGL extends KernelBackend {
         () =>
             `The size of ${isPacked ? 'packed ' : ''}texture ${texSize} does ` +
             `not match the size of expected tensor ${tensorSize}.`);
-
-    if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
-      params = isPacked ?
-          gpgpu_util.getPackedMatrixTextureParams(gl, texConfig) :
-          gpgpu_util.getFloat32MatrixTextureParams(gl, texConfig);
-    } else {
-      params = isPacked ?
-          gpgpu_util.getFloat16PackedMatrixTextureParams(gl, texConfig) :
-          gpgpu_util.getFloat16MatrixTextureParams(gl, texConfig);
-    }
-
-    // Ensure that the properties of the texture match the expectations of the
-    // WebGL backend.
-
-    // util.assert(
-    //     format === params.internalFormat,
-    //     () => `The internalFormat must be ${params.internalFormat}.`);
-    util.assert(
-        format === params.textureFormat,
-        () => `The textureFormat must be ${params.textureFormat}.`);
-    util.assert(
-        type === params.textureType,
-        () => `The textureType must be ${params.textureType}.`);
 
     const dataId =
         backend.writeTexture(texture, shape, dtype, height, width, isPacked);

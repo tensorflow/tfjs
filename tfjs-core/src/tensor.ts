@@ -177,7 +177,6 @@ export interface WebGLData {
   height: number;
   width: number;
   format: number;
-  type: number;
 }
 
 export interface TensorTracker {
