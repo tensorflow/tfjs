@@ -50,7 +50,7 @@ load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 
 nodejs_register_toolchains(
     name = "nodejs",
-    node_version = "16.13.2",
+    node_version = "18.7.0",
 )
 
 # Install the yarn tool
@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "fd336c6d3e51c7205a8ec68e835c442dcbb187f92e50c42b3d7d54a312072ef7",
-    strip_prefix = "emsdk-3.1.20/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.20.tar.gz"],
+    sha256 = "a2609fd97580e4e332acbf49b6cc363714982f06cb6970d54c9789df8e91381c",
+    strip_prefix = "emsdk-3.1.23/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.23.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
