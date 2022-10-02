@@ -23,7 +23,7 @@ import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, Te
 import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
-import {DataId, DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable, WebGLData} from './tensor';
+import {DataId, DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
@@ -798,21 +798,13 @@ export class Engine implements TensorTracker, DataMover {
    * creates a new data id and writes the values to the underlying backend.
    */
   makeTensor(
-      values: DataValues|WebGLData, shape: number[], dtype: DataType,
+      values: DataValues, shape: number[], dtype: DataType,
       backend?: KernelBackend): Tensor {
     if (values == null) {
       throw new Error('Values passed to engine.makeTensor() are null');
     }
     dtype = dtype || 'float32';
     backend = backend || this.backend;
-
-    if ('texture' in values) {
-      values = values as WebGLData;
-      return backend.createTensorFromTexture(values, shape, dtype);
-    } else {
-      values = values as DataValues;
-    }
-
     let backendVals = values as BackendValues;
     if (dtype === 'string' && util.isString(values[0])) {
       backendVals = (values as string[]).map(d => util.encodeString(d));
@@ -838,8 +830,8 @@ export class Engine implements TensorTracker, DataMover {
    * @deprecated
    */
   makeTensorFromDataId(
-      dataId: DataId, shape: number[], dtype: DataType,
-      backend?: KernelBackend): Tensor {
+    dataId: DataId, shape: number[], dtype: DataType,
+    backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const tensorInfo: TensorInfo = {dataId, shape, dtype};
     return this.makeTensorFromTensorInfo(tensorInfo, backend);
