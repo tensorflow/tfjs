@@ -19,7 +19,7 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
-export const COLOR_TO_NUM_MAP: Record < string, number >= {
+export const CHANNELS_TO_NUM_MAP: Record < string, number >= {
   'A': 0b1,
   'B': 0b10,
   'BA': 0b11,
@@ -38,7 +38,7 @@ export const COLOR_TO_NUM_MAP: Record < string, number >= {
 };
 
 function isColorBitIncluded(colorString: string, colorBit: string) {
-  return COLOR_TO_NUM_MAP[colorString] & COLOR_TO_NUM_MAP[colorBit]
+  return CHANNELS_TO_NUM_MAP[colorString] & CHANNELS_TO_NUM_MAP[colorBit]
 }
 
 export class EncodeMatrixProgram implements GPGPUProgram {
@@ -50,7 +50,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
 
   constructor(
       outputShape: [number, number, number], inputIsUnsignedByte = false,
-      sourceColor = 'RGBA') {
+      usedChannels = 'RGBA') {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -61,15 +61,15 @@ export class EncodeMatrixProgram implements GPGPUProgram {
     }
 
     let mainLoop = '';
-    let usedColorNum = 0;
-    const colorBits = ['R', 'G', 'B', 'A'];
-    colorBits.forEach((colorBit, colorBitIndex) => {
-      if (isColorBitIncluded(sourceColor, colorBit)) {
+    let usedChannelsNum = 0;
+    const channels = ['R', 'G', 'B', 'A'];
+    channels.forEach((channel, channelIndex) => {
+      if (isColorBitIncluded(usedChannels, channel)) {
         mainLoop += `
-          if(offset == ${usedColorNum}) {
-            result = values[${colorBitIndex}];
+          if(offset == ${usedChannelsNum}) {
+            result = values[${channelIndex}];
           }`;
-        usedColorNum++;
+        usedChannelsNum++;
       }
     });
 
@@ -82,9 +82,9 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         ivec3 coords = getOutputCoords();
 
         int flatIndex = getFlatIndex(coords);
-        int offset = imod(flatIndex, ${sourceColor.length});
+        int offset = imod(flatIndex, ${usedChannels.length});
 
-        flatIndex = idiv(flatIndex, ${sourceColor.length}, 1.);
+        flatIndex = idiv(flatIndex, ${usedChannels.length}, 1.);
 
         int r = flatIndex / texShape[1];
         int c = imod(flatIndex, texShape[1]);

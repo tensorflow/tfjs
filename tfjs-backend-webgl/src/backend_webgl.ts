@@ -26,7 +26,7 @@ import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
-import {COLOR_TO_NUM_MAP, EncodeMatrixProgram} from './encode_matrix_gpu';
+import {CHANNELS_TO_NUM_MAP, EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
@@ -1303,86 +1303,18 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   /**
-   * Create a TF.js tensor out of an existing WebGL texture. The texture is
-   * added to the WebGL texture registry.
-   *
-   * This makes it possible for TF.js applications to avoid GPU / CPU sync. For
    * example, if your application includes a preprocessing step on the GPU, you
-   * could upload the GPU output directly to TF.js, rather than first
-   * downloading the values.
-   *
-   * ```js
-   * // Example for WebGL2:
-   * const gl = tf.backend().gpgpu.gl;
-   * const texture = gl.createTexture();
-   * const tex2d = gl.TEXTURE_2D;
-   * const width = 3;
-   * const height = 4;
-   *
-   * gl.bindTexture(tex2d, texture);
-   * gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-   * gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-   * gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-   * gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-   * gl.texImage2D(
-   *   tex2d, 0, gl.R32F, // internalFormat
-   *   width, height, 0,
-   *   gl.RED, // textureFormat
-   *   gl.FLOAT, // textureType
-   *   new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) // data
-   * );
-   *
-   * const logicalShape = [height, width];
-   * const physicalShape = [height, width];
-   * const a = tf.webgl.createTensorFromTexture(texture, logicalShape,
-   *   physicalShape);
-   *
-   * ```
-   *
-   * For postprocessing on the GPU, it's possible to retrieve the texture
-   * backing any tensor by calling the WebGL backend's `getTexture` method like
-   * so:
-   *
-   * ```js
-   * const a = tf.tensor1d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-   * const tex = tf.backend().getTexture(a.dataId);
-   * ```
-   *
-   *  @param obj An object with the following properties:
-   *  @param texture The WebGL texture to create a tensor from. The texture must
-   * be unpacked - each texel should only store a single value. The flattened
-   * values of the tensor will be read from left to right, and top to bottom.
-   * The texture can have empty texels at the end, but the values must be
-   * written densely - in other words, all empty texels must be contiguous.
-   *  @param shape The logical shape of the texture.
-   *  @param dtype The dtype of the tensor to be created.
-   *  @param height The height of the texture provided to gl.texImage2D during
-   * texture creation.
-   *  @param width The width of the texture provided to gl.texImage2D during
-   * texture creation.
-   *  @param internalFormat The internalFormat of the texture provided to
-   * gl.texImage2D during texture creation.
-   *  @param textureFormat The textureFormat of the texture provided to
-   * gl.texImage2D during texture creation.
-   *  @param textureType The textureType of the texture provided to
-   * gl.texImage2D during texture creation.
-   * @doc {heading: 'Environment', namespace: 'webgl'}
+   * Create a TF.js tensor out of an existing WebGL texture. A new texture will
+   * be created.
    */
   createTensorFromTexture(values: WebGLData, shape: number[], dtype: DataType):
       Tensor {
-    // OpenGL / WebGL do not make it possible to query textures for their
-    // properties (physical dimensions, internalFormat, etc.), therefore we ask
-    // the user to provide this information in order to validate their texture.
-    // References:
-    // https://stackoverflow.com/questions/30140178/opengl-es-2-0-get-texture-size-and-other-info
-    // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
-    // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
-
-    const {texture, height, width, color} = values;
+    const {texture, height, width} = values;
+    const channels = values.channels || 'RGBA';
 
     const backend = engine().backend as MathBackendWebGL;
 
-    if (!(color in COLOR_TO_NUM_MAP)) {
+    if (!(channels in CHANNELS_TO_NUM_MAP)) {
       throw new Error(`The color must be a non-empty subsequence of 'RGBA'.`);
     }
 
@@ -1390,12 +1322,13 @@ export class MathBackendWebGL extends KernelBackend {
     const texSize = util.sizeFromShape([height, width]);
     const tensorSize = util.sizeFromShape(shape);
     util.assert(
-        texSize === Math.ceil(tensorSize / color.length),
-        () => `The size of texture ${texSize} (${color}) does not match the ` +
+        texSize === Math.ceil(tensorSize / channels.length),
+        () =>
+            `The size of texture ${texSize} (${channels}) does not match the ` +
             `size of expected tensor ${tensorSize}.`);
 
     const dataId =
-        backend.writeTexture(texture, shape, dtype, height, width, color);
+        backend.writeTexture(texture, shape, dtype, height, width, channels);
     return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
   }
 }

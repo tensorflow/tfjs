@@ -177,7 +177,7 @@ export interface WebGLData {
   texture: WebGLTexture;
   height: number;
   width: number;
-  color: string;
+  channels: string;
 }
 
 export interface TensorTracker {
