@@ -735,10 +735,13 @@ limitations under the License.
       }
       await tf.ready();
       if (state.isFlagChanged) {
-        await setEnvFlags(state.flags);
+        const canProceed = await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
         showVersions();
         await showEnvironment();
+        if (!canProceed) {
+          return;
+        }
       }
       await cleanUpTable();
       await setupKernelTable();
