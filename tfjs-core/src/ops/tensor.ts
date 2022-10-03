@@ -54,8 +54,8 @@ import {makeTensor} from './tensor_ops_util';
  * const gl = tf.backend().gpgpu.gl;
  * const texture = gl.createTexture();
  * const tex2d = gl.TEXTURE_2D;
- * const width = 3;
- * const height = 4;
+ * const width = 2;
+ * const height = 2;
  *
  * gl.bindTexture(tex2d, texture);
  * gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -63,15 +63,16 @@ import {makeTensor} from './tensor_ops_util';
  * gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
  * gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
  * gl.texImage2D(
- *   tex2d, 0, gl.R32F, // internalFormat
+ *   tex2d, 0, gl.RGBA32F, // internalFormat
  *   width, height, 0,
- *   gl.RED, // textureFormat
+ *   gl.RGBA, // textureFormat
  *   gl.FLOAT, // textureType
- *   new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) // data
+ *   new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
  * );
  *
- * const logicalShape = [height, width];
- * const a = tf.tensor({texture, height, width, channels: 'R'}, logicalShape);
+ * const logicalShape = [height * width * 2];
+ * const a = tf.tensor({texture, height, width, channels: 'GA'}, logicalShape);
+ * // Tensor [1, 3, 5, 7, 9, 11, 13, 15]
  *
  * // For postprocessing on the GPU, it's possible to retrieve the texture
  * // backing any tensor by calling the WebGL backend's `getTexture` method like
@@ -86,6 +87,8 @@ import {makeTensor} from './tensor_ops_util';
  * `WebGLTexture`; 2. height, the height of the texture; 3. width, the width of
  * the texture; 4. channels, a non-empty subsequence of 'RGBA', indicating the
  * values of which channels will be passed to the tensor (such as 'R' or 'GA').
+ * (If the values passed from texture is less than the tensor size, zeros will
+ * be padded at the rear.)
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
