@@ -173,13 +173,6 @@ export interface GPUData {
   bufSize?: number;
 }
 
-export interface WebGLData {
-  texture: WebGLTexture;
-  height: number;
-  width: number;
-  channels: string;
-}
-
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,

@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {Tensor, WebGLData} from '../tensor';
+import {Tensor} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {DataType, Rank, ShapeMap} from '../types';
+import {DataType, Rank, ShapeMap, WebGLData} from '../types';
 
 import {makeTensor} from './tensor_ops_util';
 

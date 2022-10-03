@@ -16,8 +16,8 @@
  */
 
 import {ENGINE} from '../engine';
-import {Tensor, WebGLData} from '../tensor';
-import {TensorLike, TypedArray} from '../types';
+import {Tensor} from '../tensor';
+import {TensorLike, TypedArray, WebGLData} from '../types';
 import {DataType} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, flatten, inferDtype, isTypedArray, sizeFromShape, toTypedArray} from '../util';
 

@@ -38,7 +38,7 @@ export const CHANNELS_TO_NUM_MAP: Record < string, number >= {
 };
 
 function isColorBitIncluded(colorString: string, colorBit: string) {
-  return CHANNELS_TO_NUM_MAP[colorString] & CHANNELS_TO_NUM_MAP[colorBit]
+  return CHANNELS_TO_NUM_MAP[colorString] & CHANNELS_TO_NUM_MAP[colorBit];
 }
 
 export class EncodeMatrixProgram implements GPGPUProgram {

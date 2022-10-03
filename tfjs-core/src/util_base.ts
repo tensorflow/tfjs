@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {WebGLData} from './tensor';
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.

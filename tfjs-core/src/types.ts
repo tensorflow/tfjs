@@ -164,3 +164,11 @@ export interface PixelData {
   height: number;
   data: Uint8Array;
 }
+
+/** Type for representing a texture data to create a tensor. */
+export interface WebGLData {
+  texture: WebGLTexture;
+  height: number;
+  width: number;
+  channels: string;
+}

@@ -17,8 +17,8 @@
 
 import {ENGINE} from './engine';
 import {env} from './environment';
-import {Tensor, WebGLData} from './tensor';
-import {DataType, TensorLike} from './types';
+import {Tensor} from './tensor';
+import {DataType, TensorLike, WebGLData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
 
 export function inferShape(
