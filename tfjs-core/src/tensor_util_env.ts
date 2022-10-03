@@ -28,12 +28,11 @@ export function inferShape(
   if (isTypedArray(val)) {
     return dtype === 'string' ? [] : [val.length];
   }
+  if (typeof val === 'object' && 'texture' in val) {
+    return [val.height, val.width];
+  }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
-  }
-  if ('texture' in val) {
-    val = val as WebGLData;
-    return [val.height, val.width];
   }
   const shape: number[] = [];
 

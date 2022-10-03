@@ -80,19 +80,19 @@ export class EncodeMatrixProgram implements GPGPUProgram {
 
       void main() {
         ivec3 coords = getOutputCoords();
-
         int flatIndex = getFlatIndex(coords);
+        float result = 0.;
         int offset = imod(flatIndex, ${usedChannels.length});
 
         flatIndex = idiv(flatIndex, ${usedChannels.length}, 1.);
 
         int r = flatIndex / texShape[1];
-        int c = imod(flatIndex, texShape[1]);
-        vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
-        vec4 values = ${glsl.texture2D}(A, uv);
-
-        float result;
-        ${mainLoop}
+        if (r < texShape[0]) {
+          int c = imod(flatIndex, texShape[1]);
+          vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
+          vec4 values = ${glsl.texture2D}(A, uv);
+          ${mainLoop}
+        }
         ${glsl.output} = vec4(${output}, 0., 0., 0.);
       }
     `;

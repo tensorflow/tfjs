@@ -1316,15 +1316,6 @@ export class MathBackendWebGL extends KernelBackend {
       throw new Error(`The color must be a non-empty subsequence of 'RGBA'.`);
     }
 
-    // Ensure that the size of texture matches the size of expected tensor.
-    const texSize = util.sizeFromShape([height, width]);
-    const tensorSize = util.sizeFromShape(shape);
-    util.assert(
-        texSize === Math.ceil(tensorSize / channels.length),
-        () =>
-            `The size of texture ${texSize} (${channels}) does not match the ` +
-            `size of expected tensor ${tensorSize}.`);
-
     const dataId =
         backend.writeTexture(texture, shape, dtype, height, width, channels);
     return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
