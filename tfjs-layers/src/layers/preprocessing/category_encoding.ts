@@ -17,6 +17,7 @@ import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import * as K from '../../backend/tfjs_backend';
 import * as utils from './preprocessing_utils';
+import { OutputMode } from './preprocessing_utils';
 
 export declare interface CategoryEncodingArgs extends LayerArgs {
   numTokens: number;
@@ -58,7 +59,7 @@ export class CategoryEncoding extends Layer {
       return [this.numTokens];
     }
 
-    if(this.outputMode === utils.oneHot && inputShape[-1] !== 1) {
+    if(this.outputMode === 'oneHot' && inputShape[inputShape.length - 1] !== 1){
       inputShape.push(this.numTokens);
       return inputShape;
     }
@@ -79,7 +80,7 @@ export class CategoryEncoding extends Layer {
 
       if((typeof kwargs['countWeights']) !== 'undefined') {
 
-        if(this.outputMode !== utils.count) {
+        if(this.outputMode !== 'count') {
           throw new ValueError(
             `countWeights is not used when outputMode !== count.
              Received countWeights=${kwargs['countWeights']}`);
@@ -93,20 +94,22 @@ export class CategoryEncoding extends Layer {
           }
       }
 
-      const depth = this.numTokens;
       const maxValue = max(inputs);
       const minValue = min(inputs);
+      const greaterEqualMax = greater(this.numTokens, maxValue)
+                                                  .bufferSync().get(0);
 
-      const greaterEqualMax = greater(depth, maxValue).bufferSync().get(0);
       const greaterMin = greaterEqual(minValue, 0).bufferSync().get(0);
 
       if(!(greaterEqualMax && greaterMin)) {
+
         throw new ValueError(
-        `Input values must be between 0 < values <= numTokens with numTokens=${this.numTokens}`);
+        `Input values must be between 0 < values <= numTokens
+        with numTokens=${this.numTokens}`);
       }
 
     return utils.encodeCategoricalInputs(inputs,
-      this.outputMode, depth, countWeights);
+      this.outputMode, this.numTokens, countWeights);
     });
   }
 }

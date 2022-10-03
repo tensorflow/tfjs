@@ -1,7 +1,16 @@
+/**
+ * @license
+ * Copyright 2022 CodeSmith LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+
 import { describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils';
 import { Tensor, tensor} from '@tensorflow/tfjs-core';
 import { CategoryEncoding } from './category_encoding';
-import * as utils from './preprocessing_utils';
 
 describeMathCPUAndGPU('Category Encoding', () => {
 
@@ -10,7 +19,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const expectedOutput = tensor([1,0,0,0]);
     const numTokens = 4;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                outputMode: utils.count});
+                                outputMode: 'count'});
     const computedOutput = encodingLayer.
                           apply(categoryData) as Tensor;
 
@@ -23,7 +32,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const numTokens = 6;
     const expectedOutput = tensor([7, 1, 2, 4, 0, 0]);
     const encodingLayer = new CategoryEncoding({numTokens,
-                                            outputMode: utils.count});
+                                            outputMode: 'count'});
 
     const computedOutput = encodingLayer.apply(categoryData,
                       {countWeights: weightData}) as Tensor;
@@ -36,7 +45,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const expectedOutput = tensor([[0, 2, 1, 1, 0, 0], [2, 1, 0, 1, 0, 0]]);
     const numTokens = 6;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                            outputMode: utils.count});
+                                            outputMode: 'count'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -46,7 +55,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const expectedOutput = tensor([0, 0, 0, 1]);
     const numTokens = 4;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                          outputMode: utils.oneHot});
+                                          outputMode: 'oneHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -59,7 +68,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
                                    [0, 1, 0, 0]]);
     const numTokens = 4;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                          outputMode: utils.oneHot});
+                                          outputMode: 'oneHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -72,7 +81,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
                                    [0, 1, 0, 0]]);
     const numTokens = 4;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                          outputMode: utils.oneHot});
+                                          outputMode: 'oneHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -82,7 +91,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const expectedOutput = tensor([0, 0, 0, 1, 0, 0]);
     const numTokens = 6;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                outputMode: utils.multiHot});
+                                outputMode: 'multiHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -92,7 +101,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const expectedOutput = tensor([1, 1, 1, 1, 0, 0]);
     const numTokens = 6;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                        outputMode: utils.multiHot});
+                                        outputMode: 'multiHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -105,7 +114,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
                                    [0, 1, 0, 1]]);
     const numTokens = 4;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                        outputMode: utils.multiHot});
+                                        outputMode: 'multiHot'});
     const computedOutput = encodingLayer.apply(categoryData) as Tensor;
     expectTensorsClose(computedOutput, expectedOutput);
   });
@@ -114,10 +123,10 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const categoryData = tensor([[[1], [2]], [[3], [4]]]);
     const numTokens = 6;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                        outputMode: utils.multiHot});
+                                        outputMode: 'multiHot'});
     expect(() => encodingLayer.apply(categoryData))
     .toThrowError(`When outputMode is not 'int', maximum output rank is 2
-    Received outputMode ${utils.multiHot} and input shape ${categoryData.shape}
+    Received outputMode ${'multiHot'} and input shape ${categoryData.shape}
     which would result in output rank ${categoryData.rank}.`);
   });
 
@@ -125,17 +134,19 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const categoryData   = tensor([7, 2, 0, 1]);
     const numTokens = 3;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                        outputMode: utils.multiHot});
+                                        outputMode: 'multiHot'});
     expect(() => encodingLayer.apply(categoryData))
-    .toThrowError(`Input values must be between 0 < values <= numTokens`);
+    .toThrowError(`Input values must be between 0 < values <= numTokens
+        with numTokens=${numTokens}`);
   });
 
   it('Raises Value Error if min input value < 0', () => {
     const categoryData   = tensor([7, 2, -1, 1]);
     const numTokens = 3;
     const encodingLayer = new CategoryEncoding({numTokens,
-                                        outputMode: utils.multiHot});
+                                        outputMode: 'multiHot'});
     expect(() => encodingLayer.apply(categoryData))
-    .toThrowError(`Input values must be between 0 < values <= numTokens`);
+    .toThrowError(`Input values must be between 0 < values <= numTokens
+        with numTokens=${numTokens}`);
   });
 });
