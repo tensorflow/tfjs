@@ -172,11 +172,30 @@ export interface GPUData {
   texShape?: [number, number];
   bufSize?: number;
 }
+
+export const COLOR_TO_NUM_MAP = {
+  'A': 0b1,
+  'B': 0b10,
+  'BA': 0b11,
+  'G': 0b100,
+  'GA': 0b101,
+  'GB': 0b110,
+  'GBA': 0b111,
+  'R': 0b1000,
+  'RA': 0b1001,
+  'RB': 0b1010,
+  'RBA': 0b1011,
+  'RG': 0b1100,
+  'RGA': 0b1101,
+  'RGB': 0b1110,
+  'RGBA': 0b1111
+}
+
 export interface WebGLData {
   texture: WebGLTexture;
   height: number;
   width: number;
-  format: number;
+  color: string;
 }
 
 export interface TensorTracker {
