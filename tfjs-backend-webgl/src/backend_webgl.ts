@@ -1303,7 +1303,6 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   /**
-   * example, if your application includes a preprocessing step on the GPU, you
    * Create a TF.js tensor out of an existing WebGL texture. A new texture will
    * be created.
    */
