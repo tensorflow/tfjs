@@ -1429,7 +1429,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
   it('works for f16', async () => {
     // Unlike in the basic usage test, rather than creating a texture from
-    // cratch, we must extract the output texture from an operation because we
+    // scratch, we must extract the output texture from an operation because we
     // cannot upload Float16 data directly to the GPU.
 
     // We clean up explicitly so that we have full control over the
