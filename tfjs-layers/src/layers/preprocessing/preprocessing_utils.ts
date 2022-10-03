@@ -74,11 +74,11 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
     return binCounts;
   }
 
-  if(weights === null || weights === undefined) {
-    throw new ValueError(
-      `When outputMode is 'tfIdf', weights must be provided.`
-      );
-  } else {
+  if (weights) {
     return mul(binCounts, weights);
+  } else {
+      throw new ValueError(
+        `When outputMode is 'tfIdf', weights must be provided.`
+      );
   }
 }
