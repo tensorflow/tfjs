@@ -19,6 +19,28 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
+export const COLOR_TO_NUM_MAP: Record < string, number >= {
+  'A': 0b1,
+  'B': 0b10,
+  'BA': 0b11,
+  'G': 0b100,
+  'GA': 0b101,
+  'GB': 0b110,
+  'GBA': 0b111,
+  'R': 0b1000,
+  'RA': 0b1001,
+  'RB': 0b1010,
+  'RBA': 0b1011,
+  'RG': 0b1100,
+  'RGA': 0b1101,
+  'RGB': 0b1110,
+  'RGBA': 0b1111
+};
+
+function isColorBitIncluded(colorString: string, colorBit: string) {
+  return COLOR_TO_NUM_MAP[colorString] & COLOR_TO_NUM_MAP[colorBit]
+}
+
 export class EncodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
@@ -27,7 +49,8 @@ export class EncodeMatrixProgram implements GPGPUProgram {
   customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
   constructor(
-      outputShape: [number, number, number], inputIsUnsignedByte = false) {
+      outputShape: [number, number, number], inputIsUnsignedByte = false,
+      sourceColor = 'RGBA') {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -36,6 +59,19 @@ export class EncodeMatrixProgram implements GPGPUProgram {
     if (inputIsUnsignedByte) {
       output = `floor(result * 255. + 0.5)`;
     }
+
+    let mainLoop = '';
+    let usedColorNum = 0;
+    const colorBits = ['R', 'G', 'B', 'A'];
+    colorBits.forEach((colorBit, colorBitIndex) => {
+      if (isColorBitIncluded(sourceColor, colorBit)) {
+        mainLoop += `
+          if(offset == ${usedColorNum}) {
+            result = values[${colorBitIndex}];
+          }`;
+        usedColorNum++;
+      }
+    });
 
     this.userCode = `
       ${
@@ -46,9 +82,9 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         ivec3 coords = getOutputCoords();
 
         int flatIndex = getFlatIndex(coords);
-        int offset = imod(flatIndex, 4);
+        int offset = imod(flatIndex, ${sourceColor.length});
 
-        flatIndex = idiv(flatIndex, 4, 1.);
+        flatIndex = idiv(flatIndex, ${sourceColor.length}, 1.);
 
         int r = flatIndex / texShape[1];
         int c = imod(flatIndex, texShape[1]);
@@ -56,17 +92,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         vec4 values = ${glsl.texture2D}(A, uv);
 
         float result;
-
-        if(offset == 0) {
-          result = values[0];
-        } else if(offset == 1) {
-          result = values[1];
-        } else if(offset == 2) {
-          result = values[2];
-        } else {
-          result = values[3];
-        }
-
+        ${mainLoop}
         ${glsl.output} = vec4(${output}, 0., 0., 0.);
       }
     `;

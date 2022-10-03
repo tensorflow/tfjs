@@ -26,7 +26,7 @@ import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
-import {EncodeMatrixProgram} from './encode_matrix_gpu';
+import {COLOR_TO_NUM_MAP, EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
@@ -181,7 +181,7 @@ export class MathBackendWebGL extends KernelBackend {
   // to the texture manager.
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
-      texHeight: number, texWidth: number, isPacked: boolean): DataId {
+      texHeight: number, texWidth: number, color: string): DataId {
     // Temporarily create an tensor info to make the texture compatible with
     // the runWebGLProgram's input.
     const input = this.makeTensorInfo(shape, dtype);
@@ -195,18 +195,12 @@ export class MathBackendWebGL extends KernelBackend {
     inData.texture = {texture, texShape: [texHeight, texWidth]};
     inData.texShape = [texHeight, texWidth];
 
-    let output;
-    if (isPacked) {
-      const shapeAs3D = webgl_util.getShapeAs3D(shape);
-      const program =
-          new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */);
-      output = this.runWebGLProgram(
-          program, [input], dtype, [[texHeight, texWidth]]);
-      output.shape = shape;
-    } else {
-      const program = new UnaryOpProgram(shape, unary_op.CLONE);
-      output = this.runWebGLProgram(program, [input], dtype);
-    }
+    const shapeAs3D = webgl_util.getShapeAs3D(shape);
+    const program =
+        new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */, color);
+    const output =
+        this.runWebGLProgram(program, [input], dtype, [[texHeight, texWidth]]);
+    output.shape = shape;
 
     // Unbind the texture from the input tensor to avoid the texture being
     // released.
@@ -1384,24 +1378,24 @@ export class MathBackendWebGL extends KernelBackend {
     // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
     // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
 
-    const {texture, height, width, format} = values;
+    const {texture, height, width, color} = values;
 
     const backend = engine().backend as MathBackendWebGL;
-    const gl = backend.gpgpu.gl;
 
-    const isPacked = format === gl.RGBA;
+    if (!(color in COLOR_TO_NUM_MAP)) {
+      throw new Error(`The color must be a non-empty subsequence of 'RGBA'.`);
+    }
 
     // Ensure that the size of texture matches the size of expected tensor.
     const texSize = util.sizeFromShape([height, width]);
     const tensorSize = util.sizeFromShape(shape);
     util.assert(
-        texSize === (isPacked ? Math.ceil(tensorSize / 4) : tensorSize),
-        () =>
-            `The size of ${isPacked ? 'packed ' : ''}texture ${texSize} does ` +
-            `not match the size of expected tensor ${tensorSize}.`);
+        texSize === Math.ceil(tensorSize / color.length),
+        () => `The size of texture ${texSize} (${color}) does not match the ` +
+            `size of expected tensor ${tensorSize}.`);
 
     const dataId =
-        backend.writeTexture(texture, shape, dtype, height, width, isPacked);
+        backend.writeTexture(texture, shape, dtype, height, width, color);
     return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
   }
 }

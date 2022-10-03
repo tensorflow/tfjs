@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {COLOR_TO_NUM_MAP, Tensor, WebGLData} from '../tensor';
+import {Tensor, WebGLData} from '../tensor';
 import {TensorLike, TypedArray} from '../types';
 import {DataType} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, flatten, inferDtype, isTypedArray, sizeFromShape, toTypedArray} from '../util';
@@ -35,9 +35,6 @@ export function makeTensor(
   }
   if (typeof values === 'object' && 'texture' in values) {
     values = values as WebGLData;
-    if (!(values.color in COLOR_TO_NUM_MAP)) {
-      throw new Error(`The color must be a non-empty subsequence of 'RGBA'.`);
-    }
     return ENGINE.backend.createTensorFromTexture(
         values, shape || inferredShape, dtype);
   }

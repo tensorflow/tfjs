@@ -1141,8 +1141,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
     const logicalShape: [number, number] = [height, width];
     const a = tf.tensor(
-        {texture, height, width, format: textureFormat}, logicalShape,
-        'float32');
+        {texture, height, width, color: 'R'}, logicalShape, 'float32');
 
     expect(a.shape).toEqual(logicalShape);
     expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
