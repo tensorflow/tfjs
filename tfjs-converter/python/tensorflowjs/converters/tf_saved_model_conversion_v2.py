@@ -371,6 +371,13 @@ def write_artifacts(topology,
       model_json[common.INITIALIZER_SIGNATURE_KEY] = MessageToDict(
           initializer_signature_def)
 
+  # Assign resource ids to inference inputs and initializer outputs. In
+  # TensorFlow, both inference and initializer graphs have a reference
+  # to the common resource (so initializer runs on reference, and then inference
+  # graph uses it). We are doing something similar but instead of assigning
+  # a reference to the resource in the serialized graph, we assign the id
+  # of the resource, and then we can recreate the common reference in javascript
+  # by matching resource ids.
   if resource_ids_maps is not None:
     model_input_to_resource_id, init_output_to_resource_id = resource_ids_maps
     signature_inputs = model_json[common.SIGNATURE_KEY]['inputs']
