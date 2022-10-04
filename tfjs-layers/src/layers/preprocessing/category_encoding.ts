@@ -103,9 +103,8 @@ export class CategoryEncoding extends Layer {
 
         if(!(greaterEqualMax && greaterMin)) {
 
-          throw new ValueError(
-          `Input values must be between 0 < values <= numTokens
-          with numTokens=${this.numTokens}`);
+          throw new ValueError('Input values must be between 0 < values <='
+            + ` numTokens with numTokens=${this.numTokens}`);
         }
 
         return utils.encodeCategoricalInputs(inputs,
