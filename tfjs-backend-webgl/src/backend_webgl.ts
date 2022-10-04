@@ -1312,6 +1312,17 @@ export class MathBackendWebGL extends KernelBackend {
 
     const backend = engine().backend as MathBackendWebGL;
 
+    // Have to throw an error, otherwise WebGL just warns and returns wrong
+    // values.
+    if (!backend.gpgpu.gl.isTexture(texture)) {
+      throw new Error(
+          `The texture is invalid. Also, please make sure the texture and ` +
+          `the TFJS WebGL backend are using same canvas. If you want to use ` +
+          `your own custom canvas, you have to create and use the custom ` +
+          `TFJS WebGL backend created from the canvas through ` +
+          `'new tf.MathBackendWebGL(customCanvas)'.`);
+    }
+
     const dataId =
         backend.writeTexture(texture, shape, dtype, height, width, channels);
     return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
