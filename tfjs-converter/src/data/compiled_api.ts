@@ -349,10 +349,13 @@ export declare interface ITensorInfo {
   cooSparse?: (TensorInfo.ICooSparse|null);
 
   /** TensorInfo dtype */
-  dtype?: (DataType|null);
+  dtype?: (DataType|string|null);
 
   /** TensorInfo tensorShape */
   tensorShape?: (ITensorShape|null);
+
+  /** Resource id tensor was originally assigned to.  */
+  resourceId?: (number|null);
 }
 
 export namespace TensorInfo {
