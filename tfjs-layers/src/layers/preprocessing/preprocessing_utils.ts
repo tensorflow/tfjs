@@ -45,7 +45,7 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
   }
 
   if(input.rank > 2) {
-    throw new ValueError(`When outputMode is not 'int', maximum output rank is 2`
+    throw new ValueError(`When outputMode is not int, maximum output rank is 2`
     + ` Received outputMode ${outputMode} and input shape ${originalShape}`
     + ` which would result in output rank ${input.rank}.`);
   }
