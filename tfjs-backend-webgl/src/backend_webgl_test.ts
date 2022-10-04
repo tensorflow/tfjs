@@ -1271,14 +1271,55 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     gpgpu.dispose();
   });
 
-  it('works for bool dtype', async () => {
+  it('works for channels ABGR', async () => {
     // In this test we create a WebGL texture using the GL context from the
-    // WebGL backend. Then we create a tensor from that texture, and ensure that
-    // we can get the expected result.
+    // WebGL backend. Then we create a tensor from that texture, and ensure
+    // that we can get the expected result.
 
     const gpgpu = new GPGPUContext();
     const width = 2;
-    const height = 3;
+    const height = 2;
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.RGBA32F;
+    const textureFormat = glany.RGBA;
+    const textureType = glany.FLOAT;
+    const dataForUpload = new Float32Array(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape: [number, number] = [4, 4];
+    const a = tf.tensor(
+        {texture, height, width, channels: 'ABGR'}, logicalShape, 'float32');
+
+    expect(a.shape).toEqual(logicalShape);
+    expect(a.dtype).toEqual('float32');
+    expectArraysClose(
+        await a.data(), [3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12]);
+
+    gpgpu.dispose();
+  });
+
+  it('works for int32 dtype', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure
+    // that we can get the expected result.
+
+    const gpgpu = new GPGPUContext();
+    const width = 2;
+    const height = 2;
 
     const gl = gpgpu.gl;
     const texture = gl.createTexture();
@@ -1288,7 +1329,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const internalFormat = glany.R32F;
     const textureFormat = glany.RED;
     const textureType = glany.FLOAT;
-    const dataForUpload = new Float32Array([-2, -1, 0, 0, 2, 3]);
+    const dataForUpload = new Float32Array([-1.2, -0.1, 0.1, 1.2]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -1301,13 +1342,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
     const logicalShape: [number, number] = [height, width];
     const a = tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'bool');
+        {texture, height, width, channels: 'R'}, logicalShape, 'int32');
 
     expect(a.shape).toEqual(logicalShape);
-    expect(a.dtype).toEqual('bool');
-
-    const b = a.any(1);
-    expectArraysClose(await b.data(), [1, 0, 1]);
+    expect(a.dtype).toEqual('int32');
+    expectArraysClose(await a.data(), [-1, 0, 0, 1]);
 
     gpgpu.dispose();
   });
