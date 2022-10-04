@@ -138,7 +138,15 @@ async function main() {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes}`
         + ` --otp=${otp}`);
     } else {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+      if (pkg.startsWith('tfjs-node')) {
+        // Special case for tfjs-node* because it must publish the node addon
+        // as well.
+        $('YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm'
+          + ` --otp=${otp}`);
+      } else {
+        $('YARN_REGISTRY="https://registry.npmjs.org/" npm publish'
+          + ` --otp=${otp}`);
+      }
     }
     console.log(`Yay! Published ${pkg} to npm.`);
 
