@@ -1229,14 +1229,12 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
            tex2d, 0, internalFormat, width, height, 0, textureFormat,
            textureType, dataForUpload);
 
-       const physicalShape: [number, number] = [4, 4];
+       const physicalShape: [number, number] = [width, height];
        const a = tf.tensor({texture, height, width, channels: 'RGBA'});
 
        expect(a.shape).toEqual(physicalShape);
        expect(a.dtype).toEqual('float32');
-       expectArraysClose(
-           await a.data(),
-           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+       expectArraysClose(await a.data(), [0, 1, 2, 3]);
 
        gl.deleteTexture(texture);
      });
@@ -1474,7 +1472,7 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
 
        const logicalShape: [number, number] = [3, 3];
        const a = tf.tensor(
-           {texture, height, width, channels: 'R'}, logicalShape, 'float32');
+           {texture, height, width, channels: 'RGBA'}, logicalShape, 'float32');
 
        expect(a.shape).toEqual(logicalShape);
        expect(a.dtype).toEqual('float32');
@@ -1515,7 +1513,7 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
 
     const logicalShape: [number, number] = [3, 3];
     const a = tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'float32');
+        {texture, height, width, channels: 'RGBA'}, logicalShape, 'float32');
 
     expect(a.shape).toEqual(logicalShape);
     expect(a.dtype).toEqual('float32');
