@@ -1115,8 +1115,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure that
     // we can get the expected result.
 
-    const width = 3;
-    const height = 4;
+    const width = 2;
+    const height = 2;
 
     const webGlBackend = tf.backend() as MathBackendWebGL;
     const gl = webGlBackend.gpgpu.gl;
@@ -1124,11 +1124,12 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.R32F;
-    const textureFormat = glany.RED;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+    const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
-    const dataForUpload =
-        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    const dataForUpload = new Float32Array(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -1139,13 +1140,14 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
         dataForUpload);
 
-    const logicalShape: [number, number] = [height, width];
+    const logicalShape: [number, number] = [4, 4];
     const a = tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'float32');
+        {texture, height, width, channels: 'RGBA'}, logicalShape, 'float32');
 
     expect(a.shape).toEqual(logicalShape);
     expect(a.dtype).toEqual('float32');
-    expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expectArraysClose(
+        await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
     gl.deleteTexture(texture);
   });
@@ -1159,18 +1161,19 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     await tf.setBackend(customBackendName);
 
     const gl = customBackend.gpgpu.gl;
-    const width = 3;
-    const height = 4;
+    const width = 2;
+    const height = 2;
 
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.R32F;
-    const textureFormat = glany.RED;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+    const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
-    const dataForUpload =
-        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    const dataForUpload = new Float32Array(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -1181,9 +1184,9 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
         dataForUpload);
 
-    const logicalShape: [number, number] = [height, width];
+    const logicalShape: [number, number] = [4, 4];
     const a = tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'float32');
+        {texture, height, width, channels: 'RGBA'}, logicalShape, 'float32');
 
     expect(a.shape).toEqual(logicalShape);
     expect(a.dtype).toEqual('float32');
@@ -1201,8 +1204,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
        // WebGL backend. Then we create a tensor from that texture, and ensure
        // that we can get the expected result.
 
-       const width = 3;
-       const height = 4;
+       const width = 2;
+       const height = 2;
 
        const webGlBackend = tf.backend() as MathBackendWebGL;
        const gl = webGlBackend.gpgpu.gl;
@@ -1210,11 +1213,12 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
        const tex2d = gl.TEXTURE_2D;
        // tslint:disable-next-line:no-any
        const glany = gl as any;
-       const internalFormat = glany.R32F;
-       const textureFormat = glany.RED;
+       const internalFormat =
+           tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+       const textureFormat = glany.RGBA;
        const textureType = glany.FLOAT;
-       const dataForUpload =
-           new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+       const dataForUpload = new Float32Array(
+           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
        gl.bindTexture(tex2d, texture);
        gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -1225,13 +1229,14 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
            tex2d, 0, internalFormat, width, height, 0, textureFormat,
            textureType, dataForUpload);
 
-       const physicalShape: [number, number] = [height, width];
-       const a = tf.tensor({texture, height, width, channels: 'R'});
+       const physicalShape: [number, number] = [4, 4];
+       const a = tf.tensor({texture, height, width, channels: 'RGBA'});
 
        expect(a.shape).toEqual(physicalShape);
        expect(a.dtype).toEqual('float32');
        expectArraysClose(
-           await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+           await a.data(),
+           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
        gl.deleteTexture(texture);
      });
@@ -1250,7 +1255,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.RGBA32F;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
     const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
     const dataForUpload = new Float32Array(
@@ -1290,7 +1296,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.RGBA32F;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
     const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
     const dataForUpload = new Float32Array(
@@ -1330,7 +1337,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.RGBA32F;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
     const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
     const dataForUpload = new Float32Array(
@@ -1362,8 +1370,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const width = 2;
-    const height = 2;
+    const width = 1;
+    const height = 1;
 
     const webGlBackend = tf.backend() as MathBackendWebGL;
     const gl = webGlBackend.gpgpu.gl;
@@ -1371,8 +1379,9 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.R32F;
-    const textureFormat = glany.RED;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+    const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
     const dataForUpload = new Float32Array([-1.2, -0.1, 0.1, 1.2]);
 
@@ -1385,9 +1394,9 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
         dataForUpload);
 
-    const logicalShape: [number, number] = [height, width];
+    const logicalShape: [number, number] = [2, 2];
     const a = tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'int32');
+        {texture, height, width, channels: 'RGBA'}, logicalShape, 'int32');
 
     expect(a.shape).toEqual(logicalShape);
     expect(a.dtype).toEqual('int32');
@@ -1401,7 +1410,7 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure that
     // we can get the expected result.
 
-    const width = 3;
+    const width = 1;
     const height = 2;
 
     const webGlBackend = tf.backend() as MathBackendWebGL;
@@ -1410,10 +1419,11 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.R32F;
-    const textureFormat = glany.RED;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+    const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
-    const dataForUpload = new Float32Array([-2, -1, 0, 1, 2, 3]);
+    const dataForUpload = new Float32Array([-2, -1, 0, 1, 2, 3, 4, 5]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -1426,7 +1436,7 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
 
     const logicalShape: [number, number] = [height, width];
     const a = () => tf.tensor(
-        {texture, height, width, channels: 'R'}, logicalShape, 'string');
+        {texture, height, width, channels: 'RGBA'}, logicalShape, 'string');
 
     expect(a).toThrowError();
     gl.deleteTexture(texture);
@@ -1438,8 +1448,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
        // WebGL backend. Then we create a tensor from that texture, and ensure
        // that we can get the expected result.
 
-       const width = 2;
-       const height = 2;
+       const width = 1;
+       const height = 1;
 
        const webGlBackend = tf.backend() as MathBackendWebGL;
        const gl = webGlBackend.gpgpu.gl;
@@ -1447,8 +1457,9 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
        const tex2d = gl.TEXTURE_2D;
        // tslint:disable-next-line:no-any
        const glany = gl as any;
-       const internalFormat = glany.R32F;
-       const textureFormat = glany.RED;
+       const internalFormat =
+           tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+       const textureFormat = glany.RGBA;
        const textureType = glany.FLOAT;
        const dataForUpload = new Float32Array([0, 1, 2, 3]);
 
@@ -1477,8 +1488,8 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const width = 3;
-    const height = 4;
+    const width = 2;
+    const height = 2;
 
     const webGlBackend = tf.backend() as MathBackendWebGL;
     const gl = webGlBackend.gpgpu.gl;
@@ -1486,11 +1497,12 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-    const internalFormat = glany.R32F;
-    const textureFormat = glany.RED;
+    const internalFormat =
+        tf.env().getNumber('WEBGL_VERSION') === 1 ? gl.RGBA : glany.RGBA32F;
+    const textureFormat = glany.RGBA;
     const textureType = glany.FLOAT;
-    const dataForUpload =
-        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    const dataForUpload = new Float32Array(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
