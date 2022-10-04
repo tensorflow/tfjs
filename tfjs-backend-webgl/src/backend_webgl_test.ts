@@ -1150,6 +1150,48 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     gpgpu.dispose();
   });
 
+  it('works for custom canvas', async () => {
+    const customBackendName = 'custom-webgl';
+    const customCanvas = document.createElement('canvas');
+    const customBackend = new MathBackendWebGL(customCanvas);
+    tf.registerBackend(customBackendName, () => customBackend);
+    await tf.setBackend(customBackendName);
+
+    const gl = customBackend.gpgpu.gl;
+    const width = 3;
+    const height = 4;
+
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape: [number, number] = [height, width];
+    const a = tf.tensor(
+        {texture, height, width, channels: 'R'}, logicalShape, 'float32');
+
+    expect(a.shape).toEqual(logicalShape);
+    expect(a.dtype).toEqual('float32');
+    expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    tf.removeBackend(customBackendName);
+    customBackend.dispose();
+  });
+
   it('default shape is aligned with texture shape and default dtype is float32',
      async () => {
        // In this test we create a WebGL texture using the GL context from the
