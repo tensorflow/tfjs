@@ -420,6 +420,15 @@ export function createPR(
   console.log();
 }
 
+/**
+ * Get all GitHub issues tagged as release blockers.
+ *
+ * @return A string of all the issues. Empty if there are none.
+ */
+export function getReleaseBlockers() {
+  return $('hub issue -l "RELEASE BLOCKER"');
+}
+
 // Computes the default updated version (does a patch version update).
 export function getPatchUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
@@ -440,4 +449,12 @@ export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
   return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
+}
+
+// Computes the next nightly version.
+export function getNightlyVersion(version: string): string {
+  // Format date to YYYYMMDD.
+  const date = new Date().toISOString().split('T')[0]
+    .replace(new RegExp('-', 'g'), '');
+  return `${version}-dev.${date}`;
 }
