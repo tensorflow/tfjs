@@ -50,7 +50,6 @@ yarn build
 cd ..
 
 node ../scripts/run_flaky.js "yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS'"
-node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac --tags '$TAGS' --testEnv webgl --flags '{"\""WEBGL_VERSION"\"": 1, "\""WEBGL_CPU_FORWARD"\"": false, "\""WEBGL_SIZE_UPLOAD_UNIFORM"\"": 0}'"
 
 # Test script tag bundles
 node ../scripts/run_flaky.js "karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js"
@@ -58,6 +57,7 @@ node ../scripts/run_flaky.js "karma start ./script_tag_tests/tfjs/karma.conf.js 
 # Additional tests to run in nightly only.
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_ios_12 --tags '$TAGS' --testEnv webgl --flags '{"\""WEBGL_VERSION"\"": 1, "\""WEBGL_CPU_FORWARD"\"": false, "\""WEBGL_SIZE_UPLOAD_UNIFORM"\"": 0}'"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac --tags '$TAGS' --testEnv webgl --flags '{"\""WEBGL_VERSION"\"": 1, "\""WEBGL_CPU_FORWARD"\"": false, "\""WEBGL_SIZE_UPLOAD_UNIFORM"\"": 0}'"
 
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac --tags '$TAGS'"
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'"
