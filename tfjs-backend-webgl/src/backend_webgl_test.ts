@@ -1109,17 +1109,17 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
+describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
   it('basic usage', async () => {
     // In this test we create a WebGL texture using the GL context from the
     // WebGL backend. Then we create a tensor from that texture, and ensure that
     // we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1147,7 +1147,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(a.dtype).toEqual('float32');
     expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('works for custom canvas', async () => {
@@ -1155,6 +1155,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const customCanvas = document.createElement('canvas');
     const customBackend = new MathBackendWebGL(customCanvas);
     tf.registerBackend(customBackendName, () => customBackend);
+    const originalBackend = tf.getBackend();
     await tf.setBackend(customBackendName);
 
     const gl = customBackend.gpgpu.gl;
@@ -1188,7 +1189,9 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(a.dtype).toEqual('float32');
     expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
+    gl.deleteTexture(texture);
     tf.removeBackend(customBackendName);
+    await tf.setBackend(originalBackend);
     customBackend.dispose();
   });
 
@@ -1198,11 +1201,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
        // WebGL backend. Then we create a tensor from that texture, and ensure
        // that we can get the expected result.
 
-       const gpgpu = new GPGPUContext();
        const width = 3;
        const height = 4;
 
-       const gl = gpgpu.gl;
+       const webGlBackend = tf.backend() as MathBackendWebGL;
+       const gl = webGlBackend.gpgpu.gl;
        const texture = gl.createTexture();
        const tex2d = gl.TEXTURE_2D;
        // tslint:disable-next-line:no-any
@@ -1230,7 +1233,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
        expectArraysClose(
            await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-       gpgpu.dispose();
+       gl.deleteTexture(texture);
      });
 
   it('default channels is RGBA', async () => {
@@ -1238,11 +1241,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 2;
     const height = 2;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1270,7 +1273,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expectArraysClose(
         await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('works for channels GA', async () => {
@@ -1278,11 +1281,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 2;
     const height = 2;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1310,7 +1313,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(a.dtype).toEqual('float32');
     expectArraysClose(await a.data(), [1, 3, 5, 7, 9, 11, 13, 15]);
 
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('works for channels ABGR', async () => {
@@ -1318,11 +1321,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 2;
     const height = 2;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1351,7 +1354,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expectArraysClose(
         await a.data(), [3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12]);
 
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('works for int32 dtype', async () => {
@@ -1359,11 +1362,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 2;
     const height = 2;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1390,7 +1393,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(a.dtype).toEqual('int32');
     expectArraysClose(await a.data(), [-1, 0, 0, 1]);
 
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('throws for string dtype', async () => {
@@ -1398,11 +1401,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure that
     // we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 2;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1426,7 +1429,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
         {texture, height, width, channels: 'R'}, logicalShape, 'string');
 
     expect(a).toThrowError();
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('pad zeros at the rear if texture size is smaller than tensor size',
@@ -1435,11 +1438,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
        // WebGL backend. Then we create a tensor from that texture, and ensure
        // that we can get the expected result.
 
-       const gpgpu = new GPGPUContext();
        const width = 2;
        const height = 2;
 
-       const gl = gpgpu.gl;
+       const webGlBackend = tf.backend() as MathBackendWebGL;
+       const gl = webGlBackend.gpgpu.gl;
        const texture = gl.createTexture();
        const tex2d = gl.TEXTURE_2D;
        // tslint:disable-next-line:no-any
@@ -1466,7 +1469,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
        expect(a.dtype).toEqual('float32');
        expectArraysClose(await a.data(), [0, 1, 2, 3, 0, 0, 0, 0, 0]);
 
-       gpgpu.dispose();
+       gl.deleteTexture(texture);
      });
 
   it('works if tensor size is smaller than texture size', async () => {
@@ -1474,11 +1477,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // WebGL backend. Then we create a tensor from that texture, and ensure
     // that we can get the expected result.
 
-    const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
 
-    const gl = gpgpu.gl;
+    const webGlBackend = tf.backend() as MathBackendWebGL;
+    const gl = webGlBackend.gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
     // tslint:disable-next-line:no-any
@@ -1505,7 +1508,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(a.shape).toEqual(logicalShape);
     expect(a.dtype).toEqual('float32');
     expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8]);
-    gpgpu.dispose();
+    gl.deleteTexture(texture);
   });
 
   it('works for f16', async () => {
@@ -1526,7 +1529,6 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // texture passed to createTensorFromTexture is packed.
     tf.env().set('WEBGL_PACK', true);
 
-    const gpgpu = new GPGPUContext();
     const width = 2;
     const height = 2;
 
@@ -1545,8 +1547,6 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expect(c.dtype).toEqual('float32');
     expectArraysClose(
         await c.data(), [0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15]);
-
-    gpgpu.dispose();
 
     tf.engine().endScope();
     tf.env().set(

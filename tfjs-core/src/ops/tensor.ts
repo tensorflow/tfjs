@@ -91,7 +91,6 @@ import {makeTensor} from './tensor_ops_util';
  * // so:
  *
  * const tex = tf.backend().getTexture(a.dataId);
- * tf.removeBackend('custom-webgl');
  * ```
  * @param values The values of the tensor. Can be nested array of numbers,
  *     or a flat array, or a `TypedArray`, or a `WebGLData` object. If the
