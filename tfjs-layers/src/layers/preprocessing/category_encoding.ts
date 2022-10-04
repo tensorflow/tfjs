@@ -85,13 +85,9 @@ export class CategoryEncoding extends Layer {
               `countWeights is not used when outputMode !== count.
               Received countWeights=${kwargs['countWeights']}`);
           }
-          const countWeightsArg = getExactlyOneTensor(kwargs['countWeights']);
-
-          if(countWeightsArg.rank === 1) {
-            countWeights = countWeightsArg as Tensor1D;
-          } if(countWeightsArg.rank === 2) {
-            countWeights = countWeightsArg as Tensor2D;
-            }
+          if (countWeightsArg.rank === 1 || countWeightsArg.rank === 2) {
+            const countWeights = getExactlyOneTensor(kwargs['countWeights']) as Tensor1D | Tensor2D;
+          }
         }
 
         const maxValue = max(inputs);
