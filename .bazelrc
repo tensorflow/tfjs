@@ -54,7 +54,7 @@ run --incompatible_strict_action_env
 
 # Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker. b/250727292
 # Remote builds are sandboxed.
-build:linux --spawn_strategy=remote,sandboxed,worker,local
+build --spawn_strategy=remote,sandboxed,worker,local
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
