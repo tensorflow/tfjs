@@ -19,26 +19,8 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
-export const CHANNELS_TO_NUM_MAP: Record < string, number >= {
-  'A': 0b1,
-  'B': 0b10,
-  'BA': 0b11,
-  'G': 0b100,
-  'GA': 0b101,
-  'GB': 0b110,
-  'GBA': 0b111,
-  'R': 0b1000,
-  'RA': 0b1001,
-  'RB': 0b1010,
-  'RBA': 0b1011,
-  'RG': 0b1100,
-  'RGA': 0b1101,
-  'RGB': 0b1110,
-  'RGBA': 0b1111
-};
-
-function isColorBitIncluded(colorString: string, colorBit: string) {
-  return CHANNELS_TO_NUM_MAP[colorString] & CHANNELS_TO_NUM_MAP[colorBit];
+const CHANNEL_CHAR_TO_INDEX_MAP: Record < string, number >= {
+  'R': 0, 'G': 1, 'B': 2, 'A': 3
 }
 
 export class EncodeMatrixProgram implements GPGPUProgram {
@@ -61,17 +43,14 @@ export class EncodeMatrixProgram implements GPGPUProgram {
     }
 
     let mainLoop = '';
-    let usedChannelsNum = 0;
-    const channels = ['R', 'G', 'B', 'A'];
-    channels.forEach((channel, channelIndex) => {
-      if (isColorBitIncluded(usedChannels, channel)) {
-        mainLoop += `
-          if(offset == ${usedChannelsNum}) {
-            result = values[${channelIndex}];
+    for (let usedChannelIndex = 0; usedChannelIndex < usedChannels.length;
+         usedChannelIndex++) {
+      const curChannel = usedChannels[usedChannelIndex];
+      mainLoop += `
+          if(offset == ${usedChannelIndex}) {
+            result = values[${CHANNEL_CHAR_TO_INDEX_MAP[curChannel]}];
           }`;
-        usedChannelsNum++;
-      }
-    });
+    }
 
     this.userCode = `
       ${

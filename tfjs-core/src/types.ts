@@ -170,5 +170,11 @@ export interface WebGLData {
   texture: WebGLTexture;
   height: number;
   width: number;
-  channels: string;
+  // All non-empty permutation of all subset of 'RGBA'.
+  channels: 'A'|'B'|'G'|'R'|'AB'|'AG'|'AR'|'BA'|'BG'|'BR'|'GA'|'GB'|'GR'|'RA'|
+      'RB'|'RG'|'ABG'|'ABR'|'AGB'|'AGR'|'ARB'|'ARG'|'BAG'|'BAR'|'BGA'|'BGR'|
+      'BRA'|'BRG'|'GAB'|'GAR'|'GBA'|'GBR'|'GRA'|'GRB'|'RAB'|'RAG'|'RBA'|'RBG'|
+      'RGA'|'RGB'|'ABGR'|'ABRG'|'AGBR'|'AGRB'|'ARBG'|'ARGB'|'BAGR'|'BARG'|
+      'BGAR'|'BGRA'|'BRAG'|'BRGA'|'GABR'|'GARB'|'GBAR'|'GBRA'|'GRAB'|'GRBA'|
+      'RABG'|'RAGB'|'RBAG'|'RBGA'|'RGAB'|'RGBA';
 }

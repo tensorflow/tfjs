@@ -25,7 +25,7 @@ import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
-import {CHANNELS_TO_NUM_MAP, EncodeMatrixProgram} from './encode_matrix_gpu';
+import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
@@ -1311,10 +1311,6 @@ export class MathBackendWebGL extends KernelBackend {
     const channels = values.channels || 'RGBA';
 
     const backend = engine().backend as MathBackendWebGL;
-
-    if (!(channels in CHANNELS_TO_NUM_MAP)) {
-      throw new Error(`The color must be a non-empty subsequence of 'RGBA'.`);
-    }
 
     const dataId =
         backend.writeTexture(texture, shape, dtype, height, width, channels);

@@ -34,10 +34,10 @@ export function makeTensor(
         `Please use tf.complex(real, imag).`);
   }
   if (typeof values === 'object' && 'texture' in values) {
-    if (dtype !== 'float32' && dtype !== 'int32' && dtype !== 'bool') {
+    if (dtype !== 'float32' && dtype !== 'int32') {
       throw new Error(
           `Creating tensor from texture only supports ` +
-          `'float32'|'int32'|'bool' dtype, while the dtype is ${dtype}.`);
+          `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
     }
     return ENGINE.backend.createTensorFromTexture(
         values, shape || inferredShape, dtype);

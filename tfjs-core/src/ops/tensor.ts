@@ -70,9 +70,18 @@ import {makeTensor} from './tensor_ops_util';
  *   new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
  * );
  *
+ * // Currently, the `texture` has 4 pixels:
+ * // Pixel0 is {R:0, G:1, B:2, A:3}
+ * // Pixel1 is {R:4, G:5, B:6, A:7}
+ * // Pixel2 is {R:8, G:9, B:10, A:11}
+ * // Pixel3 is {R:12, G:13, B:14, A:15}
+ *
  * const logicalShape = [height * width * 2];
- * const a = tf.tensor({texture, height, width, channels: 'GA'}, logicalShape);
- * // Tensor [1, 3, 5, 7, 9, 11, 13, 15]
+ * const a = tf.tensor({texture, height, width, channels: 'BR'}, logicalShape);
+ * // Tensor value will be [2, 0, 6, 4, 10, 8, 14, 12], since [2, 0] is the
+ * // values of 'B' and 'R' channels of Pixel0, [6, 4] is the values of 'B' and
+ * 'R'
+ * // channels of Pixel1...
  *
  * // For postprocessing on the GPU, it's possible to retrieve the texture
  * // backing any tensor by calling the WebGL backend's `getTexture` method like
@@ -85,10 +94,11 @@ import {makeTensor} from './tensor_ops_util';
  * values are strings, they will be encoded as utf-8 and kept as `Uint8Array[]`.
  * If the values is a `WebGLData` object, the object has to have: 1. texture, a
  * `WebGLTexture`; 2. height, the height of the texture; 3. width, the width of
- * the texture; 4. channels, a non-empty subsequence of 'RGBA', indicating the
- * values of which channels will be passed to the tensor (such as 'R' or 'GA').
- * (If the values passed from texture is less than the tensor size, zeros will
- * be padded at the rear.)
+ * the texture; 4. channels, a non-empty subset of 'RGBA', indicating the
+ * values of which channels will be passed to the tensor, such as 'R' or 'BR'
+ * (The order of the channels affect the order of tensor values. ). (If the
+ * values passed from texture is less than the tensor size, zeros will be padded
+ * at the rear.)
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
