@@ -19,9 +19,12 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
-const CHANNEL_CHAR_TO_INDEX_MAP: Record < string, number >= {
-  'R': 0, 'G': 1, 'B': 2, 'A': 3
-}
+const CHANNEL_CHAR_TO_INDEX_MAP: Record<string, number> = {
+  'R': 0,
+  'G': 1,
+  'B': 2,
+  'A': 3
+};
 
 export class EncodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
