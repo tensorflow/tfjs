@@ -57,9 +57,9 @@ describeMathCPUAndGPU('Tests for preprocessing utils', () => {
   it('Thows an error if input rank > 2', () => {
     const inputs = tensor([[[1], [2]], [[3], [1]]]);
     expect(() =>utils.encodeCategoricalInputs(inputs, 'multiHot', 4))
-    .toThrowError(`When outputMode is not 'int', maximum output rank is 2
-    Received outputMode 'multiHot' and input shape ${inputs.shape}
-    which would result in output rank ${inputs.rank}.`);
+    .toThrowError(`When outputMode is not 'int', maximum output rank is 2`
+    + ` Received outputMode ${'multiHot'} and input shape ${inputs.shape}`
+    + ` which would result in output rank ${inputs.rank}.`);
   });
 
   it('Thows an error if weights are not supplied for tfIdf', () => {
