@@ -52,15 +52,7 @@ export function encodeCategoricalInputs(inputs: Tensor|Tensor[],
 
   const binaryOutput = ['multiHot', 'oneHot'].includes(outputMode);
 
-  let denseBincountInput: Tensor1D | Tensor2D;
-
-  if(input.rank === 1) {
-    denseBincountInput = input as Tensor1D;
-  }
-
-  if(input.rank === 2) {
-    denseBincountInput = input as Tensor2D;
-  }
+  const denseBincountInput = input as Tensor1D | Tensor2D;
 
   let binCounts: Tensor1D | Tensor2D;
 
