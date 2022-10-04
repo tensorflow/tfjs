@@ -70,11 +70,9 @@ export class CenterCrop extends Layer {
   call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs): Tensor[] | Tensor {
     const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
     const dtype = rankedInputs.dtype;
-    const hAxis = rankedInputs.shape.length - 3;
-    const wAxis = rankedInputs.shape.length - 2;
     const inputShape = rankedInputs.shape;
-    const inputHeight = inputShape[hAxis];
-    const inputWidth = inputShape[wAxis];
+    const inputHeight = inputShape.at(H_AXIS);
+    const inputWidth = inputShape.at(W_AXIS);
 
     let hBuffer = 0;
     if (inputHeight !== this.height) {
