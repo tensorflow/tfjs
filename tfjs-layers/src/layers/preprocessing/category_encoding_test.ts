@@ -146,7 +146,7 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const encodingLayer = new CategoryEncoding({numTokens,
                                         outputMode: 'multiHot'});
     expect(() => encodingLayer.apply(categoryData))
-    .toThrowError(`Input values must be between 0 < values <= numTokens
-        with numTokens=${numTokens}`);
+    .toThrowError(`Input values must be between 0 < values <= numTokens`
+      + ` with numTokens=${numTokens}`);
   });
 });
