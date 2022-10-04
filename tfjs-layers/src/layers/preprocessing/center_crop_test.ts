@@ -5,13 +5,7 @@ import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_util
 describeMathCPUAndGPU('CenterCrop Layer', () => {
 
   it('Crops batched image with even crop lengths as expected', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-
-    const inputTensor = tensor([inputArr], [1,4,4,1]);
+    const inputTensor = range(0, 16).reshape([1, 4, 4, 1]);
     const height = 2;
     const width = 2;
     const expectedOutput = tensor([ [[5,6],
