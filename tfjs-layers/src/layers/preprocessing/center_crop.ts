@@ -1,4 +1,4 @@
-import {serialization, Tensor, Tensor3D, Tensor4D, tensor, Tensor2D, Tensor1D, stack, unstack, DataType} from '@tensorflow/tfjs-core';
+import {serialization,DataType,unstack,stack,tensor,Tensor,Tensor1D,Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 import {getExactlyOneShape, getExactlyOneTensor} from '../../utils/types_utils';
 import {resizeBilinear} from '@tensorflow/tfjs-core/ops/image/resize_bilinear';
 import {cropAndResize} from '@tensorflow/tfjs-core/ops/image/crop_and_resize';
@@ -13,6 +13,7 @@ export declare interface CenterCropArgs extends LayerArgs{
 }
 
 export class CenterCrop extends Layer {
+  /** @nocollapse */
   static className = 'CenterCrop';
   private readonly height: number;
   private readonly width: number;
@@ -22,10 +23,11 @@ export class CenterCrop extends Layer {
     this.width = args.width;
   }
 
-  centerCrop(inputs: Tensor3D|Tensor4D, hBuffer: number, wBuffer: number,
+  centerCrop(inputs: Tensor3D | Tensor4D, hBuffer: number, wBuffer: number,
             height: number, width: number, inputHeight: number,
-            inputWidth:number, dtype: DataType): Tensor|Tensor[] {
+            inputWidth: number, dtype: DataType): Tensor | Tensor[] {
 
+    let input: Tensor4D;
     let rank3      = false;
     const top      = hBuffer / inputHeight;
     const left     = wBuffer / inputWidth;
@@ -36,36 +38,37 @@ export class CenterCrop extends Layer {
 
     if(inputs.rank === 3) {
       rank3  = true;
-      inputs = stack([inputs]) as Tensor4D;
+      input  = stack([inputs]) as Tensor4D;
+    } else {
+      input = inputs as Tensor4D;
     }
 
-    for (let i = 0; i < inputs.shape[0]; i++) {
+    for (let i = 0; i < input.shape[0]; i++) {
       boxesArr.push(bound);
     }
 
     const boxes: Tensor2D  = tensor(boxesArr, [boxesArr.length, 4]);
     const boxInd: Tensor1D = tensor([...Array(boxesArr.length).keys()],
-                          [boxesArr.length], 'int32');
+                                            [boxesArr.length], 'int32');
 
     const cropSize: [number, number] = [height, width];
-    inputs = inputs as Tensor4D;
-    const cropped = cropAndResize(inputs, boxes, boxInd, cropSize, 'nearest');
+    const cropped = cropAndResize(input, boxes, boxInd, cropSize, 'nearest');
 
     if(rank3) {
       return K.cast(getExactlyOneTensor(unstack(cropped)), dtype);
     }
-      return K.cast(cropped, dtype);
+    return K.cast(cropped, dtype);
   }
 
-  upsize(inputs : Tensor3D|Tensor4D, height: number,
-         width: number, dtype: DataType): Tensor|Tensor[] {
+  upsize(inputs : Tensor3D | Tensor4D, height: number,
+         width: number, dtype: DataType): Tensor | Tensor[] {
 
     const outputs = resizeBilinear(inputs, [height, width]);
     return K.cast(outputs, dtype);
 }
 
-  call(inputs: Tensor3D|Tensor4D , kwargs: Kwargs): Tensor[]|Tensor {
-    const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D|Tensor4D;
+  call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs): Tensor[] | Tensor {
+    const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
     const dtype = rankedInputs.dtype;
     const hAxis = rankedInputs.shape.length - 3;
     const wAxis = rankedInputs.shape.length - 2;
@@ -108,7 +111,7 @@ export class CenterCrop extends Layer {
     return config;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const hAxis = inputShape.length - 3;
     const wAxis = inputShape.length - 2;
