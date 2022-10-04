@@ -184,9 +184,13 @@ export function batchMatMulImpl({
           activation, preluActivationWeights);
       break;
     case MatMulProgramType.MatMulPackedProgram:
+      // Experiments show that sequential access is more friendly for Intel
+      // GPUs.
+      const sequentialAccessByThreads = backend.adapterInfo.isIntel();
       program = new MatMulPackedProgram(
           a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights);
+          transposeB, bias, activation, preluActivationWeights,
+          sequentialAccessByThreads);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
