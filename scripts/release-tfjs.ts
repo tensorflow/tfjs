@@ -149,7 +149,11 @@ async function main() {
     console.log(chalk.magenta.bold(
         '~~~ Copying current changes to a new release branch'
          + ` ${releaseBranch} ~~~`));
-    $(`cp -r ./* ${dir}`);
+    // Avoid copying `.git/` because this script will `git push`
+    // to origin, which it expects to be the tfjs repo as was set
+    // up when the script ran 'git clone' above.
+    // This makes sure other hidden files like .bazelrc are copied.
+    $(`cp -r \`ls -A | grep -v ".git"\` ${dir}`);
     shell.cd(dir);
   } else {
     shell.cd(dir);
