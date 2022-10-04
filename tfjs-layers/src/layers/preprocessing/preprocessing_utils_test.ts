@@ -12,7 +12,7 @@ import { describeMathCPUAndGPU, expectTensorsClose} from '../../utils/test_utils
 import { Tensor, tensor, tensor1d} from '@tensorflow/tfjs-core';
 import * as utils from './preprocessing_utils';
 
-describeMathCPUAndGPU('Tests for preprocessing utils', () => {
+describeMathCPUAndGPU('Preprocessing Utils', () => {
 
   it('Peforms int encoding correctly', () => {
     const inputs = tensor([0, 1, 2], [3], 'int32');

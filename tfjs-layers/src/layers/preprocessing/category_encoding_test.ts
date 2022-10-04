@@ -125,9 +125,9 @@ describeMathCPUAndGPU('Category Encoding', () => {
     const encodingLayer = new CategoryEncoding({numTokens,
                                         outputMode: 'multiHot'});
     expect(() => encodingLayer.apply(categoryData))
-    .toThrowError(`When outputMode is not 'int', maximum output rank is 2
-    Received outputMode ${'multiHot'} and input shape ${categoryData.shape}
-    which would result in output rank ${categoryData.rank}.`);
+    .toThrowError(`When outputMode is not int, maximum output rank is 2`
+    + ` Received outputMode ${'multiHot'} and input shape ${categoryData.shape}`
+    + ` which would result in output rank ${categoryData.rank}.`);
   });
 
   it('Raises Value Error if max input value !<= numTokens', () => {
