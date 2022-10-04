@@ -67,6 +67,11 @@ cloudbuild_generated.yml
 wasm-dist/
 .firebase/
 
+# e2e custom modules
+e2e/custom_module/blazeface/custom_tfjs_blazeface
+e2e/custom_module/dense_model/custom_tfjs
+e2e/custom_module/universal_sentence_encoder/custom_tfjs
+
 # User-specific .bazelrc
 .bazelrc.user
 **/.parcel-cache
