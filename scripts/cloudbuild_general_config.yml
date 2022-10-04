@@ -37,7 +37,7 @@ steps:
   args: ['lint']
   waitFor: ['yarn-common']
 
-# Run verdaccio nightly publishing tests
+# Run verdaccio nightly publishing tests.
 - name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'bash'
   id: 'nightly-verdaccio-test'
@@ -57,6 +57,17 @@ steps:
 # Bazel tests
 # These use a remote cache and only re-run if changes occurred, so we run them
 # in every build.
+#
+# No 'waitFor' field because non-bazel tests must run after verdaccio nightly
+# tests. It's easier to make bazel tests wait for verdaccio since the other
+# tests wait for bazel tests. However, verdaccio nightly tests might not be
+# included (such as in non-nightly CI), so we can't `waitFor` them. Instead
+# we rely on the default behavior of waiting for all prior steps.
+#
+# TODO(mattsoulanille): Clean this up. Allow waiting for verdaccio nightly tests
+# and remove the field from `waitFor` if the tests aren't actually present.
+# Add them to all the non-bazel tests and run bazel tests concurrently with
+# verdaccio tests.
 - name: 'gcr.io/learnjs-174218/release'
   id: 'bazel-tests'
   entrypoint: 'bash'
@@ -65,7 +76,6 @@ steps:
   env:
     - 'BROWSERSTACK_USERNAME=deeplearnjs1'
     - 'NIGHTLY=$_NIGHTLY'
-  waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # The following step builds the link package, which is a temporary package
