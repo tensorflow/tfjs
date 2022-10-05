@@ -35,8 +35,5 @@
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
-  },
-  "dependencies": {
-    "@tensorflow/tfjs-core": "^3.20.0"
   }
 }
