@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {dispose, InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor, util} from '@tensorflow/tfjs-core';
+import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor, util} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
@@ -46,10 +46,8 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   private handler: UrlIOHandler<ModelURL>;
   private artifacts: io.ModelArtifacts;
   private initializer: GraphExecutor;
-  private resourceIdToCapturedInput: {[key: number]: Tensor};
   private resourceManager: ResourceManager;
   private signature: tensorflow.ISignatureDef;
-  private initializerSignature: tensorflow.ISignatureDef;
   private structuredOutputKeys: string[];
   private readonly io: typeof io;
 
@@ -162,7 +160,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
   /**
    * Synchronously construct the in memory weight map and
-   * compile the inference graph.
+   * compile the inference graph. Also initialize hashtable if any.
    *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
@@ -203,7 +201,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
       // hashTables created from when executing the initializer will be stored
       // in the resourceManager.
       this.initializer.resourceManager = this.resourceManager;
-      this.initializerSignature = artifacts.initializerSignature;
+      this.initializer.executeAsync({}, []);
     }
 
     return true;
@@ -336,36 +334,17 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
                           NamedTensorMap): NamedTensorMap {
     if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
       // The input is already a NamedTensorMap.
-      if (this.signature != null && this.signature.inputs != null) {
-        for (const input in this.signature.inputs) {
-          const tensor = this.signature.inputs[input];
-          if (tensor.resourceId != null) {
-            inputs[input] = this.resourceIdToCapturedInput[tensor.resourceId];
-          }
-        }
-      }
       return inputs;
     }
     inputs = Array.isArray(inputs) ? inputs : [inputs];
-
-    const numCapturedInputs =
-        Object.keys(this.resourceIdToCapturedInput).length;
-    if (inputs.length + numCapturedInputs !== this.inputNodes.length) {
-      throw new Error(`Input tensor count mismatch, the graph model has ${
-          this.inputNodes.length -
-          numCapturedInputs} non-resource placeholders, while there are ${
-          inputs.length} input tensors provided.`);
+    if (inputs.length !== this.inputNodes.length) {
+      throw new Error(
+          'Input tensor count mismatch,' +
+          `the graph model has ${this.inputNodes.length} placeholders, ` +
+          `while there are ${inputs.length} input tensors.`);
     }
-
-    let inputIndex = 0;
-    return this.inputNodes.reduce((map, inputName) => {
-      const signature =
-          this.signature ? this.signature.inputs[inputName] : null;
-      if (signature != null && signature.resourceId != null) {
-        map[inputName] = this.resourceIdToCapturedInput[signature.resourceId];
-      } else {
-        map[inputName] = (inputs as Tensor[])[inputIndex++];
-      }
+    return this.inputNodes.reduce((map, inputName, i) => {
+      map[inputName] = (inputs as Tensor[])[i];
       return map;
     }, {} as NamedTensorMap);
   }
@@ -373,43 +352,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   private normalizeOutputs(outputs: string|string[]): string[] {
     outputs = outputs || this.outputNodes;
     return !Array.isArray(outputs) ? [outputs] : outputs;
-  }
-
-  private executeInitializerGraph() {
-    if (this.initializer == null) {
-      return [];
-    }
-    if (this.initializerSignature == null) {
-      return this.initializer.execute({}, []);
-    } else {
-      return this.initializer.execute(
-          {}, Object.keys(this.initializerSignature.outputs));
-    }
-  }
-
-  private async executeInitializerGraphAsync() {
-    if (this.initializer == null) {
-      return [];
-    }
-    if (this.initializerSignature == null) {
-      return this.initializer.executeAsync({}, []);
-    } else {
-      return this.initializer.executeAsync(
-          {}, Object.keys(this.initializerSignature.outputs));
-    }
-  }
-
-  private setResourceIdToCapturedInput(outputs: Tensor[]) {
-    this.resourceIdToCapturedInput = {};
-
-    if (this.initializerSignature) {
-      const outputNames = Object.keys(this.initializerSignature.outputs);
-      for (let i = 0; i < outputNames.length; i++) {
-        const outputName = outputNames[i];
-        const tensorInfo = this.initializerSignature.outputs[outputName];
-        this.resourceIdToCapturedInput[tensorInfo.resourceId] = outputs[i];
-      }
-    }
   }
 
   /**
@@ -430,15 +372,11 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs?: string|string[]):
       Tensor|Tensor[] {
-    if (this.resourceIdToCapturedInput == null) {
-      this.setResourceIdToCapturedInput(this.executeInitializerGraph());
-    }
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
     const result = this.executor.execute(inputs, outputs);
     return result.length > 1 ? result : result[0];
   }
-
   /**
    * Executes inference for the model for given input tensors in async
    * fashion, use this method when your model contains control flow ops.
@@ -458,10 +396,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   async executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
-    if (this.resourceIdToCapturedInput == null) {
-      this.setResourceIdToCapturedInput(
-          await this.executeInitializerGraphAsync());
-    }
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
     const result = await this.executor.executeAsync(inputs, outputs);
@@ -505,9 +439,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     if (this.initializer) {
       this.initializer.dispose();
-      if (this.resourceIdToCapturedInput) {
-        dispose(this.resourceIdToCapturedInput);
-      }
     }
 
     this.resourceManager.dispose();
