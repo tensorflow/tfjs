@@ -75,11 +75,6 @@ export class FileHandler implements tf.io.IOHandler {
         modelArtifacts.modelInitializer = modelJSON.modelInitializer;
       }
 
-      // TODO: Uncomment once table initializers are supported in TFJS.
-      // if (modelJSON.initializerSignature != null) {
-      //   modelArtifacts.initializerSignature = modelJSON.initializerSignature;
-      // }
-
       if (modelJSON.weightsManifest != null) {
         const [weightSpecs, weightData] =
             this.loadWeights(modelJSON.weightsManifest, path);
