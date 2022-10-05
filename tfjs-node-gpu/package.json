@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-ci": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
-    "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-node tfjs",
+    "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-node",
     "build-union": "cd ../tfjs && yarn && yarn build",
     "build-union-ci": "cd ../tfjs && yarn && yarn build-ci",
     "build-deps": "yarn build-link-package && yarn build-union",
@@ -37,7 +37,7 @@
     "prep-gpu": "./prep-gpu.sh",
     "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
-    "publish-npm": "npm publish",
+    "publish-npm": "yarn build-addon publish && npm publish",
     "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "test-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",

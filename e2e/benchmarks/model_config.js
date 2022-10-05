@@ -74,7 +74,7 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
-function predictFunction(model, input) {
+function predictFunction(input) {
   let debug = false;
   try {
     debug = tf.env().getBool('KEEP_INTERMEDIATE_TENSORS');
@@ -89,33 +89,51 @@ function predictFunction(model, input) {
 }
 
 const benchmarks = {
-  'mobilenet_v3': {
+  'MobileNetV3': {
     type: 'GraphModel',
-    load: async () => {
-      const url =
-          'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_small_100_224/classification/5/default/1';
+    architectures: ['small_075', 'small_100', 'large_075', 'large_100'],
+    load: async (inputResolution = 224, modelArchitecture = 'small_075') => {
+      const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v3_${
+          modelArchitecture}_224/classification/5/default/1`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
-    loadTflite: async (enableProfiling = false) => {
-      const url =
-          'https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_small_100_224/classification/5/metadata/1';
+    loadTflite: async (
+        enableProfiling = false, modelArchitecture = 'small_075') => {
+      const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
+          modelArchitecture}_224/classification/5/metadata/1`;
       return tflite.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      if (isTflite()) {
+      if (typeof isTflite === 'function' && isTflite()) {
         return () => tfliteModel.predict(input);
       } else {
-        return predictFunction(model, input);
+        return predictFunction(input);
       }
     },
   },
-  'mobilenet_v2': {
+  'MobileNetV2': {
+    type: 'GraphModel',
+    architectures: ['050', '075', '100'],
+    load: async (inputResolution = 224, modelArchitecture = '050') => {
+      const url = `https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_${
+          modelArchitecture}_224/classification/3/default/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([1, 224, 224, 3]);
+      return predictFunction(input);
+    },
+  },
+  // Currently, for mibilnet_v2, only the architectures with alpha=100 has
+  // tflite model. Since users could tune the alpha for 'mobilenet_v2' tfjs
+  // models, while we could only provides mibilnet_v2_lite with alpha=100 on the
+  // tflite backend, so mibilnet_v2_lite is separated from mibilnet_v2 and fixes
+  // alpha=100; othwise it would confuse users.
+  'MobileNetV2Lite': {
     type: 'GraphModel',
     load: async () => {
-      const url =
-          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
-      return tf.loadGraphModel(url);
+      throw new Error(`Please set tflite as the backend to run this model.`);
     },
     loadTflite: async (enableProfiling = false) => {
       const url =
@@ -124,57 +142,187 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      if (isTflite()) {
+      if (typeof isTflite === 'function' && isTflite()) {
         return () => tfliteModel.predict(input);
       } else {
-        return predictFunction(model, input);
+        return predictFunction(input);
       }
     },
   },
-  'mesh_128': {
+  'HandPoseDetector': {
+    type: 'GraphModel',
+    architectures: ['lite', 'full'],
+    load: async (inputResolution = 192, modelArchitecture = 'lite') => {
+      const url =
+          `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/detector/${
+              modelArchitecture}/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 192, 192, 3]);
+      return predictFunction(input);
+    },
+  },
+  'HandPoseLandmark': {
+    type: 'GraphModel',
+    architectures: ['lite', 'full'],
+    load: async (inputResolution = 224, modelArchitecture = 'lite') => {
+      const url =
+          `https://tfhub.dev/mediapipe/tfjs-model/handpose_3d/landmark/${
+              modelArchitecture}/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 224, 224, 3]);
+      return predictFunction(input);
+    },
+  },
+  'MoveNet-SinglePose': {
+    type: 'GraphModel',
+    inputSizes: [192, 256],
+    load: async (inputResolution = 192) => {
+      const modelType = inputResolution === 192 ? 'lightning' : 'thunder';
+      const url = `https://tfhub.dev/google/tfjs-model/movenet/singlepose/${
+          modelType}/4`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: (inputResolution = 192) => {
+      const input = tf.zeros([1, inputResolution, inputResolution, 3], 'int32');
+      return predictFunction(input);
+    },
+  },
+  'MoveNet-MultiPose': {
     type: 'GraphModel',
     load: async () => {
       const url =
-          'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
-      return tf.loadGraphModel(url);
+          'https://tfhub.dev/google/tfjs-model/movenet/multipose/lightning/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 128, 128, 3]);
-      return predictFunction(model, input);
+      const input = tf.zeros([1, 256, 256, 3], 'int32');
+      return predictFunction(input);
     },
   },
-  'face_detector': {
+  'BlazePoseDetector': {
     type: 'GraphModel',
     load: async () => {
       const url =
-          'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
-      return tf.loadGraphModel(url);
+          'https://tfhub.dev/mediapipe/tfjs-model/blazeposedetector/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const input = tf.zeros([1, 128, 128, 3]);
-      return predictFunction(model, input);
+      const input = tf.zeros([1, 224, 224, 3]);
+      return predictFunction(input);
     },
   },
-  'hand_detector': {
-    load: async () => {
-      const url =
-          'https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/handdetector/1/default/1';
+  'BlazePoseLandmark': {
+    type: 'GraphModel',
+    architectures: ['lite', 'full', 'heavy'],
+    load: async (inputResolution = 256, modelArchitecture = 'lite') => {
+      const url = `https://tfhub.dev/mediapipe/tfjs-model/blazeposelandmark_${
+          modelArchitecture}/2/default/2`;
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 256, 3]);
-      return predictFunction(model, input);
+      return predictFunction(input);
     },
   },
-  'hand_skeleton': {
+  'Coco-SSD': {
+    type: 'GraphModel',
+    // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
+    architectures: ['MobileNetV2', 'MobileNetV1', 'liteMobileNetV2'],
+    load: async (inputResolution = 227, modelArchitecture = 'MobileNetV2') => {
+      const tfliteBased = modelArchitecture.split('MobileNetV')[0];
+      const mobileNetVersion = modelArchitecture.split('MobileNetV')[1];
+      const url = `https://storage.googleapis.com/tfjs-models/savedmodel/ssd${
+          tfliteBased}_mobilenet_v${mobileNetVersion}/model.json`;
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 227, 227, 3], 'int32');
+      return model => model.executeAsync(input);
+    },
+  },
+  'DeepLabV3': {
+    type: 'GraphModel',
+    // TODO: Add cityscapes architecture.
+    // https://github.com/tensorflow/tfjs/issues/6733
+    architectures: ['pascal', 'ade20k'],
+    load: async (inputResolution = 227, modelArchitecture = 'pascal') => {
+      const url =
+          `https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/deeplab/${
+              modelArchitecture}/1/quantized/2/1/model.json`;
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 227, 500, 3], 'int32');
+      return predictFunction(input);
+    },
+  },
+  'FaceDetection': {
+    type: 'GraphModel',
+    inputSizes: [128, 192],
+    load: async (inputResolution = 128) => {
+      const modelSize = inputResolution === 128 ? 'short' : 'full';
+      const url = `https://tfhub.dev/mediapipe/tfjs-model/face_detection/${
+          modelSize}/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: (inputResolution = 128) => {
+      const input = tf.zeros([1, inputResolution, inputResolution, 3]);
+      return predictFunction(input);
+    },
+  },
+  'FaceLandmarkDetection': {
+    type: 'GraphModel',
+    architectures: ['attention_mesh', 'face_mesh'],
+    load: async (
+        inputResolution = 192, modelArchitecture = 'attention_mesh') => {
+      const url =
+          `https://tfhub.dev/mediapipe/tfjs-model/face_landmarks_detection/${
+              modelArchitecture}/1`;
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 192, 192, 3]);
+      return predictFunction(input);
+    },
+  },
+  'ArPortraitDepth': {
+    type: 'GraphModel',
+    load: async () => {
+      const url = 'https://tfhub.dev/tensorflow/tfjs-model/ar_portrait_depth/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 256, 192, 3]);
+      return predictFunction(input);
+    },
+  },
+  'SelfieSegmentation-General': {
+    type: 'GraphModel',
     load: async () => {
       const url =
-          'https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/handskeleton/1/default/1';
+          'https://tfhub.dev/mediapipe/tfjs-model/selfie_segmentation/general/1';
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const input = tf.zeros([1, 256, 256, 3]);
-      return predictFunction(model, input);
+      return predictFunction(input);
+    },
+  },
+  'SelfieSegmentation-Landscape': {
+    type: 'GraphModel',
+    load: async () => {
+      const url =
+          'https://tfhub.dev/mediapipe/tfjs-model/selfie_segmentation/landscape/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const input = tf.zeros([1, 144, 256, 3]);
+      return predictFunction(input);
     },
   },
   'AutoML Image': {
@@ -183,11 +331,11 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
-      return tf.automl.loadImageClassification(url);
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([224, 224, 3]);
-      return model => model.classify(zeros);
+      const zeros = tf.zeros([1, 224, 224, 3]);
+      return predictFunction(zeros);
     }
   },
   'AutoML Object': {
@@ -196,11 +344,13 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
-      return tf.automl.loadObjectDetection(url);
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([224, 224, 3]);
-      return model => model.detect(zeros);
+      const OUTPUT_NODE_NAMES =
+          ['Postprocessor/convert_scores', 'Postprocessor/Decode/transpose_1'];
+      const feedDict = {ToFloat: tf.zeros([1, 224, 224, 3])};
+      return model => model.executeAsync(feedDict, OUTPUT_NODE_NAMES);
     }
   },
   'USE - batchsize 30': {
@@ -229,6 +379,45 @@ const benchmarks = {
         const res = await model.embed(next);
         return res;
       };
+    }
+  },
+  'TextToxicity': {
+    type: 'GraphModel',
+    // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/toxicity/1/default/1/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const indices = tf.tensor2d(
+          [0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9], [10, 2],
+          'int32');
+      const values = tf.randomUniform([10], 0, 1000, 'int32');
+      const input = {Placeholder_1: indices, Placeholder: values};
+      return model => model.executeAsync(input);
+    }
+  },
+  'MobileBert': {
+    type: 'GraphModel',
+    load: async () => {
+      const url = 'https://tfhub.dev/tensorflow/tfjs-model/mobilebert/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const batchSize = 1;
+      const INPUT_SIZE = 384;
+      const inputIds = tf.ones([batchSize, INPUT_SIZE], 'int32');
+      const segmentIds = tf.ones([1, INPUT_SIZE], 'int32');
+      const inputMask = tf.ones([1, INPUT_SIZE], 'int32');
+      const input = {
+        input_ids: inputIds,
+        segment_ids: segmentIds,
+        input_mask: inputMask,
+        global_step: tf.scalar(1, 'int32')
+      };
+      return predictFunction(input);
     }
   },
   'posenet': {
@@ -275,26 +464,16 @@ const benchmarks = {
     supportDebug: false,
     // The ratio to the default camera size [480, 640].
     inputSizes: [0.25, 0.5, 0.75, 1.0],
-    architectures: ['MobileNetV1', 'ResNet50'],
+    architectures: ['ResNet50'],
     inputTypes: ['image', 'tensor'],
     load: async (
         internalResolution, modelArchitecture = 'MobileNetV1',
         inputType = 'image') => {
-      let config = null;
-      if (modelArchitecture === 'MobileNetV1') {
-        config = {
-          architecture: 'MobileNetV1',
-          outputStride: 16,
-          quantBytes: 4,
-          multiplier: 0.75,
-        };
-      } else if (modelArchitecture === 'ResNet50') {
-        config = {
-          architecture: 'ResNet50',
-          outputStride: 32,
-          quantBytes: 4,
-        };
-      }
+      let config = {
+        architecture: 'ResNet50',
+        outputStride: 32,
+        quantBytes: 4,
+      };
       const model = await bodyPix.load(config);
       if (inputType === 'tensor') {
         model.input =
@@ -312,19 +491,6 @@ const benchmarks = {
         return model.segmentPerson(model.input, PERSON_INFERENCE_CONFIG);
       };
     }
-  },
-  'blazeface': {
-    type: 'GraphModel',
-    inputSizes: [128],
-    load: async () => {
-      const url =
-          'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1';
-      return tf.loadGraphModel(url, {fromTFHub: true});
-    },
-    predictFunc: (inputResolution = 128) => {
-      const input = tf.randomNormal([1, inputResolution, inputResolution, 3]);
-      return predictFunction(model, input);
-    },
   },
   'speech-commands': {
     load: async () => {
@@ -347,78 +513,6 @@ const benchmarks = {
       }
     }
   },
-  'pose-detection': {
-    type: 'GraphModel',
-    inputSizes: [128, 256, 512, 1024],
-    architectures: [
-      'BlazePose-lite',
-      'BlazePose-full',
-      'BlazePose-heavy',
-      'MoveNet-lightning',
-      'MoveNet-thunder',
-      'PoseNet-MobileNetV1',
-      'PoseNet-ResNet50',
-    ],
-    inputTypes: ['image', 'tensor', 'imageBitmap'],
-    modelTypes: ['lite', 'full', 'heavy', 'lightning'],
-    supportDebug: false,
-    load: async (
-        inputResolution = 128, modelArchitecture = 'BlazePose-lite',
-        inputType = 'image') => {
-      let config = null;
-      const modelConfig = {};
-      modelConfig.name = modelArchitecture.split('-')[0];
-      modelConfig.type = modelArchitecture.split('-')[1];
-      if (modelConfig.name === 'PoseNet') {
-        if (modelConfig.type === 'MobileNetV1') {
-          config = {
-            quantBytes: 4,
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.75,
-            inputResolution: {width: inputResolution, height: inputResolution},
-          }
-        } else {
-          config = {
-            architecture: 'ResNet50',
-            outputStride: 16,
-            inputResolution: {width: inputResolution, height: inputResolution},
-            quantBytes: 2
-          };
-        }
-      } else if (modelConfig.name === 'MoveNet') {
-        const modelType = modelConfig.type == 'lightning' ?
-            poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING :
-            poseDetection.movenet.modelType.SINGLEPOSE_THUNDER;
-        config = {
-          modelType,
-        };
-      } else if (modelConfig.name === 'BlazePose') {
-        const runtime = 'tfjs';
-        const enableSmoothing = false;
-        const modelType = modelConfig.type;
-        config = {runtime, enableSmoothing, modelType};
-      }
-      const model =
-          await poseDetection.createDetector(modelConfig.name, config);
-      const image = await loadImage('tennis_standing.jpg');
-      if (inputType === 'tensor') {
-        model.input = tf.browser.fromPixels(image);
-      } else if (inputType === 'imageBitmap') {
-        model.input =
-            await createImageBitmap(image, {premultiplyAlpha: 'none'});
-      } else {
-        model.input = image;
-      }
-      return model;
-    },
-    predictFunc: () => {
-      return async model => {
-        model.reset();
-        return model.estimatePoses(model.input);
-      };
-    }
-  },
   'custom': {
     type: '',
     load: async () => {
@@ -434,7 +528,7 @@ const benchmarks = {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
-          if (isTflite()) {
+          if (typeof isTflite === 'function' && isTflite()) {
             return await tfliteModel.predict(inferenceInput);
           } else {
             const predict = getPredictFnForModel(model, inferenceInput);
@@ -516,8 +610,8 @@ async function tryAllLoadingMethods(
  *
  * @param {string} modelUrl
  * @param {io.LoadOptions} loadOptions
- * @param {object} state  The object that is used to record the model type. This
- *     can be extended with more model information if needed.
+ * @param {object} state  The object that is used to record the model type.
+ *     This can be extended with more model information if needed.
  */
 async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
   let model, ioHandler, modelType;

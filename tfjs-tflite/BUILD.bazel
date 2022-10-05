@@ -103,5 +103,6 @@ test_suite(
     name = "tests",
     tests = [
         ":tfjs-tflite_test",
+        "//tfjs-tflite/src:worker_test",
     ],
 )

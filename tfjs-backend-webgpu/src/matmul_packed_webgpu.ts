@@ -17,8 +17,8 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
     batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
@@ -30,25 +30,13 @@ export function matMulReadFnSource(
           component}`);
   const sampleA = `
       let batch = ${batchAEqualOne ? '0' : 'batchIn'};
-      let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
       ${
-      transposeA ?
-          `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
-              component}];` :
-          `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
-              component}];`}
+      transposeA ? `value = getA(batch, col, row);` :
+                   `value = getA(batch, row, col);`}
 
     `;
-  let sampleB;
-  if (transposeB === false) {
-    sampleB =
-        `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
-            component}];`;
-  } else {
-    sampleB =
-        `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
-            component}];`;
-  }
+  const sampleB = transposeB ? `value = getB(batch, col, row);` :
+                               `value = getB(batch, row, col);`;
 
   return `
   fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
@@ -72,7 +60,6 @@ export function matMulReadFnSource(
   fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? '0' : 'batchIn'};
-    let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -107,11 +94,162 @@ export function matMulReadWriteFnSource(
   `;
 }
 
+const writeDataToSubAVec4Snippet = (transpose: boolean) => {
+  if (transpose) {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+          kStart + inputRow,
+          globalRowStart / InnerElementSize + inputCol);
+        `;
+
+  } else {
+    return `
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+          globalRow + innerRow,
+          kStart / InnerElementSize + inputCol);
+        `;
+  }
+};
+
+const calculateResultSnippet =
+    (transposeA: boolean, innerElementSize: number) => {
+      if (transposeA) {
+        return `
+        let ACached0 = mm_Asub[k * InnerElementSize][localRow];
+        let ACached1 = mm_Asub[k * InnerElementSize + 1][localRow];
+        let ACached2 = mm_Asub[k * InnerElementSize + 2][localRow];
+        ${
+            innerElementSize === 3 ?
+                '' :
+                'let ACached3 = mm_Asub[k * InnerElementSize + 3][localRow];'}
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          acc[i] = BCached0 * ACached0[i] + acc[i];
+          acc[i] = BCached1 * ACached1[i] + acc[i];
+          acc[i] = BCached2 * ACached2[i] + acc[i];
+          ${
+            innerElementSize === 3 ?
+                '' :
+                'acc[i] = BCached3 * ACached3[i] + acc[i];'}
+        }`;
+      } else {
+        return `
+        for (var i = 0; i < RowPerThread; i = i + 1) {
+          let ACached = mm_Asub[tileRow + i][k];
+          acc[i] = BCached0 * ACached.x + acc[i];
+          acc[i] = BCached1 * ACached.y + acc[i];
+          acc[i] = BCached2 * ACached.z + acc[i];
+          ${
+            innerElementSize === 3 ? '' :
+                                     'acc[i] = BCached3 * ACached.w + acc[i];'}
+        }`;
+      }
+    };
+
+export function makeMatMulPackedVec4Source(
+    workPerThread: number[], workGroupSize: [number, number, number],
+    transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
+    isVectorA = false): string {
+  const tileAOuter = workGroupSize[1] * workPerThread[1];
+  const tileBOuter = workGroupSize[0] * workPerThread[0];
+  const tileAWidth = transposeA ? tileAOuter : tileInner;
+  const tileAHight = transposeA ? tileInner : tileAOuter;
+  const innerElementSize = tileAWidth / workGroupSize[0];
+  const rowPerThreadB = tileInner / workGroupSize[1];
+  util.assert(
+      ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
+       (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&
+          tileAWidth % workGroupSize[0] === 0 &&
+          tileInner % workGroupSize[1] === 0 && workPerThread[0] === 4,
+      () => `If transposeA ${transposeA} is true, innerElementSize ${
+          innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
+          Otherwise, innerElementSize ${innerElementSize} must be 3 or 4.
+      tileAWidth ${tileAWidth} must be divisible by workGroupSize[0]${
+          workGroupSize[0]}. tileInner ${
+          tileInner} must be divisible by workGroupSize[1] ${
+          workGroupSize[1]}. ColPerThread ${workPerThread[0]} must be 4.`);
+  return `
+  var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
+      tileAWidth / innerElementSize}>, ${tileAHight}>;
+  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
+      tileBOuter / workPerThread[0]}>, ${tileInner}>;
+
+  const RowPerThread = ${workPerThread[1]};
+  const ColPerThread = ${workPerThread[0]};
+  const InnerElementSize = ${innerElementSize};
+  const TileInner = ${tileInner};
+
+  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+            @builtin(global_invocation_id) GlobalId : vec3<u32>,
+            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
+
+    let localRow = i32(localId.y);
+    let tileRow = ${isVectorA ? '0' : 'localRow * RowPerThread'};
+    let tileCol = i32(localId.x);
+
+    let globalRow = ${isVectorA ? '0' : 'i32(globalId.y) * RowPerThread'};
+    let globalCol = i32(globalId.x);
+    let batch = ${splitK ? '0' : 'i32(globalId.z)'};
+    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+    let numTiles = ${
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
+               '(uniforms.dimInner - 1) / TileInner + 1'};
+    var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
+
+    var acc: array<vec4<f32>, RowPerThread>;
+
+    // Loop over shared dimension.
+    let tileRowB = localRow * ${rowPerThreadB};
+    for (var t = 0; t < numTiles; t = t + 1) {
+        // Load one tile of A into local memory.
+        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            let inputRow = tileRow + innerRow;
+            let inputCol = tileCol;
+            ${writeDataToSubAVec4Snippet(transposeA)}
+        }
+
+        // Load one tile of B into local memory.
+        for (var innerRow = 0; innerRow < ${
+      rowPerThreadB}; innerRow = innerRow + 1) {
+            let inputRow = tileRowB + innerRow;
+            let inputCol = tileCol;
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch, kStart + inputRow, globalCol);
+        }
+        kStart = kStart + TileInner;
+        workgroupBarrier();
+
+        // Compute acc values for a single thread.
+        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
+            let BCached0 = mm_Bsub[k * InnerElementSize][tileCol];
+            let BCached1 = mm_Bsub[k * InnerElementSize + 1][tileCol];
+            let BCached2 = mm_Bsub[k * InnerElementSize + 2][tileCol];
+            ${
+      innerElementSize === 3 ?
+          '' :
+          'let BCached3 = mm_Bsub[k * InnerElementSize + 3][tileCol];'}
+
+            ${calculateResultSnippet(transposeA, innerElementSize)}
+        }
+
+        workgroupBarrier();
+    }
+
+    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        mm_write(batch, globalRow + innerRow, globalCol, acc[innerRow]);
+    }
+  }`;
+}
+
 const writeDataToSubASnippet = (transpose: boolean) => {
   if (transpose) {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(batch,
-          t * TileInner + inputRow,
+          kStart + inputRow,
           globalRowStart + inputCol);
         `;
 
@@ -119,7 +257,7 @@ const writeDataToSubASnippet = (transpose: boolean) => {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(batch,
           globalRowStart + inputRow,
-          t * TileInner + inputCol);
+          kStart + inputCol);
         `;
   }
 };
@@ -130,9 +268,12 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
                       'let ACached = mm_Asub[tileRow + innerRow][k];';
 };
 
+// sequentialAccessByThreads means sequential data in memory is accessed by
+// threads, instead of a single thread (default behavior).
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
-    transposeA = false, tileInner = 32): string {
+    transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
+    sequentialAccessByThreads = false): string {
   const tileAOuter = workPerThread[1] * workGroupSize[1];
   const tileBOuter = workPerThread[0] * workGroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -149,6 +290,127 @@ export function makeMatMulPackedSource(
   const rowPerThreadA = tileAHight / workGroupSize[1];
   const colPerThreadA = tileAWidth / workGroupSize[0];
   const rowPerThreadB = tileInner / workGroupSize[1];
+  const matmulSnippet = sequentialAccessByThreads ?
+      `
+      let localRow = i32(localId.y);
+      let localCol = i32(localId.x);
+      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
+
+      // Loop over shared dimension.
+      for (var t = 0; t < numTiles; t = t + 1) {
+        // Load one tile of A into local memory.
+        for (var inputRow = localRow; inputRow < ${
+          tileAHight}; inputRow = inputRow + ${workGroupSize[1]}) {
+          for (var inputCol = localCol; inputCol < ${
+          tileAWidth}; inputCol = inputCol + ${workGroupSize[0]}) {
+            ${writeDataToSubASnippet(transposeA)}
+          }
+        }
+        // Load one tile of B into local memory.
+        for (var inputRow = localRow; inputRow < ${
+          tileInner}; inputRow = inputRow + ${workGroupSize[1]}) {
+              for (var inputCol = localCol; inputCol < ${
+          tileBOuter}; inputCol = inputCol + ${workGroupSize[0]}) {
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+              kStart + inputRow,
+              globalColStart + inputCol);
+          }
+        }
+        kStart = kStart + TileInner;
+        workgroupBarrier();
+
+        // Compute acc values for a single thread.
+        var BCached : array<f32, ColPerThread>;
+        for (var k = 0; k < TileInner; k = k + 1) {
+          for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${workGroupSize[0]}];
+          }
+          for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+            let ACached = ${
+          transposeA ?
+              `mm_Asub[k][localRow + innerRow * ${workGroupSize[1]}];` :
+              `mm_Asub[localRow + innerRow * ${workGroupSize[1]}][k];`}
+            for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+              acc[innerRow][innerCol] = acc[innerRow][innerCol] +
+                  ACached * BCached[innerCol];
+            }
+          }
+        }
+        workgroupBarrier();
+      }
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        let gRow = globalRowStart + localRow + innerRow * ${workGroupSize[1]};
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+          let gCol = globalColStart + localCol + innerCol * ${workGroupSize[0]};
+          mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
+        }
+      }
+      ` :
+      `
+  let tileRow = i32(localId.y) * RowPerThread;
+  let tileCol = i32(localId.x) * ColPerThread;
+
+  let globalRow = i32(globalId.y) * RowPerThread;
+  let globalCol = i32(globalId.x) * ColPerThread;
+  let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+
+  let tileRowA = i32(localId.y) * ${rowPerThreadA};
+  let tileColA = i32(localId.x) * ${colPerThreadA};
+  let tileRowB = i32(localId.y) * ${rowPerThreadB};
+  // Loop over shared dimension.
+  for (var t = 0; t < numTiles; t = t + 1) {
+    // Load one tile of A into local memory.
+    for (var innerRow = 0; innerRow < ${
+          rowPerThreadA}; innerRow = innerRow + 1) {
+      for (var innerCol = 0; innerCol < ${
+          colPerThreadA}; innerCol = innerCol + 1) {
+        let inputRow = tileRowA + innerRow;
+        let inputCol = tileColA + innerCol;
+        ${writeDataToSubASnippet(transposeA)}
+      }
+    }
+
+    // Load one tile of B into local memory.
+    for (var innerRow = 0; innerRow < ${
+          rowPerThreadB}; innerRow = innerRow + 1) {
+      for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+        let inputRow = tileRowB + innerRow;
+        let inputCol = tileCol + innerCol;
+        mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+          kStart + inputRow,
+          globalCol + innerCol);
+      }
+    }
+    kStart = kStart + TileInner;
+    workgroupBarrier();
+
+    // Compute acc values for a single thread.
+    var BCached : array<f32, ColPerThread>;
+    for (var k = 0; k < TileInner; k = k + 1) {
+      for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
+        BCached[inner] = mm_Bsub[k][tileCol + inner];
+      }
+
+      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+        ${readDataFromSubASnippet(transposeA)}
+        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+          acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+        }
+      }
+    }
+
+    workgroupBarrier();
+  }
+
+  for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
+    for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+      mm_write(batch, globalRow + innerRow, globalCol + innerCol,
+          acc[innerRow][innerCol]);
+    }
+  }
+  `;
+
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
@@ -157,23 +419,19 @@ export function makeMatMulPackedSource(
     const TileInner = ${tileInner};
 
     @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-    fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-            @builtin(global_invocation_id) GlobalId : vec3<u32>,
-            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+    fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+              @builtin(global_invocation_id) GlobalId : vec3<u32>,
+              @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+              @builtin(workgroup_id) workgroupId: vec3<u32>) {
       localId = LocalId;
       globalId = GlobalId;
       numWorkgroups = NumWorkgroups;
 
-      let tileRow = i32(localId.y) * RowPerThread;
-      let tileCol = i32(localId.x) * ColPerThread;
-
-      let globalRow = i32(globalId.y) * RowPerThread;
-      let globalCol = i32(globalId.x) * ColPerThread;
-      let batch = i32(globalId.z);
-      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-
-      let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
+      let batch = ${splitK ? '0' : 'i32(globalId.z)'};
+      let numTiles = ${
+      splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
+               '(uniforms.dimInner - 1) / TileInner + 1'};
+      var kStart = ${splitK ? `i32(globalId.z) * ${splitedDimInner}` : '0'};
 
       var acc : array<array<f32, ColPerThread>, RowPerThread>;
 
@@ -183,61 +441,7 @@ export function makeMatMulPackedSource(
           acc[innerRow][innerCol] = 0.0;
         }
       }
-
-      let tileRowA = i32(localId.y) * ${rowPerThreadA};
-      let tileColA = i32(localId.x) * ${colPerThreadA};
-      let tileRowB = i32(localId.y) * ${rowPerThreadB};
-      // Loop over shared dimension.
-      for (var t = 0; t < numTiles; t = t + 1) {
-        // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${
-      rowPerThreadA}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ${
-      colPerThreadA}; innerCol = innerCol + 1) {
-            let inputRow = tileRowA + innerRow;
-            let inputCol = tileColA + innerCol;
-            ${writeDataToSubASnippet(transposeA)}
-          }
-        }
-
-        // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < ${
-      rowPerThreadB}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol + innerCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
-              t * TileInner + inputRow,
-              globalCol + innerCol);
-          }
-        }
-
-        workgroupBarrier();
-
-        // Compute acc values for a single thread.
-        var BCached : array<f32, ColPerThread>;
-        for (var k = 0; k < TileInner; k = k + 1) {
-          for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][tileCol + inner];
-          }
-
-          for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-            ${readDataFromSubASnippet(transposeA)}
-            for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-              acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
-            }
-          }
-        }
-
-        workgroupBarrier();
-      }
-
-      for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          mm_write(batch, globalRow + innerRow, globalCol + innerCol,
-              acc[innerRow][innerCol]);
-        }
-      }
+      ${matmulSnippet}
     }
   `;
 }
@@ -266,7 +470,7 @@ export function makeVectorMatrixProductSource(
     const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getMainHeaderString()}
+    ${main()} {
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
@@ -308,10 +512,10 @@ export class MatMulPackedProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  workPerThread: number;
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workGroupSize: [number, number, number];
+  elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -323,35 +527,40 @@ export class MatMulPackedProgram implements WebGPUProgram {
   fitBOuter: boolean;
   fitInner: boolean;
   tileInner: number;
+  isVectorA: boolean;
+  isVec4: boolean;
+  private sequentialAccessByThreads: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      workPerThread: number, batchAEqualOne: boolean, batchBEqualOne: boolean,
-      transposeA = false, transposeB = false, bias: TensorInfo = null,
+      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
+      transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
-      preluActivationWeights: TensorInfo = null) {
+      preluActivationWeights: TensorInfo = null,
+      sequentialAccessByThreads = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const dimInner = transposeA ? aShape[1] : aShape[2];
-    this.workGroupSize =
-        computeWorkGroupSizeForMatMul(outputShape[1], dimInner, outputShape[2]);
-    if (outputShape[1] === 1 || outputShape[2] === 1) {
-      workPerThread = 1;
+    this.isVec4 = ((dimInner % 4 === 0 && !transposeA) ||
+                   (outputShape[1] % 4 === 0 && transposeA)) &&
+        outputShape[2] % 4 === 0 && !transposeB;
+    this.isVectorA = outputShape[1] === 1 && !transposeA;
+
+    if (!this.isVec4 && this.isVectorA) {
+      // For makeVectorMatrixProductSource
+      this.elementsPerThread = [1, 1, 1];
+      this.workGroupSize = [32, 1, 1];
+    } else {
+      const workGroupInfo = computeWorkGroupInfoForMatMul(
+          outputShape[1], dimInner, outputShape[2], transposeA);
+      this.workGroupSize = workGroupInfo.workGroupSize;
+      this.elementsPerThread = workGroupInfo.elementsPerThread;
     }
+
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [workPerThread, workPerThread, 1]);
-    // If dispaching number is one, it means only one work group is running.
-    // For modern GPUs, it supports multiple work groups running in parallel.
-    // So there may be some idle hardware threads.
-    // In this case, we prefer to reduce the work per thread and improve the
-    // thread utilization
-    if (util.arraysEqual(this.dispatch, [1, 1, 1])) {
-      workPerThread = 1;
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize,
-          [workPerThread, workPerThread, 1]);
-    }
+        this.elementsPerThread);
+
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
@@ -362,7 +571,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    this.workPerThread = workPerThread;
+    this.sequentialAccessByThreads = sequentialAccessByThreads;
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
@@ -372,20 +581,23 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.batchBEqualOne = batchBEqualOne;
     [this.fitAOuter, this.fitBOuter, this.fitInner] =
         this.getShapeFit(outputShape[1], outputShape[2], dimInner);
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
+    this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
-        this.fitInner}_${this.outputShape[1] > 1}_${this.batchAEqualOne}_${
-        this.batchBEqualOne}`;
+        this.fitInner}_${this.isVec4}_${this.isVectorA}_${
+        this.batchAEqualOne}_${this.batchBEqualOne}_${
+        this.sequentialAccessByThreads}`;
   }
 
   getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
       boolean[] {
-    const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * this.workPerThread;
-    this.tileInner = 32;
+    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
+    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
 
-    if (this.outputShape[1] === 1) {
+    if (!this.isVec4 && this.isVectorA) {
+      // For makeVectorMatrixProductSource
       this.tileInner = this.workGroupSize[0] * 4;
+    } else {
+      this.tileInner = tileBOuter;
     }
 
     const fitAOuter = dimAOuter % tileAOuter === 0;
@@ -396,19 +608,27 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
+      ${
+        activationFnSnippet(
+            this.activation, this.hasPreluActivationWeights, this.isVec4)}
       ${
         matMulReadWriteFnSource(
             this.addBias, this.activation, this.batchAEqualOne,
             this.batchBEqualOne,
             false /* transposeA is implemented in makeMatMulPackedSource */,
-            this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner)}
+            this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner,
+            this.isVec4 ? 4 : 1)}
       ${
-        this.outputShape[1] > 1 ?
-            makeMatMulPackedSource(
-                [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
-                this.transposeA, this.tileInner) :
-            makeVectorMatrixProductSource(this.workGroupSize, this.transposeA)}
+        this.isVec4 ?
+            makeMatMulPackedVec4Source(
+                this.elementsPerThread, this.workGroupSize, this.transposeA,
+                this.tileInner, false, null, this.isVectorA) :
+            (this.isVectorA ? makeVectorMatrixProductSource(
+                                  this.workGroupSize, this.transposeA) :
+                              makeMatMulPackedSource(
+                                  this.elementsPerThread, this.workGroupSize,
+                                  this.transposeA, this.tileInner, false, null,
+                                  this.sequentialAccessByThreads))}
     `;
     return userCode;
   }

@@ -48,7 +48,10 @@ py_wheel(
     license = "Apache 2.0",
     python_tag = "py3",
     requires = [
-        "protobuf==3.20.0",
+        "flax>=0.5.3",
+        "importlib_resources>=5.9.0",
+        "jax>=0.3.16",
+        "protobuf<3.20,>=3.9.2",
         "tensorflow>=2.1.0,<3",
         "six>=1.12.0,<2",
         "tensorflow-hub>=0.7.0,<0.13",

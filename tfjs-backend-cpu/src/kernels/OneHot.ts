@@ -25,7 +25,7 @@ export function oneHot(
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {indices} = inputs;
-  const {depth, onValue, offValue} = attrs;
+  const {dtype, depth, onValue, offValue} = attrs;
 
   assertNotComplex(indices, 'oneHot');
 
@@ -41,7 +41,7 @@ export function oneHot(
     }
   }
 
-  return backend.makeTensorInfo([...indices.shape, depth], 'int32', res);
+  return backend.makeTensorInfo([...indices.shape, depth], dtype, res);
 }
 
 export const oneHotConfig: KernelConfig = {

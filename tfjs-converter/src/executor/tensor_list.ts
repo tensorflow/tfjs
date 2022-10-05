@@ -143,6 +143,7 @@ export class TensorList {
     const outputElementShape =
         inferElementShape(this.elementShape, this.tensors, elementShape);
     const tensor = this.tensors.pop();
+    tensor.kept = false;
 
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
@@ -243,6 +244,12 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensor.shape, 'TensorList shape mismatch: ');
     keep(tensor);
+
+    // dispose the previous value if it is replacing.
+    if (this.tensors[elementIndex] != null) {
+      this.tensors[elementIndex].kept = false;
+    }
+
     this.tensors[elementIndex] = tensor;
   }
 

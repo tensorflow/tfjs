@@ -142,15 +142,26 @@ async function publish(pkg: string, registry: string, otp?: string,
                        + `${tag} ~~~`));
 
   if (BAZEL_PACKAGES.has(pkg)) {
-    run(`yarn publish-npm -- -- ${otpFlag} --tag=${tag} --force`);
+    let dashes = '-- --';
+    if (pkg === 'tfjs-backend-webgpu') {
+      // Special case for webgpu, which has an additional call to `yarn`
+      // in publish-npm.
+      dashes = '-- -- --';
+    }
+    run(`yarn publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
   } else {
+    // run('npx npm-cli-login -u user -p password -e user@example.com'
+    //     + ` -r ${registry} && npm publish ${otpFlag} --tag=${tag} --force`);
 
-    //run(`npm publish ${otpFlag} --tag=${tag}`);
-
-    run('npx npm-cli-login -u user -p password -e user@example.com'
-        + ` -r ${registry} && npm publish ${otpFlag} --tag=${tag} --force`);
+    if (pkg.startsWith('tfjs-node')) {
+      // Special case for tfjs-node* because it must publish the node addon
+      // as well.
+      run(`yarn publish-npm ${otpFlag}`);
+    } else {
+      run(`npm publish ${otpFlag}`);
+    }
   }
-  console.log(`Yay! Published ${pkg} to ${registry}.`);
+  console.log(`Yay! Published ${pkg} to npm.`);
 
   shell.cd(startDir);
 }
@@ -233,8 +244,8 @@ async function main() {
   console.log();
 
   // Build and publish all packages to Verdaccio
-  //const verdaccio = runVerdaccio();
-  runVerdaccio;
+  const verdaccio = runVerdaccio();
+  //runVerdaccio;
   //const verdaccioRegistry = 'http://[::1]:4873/';
   //const verdaccioRegistry = 'http://localhost:4873/';
   const verdaccioRegistry = 'http://127.0.0.1:4873/';
@@ -243,7 +254,7 @@ async function main() {
   for (const pkg of packages) {
     await publish(pkg, verdaccioRegistry);
   }
-  //verdaccio.kill();
+  verdaccio.kill();
 
   if (args.dry) {
     console.log('Not publishing packages due to \'--dry\'');

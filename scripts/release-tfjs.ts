@@ -77,12 +77,11 @@ async function main() {
   const dir = `${TMP_DIR}/tfjs`;
   makeReleaseDir(dir);
 
-  const blockers = getReleaseBlockers();
-  if (blockers) {
-    if (args.force) {
-      console.warn('Release blockers found, but releasing anyway due to '
-                   + `--force:\n ${blockers}`);
-    } else {
+  if (args.force) {
+    console.warn('Ignoring any potential release blockerse due to \'--force\'');
+  } else {
+    const blockers = getReleaseBlockers();
+    if (blockers) {
       throw new Error(`Can not release due to release blockers:\n ${blockers}`);
     }
   }
@@ -150,7 +149,11 @@ async function main() {
     console.log(chalk.magenta.bold(
         '~~~ Copying current changes to a new release branch'
          + ` ${releaseBranch} ~~~`));
-    $(`cp -r ./* ${dir}`);
+    // Avoid copying `.git/` because this script will `git push`
+    // to origin, which it expects to be the tfjs repo as was set
+    // up when the script ran 'git clone' above.
+    // This makes sure other hidden files like .bazelrc are copied.
+    $(`cp -r \`ls -A | grep -v ".git"\` ${dir}`);
     shell.cd(dir);
   } else {
     shell.cd(dir);

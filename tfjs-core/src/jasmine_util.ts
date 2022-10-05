@@ -217,6 +217,7 @@ export function describeWithFlags(
 
   TEST_ENVS.forEach(testEnv => {
     env().setFlags(testEnv.flags);
+    env().set('IS_TEST', true);
     if (envSatisfiesConstraints(env(), testEnv, constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags || {});

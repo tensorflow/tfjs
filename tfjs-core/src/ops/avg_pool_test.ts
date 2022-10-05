@@ -93,6 +93,17 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [2.5, 3, 3.5, 4]);
   });
 
+  it('x=[2,2,3] f=[2,2] s=1 p=valid', async () => {
+    // Feed forward.
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const fSize = 2;
+    const strides = 1;
+    const result = tf.avgPool(a, fSize, strides, 'valid');
+
+    expect(result.shape).toEqual([1, 1, 3]);
+    expectArraysClose(await result.data(), [5.5, 6.5, 7.5]);
+  });
+
   it('x=[3,3,1] f=[3,3] s=1 p=explicit', async () => {
     // Feed forward.
     const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);

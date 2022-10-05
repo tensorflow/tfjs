@@ -35,8 +35,7 @@ build:rbe --host_platform=@//remote-execution:platform
 build:rbe --platforms=@//remote-execution:platform
 
 build:remote --remote_instance_name=projects/learnjs-174218/instances/default_instance
-build:remote --project_id=learnjs-174218
-build:remote --auth_enabled=true
+build:remote --bes_instance_name=learnjs-174218
 build:remote --google_default_credentials
 build:remote --remote_timeout=180s
 
@@ -53,9 +52,9 @@ build:ci --config=bes
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
 
-# Don't use a sandboxed build since it hurts performance.
-# When sandboxed, the wasm backend takes hours to build on a 32 core machine.
-build --spawn_strategy=remote,worker,local
+# Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker. b/250727292
+# Remote builds are sandboxed.
+build --spawn_strategy=remote,sandboxed,worker,local
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY

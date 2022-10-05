@@ -67,12 +67,19 @@ the benchmark.
 # Benchmark test
 It's easy to set up a web server to host benchmarks and run against them via e2e/benchmarks/local-benchmark/index.html. You can manually specify the optional url parameters as needed. Here are the list of supported url parameters:
 
-<b>architecture</b>: same as architecture<br>
-<b>backend</b>: same as backend<br>
-<b>benchmark</b>: same as models<br>
-<b>inputSize</b>: same as inputSizes<br>
-<b>inputType</b>: same as inputTypes<br>
-<b>localBuild</b>: local build name list, separated by comma. The name is in short form (in general the name without the tfjs- and backend- prefixes, for example webgl for tfjs-backend-webgl, core for tfjs-core). Example: 'webgl,core'.<br>
-<b>run</b>: same as numRuns<br>
-<b>task</b>: correctness to "Test correctness" or performance to "Run benchmark"<br>
-<b>warmup</b>: same as numWarmups<br>
+* Model related parameters:
+
+  <b>architecture</b>: same as architecture (only certain models has it, such as MobileNetV3 and posenet)<br>
+  <b>benchmark</b>: same as models<br>
+  <b>inputSize</b>: same as inputSizes<br>
+  <b>inputType</b>: same as inputTypes<br>
+  <b>modelUrl</b>: same as modelUrl, for custom models only<br>
+  <b>${InputeName}Shape</b>: the input shape array, separated by comma, for custom models only. For example, bodypix's [graph model](https://storage.googleapis.com/tfjs-models/savedmodel/bodypix/mobilenet/float/075/model-stride16.json) has an input named sub_2, then users could add '`sub_2Shape=1,1,1,3`' in the URL to populate its shape.<br>
+
+* Environment related parameters:
+
+  <b>backend</b>: same as backend<br>
+  <b>localBuild</b>: local build name list, separated by comma. The name is in short form (in general the name without the tfjs- and backend- prefixes, for example webgl for tfjs-backend-webgl, core for tfjs-core). Example: 'webgl,core'.<br>
+  <b>run</b>: same as numRuns<br>
+  <b>task</b>: correctness to "Test correctness" or performance to "Run benchmark"<br>
+  <b>warmup</b>: same as numWarmups<br>

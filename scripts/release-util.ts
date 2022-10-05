@@ -23,6 +23,7 @@ import { Separator } from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
+import * as rimraf from 'rimraf';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -547,6 +548,9 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
 }
 
 export function runVerdaccio() {
+  // Remove the verdaccio package store.
+  rimraf(path.join(__dirname, '../e2e/scripts/storage'));
+  // Start verdaccio.
   const serverProcess = shell.exec(
     'yarn verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
   );

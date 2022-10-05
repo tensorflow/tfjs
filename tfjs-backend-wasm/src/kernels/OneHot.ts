@@ -37,9 +37,9 @@ function oneHot(
     args: {inputs: OneHotInputs, attrs: OneHotAttrs, backend: BackendWasm}) {
   const {inputs, backend, attrs} = args;
   const {indices} = inputs;
-  const {depth, onValue, offValue} = attrs;
+  const {dtype, depth, onValue, offValue} = attrs;
 
-  const out = backend.makeOutput([...indices.shape, depth], 'int32');
+  const out = backend.makeOutput([...indices.shape, depth], dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const indicesData = backend.dataIdMap.get(indices.dataId);

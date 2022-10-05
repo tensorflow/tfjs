@@ -61,7 +61,7 @@ const CUSTOM_LAUNCHERS = {
   win_10_chrome: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '101.0',
+    browser_version: '104.0',
     os: 'Windows',
     os_version: '10'
   },
@@ -153,6 +153,12 @@ module.exports = function(config) {
     browserSocketTimeout: 1.2e5,
     ...extraConfig,
     customLaunchers: CUSTOM_LAUNCHERS,
-    client: {args: TEMPLATE_args},
+    client: {
+      args: TEMPLATE_args,
+      jasmine: {
+        random: TEMPLATE_jasmine_random,
+        seed: "TEMPLATE_jasmine_seed",
+      },
+    },
   });
 }

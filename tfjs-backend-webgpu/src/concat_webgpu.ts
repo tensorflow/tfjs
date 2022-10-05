@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ConcatProgram implements WebGPUProgram {
@@ -26,7 +26,7 @@ export class ConcatProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms = '';
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   offsetLength: number;
@@ -67,7 +67,7 @@ export class ConcatProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {

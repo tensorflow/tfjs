@@ -19,6 +19,7 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
+import {Conv2DPackedProgram} from '../conv_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
@@ -49,40 +50,11 @@ export function fusedConv2d(args: {
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
-    out = conv2dWithIm2Row({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-  } else {
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const hasLeakyreluAlpha = activation === 'leakyrelu';
-    const fusedActivation =
-        activation ? mapActivationToShaderProgram(activation, false) : null;
-    const program = new Conv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
-        hasLeakyreluAlpha);
+  const hasBias = bias != null;
+  const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
+
+  const prepareInputs = (): TensorInfo[] => {
     const inputs: TensorInfo[] = [x, filter];
 
     // If the input is a 1-D tensor, align it with the channels.
@@ -122,6 +94,58 @@ export function fusedConv2d(args: {
       inputs.push($leakyreluAlpha);
       intermediates.push($leakyreluAlpha);
     }
+    return inputs;
+  };
+
+  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
+    out = conv2dByMatMul({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
+    && env().getBool('WEBGL_EXP_CONV')
+    ) {
+      const fusedActivation =
+          activation ? mapActivationToShaderProgram(activation, true) : null;
+    const program = new Conv2DPackedProgram(
+      convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+      hasLeakyreluAlpha);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    const inputs = prepareInputs();
+    out = backend.runWebGLProgram(program, inputs, 'float32', customValues);
+  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
+    out = conv2dWithIm2Row({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  } else {
+    const fusedActivation =
+        activation ? mapActivationToShaderProgram(activation, false) : null;
+    const program = new Conv2DProgram(
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
+
+    const inputs = prepareInputs();
     out = backend.runWebGLProgram(program, inputs, 'float32');
   }
 

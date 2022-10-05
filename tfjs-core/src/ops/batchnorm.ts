@@ -37,7 +37,7 @@ import {reshape} from './reshape';
  * Mean, variance, scale, and offset can be of two shapes:
  *   - The same shape as the input.
  *   - In the common case, the depth dimension is the last dimension of x, so
- *     the values would be an `tf.Tensor1D` of shape [depth].
+ *     the values would be a `tf.Tensor1D` of shape [depth].
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that parameters passed are of given rank

@@ -101,7 +101,7 @@ export declare interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
   depthwiseConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Regulzarizer function for the depthwise kernel matrix.
+   * Regularizer function for the depthwise kernel matrix.
    */
   depthwiseRegularizer?: RegularizerIdentifier|Regularizer;
 }
