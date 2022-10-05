@@ -18,7 +18,7 @@
 import * as commonjs_import from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import * as sourcemaps_import from 'rollup-plugin-sourcemaps';
-import * as visualizer from 'rollup-plugin-visualizer';
+import {visualizer} from 'rollup-plugin-visualizer';
 import {terser as terserPlugin} from 'rollup-plugin-terser';
 import {downlevelToEs5Plugin} from 'downlevel_to_es5_plugin/downlevel_to_es5_plugin';
 

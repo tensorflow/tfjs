@@ -164,6 +164,10 @@ interface CloudbuildStep {
   secretEnv?: string[];
 }
 
+interface CustomCloudbuildStep extends CloudbuildStep{
+  nightlyOnly?: boolean;
+}
+
 interface CloudbuildSecret {
   kmsKeyName: string,
   secretEnv: {
@@ -176,13 +180,19 @@ export interface CloudbuildYaml {
   secrets: CloudbuildSecret[],
 }
 
+function removeCustomProps(step: CustomCloudbuildStep): CloudbuildStep {
+  return Object.fromEntries(
+    Object.entries(step).filter(([k, ]) => k !== 'nightlyOnly')
+  ) as CloudbuildStep;
+}
+
 /**
  * Construct a cloudbuild.yml file that does the following:
  * 1. Builds all the dependencies of `packages`
  * 2. Builds and tests all the packages in `packages`
  * 3. Builds and tests all the reverse dependnecies of `packages`
  */
-export function generateCloudbuild(packages: Iterable<string>, print = true) {
+export function generateCloudbuild(packages: Iterable<string>, nightly = false, print = true) {
   // Make sure all packages are declared in package_dependencies.json.
   const allPackages = new Set(Object.keys(DEPENDENCY_GRAPH));
   for (const packageName of packages) {
@@ -293,8 +303,11 @@ export function generateCloudbuild(packages: Iterable<string>, print = true) {
     yaml.load(fs.readFileSync(path.join(
       __dirname, 'cloudbuild_general_config.yml'), 'utf8')) as CloudbuildYaml;
 
-  // Include yarn-common as the first step.
-  const steps = [...baseCloudbuild.steps] as CloudbuildStep[];
+  // Filter steps that only run in nightly tests.
+  const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
+  const steps = baseCloudbuild.steps
+    .filter(nightlyFilter)
+    .map(removeCustomProps);
 
   // Arrange steps in dependency order
   for (const packageName of DEPENDENCY_ORDER) {
