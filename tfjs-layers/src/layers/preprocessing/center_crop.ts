@@ -17,9 +17,6 @@ import {Kwargs} from '../../types';
 import {Shape} from '../../keras_format/common';
 import * as K from '../../backend/tfjs_backend';
 
-const H_AXIS = -3;
-const W_AXIS = -2;
-
 export declare interface CenterCropArgs extends LayerArgs{
   height: number;
   width: number;
@@ -89,10 +86,10 @@ export class CenterCrop extends Layer {
 
     return tidy(() => {
       const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
-      const dtype = rankedInputs.dtype;
-      const inputShape = rankedInputs.shape;
-      const inputHeight = inputShape.at(H_AXIS);
-      const inputWidth = inputShape.at(W_AXIS);
+      const dtype       = rankedInputs.dtype;
+      const inputShape  = rankedInputs.shape;
+      const inputHeight = inputShape[inputShape.length-3];
+      const inputWidth  =  inputShape[inputShape.length-2]
 
       let hBuffer = 0;
       if (inputHeight !== this.height) {
@@ -115,7 +112,7 @@ export class CenterCrop extends Layer {
       } else {
         return this.upsize(inputs, this.height, this.width, dtype);
       }
-   })
+   });
 
   }
 
