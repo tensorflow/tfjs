@@ -1317,8 +1317,8 @@ export class MathBackendWebGL extends KernelBackend {
     if (!backend.gpgpu.gl.isTexture(texture)) {
       throw new Error(
           `The texture is invalid. Also, please make sure the texture and ` +
-          `the TFJS WebGL backend are using same canvas. If you want to use ` +
-          `your own custom canvas, you have to create and use the custom ` +
+          `the TFJS WebGL backend are using the same canvas. If you want to ` +
+          `use your own custom canvas, you have to create and use the custom ` +
           `TFJS WebGL backend created from the canvas through ` +
           `'new tf.MathBackendWebGL(customCanvas)'.`);
     }
