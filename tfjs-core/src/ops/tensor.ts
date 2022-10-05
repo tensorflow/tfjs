@@ -87,10 +87,10 @@ import {makeTensor} from './tensor_ops_util';
  * // channels of Pixel1...
  *
  * // For postprocessing on the GPU, it's possible to retrieve the texture
- * // backing any tensor by calling the WebGL backend's `getTexture` method like
+ * // backing any tensor by calling the tensor's `dataToGPU` method like
  * // so:
  *
- * const tex = tf.backend().getTexture(a.dataId);
+ * const tex = a.dataToGPU();
  * ```
  * @param values The values of the tensor. Can be nested array of numbers,
  *     or a flat array, or a `TypedArray`, or a `WebGLData` object. If the
