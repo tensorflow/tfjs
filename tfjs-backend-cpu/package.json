@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-cpu",
-  "version": "0.0.0",
+  "version": "3.21.0",
   "description": "Vanilla JavaScript backend for TensorFlow.js",
   "private": false,
   "main": "dist/tf-backend-cpu.node.js",
@@ -42,7 +42,7 @@
     "seedrandom": "^3.0.5"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "3.21.0"
   },
   "browser": {
     "util": false,
