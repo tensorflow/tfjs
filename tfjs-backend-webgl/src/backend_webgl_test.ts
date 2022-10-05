@@ -1538,12 +1538,12 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
 
     // We want to set `WEBGL_PACK` to true, so we could fully control the
     // texture passed to createTensorFromTexture is packed.
-    tf.env().set('WEBGL_PACK', true);
+    tf.env().set('WEBGL_PACK', false);
 
-    const width = 2;
-    const height = 2;
+    const width = 4;
+    const height = 4;
 
-    const logicalShape: [number, number] = [4, 4];
+    const logicalShape: [number, number] = [width, height];
     const a = tf.tensor2d(
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], logicalShape);
     const b = tf.relu(a);
@@ -1551,13 +1551,13 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     const bTexture = webglBackend.getTexture(b.dataId);
 
     const c = tf.tensor(
-        {texture: bTexture, height, width, channels: 'RGBA'}, logicalShape,
+        {texture: bTexture, height, width, channels: 'R'}, logicalShape,
         'float32');
 
     expect(c.shape).toEqual(logicalShape);
     expect(c.dtype).toEqual('float32');
     expectArraysClose(
-        await c.data(), [0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15]);
+        await c.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
     tf.engine().endScope();
     tf.env().set(
