@@ -1521,47 +1521,4 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
     expectArraysClose(await a.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8]);
     gl.deleteTexture(texture);
   });
-
-  it('works for f16', async () => {
-    // Unlike in the basic usage test, rather than creating a texture from
-    // scratch, we must extract the output texture from an operation because we
-    // cannot upload Float16 data directly to the GPU.
-
-    // We clean up explicitly so that we have full control over the
-    // environment flags during texture initialization / disposal.
-    tf.engine().startScope();
-
-    const webglRenderF32EnabledFlagSaved =
-        tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
-    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-
-    // We want to set `WEBGL_PACK` to true, so we could fully control the
-    // texture passed to createTensorFromTexture is packed.
-    tf.env().set('WEBGL_PACK', false);
-
-    const width = 4;
-    const height = 4;
-
-    const logicalShape: [number, number] = [width, height];
-    const a = tf.tensor2d(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], logicalShape);
-    const b = tf.relu(a);
-    const webglBackend = tf.backend() as MathBackendWebGL;
-    const bTexture = webglBackend.getTexture(b.dataId);
-
-    const c = tf.tensor(
-        {texture: bTexture, height, width, channels: 'R'}, logicalShape,
-        'float32');
-
-    expect(c.shape).toEqual(logicalShape);
-    expect(c.dtype).toEqual('float32');
-    expectArraysClose(
-        await c.data(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
-
-    tf.engine().endScope();
-    tf.env().set(
-        'WEBGL_RENDER_FLOAT32_ENABLED', webglRenderF32EnabledFlagSaved);
-    tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
-  });
 });
