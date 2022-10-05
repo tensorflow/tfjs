@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-data",
-  "version": "0.0.0",
+  "version": "3.21.0",
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/tf-data.node.js",
@@ -35,7 +35,7 @@
     "test": "bazel test :tests"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "3.21.0",
     "seedrandom": "^3.0.5"
   },
   "dependencies": {
