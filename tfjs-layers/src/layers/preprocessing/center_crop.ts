@@ -88,8 +88,8 @@ export class CenterCrop extends Layer {
       const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
       const dtype       = rankedInputs.dtype;
       const inputShape  = rankedInputs.shape;
-      const inputHeight = inputShape[inputShape.length-3];
-      const inputWidth  =  inputShape[inputShape.length-2]
+      const inputHeight = inputShape[inputShape.length - 3];
+      const inputWidth  =  inputShape[inputShape.length - 2];
 
       let hBuffer = 0;
       if (inputHeight !== this.height) {
