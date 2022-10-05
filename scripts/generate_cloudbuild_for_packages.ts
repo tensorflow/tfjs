@@ -44,10 +44,11 @@ parser.addArgument(['-o', '--output'], {
 const args = parser.parseArgs(process.argv.slice(2));
 
 let packages;
+const nightly = process.env['NIGHTLY']
 if (args.packages.length > 0) {
   // Test packages specified in command line args.
   packages = args.packages;
-} else if (process.env['NIGHTLY']) {
+} else if (nightly) {
   // Test all packages during the nightly build.
   packages = allPackages;
 } else {
@@ -55,5 +56,5 @@ if (args.packages.length > 0) {
   packages = findPackagesWithDiff();
 }
 
-const cloudbuild = generateCloudbuild(packages);
+const cloudbuild = generateCloudbuild(packages, nightly);
 fs.writeFileSync(args.output, yaml.safeDump(cloudbuild));
