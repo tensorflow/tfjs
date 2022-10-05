@@ -1,3 +1,13 @@
+/**
+ * @license
+ * Copyright 2022 CodeSmith LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+
 import {serialization,DataType,unstack,stack,tensor,Tensor,Tensor1D,Tensor2D, Tensor3D, Tensor4D, tidy, range} from '@tensorflow/tfjs-core';
 import {getExactlyOneShape, getExactlyOneTensor} from '../../utils/types_utils';
 import {resizeBilinear} from '@tensorflow/tfjs-core/ops/image/resize_bilinear';
@@ -29,8 +39,8 @@ export class CenterCrop extends Layer {
   centerCrop(inputs: Tensor3D | Tensor4D, hBuffer: number, wBuffer: number,
             height: number, width: number, inputHeight: number,
             inputWidth: number, dtype: DataType): Tensor | Tensor[] {
-    return tidy(() => {
 
+    return tidy(() => {
       let input: Tensor4D;
       let rank3      = false;
       const top      = hBuffer / inputHeight;
@@ -52,8 +62,7 @@ export class CenterCrop extends Layer {
       }
 
       const boxes: Tensor2D  = tensor(boxesArr, [boxesArr.length, 4]);
-      const boxInd: Tensor1D = tensor([...Array(boxesArr.length).keys()],
-                                              [boxesArr.length], 'int32');
+      const boxInd: Tensor1D = range(0, boxesArr.length, 1, 'int32');
 
       const cropSize: [number, number] = [height, width];
       const cropped = cropAndResize(input, boxes, boxInd, cropSize, 'nearest');
@@ -62,21 +71,23 @@ export class CenterCrop extends Layer {
         return K.cast(getExactlyOneTensor(unstack(cropped)), dtype);
       }
       return K.cast(cropped, dtype);
+   });
 
-   })
   }
 
   upsize(inputs : Tensor3D | Tensor4D, height: number,
          width: number, dtype: DataType): Tensor | Tensor[] {
+
     return tidy(() => {
       const outputs = resizeBilinear(inputs, [height, width]);
       return K.cast(outputs, dtype);
   });
+
 }
 
   call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs): Tensor[] | Tensor {
-    return tidy(() => {
 
+    return tidy(() => {
       const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
       const dtype = rankedInputs.dtype;
       const inputShape = rankedInputs.shape;
@@ -105,6 +116,7 @@ export class CenterCrop extends Layer {
         return this.upsize(inputs, this.height, this.width, dtype);
       }
    })
+
   }
 
   getConfig(): serialization.ConfigDict{

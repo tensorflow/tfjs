@@ -1,4 +1,14 @@
-import { tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+/**
+ * @license
+ * Copyright 2022 CodeSmith LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+
+import { tensor, Tensor3D, Tensor4D, range} from '@tensorflow/tfjs-core';
 import { CenterCrop } from './center_crop';
 import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_utils';
 
@@ -16,13 +26,7 @@ describeMathCPUAndGPU('CenterCrop Layer', () => {
   });
 
   it('Crops batched image with odd crop lengths as expected', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-
-    const inputTensor = tensor([inputArr], [1,4,4,1]);
+    const inputTensor = range(0, 16).reshape([1, 4, 4, 1]);
     const height = 3;
     const width = 3;
     const expectedOutput = tensor( [[[1,2,3],
@@ -56,12 +60,7 @@ describeMathCPUAndGPU('CenterCrop Layer', () => {
   });
 
   it('Crops unbatched image with even crop lengths as expected', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-    const inputTensor = tensor(inputArr, [4,4,1]);
+    const inputTensor = range(0, 16).reshape([4, 4, 1]);
     const height = 2;
     const width = 2;
     const expectedOutput = tensor([[5,6],
@@ -73,12 +72,7 @@ describeMathCPUAndGPU('CenterCrop Layer', () => {
   });
 
   it('Crops unbatched image with odd crop lengths as expected', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-    const inputTensor = tensor(inputArr, [4,4,1]);
+    const inputTensor = range(0, 16).reshape([ 4, 4, 1]);
     const height = 3;
     const width = 3;
     const expectedOutput = tensor([[1,2,3],
@@ -91,13 +85,7 @@ describeMathCPUAndGPU('CenterCrop Layer', () => {
   });
 
   it('Crops batched image with non-square crop as expected', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-
-    const inputTensor = tensor([inputArr], [1,4,4,1]);
+    const inputTensor = range(0, 16).reshape([1, 4, 4, 1]);
     const height = 2;
     const width = 3;
     const expectedOutput = tensor([ [[5,6,7],
@@ -116,14 +104,8 @@ describeMathCPUAndGPU('CenterCrop Layer', () => {
   });
 
   it('Returns Tensor with correct dtype', () => {
-    const rangeArr = [...Array(16).keys()]; // equivalent to np.arange(0,16)
-    const inputArr = [];
-    while(rangeArr.length) {
-      inputArr.push(rangeArr.splice(0,4));
-    }
-
-    const inputTensorInt = tensor([inputArr], [1,4,4,1], 'int32');
-    const inputTensorFloat = tensor([inputArr], [1,4,4,1], 'float32');
+    const inputTensorInt = range(0,16,1,'int32').reshape([1, 4, 4, 1]);
+    const inputTensorFloat = range(0,16,1,'float32').reshape([1, 4, 4, 1]);
     const height = 2;
     const width = 2;
     const centerCrop = new CenterCrop({height, width});
