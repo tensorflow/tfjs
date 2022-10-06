@@ -29,7 +29,6 @@ export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
   }
 
   const out = backend.makeOutput(x.shape, x.dtype);
-  out
   const inVals = backend.typedArrayFromHeap(x);
   const outVals = backend.typedArrayFromHeap(out);
   outVals.set(inVals);
