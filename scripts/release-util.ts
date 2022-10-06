@@ -23,7 +23,9 @@ import { Separator } from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
-import * as rimraf from 'rimraf';
+import rimraf from 'rimraf';
+import * as path from 'path';
+import * as child_process from 'child_process';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -549,15 +551,28 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
 
 export function runVerdaccio() {
   // Remove the verdaccio package store.
-  rimraf(path.join(__dirname, '../e2e/scripts/storage'));
+  rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
   // Start verdaccio.
+  console.log('Starting verdaccio');
   const serverProcess = shell.exec(
-    'yarn verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
+      'yarn verdaccio --config=e2e/scripts/verdaccio.yaml',
+      {
+        async: true,
+        cwd: path.join(__dirname, '../'),
+      },
+      (code, stdout, stderr) => {
+        console.log(`Verdaccio stopped with exit code ${code}`);
+        console.log(stdout);
+        console.log(stderr);
+      }
   );
-  serverProcess.stdout.on('data', console.log);
-  serverProcess.stderr.on('data', console.error);
+  child_process;
+  // const serverProcess = child_process.spawn(
+  //     'yarn',  ['verdaccio', '--config=e2e/scripts/verdaccio.yaml']).;
+  // serverProcess.stdout.on('data', console.log);
+  // serverProcess.stderr.on('data', console.error);
   process.on('exit', () => {serverProcess.kill();});
-
+  console.log('Started verdaccio');
   return serverProcess;
 }
 

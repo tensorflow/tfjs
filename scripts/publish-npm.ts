@@ -33,6 +33,7 @@ import * as child_process from 'child_process';
 import {BAZEL_PACKAGES} from './bazel_packages';
 
 const TMP_DIR = '/tmp/tfjs-publish';
+const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873/';
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -150,16 +151,20 @@ async function publish(pkg: string, registry: string, otp?: string,
     }
     run(`yarn publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
   } else {
+    let login = '';
+    if (registry === VERDACCIO_REGISTRY) {
+      login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
+    }
     // run('npx npm-cli-login -u user -p password -e user@example.com'
     //     + ` -r ${registry} && npm publish ${otpFlag} --tag=${tag} --force`);
 
-    if (pkg.startsWith('tfjs-node')) {
-      // Special case for tfjs-node* because it must publish the node addon
-      // as well.
-      run(`yarn publish-npm ${otpFlag}`);
-    } else {
-      run(`npm publish ${otpFlag}`);
-    }
+    // if (pkg.startsWith('tfjs-node')) {
+    //   // Special case for tfjs-node* because it must publish the node addon
+    //   // as well.
+    //   run(`${login}yarn publish-npm ${otpFlag}`);
+    // } else {
+    run(`${login}npm publish ${otpFlag}`);
+    // }
   }
   console.log(`Yay! Published ${pkg} to npm.`);
 
@@ -248,11 +253,11 @@ async function main() {
   //runVerdaccio;
   //const verdaccioRegistry = 'http://[::1]:4873/';
   //const verdaccioRegistry = 'http://localhost:4873/';
-  const verdaccioRegistry = 'http://127.0.0.1:4873/';
-  child_process.execSync('npx npm-cli-login -u user -p password -e user@example.com'
-    + ` -r ${verdaccioRegistry}`);
+
+  // child_process.execSync('npx npm-cli-login -u user -p password -e user@example.com'
+  //   + ` -r ${VERDACCIO_REGISTRY}`);
   for (const pkg of packages) {
-    await publish(pkg, verdaccioRegistry);
+    await publish(pkg, VERDACCIO_REGISTRY);
   }
   verdaccio.kill();
 
