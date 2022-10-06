@@ -215,6 +215,7 @@ limitations under the License.
           envDiv.innerHTML = '';
           showVersions();
           await showEnvironment();
+          await showGpuInfo();
         }
 
         let match, predictionData, referenceData;
@@ -321,6 +322,11 @@ limitations under the License.
         layers: tf.version_layers,
         converter: tf.version_converter
       }, null, 2);
+    }
+
+    async function showGpuInfo() {
+      const gpuHardwareInfo = await getRendererInfo();
+      envDiv.innerHTML += `<br>{<br>  GPU info: \n  ${gpuHardwareInfo}<br>}<br>`;
     }
 
     async function showEnvironment() {
@@ -735,10 +741,14 @@ limitations under the License.
       }
       await tf.ready();
       if (state.isFlagChanged) {
-        await setEnvFlags(state.flags);
+        const canProceed = await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
         showVersions();
         await showEnvironment();
+        await showGpuInfo();
+        if (!canProceed) {
+          return;
+        }
       }
       await cleanUpTable();
       await setupKernelTable();
@@ -975,6 +985,7 @@ limitations under the License.
       tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       showVersions();
       await showEnvironment();
+      await showGpuInfo();
       updateGUIFromURLState();
     }
 

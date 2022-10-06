@@ -22,7 +22,7 @@ import './local_storage';
 
 import {browserFiles} from './browser_files';
 import {browserHTTPRequest, http, isHTTPScheme} from './http';
-import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsForJSON, getModelArtifactsInfoForJSON} from './io_utils';
+import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsForJSON, getModelArtifactsForJSONSync, getModelArtifactsInfoForJSON, getWeightSpecs} from './io_utils';
 import {fromMemory, fromMemorySync, withSaveHandler, withSaveHandlerSync} from './passthrough';
 import {getLoadHandlers, getSaveHandlers, registerLoadRouter, registerSaveRouter} from './router_registry';
 import {IOHandler, IOHandlerSync, LoadHandler, LoadOptions, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, OnProgressCallback, RequestDetails, SaveConfig, SaveHandler, SaveResult, TrainingConfig, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -39,8 +39,10 @@ export {
   fromMemorySync,
   getLoadHandlers,
   getModelArtifactsForJSON,
+  getModelArtifactsForJSONSync,
   getModelArtifactsInfoForJSON,
   getSaveHandlers,
+  getWeightSpecs,
   http,
   IOHandler,
   IOHandlerSync,
