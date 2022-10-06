@@ -18,13 +18,15 @@ import {getExactlyOneShape} from '../../utils/types_utils';  //, getExactlyOneTe
 
 // tf methods unimplemented in tfjs: 'bicubic', 'area', 'lanczos3', 'lanczos5',
 //                                   'gaussian', 'mitchellcubic'
-const INTERPOLATION_METHODS = new Set(['bilinear', 'nearest']);
+const INTERPOLATION_KEYS = ['bilinear', 'nearest'] as const;
+const INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
+type InterpolationType = typeof INTERPOLATION_KEYS[number];
 
 export declare interface ResizingArgs extends LayerArgs {
   height: number;
   width: number;
-  interpolation?: string;       // default = 'bilinear';
-  cropToAspectRatio?: boolean;  // default = false;
+  interpolation?: InterpolationType; // default = 'bilinear';
+  cropToAspectRatio?: boolean;        // default = false;
 }
 
 /**
@@ -39,7 +41,7 @@ export class Resizing extends Layer {
   private readonly height: number;
   private readonly width: number;
   // method of interpolation to be used; default = "bilinear";
-  private readonly interpolation: string;
+  private readonly interpolation: InterpolationType;
   // toggle whether the aspect ratio should be preserved; default = false;
   private readonly cropToAspectRatio: boolean;
 
