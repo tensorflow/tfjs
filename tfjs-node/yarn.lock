@@ -227,36 +227,75 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
+"@tensorflow/tfjs-backend-cpu@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.21.0.tgz#ee0274bf14627d08b81c4e229230da66dc9c3d92"
+  integrity sha512-88S21UAdzyK0CsLUrH17GPTD+26E85OP9CqmLZslaWjWUmBkeTQ5Zqyp6iK+gELnLxPx6q7JsNEeFuPv4254lQ==
+  dependencies:
+    "@types/seedrandom" "^2.4.28"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-3.21.0.tgz#357d70c2fbd741e1d026b0788cbf5bc7c651cca3"
+  integrity sha512-N4zitIAT9IX8B8oe489qM3f3VcESxGZIZvHmVP8varOQakTvTX859aaPo1s8hK1qCy4BjSGbweooZe4U8D4kTQ==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "3.21.0"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.6"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-converter@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-3.21.0.tgz#a5872aa8b949dc01315fb7f7fea2df91a1f15799"
+  integrity sha512-12Y4zVDq3yW+wSjSDpSv4HnpL2sDZrNiGSg8XNiDE4HQBdjdA+a+Q3sZF/8NV9y2yoBhL5L7V4mMLDdbZBd9/Q==
 
-"@tensorflow/tfjs-converter@link:../link-package/node_modules/@tensorflow/tfjs-converter":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.21.0.tgz#379c3698afc8f66bc82f77c7e35c35910daf7e3b"
+  integrity sha512-YSfsswOqWfd+M4bXIhT3hwtAb+IV8+ODwIxwdFR/7jTAPZP1wMVnSlpKnXHAN64HFOiP+Tm3HmKusEZ0+09A0w==
+  dependencies:
+    "@types/long" "^4.0.1"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    "@webgpu/types" "0.1.16"
+    long "4.0.0"
+    node-fetch "~2.6.1"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-data@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-3.21.0.tgz#56cf012f5a4b08e8ff1a42ace72f97925a2aef9d"
+  integrity sha512-eFLfw2wIcFNxnP2Iv/SnVlihehzKMumk1b5Prcx1ixk/SbkCo5u0Lt7OVOWaEOKVqvB2sT+dJcTjAh6lrCC/QA==
+  dependencies:
+    "@types/node-fetch" "^2.1.2"
+    node-fetch "~2.6.1"
+    string_decoder "^1.3.0"
 
-"@tensorflow/tfjs-data@link:../link-package/node_modules/@tensorflow/tfjs-data":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-layers@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-3.21.0.tgz#7fff00662e86f132bcab67f079c8653c3b1580e7"
+  integrity sha512-CMVXsraakXgnXEnqD9QbtResA7nvV7Jz20pGmjFIodcQkClgmFFhdCG5N+zlVRHEz7VKG2OyfhltZ0dBq/OAhA==
 
-"@tensorflow/tfjs-layers@link:../link-package/node_modules/@tensorflow/tfjs-layers":
-  version "0.0.0"
-  uid ""
-
-"@tensorflow/tfjs@link:../tfjs":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs@3.21.0":
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-3.21.0.tgz#18abd201239178cb23ddd85a33f87af8eeacfc7f"
+  integrity sha512-khcARd3/872llL/oF4ouR40qlT71mylU66PGT8kHP/GJ5YKj44sv8lDRjU7lOVlJK7jsJFWEsNVHI3eMc/GWNQ==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "3.21.0"
+    "@tensorflow/tfjs-backend-webgl" "3.21.0"
+    "@tensorflow/tfjs-converter" "3.21.0"
+    "@tensorflow/tfjs-core" "3.21.0"
+    "@tensorflow/tfjs-data" "3.21.0"
+    "@tensorflow/tfjs-layers" "3.21.0"
+    argparse "^1.0.10"
+    chalk "^4.1.0"
+    core-js "3"
+    regenerator-runtime "^0.13.5"
+    yargs "^16.0.3"
 
 "@types/glob@*":
   version "7.1.3"
