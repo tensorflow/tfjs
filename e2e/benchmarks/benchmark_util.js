@@ -573,3 +573,26 @@ async function resetBackend(backendName) {
 
   return true;
 }
+
+/**
+ * Get the renderer info from the WebGL backend.
+ */
+async function getRendererInfo() {
+  const curBackendName = tf.getBackend();
+  let webglRenderer;
+  try {
+    let webglBackend = tf.findBackend('webgl');
+    if (webglBackend == null) {
+      await tf.setBackend('webgl');
+      webglBackend = tf.backend();
+    }
+
+    const gl = tf.backend().gpgpu.gl;
+    const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    webglRenderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+  } catch (e) {
+    webglRenderer = 'NA';
+  }
+  await tf.setBackend(curBackendName);
+  return webglRenderer;
+}
