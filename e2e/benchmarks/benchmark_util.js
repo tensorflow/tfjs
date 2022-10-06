@@ -583,11 +583,12 @@ async function getRendererInfo() {
   try {
     let webglBackend = tf.findBackend('webgl');
     if (webglBackend == null) {
-      await tf.setBackend('webgl');
+      if (!(await tf.setBackend('webgl'))) {
+        throw new Error('Failed to initialize WebGL backend.');
+      }
       webglBackend = tf.backend();
     }
-
-    const gl = tf.backend().gpgpu.gl;
+    const gl = webglBackend.gpgpu.gl;
     const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
     webglRenderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
   } catch (e) {
