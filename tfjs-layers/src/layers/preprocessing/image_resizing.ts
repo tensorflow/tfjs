@@ -26,7 +26,7 @@ export declare interface ResizingArgs extends LayerArgs {
   height: number;
   width: number;
   interpolation?: InterpolationType; // default = 'bilinear';
-  cropToAspectRatio?: boolean;        // default = false;
+  cropToAspectRatio?: boolean;       // default = false;
 }
 
 /**
