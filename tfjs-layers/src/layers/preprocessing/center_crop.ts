@@ -5,7 +5,7 @@
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file or at
  * https://opensource.org/licenses/MIT.
- * ============================================================================= 
+ * =============================================================================
  */
 
 import {serialization,DataType,unstack,stack,tensor,Tensor,Tensor1D,Tensor2D, Tensor3D, Tensor4D, tidy, range} from '@tensorflow/tfjs-core';
