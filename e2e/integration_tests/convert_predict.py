@@ -427,6 +427,47 @@ def _create_saved_model_v1_with_hashtable(save_dir):
         }
     }
 
+def _create_saved_model_v2_with_hashtable(save_dir):
+  """Test a TF V2 model with HashTable Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  class Table(tf.Module):
+    def __init__(self):
+        super(Table, self).__init__()
+        keys = tf.constant(['a', 'b'])
+        vals= tf.constant([0, 1])
+        init = tf.lookup.KeyValueTensorInitializer(keys, vals)
+        self.table = tf.lookup.StaticHashTable(init, -1)
+
+    def initializeTable(self):
+        @tf.function
+        def lookup(input):
+            return self.table.lookup(input)
+
+        return lookup
+
+  model = Table()
+  concrete_fn = model.initializeTable().get_concrete_function(
+    input=tf.TensorSpec([None], tf.string))
+
+  tf.saved_model.save(model, save_dir, signatures={"serving_default": concrete_fn})
+
+  return {
+      "async": False,
+      "inputs": {
+          "input:0": {
+              "value": ["a", "b", "c"], "shape": [3], "dtype": "string"
+          }
+      },
+      "outputs": {
+          "StatefulPartitionedCall/None_Lookup/LookupTableFindV2:0": {
+              "value": [0, 1, -1], "shape": [3], "dtype": "int32"
+          }
+      }
+  }
+
 def _layers_mobilenet():
   model = tf.keras.applications.MobileNetV2()
   model_path = 'mobilenet'
@@ -471,6 +512,8 @@ def main():
       'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
   _save_and_convert_model(_create_saved_model_v1_with_hashtable,
       'saved_model_v1_with_hashtable')
+  _save_and_convert_model(_create_saved_model_v2_with_hashtable,
+      'saved_model_v2_with_hashtable')
 
   _layers_mobilenet()
 if __name__ == '__main__':
