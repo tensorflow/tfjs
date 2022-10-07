@@ -1756,6 +1756,7 @@ export function rescaling(args?: RescalingArgs) {
  */
 export function resizing(args?: ResizingArgs) {
   return new Resizing(args);
+}
 
 /**
  * A preprocessing layer which encodes integer features.
