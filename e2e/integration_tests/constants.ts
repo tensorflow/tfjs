@@ -37,7 +37,8 @@ export const CONVERT_PREDICT_MODELS = {
     'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
     'saved_model_with_conv2d', 'saved_model_with_prelu',
     'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2',
-    'saved_model_v2_with_tensorlist_ops', 'saved_model_v1_with_hashtable'
+    'saved_model_v2_with_tensorlist_ops', 'saved_model_v1_with_hashtable',
+    'saved_model_v2_with_hashtable'
   ],
   layers_model: ['mobilenet']
 };
