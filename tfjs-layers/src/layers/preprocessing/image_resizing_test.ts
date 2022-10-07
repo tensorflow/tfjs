@@ -110,7 +110,8 @@ describeMathCPUAndGPU('Resizing Layer', () => {
     const incorrectArgs = {height, width, interpolation};
     const expectedError =
         `Invalid interpolation parameter: ${interpolation} is not implemented`;
-    expect(() => new Resizing(incorrectArgs as ResizingArgs)).toThrowError(expectedError);
+    expect(() => new Resizing(incorrectArgs as ResizingArgs))
+        .toThrowError(expectedError);
   });
 
   it('Config holds correct name', () => {
