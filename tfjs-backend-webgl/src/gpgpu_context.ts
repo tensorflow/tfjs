@@ -29,6 +29,12 @@ export interface FenceContext {
   isFencePassed(): boolean;
 }
 
+type WebGLVao = WebGLVertexArrayObject | WebGLVertexArrayObjectOES;
+
+export interface GPGPUContextProgram extends WebGLProgram {
+  vao: WebGLVao;
+}
+
 export class GPGPUContext {
   gl: WebGLRenderingContext;
   textureFloatExtension: {};
@@ -42,11 +48,16 @@ export class GPGPUContext {
   indexBuffer: WebGLBuffer;
   framebuffer: WebGLFramebuffer;
   outputTexture: WebGLTexture|null = null;
-  program: WebGLProgram|null = null;
+  program: GPGPUContextProgram|null = null;
   private disposed = false;
   private disjoint: boolean;
   private vertexShader: WebGLShader;
   textureConfig: TextureConfig;
+
+  createVertexArray: () => WebGLVao | null;
+  bindVertexArray: (vao: WebGLVao | null) => void;
+  deleteVertexArray: (vao: WebGLVao | null) => void;
+  getVertexArray: () => WebGLVao | null;
 
   constructor(gl?: WebGLRenderingContext) {
     const glVersion = env().getNumber('WEBGL_VERSION');
@@ -56,6 +67,50 @@ export class GPGPUContext {
     } else {
       this.gl = getWebGLContext(glVersion);
     }
+    gl = this.gl;
+
+    if (gl instanceof WebGL2RenderingContext) {
+      this.createVertexArray = () => {
+        return webgl_util.callAndCheck(gl,
+          () => gl.createVertexArray());
+      };
+      this.bindVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(gl,
+          () => gl.bindVertexArray(vao as WebGLVertexArrayObject));
+      };
+      this.deleteVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(gl,
+          () => gl.deleteVertexArray(vao as WebGLVertexArrayObject));
+      };
+      this.getVertexArray = () => {
+        return webgl_util.callAndCheck(gl,
+          () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
+      };
+    } else if (gl != null) {
+      const ext = gl.getExtension('OES_vertex_array_object');
+      if (ext == null) {
+        throw new Error(
+            'All WebGL1 implementations are expected to offer' +
+            ' OES_vertex_array_object.');
+      }
+      this.createVertexArray = () => {
+        return webgl_util.callAndCheck(gl,
+          () => ext.createVertexArrayOES());
+      };
+      this.bindVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(gl,
+          () => ext.bindVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+      };
+      this.deleteVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(gl,
+          () => ext.deleteVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+      };
+      this.getVertexArray = () => {
+        return webgl_util.callAndCheck(gl,
+          () => gl.getParameter(ext.VERTEX_ARRAY_BINDING_OES));
+      };
+    }
+
     // WebGL 2.0 enables texture floats without an extension.
     let COLOR_BUFFER_FLOAT = 'WEBGL_color_buffer_float';
     const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
@@ -273,7 +328,7 @@ export class GPGPUContext {
             this.gl, physicalRows, physicalCols));
   }
 
-  public createProgram(fragmentShader: WebGLShader): WebGLProgram {
+  public createProgram(fragmentShader: WebGLShader): GPGPUContextProgram {
     this.throwIfDisposed();
     const gl = this.gl;
     if (this.vertexShader == null) {
@@ -285,40 +340,46 @@ export class GPGPUContext {
     webgl_util.callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, program);
 
-    const boundVao = webgl_util.callAndCheck(gl, () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
+    let program2: GPGPUContextProgram;
+    const vaoWas = this.getVertexArray();
     {
-      program.vao = webgl_util.callAndCheck(gl, () => gl.createVertexArray());
-      webgl_util.callAndCheck(gl, () => gl.bindVertexArray(program.vao));
+      program2 = Object.assign(program, {
+        vao: this.createVertexArray(),
+      });
+      this.bindVertexArray(program2.vao);
       console.assert(
-        gpgpu_util.bindVertexProgramAttributeStreams(gl, program, this.vertexBuffer),
+        gpgpu_util.bindVertexProgramAttributeStreams(gl, program2,
+                                                     this.vertexBuffer),
         'gpgpu_util.bindVertexProgramAttributeStreams not fully successful.');
 
       if (this.debug) {
-        webgl_util.validateProgram(gl, program);
+        webgl_util.validateProgram(gl, program2);
       }
     }
-    webgl_util.callAndCheck(gl, () => gl.bindVertexArray(boundVao));
+    this.bindVertexArray(vaoWas);
 
-    return program;
+    this.setProgram(program2);
+
+    return program2;
   }
 
-  public deleteProgram(program: WebGLProgram) {
+  public deleteProgram(program: GPGPUContextProgram) {
     this.throwIfDisposed();
     if (program === this.program) {
       this.program = null;
     }
     if (program != null) {
       webgl_util.callAndCheck(this.gl, () => this.gl.deleteProgram(program));
-      webgl_util.callAndCheck(this.gl, () => this.gl.deleteVertexArray(program.vao));
+      this.deleteVertexArray(program.vao);
     }
   }
 
-  public setProgram(program: WebGLProgram|null) {
+  public setProgram(program: GPGPUContextProgram|null) {
     this.throwIfDisposed();
     this.program = program;
 
     if (this.program != null) {
-      webgl_util.callAndCheck(gl, () => gl.bindVertexArray(this.program.vao));
+      this.bindVertexArray(this.program.vao);
 
       if (this.debug) {
         webgl_util.validateProgram(this.gl, this.program);
@@ -400,8 +461,9 @@ export class GPGPUContext {
     this.throwIfNoProgram();
     const gl = this.gl;
     if (this.debug) {
-      const boundVao = webgl_util.callAndCheck(gl, () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
-      console.assert(boundVao == this.program.vao, "VAO changed between setProgram and executeProgram!");
+      const boundVao = this.getVertexArray();
+      console.assert(boundVao === this.program.vao,
+                     'VAO changed between setProgram and executeProgram!');
 
       this.debugValidate();
     }
