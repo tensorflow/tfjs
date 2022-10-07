@@ -273,8 +273,6 @@ export class GPGPUContext {
             this.gl, physicalRows, physicalCols));
   }
 
-  private vertexAttrsAreBound = false;
-
   public createProgram(fragmentShader: WebGLShader): WebGLProgram {
     this.throwIfDisposed();
     const gl = this.gl;
@@ -286,14 +284,21 @@ export class GPGPUContext {
         gl, () => gl.attachShader(program, this.vertexShader));
     webgl_util.callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, program);
-    if (this.debug) {
-      webgl_util.validateProgram(gl, program);
+
+    const boundVao = webgl_util.callAndCheck(gl, () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
+    {
+      program.vao = webgl_util.callAndCheck(gl, () => gl.createVertexArray());
+      webgl_util.callAndCheck(gl, () => gl.bindVertexArray(program.vao));
+      console.assert(
+        gpgpu_util.bindVertexProgramAttributeStreams(gl, program, this.vertexBuffer),
+        'gpgpu_util.bindVertexProgramAttributeStreams not fully successful.');
+
+      if (this.debug) {
+        webgl_util.validateProgram(gl, program);
+      }
     }
-    if (!this.vertexAttrsAreBound) {
-      this.setProgram(program);
-      this.vertexAttrsAreBound = gpgpu_util.bindVertexProgramAttributeStreams(
-          gl, this.program, this.vertexBuffer);
-    }
+    webgl_util.callAndCheck(gl, () => gl.bindVertexArray(boundVao));
+
     return program;
   }
 
@@ -304,14 +309,20 @@ export class GPGPUContext {
     }
     if (program != null) {
       webgl_util.callAndCheck(this.gl, () => this.gl.deleteProgram(program));
+      webgl_util.callAndCheck(this.gl, () => this.gl.deleteVertexArray(program.vao));
     }
   }
 
   public setProgram(program: WebGLProgram|null) {
     this.throwIfDisposed();
     this.program = program;
-    if ((this.program != null) && this.debug) {
-      webgl_util.validateProgram(this.gl, this.program);
+
+    if (this.program != null) {
+      webgl_util.callAndCheck(gl, () => gl.bindVertexArray(this.program.vao));
+
+      if (this.debug) {
+        webgl_util.validateProgram(this.gl, this.program);
+      }
     }
     webgl_util.callAndCheck(this.gl, () => this.gl.useProgram(program));
   }
@@ -389,6 +400,9 @@ export class GPGPUContext {
     this.throwIfNoProgram();
     const gl = this.gl;
     if (this.debug) {
+      const boundVao = webgl_util.callAndCheck(gl, () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
+      console.assert(boundVao == this.program.vao, "VAO changed between setProgram and executeProgram!");
+
       this.debugValidate();
     }
     webgl_util.callAndCheck(

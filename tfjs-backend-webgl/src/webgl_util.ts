@@ -158,6 +158,11 @@ export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   }
 }
 
+/// validateProgram is effectively "If we `useProgram(program); drawArrays();`,
+/// give feedback in log about perf/correctness warnings or errors that would
+/// occur."
+/// So make sure we set up all vertex/texture/sampler/uniform data before
+/// calling validateProgram!
 export function validateProgram(
     gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.validateProgram(program));
