@@ -15,35 +15,6 @@
  * =============================================================================
  */
 
-async function convertTensorToData(tensor) {
-  const data = await tensor.data();
-  tensor.dispose();
-  return data;
-}
-
-async function getPredictionData(output) {
-  if (output instanceof Promise) {
-    output = await output;
-  }
-
-  if (output instanceof tf.Tensor) {
-    output = await convertTensorToData(output);
-  } else if (Array.isArray(output)) {
-    for (let i = 0; i < output.length; i++) {
-      if (output[i] instanceof tf.Tensor) {
-        output[i] = await convertTensorToData(output[i]);
-      }
-    }
-  } else if (output != null && typeof output === 'object') {
-    for (const property in output) {
-      if (output[property] instanceof tf.Tensor) {
-        output[property] = await convertTensorToData(output[property]);
-      }
-    }
-  }
-  return output;
-}
-
 function printTime(elapsed) {
   return elapsed.toFixed(1) + ' ms';
 }
