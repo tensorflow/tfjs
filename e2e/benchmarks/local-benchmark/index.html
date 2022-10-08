@@ -171,21 +171,6 @@ limitations under the License.
       }
     }
 
-    async function predictAndGetData(predict, model, inferenceInput, benchmark, debug) {
-      const prediction = await predict(model, inferenceInput);
-      const graphModel = getGraphModel(model, benchmark);
-      let intermediateData = {};
-      const dump = debug && graphModel;
-      if (dump) {
-        intermediateData = await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
-      }
-      const predictionData = await getPredictionData(prediction);
-      if (dump) {
-        graphModel.disposeIntermediateTensors();
-      }
-      return {data: predictionData, intermediateData};
-    }
-
     const state = {
       numWarmups: warmupTimes,
       numRuns: runTimes,
@@ -236,8 +221,8 @@ limitations under the License.
             console.warn(e.message);
           }
 
-          const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          const referenceResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, debug);
+          const enableDump = keepIntermediateTensors & (benchmarks[state.benchmark].supportDump !== false);
+          const referenceResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, enableDump);
           referenceData = referenceResult['data'];
 
           await tf.setBackend(state.backend);
@@ -251,16 +236,17 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, debug);
+          const predictionResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, enableDump);
           predictionData = predictionResult['data'];
-          if (debug) {
+          if (enableDump) {
             const predictionIntermediateObject = predictionResult['intermediateData'];
             const referenceIntermediateObject = referenceResult['intermediateData'];
 
-            const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')): 0;
-            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')): 1;
+            const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')) : 0;
+            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')) : 1;
             const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
-            await dump(model, [predictionIntermediateObject, referenceIntermediateObject], [state.backend, referenceBackend], dumpPrefix, dumpLevel, dumpLength);
+            const dumpInput = {[state.backend] : predictionIntermediateObject, [referenceBackend] : referenceIntermediateObject};
+            await dump(model, dumpInput, state.benchmark, dumpPrefix, dumpLevel, dumpLength);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
