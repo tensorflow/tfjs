@@ -304,8 +304,8 @@ export function rightPad(a: string, size: number): string {
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
     maxCounter?: number,
-    scheduleFn: (functionRef: Function, delay: number) => void =
-        setTimeout): Promise<void> {
+    scheduleFn?: (functionRef: Function, delay: number) => void
+  ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -323,7 +323,14 @@ export function repeatedTry(
         reject();
         return;
       }
-      scheduleFn(tryFn, nextBackoff);
+
+      if (scheduleFn != null) {
+        scheduleFn(tryFn, nextBackoff);
+      } else {
+        // google3 does not allow assigning another variable to setTimeout.
+        // Don't refactor this so scheduleFn has a default value of setTimeout.
+        setTimeout(tryFn, nextBackoff);
+      }
     };
 
     tryFn();
