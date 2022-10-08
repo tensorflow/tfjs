@@ -16,7 +16,7 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, getStartHeaderString as start, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterProgram implements WebGPUProgram {
@@ -135,7 +135,8 @@ export class ScatterProgram implements WebGPUProgram {
 
           ${atomicRMW('&result[flatIndex]', 'updateValue')};
         }
-      }`;
+      }
+      ${start('index')}`;
     return userCode;
   }
 }

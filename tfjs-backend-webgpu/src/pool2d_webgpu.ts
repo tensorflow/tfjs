@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Pool2DProgram implements WebGPUProgram {
@@ -90,6 +90,7 @@ export class Pool2DProgram implements WebGPUProgram {
           setOutputAtIndex(index, ${returnValue});
         }
       }
+      ${start('index')}
     `;
     return userCode;
   }

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
@@ -85,6 +85,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           setOutputAtIndex(index, newValue);
         }
       }
+      ${start('index')}
     `;
     return userCode;
   }

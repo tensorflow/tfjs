@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BatchNormProgram implements WebGPUProgram {
@@ -81,6 +81,7 @@ export class BatchNormProgram implements WebGPUProgram {
           setOutputAtIndex(index,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
         }
       }
+      ${start('index')}
   `;
     return userCode;
   }

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransformProgram implements WebGPUProgram {
@@ -153,6 +153,7 @@ export class TransformProgram implements WebGPUProgram {
               setOutputAtIndex(index, outputValue);
             }
           }
+          ${start('index')}
         `;
     return userCode;
   }

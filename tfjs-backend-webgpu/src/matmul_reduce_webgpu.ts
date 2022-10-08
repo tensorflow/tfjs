@@ -19,7 +19,7 @@ import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
@@ -54,6 +54,7 @@ export function makeMatMulReduceSource(): string {
         mm_write(batch, row, col, sum);
       }
     }
+    ${start()}
   `;
 }
 

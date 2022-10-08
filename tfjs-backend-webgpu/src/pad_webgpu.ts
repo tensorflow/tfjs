@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, getStartHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PadProgram implements WebGPUProgram {
@@ -77,6 +77,7 @@ export class PadProgram implements WebGPUProgram {
           }
         }
       }
+      ${getStartHeaderString('index')}
     `;
     return userCode;
   }

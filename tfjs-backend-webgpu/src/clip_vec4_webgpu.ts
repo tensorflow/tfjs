@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ClipVec4Program implements WebGPUProgram {
@@ -56,6 +56,7 @@ export class ClipVec4Program implements WebGPUProgram {
           setOutputAtIndex(index, clampedValue);
         }
       }
+      ${start('index')}
     `;
     return userCode;
   }

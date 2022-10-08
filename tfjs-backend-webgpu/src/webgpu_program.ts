@@ -110,6 +110,27 @@ export function getMainHeaderString(...params: string[]): string {
   switch (params.length) {
     case 0:
       snippet = `
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error('Unreachable');
+  }
+  return snippet;
+}
+
+export function getStartHeaderString(): string;
+export function getStartHeaderString(index: string): string;
+export function getStartHeaderString(...params: string[]): string {
+  let snippet: string;
+  switch (params.length) {
+    case 0:
+      snippet = `
         ${getWorkGroupSizeString()}
         fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
                   @builtin(global_invocation_id) GlobalId : vec3<u32>,
@@ -119,8 +140,6 @@ export function getMainHeaderString(...params: string[]): string {
           numWorkgroups = NumWorkgroups;
           main();
         }
-
-        fn main()
       `;
       break;
     case 1:
@@ -134,8 +153,6 @@ export function getMainHeaderString(...params: string[]): string {
           numWorkgroups = NumWorkgroups;
           main(getGlobalIndex());
         }
-
-        fn main(${params[0]} : i32)
       `;
       break;
     default:

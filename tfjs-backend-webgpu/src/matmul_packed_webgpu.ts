@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
@@ -39,7 +39,8 @@ export function matMulReadFnSource(
                                `value = getB(batch, row, col);`;
 
   return `
-  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     let col = colIn * ${component};
     ${
@@ -57,7 +58,8 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? '0' : 'batchIn'};
     var value = ${typeSnippet(component)}(0.0);
@@ -324,7 +326,8 @@ export function makeMatMulPackedSource(
         var BCached : array<f32, ColPerThread>;
         for (var k = 0; k < TileInner; k = k + 1) {
           for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][localCol + inner * ${workGroupSize[0]}];
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${
+          workGroupSize[0]}];
           }
           for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
             let ACached = ${
@@ -342,7 +345,8 @@ export function makeMatMulPackedSource(
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         let gRow = globalRowStart + localRow + innerRow * ${workGroupSize[1]};
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          let gCol = globalColStart + localCol + innerCol * ${workGroupSize[0]};
+          let gCol = globalColStart + localCol + innerCol * ${
+          workGroupSize[0]};
           mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
         }
       }
@@ -504,6 +508,7 @@ export function makeVectorMatrixProductSource(
 
       mm_write(batch, globalRow, globalCol, acc);
     }
+    ${start()}
   `;
 }
 

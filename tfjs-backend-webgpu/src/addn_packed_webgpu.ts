@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class AddNPackedProgram implements WebGPUProgram {
@@ -62,6 +62,7 @@ export class AddNPackedProgram implements WebGPUProgram {
           }
         }
       }
+      ${start('index')}
     `;
     return userCode;
   }

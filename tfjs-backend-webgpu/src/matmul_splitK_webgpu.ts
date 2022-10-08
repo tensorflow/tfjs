@@ -19,7 +19,7 @@ import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source, matMulReadFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MatMulSplitKProgram implements WebGPUProgram {
@@ -175,6 +175,7 @@ export class BiasActivationProgram implements WebGPUProgram {
         setOutputAtIndex(index, value);
       }
     }
+    ${start('index')}
     `;
   }
 }

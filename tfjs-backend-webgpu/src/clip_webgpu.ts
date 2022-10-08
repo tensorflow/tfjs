@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ClipProgram implements WebGPUProgram {
@@ -51,6 +51,7 @@ export class ClipProgram implements WebGPUProgram {
           setOutputAtIndex(index, clamp(value, uniforms.minVal, uniforms.maxVal));
         }
       }
+      ${start('index')}
     `;
     return userCode;
   }
