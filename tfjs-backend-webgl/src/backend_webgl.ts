@@ -180,14 +180,13 @@ export class MathBackendWebGL extends KernelBackend {
   // to the texture manager.
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
-      texHeight: number, texWidth: number, color: string): DataId {
+      texHeight: number, texWidth: number, channels: string): DataId {
     // Temporarily create an tensor info to make the texture compatible with
     // the runWebGLProgram's input.
     const input = this.makeTensorInfo(shape, dtype);
     const inData = this.texData.get(input.dataId);
-    // Even though the inpt texture could be unpacked or dense packed, it is
-    // always considered as unpacked for EncodeMatrixProgram and
-    // UnaryOpProgram.
+    // Even though the input texture could be unpacked or dense packed, it is
+    // always considered as unpacked for EncodeMatrixProgram.
     inData.isPacked = false;
 
     // Bind texture to the input tensor.
@@ -196,7 +195,7 @@ export class MathBackendWebGL extends KernelBackend {
 
     const shapeAs3D = webgl_util.getShapeAs3D(shape);
     const program =
-        new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */, color);
+        new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */, channels);
     const output =
         this.runWebGLProgram(program, [input], dtype, [[texHeight, texWidth]]);
     output.shape = shape;
@@ -1307,9 +1306,7 @@ export class MathBackendWebGL extends KernelBackend {
    */
   createTensorFromTexture(values: WebGLData, shape: number[], dtype: DataType):
       Tensor {
-    const {texture, height, width} = values;
-    const channels = values.channels || 'RGBA';
-
+    const {texture, height, width, channels} = values;
     const backend = engine().backend as MathBackendWebGL;
 
     // Have to throw an error, otherwise WebGL just warns and returns wrong

@@ -39,6 +39,7 @@ export function makeTensor(
           `Creating tensor from texture only supports ` +
           `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
     }
+    values.channels = values.channels || 'RGBA';
     return ENGINE.backend.createTensorFromTexture(
         values, shape || inferredShape, dtype);
   }

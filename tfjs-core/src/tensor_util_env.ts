@@ -29,7 +29,8 @@ export function inferShape(
     return dtype === 'string' ? [] : [val.length];
   }
   if (typeof val === 'object' && 'texture' in val) {
-    return [val.height, val.width];
+    const usedChannels = val.channels || 'RGBA';
+    return [val.height, val.width * usedChannels.length];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.

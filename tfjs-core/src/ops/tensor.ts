@@ -95,15 +95,17 @@ import {makeTensor} from './tensor_ops_util';
  * @param values The values of the tensor. Can be nested array of numbers,
  *     or a flat array, or a `TypedArray`, or a `WebGLData` object. If the
  * values are strings, they will be encoded as utf-8 and kept as `Uint8Array[]`.
- * If the values is a `WebGLData` object, the texture must share the same
- * `WebGLRenderingContext` with TFJS's WebGL backend (you could create a custom
- * WebGL backend from your texture's canvas) and the object has to have: 1.
- * texture, a `WebGLTexture`; 2. height, the height of the texture; 3. width,
- * the width of the texture; 4. channels, a non-empty subset of 'RGBA',
- * indicating the values of which channels will be passed to the tensor, such as
- * 'R' or 'BR' (The order of the channels affect the order of tensor values. ).
- * (If the values passed from texture is less than the tensor size, zeros will
- * be padded at the rear.)
+ * If the values is a `WebGLData` object, the dtype could only be 'float32' or
+ * 'int32' and the object has to have: 1. texture, a `WebGLTexture`, the texture
+ * must share the same `WebGLRenderingContext` with TFJS's WebGL backend (you
+ * could create a custom WebGL backend from your texture's canvas) and the
+ * internal texture format for the input texture must be floating point or
+ * normalized integer; 2. height, the height of the texture; 3. width, the width
+ * of the texture; 4. channels, a non-empty subset of 'RGBA', indicating the
+ * values of which channels will be passed to the tensor, such as 'R' or 'BR'
+ * (The order of the channels affect the order of tensor values. ). (If the
+ * values passed from texture is less than the tensor size, zeros will be padded
+ * at the rear.)
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
