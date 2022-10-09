@@ -30,7 +30,7 @@ export class PlatformBrowser implements Platform {
   private textEncoder: TextEncoder;
 
   // For setTimeoutCustom
-  private messageName = 'setTimeoutCustom';
+  private readonly messageName = 'setTimeoutCustom';
   private functionRefs: Function[] = [];
   private handledMessageCount = 0;
   private hasEventListener = false;

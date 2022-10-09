@@ -21,8 +21,8 @@ yarn rimraf dist/
 yarn rimraf deps/
 yarn rimraf lib/
 
-# Build and upload pre-built addon
-yarn build-addon $1
+# Build the pre-built addon. Do not publish it yet.
+yarn build-addon
 
 tsc --sourceMap false
 # Manual copy src/proto/api_pb.js until both allowJs and declaration are
