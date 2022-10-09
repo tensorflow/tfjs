@@ -1230,7 +1230,7 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
            tex2d, 0, internalFormat, width, height, 0, textureFormat,
            textureType, dataForUpload);
 
-       const physicalShape: [number, number] = [width, height];
+       const physicalShape: [number, number] = [width, height * 4];
        const a = tf.tensor({texture, height, width, channels: 'RGBA'});
 
        expect(a.shape).toEqual(physicalShape);
