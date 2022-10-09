@@ -1235,7 +1235,9 @@ describeWithFlags('create tensor from texture', WEBGL_ENVS, () => {
 
        expect(a.shape).toEqual(physicalShape);
        expect(a.dtype).toEqual('float32');
-       expectArraysClose(await a.data(), [0, 1, 2, 3]);
+       expectArraysClose(
+           await a.data(),
+           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
        gl.deleteTexture(texture);
      });
