@@ -21,18 +21,14 @@ const DUMP_LEVEL = {
 };
 
 function compareData(data1, data2, level = DUMP_LEVEL.CLOSE) {
-  if (level == DUMP_LEVEL.CLOSE) {
-    let match = true;
-    try {
-      expectObjectsClose(data1, data2);
-    } catch (e) {
-      match = false;
-    }
-    return match;
-  } else if (level == DUMP_LEVEL.ANY) {
-    return JSON.stringify(data1) === JSON.stringify(data2);
+  let epsilon = level == DUMP_LEVEL.ANY ? 0 : -1;
+  let match = true;
+  try {
+    expectObjectsClose(data1, data2, epsilon);
+  } catch (e) {
+    match = false;
   }
-  throw new Error(`Dump level ${level} is not supported!`);
+  return match;
 }
 
 function getGraphModel(model, benchmark) {
@@ -234,7 +230,7 @@ async function dumpOp(model, reference, backend, outputNodeName, index) {
   const predictObject =
       await predictOp(model, modelJson, reference, outputNodeName, backend);
   if (predictObject) {
-    return [{index, ...predictObject}, {index, ...reference[outputNodeName]}];
+    return [{...predictObject, index}, {...reference[outputNodeName], index}];
   }
   return [null, null];
 }
