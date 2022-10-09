@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class GatherNDProgram implements WebGPUProgram {
@@ -59,7 +59,6 @@ export class GatherNDProgram implements WebGPUProgram {
           setOutputAtIndex(index, getA(flattenIndex, coords[1]));
         }
       }
-      ${start('index')}
       `;
     return userCode;
   }

@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
@@ -115,7 +115,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
          }
          writeResult(batch, outRow, outCol, outChannel, acc);
        }
-       ${start('index')}
      `;
     return userCode;
   }

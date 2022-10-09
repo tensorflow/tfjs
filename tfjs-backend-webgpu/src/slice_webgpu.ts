@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SliceProgram implements WebGPUProgram {
@@ -68,7 +68,6 @@ export class SliceProgram implements WebGPUProgram {
           setOutputAtIndex(index, getSource(${sourceCoords}));
         }
       }
-      ${start('index')}
     `;
     return userCode;
   }

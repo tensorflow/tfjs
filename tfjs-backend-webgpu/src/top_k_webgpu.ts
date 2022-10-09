@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
@@ -116,7 +116,6 @@ export class SwapProgram implements WebGPUProgram {
             }
           }
         }
-        ${start('index')}
       `;
     return userCode;
   }
@@ -205,7 +204,6 @@ export class MergeProgram implements WebGPUProgram {
             }
           }
         }
-        ${start('index')}
       `;
     return userCode;
   }

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransposeProgram implements WebGPUProgram {
@@ -60,7 +60,6 @@ export class TransposeProgram implements WebGPUProgram {
           }
         }
       }
-      ${start('index')}
     `;
     return userCode;
   }

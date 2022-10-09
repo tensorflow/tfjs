@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpProgram implements WebGPUProgram {
@@ -118,7 +118,6 @@ export class BinaryOpProgram implements WebGPUProgram {
             setOutputAtIndex(index, binaryOperation(a, b));
           }
         }
-        ${start('index')}
         `;
     } else {
       userCode = `
@@ -130,7 +129,6 @@ export class BinaryOpProgram implements WebGPUProgram {
            setOutputAtIndex(index, binaryOperation(a, b));
          }
        }
-       ${start('index')}
        `;
     }
 

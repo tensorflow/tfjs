@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
@@ -65,9 +65,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
                                               'getX(batch, d1, xR, xC);';
 
     const userCode = `
-      ${
-        activationFnSnippet(
-            this.activation, this.hasPreluActivation, false, 4)}
+      ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
 
       ${main()} {
         let coords = getOutputCoords();
@@ -133,7 +131,6 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }
-      ${start()}
     `;
     return userCode;
   }

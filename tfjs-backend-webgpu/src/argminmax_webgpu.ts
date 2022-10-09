@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsXYZ, getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
@@ -140,7 +140,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           setOutputAtIndexI32(outputIndex, xBestIndices[localId.x]);
         }
       }
-      ${start('index')}
     `;
       return userCode;
     } else {
@@ -161,7 +160,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           setOutputAtIndexI32(index, bestIndex);
         }
       }
-      ${start('index')}
       `;
       return userCode;
     }

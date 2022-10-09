@@ -16,7 +16,7 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getMainHeaderString as main, getStartHeaderString as start, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterProgram implements WebGPUProgram {
@@ -33,6 +33,7 @@ export class ScatterProgram implements WebGPUProgram {
   sliceDimGreaterThanOne: boolean;
   atomic = true;
   type: DataType;
+  size = true;
 
   constructor(
       flattenXShape: number[], sliceDim: number, indicesRank: number,
@@ -49,7 +50,7 @@ export class ScatterProgram implements WebGPUProgram {
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32, strides: ${stridesType}, size: i32,`;
+    this.uniforms = `sliceDim : i32, strides: ${stridesType}, sizeUpdate: i32,`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -122,7 +123,7 @@ export class ScatterProgram implements WebGPUProgram {
     ${getUpdatesCoordsFromFlatIndex}
 
       ${main('index')} {
-        if (index < uniforms.size) {
+        if (index < uniforms.sizeUpdate) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
@@ -135,8 +136,7 @@ export class ScatterProgram implements WebGPUProgram {
 
           ${atomicRMW('&result[flatIndex]', 'updateValue')};
         }
-      }
-      ${start('index')}`;
+      }`;
     return userCode;
   }
 }

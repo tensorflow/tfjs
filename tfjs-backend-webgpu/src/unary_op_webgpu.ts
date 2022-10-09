@@ -16,7 +16,7 @@
  */
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class UnaryOpProgram implements WebGPUProgram {
@@ -53,7 +53,6 @@ export class UnaryOpProgram implements WebGPUProgram {
           setOutputAtIndex(index, unaryOperation(a));
         }
       }
-      ${start('index')}
       `;
   }
 }

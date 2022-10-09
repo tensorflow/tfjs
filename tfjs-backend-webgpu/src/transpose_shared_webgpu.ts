@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class TransposeSharedProgram implements WebGPUProgram {
@@ -45,11 +45,9 @@ export class TransposeSharedProgram implements WebGPUProgram {
       const TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
-      ${getWorkGroupSizeString()}
-      fn _start(@builtin(local_invocation_id) localId : vec3<u32>,
-                @builtin(workgroup_id) workgroupId : vec3<u32>) {
-        var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
-        var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
+      ${main()} {
+        var x = i32(workGroupId.x) * TILE_DIM + i32(localId.x);
+        var y = i32(workGroupId.y) * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
@@ -57,8 +55,8 @@ export class TransposeSharedProgram implements WebGPUProgram {
         }
         workgroupBarrier();
 
-        x = i32(workgroupId.y) * TILE_DIM + i32(localId.x);
-        y = i32(workgroupId.x) * TILE_DIM + i32(localId.y);
+        x = i32(workGroupId.y) * TILE_DIM + i32(localId.x);
+        y = i32(workGroupId.x) * TILE_DIM + i32(localId.y);
         if (x < height && y < width) {
           setOutputAtIndex((y * height + x), tile[localId.x]
             [localId.y]);

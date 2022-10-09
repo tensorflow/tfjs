@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderString as main, getStartHeaderString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MirrorPadProgram implements WebGPUProgram {
@@ -84,7 +84,6 @@ export class MirrorPadProgram implements WebGPUProgram {
           setOutputAtIndex(index, getX(${unpackedCoords}));
         }
       }
-      ${getStartHeaderString('index')}
     `;
   }
 }

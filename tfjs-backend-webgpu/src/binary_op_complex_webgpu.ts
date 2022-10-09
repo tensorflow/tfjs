@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpComplexProgram implements WebGPUProgram {
@@ -57,7 +57,6 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
           setOutputAtIndex(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }
-      ${start('index')}
     `;
     return userCode;
   }

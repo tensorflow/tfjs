@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class RotateProgram implements WebGPUProgram {
@@ -73,7 +73,6 @@ export class RotateProgram implements WebGPUProgram {
             setOutputAtIndex(index, outputValue);
           }
         }
-        ${start('index')}
       `;
     return userCode;
   }

@@ -124,40 +124,23 @@ export function getMainHeaderString(...params: string[]): string {
   return snippet;
 }
 
-export function getStartHeaderString(): string;
-export function getStartHeaderString(index: string): string;
-export function getStartHeaderString(...params: string[]): string {
+export function getStartHeaderString(isUseIndex: boolean): string {
   let snippet: string;
-  switch (params.length) {
-    case 0:
-      snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main();
-        }
-      `;
-      break;
-    case 1:
-      snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main(getGlobalIndex());
-        }
-      `;
-      break;
-    default:
-      throw Error('Unreachable');
-  }
+  snippet = `
+     ${getWorkGroupSizeString()}
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(workgroup_id) WorkGroupId : vec3<u32>,
+                @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+        localId = LocalId;
+        localIndex = LocalIndex;
+        globalId = GlobalId;
+        numWorkgroups = NumWorkgroups;
+        workGroupId = WorkGroupId;
+        ${isUseIndex ? `main(getGlobalIndex());` : `main();`};
+      }
+    `;
   return snippet;
 }
 
@@ -177,8 +160,10 @@ function makeShader(
       const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
+      var<private> localIndex: u32;
       var<private> globalId: vec3<u32>;
       var<private> numWorkgroups: vec3<u32>;
+      var<private> workGroupId: vec3<u32>;
 
       // Only used when the y/z dimension of workgroup size is 1.
       fn getGlobalIndex() -> i32 {
@@ -187,11 +172,9 @@ function makeShader(
           `  return i32(globalId.x);` :
           `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
                    localId.y * workGroupSizeX + localId.x;
-               let workGroupID = (globalId - localId)/vec3<u32>(
-                   workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-               return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-                   workGroupID.y * numWorkgroups.x + workGroupID.x) *
+               return i32((workGroupId.z * numWorkgroups.x * numWorkgroups.y +
+                   workGroupId.y * numWorkgroups.x + workGroupId.x) *
                    (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
                    localInvocationIndex);
         `}
@@ -215,6 +198,7 @@ function makeShader(
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
+      getStartHeaderString(program.size),
     ].join('\n');
   }
 
@@ -296,6 +280,7 @@ function makeShader(
   sources.push(inputSnippet);
 
   sources.push(program.getUserCode());
+  sources.push(getStartHeaderString(program.size));
   const source = sources.join('\n');
   return source;
 }

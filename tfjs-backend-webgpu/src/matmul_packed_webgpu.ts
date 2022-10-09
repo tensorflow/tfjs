@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
@@ -180,15 +180,7 @@ export function makeMatMulPackedVec4Source(
   const InnerElementSize = ${innerElementSize};
   const TileInner = ${tileInner};
 
-  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-  fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-            @builtin(global_invocation_id) GlobalId : vec3<u32>,
-            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-            @builtin(workgroup_id) workgroupId: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-
+  ${main()} {
     let localRow = i32(localId.y);
     let tileRow = ${isVectorA ? '0' : 'localRow * RowPerThread'};
     let tileCol = i32(localId.x);
@@ -196,7 +188,7 @@ export function makeMatMulPackedVec4Source(
     let globalRow = ${isVectorA ? '0' : 'i32(globalId.y) * RowPerThread'};
     let globalCol = i32(globalId.x);
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
-    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+    let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
 
     let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
@@ -296,8 +288,8 @@ export function makeMatMulPackedSource(
       `
       let localRow = i32(localId.y);
       let localCol = i32(localId.x);
-      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
+      let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
+      let globalColStart = i32(workGroupId.x) * ${tileBOuter};
 
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
@@ -357,7 +349,7 @@ export function makeMatMulPackedSource(
 
   let globalRow = i32(globalId.y) * RowPerThread;
   let globalCol = i32(globalId.x) * ColPerThread;
-  let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+  let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
 
   let tileRowA = i32(localId.y) * ${rowPerThreadA};
   let tileColA = i32(localId.x) * ${colPerThreadA};
@@ -422,15 +414,7 @@ export function makeMatMulPackedSource(
     const ColPerThread = ${workPerThread[0]};
     const TileInner = ${tileInner};
 
-    @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-    fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-              @builtin(global_invocation_id) GlobalId : vec3<u32>,
-              @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-              @builtin(workgroup_id) workgroupId: vec3<u32>) {
-      localId = LocalId;
-      globalId = GlobalId;
-      numWorkgroups = NumWorkgroups;
-
+    ${main()} {
       let batch = ${splitK ? '0' : 'i32(globalId.z)'};
       let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
@@ -508,7 +492,6 @@ export function makeVectorMatrixProductSource(
 
       mm_write(batch, globalRow, globalCol, acc);
     }
-    ${start()}
   `;
 }
 

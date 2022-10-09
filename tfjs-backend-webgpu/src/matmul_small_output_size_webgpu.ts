@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
     workGroupSize: [number, number, number]): string {
@@ -75,7 +75,6 @@ export function makeMatMulSmallOutputSizeSource(
 
     mm_write(batch, globalRow, globalCol, acc);
   }
-  ${start()}
   `;
 }
 

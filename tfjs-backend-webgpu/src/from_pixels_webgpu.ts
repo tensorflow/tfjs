@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderString as main, getStartHeaderString as start, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
@@ -28,6 +28,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   variableNames: string[] = [];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
+  size = true;
 
   constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;
@@ -58,7 +59,6 @@ export class FromPixelsProgram implements WebGPUProgram {
           }
         }
       }
-      ${start('index')}
   `;
   }
 }
