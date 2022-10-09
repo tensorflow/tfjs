@@ -88,8 +88,8 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
   return true;
 }
 
-function expectObjectsClose(actual, expected, epsilon) {
-  if (epsilon == null) {
+function expectObjectsClose(actual, expected, epsilon = -1) {
+  if (epsilon === -1) {
     epsilon = tf.test_util.testEpsilon();
   }
   expectObjectsPredicate(
@@ -130,7 +130,7 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
 
 // TODO: support relative comparison for array.
 function expectArraysClose(actual, expected, epsilon, key) {
-  if (epsilon == null) {
+  if (epsilon === -1) {
     epsilon = tf.test_util.testEpsilon();
   }
 
