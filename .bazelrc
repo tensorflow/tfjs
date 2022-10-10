@@ -52,9 +52,12 @@ build:ci --config=bes
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
 
-# Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker. b/250727292
+# Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
 # Remote builds are sandboxed.
-build --spawn_strategy=remote,sandboxed,worker,local
+# TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
+build:linux --spawn_strategy=remote,sandboxed,worker,local
+build:macos --spawn_strategy=remote,sandboxed,worker,local
+build:windows --spawn_strategy=remote,worker,local
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
