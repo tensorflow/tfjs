@@ -10,7 +10,7 @@ Under the hood, the TFDF C++ runtime is packaged in a set of WASM modules.
 
 ## Import the packages
 
-To use this package, you will need JSZip, and a TFJS backend installed. We recommend the CPU backend.
+To use this package, you will need JSZip, and a TFJS backend installed.
 You will also need to import `@tensorflow/tfjs-core` for
 manipulating tensors, and `@tensorflow/tfjs-converter` for loading models.
 
@@ -59,8 +59,8 @@ const tfdfModel = await tfdf.loadTFDFModel('url/to/your/model.json');
 const input = tf.tensor1d(['test', 'strings']);
 
 // Run inference and get output tensors.
-let outputTensorPromise = tfdfModel.executeAsync(input) as Promise<tf.Tensor>;
-outputTensorPromise.then(outputTensor => console.log(outputTensor.dataSync()));
+const outputTensor = await tfdfModel.executeAsync(input);
+console.log(outputTensor.dataSync());
 ```
 
 # Development

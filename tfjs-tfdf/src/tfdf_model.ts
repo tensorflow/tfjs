@@ -22,7 +22,7 @@ import {TFDFLoadHandler, TFDFLoadHandlerSync} from './types/tfdf_io';
 import {TFDFWebModelRunner} from './types/tfdf_web_model_runner';
 
 /**
- * To load a `tfdf.TFDFModel`, use the `loadTFDFModel` function below.
+ * A model representing both a TFJS graph model, and a TFDF instance.
  *
  * Sample usage:
  *
@@ -140,45 +140,14 @@ export class TFDFModel implements InferenceModel {
 }
 
 /**
- * Load a TFDF graph model given a URL to the model definition.
+ * Loads a TFDF graph model given a URL to the model definition.
  *
- * Example of loading an example model from a URL and making a prediction with
- * an input map:
+ * Example of loading an example model from a URL.
  *
  * ```js
  * // Load the test TFDF model.
  * const tfdfModel = await tfdf.loadTFDFModel(
  *     'https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json');
- * const inputs = {
- *   'age': tf.tensor1d([39, 40, 40, 35], 'int32'),
- *   'workclass': tf.tensor1d(
- *       ['State-gov', 'Private', 'Private', 'Federal-gov'], 'string'),
- *   'fnlwgt': tf.tensor1d([77516, 121772, 193524, 76845], 'int32'),
- *   'education':
- *      tf.tensor1d(['Bachelors', 'Assoc-voc', 'Doctorate', '9th'], 'string'),
- *   'education_num': tf.tensor1d([13, 11, 16, 5], 'int32'),
- *   'marital_status': tf.tensor1d(
- *       [
- *         'Never-married', 'Married-civ-spouse', 'Married-civ-spouse',
- *         'Married-civ-spouse'
- *       ],
- *       'string'),
- *   'occupation': tf.tensor1d(
- *      ['Adm-clerical', 'Craft-repair', 'Prof-specialty', 'Farming-fishing'],
- *       'string'),
- *   'relationship': tf.tensor1d(
- *       ['Not-in-family', 'Husband', 'Husband', 'Husband'], 'string'),
- *   'race': tf.tensor1d(
- *       ['White', 'Asian-Pac-Islander', 'White', 'Black'], 'string'),
- *   'sex': tf.tensor1d(['Male', 'Male', 'Male', 'Male'], 'string'),
- *   'capital_gain': tf.tensor1d([2174, 0, 0, 0], 'int32'),
- *   'capital_loss': tf.tensor1d([0, 0, 0, 0], 'int32'),
- *   'hours_per_week': tf.tensor1d([40, 40, 60, 40], 'int32'),
- *   'native_country': tf.tensor1d(
- *       ['United-States', '', 'United-States', 'United-States'], 'string')
- * };
- * const densePredictions = await tfdfModel.executeAsync(inputs);
- * console.log(densePredictions);
  * ```
  * @param modelUrl The url or an `TFDFLoadHandler` that loads the model and
  *    model assets.
