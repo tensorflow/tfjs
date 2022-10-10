@@ -667,6 +667,10 @@ export interface RaggedGatherAttrs {
   outputRaggedRank: number;
 }
 
+export const RaggedRange = 'RaggedRange';
+export type RaggedRangeInputs =
+    Pick<NamedTensorInfoMap, 'starts'|'limits'|'deltas'>;
+
 export const RaggedTensorToTensor = 'RaggedTensorToTensor';
 export type RaggedTensorToTensorInputs =
     Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
