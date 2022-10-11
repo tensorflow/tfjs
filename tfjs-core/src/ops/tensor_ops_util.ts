@@ -17,13 +17,13 @@
 
 import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
-import {TensorLike, TypedArray} from '../types';
+import {TensorLike, TypedArray, WebGLData} from '../types';
 import {DataType} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, flatten, inferDtype, isTypedArray, sizeFromShape, toTypedArray} from '../util';
 
 /** This is shared code across all tensor creation methods. */
 export function makeTensor(
-    values: TensorLike, shape: number[], inferredShape: number[],
+    values: TensorLike|WebGLData, shape: number[], inferredShape: number[],
     dtype?: DataType): Tensor {
   if (dtype == null) {
     dtype = inferDtype(values);
@@ -33,6 +33,16 @@ export function makeTensor(
         `Cannot construct a complex64 tensor directly. ` +
         `Please use tf.complex(real, imag).`);
   }
+  if (typeof values === 'object' && 'texture' in values) {
+    if (dtype !== 'float32' && dtype !== 'int32') {
+      throw new Error(
+          `Creating tensor from texture only supports ` +
+          `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
+    }
+    values.channels = values.channels || 'RGBA';
+    return ENGINE.backend.createTensorFromTexture(
+        values, shape || inferredShape, dtype);
+  }
   if (!isTypedArray(values) && !Array.isArray(values) &&
       typeof values !== 'number' && typeof values !== 'boolean' &&
       typeof values !== 'string') {
@@ -40,6 +50,7 @@ export function makeTensor(
         'values passed to tensor(values) must be a number/boolean/string or ' +
         'an array of numbers/booleans/strings, or a TypedArray');
   }
+  // Verify that the shape matches the inferred shape.
   if (shape != null) {
     assertNonNegativeIntegerDimensions(shape);
 

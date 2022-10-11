@@ -132,6 +132,7 @@ import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {raggedGatherConfig} from './kernels/RaggedGather';
+import {raggedRangeConfig} from './kernels/RaggedRange';
 import {raggedTensorToTensorConfig} from './kernels/RaggedTensorToTensor';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
@@ -302,6 +303,7 @@ const kernelConfigs: KernelConfig[] = [
   preluConfig,
   prodConfig,
   raggedGatherConfig,
+  raggedRangeConfig,
   raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,
