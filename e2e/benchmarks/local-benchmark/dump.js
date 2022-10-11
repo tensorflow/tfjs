@@ -16,12 +16,12 @@
  */
 
 const DUMP_LEVEL = {
-  CLOSE: 0,
-  ANY: 1,
+  BIGDIFF: 0,
+  ANYDIFF: 1,
 };
 
-function compareData(data1, data2, level = DUMP_LEVEL.CLOSE) {
-  let epsilon = level == DUMP_LEVEL.ANY ? 0 : -1;
+function compareData(data1, data2, level = DUMP_LEVEL.BIGDIFF) {
+  let epsilon = level == DUMP_LEVEL.ANYDIFF ? 0 : -1;
   let match = true;
   try {
     expectObjectsClose(data1, data2, epsilon);
@@ -31,22 +31,18 @@ function compareData(data1, data2, level = DUMP_LEVEL.CLOSE) {
   return match;
 }
 
-function getGraphModel(model, benchmark) {
-  let graphModel = null;
-  if (benchmark === 'bodypix' || benchmark === 'posenet') {
-    graphModel = model.baseModel.model;
+function getGraphModel(model) {
+  if (model instanceof tf.GraphModel) {
+    return model;
+  } else if (model.model instanceof tf.GraphModel) {
+    return model.model;
   } else if (
-      benchmark === 'USE - batchsize 30' || benchmark === 'USE - batchsize 1') {
-    graphModel = model.model;
+      model.baseModel && model.baseModel.model instanceof tf.GraphModel) {
+    return model.baseModel.model;
   } else {
-    graphModel = model;
+    console.warn(`Model doesn't support dump!`);
+    return null;
   }
-
-  if (graphModel instanceof tf.GraphModel) {
-    return graphModel;
-  }
-  console.warn(`Model ${benchmark} doesn't support dump op!`);
-  return null;
 }
 
 async function getIntermediateTensorInfo(tensorsMap) {
@@ -70,25 +66,25 @@ async function getIntermediateTensorInfo(tensorsMap) {
   return jsonObject;
 }
 
-async function saveObjectsToFile(jsonObjects, dumpCount, prefix) {
+async function saveObjectsToFile(jsonObjects, prefix) {
   let newPrefix = '';
   if (prefix !== '') {
     newPrefix = `${prefix.replace(/\//g, '-')}_`;
   }
   const backends = Object.keys(jsonObjects);
-  if (dumpCount) {
-    for (let i = 0; i < backends.length; i++) {
-      const object = jsonObjects[backends[i]];
-      const fileName = `${newPrefix}${backends[i]}.json`;
-      const a = document.createElement('a');
-      const file =
-          new Blob([JSON.stringify(object)], {type: 'application/json'});
-      a.href = URL.createObjectURL(file);
-      a.download = fileName;
-      a.click();
-      // This log informs tools file has been saved.
-      console.log(fileName);
-    }
+  if (Object.keys(jsonObjects[backends[0]]).length == 0) {
+    return;
+  }
+  for (let i = 0; i < backends.length; i++) {
+    const object = jsonObjects[backends[i]];
+    const fileName = `${newPrefix}${backends[i]}.json`;
+    const a = document.createElement('a');
+    const file = new Blob([JSON.stringify(object)], {type: 'application/json'});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+    // This log informs tools file has been saved.
+    console.log(fileName);
   }
 }
 
@@ -172,7 +168,7 @@ async function createNamedTensorMap(outputNodeName, modelJson, dumpedJson) {
 async function predictAndGetData(
     predict, model, inferenceInput, benchmark, enableDump) {
   const prediction = await predict(model, inferenceInput);
-  const graphModel = getGraphModel(model, benchmark);
+  const graphModel = getGraphModel(model);
   let intermediateData = {};
   enableDump = enableDump && !!graphModel;
   if (enableDump) {
@@ -218,37 +214,20 @@ async function predictOp(
 }
 
 /**
- * Dump a single op specified by outputNodeName.
- * @param model The loaded model.
- * @param reference The reference result.
- * @param backend The predict backend.
- * @param outputNodeName Output node name.
- * @param index Used as timestamp.
- */
-async function dumpOp(model, reference, backend, outputNodeName, index) {
-  const modelJson = model.artifacts;
-  const predictObject =
-      await predictOp(model, modelJson, reference, outputNodeName, backend);
-  if (predictObject) {
-    return [{...predictObject, index}, {...reference[outputNodeName], index}];
-  }
-  return [null, null];
-}
-
-/**
  * Dump the predict results of two backends and save diffs to files.
  * @param model The loaded model.
  * @param input The predict results from backends.
- * @param backends [predict backend, reference backend].
- * @param benchmark Used for getting graph model.
  * @param prefix Used for generating dump file name.
- * @param level 0, dump close diffs. 1, dump any diffs.
+ * @param level 0, dump big diffs. 1, dump any diffs.
  * @param length Used for controlling how many tensors will be dumped. -1 dump
  *     all.
  */
 async function dump(
-    model, input, benchmark = '', prefix = '', level = DUMP_LEVEL.CLOSE,
-    length = 1) {
+    model, input, prefix = '', level = DUMP_LEVEL.BIGDIFF, length = 1) {
+  const graphModel = getGraphModel(model);
+  if (graphModel == null) {
+    return;
+  }
   const backends = Object.keys(input);
   const jsonObject1 = input[backends[0]];
   const jsonObject2 = input[backends[1]];
@@ -257,17 +236,22 @@ async function dump(
   const keys = Object.keys(jsonObject1);
   prefix = `dump_${prefix}_${level}`;
   let dumpCount = 0;
+
+  const modelJson = graphModel.artifacts;
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (!compareData(jsonObject1[key], jsonObject2[key], level)) {
-      const graphModel = getGraphModel(model, benchmark);
-      const [objects1, objects2] =
-          await dumpOp(graphModel, jsonObject2, backends[0], key, i);
-      if (objects1 && objects2 && !compareData(objects1, objects2, level)) {
-        dumpObjects1[key] = objects1;
-        dumpObjects2[key] = objects2;
-        dumpCount++;
-      }
+    if (compareData(jsonObject1[key], jsonObject2[key], level)) {
+      continue;
+    }
+    const predictObject =
+        await predictOp(model, modelJson, jsonObject2, key, backends[0]);
+    const [objects1, objects2] = predictObject ?
+        [{...predictObject, i}, {...jsonObject2[key], i}] :
+        [null, null];
+    if (objects1 && objects2 && !compareData(objects1, objects2, level)) {
+      dumpObjects1[key] = objects1;
+      dumpObjects2[key] = objects2;
+      dumpCount++;
     }
     // Break when diff count equals dumpLength to avoid downloading large file.
     if (length != -1 && dumpCount == length) {
@@ -275,7 +259,7 @@ async function dump(
     }
   }
   const dumpData = {[backends[0]]: dumpObjects1, [backends[1]]: dumpObjects2};
-  await saveObjectsToFile(dumpData, dumpCount, prefix);
+  await saveObjectsToFile(dumpData, prefix);
   if (dumpCount) {
     console.warn(`Total dumped ${dumpCount} item(s).`);
   }
