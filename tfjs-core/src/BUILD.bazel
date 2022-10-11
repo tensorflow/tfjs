@@ -76,6 +76,7 @@ ts_library(
         "@npm//@types/jasmine",
         "@npm//@types/long",
         "@npm//@types/node",
+        "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
         "@npm//@webgpu/types",
         "@npm//jasmine",
@@ -232,6 +233,7 @@ ts_library(
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "@npm//@types/offscreencanvas",
     ],
 )
 

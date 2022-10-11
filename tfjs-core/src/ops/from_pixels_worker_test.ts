@@ -68,9 +68,7 @@ describe('fromPixels worker', () => {
     };
 
     worker.onerror = (e) => {
-      // @ts-ignore
       if(typeof OffscreenCanvas === 'undefined' ||
-        // @ts-ignore
          typeof OffscreenCanvasRenderingContext2D === 'undefined') {
         expect(e.message).toEqual(
             'Cannot parse input in current context. ' +
