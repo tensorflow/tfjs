@@ -39,7 +39,7 @@ export class CenterCrop extends Layer {
 
     return tidy(() => {
       let input: Tensor4D;
-      let rank3      = false;
+      let isRank3      = false;
       const top      = hBuffer / inputHeight;
       const left     = wBuffer / inputWidth;
       const bottom   = ((height) + hBuffer) / inputHeight;
@@ -48,7 +48,7 @@ export class CenterCrop extends Layer {
       const boxesArr = [];
 
       if(inputs.rank === 3) {
-        rank3  = true;
+        isRank3  = true;
         input  = stack([inputs]) as Tensor4D;
       } else {
         input = inputs as Tensor4D;
@@ -64,7 +64,7 @@ export class CenterCrop extends Layer {
       const cropSize: [number, number] = [height, width];
       const cropped = cropAndResize(input, boxes, boxInd, cropSize, 'nearest');
 
-      if(rank3) {
+      if(isRank3) {
         return K.cast(getExactlyOneTensor(unstack(cropped)), dtype);
       }
       return K.cast(cropped, dtype);
