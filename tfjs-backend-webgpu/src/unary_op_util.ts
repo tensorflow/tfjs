@@ -89,7 +89,7 @@ const RELU6_VEC4 =
 const RELU_VEC4 = `
   return select(a, vec4<f32>(0.0), a < vec4<f32>(0.0));
 `;
-const RSQRT = `return 1.0/sqrt(a);`;
+const RSQRT = `return inverseSqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 const SIN = `return sin(a);`;
 const SINH = `

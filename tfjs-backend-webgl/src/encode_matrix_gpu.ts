@@ -19,6 +19,13 @@ import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
+const CHANNEL_CHAR_TO_INDEX_MAP: Record<string, number> = {
+  'R': 0,
+  'G': 1,
+  'B': 2,
+  'A': 3
+};
+
 export class EncodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
@@ -27,7 +34,8 @@ export class EncodeMatrixProgram implements GPGPUProgram {
   customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
   constructor(
-      outputShape: [number, number, number], inputIsUnsignedByte = false) {
+      outputShape: [number, number, number], inputIsUnsignedByte = false,
+      usedChannels = 'RGBA') {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -37,6 +45,16 @@ export class EncodeMatrixProgram implements GPGPUProgram {
       output = `floor(result * 255. + 0.5)`;
     }
 
+    let mainLoop = '';
+    for (let usedChannelIndex = 0; usedChannelIndex < usedChannels.length;
+         usedChannelIndex++) {
+      const curChannel = usedChannels[usedChannelIndex];
+      mainLoop += `
+          if(offset == ${usedChannelIndex}) {
+            result = values[${CHANNEL_CHAR_TO_INDEX_MAP[curChannel]}];
+          }`;
+    }
+
     this.userCode = `
       ${
         this.enableShapeUniforms ? shader_util.getFlatIndexFrom3DOutput() :
@@ -44,29 +62,19 @@ export class EncodeMatrixProgram implements GPGPUProgram {
 
       void main() {
         ivec3 coords = getOutputCoords();
-
         int flatIndex = getFlatIndex(coords);
-        int offset = imod(flatIndex, 4);
+        float result = 0.;
+        int offset = imod(flatIndex, ${usedChannels.length});
 
-        flatIndex = idiv(flatIndex, 4, 1.);
+        flatIndex = idiv(flatIndex, ${usedChannels.length}, 1.);
 
         int r = flatIndex / texShape[1];
-        int c = imod(flatIndex, texShape[1]);
-        vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
-        vec4 values = ${glsl.texture2D}(A, uv);
-
-        float result;
-
-        if(offset == 0) {
-          result = values[0];
-        } else if(offset == 1) {
-          result = values[1];
-        } else if(offset == 2) {
-          result = values[2];
-        } else {
-          result = values[3];
+        if (r < texShape[0]) {
+          int c = imod(flatIndex, texShape[1]);
+          vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
+          vec4 values = ${glsl.texture2D}(A, uv);
+          ${mainLoop}
         }
-
         ${glsl.output} = vec4(${output}, 0., 0., 0.);
       }
     `;
