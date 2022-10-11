@@ -455,6 +455,22 @@ def _copy_assets(saved_model_dir, output_dir):
     if gfile.isdir(tmp_dir):
       gfile.rmtree(tmp_dir)
 
+# TFDF stores the necessary files for its binary in the assets folder.
+ASSET_REQUIRING_OPS = set([
+  'SimpleMLCreateModelResource'
+  'SimpleMLLoadModelFromPathWithHandle',
+  'SimpleMLInferenceOpWithHandle',
+])
+
+def _is_assets_required(model_ops):
+  return not ASSET_REQUIRING_OPS.isdisjoint(model_ops)
+
+def _get_frozen_graph_ops(frozen_graph):
+  if frozen_graph is None:
+    return []
+  return [node.op for node in frozen_graph.as_graph_def().node]
+
+
 def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                            output_node_names):
   """Freeze the graph by converting variables to constants for 1.x saved model.
@@ -796,7 +812,6 @@ def _convert_tf_saved_model(output_dir,
     model = _load_model(saved_model_dir, saved_model_tags_list)
     _check_signature_in_model(model, signature_def)
     concrete_func = model.signatures[signature_def]
-    _copy_assets(saved_model_dir, output_dir)
   elif keras_model:
     model = keras_model
     input_signature = None
@@ -885,6 +900,12 @@ def _convert_tf_saved_model(output_dir,
     # keras model does not have tensorflow_version, hard code to the latest
     # tensorflow version.
     tf_version = tf.__version__
+
+  if saved_model_dir:
+      model_ops = set(_get_frozen_graph_ops(frozen_graph)) |\
+                  set(_get_frozen_graph_ops(frozen_initializer_graph))
+      if _is_assets_required(model_ops):
+        _copy_assets(saved_model_dir, output_dir)
 
   optimize_graph(frozen_graph, signature,
                  output_graph, tf_version,
