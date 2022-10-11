@@ -165,7 +165,7 @@ function getJSDocTag(symbol: ts.Symbol): JSDoc {
   const tags = symbol.getJsDocTags();
   for (let i = 0; i < tags.length; i++) {
     const jsdocTag = tags[i];
-    if (jsdocTag.name === 'doc' && jsdocTag.text) {
+    if (jsdocTag.name === 'doc' && jsdocTag.text != null) {
       if (jsdocTag.text.length !== 1) {
         throw new Error('Expected exactly one jsdoc SymbolDisplayPart but got'
           + ` ${jsdocTag.text.length} instead: ${jsdocTag.text}`);
