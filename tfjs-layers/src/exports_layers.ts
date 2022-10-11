@@ -1766,7 +1766,7 @@ export function centerCrop(args?: CenterCropArgs) {
    return new CenterCrop(args);
   }
   
- /**
+/**
  * A preprocessing layer which resizes images.
  * This layer resizes an image input to a target height and width. The input
  * should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
