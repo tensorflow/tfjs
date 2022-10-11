@@ -22,7 +22,7 @@ yarn rimraf deps/
 yarn rimraf lib/
 
 # Build the pre-built addon. Do not publish it yet.
-yarn build-addon
+yarn build-addon-from-source
 
 tsc --sourceMap false
 # Manual copy src/proto/api_pb.js until both allowJs and declaration are

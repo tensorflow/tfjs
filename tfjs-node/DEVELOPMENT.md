@@ -79,7 +79,7 @@ Publishing this package requires uploading objects to GCP bucket. Developers nee
 #### Build and upload node addon to Google Cloud Platform
 
 ```sh
-$ yarn build-addon cpu for-publish
+$ yarn build-and-upload-addon publish
 ```
 
 This command will compile, compress, and upload a new node addon to GCP bucket. Please read [build-and-upload-addon.sh](./scripts/build-and-upload-addon.sh) for details.
@@ -90,15 +90,7 @@ This command will compile, compress, and upload a new node addon to GCP bucket. 
 $ yarn build-npm
 ```
 
-This command will build a new version of tfjs-node/tfjs-node-gpu NPM tarball. NOTE: this command does not update the pre-compiled node addon to GCP (see `yarn build-addon upload`).
-
-#### Build NPM package and upload node addon
-
-```sh
-$ yarn build-npm upload
-```
-
-This command combines the above two commands.
+This command will build a new version of tfjs-node/tfjs-node-gpu NPM tarball. NOTE: this command does not update the pre-compiled node addon to GCP (see `yarn build-and-upload-addon publish`).
 
 #### Publish NPM package
 
