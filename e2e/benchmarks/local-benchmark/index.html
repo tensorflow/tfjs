@@ -246,7 +246,7 @@ limitations under the License.
             const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')) : 1;
             const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
             const dumpInput = {[state.backend] : predictionIntermediateObject, [referenceBackend] : referenceIntermediateObject};
-            await dump(model, dumpInput, state.benchmark, dumpPrefix, dumpLevel, dumpLength);
+            await dump(model, dumpInput, dumpPrefix, dumpLevel, dumpLength);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
