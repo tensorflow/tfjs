@@ -139,12 +139,12 @@ async function timeMatmul(backend, rowNum) {
 
   // Prepare data
   const warmA = tf.tensor2d(
-    Array.from({ length: 512 * 512 }, () => Math.floor(Math.random())),
-    [512, 512]
+    Array.from({ length: warmUpSize * warmUpSize }, () => Math.floor(Math.random())),
+    [warmUpSize, warmUpSize]
   );
   const warmB = tf.tensor2d(
-    Array.from({ length: 512 * 512 }, () => Math.floor(Math.random())),
-    [512, 512]
+    Array.from({ length: warmUpSize * warmUpSize }, () => Math.floor(Math.random())),
+    [warmUpSize, warmUpSize]
   );
   tensorsWarmUp = { tensorA: warmA, tensorB: warmB };
   tensorsToDispose.push(warmA);
@@ -177,13 +177,14 @@ async function timeMatmul(backend, rowNum) {
   }
 
   tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+  // Warmup, first run of each matmul shapes
+  for (let i = 0; i < inputs.length; i++) {
+    let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+    await result.data();
+    result.dispose();
+  }
   const profile_data = await tf.profile(() => {
-    // Warmup model
-    for (let i = 0; i < inputs.length; i++) {
-      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
-      result.dispose();
-    }
-    // Warmup gpu, keep gpu frequency at a high level
+    // Warmup gpu and keep gpu frequency at a high level
     document.getElementById('message').innerHTML =
       `Warming up testing on ${backend} ...`;
     for (let i = 0; i < numWarmUp; i++) {
@@ -196,6 +197,7 @@ async function timeMatmul(backend, rowNum) {
         `Testing on ${backend} ...`;
       for (let j = 0; j < numAvg; j++) {
         const result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+        // Insert large shape between each test to keep gpu high frequency
         const m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
         result.dispose();
         m.dispose();
@@ -211,7 +213,7 @@ async function timeMatmul(backend, rowNum) {
 }
 
 function drawTable(webgpu_kernels, webgl_kernels, rowNum) {
-  for (let i = numWarmUp + INPUTS.length; i < webgpu_kernels.length; i += numAvg * 2) {
+  for (let i = numWarmUp; i < webgpu_kernels.length; i += numAvg * 2) {
     let inputInfo;
     webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
       if (inputInfo == null) {
@@ -406,7 +408,6 @@ let webglCompResults = [];
 let SCALES = [1016064, 5013504, 10838016, 33554432];
 let currentScale = [];
 let defaultInputs = [
-  //'512, 512, 512',
   '12544, 8, 24',
   '12544, 16, 96',
   '49, 320, 1280',
@@ -421,6 +422,7 @@ let defaultInputs = [
 let INPUTS = [];
 const numWarmUp = 1000;
 const numAvg = 20;
+const warmUpSize = 512;
 const INFO = [
   '0. Run under flag: --enable-unsafe-webgpu --disable-dawn-features=disallow_unsafe_apis',
   '1. Sortable by clicking table column title',
