@@ -149,6 +149,7 @@ const IGNORE_LIST: string[] = [
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
   'einsum',
   'raggedGather',
+  'raggedRange',
   'raggedTensorToTensor',
   'searchSorted',
   'sparseFillEmptyRows',
