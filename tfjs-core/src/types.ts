@@ -164,3 +164,21 @@ export interface PixelData {
   height: number;
   data: Uint8Array;
 }
+
+/**
+ * Type for representing all permutations and combinations of 'RGBA' channels.
+ */
+export type WebGLChannels = 'A'|'B'|'G'|'R'|'AB'|'AG'|'AR'|'BA'|'BG'|'BR'|'GA'|
+    'GB'|'GR'|'RA'|'RB'|'RG'|'ABG'|'ABR'|'AGB'|'AGR'|'ARB'|'ARG'|'BAG'|'BAR'|
+    'BGA'|'BGR'|'BRA'|'BRG'|'GAB'|'GAR'|'GBA'|'GBR'|'GRA'|'GRB'|'RAB'|'RAG'|
+    'RBA'|'RBG'|'RGA'|'RGB'|'ABGR'|'ABRG'|'AGBR'|'AGRB'|'ARBG'|'ARGB'|'BAGR'|
+    'BARG'|'BGAR'|'BGRA'|'BRAG'|'BRGA'|'GABR'|'GARB'|'GBAR'|'GBRA'|'GRAB'|
+    'GRBA'|'RABG'|'RAGB'|'RBAG'|'RBGA'|'RGAB'|'RGBA';
+
+/** Type for representing a texture data to create a tensor. */
+export interface WebGLData {
+  texture: WebGLTexture;
+  height: number;
+  width: number;
+  channels: WebGLChannels;
+}

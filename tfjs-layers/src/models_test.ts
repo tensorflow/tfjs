@@ -15,7 +15,7 @@ import * as tfl from './index';
 import {PyJsonDict} from './keras_format/types';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
-import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
+import {loadLayersModel, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
@@ -653,7 +653,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadLayersModelInternal('model/model.json');
+    const model = await loadLayersModel('model/model.json');
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 32]);
@@ -948,7 +948,7 @@ describeMathCPU('loadLayersModel from URL', () => {
          });
        });
 
-       const model = await loadLayersModelInternal('model/model.json');
+       const model = await loadLayersModel('model/model.json');
        expect(model.layers.length).toEqual(2);
        expect(model.inputs.length).toEqual(1);
        expect(model.inputs[0].shape).toEqual([null, 10]);
@@ -1017,7 +1017,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadLayersModelInternal('model/model.json');
+    const model = await loadLayersModel('model/model.json');
     expect(model.name.indexOf('Foo123Sequential')).toEqual(0);
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
@@ -1080,7 +1080,7 @@ describeMathCPU('loadLayersModel from URL', () => {
              });
            });
 
-       const model = await loadLayersModelInternal(
+       const model = await loadLayersModel(
            io.browserHTTPRequest('model/model.json', {
              requestInit: {
                headers: {'header_key_1': 'header_value_1'},
@@ -1153,7 +1153,7 @@ describeMathCPU('loadLayersModel from URL', () => {
            });
          });
 
-         const model = await loadLayersModelInternal(
+         const model = await loadLayersModel(
              `${protocol}localhost:8888/models/model.json`);
          expect(model.layers.length).toEqual(2);
          expect(model.inputs.length).toEqual(1);
@@ -1880,7 +1880,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   }
 
   it('load topology and weights', async () => {
-    const model = await loadLayersModelInternal(new IOHandlerForTest(true));
+    const model = await loadLayersModel(new IOHandlerForTest(true));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1893,7 +1893,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   });
 
   it('load topology only', async () => {
-    const model = await loadLayersModelInternal(new IOHandlerForTest(false));
+    const model = await loadLayersModel(new IOHandlerForTest(false));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1902,7 +1902,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   });
 
   it('IOHandler without load method causes error', async () => {
-    loadLayersModelInternal(new IOHandlerWithoutLoad())
+    loadLayersModel(new IOHandlerWithoutLoad())
         .then(model => {
           fail(
               'Loading with an IOHandler without load method succeeded ' +

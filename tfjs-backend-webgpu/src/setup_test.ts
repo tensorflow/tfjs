@@ -293,13 +293,14 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
+      'raggedGather ',
+      'raggedRange ',
+      'raggedTensorToTensor ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',
       'reverse4d ',
       'reverse webgpu',
-      'raggedGather ',
-      'raggedTensorToTensor ',
       'RFFT ',
       'round webgpu',
       'method otsu',  // round

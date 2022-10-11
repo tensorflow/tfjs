@@ -198,6 +198,9 @@ export class BrowserLocalStorage implements IOHandler {
           modelInitializer: modelArtifacts.modelInitializer != null ?
               modelArtifacts.modelInitializer :
               undefined,
+          initializerSignature: modelArtifacts.initializerSignature != null ?
+              modelArtifacts.initializerSignature :
+              undefined,
           trainingConfig: modelArtifacts.trainingConfig != null ?
               modelArtifacts.trainingConfig :
               undefined
@@ -276,6 +279,9 @@ export class BrowserLocalStorage implements IOHandler {
       }
       if (metadata.modelInitializer != null) {
         out.modelInitializer = metadata.modelInitializer;
+      }
+      if (metadata.initializerSignature != null) {
+        out.initializerSignature = metadata.initializerSignature;
       }
       if (metadata.trainingConfig != null) {
         out.trainingConfig = metadata.trainingConfig;

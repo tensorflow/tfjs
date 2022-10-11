@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -304,8 +304,8 @@ export function rightPad(a: string, size: number): string {
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
     maxCounter?: number,
-    scheduleFn: (functionRef: Function, delay: number) => void =
-        setTimeout): Promise<void> {
+    scheduleFn?: (functionRef: Function, delay: number) => void
+  ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -323,7 +323,14 @@ export function repeatedTry(
         reject();
         return;
       }
-      scheduleFn(tryFn, nextBackoff);
+
+      if (scheduleFn != null) {
+        scheduleFn(tryFn, nextBackoff);
+      } else {
+        // google3 does not allow assigning another variable to setTimeout.
+        // Don't refactor this so scheduleFn has a default value of setTimeout.
+        setTimeout(tryFn, nextBackoff);
+      }
     };
 
     tryFn();
@@ -552,7 +559,7 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike): DataType {
+export function inferDtype(values: TensorLike|WebGLData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
