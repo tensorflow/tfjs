@@ -3966,10 +3966,10 @@ karma-typescript-es6-transform@~5.5.3:
     log4js "^6.3.0"
     magic-string "^0.25.7"
 
-karma-typescript@~5.5.1:
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/karma-typescript/-/karma-typescript-5.5.1.tgz#3ceb79ecec695c73d2633aff8714524b5440f38f"
-  integrity sha512-iQDh48sHv+1pCO/Fvlz4b6HwcmaTuAzx1H0Q6zkUQMQH+5sjz8GNFB9jVDiDblbZcgdr+luVBk7NGUV5mXj+eg==
+karma-typescript@~5.5.3:
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/karma-typescript/-/karma-typescript-5.5.3.tgz#29c04d9677f8bd78dfacd89e8fa6f475dd25aba2"
+  integrity sha512-l1FHurolXEBIzRa9ExpNtjzysAhsi/vLpTazpwLHWWK86mknvVpqor6pRZ5Nid7jvOPrTBqAq0JRuLgiCdRkFw==
   dependencies:
     acorn "^8.1.0"
     acorn-walk "^8.0.2"
@@ -5408,10 +5408,10 @@ type-is@~1.6.17:
     media-typer "0.3.0"
     mime-types "~2.1.24"
 
-typescript@3.5.3:
-  version "3.5.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
-  integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
+typescript@4.8.4:
+  version "4.8.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz#c464abca159669597be5f96b8943500b238e60e6"
+  integrity sha512-QCh+85mCy+h0IGff8r5XWzOVSbBO+KfeYrMQh7NJ58QujwcE22u+NUSmUxqF+un70P9GXKxa2HCNiTTMJknyjQ==
 
 ua-parser-js@^0.7.18, ua-parser-js@^0.7.30:
   version "0.7.31"
