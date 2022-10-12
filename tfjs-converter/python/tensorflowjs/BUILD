@@ -81,6 +81,15 @@ py_library(
 )
 
 py_library(
+    name = "expect_tensorflow_decision_forests_installed",
+    # This is a dummy rule used as a tensorflow dependency in open-source.
+    # We expect tensorflow-decision-forests to already be installed on
+    # the system, e.g. via
+    # `pip install tensorflow-decision-forests`.
+    deps = [requirement("tensorflow-decision-forests")],
+)
+
+py_library(
     name = "expect_tensorflow_hub_installed",
     # This is a dummy rule used as a tensorflow_hub dependency in open-source.
     # We expect tensorflow to already be installed on the system, e.g. via
