@@ -21,8 +21,10 @@ import os
 import shutil
 import tempfile
 import unittest
+import numpy as np
 
 import tensorflow.compat.v2 as tf
+from tensorflow_decision_forests.keras import GradientBoostedTreesModel
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -35,6 +37,7 @@ import tensorflow_hub as hub
 from tensorflowjs import version
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from tensorflowjs.converters.common import ASSETS_DIRECTORY_NAME
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
@@ -245,6 +248,22 @@ class ConvertTest(tf.test.TestCase):
 
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
+
+  def _create_saved_model_with_tfdf(self):
+    """Test a basic TFDF model."""
+    P = 5
+    NUM_EXAMPLES = 10
+    NUM_FEATURES = 4
+
+    x_train = np.random.uniform(size=(NUM_EXAMPLES, NUM_FEATURES))
+    y_train = np.random.uniform(size=NUM_EXAMPLES) > 0.5
+    w_train = y_train * (P - 1) + 1  # 1 or p depending on the class.
+
+    model = GradientBoostedTreesModel()
+    model.fit(x=x_train, y=y_train, sample_weight=w_train)
+
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    model.save(save_dir)
 
   def _create_unsupported_saved_model(self):
     root = tracking.AutoTrackable()
@@ -935,6 +954,31 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_tfdf(self):
+    self._create_saved_model_with_tfdf()
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        tfjs_path, tfjs_path, skip_op_check=True
+    )
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+
+    # Check TFDF ops are present.
+    model_ops = [node['op'] for node in model_json['modelTopology']['node']]
+    self.assertTrue('SimpleMLInferenceOpWithHandle' in model_ops)
+
+    initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
+    self.assertTrue('SimpleMLCreateModelResource' in initializer_ops)
+    self.assertTrue('SimpleMLLoadModelFromPathWithHandle' in initializer_ops)
+
+    # Check assets containing TFDF files were copied over.
+    self.assertTrue(
+        os.path.exists(
+            os.path.join(tfjs_path, ASSETS_DIRECTORY_NAME + '.zip')))
 
   def test_convert_saved_model_sharded(self):
     self._create_saved_model()
