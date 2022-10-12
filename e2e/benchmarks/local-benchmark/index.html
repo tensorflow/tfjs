@@ -171,6 +171,20 @@ limitations under the License.
       }
     }
 
+    async function predictAndGetData(predict, model, inferenceInput, enableDump) {
+      const prediction = await predict(model, inferenceInput);
+      let intermediateData = {};
+      if (enableDump) {
+        const graphModel = getGraphModel(model);
+        if (graphModel) {
+          intermediateData = await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
+          graphModel.disposeIntermediateTensors();
+        }
+      }
+      const predictionData = await getPredictionData(prediction);
+      return {data: predictionData, intermediateData};
+    }
+
     const state = {
       numWarmups: warmupTimes,
       numRuns: runTimes,

@@ -96,42 +96,6 @@ async function saveObjectsToFile(jsonObjects, prefix) {
   }
 }
 
-async function convertTensorToData(tensor, needInfo = false) {
-  const data = await tensor.data();
-  const info = {value: data, shape: tensor.shape, dtype: tensor.dtype};
-  tensor.dispose();
-  if (needInfo) {
-    return info;
-  }
-  return data;
-}
-
-async function getPredictionData(output, needInfo = false) {
-  if (output instanceof Promise) {
-    output = await output;
-  }
-
-  if (output instanceof tf.Tensor) {
-    output = [await convertTensorToData(output, needInfo)];
-  } else if (Array.isArray(output)) {
-    for (let i = 0; i < output.length; i++) {
-      if (output[i] instanceof tf.Tensor) {
-        output[i] = await convertTensorToData(output[i], needInfo);
-      }
-    }
-    return output;
-  } else if (output != null && typeof output === 'object') {
-    for (const property in output) {
-      if (output[property] instanceof tf.Tensor) {
-        output[property] =
-            await convertTensorToData(output[property], needInfo);
-      }
-    }
-  }
-  return output;
-}
-
-
 /**
  * Create a NamedTensorMap from an output node name.
  * @param outputNodeName Output node name.
@@ -173,22 +137,6 @@ async function createNamedTensorMap(outputNodeName, modelJson, dumpedJson) {
   return tensorMap;
 }
 
-async function predictAndGetData(predict, model, inferenceInput, enableDump) {
-  const prediction = await predict(model, inferenceInput);
-  const graphModel = getGraphModel(model);
-  let intermediateData = {};
-  enableDump = enableDump && !!graphModel;
-  if (enableDump) {
-    intermediateData =
-        await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
-  }
-  const predictionData = await getPredictionData(prediction);
-  if (enableDump) {
-    graphModel.disposeIntermediateTensors();
-  }
-  return {data: predictionData, intermediateData};
-}
-
 async function predictOp(
     model, modelJson, dumpedJson, outputNodeName, backend) {
   await tf.setBackend(backend);
@@ -215,15 +163,15 @@ async function predictOp(
     return null;
   }
 
-  const predictObject = await getPredictionData(prediction, true);
+  const predictOpObject = await getPredictionData(prediction, true);
   tf.env().set('KEEP_INTERMEDIATE_TENSORS', savedKeepIntermediateTensors);
-  return predictObject;
+  return predictOpObject;
 }
 
 /**
  * Dump the predict results of two backends and save diffs to files.
  * @param model The loaded model.
- * @param input The predict results from backends.
+ * @param input The actual and expected results from different backends.
  * @param prefix Used for generating dump file name.
  * @param level 0, dump big diffs. 1, dump any diffs.
  * @param length Used for controlling how many tensors will be dumped. -1 dump
@@ -232,32 +180,34 @@ async function predictOp(
 async function dump(
     model, input, prefix = '', level = DUMP_LEVEL.BIGDIFF, length = 1) {
   const graphModel = getGraphModel(model);
-  if (graphModel == null) {
+  if (graphModel == null || length == 0) {
     return;
   }
   const backends = Object.keys(input);
-  const jsonObject1 = input[backends[0]];
-  const jsonObject2 = input[backends[1]];
-  const dumpObjects1 = {};
-  const dumpObjects2 = {};
-  const keys = Object.keys(jsonObject1);
+  const actualObject = input[backends[0]];
+  const expectedObject = input[backends[1]];
+  const dumpActualObject = {};
+  const dumpExpectedObject = {};
+  const keys = Object.keys(actualObject);
   prefix = `dump_${prefix}_${level}`;
   let dumpCount = 0;
-
   const modelJson = graphModel.artifacts;
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (compareData(jsonObject1[key], jsonObject2[key], level)) {
+    if (compareData(actualObject[key], expectedObject[key], level)) {
       continue;
     }
-    const predictObject =
-        await predictOp(graphModel, modelJson, jsonObject2, key, backends[0]);
-    const [objects1, objects2] = predictObject ?
-        [{...predictObject, i}, {...jsonObject2[key], i}] :
+    const predictOpObject = await predictOp(
+        graphModel, modelJson, expectedObject, key, backends[0]);
+    const [actualOpObject, expectedOpObject] = predictOpObject ?
+        [{...predictOpObject, i}, {...expectedObject[key], i}] :
         [null, null];
-    if (objects1 && objects2 && !compareData(objects1, objects2, level)) {
-      dumpObjects1[key] = objects1;
-      dumpObjects2[key] = objects2;
+    if (compareData(actualOpObject, expectedOpObject, level)) {
+      continue;
+    }
+    if (actualOpObject && expectedOpObject) {
+      dumpActualObject[key] = actualOpObject;
+      dumpExpectedObject[key] = expectedOpObject;
       dumpCount++;
     }
     // Break when diff count equals dumpLength to avoid downloading large file.
@@ -265,9 +215,10 @@ async function dump(
       break;
     }
   }
-  const dumpData = {[backends[0]]: dumpObjects1, [backends[1]]: dumpObjects2};
+  const dumpData =
+      {[backends[0]]: dumpActualObject, [backends[1]]: dumpExpectedObject};
   await saveObjectsToFile(dumpData, prefix);
   if (dumpCount) {
-    console.warn(`Total dumped ${dumpCount} item(s).`);
+    console.log(`Total dumped ${dumpCount} item(s).`);
   }
 }

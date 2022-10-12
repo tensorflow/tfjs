@@ -15,6 +15,42 @@
  * =============================================================================
  */
 
+
+async function convertTensorToData(tensor, needInfo = false) {
+  const data = await tensor.data();
+  const info = {value: data, shape: tensor.shape, dtype: tensor.dtype};
+  tensor.dispose();
+  if (needInfo) {
+    return info;
+  }
+  return data;
+}
+
+async function getPredictionData(output, needInfo = false) {
+  if (output instanceof Promise) {
+    output = await output;
+  }
+
+  if (output instanceof tf.Tensor) {
+    output = [await convertTensorToData(output, needInfo)];
+  } else if (Array.isArray(output)) {
+    for (let i = 0; i < output.length; i++) {
+      if (output[i] instanceof tf.Tensor) {
+        output[i] = await convertTensorToData(output[i], needInfo);
+      }
+    }
+    return output;
+  } else if (output != null && typeof output === 'object') {
+    for (const property in output) {
+      if (output[property] instanceof tf.Tensor) {
+        output[property] =
+            await convertTensorToData(output[property], needInfo);
+      }
+    }
+  }
+  return output;
+}
+
 function printTime(elapsed) {
   return elapsed.toFixed(1) + ' ms';
 }
