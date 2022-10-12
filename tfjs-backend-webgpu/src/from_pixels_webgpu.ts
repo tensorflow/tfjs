@@ -28,7 +28,6 @@ export class FromPixelsProgram implements WebGPUProgram {
   variableNames: string[] = [];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
-  size = true;
 
   constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;

@@ -33,7 +33,6 @@ export class ScatterProgram implements WebGPUProgram {
   sliceDimGreaterThanOne: boolean;
   atomic = true;
   type: DataType;
-  size = true;
 
   constructor(
       flattenXShape: number[], sliceDim: number, indicesRank: number,
@@ -50,7 +49,8 @@ export class ScatterProgram implements WebGPUProgram {
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32, strides: ${stridesType}, sizeUpdate: i32,`;
+    this.uniforms =
+        `sliceDim : i32, strides: ${stridesType}, updatesSize: i32,`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -123,7 +123,7 @@ export class ScatterProgram implements WebGPUProgram {
     ${getUpdatesCoordsFromFlatIndex}
 
       ${main('index')} {
-        if (index < uniforms.sizeUpdate) {
+        if (index < uniforms.updatesSize) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {

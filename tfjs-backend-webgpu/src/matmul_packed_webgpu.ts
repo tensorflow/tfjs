@@ -188,7 +188,7 @@ export function makeMatMulPackedVec4Source(
     let globalRow = ${isVectorA ? '0' : 'i32(globalId.y) * RowPerThread'};
     let globalCol = i32(globalId.x);
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
-    let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
+    let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
     let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
@@ -288,8 +288,8 @@ export function makeMatMulPackedSource(
       `
       let localRow = i32(localId.y);
       let localCol = i32(localId.x);
-      let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
-      let globalColStart = i32(workGroupId.x) * ${tileBOuter};
+      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
 
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
@@ -349,7 +349,7 @@ export function makeMatMulPackedSource(
 
   let globalRow = i32(globalId.y) * RowPerThread;
   let globalCol = i32(globalId.x) * ColPerThread;
-  let globalRowStart = i32(workGroupId.y) * ${tileAOuter};
+  let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
   let tileRowA = i32(localId.y) * ${rowPerThreadA};
   let tileColA = i32(localId.x) * ${colPerThreadA};

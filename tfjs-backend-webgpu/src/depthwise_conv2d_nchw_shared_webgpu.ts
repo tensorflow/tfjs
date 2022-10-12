@@ -86,7 +86,6 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
       }
 
       ${main()} {
-        let localIndexI = i32(localIndex);
         let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.zw) - uniforms.pad;
@@ -112,7 +111,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         }
 
         // Load one tile of W into local memory.
-        var wIndex = localIndexI;
+        var wIndex = i32(localIndex);
         ${
         filterSize < workGroupSize ?
             `if (wIndex < ${filterSize})` :
