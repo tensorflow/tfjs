@@ -209,20 +209,20 @@ limitations under the License.
           await showGpuInfo();
         }
 
-        let match, predictionData, referenceData;
+        let match, actualData, expectedData;
         await cleanUpTable();
 
         // load model and run inference
         try {
-          const referenceBackend = 'cpu';
-          tf.setBackend(referenceBackend);
+          const expectedBackend = 'cpu';
+          tf.setBackend(expectedBackend);
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg(`Runing on ${referenceBackend}`);
+          await showMsg(`Runing on ${expectedBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -236,8 +236,8 @@ limitations under the License.
           }
 
           const enableDump = keepIntermediateTensors & (benchmarks[state.benchmark].supportDump !== false);
-          const referenceResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
-          referenceData = referenceResult['data'];
+          const expectedResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
+          expectedData = expectedResult['data'];
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -250,16 +250,16 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
-          predictionData = predictionResult['data'];
+          const actualResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
+          actualData = actualResult['data'];
           if (enableDump) {
-            const predictionIntermediateObject = predictionResult['intermediateData'];
-            const referenceIntermediateObject = referenceResult['intermediateData'];
+            const actualIntermediateObject = actualResult['intermediateData'];
+            const expectedIntermediateObject = expectedResult['intermediateData'];
 
             const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')) : 0;
             const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')) : 1;
             const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
-            const dumpInput = {[state.backend] : predictionIntermediateObject, [referenceBackend] : referenceIntermediateObject};
+            const dumpInput = {[state.backend] : actualIntermediateObject, [expectedBackend] : expectedIntermediateObject};
             await dump(model, dumpInput, dumpPrefix, dumpLevel, dumpLength);
           }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
@@ -273,7 +273,7 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          expectObjectsClose(predictionData, referenceData);
+          expectObjectsClose(actualData, expectedData);
           match = true;
         } catch (e) {
           match = false;

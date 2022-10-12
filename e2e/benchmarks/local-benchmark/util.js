@@ -18,10 +18,10 @@
 
 async function convertTensorToData(tensor, needInfo = false) {
   const data = await tensor.data();
-  const info = {value: data, shape: tensor.shape, dtype: tensor.dtype};
+
   tensor.dispose();
   if (needInfo) {
-    return info;
+    return {value: data, shape: tensor.shape, dtype: tensor.dtype};
   }
   return data;
 }
@@ -39,7 +39,6 @@ async function getPredictionData(output, needInfo = false) {
         output[i] = await convertTensorToData(output[i], needInfo);
       }
     }
-    return output;
   } else if (output != null && typeof output === 'object') {
     for (const property in output) {
       if (output[property] instanceof tf.Tensor) {
