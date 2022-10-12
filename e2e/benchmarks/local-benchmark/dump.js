@@ -55,12 +55,20 @@ async function getIntermediateTensorInfo(tensorsMap) {
     const key = keysOfTensors[i];
     jsonObject[key] = [];
     for (let j = 0; j < tensorsMap[key].length; j++) {
-      const data = await (tensorsMap[key][j]).data();
-      jsonObject[key].push({
-        value: data,
-        shape: tensorsMap[key][j].shape,
-        dtype: tensorsMap[key][j].dtype
-      });
+      if (tensorsMap[key][j] == null) {
+        continue;
+      }
+      // For universal-sentence-encoder, its inputs are disposed by model.
+      try {
+        const data = await (tensorsMap[key][j]).data();
+        jsonObject[key].push({
+          value: data,
+          shape: tensorsMap[key][j].shape,
+          dtype: tensorsMap[key][j].dtype
+        });
+      } catch (e) {
+        console.error(`${keysOfTensors[i]} ` + e.message);
+      }
     }
   }
   return jsonObject;
@@ -165,8 +173,7 @@ async function createNamedTensorMap(outputNodeName, modelJson, dumpedJson) {
   return tensorMap;
 }
 
-async function predictAndGetData(
-    predict, model, inferenceInput, benchmark, enableDump) {
+async function predictAndGetData(predict, model, inferenceInput, enableDump) {
   const prediction = await predict(model, inferenceInput);
   const graphModel = getGraphModel(model);
   let intermediateData = {};

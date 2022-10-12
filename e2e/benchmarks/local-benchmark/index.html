@@ -222,7 +222,7 @@ limitations under the License.
           }
 
           const enableDump = keepIntermediateTensors & (benchmarks[state.benchmark].supportDump !== false);
-          const referenceResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, enableDump);
+          const referenceResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
           referenceData = referenceResult['data'];
 
           await tf.setBackend(state.backend);
@@ -236,7 +236,7 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          const predictionResult = await predictAndGetData(predict, model, inferenceInput, state.benchmark, enableDump);
+          const predictionResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
           predictionData = predictionResult['data'];
           if (enableDump) {
             const predictionIntermediateObject = predictionResult['intermediateData'];
