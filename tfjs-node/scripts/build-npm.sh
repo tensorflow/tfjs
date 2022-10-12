@@ -16,11 +16,13 @@
 
 set -e
 
-# Build CPU:
+# Clean the build.
 yarn rimraf dist/
 yarn rimraf deps/
 yarn rimraf lib/
 
+# Download the tensorflow headers and lib.
+yarn install
 # Build the pre-built addon. Do not publish it yet.
 yarn build-addon-from-source
 
