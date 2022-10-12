@@ -5,15 +5,16 @@ function appendRow(result) {
     rowNum = tbl.rows.length - 1,
     row = tbl.insertRow(tbl.rows.length);      // append table row
   // insert table cells to the new row
-  // 'Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp', 'Program', 'Scale',
+  // 'Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp', 'WebGPUProgram', 'WebGLProgram', 'Scale',
   createCell(row.insertCell(0), result.name, result.name, `${result.name}-${rowNum}`);
   createCell(row.insertCell(1), result.input, result.input, `input-${rowNum}`);
   createCell(row.insertCell(2), result.webgpu, 'webgpu', `webgpu-${rowNum}`);
   createCell(row.insertCell(3), result.webgl, 'webgl', `webgl-${rowNum}`);
   createCell(row.insertCell(4), result.webglComp, 'webglComp', `webglComp-${rowNum}`);
-  createCell(row.insertCell(5), result.program, 'program', `program-${rowNum}`);
-  createCell(row.insertCell(6), result.scale, `scale-${result.scale}`, `scale-${rowNum}`);
-  createCell(row.insertCell(7), 'Rerun', 'rerun', `rerun-${rowNum}`, rerun);
+  createCell(row.insertCell(5), result.webgpuProgram, 'webgpuProgram', `webgpuProgram-${rowNum}`);
+  createCell(row.insertCell(6), result.webglProgram, 'webglProgram', `webglProgram-${rowNum}`);
+  createCell(row.insertCell(7), result.scale, `scale-${result.scale}`, `scale-${rowNum}`);
+  createCell(row.insertCell(8), 'Rerun', 'rerun', `rerun-${rowNum}`, rerun);
 }
 
 // Update result table by rerun
@@ -99,7 +100,7 @@ function initPage() {
   mycurrent_row = document.createElement("tr");
   mycurrent_row.style = 'background-color:#BDB76B;color:#ffffff;';
   // creating all cells
-  ['Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp %', 'Program', 'Scale(m*k*n)'].forEach((i) => {
+  ['Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp %', 'WebGPUProgram', 'WebGLProgram', 'Scale(m*k*n)'].forEach((i) => {
     // creates a <td> element
     mycurrent_cell = document.createElement("th");
     // creates a Text Node
@@ -240,7 +241,8 @@ function drawTable(webgpu_kernels, webgl_kernels, rowNum) {
     result.webgl = `${parseFloat(avgWebgl).toFixed(2)}`; // WebGL
     result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
     result.scale = `${parseInt(mkn)}`;  // Scale
-    result.program = `${webgpu_kernels[i].extraInfo.split(':')[0]}`;  // Program
+    result.webgpuProgram = `${webgpu_kernels[i].extraInfo.split(',').map(x => x.split(':')[0])}`;  // WebGPUProgram
+    result.webglProgram = `${webgl_kernels[i].extraInfo.split(',').map(x => x.split(':')[0])}`;  // WebGLProgram
 
     if (rowNum !== undefined) {
       updateRow(result, rowNum);
@@ -408,15 +410,39 @@ let webglCompResults = [];
 let SCALES = [1016064, 5013504, 10838016, 33554432];
 let currentScale = [];
 let defaultInputs = [
-  '12544, 8, 24',
-  '12544, 16, 96',
-  '49, 320, 1280',
-  '49, 960, 320',
-  '3136, 24, 144',
-  '12544, 32, 16',
-  '3136, 144, 24',
+  '1, 1280, 1001',
+  '12544, 16, 64',
+  '196, 672, 112',
+  '1, 960, 1280',
+  '196, 112, 672',
+  '196, 480, 112',
   '49, 960, 160',
-  '36, 1568, 18',
+  '784, 40, 240',
+  '49, 672, 160',
+  '3136, 24, 72',
+  '3136, 72, 24',
+  '49, 160, 960',
+  '196, 80, 480',
+  '784, 120, 40',
+  '784, 40, 120',
+  '3136, 64, 24',
+  '784, 72, 40',
+  '1, 240, 960',
+  '196, 80, 200',
+  '1, 960, 240',
+  '196, 240, 80',
+  '12544, 16, 16',
+  '196, 200, 80',
+  '196, 80, 184',
+  '196, 184, 80',
+  '1, 672, 168',
+  '1, 168, 672',
+  '1, 480, 120',
+  '1, 32, 120',
+  '1, 120, 480',
+  '1, 120, 32',
+  '1, 24, 72',
+  '1, 72, 24',
 ];
 
 let INPUTS = [];
@@ -428,4 +454,5 @@ const INFO = [
   '1. Sortable by clicking table column title',
   '2. Rerunable for every single line',
   '3. Set checkBox below to define new test suite',
+  '4. Default workloads are used for MobileNetV3',
 ];
