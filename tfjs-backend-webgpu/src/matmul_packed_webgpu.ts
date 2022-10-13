@@ -39,7 +39,8 @@ export function matMulReadFnSource(
                                `value = getB(batch, row, col);`;
 
   return `
-  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     let col = colIn * ${component};
     ${
@@ -57,7 +58,8 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${
+      typeSnippet(component)} {
     let col = colIn * ${component};
     let batch = ${batchBEqualOne ? '0' : 'batchIn'};
     var value = ${typeSnippet(component)}(0.0);
@@ -178,15 +180,7 @@ export function makeMatMulPackedVec4Source(
   const InnerElementSize = ${innerElementSize};
   const TileInner = ${tileInner};
 
-  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-  fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-            @builtin(global_invocation_id) GlobalId : vec3<u32>,
-            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-            @builtin(workgroup_id) workgroupId: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-
+  ${main()} {
     let localRow = i32(localId.y);
     let tileRow = ${isVectorA ? '0' : 'localRow * RowPerThread'};
     let tileCol = i32(localId.x);
@@ -324,7 +318,8 @@ export function makeMatMulPackedSource(
         var BCached : array<f32, ColPerThread>;
         for (var k = 0; k < TileInner; k = k + 1) {
           for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][localCol + inner * ${workGroupSize[0]}];
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${
+          workGroupSize[0]}];
           }
           for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
             let ACached = ${
@@ -342,7 +337,8 @@ export function makeMatMulPackedSource(
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         let gRow = globalRowStart + localRow + innerRow * ${workGroupSize[1]};
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-          let gCol = globalColStart + localCol + innerCol * ${workGroupSize[0]};
+          let gCol = globalColStart + localCol + innerCol * ${
+          workGroupSize[0]};
           mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
         }
       }
@@ -418,15 +414,7 @@ export function makeMatMulPackedSource(
     const ColPerThread = ${workPerThread[0]};
     const TileInner = ${tileInner};
 
-    @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-    fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-              @builtin(global_invocation_id) GlobalId : vec3<u32>,
-              @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
-              @builtin(workgroup_id) workgroupId: vec3<u32>) {
-      localId = LocalId;
-      globalId = GlobalId;
-      numWorkgroups = NumWorkgroups;
-
+    ${main()} {
       let batch = ${splitK ? '0' : 'i32(globalId.z)'};
       let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :

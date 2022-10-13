@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
@@ -68,9 +68,12 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
     const tileAWidth = this.workGroupSize[0] + this.filterWidth - 1;
 
     const userCode = `
-      ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
+      ${
+        activationFnSnippet(
+            this.activation, this.hasPreluActivation, false, 4)}
 
-      var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHeight}>;
+      var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${
+        tileAHeight}>;
       var<workgroup> mm_Bsub : array<array<f32, ${this.filterWidth}>, ${
         this.filterHeight}>;
       fn readX(batch : i32, channel : i32, row : i32, col : i32) -> f32 {
@@ -82,15 +85,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         return value;
       }
 
-      ${getWorkGroupSizeString()}
-      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                @builtin(local_invocation_index) LocalIndex: u32,
-                @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-        localId = LocalId;
-        globalId = GlobalId;
-        let localIndex = i32(LocalIndex);
-        numWorkgroups = NumWorkgroups;
+      ${main()} {
         let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.zw) - uniforms.pad;
@@ -116,11 +111,12 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         }
 
         // Load one tile of W into local memory.
-        var wIndex = localIndex;
+        var wIndex = i32(localIndex);
         ${
         filterSize < workGroupSize ?
             `if (wIndex < ${filterSize})` :
-            `for(; wIndex < ${filterSize}; wIndex = wIndex + ${workGroupSize})`}
+            `for(; wIndex < ${filterSize}; wIndex = wIndex + ${
+                workGroupSize})`}
 
         {
           let wRow = wIndex / ${this.filterWidth};
