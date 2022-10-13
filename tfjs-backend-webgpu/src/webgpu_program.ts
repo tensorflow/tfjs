@@ -110,37 +110,37 @@ export function getMainHeaderString(...params: string[]): string {
   switch (params.length) {
     case 0:
       snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main();
-        }
-
         fn main()
       `;
       break;
     case 1:
       snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main(getGlobalIndex());
-        }
-
         fn main(${params[0]} : i32)
       `;
       break;
     default:
       throw Error('Unreachable');
   }
+  return snippet;
+}
+
+export function getStartHeaderString(useGlobalIndex: boolean): string {
+  let snippet: string;
+  snippet = `
+     ${getWorkGroupSizeString()}
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(workgroup_id) WorkgroupId : vec3<u32>,
+                @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+        localId = LocalId;
+        localIndex = LocalIndex;
+        globalId = GlobalId;
+        numWorkgroups = NumWorkgroups;
+        workgroupId = WorkgroupId;
+        ${useGlobalIndex ? `main(getGlobalIndex());` : `main();`};
+      }
+    `;
   return snippet;
 }
 
@@ -160,23 +160,20 @@ function makeShader(
       const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
+      var<private> localIndex: u32;
       var<private> globalId: vec3<u32>;
       var<private> numWorkgroups: vec3<u32>;
+      var<private> workgroupId: vec3<u32>;
 
       // Only used when the y/z dimension of workgroup size is 1.
       fn getGlobalIndex() -> i32 {
         ${
       isFlatDispatch(program) ?
           `  return i32(globalId.x);` :
-          `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-                   localId.y * workGroupSizeX + localId.x;
-               let workGroupID = (globalId - localId)/vec3<u32>(
-                   workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-               return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-                   workGroupID.y * numWorkgroups.x + workGroupID.x) *
-                   (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-                   localInvocationIndex);
+          `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
+                workgroupId.y * numWorkgroups.x + workgroupId.x) *
+                (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                localIndex);
         `}
       }
     `);
@@ -193,11 +190,13 @@ function makeShader(
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
+    const useGlobalIndex = isFlatDispatchLayout(program);
     return [
       commonSnippet,
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
+      getStartHeaderString(useGlobalIndex),
     ].join('\n');
   }
 
@@ -277,8 +276,9 @@ function makeShader(
                   program.dispatchLayout.x.length === outputData.shape.length))
           .join('\n');
   sources.push(inputSnippet);
-
   sources.push(program.getUserCode());
+  const useGlobalIndex = isFlatDispatchLayout(program);
+  sources.push(getStartHeaderString(useGlobalIndex));
   const source = sources.join('\n');
   return source;
 }
@@ -844,4 +844,15 @@ function insertAlignment(uniformShader: string) {
     return `vec${p1}, @align(16) ${p2}`;
   });
   return uniformShader;
+}
+function isFlatDispatchLayout(program: WebGPUProgram): boolean {
+  if (program.dispatchLayout.hasOwnProperty('y') &&
+      program.dispatchLayout.y.length !== 0) {
+    return false;
+  }
+  if (program.dispatchLayout.hasOwnProperty('z') &&
+      program.dispatchLayout.z.length !== 0) {
+    return false;
+  }
+  return true;
 }
