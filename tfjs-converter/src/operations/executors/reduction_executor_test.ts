@@ -54,14 +54,10 @@ describe('reduction', () => {
             node.op = op;
             node.attrParams.keepDims = createBoolAttr(true);
             node.attrParams.axis = createNumberAttr(1);
-            // TODO(mattsoulanille): Remove type assertions after TS4
-            // tslint:disable-next-line no-any
-            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
-              .and.returnValue({});
+            spyOps[uncapitalize(op)].and.returnValue({});
             executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-            // TODO(mattsoulanille): Remove type assertion after TS4
-            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+            expect(spyOps[uncapitalize(op)])
                 .toHaveBeenCalledWith(input1[0], 1, true);
           });
         });

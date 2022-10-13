@@ -68,7 +68,7 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    * this stream *must* be manually disposed to avoid a GPU memory leak.
    * The tf.tidy() approach cannot be used in an asynchronous context.
    */
-  abstract async iterator(): Promise<LazyIterator<T>>;
+  abstract iterator(): Promise<LazyIterator<T>>;
 
   readonly size: number = null;
 

@@ -49,7 +49,8 @@ export class ScatterProgram implements WebGPUProgram {
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32, strides: ${stridesType}, size: i32,`;
+    this.uniforms =
+        `sliceDim : i32, strides: ${stridesType}, updatesSize: i32,`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -122,7 +123,7 @@ export class ScatterProgram implements WebGPUProgram {
     ${getUpdatesCoordsFromFlatIndex}
 
       ${main('index')} {
-        if (index < uniforms.size) {
+        if (index < uniforms.updatesSize) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
