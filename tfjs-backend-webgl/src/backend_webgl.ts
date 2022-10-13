@@ -703,7 +703,6 @@ export class MathBackendWebGL extends KernelBackend {
         this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
     }
-
     const texData = this.texData.get(dataId);
     texData.texture = null;
     texData.texShape = null;
@@ -1191,8 +1190,6 @@ export class MathBackendWebGL extends KernelBackend {
       TypedArray {
     const texData = this.texData.get(dataId);
     const {dtype} = texData;
-
-    this.releaseGPUData(dataId);
 
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
