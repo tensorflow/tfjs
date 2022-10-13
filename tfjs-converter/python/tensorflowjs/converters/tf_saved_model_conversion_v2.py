@@ -20,13 +20,19 @@ from __future__ import print_function
 
 import json
 import os
+import shutil
+import tempfile
+from zipfile import ZipFile
 
+# Required to load saved models that use TFDF.
+import tensorflow_decision_forests
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
+from tensorflow.io import gfile
 from tensorflow.python.checkpoint.trackable_view import TrackableView
 from tensorflow.python.eager import context
 from tensorflow.python.framework import convert_to_constants
@@ -399,7 +405,7 @@ def write_artifacts(topology,
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 
-  with tf.io.gfile.GFile(output_graph, 'w') as f:
+  with gfile.GFile(output_graph, 'w') as f:
     json.dump(model_json, f)
 
 def _remove_unused_control_flow_inputs(input_graph_def):
@@ -420,6 +426,49 @@ def _check_signature_in_model(saved_model, signature_name):
     raise ValueError("Signature '%s' does not exist. The following signatures "
                      "are available: %s" % (signature_name,
                                             saved_model.signatures.keys()))
+
+def _copy_assets(saved_model_dir, output_dir):
+  input_assets_path = os.path.join(saved_model_dir, common.ASSETS_DIRECTORY_NAME)
+
+  if gfile.exists(input_assets_path) and gfile.isdir(input_assets_path):
+
+    tmp_dir = tempfile.mkdtemp()
+    zip_path = gfile.join(tmp_dir, common.ASSETS_DIRECTORY_NAME + '.zip')
+
+    with ZipFile(zip_path, 'w') as archive:
+      for (input_dir_path, _, file_names) in gfile.walk(input_assets_path):
+
+        relative_dir_path = os.path.relpath(input_dir_path, input_assets_path)
+
+        for file_name in file_names:
+
+          input_file_path = gfile.join(input_dir_path, file_name)
+          relative_file_path = gfile.join(relative_dir_path, file_name)
+
+          with gfile.GFile(input_file_path, 'rb') as input_file:
+            with archive.open(relative_file_path, 'w') as relative_file:
+              shutil.copyfileobj(input_file, relative_file)
+
+    output_assets_path = gfile.join(output_dir, common.ASSETS_DIRECTORY_NAME + '.zip')
+    gfile.copy(zip_path, output_assets_path, overwrite=True)
+
+    if gfile.isdir(tmp_dir):
+      gfile.rmtree(tmp_dir)
+
+# TFDF stores the necessary files for its binary in the assets folder.
+ASSET_REQUIRING_OPS = set([
+  'SimpleMLCreateModelResource'
+  'SimpleMLLoadModelFromPathWithHandle',
+  'SimpleMLInferenceOpWithHandle',
+])
+
+def _is_assets_required(model_ops):
+  return not ASSET_REQUIRING_OPS.isdisjoint(model_ops)
+
+def _get_frozen_graph_ops(frozen_graph):
+  if frozen_graph is None:
+    return []
+  return [node.op for node in frozen_graph.as_graph_def().node]
 
 
 def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
@@ -745,8 +794,8 @@ def _convert_tf_saved_model(output_dir,
   if signature_def is None:
     signature_def = 'serving_default'
 
-  if not tf.io.gfile.exists(output_dir):
-    tf.io.gfile.makedirs(output_dir)
+  if not gfile.exists(output_dir):
+    gfile.makedirs(output_dir)
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
@@ -851,6 +900,12 @@ def _convert_tf_saved_model(output_dir,
     # keras model does not have tensorflow_version, hard code to the latest
     # tensorflow version.
     tf_version = tf.__version__
+
+  if saved_model_dir:
+      model_ops = set(_get_frozen_graph_ops(frozen_graph)) |\
+                  set(_get_frozen_graph_ops(frozen_initializer_graph))
+      if _is_assets_required(model_ops):
+        _copy_assets(saved_model_dir, output_dir)
 
   optimize_graph(frozen_graph, signature,
                  output_graph, tf_version,
@@ -1137,7 +1192,7 @@ def convert_tf_hub_module(module_handle, output_dir,
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
   # modules is fixed on the TF side, or once the modules we cannot load become
   # replaced with newer versions.
-  if tf.io.gfile.exists(os.path.join(module_path, _HUB_V1_MODULE_PB)):
+  if gfile.exists(os.path.join(module_path, _HUB_V1_MODULE_PB)):
     print("Loading the module using TF 1.X interface from %s." % module_path)
     convert_tf_hub_module_v1(module_path, output_dir, signature,
                              quantization_dtype_map,
