@@ -16,3 +16,4 @@
  */
 
 export * from './tfdf_model';
+import './register_tfdf_ops';

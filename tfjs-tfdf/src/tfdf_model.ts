@@ -15,22 +15,12 @@
  * =============================================================================
  */
 
-import {GraphModel, GraphNode, loadGraphModel, loadGraphModelSync, OpExecutor, registerOp} from '@tensorflow/tfjs-converter';
-import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, scalar, Tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+import {GraphModel, loadGraphModel, loadGraphModelSync} from '@tensorflow/tfjs-converter';
+import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
+import {setAssets} from './register_tfdf_ops';
 
-import * as tfdfWebAPIClient from './tfdf_web_api_client';
 import {TFDFLoadHandler, TFDFLoadHandlerSync} from './types/tfdf_io';
-import {TFDFWebModelRunner} from './types/tfdf_web_model_runner';
 
-/**
- * A model representing both a TFJS graph model, and a TFDF instance.
- */
-function registerTFDFOps(
-    creator?: OpExecutor, loader?: OpExecutor, inferencer?: OpExecutor) {
-  registerOp('SimpleMLCreateModelResource', creator);
-  registerOp('SimpleMLLoadModelFromPathWithHandle', loader);
-  registerOp('SimpleMLInferenceOpWithHandle', inferencer);
-}
 /**
  * To load a `tfdf.TFDFModel`, use the `loadTFDFModel` function below.
  *
@@ -73,7 +63,6 @@ function registerTFDFOps(
  * ```
  */
 export class TFDFModel implements InferenceModel {
-  private modelRunner: TFDFWebModelRunner;
   constructor(
       private readonly graphModel: GraphModel|GraphModel<io.IOHandlerSync>,
       private readonly assets: string|Blob) {}
@@ -84,54 +73,6 @@ export class TFDFModel implements InferenceModel {
 
   get outputs() {
     return this.graphModel.outputs;
-  }
-
-  // Needs to be called before every inference since registerOp sets operations
-  // globally, but multiple TFDF models may exist at once. However creation
-  // and loading of model still only happens once since that code is in the
-  // initializer graph only.
-  private registerTFDFOpImpls() {
-    const creator = () => {
-      // Unused output, TFDF handle is unneeded since model is kept track
-      // of directly in this class.
-      return [scalar(0)];
-    };
-
-    const loader = async () => {
-      const tfdfWeb = await tfdfWebAPIClient.tfdfWeb;
-      const loadOptions = {createdTFDFSignature: true};
-
-      this.modelRunner = typeof this.assets === 'string' ?
-          await tfdfWeb.loadModelFromUrl(this.assets, loadOptions) :
-          await tfdfWeb.loadModelFromZipBlob(this.assets, loadOptions);
-
-      return [scalar(0)];
-    };
-
-    const inferencer = async (node: GraphNode) => {
-      const inputs = node.inputs.map(input => input.arraySync());
-      const denseOutputDim = node.attrs['dense_output_dim'] as number;
-
-      const features = {
-        numericalFeatures: inputs[0] as number[][],
-        booleanFeatures: inputs[1] as number[][],
-        categoricalIntFeatures: inputs[2] as number[][],
-        categoricalSetIntFeaturesValues: inputs[3] as number[],
-        categoricalSetIntFeaturesRowSplitsDim1: inputs[4] as number[],
-        categoricalSetIntFeaturesRowSplitsDim2: inputs[5] as number[],
-        denseOutputDim
-      };
-
-      const outputs = this.modelRunner.predictTFDFSignature(features);
-
-      const densePredictionsTensor = tensor2d(outputs.densePredictions);
-      const denseColRepresentationTensor =
-          tensor1d(outputs.denseColRepresentation, 'string');
-
-      return [densePredictionsTensor, denseColRepresentationTensor];
-    };
-
-    registerTFDFOps(creator, loader, inferencer);
   }
 
   /**
@@ -151,7 +92,7 @@ export class TFDFModel implements InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    this.registerTFDFOpImpls();
+    setAssets(this.assets);
     return this.graphModel.predict(inputs, config);
   }
 
@@ -174,7 +115,7 @@ export class TFDFModel implements InferenceModel {
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
-    this.registerTFDFOpImpls();
+    setAssets(this.assets);
     return this.graphModel.execute(inputs, outputs);
   }
 
@@ -195,7 +136,7 @@ export class TFDFModel implements InferenceModel {
   executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
-    this.registerTFDFOpImpls();
+    setAssets(this.assets);
     return this.graphModel.executeAsync(inputs, outputs);
   }
 }
@@ -235,10 +176,6 @@ export async function loadTFDFModel(
     assets = await modelUrl.loadAssets();
   }
 
-  // Register the TFDF ops without an implementation so the graph loader
-  // detects them as registered ops. Implementation is added in the
-  // TFDFModel class.
-  registerTFDFOps();
   const graphModel = await loadGraphModel(graphModelUrl, options, tfio);
   return new TFDFModel(graphModel, assets);
 }
