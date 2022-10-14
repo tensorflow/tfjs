@@ -25,19 +25,19 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   op: UnaryOpType;
   uniforms?: string;
   size = true;
 
   constructor(outputShape: number[], op: UnaryOpType) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
-    const workGroupSizeX = 128;
-    this.workGroupSize = [workGroupSizeX, 1, 1];
+    const workgroupSizeX = 128;
+    this.workgroupSize = [workgroupSizeX, 1, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.op = op;
     this.shaderKey = `unary_${op}`;
   }

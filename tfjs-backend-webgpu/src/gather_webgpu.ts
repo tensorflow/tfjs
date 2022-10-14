@@ -24,7 +24,7 @@ export class GatherProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
   size = true;
 
@@ -34,7 +34,7 @@ export class GatherProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.shaderKey = `gather`;
   }
 

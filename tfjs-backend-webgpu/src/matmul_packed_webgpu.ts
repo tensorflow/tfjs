@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupInfoForMatMul} from './webgpu_util';
+import {computeDispatch, computeWorkgroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
     batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
@@ -148,27 +148,27 @@ const calculateResultSnippet =
     };
 
 export function makeMatMulPackedVec4Source(
-    workPerThread: number[], workGroupSize: [number, number, number],
+    workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
     isVectorA = false): string {
-  const tileAOuter = workGroupSize[1] * workPerThread[1];
-  const tileBOuter = workGroupSize[0] * workPerThread[0];
+  const tileAOuter = workgroupSize[1] * workPerThread[1];
+  const tileBOuter = workgroupSize[0] * workPerThread[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
-  const innerElementSize = tileAWidth / workGroupSize[0];
-  const rowPerThreadB = tileInner / workGroupSize[1];
+  const innerElementSize = tileAWidth / workgroupSize[0];
+  const rowPerThreadB = tileInner / workgroupSize[1];
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
        (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&
-          tileAWidth % workGroupSize[0] === 0 &&
-          tileInner % workGroupSize[1] === 0 && workPerThread[0] === 4,
+          tileAWidth % workgroupSize[0] === 0 &&
+          tileInner % workgroupSize[1] === 0 && workPerThread[0] === 4,
       () => `If transposeA ${transposeA} is true, innerElementSize ${
           innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
           Otherwise, innerElementSize ${innerElementSize} must be 3 or 4.
-      tileAWidth ${tileAWidth} must be divisible by workGroupSize[0]${
-          workGroupSize[0]}. tileInner ${
-          tileInner} must be divisible by workGroupSize[1] ${
-          workGroupSize[1]}. ColPerThread ${workPerThread[0]} must be 4.`);
+      tileAWidth ${tileAWidth} must be divisible by workgroupSize[0]${
+          workgroupSize[0]}. tileInner ${
+          tileInner} must be divisible by workgroupSize[1] ${
+          workgroupSize[1]}. ColPerThread ${workPerThread[0]} must be 4.`);
   return `
   var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
       tileAWidth / innerElementSize}>, ${tileAHight}>;
@@ -265,25 +265,25 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
 // sequentialAccessByThreads means sequential data in memory is accessed by
 // threads, instead of a single thread (default behavior).
 export function makeMatMulPackedSource(
-    workPerThread: number[], workGroupSize: [number, number, number],
+    workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
     sequentialAccessByThreads = false): string {
-  const tileAOuter = workPerThread[1] * workGroupSize[1];
-  const tileBOuter = workPerThread[0] * workGroupSize[0];
+  const tileAOuter = workPerThread[1] * workgroupSize[1];
+  const tileBOuter = workPerThread[0] * workgroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   util.assert(
-      tileAHight % workGroupSize[1] === 0 &&
-          tileAWidth % workGroupSize[0] === 0 &&
-          tileInner % workGroupSize[1] === 0,
-      () => `tileAHight ${tileAHight} must be divisible by workGroupSize[1]${
-          workGroupSize[1]}, tileAWidth ${
-          tileAWidth} must be divisible by workGroupSize[0]${
-          workGroupSize[0]}, tileInner ${
-          tileInner} must be divisible by workGroupSize[1]${workGroupSize[1]}`);
-  const rowPerThreadA = tileAHight / workGroupSize[1];
-  const colPerThreadA = tileAWidth / workGroupSize[0];
-  const rowPerThreadB = tileInner / workGroupSize[1];
+      tileAHight % workgroupSize[1] === 0 &&
+          tileAWidth % workgroupSize[0] === 0 &&
+          tileInner % workgroupSize[1] === 0,
+      () => `tileAHight ${tileAHight} must be divisible by workgroupSize[1]${
+          workgroupSize[1]}, tileAWidth ${
+          tileAWidth} must be divisible by workgroupSize[0]${
+          workgroupSize[0]}, tileInner ${
+          tileInner} must be divisible by workgroupSize[1]${workgroupSize[1]}`);
+  const rowPerThreadA = tileAHight / workgroupSize[1];
+  const colPerThreadA = tileAWidth / workgroupSize[0];
+  const rowPerThreadB = tileInner / workgroupSize[1];
   const matmulSnippet = sequentialAccessByThreads ?
       `
       let localRow = i32(localId.y);
@@ -295,17 +295,17 @@ export function makeMatMulPackedSource(
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
         for (var inputRow = localRow; inputRow < ${
-          tileAHight}; inputRow = inputRow + ${workGroupSize[1]}) {
+          tileAHight}; inputRow = inputRow + ${workgroupSize[1]}) {
           for (var inputCol = localCol; inputCol < ${
-          tileAWidth}; inputCol = inputCol + ${workGroupSize[0]}) {
+          tileAWidth}; inputCol = inputCol + ${workgroupSize[0]}) {
             ${writeDataToSubASnippet(transposeA)}
           }
         }
         // Load one tile of B into local memory.
         for (var inputRow = localRow; inputRow < ${
-          tileInner}; inputRow = inputRow + ${workGroupSize[1]}) {
+          tileInner}; inputRow = inputRow + ${workgroupSize[1]}) {
               for (var inputCol = localCol; inputCol < ${
-          tileBOuter}; inputCol = inputCol + ${workGroupSize[0]}) {
+          tileBOuter}; inputCol = inputCol + ${workgroupSize[0]}) {
             mm_Bsub[inputRow][inputCol] = mm_readB(batch,
               kStart + inputRow,
               globalColStart + inputCol);
@@ -319,13 +319,13 @@ export function makeMatMulPackedSource(
         for (var k = 0; k < TileInner; k = k + 1) {
           for (var inner = 0; inner < ColPerThread; inner = inner + 1) {
             BCached[inner] = mm_Bsub[k][localCol + inner * ${
-          workGroupSize[0]}];
+          workgroupSize[0]}];
           }
           for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
             let ACached = ${
           transposeA ?
-              `mm_Asub[k][localRow + innerRow * ${workGroupSize[1]}];` :
-              `mm_Asub[localRow + innerRow * ${workGroupSize[1]}][k];`}
+              `mm_Asub[k][localRow + innerRow * ${workgroupSize[1]}];` :
+              `mm_Asub[localRow + innerRow * ${workgroupSize[1]}][k];`}
             for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
               acc[innerRow][innerCol] = acc[innerRow][innerCol] +
                   ACached * BCached[innerCol];
@@ -335,10 +335,10 @@ export function makeMatMulPackedSource(
         workgroupBarrier();
       }
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        let gRow = globalRowStart + localRow + innerRow * ${workGroupSize[1]};
+        let gRow = globalRowStart + localRow + innerRow * ${workgroupSize[1]};
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
           let gCol = globalColStart + localCol + innerCol * ${
-          workGroupSize[0]};
+          workgroupSize[0]};
           mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
         }
       }
@@ -450,13 +450,13 @@ const readVectorASnippet = (transpose: boolean) => {
 };
 
 export function makeVectorMatrixProductSource(
-    workGroupSize: [number, number, number], transposeA = false): string {
+    workgroupSize: [number, number, number], transposeA = false): string {
   util.assert(
-      workGroupSize[1] === 1 && workGroupSize[2] === 1,
-      () => `A linear work group size is required. But got ${workGroupSize}.`);
+      workgroupSize[1] === 1 && workgroupSize[2] === 1,
+      () => `A linear work group size is required. But got ${workgroupSize}.`);
   return `
-    const TileSize = ${workGroupSize[0] * 4};
-    var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
+    const TileSize = ${workgroupSize[0] * 4};
+    var<workgroup> mm_Asub : array<vec4<f32>, ${workgroupSize[0]}>;
 
     ${main()} {
       let tileCol = i32(localId.x);
@@ -502,7 +502,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
@@ -537,16 +537,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
     if (!this.isVec4 && this.isVectorA) {
       // For makeVectorMatrixProductSource
       this.elementsPerThread = [1, 1, 1];
-      this.workGroupSize = [32, 1, 1];
+      this.workgroupSize = [32, 1, 1];
     } else {
-      const workGroupInfo = computeWorkGroupInfoForMatMul(
+      const workgroupInfo = computeWorkgroupInfoForMatMul(
           outputShape[1], dimInner, outputShape[2], transposeA);
-      this.workGroupSize = workGroupInfo.workGroupSize;
-      this.elementsPerThread = workGroupInfo.elementsPerThread;
+      this.workgroupSize = workgroupInfo.workgroupSize;
+      this.elementsPerThread = workgroupInfo.elementsPerThread;
     }
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         this.elementsPerThread);
 
     const addBias = bias != null;
@@ -578,12 +578,12 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
   getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
       boolean[] {
-    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    const tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
+    const tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
 
     if (!this.isVec4 && this.isVectorA) {
       // For makeVectorMatrixProductSource
-      this.tileInner = this.workGroupSize[0] * 4;
+      this.tileInner = this.workgroupSize[0] * 4;
     } else {
       this.tileInner = tileBOuter;
     }
@@ -609,12 +609,12 @@ export class MatMulPackedProgram implements WebGPUProgram {
       ${
         this.isVec4 ?
             makeMatMulPackedVec4Source(
-                this.elementsPerThread, this.workGroupSize, this.transposeA,
+                this.elementsPerThread, this.workgroupSize, this.transposeA,
                 this.tileInner, false, null, this.isVectorA) :
             (this.isVectorA ? makeVectorMatrixProductSource(
-                                  this.workGroupSize, this.transposeA) :
+                                  this.workgroupSize, this.transposeA) :
                               makeMatMulPackedSource(
-                                  this.elementsPerThread, this.workGroupSize,
+                                  this.elementsPerThread, this.workgroupSize,
                                   this.transposeA, this.tileInner, false, null,
                                   this.sequentialAccessByThreads))}
     `;

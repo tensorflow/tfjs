@@ -29,7 +29,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms =
       'filterDims: vec2<i32>, pad: vec2<i32>, stride: vec2<i32>, dilation: vec2<i32>,';
-  workGroupSize: [number, number, number] = [4, 4, 8];
+  workgroupSize: [number, number, number] = [4, 4, 8];
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
@@ -44,7 +44,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.dispatchLayout = this.isChannelsLast ? {x: [2], y: [1], z: [0, 3]} :
                                                 {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;

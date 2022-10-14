@@ -25,14 +25,14 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   sliceDim: number;
   constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.shaderKey = `gathernd_${sliceDim}`;
     this.sliceDim = sliceDim;
     this.uniforms = `sliceDim : i32, strides : ${getCoordsDataType(sliceDim)},`;

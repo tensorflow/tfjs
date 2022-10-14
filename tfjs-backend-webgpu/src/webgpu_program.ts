@@ -40,10 +40,10 @@ export interface WebGPUProgram {
   // variableNames. If not set, all variables type will be either f32 or
   // vec4<f32> based on isVec4 member.
   variableTypes?: string[];
-  // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
+  // workgroupSize.x * workgroupSize.y * workgroupSize.z = the number of threads
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -127,7 +127,7 @@ export function getMainHeaderString(...params: string[]): string {
 export function getStartHeaderString(useGlobalIndex: boolean): string {
   let snippet: string;
   snippet = `
-     ${getWorkGroupSizeString()}
+     ${getWorkgroupSizeString()}
       fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
                 @builtin(global_invocation_id) GlobalId : vec3<u32>,
                 @builtin(local_invocation_index) LocalIndex: u32,
@@ -144,9 +144,9 @@ export function getStartHeaderString(useGlobalIndex: boolean): string {
   return snippet;
 }
 
-export function getWorkGroupSizeString(): string {
+export function getWorkgroupSizeString(): string {
   return `
-  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  @compute @workgroup_size(workgroupSizeX, workgroupSizeY, workgroupSizeZ)
 `;
 }
 
@@ -154,10 +154,12 @@ function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
+  const flatWorkgroupSize = program.workgroupSize[0] *
+      program.workgroupSize[1] * program.workgroupSize[2];
   prefixSnippets.push(`
-      const workGroupSizeX = ${program.workGroupSize[0]}u;
-      const workGroupSizeY = ${program.workGroupSize[1]}u;
-      const workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workgroupSizeX = ${program.workgroupSize[0]}u;
+      const workgroupSizeY = ${program.workgroupSize[1]}u;
+      const workgroupSizeZ = ${program.workgroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> localIndex: u32;
@@ -171,8 +173,8 @@ function makeShader(
       isFlatDispatch(program) ?
           `  return i32(globalId.x);` :
           `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
-                workgroupId.y * numWorkgroups.x + workgroupId.x) *
-                (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                workgroupId.y * numWorkgroups.x + workgroupId.x) * ${
+              flatWorkgroupSize} +
                 localIndex);
         `}
       }
@@ -300,7 +302,7 @@ export function makeShaderKey<R extends Rank>(
 
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
 
-  key += '_' + (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+  key += '_' + (program.workgroupSize ? program.workgroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;

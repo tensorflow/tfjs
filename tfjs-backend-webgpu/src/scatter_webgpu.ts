@@ -27,7 +27,7 @@ export class ScatterProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   updatesRank: number;
   indicesRank: number;
   sliceDimGreaterThanOne: boolean;
@@ -44,7 +44,7 @@ export class ScatterProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(flattenXShape);
     // Dispatching based on |updates| shape instead of output shape.
     this.dispatch =
-        computeDispatch(this.dispatchLayout, flattenXShape, this.workGroupSize);
+        computeDispatch(this.dispatchLayout, flattenXShape, this.workgroupSize);
     this.sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
