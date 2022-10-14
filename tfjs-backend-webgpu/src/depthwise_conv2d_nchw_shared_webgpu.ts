@@ -62,7 +62,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const filterSize = this.filterWidth * this.filterHeight;
-    const workgroupSize =
+    const flatWorkgroupSize =
         this.workgroupSize[0] * this.workgroupSize[1] * this.workgroupSize[2];
     const tileAHeight = this.workgroupSize[1] + this.filterHeight - 1;
     const tileAWidth = this.workgroupSize[0] + this.filterWidth - 1;
@@ -113,10 +113,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         // Load one tile of W into local memory.
         var wIndex = i32(localIndex);
         ${
-        filterSize < workgroupSize ?
+        filterSize < flatWorkgroupSize ?
             `if (wIndex < ${filterSize})` :
             `for(; wIndex < ${filterSize}; wIndex = wIndex + ${
-                workgroupSize})`}
+                flatWorkgroupSize})`}
 
         {
           let wRow = wIndex / ${this.filterWidth};
