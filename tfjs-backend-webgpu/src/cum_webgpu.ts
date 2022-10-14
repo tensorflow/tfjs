@@ -39,8 +39,7 @@ export class CumProgram implements WebGPUProgram {
 
   constructor(
       op: CumOpType, shape: number[], exclusive: boolean, reverse: boolean) {
-    const workgroupSizeX = 128;
-    this.workgroupSize = [workgroupSizeX, 1, 1];
+    this.workgroupSize = [128, 1, 1];
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(

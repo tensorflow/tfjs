@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -41,13 +42,17 @@ export class TransposeSharedProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    util.assert(
+        this.workgroupSize[0] === this.workgroupSize[1],
+        () => `Must be a square tile, current tile shape is ${
+            this.workgroupSize[0]} x ${this.workgroupSize[1]}`);
     const userCode = `
-      const TILE_DIM = ${this.workgroupSize[0]};
+      const tileSize = ${this.workgroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workgroupSize[0] + 1}>, ${
         this.workgroupSize[0]}>;
       ${main()} {
-        var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
-        var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
+        var x = i32(workgroupId.x) * tileSize + i32(localId.x);
+        var y = i32(workgroupId.y) * tileSize + i32(localId.y);
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
@@ -55,8 +60,8 @@ export class TransposeSharedProgram implements WebGPUProgram {
         }
         workgroupBarrier();
 
-        x = i32(workgroupId.y) * TILE_DIM + i32(localId.x);
-        y = i32(workgroupId.x) * TILE_DIM + i32(localId.y);
+        x = i32(workgroupId.y) * tileSize + i32(localId.x);
+        y = i32(workgroupId.x) * tileSize + i32(localId.y);
         if (x < height && y < width) {
           setOutputAtIndex((y * height + x), tile[localId.x]
             [localId.y]);
