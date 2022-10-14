@@ -27,7 +27,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workgroupSize: [number, number, number] = [4, 4, 4];
   workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -41,7 +41,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [4, this.workPerThread, 1]);
 
     util.assert(

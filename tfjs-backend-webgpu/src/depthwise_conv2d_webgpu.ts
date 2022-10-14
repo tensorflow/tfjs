@@ -30,7 +30,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   uniforms = `pad : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
       filterWidth : i32, stride : vec2<i32>, dilation : vec2<i32>,`;
   // This is an experimental value.
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
@@ -44,7 +44,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
 
     if (addBias) {
