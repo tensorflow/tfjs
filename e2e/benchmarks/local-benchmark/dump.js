@@ -15,6 +15,10 @@
  * =============================================================================
  */
 
+/**
+ * DUMP_LEVEL.BIGDIFF: dumping when difference is greater than the default
+ * epsilon. DUMP_LEVEL.ANYDIFF: dumping when difference is greater than 0.
+ */
 const DUMP_LEVEL = {
   BIGDIFF: 0,
   ANYDIFF: 1,
