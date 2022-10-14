@@ -8,14 +8,14 @@
  * =============================================================================
  */
 
-import {serialization,DataType,unstack,stack,tensor,Tensor,Tensor1D,Tensor2D, Tensor3D, Tensor4D, tidy, range} from '@tensorflow/tfjs-core';
+import {serialization,DataType,unstack,stack,tensor,Tensor,Tensor1D,Tensor2D, Tensor3D, Tensor4D, tidy, range, image} from '@tensorflow/tfjs-core';
 import {getExactlyOneShape, getExactlyOneTensor} from '../../utils/types_utils';
-import {resizeBilinear} from '@tensorflow/tfjs-core/ops/image/resize_bilinear';
-import {cropAndResize} from '@tensorflow/tfjs-core/ops/image/crop_and_resize';
 import {LayerArgs, Layer} from '../../engine/topology';
 import {Kwargs} from '../../types';
 import {Shape} from '../../keras_format/common';
 import * as K from '../../backend/tfjs_backend';
+
+const {resizeBilinear, cropAndResize} = image;
 
 export declare interface CenterCropArgs extends LayerArgs{
   height: number;
