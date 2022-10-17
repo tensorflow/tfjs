@@ -18,10 +18,12 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
+import {asinConfig} from './kernels/Asin';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
@@ -125,10 +127,12 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
   addConfig,
   addNConfig,
   argMaxConfig,
   argMinConfig,
+  asinConfig,
   atan2Config,
   avgPoolConfig,
   batchMatMulConfig,

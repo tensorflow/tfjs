@@ -17,6 +17,8 @@
 
 export enum UnaryOpType {
   ABS,
+  ACOS,
+  ASIN,
   CEIL,
   COS,
   COSH,
@@ -44,6 +46,18 @@ export enum UnaryOpType {
 }
 
 const ABS = `return abs(a);`;
+const ACOS = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return acos(a);
+`;
+const ASIN = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return asin(a);
+`;
 const CEIL = `return ceil(a);`;
 const COS = `return cos(a);`;
 const COSH = `
@@ -108,6 +122,10 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
   switch (type) {
     case UnaryOpType.ABS:
       return ABS;
+    case UnaryOpType.ACOS:
+      return ACOS;
+    case UnaryOpType.ASIN:
+      return ASIN;
     case UnaryOpType.COS:
       return COS;
     case UnaryOpType.COSH:
