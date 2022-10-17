@@ -14,6 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
+import '@tensorflow/tfjs-backend-cpu';
 
-export * from './tfdf_model';
-import './register_tfdf_ops';
+import './setup_test_globals';
+// Register ops.
+import './index';
+import './tfdf_web_api_client_test';
+import './tfdf_model_test';

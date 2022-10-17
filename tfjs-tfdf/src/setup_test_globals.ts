@@ -14,6 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-
-export * from './tfdf_model';
-import './register_tfdf_ops';
+import jszip from 'jszip';
+// Karma does not preserve the source path, causing the TFDF library to look for
+// the wasm binary in the root path, so fix the path for the library.
+// tslint:disable-next-line:no-any
+(self as any).__filename = '/base/tfjs/tfjs-tfdf/wasm/';
+// TFDF is Closure-compiled, and expects a global JSZIP variable to exist,
+// rather than passed in as a module.
+// tslint:disable-next-line:no-any
+(window as any).JSZip = jszip;
