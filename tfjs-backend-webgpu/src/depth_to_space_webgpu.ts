@@ -25,7 +25,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   uniforms = 'blockSize : i32,';
 
@@ -33,7 +33,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.shaderKey = `depthToSpace_${dataFormat}`;
     this.dataFormat = dataFormat;
   }

@@ -28,7 +28,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = `pad : vec2<i32>, inDims : vec2<i32>,`;
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workgroupSize: [number, number, number] = [16, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
@@ -42,7 +42,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     if (addBias) {
       this.variableNames.push('bias');
@@ -62,10 +62,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const filterSize = this.filterWidth * this.filterHeight;
-    const workGroupSize =
-        this.workGroupSize[0] * this.workGroupSize[1] * this.workGroupSize[2];
-    const tileAHeight = this.workGroupSize[1] + this.filterHeight - 1;
-    const tileAWidth = this.workGroupSize[0] + this.filterWidth - 1;
+    const flatWorkgroupSize =
+        this.workgroupSize[0] * this.workgroupSize[1] * this.workgroupSize[2];
+    const tileAHeight = this.workgroupSize[1] + this.filterHeight - 1;
+    const tileAWidth = this.workgroupSize[0] + this.filterWidth - 1;
 
     const userCode = `
       ${
@@ -101,9 +101,9 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
 
         // Load one tile of X into local memory.
         for (var inputRow = localRow; inputRow < ${
-        tileAHeight}; inputRow = inputRow + ${this.workGroupSize[1]}) {
+        tileAHeight}; inputRow = inputRow + ${this.workgroupSize[1]}) {
           for (var inputCol = localCol; inputCol < ${
-        tileAWidth}; inputCol = inputCol + ${this.workGroupSize[0]}) {
+        tileAWidth}; inputCol = inputCol + ${this.workgroupSize[0]}) {
             let rowOffset = inputRow - localRow;
             let colOffset = inputCol - localCol;
             mm_Asub[inputRow][inputCol] = readX(batch, d1, inputRowStart + rowOffset, inputColStart + colOffset);
@@ -113,10 +113,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         // Load one tile of W into local memory.
         var wIndex = i32(localIndex);
         ${
-        filterSize < workGroupSize ?
+        filterSize < flatWorkgroupSize ?
             `if (wIndex < ${filterSize})` :
             `for(; wIndex < ${filterSize}; wIndex = wIndex + ${
-                workGroupSize})`}
+                flatWorkgroupSize})`}
 
         {
           let wRow = wIndex / ${this.filterWidth};

@@ -26,7 +26,7 @@ export class ClipVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
   size = true;
 
@@ -34,7 +34,7 @@ export class ClipVec4Program implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'clipVec4';
   }

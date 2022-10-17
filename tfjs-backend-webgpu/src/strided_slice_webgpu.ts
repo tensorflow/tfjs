@@ -27,14 +27,14 @@ export class StridedSliceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
 
     const dtype = getCoordsDataType(this.outputShape.length);

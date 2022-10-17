@@ -24,7 +24,7 @@ import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
   return `
-    var<workgroup> sumValues : array<f32, workGroupSizeX>;
+    var<workgroup> sumValues : array<f32, workgroupSizeX>;
     ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
@@ -32,7 +32,7 @@ export function makeMatMulReduceSource(): string {
       let col = coords[2];
       var sum = 0.0;
       let Length = uniforms.dimInner;
-      for (var k = i32(localId.x); k < Length; k = k + i32(workGroupSizeX)) {
+      for (var k = i32(localId.x); k < Length; k = k + i32(workgroupSizeX)) {
         let dataA = mm_readA(batch, row, k);
         let dataB = mm_readB(batch, k, col);
         sum = sum + dataA * dataB;
@@ -40,7 +40,7 @@ export function makeMatMulReduceSource(): string {
       sumValues[localId.x] = sum;
       workgroupBarrier();
 
-      for(var currentSize = workGroupSizeX / 2u; currentSize > 1u;
+      for(var currentSize = workgroupSizeX / 2u; currentSize > 1u;
           currentSize = currentSize / 2u) {
         if (localId.x < currentSize)
         {
@@ -64,7 +64,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -81,7 +81,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [], y: [1, 2], z: [0]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;

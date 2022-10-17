@@ -21,9 +21,9 @@ import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
-    workGroupSize: [number, number, number]): string {
-  const tileAOuter = workGroupSize[1];
-  const tileBOuter = workGroupSize[0];
+    workgroupSize: [number, number, number]): string {
+  const tileAOuter = workgroupSize[1];
+  const tileBOuter = workgroupSize[0];
   const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
   return `
   var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
@@ -85,7 +85,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [16, 8, 1];
+  workgroupSize: [number, number, number] = [16, 8, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -104,8 +104,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
 
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = [
-      Math.ceil(outputShape[2] / this.workGroupSize[0]),
-      Math.ceil(outputShape[1] / this.workGroupSize[1]), outputShape[0]
+      Math.ceil(outputShape[2] / this.workgroupSize[0]),
+      Math.ceil(outputShape[1] / this.workgroupSize[1]), outputShape[0]
     ];
 
     const addBias = bias != null;
@@ -136,7 +136,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
         matMulReadWriteFnSource(
             this.addBias, this.activation, this.batchAEqualOne,
             this.batchBEqualOne, this.transposeA, this.transposeB)}
-      ${makeMatMulSmallOutputSizeSource(this.workGroupSize)}
+      ${makeMatMulSmallOutputSizeSource(this.workgroupSize)}
     `;
     return userCode;
   }

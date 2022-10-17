@@ -37,36 +37,36 @@ export function tilesFitEvenlyIntoShape(
 }
 
 // Computes dispatch geometry based on layout of output dimensions and
-// workGroupSize.
+// workgroupSize.
 export function computeDispatch(
     layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
-    workGroupSize: [number, number, number] = [1, 1, 1],
+    workgroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
   const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
-        (workGroupSize[0] * elementsPerThread[0])),
+        (workgroupSize[0] * elementsPerThread[0])),
     layout.y ? Math.ceil(
                    arrayProduct(layout.y.map(d => outputShape[d])) /
-                   (workGroupSize[1] * elementsPerThread[1])) :
+                   (workgroupSize[1] * elementsPerThread[1])) :
                1,
     layout.z ? Math.ceil(
                    arrayProduct(layout.z.map(d => outputShape[d])) /
-                   (workGroupSize[2] * elementsPerThread[2])) :
+                   (workgroupSize[2] * elementsPerThread[2])) :
                1
   ];
   return [dispatchX, dispatchY, dispatchZ];
 }
 
-export type WorkGroupInfo = {
-  workGroupSize: [number, number, number],
+export type WorkgroupInfo = {
+  workgroupSize: [number, number, number],
   elementsPerThread: [number, number, number],
 };
 
-export function computeWorkGroupInfoForMatMul(
+export function computeWorkgroupInfoForMatMul(
     dimAOuter: number, dimInner: number, dimBOuter: number,
-    transposeA = false): WorkGroupInfo {
+    transposeA = false): WorkgroupInfo {
   // These are experimental values. Usually, we need to adjust the work group
   // size based on the input shapes to improve the EU occupancy.
   // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
@@ -74,7 +74,7 @@ export function computeWorkGroupInfoForMatMul(
   // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
   // revisit it and find the balance between work group size and work per thread
   // size.
-  const workGroupSize: [number, number, number] = [8, 8, 1];
+  const workgroupSize: [number, number, number] = [8, 8, 1];
   const elementsPerThread: [number, number, number] = [4, 4, 1];
 
   if (!transposeA) {
@@ -83,14 +83,14 @@ export function computeWorkGroupInfoForMatMul(
     }
 
     if (dimInner <= 16 && dimBOuter <= 16) {
-      workGroupSize[0] = 4;
+      workgroupSize[0] = 4;
     }
   }
 
-  return {workGroupSize, elementsPerThread};
+  return {workgroupSize, elementsPerThread};
 }
 
-export function computeWorkGroupSizeForConv2d(
+export function computeWorkgroupSizeForConv2d(
     layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
     isVec4 = false): [number, number, number] {
   if (isVec4) {
@@ -128,7 +128,7 @@ export function computeWorkPerThreadForConv2d(
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
   // The following conditions correspond to the values set in
-  // computeWorkGroupSizeForConv2d.
+  // computeWorkgroupSizeForConv2d.
   if (dim0 <= 4) {
     return [1, 2, 1];
   }

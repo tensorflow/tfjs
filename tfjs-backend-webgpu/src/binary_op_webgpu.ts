@@ -30,7 +30,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   shaderKey: string;
   size = true;
   variableNames = ['A', 'B'];
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   workPerThread: number;
 
   private lastDimensionSize: number;
@@ -59,7 +59,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       this.type = 'shared';
       // This is an experimental value when using shared memory.
       // Note that the maximum of workgroup X dimension is 256.
-      this.workGroupSize = [256, 1, 1];
+      this.workgroupSize = [256, 1, 1];
       this.workPerThread = 1;
     } else {
       if (util.arraysEqual(aShape, bShape) &&
@@ -75,10 +75,10 @@ export class BinaryOpProgram implements WebGPUProgram {
       this.shaderKey = `binary_${this.type}_${op}`;
       // TODO(jiajia.qin@intel.com): Heuristically select a good work group
       // size.
-      this.workGroupSize = [128, 1, 1];
+      this.workgroupSize = [128, 1, 1];
     }
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
   }
 
