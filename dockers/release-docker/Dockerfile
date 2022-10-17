@@ -47,4 +47,3 @@ RUN pip3 install virtualenv
 # Install absl
 RUN pip3 install absl-py
 
-ENTRYPOINT /bin/bash

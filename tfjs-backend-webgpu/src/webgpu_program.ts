@@ -40,10 +40,10 @@ export interface WebGPUProgram {
   // variableNames. If not set, all variables type will be either f32 or
   // vec4<f32> based on isVec4 member.
   variableTypes?: string[];
-  // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
+  // workgroupSize.x * workgroupSize.y * workgroupSize.z = the number of threads
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -110,31 +110,11 @@ export function getMainHeaderString(...params: string[]): string {
   switch (params.length) {
     case 0:
       snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main();
-        }
-
         fn main()
       `;
       break;
     case 1:
       snippet = `
-        ${getWorkGroupSizeString()}
-        fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
-                  @builtin(global_invocation_id) GlobalId : vec3<u32>,
-                  @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
-          localId = LocalId;
-          globalId = GlobalId;
-          numWorkgroups = NumWorkgroups;
-          main(getGlobalIndex());
-        }
-
         fn main(${params[0]} : i32)
       `;
       break;
@@ -144,9 +124,29 @@ export function getMainHeaderString(...params: string[]): string {
   return snippet;
 }
 
-export function getWorkGroupSizeString(): string {
+export function getStartHeaderString(useGlobalIndex: boolean): string {
+  let snippet: string;
+  snippet = `
+     ${getWorkgroupSizeString()}
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(workgroup_id) WorkgroupId : vec3<u32>,
+                @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+        localId = LocalId;
+        localIndex = LocalIndex;
+        globalId = GlobalId;
+        numWorkgroups = NumWorkgroups;
+        workgroupId = WorkgroupId;
+        ${useGlobalIndex ? `main(getGlobalIndex());` : `main();`};
+      }
+    `;
+  return snippet;
+}
+
+export function getWorkgroupSizeString(): string {
   return `
-  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  @compute @workgroup_size(workgroupSizeX, workgroupSizeY, workgroupSizeZ)
 `;
 }
 
@@ -154,29 +154,28 @@ function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
+  const flatWorkgroupSize = program.workgroupSize[0] *
+      program.workgroupSize[1] * program.workgroupSize[2];
   prefixSnippets.push(`
-      const workGroupSizeX = ${program.workGroupSize[0]}u;
-      const workGroupSizeY = ${program.workGroupSize[1]}u;
-      const workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workgroupSizeX = ${program.workgroupSize[0]}u;
+      const workgroupSizeY = ${program.workgroupSize[1]}u;
+      const workgroupSizeZ = ${program.workgroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
+      var<private> localIndex: u32;
       var<private> globalId: vec3<u32>;
       var<private> numWorkgroups: vec3<u32>;
+      var<private> workgroupId: vec3<u32>;
 
       // Only used when the y/z dimension of workgroup size is 1.
       fn getGlobalIndex() -> i32 {
         ${
       isFlatDispatch(program) ?
           `  return i32(globalId.x);` :
-          `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-                   localId.y * workGroupSizeX + localId.x;
-               let workGroupID = (globalId - localId)/vec3<u32>(
-                   workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-               return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-                   workGroupID.y * numWorkgroups.x + workGroupID.x) *
-                   (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-                   localInvocationIndex);
+          `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
+                workgroupId.y * numWorkgroups.x + workgroupId.x) * ${
+              flatWorkgroupSize} +
+                localIndex);
         `}
       }
     `);
@@ -193,11 +192,13 @@ function makeShader(
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
+    const useGlobalIndex = isFlatDispatchLayout(program);
     return [
       commonSnippet,
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
+      getStartHeaderString(useGlobalIndex),
     ].join('\n');
   }
 
@@ -277,8 +278,9 @@ function makeShader(
                   program.dispatchLayout.x.length === outputData.shape.length))
           .join('\n');
   sources.push(inputSnippet);
-
   sources.push(program.getUserCode());
+  const useGlobalIndex = isFlatDispatchLayout(program);
+  sources.push(getStartHeaderString(useGlobalIndex));
   const source = sources.join('\n');
   return source;
 }
@@ -300,7 +302,7 @@ export function makeShaderKey<R extends Rank>(
 
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
 
-  key += '_' + (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+  key += '_' + (program.workgroupSize ? program.workgroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;
@@ -844,4 +846,15 @@ function insertAlignment(uniformShader: string) {
     return `vec${p1}, @align(16) ${p2}`;
   });
   return uniformShader;
+}
+function isFlatDispatchLayout(program: WebGPUProgram): boolean {
+  if (program.dispatchLayout.hasOwnProperty('y') &&
+      program.dispatchLayout.y.length !== 0) {
+    return false;
+  }
+  if (program.dispatchLayout.hasOwnProperty('z') &&
+      program.dispatchLayout.z.length !== 0) {
+    return false;
+  }
+  return true;
 }

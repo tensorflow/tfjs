@@ -27,7 +27,7 @@ export class ScatterProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   updatesRank: number;
   indicesRank: number;
   sliceDimGreaterThanOne: boolean;
@@ -44,12 +44,13 @@ export class ScatterProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(flattenXShape);
     // Dispatching based on |updates| shape instead of output shape.
     this.dispatch =
-        computeDispatch(this.dispatchLayout, flattenXShape, this.workGroupSize);
+        computeDispatch(this.dispatchLayout, flattenXShape, this.workgroupSize);
     this.sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}_${sumDupeIndices}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32, strides: ${stridesType}, size: i32,`;
+    this.uniforms =
+        `sliceDim : i32, strides: ${stridesType}, updatesSize: i32,`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -122,7 +123,7 @@ export class ScatterProgram implements WebGPUProgram {
     ${getUpdatesCoordsFromFlatIndex}
 
       ${main('index')} {
-        if (index < uniforms.size) {
+        if (index < uniforms.updatesSize) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
           var flattenedIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {

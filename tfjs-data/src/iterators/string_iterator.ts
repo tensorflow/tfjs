@@ -96,7 +96,7 @@ class SplitIteratorImpl extends OneToManyIterator<string> {
       this.carryover = '';
       return true;
     }
-    const lines = chunkResult.value.split(this.separator);
+    const lines = chunkResult.value.split(this.separator) as string[];
     // Note the behavior: " ab ".split(' ') === ['', 'ab', '']
     // Thus the carryover may be '' if the separator falls on a chunk
     // boundary; this produces the correct result.

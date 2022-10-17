@@ -66,7 +66,6 @@ ts_library(
     name = "tfjs-converter_test_lib",
     testonly = True,
     srcs = glob(TEST_SRCS),
-    module_name = "@tensorflow/tfjs-converter/dist",
     deps = [
         ":tfjs-converter_lib",
         ":tfjs-converter_src_lib",

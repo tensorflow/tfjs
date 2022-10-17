@@ -35,14 +35,14 @@ export class SwapProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.uniforms = `inputSize : i32, firstPass : i32, negativeInf : f32,
         dir : i32, inc : i32,`;
     this.shaderKey = 'swap';
@@ -128,14 +128,14 @@ export class MergeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     // |n| Size of the original input of TopK
     // |firstPass| indicates if this is the first time swap is being used which
     // means no indices input containing the top K is present yet.
