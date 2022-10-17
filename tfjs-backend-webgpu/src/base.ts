@@ -50,8 +50,7 @@ if (isWebGPUSupported()) {
       deviceDescriptor.requiredFeatures = ['timestamp-query'];
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    // tslint:disable-next-line:no-any
-    const adapterInfo = await (adapter as any).requestAdapterInfo();
+    const adapterInfo = await adapter.requestAdapterInfo();
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }
