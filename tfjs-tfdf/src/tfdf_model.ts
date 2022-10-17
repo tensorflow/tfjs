@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {GraphModel} from '@tensorflow/tfjs-converter';
-import {InferenceModel, io, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
+import {GraphModel, loadGraphModel, loadGraphModelSync} from '@tensorflow/tfjs-converter';
+import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
+import {setAssets} from './register_tfdf_ops';
 
 import {TFDFLoadHandler, TFDFLoadHandlerSync} from './types/tfdf_io';
-import {TFDFWebModelRunner} from './types/tfdf_web_model_runner';
 
 /**
- * A model representing both a TFJS graph model, and a TFDF instance.
+ * To load a `tfdf.TFDFModel`, use the `loadTFDFModel` function below.
  *
  * Sample usage:
  *
@@ -63,17 +63,16 @@ import {TFDFWebModelRunner} from './types/tfdf_web_model_runner';
  * ```
  */
 export class TFDFModel implements InferenceModel {
-  private modelRunner: TFDFWebModelRunner;
   constructor(
       private readonly graphModel: GraphModel|GraphModel<io.IOHandlerSync>,
       private readonly assets: string|Blob) {}
 
-  get inputs(): ModelTensorInfo[] {
-    return null;
+  get inputs() {
+    return this.graphModel.inputs;
   }
 
-  get outputs(): ModelTensorInfo[] {
-    return null;
+  get outputs() {
+    return this.graphModel.outputs;
   }
 
   /**
@@ -93,7 +92,8 @@ export class TFDFModel implements InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    return null;
+    setAssets(this.assets);
+    return this.graphModel.predict(inputs, config);
   }
 
   /**
@@ -115,7 +115,8 @@ export class TFDFModel implements InferenceModel {
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
-    return null;
+    setAssets(this.assets);
+    return this.graphModel.execute(inputs, outputs);
   }
 
   /**
@@ -135,14 +136,16 @@ export class TFDFModel implements InferenceModel {
   executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
-    return null;
+    setAssets(this.assets);
+    return this.graphModel.executeAsync(inputs, outputs);
   }
 }
 
 /**
- * Loads a TFDF graph model given a URL to the model definition.
+ * Load a TFDF graph model given a URL to the model definition.
  *
- * Example of loading an example model from a URL.
+ * Example of loading an example model from a URL and making a prediction with
+ * an input map:
  *
  * ```js
  * // Load the test TFDF model.
@@ -157,7 +160,24 @@ export class TFDFModel implements InferenceModel {
 export async function loadTFDFModel(
     modelUrl: string|TFDFLoadHandler, options: io.LoadOptions = {},
     tfio = io): Promise<TFDFModel> {
-  return null;
+  if (modelUrl == null) {
+    throw new Error(
+        'modelUrl in loadTFDFModel() cannot be null. Please provide a ' +
+        'url or an TFDFLoadHandler that loads the model');
+  }
+  let graphModelUrl: Parameters<typeof loadGraphModel>[0];
+  let assets: string|Blob;
+
+  if (typeof modelUrl === 'string') {
+    graphModelUrl = modelUrl;
+    assets = new URL('assets.zip', modelUrl).href;
+  } else {
+    graphModelUrl = {load: modelUrl.loadModel};
+    assets = await modelUrl.loadAssets();
+  }
+
+  const graphModel = await loadGraphModel(graphModelUrl, options, tfio);
+  return new TFDFModel(graphModel, assets);
 }
 
 /**
@@ -167,5 +187,22 @@ export async function loadTFDFModel(
  */
 
 export function loadTFDFModelSync(modelSource: TFDFLoadHandlerSync): TFDFModel {
-  return null;
+  if (modelSource == null) {
+    throw new Error(
+        'modelUrl in loadTFDFModelSync() cannot be null. Please provide a ' +
+        'url or an TFDFLoadHandlerSync that loads the model');
+  }
+  if (!modelSource.loadModel) {
+    throw new Error(
+        `modelUrl IO Handler ${modelSource} has no loadModel function`);
+  }
+  if (!modelSource.loadAssets) {
+    throw new Error(
+        `modelUrl IO Handler ${modelSource} has no loadAssets function`);
+  }
+
+  const graphModelSource = {load: modelSource.loadModel};
+  const assets = modelSource.loadAssets();
+  const graphModel = loadGraphModelSync(graphModelSource);
+  return new TFDFModel(graphModel, assets);
 }

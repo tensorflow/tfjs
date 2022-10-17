@@ -15,13 +15,6 @@
  * =============================================================================
  */
 
-// TODO: Remove it once webgpu/types is successfully upgraded.
-// https://github.com/tensorflow/tfjs/issues/6869
-export interface GPUAdapterInfo {
-  vendor: string;
-  architecture: string;
-}
-
 export class AdapterInfo {
   private vendor: string;
 

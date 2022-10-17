@@ -14,6 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import {TFDFWebAPIClient} from './types/tfdf_web_api';
 
-export * from './tfdf_model';
-import './register_tfdf_ops';
+/**
+ * The main export for tfdf_web_api_client.js types.
+ */
+export declare let tfdfWeb: Promise<TFDFWebAPIClient>;
