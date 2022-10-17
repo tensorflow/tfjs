@@ -93,18 +93,37 @@ export class MatMulProgram implements WebGPUProgram {
       var value: vec4<f32>;
       // Loop over shared dimension.
       // Compute value values for a single thread.
-      for (var k = 0; k < uniforms.dimInner; k = k + 4) {
-        let BCached0 = getB(${batchB}, k, globalCol);
-        let BCached1 = getB(${batchB}, k + 1, globalCol);
-        let BCached2 = getB(${batchB}, k + 2, globalCol);
-        let BCached3 = getB(${batchB}, k + 3, globalCol);
+      var k = 0;
+      var curBCached0 = getB(${batchB}, k, globalCol);
+      var curBCached1 = getB(${batchB}, k + 1, globalCol);
+      var curBCached2 = getB(${batchB}, k + 2, globalCol);
+      var curBCached3 = getB(${batchB}, k + 3, globalCol);
+      var curACached = getA(${batchA}, globalRow, k);
+      k = k + 4;
+      for (; k < uniforms.dimInner; k = k + 4) {
+        let nextBCached0 = getB(${batchB}, k, globalCol);
+        let nextBCached1 = getB(${batchB}, k + 1, globalCol);
+        let nextBCached2 = getB(${batchB}, k + 2, globalCol);
+        let nextBCached3 = getB(${batchB}, k + 3, globalCol);
+        let nextACached = getA(${batchA}, globalRow, k);
 
-        let ACached = getA(${batchA}, globalRow, k);
-        value = BCached0 * ACached.x + value;
-        value = BCached1 * ACached.y + value;
-        value = BCached2 * ACached.z + value;
-        value = BCached3 * ACached.w + value;
+        // Process data
+        value = curBCached0 * curACached.x + value;
+        value = curBCached1 * curACached.y + value;
+        value = curBCached2 * curACached.z + value;
+        value = curBCached3 * curACached.w + value;
+
+        curBCached0 = nextBCached0;
+        curBCached1 = nextBCached1;
+        curBCached2 = nextBCached2;
+        curBCached3 = nextBCached3;
+        curACached = nextACached;
       }
+      // Process data for last iteration.
+      value = curBCached0 * curACached.x + value;
+      value = curBCached1 * curACached.y + value;
+      value = curBCached2 * curACached.z + value;
+      value = curBCached3 * curACached.w + value;
       ${biasActivationSnippet(this.addBias, this.activation)}
       setOutputAtCoords(coords[0], coords[1], coords[2], value);
     }
