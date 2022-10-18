@@ -28,7 +28,7 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -48,7 +48,7 @@ export class MatMulProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [4, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workgroupSize, [4, 1, 1]);
 
     const addBias = bias != null;
     if (addBias) {
