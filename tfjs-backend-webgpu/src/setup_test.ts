@@ -251,11 +251,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'acos ',
       'acosh ',
       'all webgpu ',
       'any webgpu ',
-      'asin ',
       'asinh ',
       'atanh ',
       'avgPool3d ',
