@@ -70,21 +70,22 @@ export class GPGPUContext {
     gl = this.gl;
 
     if (gl instanceof WebGL2RenderingContext) {
+      const gl2: WebGL2RenderingContext = gl;
       this.createVertexArray = () => {
-        return webgl_util.callAndCheck(gl,
-          () => gl.createVertexArray());
+        return webgl_util.callAndCheck(gl2,
+          () => gl2.createVertexArray());
       };
       this.bindVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl,
-          () => gl.bindVertexArray(vao as WebGLVertexArrayObject));
+        return webgl_util.callAndCheck(gl2,
+          () => gl2.bindVertexArray(vao as WebGLVertexArrayObject));
       };
       this.deleteVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl,
-          () => gl.deleteVertexArray(vao as WebGLVertexArrayObject));
+        return webgl_util.callAndCheck(gl2,
+          () => gl2.deleteVertexArray(vao as WebGLVertexArrayObject));
       };
       this.getVertexArray = () => {
-        return webgl_util.callAndCheck(gl,
-          () => gl.getParameter(gl.VERTEX_ARRAY_BINDING));
+        return webgl_util.callAndCheck(gl2,
+          () => gl2.getParameter(gl2.VERTEX_ARRAY_BINDING));
       };
     } else if (gl != null) {
       const ext = gl.getExtension('OES_vertex_array_object');
@@ -341,12 +342,15 @@ export class GPGPUContext {
     webgl_util.linkProgram(gl, program);
 
     let program2: GPGPUContextProgram;
-    const vaoWas = this.getVertexArray();
     {
       program2 = Object.assign(program, {
         vao: this.createVertexArray(),
       });
       this.bindVertexArray(program2.vao);
+      // Bind index buffer, and vertex buffers based on program attrib
+      // locations.
+      webgl_util.callAndCheck(
+          gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer));
       console.assert(
         gpgpu_util.bindVertexProgramAttributeStreams(gl, program2,
                                                      this.vertexBuffer),
@@ -356,8 +360,6 @@ export class GPGPUContext {
         webgl_util.validateProgram(gl, program2);
       }
     }
-    this.bindVertexArray(vaoWas);
-
     this.setProgram(program2);
 
     return program2;
