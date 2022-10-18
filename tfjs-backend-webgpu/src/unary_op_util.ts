@@ -77,7 +77,7 @@ const ATAN = `
   return atan(a);
 `;
 const ATANH = `
-  if (a >= 1.) {
+  if (abs(a) >= 1.) {
     return uniforms.NAN;
   }
   return atanh(a);
