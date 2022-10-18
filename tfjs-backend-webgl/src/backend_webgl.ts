@@ -704,13 +704,12 @@ export class MathBackendWebGL extends KernelBackend {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
         this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
+      const texData = this.texData.get(dataId);
+      texData.texture = null;
+      texData.texShape = null;
+      texData.isPacked = false;
+      texData.slice = null;
     }
-
-    const texData = this.texData.get(dataId);
-    texData.texture = null;
-    texData.texShape = null;
-    texData.isPacked = false;
-    texData.slice = null;
   }
 
   getTexture(dataId: DataId): WebGLTexture {
