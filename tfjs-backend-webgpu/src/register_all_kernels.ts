@@ -19,12 +19,16 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
+import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
+import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -115,6 +119,7 @@ import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
+import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
@@ -128,12 +133,16 @@ const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
   acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   argMaxConfig,
   argMinConfig,
   asinConfig,
+  asinhConfig,
+  atanConfig,
   atan2Config,
+  atanhConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -224,6 +233,7 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
+  tanConfig,
   tanhConfig,
   tileConfig,
   topKConfig,

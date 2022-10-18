@@ -18,7 +18,11 @@
 export enum UnaryOpType {
   ABS,
   ACOS,
+  ACOSH,
   ASIN,
+  ASINH,
+  ATAN,
+  ATANH,
   CEIL,
   COS,
   COSH,
@@ -41,6 +45,7 @@ export enum UnaryOpType {
   SIGMOID,
   SQRT,
   SQUARE,
+  TAN,
   TANH,
   TO_INT
 }
@@ -52,11 +57,30 @@ const ACOS = `
   }
   return acos(a);
 `;
+const ACOSH = `
+  if (a < 1.) {
+    return uniforms.NAN;
+  }
+  return acosh(a);
+`;
 const ASIN = `
   if (abs(a) > 1.) {
     return uniforms.NAN;
   }
   return asin(a);
+`;
+const ASINH = `return asinh(a);`;
+const ATAN = `
+  if (isnan(a)) {
+    return uniforms.NAN;
+  }
+  return atan(a);
+`;
+const ATANH = `
+  if (abs(a) >= 1.) {
+    return uniforms.NAN;
+  }
+  return atanh(a);
 `;
 const CEIL = `return ceil(a);`;
 const COS = `return cos(a);`;
@@ -112,6 +136,7 @@ const SINH = `
 `;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
+const TAN = `return tan(a);`;
 const TANH = `
   let e2x = exp(-2.0 * abs(a));
   return sign(a) * (1.0 - e2x) / (1.0 + e2x);
@@ -124,8 +149,16 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return ABS;
     case UnaryOpType.ACOS:
       return ACOS;
+    case UnaryOpType.ACOSH:
+      return ACOSH;
     case UnaryOpType.ASIN:
       return ASIN;
+    case UnaryOpType.ASINH:
+      return ASINH;
+    case UnaryOpType.ATAN:
+      return ATAN;
+    case UnaryOpType.ATANH:
+      return ATANH;
     case UnaryOpType.COS:
       return COS;
     case UnaryOpType.COSH:
@@ -170,6 +203,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return SQRT;
     case UnaryOpType.SQUARE:
       return SQUARE;
+    case UnaryOpType.TAN:
+      return TAN;
     case UnaryOpType.TANH:
       return TANH;
     case UnaryOpType.TO_INT:

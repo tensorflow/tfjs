@@ -251,11 +251,8 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'acosh ',
       'all webgpu ',
       'any webgpu ',
-      'asinh ',
-      'atanh ',
       'avgPool3d ',
       'avgPool3dBackprop ',
       'bincount ',
@@ -316,7 +313,6 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients: relu6',  // Step
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tan webgpu',
       'unique ',
       'unsortedSegmentSum ',
       'upperBound',
