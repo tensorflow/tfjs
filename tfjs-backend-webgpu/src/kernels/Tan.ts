@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,15 @@
  * =============================================================================
  */
 
-export * from './tfdf_model';
-import './register_tfdf_ops';
+import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
+
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {UnaryOpType} from '../unary_op_util';
+
+export const tan = unaryKernelFunc({opType: UnaryOpType.TAN});
+
+export const tanConfig: KernelConfig = {
+  kernelName: Tan,
+  backendName: 'webgpu',
+  kernelFunc: tan
+};

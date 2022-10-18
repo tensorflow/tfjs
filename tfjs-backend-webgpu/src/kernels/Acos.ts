@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,16 @@
  * =============================================================================
  */
 
-export * from './tfdf_model';
-import './register_tfdf_ops';
+import {Acos, KernelConfig} from '@tensorflow/tfjs-core';
+
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {UnaryOpType} from '../unary_op_util';
+
+export const acos = unaryKernelFunc({opType: UnaryOpType.ACOS});
+
+export const acosConfig: KernelConfig = {
+  kernelName: Acos,
+  backendName: 'webgpu',
+  kernelFunc: acos
+};
