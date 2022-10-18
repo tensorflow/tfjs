@@ -116,13 +116,10 @@ export function batchMatMulImpl({
         innerShapeB >= 2000) {
       matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
     } else if (
-        // outerShapeB should be relatively small.
-        ((outerShapeA <= 256 && outerShapeB <= 64) ||
-         (outerShapeA <= 64 && outerShapeB <= 256)) &&
-        innerShapeA <= 512) {
+        Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32) <= 16) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
     } else if (
-        innerShapeA <= 96 && outerShapeB <= 64 && innerShapeA % 4 === 0 &&
+        innerShapeA <= 24 && outerShapeB <= 24 && innerShapeA % 4 === 0 &&
         outerShapeB % 4 === 0) {
       matmulProgramType = MatMulProgramType.MatMulProgram;
     } else {
