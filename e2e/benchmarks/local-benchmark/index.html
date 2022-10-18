@@ -270,7 +270,7 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          expectObjectsClose(predictionData, referenceData);
+          expectObjectsClose(predictionData, referenceData, `${state.benchmark}-${state.architecture}`);
           match = true;
         } catch (e) {
           match = false;
