@@ -251,8 +251,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'all webgpu ',
-      'any webgpu ',
       'avgPool3d ',
       'avgPool3dBackprop ',
       'bincount ',

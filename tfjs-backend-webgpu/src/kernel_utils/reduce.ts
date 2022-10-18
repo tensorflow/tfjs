@@ -18,13 +18,14 @@
 import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {maxImplCPU} from './shared';
-import {prodImplCPU} from './shared';
-import {ReduceProgram} from '../reduce_webgpu';
 import {reshape} from '../kernels/Reshape';
 import {transpose} from '../kernels/Transpose';
+import {ReduceProgram} from '../reduce_webgpu';
 
-type ReduceTypes = 'max'|'mean'|'min'|'prod'|'sum';
+import {maxImplCPU} from './shared';
+import {prodImplCPU} from './shared';
+
+type ReduceTypes = 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
 
 export function reduce(
     x: TensorInfo, axis: number|number[], keepDims: boolean,
