@@ -23,7 +23,49 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/tfjs-backend-cpu": [
+        "./tfjs-backend-cpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-webgl": [
+        "./tfjs-backend-webgl/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-webgpu": [
+        "./tfjs-backend-webgpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-wasm": [
+        "./tfjs-backend-wasm/src/index.ts",
+      ],
+      "@tensorflow/tfjs-converter": [
+        "./tfjs-converter/src/index.ts",
+      ],
+      "@tensorflow/tfjs-core": [
+        "./tfjs-core/src/index.ts",
+      ],
+      "@tensorflow/tfjs-data": [
+        "./tfjs-data/src/index.ts",
+      ],
+      "@tensorflow/tfjs-layers": [
+        "./tfjs-layers/src/index.ts",
+      ],
+      "@tensorflow/tfjs-node": [
+        "./tfjs-node/src/index.ts",
+      ],
+      "@tensorflow/tfjs-node-gpu": [
+        "./tfjs-node-gpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-tflite": [
+        "./tfjs-tflite/src/index.ts",
+      ],
+      "@tensorflow/tfjs": [
+        "./tfjs/src/index.ts",
+      ],
+      "@tensorflow/tfjs-core/dist/*": [
+        "./tfjs-core/src/*",
+      ]
+    }
   },
   "include": [
     "**/src/"
