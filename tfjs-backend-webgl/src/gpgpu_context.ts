@@ -70,7 +70,7 @@ export class GPGPUContext {
     gl = this.gl;
 
     if (env().getNumber('WEBGL_VERSION') === 2) {
-      const gl2: WebGL2RenderingContext = gl;
+      const gl2 = gl as WebGL2RenderingContext;
       this.createVertexArray = () => {
         return webgl_util.callAndCheck(gl2,
           () => gl2.createVertexArray());
