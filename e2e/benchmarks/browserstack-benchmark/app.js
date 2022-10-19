@@ -364,7 +364,7 @@ function setupHelpMessage() {
     action: 'store_true'
   });
   parser.add_argument('--weeklyRun', {
-    help: 'runs part of models specified in the file everyday (the period ' +
+    help: 'runs a part of models specified in the file everyday (the period ' +
       'is a week), if --benchmarks is set',
     default: false,
     action: 'store_true'
