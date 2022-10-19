@@ -19,7 +19,7 @@ import {Tensor, test_util} from '@tensorflow/tfjs-core';
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as sparse from '../op_list/sparse';
+import * as sparse from '@tensorflow/tfjs-converter/dist/operations/op_list/sparse';
 import {Node} from '../types';
 
 import {executeOp} from './sparse_executor';

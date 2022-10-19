@@ -19,7 +19,7 @@ import {scalar} from '@tensorflow/tfjs-core';
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as basic_math from '../op_list/basic_math';
+import * as basic_math from '@tensorflow/tfjs-converter/dist/operations/op_list/basic_math';
 import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';

@@ -22,7 +22,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {GraphExecutor} from '../../executor/graph_executor';
 import {TensorArray} from '../../executor/tensor_array';
 import {TensorList} from '../../executor/tensor_list';
-import * as control from '../op_list/control';
+import * as control from '@tensorflow/tfjs-converter/dist/operations/op_list/control';
 import {Graph, Node} from '../types';
 
 import {executeOp} from './control_executor';

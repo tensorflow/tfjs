@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as image from '../op_list/image';
+import * as image from '@tensorflow/tfjs-converter/dist/operations/op_list/image';
 import {Node} from '../types';
 
 import {executeOp} from './image_executor';

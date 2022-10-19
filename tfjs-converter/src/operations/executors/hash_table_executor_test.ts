@@ -23,7 +23,7 @@ import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 import {ExecutionContext} from '../../executor/execution_context';
 import {HashTable} from '../../executor/hash_table';
 import {ResourceManager} from '../../executor/resource_manager';
-import * as hashTable from '../op_list/hash_table';
+import * as hashTable from '@tensorflow/tfjs-converter/dist/operations/op_list/hash_table';
 import {Node} from '../types';
 
 import {executeOp} from './hash_table_executor';

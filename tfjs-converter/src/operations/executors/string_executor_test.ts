@@ -19,7 +19,7 @@ import {Tensor, test_util} from '@tensorflow/tfjs-core';
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as string from '../op_list/string';
+import * as string from '@tensorflow/tfjs-converter/dist/operations/op_list/string';
 import {Node} from '../types';
 
 import {executeOp} from './string_executor';

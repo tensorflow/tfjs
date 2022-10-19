@@ -19,7 +19,7 @@ import {memory} from '@tensorflow/tfjs-core';
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as dynamic from '../op_list/dynamic';
+import * as dynamic from '@tensorflow/tfjs-converter/dist/operations/op_list/dynamic';
 import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';

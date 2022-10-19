@@ -18,7 +18,7 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-import * as matrices from '../op_list/matrices';
+import * as matrices from '@tensorflow/tfjs-converter/dist/operations/op_list/matrices';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';

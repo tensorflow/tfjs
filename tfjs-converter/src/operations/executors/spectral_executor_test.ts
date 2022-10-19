@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as spectral from '../op_list/spectral';
+import * as spectral from '@tensorflow/tfjs-converter/dist/operations/op_list/spectral';
 import {Node} from '../types';
 
 import {executeOp} from './spectral_executor';

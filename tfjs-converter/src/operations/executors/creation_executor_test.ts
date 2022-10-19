@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as creation from '../op_list/creation';
+import * as creation from '@tensorflow/tfjs-converter/dist/operations/op_list/creation';
 import {Node} from '../types';
 
 import {executeOp} from './creation_executor';

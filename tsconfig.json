@@ -64,6 +64,10 @@
       ],
       "@tensorflow/tfjs-core/dist/*": [
         "./tfjs-core/src/*",
+      ],
+      "@tensorflow/tfjs-converter/dist/*": [
+        "./tfjs-converter/src/*",
+        "./dist/bin/tfjs-converter/src/*"
       ]
     }
   },

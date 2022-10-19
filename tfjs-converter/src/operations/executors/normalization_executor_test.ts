@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as normalization from '../op_list/normalization';
+import * as normalization from '@tensorflow/tfjs-converter/dist/operations/op_list/normalization';
 import {Node} from '../types';
 
 import {executeOp} from './normalization_executor';

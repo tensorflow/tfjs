@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as slice_join from '../op_list/slice_join';
+import * as slice_join from '@tensorflow/tfjs-converter/dist/operations/op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';

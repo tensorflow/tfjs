@@ -18,7 +18,7 @@
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
-import * as reduction from '../op_list/reduction';
+import * as reduction from '@tensorflow/tfjs-converter/dist/operations/op_list/reduction';
 import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
