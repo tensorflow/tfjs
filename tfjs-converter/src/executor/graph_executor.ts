@@ -57,7 +57,6 @@ export class GraphExecutor implements FunctionExecutor {
   private tensorsMap: NamedTensorsMap;
   private keepInputTensorsForExecute: Tensor[];
   private keepTensorsForExecute: Tensor[];
-  private keepTensorForDebug = false;
   private dumpMode = DumpMode.Default;
 
   get weightIds(): number[] {
@@ -193,7 +192,7 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   private keepTensors(keepTensors: Tensor[], tensors: Tensor[]) {
-    if (tensors == null || this.dumpMode !== DumpMode.Sync) {
+    if (this.dumpMode !== DumpMode.Sync || tensors == null) {
       return;
     }
     tensors.forEach(tensor => {
@@ -224,7 +223,6 @@ export class GraphExecutor implements FunctionExecutor {
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
     let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
-    this.resetIntermediateTensors();
     // If no outputs are specified, then use the default outputs of the model.
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
@@ -240,8 +238,8 @@ export class GraphExecutor implements FunctionExecutor {
     }
 
     try {
-      this.keepTensorForDebug = env().getBool('KEEP_INTERMEDIATE_TENSORS');
-      if (this.keepTensorForDebug) {
+      const keepTensorForDump = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+      if (keepTensorForDump) {
         this.dumpMode = DumpMode.Sync;
       }
     } catch (e) {
@@ -255,7 +253,7 @@ export class GraphExecutor implements FunctionExecutor {
       const context = new ExecutionContext(
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
-      if (this.keepTensorForDebug) {
+      if (this.dumpMode === DumpMode.Sync) {
         this.keepTensorsForExecute = [];
         this.keepInputTensorsForExecute = [];
       }
@@ -296,7 +294,7 @@ export class GraphExecutor implements FunctionExecutor {
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
 
-    if (this.keepTensorForDebug) {
+    if (this.dumpMode === DumpMode.Sync) {
       this.tensorsMap = tensorsMap;
     } else {
       this.tensorsMap = {};
@@ -342,7 +340,7 @@ export class GraphExecutor implements FunctionExecutor {
             if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
               const count = intermediateTensorConsumerCount[tensor.id];
               if (count === 1) {
-                if (!this.keepTensorForDebug) {
+                if (this.dumpMode === DumpMode.Default) {
                   tensor.dispose();
                 } else {
                   const [nodeName, index] =
@@ -382,6 +380,10 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   disposeIntermediateTensors() {
+    for (const key in this.intermediateTensors) {
+      this.intermediateTensors[key].forEach(tensor => tensor.dispose());
+    }
+    this.intermediateTensors = {};
     if (this.dumpMode === DumpMode.Sync) {
       if (this.keepTensorsForExecute) {
         this.keepTensorsForExecute.forEach(tensor => {
@@ -389,16 +391,10 @@ export class GraphExecutor implements FunctionExecutor {
         });
         this.keepTensorsForExecute = null;
       }
-    } else {
-      if (!this.intermediateTensors) {
-        return;
-      }
-      Object.keys(this.intermediateTensors)
-          .forEach(
-              key => this.intermediateTensors[key].forEach(
-                  tensor => tensor.dispose()));
+    } else if (this.dumpMode === DumpMode.Async) {
       this.disposeTensorsMap();
     }
+    this.dumpMode = DumpMode.Default;
   }
 
   private disposeTensorsMap() {
@@ -421,23 +417,14 @@ export class GraphExecutor implements FunctionExecutor {
     return this.tensorsMap;
   }
 
-  private resetIntermediateTensors() {
-    if (this.dumpMode === DumpMode.Async) {
-      for (const key in this.intermediateTensors) {
-        this.intermediateTensors[key].forEach(tensor => tensor.dispose());
-        delete this.intermediateTensors[key];
-      }
-    }
-  }
-
   /**
    * Executes the inference for given input tensors in Async fashion.
    * @param inputs Tensor map for the model inputs, keyed by the input node
    * names.
    * @param outputs Optional. output node name from the Tensorflow model,
    * if no outputs are specified, the default outputs of the model would be
-   * used. You can inspect intermediate nodes of the model by adding them to the
-   * outputs array.
+   * used. You can inspect intermediate nodes of the model by adding them to
+   * the outputs array.
    * @param isFunctionExecution Optional. Flag for executing a function.
    * @param tensorArrayMap Optional, global TensorArray map by id. Used for
    * function execution.
@@ -458,14 +445,13 @@ export class GraphExecutor implements FunctionExecutor {
 
     // For model debug.
     try {
-      this.keepTensorForDebug = env().getBool('KEEP_INTERMEDIATE_TENSORS');
-      if (this.keepTensorForDebug) {
+      const keepTensorForDump = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+      if (keepTensorForDump) {
         this.dumpMode = DumpMode.Async;
       }
     } catch (e) {
       console.warn(e.message);
     }
-    this.resetIntermediateTensors();
 
     const context = new ExecutionContext(
         this.weightMap, tensorArrayMap, tensorListMap,
@@ -484,7 +470,7 @@ export class GraphExecutor implements FunctionExecutor {
     const inputIds = Object.keys(inputs).map(name => inputs[name].id);
     this.keepIdsForExecuteAsync =
         new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
-    if (!this.keepTensorForDebug) {
+    if (this.dumpMode !== DumpMode.Async) {
       this.disposeTensorsMap();
     }
 
@@ -515,8 +501,8 @@ export class GraphExecutor implements FunctionExecutor {
    * @param context the execution context object for current execution.
    * @param outputNames Optional. output node name from the Tensorflow model,
    * if no outputs are specified, the default outputs of the model would be
-   * used. You can inspect intermediate nodes of the model by adding them to the
-   * outputs array.
+   * used. You can inspect intermediate nodes of the model by adding them to
+   * the outputs array.
    * @param isFunctionExecution Flag for executing a function.
    */
   private async executeWithControlFlow(
