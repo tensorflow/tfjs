@@ -51,6 +51,7 @@ ts_library(
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "@npm//@types/offscreencanvas",
         "@npm//@webgpu/types",
     ],
 )

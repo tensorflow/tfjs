@@ -3,17 +3,16 @@ window.addEventListener("DOMContentLoaded", initPage);
 function appendRow(result) {
   let tbl = document.getElementById('my-table'), // table reference
     rowNum = tbl.rows.length - 1,
-    row = tbl.insertRow(tbl.rows.length),      // append table row
-    i;
+    row = tbl.insertRow(tbl.rows.length);      // append table row
   // insert table cells to the new row
-  // 'Kernel name', 'Backend', 'Input', 'Iterations', 'WebGPU', 'WebGL', 'WebGLComp', 'Program', 'Scale',
+  // 'Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp', 'WebGPUProgram', 'WebGLProgram', 'Scale',
   createCell(row.insertCell(0), result.name, result.name, `${result.name}-${rowNum}`);
   createCell(row.insertCell(1), result.input, result.input, `input-${rowNum}`);
-  createCell(row.insertCell(2), result.iteration, `iteration-${result.iteration}`, `iteration-${rowNum}`);
-  createCell(row.insertCell(3), result.webgpu, 'webgpu', `webgpu-${rowNum}`);
-  createCell(row.insertCell(4), result.webgl, 'webgl', `webgl-${rowNum}`);
-  createCell(row.insertCell(5), result.webglComp, 'webglComp', `webglComp-${rowNum}`);
-  createCell(row.insertCell(6), result.program, 'program', `program-${rowNum}`);
+  createCell(row.insertCell(2), result.webgpu, 'webgpu', `webgpu-${rowNum}`);
+  createCell(row.insertCell(3), result.webgl, 'webgl', `webgl-${rowNum}`);
+  createCell(row.insertCell(4), result.webglComp, 'webglComp', `webglComp-${rowNum}`);
+  createCell(row.insertCell(5), result.webgpuProgram, 'webgpuProgram', `webgpuProgram-${rowNum}`);
+  createCell(row.insertCell(6), result.webglProgram, 'webglProgram', `webglProgram-${rowNum}`);
   createCell(row.insertCell(7), result.scale, `scale-${result.scale}`, `scale-${rowNum}`);
   createCell(row.insertCell(8), 'Rerun', 'rerun', `rerun-${rowNum}`, rerun);
 }
@@ -43,17 +42,17 @@ function createCell(cell, text, classes, id, onclick) {
 
 function initPage() {
   // get the reference for the body
-  let mybody = document.getElementsByTagName("body")[0];
+  const mybody = document.getElementsByTagName("body")[0];
   mybody.innerHTML = '';
-  myMessage = document.createElement("p");
+  const myMessage = document.createElement("p");
   myMessage.id = 'message';
   mybody.appendChild(myMessage);
 
   // creates INFO labels
-  for (let inputs of INFO) {
-    let labelDiv = document.createElement('div');
-    let label = document.createElement('label');
-    label.innerHTML = `${inputs}`;
+  for (let info of INFO) {
+    const labelDiv = document.createElement('div');
+    const label = document.createElement('label');
+    label.innerHTML = `${info}`;
     labelDiv.appendChild(label);
     mybody.appendChild(labelDiv);
   }
@@ -82,32 +81,9 @@ function initPage() {
     mybody.appendChild(backendDiv);
   }
 
-  // creates Iterations labels and checkbox
-  for (let item of [ITERATIONS]) {
-    let backendDiv = document.createElement('div');
-    let labelClass = document.createElement("label");
-    labelClass.innerHTML = 'Iterations';
-    backendDiv.appendChild(labelClass);
-    for (let i of item) {
-      let checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      if (currentIterations.includes(i)) {
-        checkbox.checked = true;
-      }
-      checkbox.name = `iteration-${i}`;
-      checkbox.value = i;
-      checkbox.className = `iterationCheckBox`;
-      checkbox.addEventListener('change', (event) => hideOrPresent(event));
-      let label = document.createElement("label");
-      label.innerHTML = i;
-      backendDiv.appendChild(checkbox);
-      backendDiv.appendChild(label);
-    }
-    mybody.appendChild(backendDiv);
-  }
-
   // creates run button
   let btn = document.createElement("button");
+  btn.id = 'run';
   btn.innerHTML = "Run";
   btn.style.background = 'orange';
   btn.onclick = function () {
@@ -116,7 +92,7 @@ function initPage() {
   document.body.appendChild(btn);
 
   // creates <table> and <tbody> elements
-  mytable = document.createElement("table");
+  const mytable = document.createElement("table");
   mytable.id = 'my-table';
   mytablebody = document.createElement("tbody");
 
@@ -124,7 +100,7 @@ function initPage() {
   mycurrent_row = document.createElement("tr");
   mycurrent_row.style = 'background-color:#BDB76B;color:#ffffff;';
   // creating all cells
-  ['Kernel name', 'Input', 'Iterations', 'WebGPU', 'WebGL', 'WebGLComp %', 'Program', 'Scale(m*k*n)'].forEach((i) => {
+  ['Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp %', 'WebGPUProgram', 'WebGLProgram', 'Scale(m*k*n)'].forEach((i) => {
     // creates a <td> element
     mycurrent_cell = document.createElement("th");
     // creates a Text Node
@@ -155,70 +131,140 @@ function initPage() {
   run();
 }
 
-async function timeMatmul(rowNum) {
-  await tf.setBackend('webgpu');
-  const dimAOuter = parseInt(STATE.input.split(',')[0]);
-  const dimInner = parseInt(STATE.input.split(',')[1]);
-  const dimBOuter = parseInt(STATE.input.split(',')[2]);
-  const numIterations = STATE.iteration;
-  const tensorA = tf.tensor2d(
-    Array.from({ length: dimAOuter * dimInner }, () => Math.floor(Math.random())),
-    [dimAOuter, dimInner]
+async function timeMatmul(backend, rowNum) {
+  await tf.setBackend(backend);
+  let tensors = [];
+  let tensorsWarmUp = [];
+  let tensorsToDispose = [];
+  let inputs = [];
+
+  // Prepare data
+  const warmA = tf.tensor2d(
+    Array.from({ length: warmUpSize * warmUpSize }, () => Math.floor(Math.random())),
+    [warmUpSize, warmUpSize]
   );
-  const tensorB = tf.tensor2d(
-    Array.from({ length: dimInner * dimBOuter }, () => Math.floor(Math.random())),
-    [dimInner, dimBOuter]
+  const warmB = tf.tensor2d(
+    Array.from({ length: warmUpSize * warmUpSize }, () => Math.floor(Math.random())),
+    [warmUpSize, warmUpSize]
   );
-  document.getElementById('message').innerHTML =
-    `Testing on webgpu, ${STATE.name}, ${STATE.input} ...`;
-
-  // skip the first time
-  await tf.matMul(tensorA, tensorB).data();
-
-  let profile_webgpu, profile_webgl;
-
-  for (let i = 0; i < numIterations; i++) {
-    profile_webgpu = await tf.profile(async () => {
-      await tf.matMul(tensorA, tensorB).data();
-    });
-  }
-  const kernel_webgpu = profile_webgpu.kernels[0];
-
-  await tf.setBackend('webgl');
-  document.getElementById('message').innerHTML =
-    `Testing on webgl, ${STATE.name}, ${STATE.input} ...`;
-  for (let i = 0; i < numIterations; i++) {
-    profile_webgl = await tf.profile(async () => {
-      await tf.matMul(tensorA, tensorB).data();
-    });
-  }
-  const kernel_webgl = profile_webgl.kernels[0];
-
-  tensorA.dispose();
-  tensorB.dispose();
-
-  const result = {};
-  result.uid = `${STATE.name}_${STATE.input}_${STATE.iteration}`
-  result.name = STATE.name;
-  result.backend = STATE.backend;
-  result.input = STATE.input;
-  result.iteration = STATE.iteration;
-  result.webgpu = `${parseFloat(kernel_webgpu.kernelTimeMs).toFixed(2)}`; // WebGPU
-  result.webgl = `${parseFloat(kernel_webgl.kernelTimeMs).toFixed(2)}`; // WebGL
-  result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
-  result.scale = `${dimAOuter * dimInner * dimBOuter}`;  // Scale
-  result.program = `${kernel_webgpu.extraInfo.split(':')[0]}`;  // Program
-
+  tensorsWarmUp = { tensorA: warmA, tensorB: warmB };
+  tensorsToDispose.push(warmA);
+  tensorsToDispose.push(warmB);
   if (rowNum !== undefined) {
-    updateRow(result, rowNum);
-    // update gpu result
-    webglCompResults[rowNum] = result.webglComp;
-  } else {
-    appendRow(result);
-    // store gpu result
-    webglCompResults.push(result.webglComp);
+    let input = document.getElementById(`input-${rowNum}`).getAttribute('value');
+    let m = input.split('[')[1].split(',')[0];
+    let k = input.split('[')[2].split(']')[0].split(',')[0];
+    let n = input.split('[')[2].split(']')[0].split(',')[1];
+    inputs = [`${m},${k},${n}`];
   }
-  resultMap.set(result.uid, result);
+  else {
+    inputs = INPUTS;
+  }
+  for (let i = 0; i < inputs.length; i++) {
+    let dimAOuter = parseInt(inputs[i].split(',')[0]);
+    let dimInner = parseInt(inputs[i].split(',')[1]);
+    let dimBOuter = parseInt(inputs[i].split(',')[2]);
+    const tensorA = tf.tensor2d(
+      Array.from({ length: dimAOuter * dimInner }, () => Math.floor(Math.random())),
+      [dimAOuter, dimInner]
+    );
+    const tensorB = tf.tensor2d(
+      Array.from({ length: dimInner * dimBOuter }, () => Math.floor(Math.random())),
+      [dimInner, dimBOuter]
+    );
+    tensors.push({ tensorA, tensorB });
+    tensorsToDispose.push(tensorA);
+    tensorsToDispose.push(tensorB);
+  }
+
+  tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+  // Warmup, first run of each matmul shapes
+  for (let i = 0; i < inputs.length; i++) {
+    let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+    await result.data();
+    result.dispose();
+  }
+  const profile_data = await tf.profile(() => {
+    // Warmup gpu and keep gpu frequency at a high level
+    document.getElementById('message').innerHTML =
+      `Warming up testing on ${backend} ...`;
+    for (let i = 0; i < numWarmUp; i++) {
+      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+      m.dispose();
+    }
+    // Collect result from here
+    for (let i = 0; i < inputs.length; i++) {
+      document.getElementById('message').innerHTML =
+        `Testing on ${backend} ...`;
+      for (let j = 0; j < numAvg; j++) {
+        const result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+        // Insert large shape between each test to keep gpu high frequency
+        const m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+        result.dispose();
+        m.dispose();
+      }
+    }
+  });
+  const profile_kernels = profile_data.kernels;
+
+  for (let tensor of tensorsToDispose) {
+    tensor.dispose();
+  }
+  return profile_kernels;
+}
+
+function drawTable(webgpu_kernels, webgl_kernels, rowNum) {
+  for (let i = numWarmUp; i < webgpu_kernels.length; i += numAvg * 2) {
+    let inputInfo;
+    webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
+      if (inputInfo == null) {
+        inputInfo = '';
+      } else {
+        inputInfo += '\n';
+      }
+      if (inputShape == null) {
+        inputInfo += `input${index}: null`;
+      } else {
+        inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
+      }
+    });
+
+    let mkn = webgpu_kernels[i].inputShapes[0][0] * webgpu_kernels[i].inputShapes[0][1] * webgpu_kernels[i].inputShapes[1][1];
+
+    const avgWebgpu = getAvgKernelTime(webgpu_kernels.slice(i, i + 2 * numAvg));
+    const avgWebgl = getAvgKernelTime(webgl_kernels.slice(i, i + 2 * numAvg));
+
+    const result = {};
+    result.name = webgpu_kernels[i].name;
+    result.input = `${inputInfo}`;
+    result.webgpu = `${parseFloat(avgWebgpu).toFixed(2)}`; // WebGPU
+    result.webgl = `${parseFloat(avgWebgl).toFixed(2)}`; // WebGL
+    result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
+    result.scale = `${parseInt(mkn)}`;  // Scale
+    result.webgpuProgram = `${webgpu_kernels[i].extraInfo.split(',').map(x => x.split(':')[0])}`;  // WebGPUProgram
+    result.webglProgram = `${webgl_kernels[i].extraInfo.split(',').map(x => x.split(':')[0])}`;  // WebGLProgram
+
+    if (rowNum !== undefined) {
+      updateRow(result, rowNum);
+      // update gpu result
+      webglCompResults[rowNum] = result.webglComp;
+    } else {
+      appendRow(result);
+      // store gpu result
+      webglCompResults.push(result.webglComp);
+    }
+  }
+}
+
+function updateTable(avgWebgpu, avgWebgl, rowNum) {
+  const webglComp = `${parseFloat((avgWebgl / avgWebgpu) * 100).toFixed(0)}`;
+  const result = {};
+  result.webgpu = `${parseFloat(avgWebgpu).toFixed(2)}`;
+  result.webgl = `${parseFloat(avgWebgl).toFixed(2)}`;
+  result.webglComp = webglComp;
+  updateRow(result, rowNum);
+  webglCompResults[rowNum] = webglComp;
+
 }
 
 function updateColor() {
@@ -251,6 +297,7 @@ function hideOrPresent(event) {
 }
 
 async function run() {
+  document.getElementById('run').disabled = true;
   // remove results
   let tableHeaderRowCount = 1;
   let table = document.getElementById('my-table');
@@ -259,7 +306,6 @@ async function run() {
     table.deleteRow(i - 1);
   }
   const scaleSelected = [];
-  const iterationSelected = [];
 
   // clear compared result
   webglCompResults = [];
@@ -270,34 +316,25 @@ async function run() {
     scaleSelected.push(s.value);
   }
 
-  // define iteration suite
-  let iterations = document.querySelectorAll('.iterationCheckBox:checked');
-  for (let i of iterations) {
-    iterationSelected.push(i.value);
-  }
-
-  INPUTS = customInputs;
+  INPUTS = defaultInputs;
   for (let scale of scaleSelected) {
     let mySet = getTestSet(scale);
     INPUTS = INPUTS.concat([...mySet]);
-    for (let input of INPUTS) {
-      for (let iteration of iterationSelected) {
-        STATE.input = input;
-        STATE.iteration = iteration;
-        await timeMatmul();
-      }
-    }
   }
+  const profile_webgl = await timeMatmul('webgl');
+  const profile_webgpu = await timeMatmul('webgpu');
+  drawTable(profile_webgpu, profile_webgl);
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
+  document.getElementById('run').disabled = false;
 }
 
 async function rerun(rowNum) {
-  let iteration = document.getElementById(`iteration-${rowNum}`).getAttribute('value');
-  let input = document.getElementById(`input-${rowNum}`).getAttribute('value');
-  STATE.input = input;
-  STATE.iteration = iteration;
-  await timeMatmul(rowNum);
+  const profile_webgl = await timeMatmul('webgl', rowNum);
+  const profile_webgpu = await timeMatmul('webgpu', rowNum);
+  const avgWebgl = getAvgKernelTime(profile_webgl.slice(-numAvg * 2));
+  const avgWebgpu = getAvgKernelTime(profile_webgpu.slice(-numAvg * 2));
+  updateTable(avgWebgpu, avgWebgl, rowNum);
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
 }
@@ -355,27 +392,67 @@ function getPrimeFactor(num) {
   return prime_factor;
 }
 
-const STATE = {
-  name: 'matMul',
-  backend: 'webgpu',
-  input: '144,256,256',
-  iteration: 500,
-};
+function getAvgKernelTime(kernels) {
+  const avg = kernels.reduce(
+    (a, b, index) => {
+      if (index % 2 === 0) {
+        return a + b.kernelTimeMs;
+      }
+      return a;
+    },
+    0,
+  ) / numAvg;
+  return avg;
+}
 
-const resultMap = new Map();
 let webglCompResults = [];
 
 let SCALES = [1016064, 5013504, 10838016, 33554432];
-let currentScale = [1016064];
-let customInputs = ['720, 512, 1536', '1, 704, 2000', '1, 128, 1404', '1, 1280, 1001'];
-
-let ITERATIONS = [1, 10, 50, 100, 200, 500];
-let currentIterations = [10]
+let currentScale = [];
+let defaultInputs = [
+  '1, 1280, 1001',
+  '12544, 16, 64',
+  '196, 672, 112',
+  '1, 960, 1280',
+  '196, 112, 672',
+  '196, 480, 112',
+  '49, 960, 160',
+  '784, 40, 240',
+  '49, 672, 160',
+  '3136, 24, 72',
+  '3136, 72, 24',
+  '49, 160, 960',
+  '196, 80, 480',
+  '784, 120, 40',
+  '784, 40, 120',
+  '3136, 64, 24',
+  '784, 72, 40',
+  '1, 240, 960',
+  '196, 80, 200',
+  '1, 960, 240',
+  '196, 240, 80',
+  '12544, 16, 16',
+  '196, 200, 80',
+  '196, 80, 184',
+  '196, 184, 80',
+  '1, 672, 168',
+  '1, 168, 672',
+  '1, 480, 120',
+  '1, 32, 120',
+  '1, 120, 480',
+  '1, 120, 32',
+  '1, 24, 72',
+  '1, 72, 24',
+];
 
 let INPUTS = [];
+const numWarmUp = 1000;
+const numAvg = 20;
+const warmUpSize = 512;
 const INFO = [
   '0. Run under flag: --enable-unsafe-webgpu --disable-dawn-features=disallow_unsafe_apis',
   '1. Sortable by clicking table column title',
   '2. Rerunable for every single line',
   '3. Set checkBox below to define new test suite',
+  '4. Default workloads are used for MobileNetV3',
 ];

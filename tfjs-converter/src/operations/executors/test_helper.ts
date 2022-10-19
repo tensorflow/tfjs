@@ -96,7 +96,6 @@ export function validateParam(
   return matched;
 }
 
-// TODO(mattsoulanille): Change the return type to Uncapitalize<Name> in TS4.
-export function uncapitalize<Name extends string>(name: Name): string {
-  return name.charAt(0).toLowerCase() + name.slice(1);
+export function uncapitalize<Name extends string>(name: Name): Uncapitalize<Name> {
+  return name.charAt(0).toLowerCase() + name.slice(1) as Uncapitalize<Name>;
 }

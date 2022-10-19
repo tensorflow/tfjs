@@ -25,7 +25,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'adjustHeightWidth : vec2<f32>, halfPixelCenters : f32,';
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(
@@ -36,7 +36,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = `resizeBilinear`;
   }

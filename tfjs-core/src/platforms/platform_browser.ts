@@ -30,7 +30,7 @@ export class PlatformBrowser implements Platform {
   private textEncoder: TextEncoder;
 
   // For setTimeoutCustom
-  private messageName = 'setTimeoutCustom';
+  private readonly messageName = 'setTimeoutCustom';
   private functionRefs: Function[] = [];
   private handledMessageCount = 0;
   private hasEventListener = false;
@@ -62,7 +62,8 @@ export class PlatformBrowser implements Platform {
   // Interleaving window.postMessage and setTimeout will trick the browser and
   // avoid the clamp.
   setTimeoutCustom(functionRef: Function, delay: number): void {
-    if (!window || !env().getBool('USE_SETTIMEOUTCUSTOM')) {
+    if (typeof window === 'undefined' ||
+        !env().getBool('USE_SETTIMEOUTCUSTOM')) {
       setTimeout(functionRef, delay);
       return;
     }

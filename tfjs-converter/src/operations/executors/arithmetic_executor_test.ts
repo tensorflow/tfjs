@@ -62,8 +62,7 @@ describe('arithmetic', () => {
              node.op = op;
              executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-             // TODO(mattsoulanille): Remove type assertion after TS4
-             expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+             expect(spyOps[uncapitalize(op)])
                .toHaveBeenCalledWith(input1[0], input2[0]);
            });
          }));

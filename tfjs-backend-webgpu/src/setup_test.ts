@@ -251,13 +251,8 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'acos ',
-      'acosh ',
       'all webgpu ',
       'any webgpu ',
-      'asin ',
-      'asinh ',
-      'atanh ',
       'avgPool3d ',
       'avgPool3dBackprop ',
       'bincount ',
@@ -293,13 +288,14 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
+      'raggedGather ',
+      'raggedRange ',
+      'raggedTensorToTensor ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',
       'reverse4d ',
       'reverse webgpu',
-      'raggedGather ',
-      'raggedTensorToTensor ',
       'RFFT ',
       'round webgpu',
       'method otsu',  // round
@@ -317,7 +313,6 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients: relu6',  // Step
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tan webgpu',
       'unique ',
       'unsortedSegmentSum ',
       'upperBound',

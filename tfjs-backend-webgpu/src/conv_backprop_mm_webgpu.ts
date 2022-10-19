@@ -19,7 +19,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 import {typeSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
+import {computeDispatch, computeWorkgroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 function conv2dTransposeCommonSnippet(innerElementSize = 4) {
   const getWSnippet = (innerElementSize: number) => {
@@ -120,7 +120,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   variableTypes: string[];
   uniforms =
       'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   isVec4?: boolean;
 
@@ -133,13 +133,13 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     this.isVec4 =
         convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
-    this.workGroupSize = computeWorkGroupSizeForConv2d(
+    this.workgroupSize = computeWorkgroupSizeForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
     this.elementsPerThread = computeWorkPerThreadForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         this.elementsPerThread);
 
     if (this.isVec4) {
@@ -152,8 +152,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
-        makeMatMulPackedVec4Source(this.elementsPerThread, this.workGroupSize) :
-        makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
+        makeMatMulPackedVec4Source(this.elementsPerThread, this.workgroupSize) :
+        makeMatMulPackedSource(this.elementsPerThread, this.workgroupSize);
     const userCode = `
     ${conv2dTransposeCommonSnippet(this.isVec4 ? 4 : 1)}
     ${matMulSource}
