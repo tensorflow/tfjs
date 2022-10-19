@@ -896,243 +896,6 @@ function matmulTest(programType: MatMulProgramType) {
       ]);
     });
 
-    it('A x B vec4', async () => {
-      const a = tf.tensor3d(
-          [
-            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
-            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
-            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
-            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
-            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
-            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
-            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
-          ],
-          [1, 32, 4]);
-
-      const b = tf.tensor3d(
-          [
-            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
-            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
-            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
-            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
-            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
-            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
-            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
-          ],
-          [1, 4, 32]);
-      const c = tf.matMul(a, b);
-      expect(c.shape).toEqual([1, 32, 32]);
-      test_util.expectArraysClose(await c.data(), [
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
-        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
-        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
-        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
-        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
-        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
-        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
-        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
-        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
-        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
-        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
-        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
-        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
-        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
-        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
-        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
-        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
-        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
-        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
-        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
-        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
-        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
-        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
-        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
-        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
-        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
-        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
-        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
-        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
-        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
-        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
-        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
-        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
-        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
-        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
-        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
-        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
-        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
-        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
-        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
-        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
-        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
-        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
-        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
-        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40
-      ]);
-    });
-
-    it('A x B vec4 A is a vector', async () => {
-      const a = tf.tensor3d([2, 1, 3, 2], [1, 1, 4]);
-
-      const b = tf.tensor3d(
-          [
-            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
-            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
-            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
-            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
-            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
-            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
-            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
-          ],
-          [1, 4, 32]);
-      const c = tf.matMul(a, b);
-      expect(c.shape).toEqual([1, 1, 32]);
-      test_util.expectArraysClose(await c.data(), [
-        47, 41, 23, 12, 15, 12, 8, 32, 41, 41, 42, 11, 14, 13, 8, 52,
-        64, 62, 31, 9,  19, 15, 8, 36, 47, 41, 23, 12, 15, 12, 8, 32
-      ]);
-    });
-
-    it('A^t x B vec4', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d([1, 0, 2, 4, 3, 0, 5, 6], [2, 4]);
-
-      const transposeA = true;
-      const transposeB = false;
-      const c = tf.matMul(a, b, transposeA, transposeB);
-      const result = await c.data();
-      const expected =
-          [16, 0, 27, 34, 20, 0, 34, 44, 24, 0, 41, 54, 28, 0, 48, 64];
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('fused A x B vec4 with relu', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
-
-      expect(c.shape).toEqual([2, 4]);
-      expectArraysClose(await c.data(), [30, 0, 36, 0, 66, 0, 68, 0]);
-    });
-
-    it('fused A x B vec4 with elu', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: null, activation: 'elu'});
-
-      expect(c.shape).toEqual([2, 4]);
-      expectArraysClose(
-          await c.data(), [30, -0.9999, 36, -1, 66, -0.9999, 68, -1]);
-    });
-
-    it('fused A x B vec4 with relu6', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
-
-      expect(c.shape).toEqual([2, 4]);
-      expectArraysClose(await c.data(), [6, 0, 6, 0, 6, 0, 6, 0]);
-    });
-
-    it('fused A x B vec4 with prelu', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const alpha = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [1, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul({
-        a,
-        b,
-        transposeA,
-        transposeB,
-        bias: null,
-        activation: 'prelu',
-        preluActivationWeights: alpha
-      });
-
-      expect(c.shape).toEqual([2, 4]);
-      expectArraysClose(await c.data(), [30, -4.5, 36, -15, 66, -4.5, 68, -27]);
-    });
-
-    it('fused A x B vec4 with leakyrelu', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const alpha = 0.3;
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul({
-        a,
-        b,
-        transposeA,
-        transposeB,
-        bias: null,
-        activation: 'leakyrelu',
-        leakyreluAlpha: alpha
-      });
-
-      expect(c.shape).toEqual([2, 4]);
-      expectArraysClose(await c.data(), [
-        30, -2.700000047683716, 36, -9, 66, -2.700000047683716, 68,
-        -16.200000762939453
-      ]);
-    });
-
-    it('fused A x B vec4 with leakyrelu not provided.', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const c = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: null, activation: 'leakyrelu'});
-
-      expect(c.shape).toEqual([2, 4]);
-      // leakyRelu should use default alpha=0.2.
-      expectArraysClose(await c.data(), [
-        30, -1.8000000715255737, 36, -6, 66, -1.8000000715255737, 68,
-        -10.800000190734863
-      ]);
-    });
-
     it('fused A x B with sigmoid', async () => {
       const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
       const b = tf.tensor2d(
@@ -1148,37 +911,6 @@ function matmulTest(programType: MatMulProgramType) {
         1, 0.00012339462409727275, 1, 9.35763443186792e-14, 1,
         0.00012339462409727275, 1, 3.5326268130932535e-24
       ]);
-    });
-
-    it('fused A x B vec4 with 2d bias and relu', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const c = tf.tensor2d([1, 1, 1, 1, 1, 1, 1, 1], [2, 4]);
-      const transposeA = false;
-      const transposeB = false;
-
-      const d = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
-
-      expect(d.shape).toEqual([2, 4]);
-      expectArraysClose(await d.data(), [31, 0, 37, 0, 67, 0, 69, 0]);
-    });
-
-    it('fused A x B vec4 with relu and broadcasted bias', async () => {
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const b = tf.tensor2d(
-          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
-      const c = tf.tensor1d([1, 1, 1, 1]);
-      const act: tf.fused.Activation = 'relu';
-      const transposeA = false;
-      const transposeB = false;
-
-      const d = tf.fused.matMul(
-          {a, b, transposeA, transposeB, bias: c, activation: act});
-
-      expect(d.shape).toEqual([2, 4]);
-      expectArraysClose(await d.data(), [31, 0, 37, 0, 67, 0, 69, 0]);
     });
 
     // Below cases are from mat_mul_test.ts in tfjs-core.
@@ -1545,6 +1277,288 @@ function matmulTest(programType: MatMulProgramType) {
   };
 }
 
+// Below cases are used to test matmul with vec4 buffers.
+function matmulVec4Test(programType: MatMulProgramType) {
+  return () => {
+    let savedMatmulFlag = -1;
+    beforeAll(() => {
+      savedMatmulFlag = tf.env().get('WEBGPU_MATMUL_PROGRAM_TYPE') as number;
+      tf.env().set('WEBGPU_MATMUL_PROGRAM_TYPE', programType);
+    });
+    afterAll(() => {
+      tf.env().set('WEBGPU_MATMUL_PROGRAM_TYPE', savedMatmulFlag);
+    });
+
+    it('A x B vec4', async () => {
+      const a = tf.tensor3d(
+          [
+            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
+            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
+            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
+            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
+            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
+            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
+            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
+          ],
+          [1, 32, 4]);
+
+      const b = tf.tensor3d(
+          [
+            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
+            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
+            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
+            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
+            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
+            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
+            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
+          ],
+          [1, 4, 32]);
+      const c = tf.matMul(a, b);
+      expect(c.shape).toEqual([1, 32, 32]);
+      test_util.expectArraysClose(await c.data(), [
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
+        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
+        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
+        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
+        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
+        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
+        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
+        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
+        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
+        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
+        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
+        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
+        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
+        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
+        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
+        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
+        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
+        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
+        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
+        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
+        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
+        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
+        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
+        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
+        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
+        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
+        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
+        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
+        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
+        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
+        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
+        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
+        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40,
+        144, 136, 85,  29, 45, 37, 22, 106, 135, 127, 87,  30, 43, 36, 22, 110,
+        139, 133, 92,  29, 44, 37, 22, 114, 144, 136, 85,  29, 45, 37, 22, 106,
+        45,  35,  50,  25, 18, 17, 14, 74,  90,  98,  93,  15, 29, 27, 14, 106,
+        131, 119, 25,  16, 37, 26, 14, 30,  45,  35,  50,  25, 18, 17, 14, 74,
+        95,  92,  117, 35, 35, 34, 23, 151, 184, 185, 109, 24, 55, 45, 23, 123,
+        158, 137, 50,  33, 48, 36, 23, 71,  95,  92,  117, 35, 35, 34, 23, 151,
+        31,  28,  29,  11, 11, 10, 7,  39,  48,  49,  37,  8,  15, 13, 7,  43,
+        54,  49,  18,  9,  16, 12, 7,  23,  31,  28,  29,  11, 11, 10, 7,  39,
+        47,  41,  23,  12, 15, 12, 8,  32,  41,  41,  42,  11, 14, 13, 8,  52,
+        64,  62,  31,  9,  19, 15, 8,  36,  47,  41,  23,  12, 15, 12, 8,  32,
+        29,  23,  27,  14, 11, 10, 8,  40,  49,  53,  52,  9,  16, 15, 8,  60,
+        74,  68,  17,  9,  21, 15, 8,  20,  29,  23,  27,  14, 11, 10, 8,  40
+      ]);
+    });
+
+    it('A x B vec4 A is a vector', async () => {
+      const a = tf.tensor3d([2, 1, 3, 2], [1, 1, 4]);
+
+      const b = tf.tensor3d(
+          [
+            2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1, 2,  2,  1, 9, 11, 10, 1,
+            1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1, 5,  6,  7, 8, 1,  2,  2,
+            1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1, 3,  2,  1, 1, 1,  5,  6,
+            7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3, 2,  1,  1, 2, 1,  3,  2,
+            1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9, 11, 10, 1, 1, 3,  2,  1,
+            1, 2, 1,  3,  2, 1, 1, 1,  5,  6, 7, 8, 1,  2,  2, 1, 9,  11, 10,
+            1, 1, 3,  2,  1, 1, 2, 1,  3,  2, 1, 1, 1,  5
+          ],
+          [1, 4, 32]);
+      const c = tf.matMul(a, b);
+      expect(c.shape).toEqual([1, 1, 32]);
+      test_util.expectArraysClose(await c.data(), [
+        47, 41, 23, 12, 15, 12, 8, 32, 41, 41, 42, 11, 14, 13, 8, 52,
+        64, 62, 31, 9,  19, 15, 8, 36, 47, 41, 23, 12, 15, 12, 8, 32
+      ]);
+    });
+
+    it('A^t x B vec4', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d([1, 0, 2, 4, 3, 0, 5, 6], [2, 4]);
+
+      const transposeA = true;
+      const transposeB = false;
+      const c = tf.matMul(a, b, transposeA, transposeB);
+      const result = await c.data();
+      const expected =
+          [16, 0, 27, 34, 20, 0, 34, 44, 24, 0, 41, 54, 28, 0, 48, 64];
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('fused A x B vec4 with relu', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
+
+      expect(c.shape).toEqual([2, 4]);
+      expectArraysClose(await c.data(), [30, 0, 36, 0, 66, 0, 68, 0]);
+    });
+
+    it('fused A x B vec4 with elu', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'elu'});
+
+      expect(c.shape).toEqual([2, 4]);
+      expectArraysClose(
+          await c.data(), [30, -0.9999, 36, -1, 66, -0.9999, 68, -1]);
+    });
+
+    it('fused A x B vec4 with relu6', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
+
+      expect(c.shape).toEqual([2, 4]);
+      expectArraysClose(await c.data(), [6, 0, 6, 0, 6, 0, 6, 0]);
+    });
+
+    it('fused A x B vec4 with prelu', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const alpha = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [1, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul({
+        a,
+        b,
+        transposeA,
+        transposeB,
+        bias: null,
+        activation: 'prelu',
+        preluActivationWeights: alpha
+      });
+
+      expect(c.shape).toEqual([2, 4]);
+      expectArraysClose(await c.data(), [30, -4.5, 36, -15, 66, -4.5, 68, -27]);
+    });
+
+    it('fused A x B vec4 with leakyrelu', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const alpha = 0.3;
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul({
+        a,
+        b,
+        transposeA,
+        transposeB,
+        bias: null,
+        activation: 'leakyrelu',
+        leakyreluAlpha: alpha
+      });
+
+      expect(c.shape).toEqual([2, 4]);
+      expectArraysClose(await c.data(), [
+        30, -2.700000047683716, 36, -9, 66, -2.700000047683716, 68,
+        -16.200000762939453
+      ]);
+    });
+
+    it('fused A x B vec4 with leakyrelu not provided.', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const c = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'leakyrelu'});
+
+      expect(c.shape).toEqual([2, 4]);
+      // leakyRelu should use default alpha=0.2.
+      expectArraysClose(await c.data(), [
+        30, -1.8000000715255737, 36, -6, 66, -1.8000000715255737, 68,
+        -10.800000190734863
+      ]);
+    });
+
+    it('fused A x B vec4 with relu and broadcasted bias', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const c = tf.tensor1d([1, 1, 1, 1]);
+      const act: tf.fused.Activation = 'relu';
+      const transposeA = false;
+      const transposeB = false;
+
+      const d = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: c, activation: act});
+
+      expect(d.shape).toEqual([2, 4]);
+      expectArraysClose(await d.data(), [31, 0, 37, 0, 67, 0, 69, 0]);
+    });
+
+    it('fused A x B vec4 with 2d bias and relu', async () => {
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+      const b = tf.tensor2d(
+          [0, 1, -3, 2, 2, 1, 1, 0, 2, 4, 3, 0, 5, -6, 7, -8], [4, 4]);
+      const c = tf.tensor2d([1, 1, 1, 1, 1, 1, 1, 1], [2, 4]);
+      const transposeA = false;
+      const transposeB = false;
+
+      const d = tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+
+      expect(d.shape).toEqual([2, 4]);
+      expectArraysClose(await d.data(), [31, 0, 37, 0, 67, 0, 69, 0]);
+    });
+  };
+}
+
 // Below cases are from [fused_]mat_mul_test.ts in tfjs-core.
 function matmulBatchTest(programType: MatMulProgramType) {
   return () => {
@@ -1633,8 +1647,8 @@ function matmulBatchTest(programType: MatMulProgramType) {
          expect(result.shape).toEqual([batch, n, n]);
          expectArraysClose(
              await result.data(), [4, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0]);
-         // Dispose the first output, so memory of the second output (which has
-         // the same shape), could be reused.
+         // Dispose the first output, so memory of the second output (which
+         // has the same shape), could be reused.
          result.dispose();
 
          const vals2 = new Float32Array(batch * n * n);
@@ -1951,7 +1965,14 @@ function matmulBatchTest(programType: MatMulProgramType) {
 }
 
 for (let i = 0; i < MatMulProgramType.MatMulMax; i++) {
+  if (i === MatMulProgramType.MatMulProgram) {
+    describeWithFlags(
+        `matmul ${MatMulProgramType[i]}`, ALL_ENVS, matmulVec4Test(i));
+    break;
+  }
   describeWithFlags(`matmul ${MatMulProgramType[i]}`, ALL_ENVS, matmulTest(i));
+  describeWithFlags(
+      `matmul ${MatMulProgramType[i]}`, ALL_ENVS, matmulVec4Test(i));
   // Skip MatMulSplitKProgram since it doesn't support batch > 1;
   if (i !== MatMulProgramType.MatMulSplitKProgram) {
     describeWithFlags(

@@ -78,9 +78,9 @@ export class MatMulProgram implements WebGPUProgram {
     ${
         activationFnSnippet(
             this.activation, this.hasPreluActivationWeights, this.isVec4)}
-    const ColPerThread = 4;
+    const colPerThread = 4;
     ${main('index')} {
-      let flatIndex = index * ColPerThread;
+      let flatIndex = index * colPerThread;
       let coords = getCoordsFromIndex(flatIndex);
       let batch = coords.x;
       let globalRow = coords.y;
