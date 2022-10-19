@@ -710,12 +710,13 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
-    // There are five kinds of uniforms: NAN, shapes, shape strides, program
-    // size, program defined uniforms.
+    // There are five kinds of uniforms: NAN, INFINITY, shapes, shape strides,
+    // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
     if (!program.isFromPixels) {
-      programUniform.push({type: 'float32', data: [NaN]});
+      programUniform.push(
+          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
       const uniformsType = 'int32';
       bufferShapes.map(d => {

@@ -202,7 +202,7 @@ function makeShader(
     ].join('\n');
   }
 
-  let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
+  let uniformDeclaration = 'struct Uniforms { NAN : f32, INFINITY : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
     uniformDeclaration +=
@@ -258,7 +258,7 @@ function makeShader(
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet, prefixSnippets.join('\n'),
+    commonSnippet + isInfSnippet, prefixSnippets.join('\n'),
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
@@ -367,6 +367,12 @@ const commonSnippet = `
   }
   fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
     return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+  }
+`;
+
+const isInfSnippet = `
+  fn isinf(val: f32) -> bool {
+    return abs(val) == uniforms.INFINITY;
   }
 `;
 
