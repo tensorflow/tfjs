@@ -48,6 +48,7 @@ test_suite(
         "//tfjs-core:tests",
         "//tfjs-data:tests",
         "//tfjs-layers:tests",
+        "//tfjs-tfdf:tests",
         "//tfjs-tflite:tests",
     ],
 )
