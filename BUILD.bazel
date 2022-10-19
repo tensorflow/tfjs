@@ -23,13 +23,17 @@ exports_files([
     "tsconfig.json",
     "tsconfig_es5.json",
     "tsconfig.test.json",
+    "tsconfig_base.json",
     "tsconfig_ts_library.json",
 ])
 
 ts_config(
     name = "tsconfig_ts_library",
     src = "tsconfig_ts_library.json",
-    deps = [":tsconfig.json"],
+    deps = [
+        ":tsconfig.json",
+        ":tsconfig_base.json",
+    ],
 )
 
 grep_flag(
