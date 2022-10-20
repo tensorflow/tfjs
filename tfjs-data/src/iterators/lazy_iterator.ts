@@ -160,7 +160,7 @@ export abstract class LazyIterator<T> {
    *
    * Calling next() on a closed stream returns `{value:null, done:true}`.
    */
-  abstract async next(): Promise<IteratorResult<T>>;
+  abstract next(): Promise<IteratorResult<T>>;
 
   /**
    * Collect all remaining elements of a bounded stream into an array.
@@ -860,7 +860,7 @@ export abstract class OneToManyIterator<T> extends LazyIterator<T> {
    *   upstream source is exhausted AND nothing was added to the queue
    * (i.e., any remaining carryover).
    */
-  protected abstract async pump(): Promise<boolean>;
+  protected abstract pump(): Promise<boolean>;
 
   async serialNext(): Promise<IteratorResult<T>> {
     // Fetch so that the queue contains at least one item if possible.

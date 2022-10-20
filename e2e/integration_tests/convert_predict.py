@@ -457,7 +457,7 @@ def _create_saved_model_v2_with_hashtable(save_dir):
   return {
       "async": False,
       "inputs": {
-          "Placeholder:0": {
+          "input:0": {
               "value": ["a", "b", "c"], "shape": [3], "dtype": "string"
           }
       },

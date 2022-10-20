@@ -29,7 +29,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [8, 8, 1];
+  workgroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
@@ -68,7 +68,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        this.workGroupSize, this.elementsPerThread);
+        this.workgroupSize, this.elementsPerThread);
 
     this.transposeA = transposeA;
     this.transposeB = transposeB;
@@ -119,10 +119,10 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       }
       ${
         this.isVec4 ? makeMatMulPackedVec4Source(
-                          this.elementsPerThread, this.workGroupSize,
+                          this.elementsPerThread, this.workgroupSize,
                           this.transposeA, 32, true, this.splitedDimInner) :
                       makeMatMulPackedSource(
-                          this.elementsPerThread, this.workGroupSize,
+                          this.elementsPerThread, this.workgroupSize,
                           this.transposeA, 32, true, this.splitedDimInner)}
     `;
     return userCode;
@@ -136,7 +136,7 @@ export class BiasActivationProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   private addBias: boolean;
   private activation: backend_util.Activation;
@@ -149,7 +149,7 @@ export class BiasActivationProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.addBias = bias != null;
     this.hasPreluActivationWeights = preluActivationWeights != null;
     this.activation = activation;

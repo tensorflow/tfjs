@@ -19,7 +19,7 @@ import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {AdapterInfo, GPUAdapterInfo} from './adapter_info';
+import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
@@ -710,12 +710,13 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
-    // There are five kinds of uniforms: NAN, shapes, shape strides, program
-    // size, program defined uniforms.
+    // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
+    // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
     if (!program.isFromPixels) {
-      programUniform.push({type: 'float32', data: [NaN]});
+      programUniform.push(
+          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
       const uniformsType = 'int32';
       bufferShapes.map(d => {

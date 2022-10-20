@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -174,6 +174,38 @@ export class MathBackendWebGL extends KernelBackend {
 
   numDataIds() {
     return this.texData.numDataIds() - this.pendingDeletes;
+  }
+
+  // Writes a new entry to the data store with a WebGL texture, and registers it
+  // to the texture manager.
+  writeTexture(
+      texture: WebGLTexture, shape: number[], dtype: DataType,
+      texHeight: number, texWidth: number, channels: string): DataId {
+    // Temporarily create an tensor info to make the texture compatible with
+    // the runWebGLProgram's input.
+    const input = this.makeTensorInfo(shape, dtype);
+    const inData = this.texData.get(input.dataId);
+    // Even though the input texture could be unpacked or dense packed, it is
+    // always considered as unpacked for EncodeMatrixProgram.
+    inData.isPacked = false;
+
+    // Bind texture to the input tensor.
+    inData.texture = {texture, texShape: [texHeight, texWidth]};
+    inData.texShape = [texHeight, texWidth];
+
+    const shapeAs3D = webgl_util.getShapeAs3D(shape);
+    const program =
+        new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */, channels);
+    const output =
+        this.runWebGLProgram(program, [input], dtype, [[texHeight, texWidth]]);
+    output.shape = shape;
+
+    // Unbind the texture from the input tensor to avoid the texture being
+    // released.
+    inData.texture = null;
+    this.disposeIntermediateTensorInfo(input);
+
+    return output.dataId;
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
@@ -1266,6 +1298,31 @@ export class MathBackendWebGL extends KernelBackend {
       binary.outShapeStridesLocation = outShapeStridesLocation;
       binary.outTexShapeLocation = outTexShapeLocation;
     }
+  }
+
+  /**
+   * Create a TF.js tensor out of an existing WebGL texture. A new texture will
+   * be created.
+   */
+  createTensorFromTexture(values: WebGLData, shape: number[], dtype: DataType):
+      Tensor {
+    const {texture, height, width, channels} = values;
+    const backend = engine().backend as MathBackendWebGL;
+
+    // Have to throw an error, otherwise WebGL just warns and returns wrong
+    // values.
+    if (!backend.gpgpu.gl.isTexture(texture)) {
+      throw new Error(
+          `The texture is invalid. Also, please make sure the texture and ` +
+          `the TFJS WebGL backend are using the same canvas. If you want to ` +
+          `use your own custom canvas, you have to create and use the custom ` +
+          `TFJS WebGL backend created from the canvas through ` +
+          `'new tf.MathBackendWebGL(customCanvas)'.`);
+    }
+
+    const dataId =
+        backend.writeTexture(texture, shape, dtype, height, width, channels);
+    return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
   }
 }
 

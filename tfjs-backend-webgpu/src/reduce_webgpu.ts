@@ -24,16 +24,16 @@ export class ReduceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
   uniforms = 'reduceSize : i32,';
-  reduceType: 'max'|'mean'|'min'|'prod'|'sum';
+  reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
-      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
+      reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum') {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
@@ -65,6 +65,12 @@ export class ReduceProgram implements WebGPUProgram {
     } else if (this.reduceType === 'prod') {
       reduceOp = ' bestValue = bestValue * candidate; ';
       initValue = '1.0';
+    } else if (this.reduceType === 'all') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ';
+      initValue = '1.0';
+    } else if (this.reduceType === 'any') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ';
+      initValue = '0.0';
     }
 
     const outputSnippet = this.reduceType === 'mean' ?
@@ -73,7 +79,7 @@ export class ReduceProgram implements WebGPUProgram {
         `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+         var<workgroup> xBestValues : array<f32, ${this.workgroupSize[0]}>;
        `;
 
     const userCode = `
@@ -91,20 +97,20 @@ export class ReduceProgram implements WebGPUProgram {
           return offset;
        }
        ${main('index')} {
-         let outputIndex = index / i32(workGroupSizeX);
+         let outputIndex = index / i32(workgroupSizeX);
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
+         let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workGroupSizeX)) {
+             k = k + i32(workgroupSizeX)) {
            let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
          workgroupBarrier();
 
-         var reduceSize = min(u32(Length), workGroupSizeX);
+         var reduceSize = min(u32(Length), workgroupSizeX);
          for (var currentSize = reduceSize / 2u; reduceSize > 1u;
              currentSize = reduceSize / 2u) {
            let interval = DIV_CEIL(reduceSize, 2u);

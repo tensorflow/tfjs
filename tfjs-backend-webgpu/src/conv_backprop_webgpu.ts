@@ -27,7 +27,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   isChannelsLast: boolean;
   size = true;
 
@@ -35,7 +35,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     this.outputShape = convInfo.inShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
     this.shaderKey = `conv2DDerInput_${this.isChannelsLast}`;
   }
