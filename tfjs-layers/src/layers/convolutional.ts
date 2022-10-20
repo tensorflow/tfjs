@@ -706,7 +706,6 @@ serialization.registerClass(Conv3D);
 export class Conv2DTranspose extends Conv2D {
   /** @nocollapse */
   static className = 'Conv2DTranspose';
-  inputSpec: InputSpec[];
 
   constructor(args: ConvLayerArgs) {
     super(args);
@@ -855,7 +854,6 @@ serialization.registerClass(Conv2DTranspose);
 export class Conv3DTranspose extends Conv3D {
   /** @nocollapse */
   static className = 'Conv3DTranspose';
-  inputSpec: InputSpec[];
 
   constructor(args: ConvLayerArgs) {
     super(args);
@@ -1438,8 +1436,8 @@ export class UpSampling2D extends Layer {
 
   getConfig(): serialization.ConfigDict {
     const config = {
-        size: this.size, 
-        dataFormat: this.dataFormat, 
+        size: this.size,
+        dataFormat: this.dataFormat,
         interpolation: this.interpolation
     };
     const baseConfig = super.getConfig();
