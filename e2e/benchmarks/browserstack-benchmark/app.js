@@ -415,6 +415,8 @@ function setupHelpMessage() {
  * returns a certain bucket.)
  *
  * @param models The models to schedule.
+ * @param day The value could be -1 or 0~6, and it determines the models to
+ *    benchmark. If value is -1, the day will be the day at the runtime.
  */
 function scheduleModels(models, day) {
   if (day === -1) {
