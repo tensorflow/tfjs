@@ -363,8 +363,10 @@ function setupHelpMessage() {
     action: 'store_true'
   });
   parser.add_argument('--weeklyCycleRun', {
-    help: 'runs a part of models specified in the file everyday (the period ' +
-      'is a week), if --benchmarks is set',
+    help: 'runs a part of models specified in --benchmarks\'s file in a ' +
+      'weekly cycle and the part of models to run is determined by the day ' +
+      'of a week. The value could be -1 (the day will the day at the ' +
+      'runtime) or 0~6 (representing Sunday to Saturday).',
     type: 'int',
     action: 'store'
   });
