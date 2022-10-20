@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2022 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
-# Halt if a single command errors
-set -e
+package(default_visibility = ["//visibility:public"])
 
-# The output dir is stored in the first parameter.
-# It is passed from genrule.
-OUTPUT_DIR="$1"
-
-# Download the zipped lib to the output dir.
-# TODO: switch to downloading from the github release once the updated JS API is released.
-cd "${OUTPUT_DIR}" && { curl -O https://storage.googleapis.com/tfjs-testing/ydf-lib/ydf.zip; cd -; }
-
-# Unzip and delete the zipped file.
-unzip "${OUTPUT_DIR}/ydf.zip" -d "${OUTPUT_DIR}"
-rm -f "${OUTPUT_DIR}/ydf.zip"
-
+sh_binary(
+    name = "download_tfdf_web_api",
+    srcs = ["download-tfdf-web-api.sh"],
+)
