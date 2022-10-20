@@ -116,7 +116,7 @@ class ConvRNN2D extends RNN {
   /** @nocollapse */
   static className = 'ConvRNN2D';
 
-  readonly cell: ConvRNN2DCell;
+  declare readonly cell: ConvRNN2DCell;
 
   constructor(args: ConvRNN2DLayerArgs) {
     if (args.unroll) {
