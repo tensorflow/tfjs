@@ -268,8 +268,6 @@ const TEST_FILTERS: TestFilter[] = [
       'erf ',
       'FFT ',
       'IRFFT ',
-      'isFinite ',
-      'isInf ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
