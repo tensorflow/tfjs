@@ -251,8 +251,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'all webgpu ',
-      'any webgpu ',
       'avgPool3d ',
       'avgPool3dBackprop ',
       'bincount ',
@@ -270,8 +268,6 @@ const TEST_FILTERS: TestFilter[] = [
       'erf ',
       'FFT ',
       'IRFFT ',
-      'isFinite ',
-      'isInf ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
