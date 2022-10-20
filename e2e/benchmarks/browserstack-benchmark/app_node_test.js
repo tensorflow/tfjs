@@ -335,10 +335,28 @@ describe('promise queue', () => {
 describe('weekly schedule', () => {
   it('scheduling models works', () => {
     const dt = new Date("October 19, 2022");  // Wednesday.
-    models = Array.from(Array(24).keys());
+    models = Array.from(Array(25).keys());
     const res = scheduleModels(models, dt);
     expect(res).toEqual(
       [12, 13, 14, 15]
+    );
+  });
+
+  it('scheduling models works for Sat', () => {
+    const dt = new Date("October 22, 2022");  // Saturday.
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, dt);
+    expect(res).toEqual(
+      [24]
+    );
+  });
+
+  it('scheduling models works for Sun', () => {
+    const dt = new Date("October 23, 2022");  // Sunday.
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, dt);
+    expect(res).toEqual(
+      [0, 1, 2, 3]
     );
   });
 });
