@@ -101,6 +101,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --help
     ```
+  * --weeklyCycleRun
+    - Runs a part of models specified in `--benchmarks`'s file in a weekly cycle and the part of models to run is determined by the day of a week. The value could be -1 (the day will the day at the runtime) or 0~6 (representing Sunday to Saturday). This argument takes effect only if `--benchmarks` is set.
+    ``` shell
+    node app.js --weeklyCycleRun=-1
+    ```
   * --maxBenchmarks
     - Sets maximum for number of benchmarks run in parallel. Expects a positive integer.
     ``` shell
