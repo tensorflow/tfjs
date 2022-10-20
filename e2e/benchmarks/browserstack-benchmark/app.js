@@ -110,7 +110,6 @@ function setupBenchmarkEnv(config) {
  */
 async function benchmarkAll(benchmarkInfo, browsers) {
   const allResults = [];
-
   for (backend of benchmarkInfo.backend) {
     for (model of benchmarkInfo.model) {
       if (model === 'codeSnippet') {
@@ -363,11 +362,11 @@ function setupHelpMessage() {
     help: 'runs GCP compatible version of benchmarking system',
     action: 'store_true'
   });
-  parser.add_argument('--weeklyRun', {
+  parser.add_argument('--weeklyCycleRun', {
     help: 'runs a part of models specified in the file everyday (the period ' +
       'is a week), if --benchmarks is set',
-    default: false,
-    action: 'store_true'
+    type: 'int',
+    action: 'store'
   });
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
@@ -415,8 +414,13 @@ function setupHelpMessage() {
  *
  * @param models The models to schedule.
  */
-function scheduleModels(models, date = new Date()) {
-  const day = date.getDay();
+function scheduleModels(models, day) {
+  if (day === -1) {
+    const date = new Date();
+    day = date.getDay();
+  } else if (day < 0 || day > 6) {
+    throw new Error('--weeklyCycleRun must be an integer of -1 or 0~6.');
+  }
   const bucketSize = Math.ceil(models.length / 7);
   return models.slice(day * bucketSize, (day + 1) * bucketSize);
 }
@@ -430,8 +434,14 @@ function scheduleModels(models, date = new Date()) {
 async function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
   const { benchmark, browsers } = file;
-  if (cliArgs.weeklyRun) {
-    benchmark.model = scheduleModels(benchmark.model);
+  if (cliArgs?.weeklyCycleRun != null) {
+    benchmark.model = scheduleModels(benchmark.model, cliArgs.weeklyCycleRun);
+    console.log(
+      `\nWill benchmark the following models: \n\t` +
+      `${benchmark.model.join('\n\t')} \n`);
+  } else {
+    console.log(
+      `\nWill benchmark all models in '${cliArgs.benchmarks}'.\n`);
   }
   await runBenchmark(benchmark, browsers);
 }
