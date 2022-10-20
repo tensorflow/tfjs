@@ -79,8 +79,14 @@ const ATAN = `
   return atan(a);
 `;
 const ATANH = `
-  if (abs(a) >= 1.) {
+  if (abs(a) > 1.) {
     return uniforms.NAN;
+  }
+  if (a == 1.) {
+    return uniforms.INFINITY;
+  }
+  if (a == -1.) {
+    return -uniforms.INFINITY;
   }
   return atanh(a);
 `;
