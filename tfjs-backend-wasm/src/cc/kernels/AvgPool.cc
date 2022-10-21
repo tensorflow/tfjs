@@ -12,9 +12,11 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#include <cstring>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include <stdio.h>
 
 #include <xnnpack.h>
 #include <array>
@@ -53,6 +55,29 @@ void AvgPool(const size_t x_id, const size_t batch_size,
 
   const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+
+  // Implementation for a 1x1 filter (identity). xnnpack does not support 1x1
+  // AvgPool
+  if (filter_width == 1 && filter_height == 1) {
+    if (stride_width == 1 && stride_height == 1) {
+      // Early bailout for the identity case to use memcpy for efficiency.
+      std::memcpy(out_buf, x_buf, out_info.size * sizeof(float));
+      return;
+    }
+
+    // ceil(input_height / stride_height) instead of floor.
+    size_t vals_per_col = (input_height + stride_height - 1) / stride_height;
+    size_t vals_per_row = (input_width + stride_width - 1) / stride_width;
+    for (size_t i = 0; i < vals_per_col; i++) {
+      for (size_t j = 0; j < vals_per_row; j++) {
+        size_t x_index = i * stride_height * input_width + j * stride_width;
+        size_t out_index = i * vals_per_row + j;
+        out_buf[out_index] = x_buf[x_index];
+      }
+    }
+
+    return;
+  }
 
   xnn_operator_t avg_pool_op = nullptr;
 

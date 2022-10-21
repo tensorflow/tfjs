@@ -45,7 +45,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[2,3,3,1] f=[2,2], s=1', async () => {
     // Feed forward.
     const a = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 3, 1]);
+      [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 3, 1]);
     const result = tf.avgPool(a, 2, 1, 0);
 
     expect(result.shape).toEqual([2, 2, 2, 1]);
@@ -64,8 +64,8 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[3,3,2] f=[2,2] s=1', async () => {
     // Feed forward.
     const a = tf.tensor3d(
-        [1, 99, 2, 88, 3, 77, 4, 66, 5, 55, 6, 44, 7, 33, 9, 22, 8, 11],
-        [3, 3, 2]);
+      [1, 99, 2, 88, 3, 77, 4, 66, 5, 55, 6, 44, 7, 33, 9, 22, 8, 11],
+      [3, 3, 2]);
     const result = tf.avgPool(a, 2, 1, 0);
 
     expect(result.shape).toEqual([2, 2, 2]);
@@ -75,7 +75,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[4,4,1] f=[2,2] s=2', async () => {
     // Feed forward.
     const a = tf.tensor3d(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [4, 4, 1]);
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [4, 4, 1]);
     const result = tf.avgPool(a, 2, 2, 0);
 
     expect(result.shape).toEqual([2, 2, 1]);
@@ -108,7 +108,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     // Feed forward.
     const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
     const padding =
-        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
     const result = tf.avgPool(x, 3, 1, padding);
 
     expect(result.shape).toEqual([4, 2, 1]);
@@ -168,7 +168,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const x = tf.tensor3d([0], [1, 1, 1]);
     const dy = tf.tensor3d([0], [1, 1, 1]);
     const dx = tf.grad(
-        (x: tf.Tensor3D) => tf.avgPool(x.clone(), 1, 1, 0).clone())(x, dy);
+      (x: tf.Tensor3D) => tf.avgPool(x.clone(), 1, 1, 0).clone())(x, dy);
 
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(await dx.data(), [0]);
@@ -194,7 +194,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     // Feed forward.
     const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
     const padding =
-        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
     const dy = tf.tensor3d([0, 3, 0, 6, 0, 9, 0, 12], [4, 2, 1]);
     const dx = tf.grad((x: tf.Tensor3D) => x.avgPool(3, 1, padding))(x, dy);
     expect(dx.shape).toEqual(x.shape);
@@ -204,7 +204,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('gradient x=[2,3,3,1] f=[2,2], s=1', async () => {
     // Feed forward.
     const x = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 3, 1]);
+      [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 3, 1]);
     const dy = tf.tensor4d([1, 2, 3, 4, 1, 2, 3, 4], [2, 2, 2, 1]);
     const avgMultiplier = 1 / (2 * 2);
 
@@ -240,35 +240,48 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   });
 
   it('throws when dimRoundingMode is set and pad is a non-integer number',
-     () => {
-       const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+    () => {
+      const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
 
-       const pad = 1.2;
-       const dimRoundingMode = 'round';
+      const pad = 1.2;
+      const dimRoundingMode = 'round';
 
-       expect(() => tf.avgPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
-     });
+      expect(() => tf.avgPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+    });
 
   it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
-         'number',
-     () => {
-       const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+    'number',
+    () => {
+      const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
 
-       const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
-           tf.backend_util.ExplicitPadding;
-       const dimRoundingMode = 'round';
+      const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
+        tf.backend_util.ExplicitPadding;
+      const dimRoundingMode = 'round';
 
-       expect(() => tf.avgPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
-     });
+      expect(() => tf.avgPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+    });
 
   it('throws when passed a non-tensor', () => {
     expect(() => tf.avgPool({} as tf.Tensor3D, 2, 1, 'valid'))
-        .toThrowError(/Argument 'x' passed to 'avgPool' must be a Tensor/);
+      .toThrowError(/Argument 'x' passed to 'avgPool' must be a Tensor/);
   });
 
   it('accepts a tensor-like object', async () => {
     const a = [[[0]]];  // 1x1x1
     const result = tf.avgPool(a, 1, 1, 0);
     expectArraysClose(await result.data(), [0]);
+  });
+
+  it('1x1 pool size (identity)', async () => {
+    const a = tf.range(0, 10).reshape([1,1,1,10]) as tf.Tensor4D;
+    const result = tf.avgPool(a, [1, 1], [1, 1], 'valid');
+    expectArraysClose(await result.data(), await a.data());
+  });
+
+  it('1x1 pool size with strides', async () => {
+    const a = tf.range(0, 100).reshape([1,10,10,1]) as tf.Tensor4D;
+    const result = tf.avgPool(a, [1, 1], [3, 4], 'valid');
+    expectArraysClose(await result.data(),
+                      [0, 4, 8, 30, 34, 38, 60, 64, 68, 90, 94, 98]);
   });
 });
