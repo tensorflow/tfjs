@@ -24,11 +24,11 @@ export class AdapterInfo {
     if (adapterInfo) {
       this.vendor = adapterInfo.vendor;
       this.architecture = adapterInfo.architecture;
-      this.intelGPUGeneration = this.getIntelGpuGeneration();
+      this.intelGPUGeneration = this.getIntelGPUGeneration();
     }
   }
 
-  private getIntelGpuGeneration() {
+  private getIntelGPUGeneration() {
     if (this.isIntel()) {
       if (this.architecture.startsWith('gen')) {
         return Number(this.architecture.match(/\d+/));
