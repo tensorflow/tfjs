@@ -116,6 +116,7 @@ const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
 const MOD = `
+  ${CHECK_NAN_SNIPPET}
   if (b == 0.) {
     return uniforms.NAN;
   }
@@ -130,6 +131,19 @@ const MOD_VEC4 = `
   let valueForNaN = uniforms.NAN;
   var resultTemp = vec4<f32>(a % b);
   ${CHECK_NAN_SNIPPET_VEC4}
+
+  if (b[0] == 0.) {
+    resultTemp[0] = uniforms.NAN;
+  }
+  if (b[1] == 0.) {
+    resultTemp[1] = uniforms.NAN;
+  }
+  if (b[2] == 0.) {
+    resultTemp[2] = uniforms.NAN;
+  }
+  if (b[3] == 0.) {
+    resultTemp[3] = uniforms.NAN;
+  }
 
   if (!((a[0] < 0. && b[0] < 0.) || (a[0] >= 0. && b[0] > 0.))) {
     resultTemp[0] = (resultTemp[0] + b[0]) % b[0];
