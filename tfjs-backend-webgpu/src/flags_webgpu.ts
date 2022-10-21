@@ -72,6 +72,6 @@ ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
 
 /**
- * Default hardware Execution units number.
+ * Default Intel execution units number.
  */
-ENV.registerFlag('WEBGPU_HARDWARE_EU_NUM', () => 96);
+ENV.registerFlag('WEBGPU_INTEL_EU_COUNT', () => 96);

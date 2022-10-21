@@ -116,8 +116,8 @@ export function batchMatMulImpl({
     // need to increase workgroups. And the literal number is an empirical
     // value.
     const thresholdToIncreaseWorkgroups =
-        backend.adapterInfo.isIntelGen12OrHigherGPU() &&
-            env().get('WEBGPU_HARDWARE_EU_NUM') as number >= 96 ?
+        backend.adapterInfo.intelGPUGeneration >= 12 &&
+            env().get('WEBGPU_INTEL_EU_COUNT') as number >= 96 ?
         16 :
         8;
     const workgroupsBy32x32 =

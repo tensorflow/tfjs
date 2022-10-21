@@ -18,7 +18,7 @@
 export class AdapterInfo {
   private vendor: string;
   private architecture: string;
-  private intelGPUGeneration: number;
+  public intelGPUGeneration: number;
 
   constructor(adapterInfo: GPUAdapterInfo) {
     if (adapterInfo) {
@@ -28,20 +28,18 @@ export class AdapterInfo {
     }
   }
 
-  getIntelGpuGeneration() {
-    if (this.architecture.startsWith('gen')) {
-      return Number(this.architecture.match(/\d+/));
-    } else if (this.architecture.startsWith('xe')) {
-      return 12;
+  private getIntelGpuGeneration() {
+    if (this.isIntel()) {
+      if (this.architecture.startsWith('gen')) {
+        return Number(this.architecture.match(/\d+/));
+      } else if (this.architecture.startsWith('xe')) {
+        return 12;
+      }
     }
     return 0;
   }
 
   isIntel(): boolean {
     return this.vendor === 'intel';
-  }
-
-  isIntelGen12OrHigherGPU(): boolean {
-    return this.isIntel() && this.intelGPUGeneration >= 12;
   }
 }
