@@ -59,23 +59,36 @@ void AvgPool(const size_t x_id, const size_t batch_size,
   // Implementation for a 1x1 filter (identity). xnnpack does not support 1x1
   // AvgPool
   if (filter_width == 1 && filter_height == 1) {
+    // Early bailout for the identity case to use memcpy for efficiency.
     if (stride_width == 1 && stride_height == 1) {
-      // Early bailout for the identity case to use memcpy for efficiency.
       std::memcpy(out_buf, x_buf, out_info.size * sizeof(float));
       return;
     }
 
-    // ceil(input_height / stride_height) instead of floor.
+    // Values per row and column as determined by the stride size.
+    // ceil(input_height / stride_height) instead of floor because strides do
+    // not guarantee that more than one value is available.
+    // e.g. a stride of 3 would 'partition' range(1, 10) into
+    // [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+    // and would include 10 in the output: [1, 4, 7, 10]
     size_t vals_per_col = (input_height + stride_height - 1) / stride_height;
     size_t vals_per_row = (input_width + stride_width - 1) / stride_width;
-    for (size_t i = 0; i < vals_per_col; i++) {
-      for (size_t j = 0; j < vals_per_row; j++) {
-        size_t x_index = i * stride_height * input_width + j * stride_width;
-        size_t out_index = i * vals_per_row + j;
-        out_buf[out_index] = x_buf[x_index];
+
+    // Copy values specified by the strides.
+    size_t x_batch_vals_count = input_width * input_height;
+    size_t out_batch_vals_count = vals_per_row * vals_per_col;
+    for (size_t batch = 0; batch < batch_size; batch++) {
+      for (size_t i = 0; i < vals_per_col; i++) {
+        for (size_t j = 0; j < vals_per_row; j++) {
+          size_t x_index = i * stride_height * input_width + j * stride_width
+                           + batch * x_batch_vals_count;
+          size_t out_index = i * vals_per_row + j
+                             + batch * out_batch_vals_count;
+
+          out_buf[out_index] = x_buf[x_index];
+        }
       }
     }
-
     return;
   }
 
