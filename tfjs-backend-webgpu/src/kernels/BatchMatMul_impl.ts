@@ -121,18 +121,14 @@ export function batchMatMulImpl({
         16 :
         8;
     const workgroupsBy32x32 =
-        Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
+        batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
     const hasFewWorkgroups =
         workgroupsBy32x32 <= thresholdToIncreaseWorkgroups ||
         (outerShapeA <= 8 &&
          workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2);
-    if (outerShapeA * outerShapeB <= 128) {
+    if (batchDim * outerShapeA * outerShapeB <= 128) {
       matmulProgramType = MatMulProgramType.MatMulReduceProgram;
-    } else if (
-        // These boundaries are based on bodypix-ResNet50-image-0.5.
-        // TODO: Relax or tight these boundaries when we have a complete matmul
-        // test coverage.
-        batchDim === 1 && hasFewWorkgroups && innerShapeB >= 2000) {
+    } else if (batchDim === 1 && hasFewWorkgroups && innerShapeB >= 2000) {
       matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
     } else if (hasFewWorkgroups) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
