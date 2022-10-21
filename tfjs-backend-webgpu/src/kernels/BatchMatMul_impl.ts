@@ -112,25 +112,29 @@ export function batchMatMulImpl({
     // MatMulSplitKProgram, increasing workgroups by spliting K. 3)
     // MatMulSmallOutputSizeProgram, increasing workgroups by small tile size.
     // For different devices, the minimum optimal workgroups may be different.
-    // So here we set a |thresholdForFewWorkGroups| to indicate whether we need
-    // to increase workgroups. And the literal number is an empirical value.
-    const thresholdForFewWorkGroups =
+    // So here we set a |thresholdToIncreaseWorkgroups| to indicate whether we
+    // need to increase workgroups. And the literal number is an empirical
+    // value.
+    const thresholdToIncreaseWorkgroups =
         backend.adapterInfo.isIntelGen12OrHigherGPU() &&
             env().get('WEBGPU_HARDWARE_EU_NUM') as number >= 96 ?
         16 :
         8;
-    const isSmallOutputSize =
-        Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32) <
-        thresholdForFewWorkGroups;
+    const workgroupsBy32x32 =
+        Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
+    const hasFewWorkgroups =
+        workgroupsBy32x32 <= thresholdToIncreaseWorkgroups ||
+        (outerShapeA <= 8 &&
+         workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2);
     if (outerShapeA * outerShapeB <= 128) {
       matmulProgramType = MatMulProgramType.MatMulReduceProgram;
     } else if (
         // These boundaries are based on bodypix-ResNet50-image-0.5.
         // TODO: Relax or tight these boundaries when we have a complete matmul
         // test coverage.
-        batchDim === 1 && isSmallOutputSize && innerShapeB >= 2000) {
+        batchDim === 1 && hasFewWorkgroups && innerShapeB >= 2000) {
       matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
-    } else if (isSmallOutputSize) {
+    } else if (hasFewWorkgroups) {
       matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
