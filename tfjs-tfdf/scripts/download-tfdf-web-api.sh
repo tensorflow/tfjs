@@ -35,7 +35,7 @@ if [[ -z ${VERSION} ]]; then
 fi
 
 # Download the zipped lib to the output dir.
-cd "${OUTPUT_DIR}" && { curl -O https://github.com/google/yggdrasil-decision-forests/releases/download/${VERSION}/javascript_wasm.zip; cd -; }
+cd "${OUTPUT_DIR}" && { curl -OL https://github.com/google/yggdrasil-decision-forests/releases/download/${VERSION}/javascript_wasm.zip; cd -; }
 
 # Unzip and delete the zipped file.
 unzip "${OUTPUT_DIR}/javascript_wasm.zip" -d "${OUTPUT_DIR}"
