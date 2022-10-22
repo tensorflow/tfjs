@@ -113,7 +113,6 @@ const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
 
   // Copy values specified by the strides.
   // Only NHWC is currently supported.
-  //printf("Channels: %zd\n", channels);
   for (size_t n = 0; n < batch_size; n++) {
     for (size_t h = 0; h < vals_per_col; h++) {
       for (size_t w = 0; w < vals_per_row; w++) {
@@ -129,7 +128,6 @@ const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
           size_t out_nhw_index = out_n_index + out_hw_index;
           size_t out_nhwc_index = c + channels * out_nhw_index;
 
-          //printf("n: %zd, h: %zd, w: %zd, c: %zd, x_index: %zd, out_index: %zd\n", n, h, w, c, x_index, out_index);
           out_buf[out_nhwc_index] = x_buf[x_nhwc_index];
         }
       }
