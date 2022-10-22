@@ -25,12 +25,14 @@ import {expectArraysClose} from '../test_util';
  */
 export function identityPoolTest(pool: typeof tf.avgPool) {
   it('1x1 pool size (identity)', async () => {
+    // tslint:disable-next-line: no-unnecessary-type-assertion
     const a = tf.range(0, 10).reshape([1, 1, 1, 10]) as tf.Tensor4D;
     const result = pool(a, [1, 1], [1, 1], 'valid');
     expectArraysClose(await result.data(), await a.data());
   });
 
   it('1x1 pool size with strides', async () => {
+    // tslint:disable-next-line: no-unnecessary-type-assertion
     const a = tf.range(0, 150).reshape([1, 10, 15, 1]) as tf.Tensor4D;
     const result = pool(a, [1, 1], [3, 4], 'valid');
     expectArraysClose(await result.data(), [
@@ -45,12 +47,14 @@ export function identityPoolTest(pool: typeof tf.avgPool) {
     // 7 batches of 3 x 4
     const shape = [7, 3, 4, 1];
     const size = shape.reduce((a, b) => a * b, 1);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
     const a = tf.range(0, size).reshape(shape) as tf.Tensor4D;
     const result = pool(a, [1, 1], [1, 1], 'valid');
     expectArraysClose(await result.data(), await a.data());
   });
 
   it('1x1 pool size batched with strides', async () => {
+    // tslint:disable-next-line: no-unnecessary-type-assertion
     const a = tf.range(0, 300).reshape([2, 10, 15, 1]) as tf.Tensor4D;
     const result = pool(a, [1, 1], [3, 4], 'valid');
     expectArraysClose(await result.data(), [
@@ -68,6 +72,7 @@ export function identityPoolTest(pool: typeof tf.avgPool) {
   });
 
   it('1x1 pool size batched with strides and channels', async () => {
+    // tslint:disable-next-line: no-unnecessary-type-assertion
     const a = tf.range(0, 900).reshape([2, 10, 15, 3]) as tf.Tensor4D;
     const result = pool(a, [1, 1], [3, 4], 'valid');
     expectArraysClose(await result.data(), [
