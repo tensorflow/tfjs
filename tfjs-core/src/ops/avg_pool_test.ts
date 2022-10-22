@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {identityPoolTest} from './identity_pool_test';
 
 describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', async () => {
@@ -272,46 +273,5 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0]);
   });
 
-  it('1x1 pool size (identity)', async () => {
-    const a = tf.range(0, 10).reshape([1, 1, 1, 10]) as tf.Tensor4D;
-    const result = tf.avgPool(a, [1, 1], [1, 1], 'valid');
-    expectArraysClose(await result.data(), await a.data());
-  });
-
-  it('1x1 pool size with strides', async () => {
-    const a = tf.range(0, 150).reshape([1, 10, 15, 1]) as tf.Tensor4D;
-    const result = tf.avgPool(a, [1, 1], [3, 4], 'valid');
-    expectArraysClose(await result.data(), [
-      0, 4, 8, 12,
-      45, 49, 53, 57,
-      90, 94, 98, 102,
-      135, 139, 143, 147,
-    ]);
-  });
-
-  it('1x1 pool size batched', async () => {
-    // 7 batches of 3 x 4
-    const shape = [7, 3, 4, 1];
-    const size = shape.reduce((a, b) => a * b, 1);
-    const a = tf.range(0, size).reshape(shape) as tf.Tensor4D;
-    const result = tf.avgPool(a, [1, 1], [1, 1], 'valid');
-    expectArraysClose(await result.data(), await a.data());
-  });
-
-  it('1x1 pool size batched with strides', async () => {
-    const a = tf.range(0, 300).reshape([2, 10, 15, 1]) as tf.Tensor4D;
-    const result = tf.avgPool(a, [1, 1], [3, 4], 'valid');
-    expectArraysClose(await result.data(), [
-      // Batch 0
-      0, 4, 8, 12,
-      45, 49, 53, 57,
-      90, 94, 98, 102,
-      135, 139, 143, 147,
-      // Batch 1
-      150, 154, 158, 162,
-      195, 199, 203, 207,
-      240, 244, 248, 252,
-      285, 289, 293, 297,
-    ]);
-  });
+  identityPoolTest(tf.avgPool);
 });

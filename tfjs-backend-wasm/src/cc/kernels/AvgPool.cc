@@ -56,51 +56,11 @@ void AvgPool(const size_t x_id, const size_t batch_size,
   const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
-  // Implementation for a 1x1 filter (identity). xnnpack does not support 1x1
-  // AvgPool
+  // XNNPack does not support 1x1 filters for AvgPool
   if (filter_width == 1 && filter_height == 1) {
-    // Early bailout for the identity case to use memcpy for efficiency.
-    if (stride_width == 1 && stride_height == 1) {
-      std::memcpy(out_buf, x_buf, out_info.size * sizeof(*x_buf));
-      return;
-    }
-
-    // Values per row and column as determined by the stride size.
-    // ceil(input_height / stride_height) instead of floor because strides do
-    // not guarantee that more than one value is available.
-    // e.g. a stride of 3 would 'partition' range(1, 10) into
-    // [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
-    // and would include 10 in the output: [1, 4, 7, 10]
-    size_t vals_per_col = (input_height + stride_height - 1) / stride_height;
-    size_t vals_per_row = (input_width + stride_width - 1) / stride_width;
-
-    size_t x_batch_vals_count = input_width * input_height;
-    size_t out_batch_vals_count = vals_per_row * vals_per_col;
-
-    // Copy values specified by the strides.
-    // Only NHWC is currently supported.
-    //printf("Channels: %zd\n", channels);
-    for (size_t n = 0; n < batch_size; n++) {
-      for (size_t h = 0; h < vals_per_col; h++) {
-        for (size_t w = 0; w < vals_per_row; w++) {
-          for (size_t c = 0; c < channels; c++) {
-            size_t x_n_index = n * x_batch_vals_count;
-            size_t x_hw_index = h * stride_height * input_width
-                                + w * stride_width;
-            size_t x_nhw_index = x_n_index + x_hw_index;
-            size_t x_nhwc_index = c + channels * x_nhw_index;
-
-            size_t out_n_index = n * out_batch_vals_count;
-            size_t out_hw_index = h * vals_per_row + w;
-            size_t out_nhw_index = out_n_index + out_hw_index;
-            size_t out_nhwc_index = c + channels * out_nhw_index;
-
-            //printf("n: %zd, h: %zd, w: %zd, c: %zd, x_index: %zd, out_index: %zd\n", n, h, w, c, x_index, out_index);
-            out_buf[out_nhwc_index] = x_buf[x_nhwc_index];
-          }
-        }
-      }
-    }
+    tfjs::util::identity_pool(x_id, x_buf, out_buf, out_info.size, batch_size,
+                              input_height, input_width, stride_height,
+                              stride_width, channels);
     return;
   }
 

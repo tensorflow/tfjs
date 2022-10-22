@@ -152,6 +152,15 @@ const std::vector<size_t> assert_and_get_broadcast_shape(
 const std::vector<size_t> get_broadcast_dims(
     const std::vector<size_t> in_shape, const std::vector<size_t> out_shape);
 
+// Generates the output for AvgPool, MaxPool, etc where xnnpack does not support
+// a 1x1 filter. Applies batching, channels, and strides.
+// TODO(mattsoulanille): Support padding.
+const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
+                         const size_t out_size, const size_t batch_size,
+                         const size_t input_height, const size_t input_width,
+                         const size_t stride_height, const size_t stride_width,
+                         const size_t channels);
+
 }  // namespace util
 }  // namespace tfjs
 #endif  // UTIL_H_
