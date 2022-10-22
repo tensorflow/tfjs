@@ -61,7 +61,7 @@ void AvgPool(const size_t x_id, const size_t batch_size,
   if (filter_width == 1 && filter_height == 1) {
     // Early bailout for the identity case to use memcpy for efficiency.
     if (stride_width == 1 && stride_height == 1) {
-      std::memcpy(out_buf, x_buf, out_info.size * sizeof(float));
+      std::memcpy(out_buf, x_buf, out_info.size * sizeof(*x_buf));
       return;
     }
 
@@ -74,18 +74,30 @@ void AvgPool(const size_t x_id, const size_t batch_size,
     size_t vals_per_col = (input_height + stride_height - 1) / stride_height;
     size_t vals_per_row = (input_width + stride_width - 1) / stride_width;
 
-    // Copy values specified by the strides.
     size_t x_batch_vals_count = input_width * input_height;
     size_t out_batch_vals_count = vals_per_row * vals_per_col;
-    for (size_t batch = 0; batch < batch_size; batch++) {
-      for (size_t i = 0; i < vals_per_col; i++) {
-        for (size_t j = 0; j < vals_per_row; j++) {
-          size_t x_index = i * stride_height * input_width + j * stride_width
-                           + batch * x_batch_vals_count;
-          size_t out_index = i * vals_per_row + j
-                             + batch * out_batch_vals_count;
 
-          out_buf[out_index] = x_buf[x_index];
+    // Copy values specified by the strides.
+    // Only NHWC is currently supported.
+    //printf("Channels: %zd\n", channels);
+    for (size_t n = 0; n < batch_size; n++) {
+      for (size_t h = 0; h < vals_per_col; h++) {
+        for (size_t w = 0; w < vals_per_row; w++) {
+          for (size_t c = 0; c < channels; c++) {
+            size_t x_n_index = n * x_batch_vals_count;
+            size_t x_hw_index = h * stride_height * input_width
+                                + w * stride_width;
+            size_t x_nhw_index = x_n_index + x_hw_index;
+            size_t x_nhwc_index = c + channels * x_nhw_index;
+
+            size_t out_n_index = n * out_batch_vals_count;
+            size_t out_hw_index = h * vals_per_row + w;
+            size_t out_nhw_index = out_n_index + out_hw_index;
+            size_t out_nhwc_index = c + channels * out_nhw_index;
+
+            //printf("n: %zd, h: %zd, w: %zd, c: %zd, x_index: %zd, out_index: %zd\n", n, h, w, c, x_index, out_index);
+            out_buf[out_nhwc_index] = x_buf[x_nhwc_index];
+          }
         }
       }
     }
