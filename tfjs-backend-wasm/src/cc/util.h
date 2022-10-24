@@ -154,7 +154,10 @@ const std::vector<size_t> get_broadcast_dims(
 
 // Generates the output for AvgPool, MaxPool, etc where xnnpack does not support
 // a 1x1 filter. Applies batching, channels, and strides.
-// TODO(mattsoulanille): Support padding.
+// TODONT(mattsoulanille): Padding support is not necessary because it is
+// meaningless for a 1x1 kernel. It would be undefined for regions where the
+// kernel does not overlap the input tensor.
+// https://www.tensorflow.org/api_docs/python/tf/nn#difference_between_convolution_and_pooling_layers_2
 const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
                          const size_t out_size, const size_t batch_size,
                          const size_t input_height, const size_t input_width,

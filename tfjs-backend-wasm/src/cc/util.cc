@@ -99,7 +99,7 @@ const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
     return;
   }
 
-  // Values per row and column as determined by the stride size.
+  // Values per row and column are determined by the stride size.
   // ceil(input_height / stride_height) instead of floor because strides do
   // not guarantee that more than one value is available.
   // e.g. a stride of 3 would 'partition' range(1, 10) into
