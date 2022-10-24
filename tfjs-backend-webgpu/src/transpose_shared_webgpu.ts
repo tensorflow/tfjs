@@ -56,7 +56,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
-          tile[localId.y][localId.x] = A[y * width + x];
+          tile[localId.y][localId.x] = f32(A[y * width + x]);
         }
         workgroupBarrier();
 

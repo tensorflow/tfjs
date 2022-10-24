@@ -30,6 +30,8 @@ export enum UnaryOpType {
   EXP,
   EXPM1,
   FLOOR,
+  IS_FINITE,
+  IS_INF,
   IS_NAN,
   LINEAR,
   LOG,
@@ -77,8 +79,14 @@ const ATAN = `
   return atan(a);
 `;
 const ATANH = `
-  if (abs(a) >= 1.) {
+  if (abs(a) > 1.) {
     return uniforms.NAN;
+  }
+  if (a == 1.) {
+    return uniforms.INFINITY;
+  }
+  if (a == -1.) {
+    return -uniforms.INFINITY;
   }
   return atanh(a);
 `;
@@ -108,6 +116,8 @@ const ELU_VEC4 = `
 `;
 const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
+const IS_FINITE = `return f32(!isnan(a) && !isinf(a));`;
+const IS_INF = `return f32(isinf(a));`;
 const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) { return uniforms.NAN; }
@@ -173,6 +183,10 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return EXPM1;
     case UnaryOpType.FLOOR:
       return FLOOR;
+    case UnaryOpType.IS_FINITE:
+      return IS_FINITE;
+    case UnaryOpType.IS_INF:
+      return IS_INF;
     case UnaryOpType.IS_NAN:
       return IS_NAN;
     case UnaryOpType.LINEAR:

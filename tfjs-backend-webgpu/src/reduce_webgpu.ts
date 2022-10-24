@@ -27,13 +27,13 @@ export class ReduceProgram implements WebGPUProgram {
   workgroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
   uniforms = 'reduceSize : i32,';
-  reduceType: 'max'|'mean'|'min'|'prod'|'sum';
+  reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
-      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
+      reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum') {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
@@ -65,6 +65,12 @@ export class ReduceProgram implements WebGPUProgram {
     } else if (this.reduceType === 'prod') {
       reduceOp = ' bestValue = bestValue * candidate; ';
       initValue = '1.0';
+    } else if (this.reduceType === 'all') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ';
+      initValue = '1.0';
+    } else if (this.reduceType === 'any') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ';
+      initValue = '0.0';
     }
 
     const outputSnippet = this.reduceType === 'mean' ?

@@ -22,6 +22,8 @@ import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
@@ -66,6 +68,8 @@ import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
@@ -80,6 +84,7 @@ import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {modConfig} from './kernels/Mod';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -136,6 +141,8 @@ const kernelConfigs: KernelConfig[] = [
   acoshConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   argMinConfig,
   asinConfig,
@@ -180,6 +187,8 @@ const kernelConfigs: KernelConfig[] = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
   isNaNConfig,
   leakyReluConfig,
   lessConfig,
@@ -194,6 +203,7 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  modConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
