@@ -456,7 +456,7 @@ def _copy_assets(saved_model_dir, output_dir):
       gfile.rmtree(tmp_dir)
 
 # TFDF stores the necessary files for its binary in the assets folder.
-ASSET_REQUIRING_OPS = set([
+ASSET_REQUIRING_OPS = frozenset([
   'SimpleMLCreateModelResource'
   'SimpleMLLoadModelFromPathWithHandle',
   'SimpleMLInferenceOpWithHandle',
