@@ -126,12 +126,14 @@ export function batchMatMulImpl({
         workgroupsBy32x32 <= thresholdToIncreaseWorkgroups ||
         (outerShapeA <= 8 &&
          workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2);
-    if (batchDim * outerShapeA * outerShapeB <= 128) {
-      matmulProgramType = MatMulProgramType.MatMulReduceProgram;
-    } else if (batchDim === 1 && hasFewWorkgroups && innerShapeB >= 2000) {
-      matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
-    } else if (hasFewWorkgroups) {
-      matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+    if (hasFewWorkgroups) {
+      if (batchDim * outerShapeA * outerShapeB <= 128) {
+        matmulProgramType = MatMulProgramType.MatMulReduceProgram;
+      } else if (batchDim === 1 && innerShapeB >= 2000) {
+        matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
+      } else {
+        matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+      }
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
