@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -144,7 +144,7 @@ describe('ragged', () => {
           defaultValue: createTensorAttr(2),
           rowPartitionTensors: createTensorsAttr(3, 0)
         };
-        node.attrParams = { rowPartitionTypes: createStrArrayAttr(types) };
+        node.attrParams = {rowPartitionTypes: createStrArrayAttr(types)};
       });
 
       it('should call tfOps.ragged.raggedTensorToTensor', async () => {

@@ -10,12 +10,12 @@
         "type": "tensors"
       },
       {
-        "start": 1,
+        "start": -2,
         "name": "paramsDenseValues",
         "type": "tensor"
       },
       {
-        "start": 2,
+        "start": -1,
         "name": "indices",
         "type": "tensor"
       }
