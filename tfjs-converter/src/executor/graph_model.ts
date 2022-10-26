@@ -276,6 +276,21 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     return handlerOrURL.save(this.artifacts);
   }
 
+  private addStructuredOutputNames(outputTensors: Tensor|Tensor[]) {
+    if (this.structuredOutputKeys) {
+      const outputTensorsArray =
+          outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
+      const outputTensorMap: NamedTensorMap = {};
+
+      outputTensorsArray.forEach(
+          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] =
+              outputTensor);
+
+      return outputTensorMap;
+    }
+    return outputTensors;
+  }
+
   /**
    * Execute the inference for the input tensors.
    *
@@ -318,18 +333,54 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     const outputTensors = this.execute(inputs, this.outputNodes);
-    if (this.structuredOutputKeys) {
-      const outputTensorsArray =
-          outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
-      const outputTensorMap: NamedTensorMap = {};
+    return this.addStructuredOutputNames(outputTensors);
+  }
 
-      outputTensorsArray.forEach(
-          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] =
-              outputTensor);
-
-      return outputTensorMap;
-    }
-    return outputTensors;
+  /**
+   * Execute the inference for the input tensors in async fashion, use this
+   * method when your model contains control flow ops.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs params should be in either `tf.Tensor`[] if the input order is
+   * fixed, or otherwise NamedTensorMap format.
+   *
+   * For model with multiple inputs, we recommend you use NamedTensorMap as the
+   * input type, if you use `tf.Tensor`[], the order of the array needs to
+   * follow the
+   * order of inputNodes array. @see {@link GraphModel.inputNodes}
+   *
+   * You can also feed any intermediate nodes using the NamedTensorMap as the
+   * input type. For example, given the graph
+   *    InputNode => Intermediate => OutputNode,
+   * you can execute the subgraph Intermediate => OutputNode by calling
+   *    model.execute('IntermediateNode' : tf.tensor(...));
+   *
+   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+   * state needs to be fed manually.
+   *
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size.
+   * Currently the batch size option is ignored for graph model.
+   *
+   * @returns A Promise of inference result tensors. If the model is converted
+   * and it originally had structured_outputs in tensorflow, then a
+   * NamedTensorMap will be returned matching the structured_outputs. If no
+   * structured_outputs are present, the output will be single `tf.Tensor` if
+   * the model has single output node, otherwise Tensor[].
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  async predictAsync(
+      inputs: Tensor|Tensor[]|NamedTensorMap,
+      config?: ModelPredictConfig): Promise<Tensor|Tensor[]|NamedTensorMap> {
+    const outputTensors = await this.executeAsync(inputs, this.outputNodes);
+    return this.addStructuredOutputNames(outputTensors);
   }
 
   private normalizeInputs(inputs: Tensor|Tensor[]|
@@ -575,10 +626,10 @@ export async function loadGraphModel(
  *
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
-export function loadGraphModelSync(modelSource: io.IOHandlerSync
-  | io.ModelArtifacts | [io.ModelJSON, /* Weights */ ArrayBuffer]):
-  GraphModel<io.IOHandlerSync> {
-
+export function loadGraphModelSync(
+    modelSource: io.IOHandlerSync|
+    io.ModelArtifacts|[io.ModelJSON, /* Weights */ ArrayBuffer]):
+    GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
         'modelUrl in loadGraphModelSync() cannot be null. Please provide ' +
@@ -592,8 +643,9 @@ export function loadGraphModelSync(modelSource: io.IOHandlerSync
       throw new Error('modelJSON must be the first element of the array');
     }
     if (!weights || !(weights instanceof ArrayBuffer)) {
-      throw new Error('An ArrayBuffer of weights must be the second element of'
-                      + ' the array');
+      throw new Error(
+          'An ArrayBuffer of weights must be the second element of' +
+          ' the array');
     }
     if (!('modelTopology' in modelJSON)) {
       throw new Error('Model JSON is missing \'modelTopology\'');
@@ -603,15 +655,15 @@ export function loadGraphModelSync(modelSource: io.IOHandlerSync
     }
 
     const weightSpecs = io.getWeightSpecs(modelJSON.weightsManifest);
-    const modelArtifacts = io.getModelArtifactsForJSONSync(modelJSON,
-                                                           weightSpecs,
-                                                           weights);
+    const modelArtifacts =
+        io.getModelArtifactsForJSONSync(modelJSON, weightSpecs, weights);
     ioHandler = io.fromMemorySync(modelArtifacts);
   } else if ('load' in modelSource) {
     // Then modelSource is already an IOHandlerSync.
     ioHandler = modelSource;
-  } else if ('modelTopology' in modelSource && 'weightSpecs' in modelSource
-      && 'weightData' in modelSource) {
+  } else if (
+      'modelTopology' in modelSource && 'weightSpecs' in modelSource &&
+      'weightData' in modelSource) {
     // modelSource is of type ModelArtifacts.
     ioHandler = io.fromMemorySync(modelSource);
   } else {
