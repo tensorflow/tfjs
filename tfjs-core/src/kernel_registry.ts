@@ -22,7 +22,8 @@ import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
 const kernelRegistry =
-    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+    getGlobal('kernelRegistry', () => new Map<`${string}_${string}`,
+              KernelConfig>());
 const gradRegistry =
     getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
@@ -210,6 +211,7 @@ export function copyRegisteredKernels(
   });
 }
 
-function makeKey(kernelName: string, backendName: string) {
+function makeKey(kernelName: string,
+                 backendName: string): `${string}_${string}` {
   return `${backendName}_${kernelName}`;
 }

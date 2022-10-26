@@ -125,6 +125,20 @@ const SIMPLE_HTTP_MODEL_LOADER = {
   }
 };
 
+const NO_INPUT_SIGNATURE_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1',
+      userDefinedMetadata: {signature: {outputs: SIGNATURE.outputs}}
+    };
+  }
+};
+
 const CUSTOM_OP_MODEL: tensorflow.IGraphDef = {
   node: [
     {
@@ -479,10 +493,11 @@ describe('loadGraphModelSync', () => {
       weightsManifest: [{paths: [], weights: weightsManifest}],
     };
     expect(() => {
-      return loadGraphModelSync([modelJson] as unknown as [io.ModelJSON,
-                                                           ArrayBuffer]);
-    }).toThrowMatching(err =>
-      err.message.includes('weights must be the second element'));
+      return loadGraphModelSync(
+          [modelJson] as unknown as [io.ModelJSON, ArrayBuffer]);
+    })
+        .toThrowMatching(
+            err => err.message.includes('weights must be the second element'));
   });
 
   it('Throws an error if modelJSON is missing \'modelTopology\'', () => {
@@ -492,8 +507,9 @@ describe('loadGraphModelSync', () => {
     const weights = new Int32Array([5]).buffer;
     expect(() => {
       return loadGraphModelSync([badInput as io.ModelJSON, weights]);
-    }).toThrowMatching(err =>
-      err.message.includes('missing \'modelTopology\''));
+    })
+        .toThrowMatching(
+            err => err.message.includes('missing \'modelTopology\''));
   });
 
   it('Throws an error if modelJSON is missing \'weightsManifest\'', () => {
@@ -503,16 +519,16 @@ describe('loadGraphModelSync', () => {
     const weights = new Int32Array([5]).buffer;
     expect(() => {
       return loadGraphModelSync([badInput as io.ModelJSON, weights]);
-    }).toThrowMatching(err =>
-      err.message.includes('missing \'weightsManifest\''));
+    })
+        .toThrowMatching(
+            err => err.message.includes('missing \'weightsManifest\''));
   });
 
   it('Throws an error if modelSource is an unknown format', () => {
     const badInput = {foo: 'bar'};
     expect(() => {
       return loadGraphModelSync(badInput as io.ModelArtifacts);
-    }).toThrowMatching(err =>
-      err.message.includes('Unknown model format'));
+    }).toThrowMatching(err => err.message.includes('Unknown model format'));
   });
 
   it('Expect an error when moderUrl is null', () => {
@@ -770,6 +786,36 @@ describe('Model', () => {
         expect(model.outputs).toEqual([
           {name: 'Add', shape: undefined, dtype: undefined}
         ]);
+      });
+    });
+  });
+
+  describe('no signature input model', () => {
+    beforeEach(() => {
+      spyIo.getLoadHandlers.and.returnValue([NO_INPUT_SIGNATURE_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(NO_INPUT_SIGNATURE_MODEL_LOADER);
+    });
+
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('predict', () => {
+      it('should generate default output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({'Input': input});
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+    });
+
+    describe('execute', () => {
+      it('should generate default output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute(input);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
       });
     });
   });

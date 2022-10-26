@@ -542,12 +542,12 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
     model_ops = [node['op'] for node in model_json['modelTopology']['node']]
-    self.assertTrue('LookupTableFindV2' in model_ops)
+    self.assertIn('LookupTableFindV2', model_ops)
 
     self.assertTrue(model_json['modelInitializer'])
     initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
-    self.assertTrue('HashTableV2' in initializer_ops)
-    self.assertTrue('LookupTableImportV2' in initializer_ops)
+    self.assertIn('HashTableV2', initializer_ops)
+    self.assertIn('LookupTableImportV2', initializer_ops)
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
@@ -969,11 +969,11 @@ class ConvertTest(tf.test.TestCase):
 
     # Check TFDF ops are present.
     model_ops = [node['op'] for node in model_json['modelTopology']['node']]
-    self.assertTrue('SimpleMLInferenceOpWithHandle' in model_ops)
+    self.assertIn('SimpleMLInferenceOpWithHandle', model_ops)
 
     initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
-    self.assertTrue('SimpleMLCreateModelResource' in initializer_ops)
-    self.assertTrue('SimpleMLLoadModelFromPathWithHandle' in initializer_ops)
+    self.assertIn('SimpleMLCreateModelResource', initializer_ops)
+    self.assertIn('SimpleMLLoadModelFromPathWithHandle', initializer_ops)
 
     # Check assets containing TFDF files were copied over.
     self.assertTrue(
