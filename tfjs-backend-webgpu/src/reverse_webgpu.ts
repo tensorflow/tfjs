@@ -39,6 +39,8 @@ export class ReverseProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const inputCoordsSnippet = `
+      // Using uniform variables as judging conditions, so the function has
+      // coherent execution within all threads.
       fn getReverseInputCoords(coords : vec4<i32>) -> vec4<i32> {
         var inputCoords: vec4<i32>;
         if ((uniforms.axis[0] == 1) && (uniforms.xShape[0] != 1)) {
