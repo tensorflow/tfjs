@@ -645,9 +645,8 @@ export class GraphExecutor implements FunctionExecutor {
   private mapInputs(inputs: NamedTensorMap) {
     const result: NamedTensorMap = {};
     for (const inputName in inputs) {
-      if (this._signature != null && this._signature.inputs != null &&
-          this._signature.inputs[inputName] != null) {
-        const tensor = this._signature.inputs[inputName];
+      const tensor = this._signature?.inputs?.[inputName];
+      if (tensor != null) {
         result[tensor.name] = inputs[inputName];
       } else {
         result[inputName] = inputs[inputName];
@@ -670,9 +669,8 @@ export class GraphExecutor implements FunctionExecutor {
 
   private mapOutputs(outputs: string[]) {
     return outputs.map(name => {
-      if (this._signature != null && this._signature.outputs != null &&
-          this._signature.outputs[name] != null) {
-        const tensor = this._signature.outputs[name];
+      const tensor = this._signature?.outputs?.[name];
+      if (tensor != null) {
         return tensor.name;
       }
       return name;
