@@ -241,6 +241,13 @@ export class GPGPUContext {
         this.gl, rows, columns, this.textureConfig);
   }
 
+  public createPackedMatrixTextureArray(
+      rows: number, columns: number, layers: number): Texture {
+    this.throwIfDisposed();
+    return gpgpu_util.createPackedMatrixTextureArray(
+        this.gl, rows, columns, layers, this.textureConfig);
+  }
+
   public deleteMatrixTexture(texture: WebGLTexture) {
     this.throwIfDisposed();
     if (this.outputTexture === texture) {

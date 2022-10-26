@@ -83,6 +83,35 @@ function createAndConfigureTexture(
 
   return {texture, texShape: [height, width]};
 }
+function createAndConfigureTextureArray(
+    gl: WebGLRenderingContext, width: number, height: number, layers: number,
+    internalFormat: number, textureFormat: number,
+    textureType: number): Texture {
+  webgl_util.validateTextureSize(width, height);
+  const texture = webgl_util.createTexture(gl);
+
+  const tex2dArr = (gl as WebGL2RenderingContext).TEXTURE_2D_ARRAY;
+  webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2dArr, texture));
+  webgl_util.callAndCheck(
+      gl,
+      () => gl.texParameteri(tex2dArr, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE));
+  webgl_util.callAndCheck(
+      gl,
+      () => gl.texParameteri(tex2dArr, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
+  webgl_util.callAndCheck(
+      gl, () => gl.texParameteri(tex2dArr, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
+  webgl_util.callAndCheck(
+      gl, () => gl.texParameteri(tex2dArr, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
+
+  webgl_util.callAndCheck(
+      gl,
+      () => (gl as WebGL2RenderingContext)
+                .texStorage3D(
+                    tex2dArr, 1, internalFormat, width, height, layers));
+  webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2dArr, null));
+
+  return {texture, texShape: [height, width]};
+}
 
 export function getInternalFormatForFloat32MatrixTexture(
     textureConfig: TextureConfig) {
@@ -145,6 +174,17 @@ export function createPackedMatrixTexture(
   return createAndConfigureTexture(
       gl, width, height, getInternalFormatForPackedMatrixTexture(textureConfig),
       gl.RGBA, gl.FLOAT);
+}
+
+export function createPackedMatrixTextureArray(
+    gl: WebGLRenderingContext, rows: number, columns: number, layers: number,
+    textureConfig: TextureConfig): Texture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTextureArray(
+      gl, width, height, layers,
+      getInternalFormatForPackedMatrixTexture(textureConfig), gl.RGBA,
+      gl.FLOAT);
 }
 
 export function getInternalFormatForFloat16PackedMatrixTexture(
@@ -311,8 +351,8 @@ export function downloadByteEncodedFloatMatrixFromOutputTexture(
           0, 0, w, h, textureConfig.downloadTextureFormat, gl.UNSIGNED_BYTE,
           downloadTarget));
 
-  // By wrapping the buffer in a Float32Array, we use native browser IEEE 754
-  // decoding of the 4 bytes that back each 32 bit float.
+  // By wrapping the buffer in a Float32Array, we use native browser IEEE
+  // 754 decoding of the 4 bytes that back each 32 bit float.
   return new Float32Array(downloadTarget.buffer);
 }
 
