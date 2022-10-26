@@ -1,6 +1,6 @@
 const fs = require('fs');
-const {benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile} =
-    require('./app.js');
+const { benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile, scheduleModels } =
+  require('./app.js');
 const {
   addResultToFirestore,
   serializeTensors,
@@ -9,7 +9,7 @@ const {
   runFirestore,
   firebaseConfig
 } = require('./firestore.js');
-const {PromiseQueue} = require('./promise_queue.js');
+const { PromiseQueue } = require('./promise_queue.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -65,7 +65,7 @@ describe('test app.js cli', () => {
       }
     };
     config = {
-      benchmark: {model: 'mobilenet_v2', numRuns: 1, backend: 'wasm'},
+      benchmark: { model: 'mobilenet_v2', numRuns: 1, backend: 'wasm' },
       browsers: {
         iPhone_XS_1: {
           base: 'BrowserStack',
@@ -106,15 +106,15 @@ describe('test app.js cli', () => {
 
     // Bypasses BrowserStack with preset successful mock results
     mockRunOneBenchmark =
-        jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
-          return Promise.resolve(mockResults[tabId]);
-        });
+      jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+        return Promise.resolve(mockResults[tabId]);
+      });
 
     // Bypasses Browserstack with preset failed mock results
     failMockRunOneBenchmark =
-        jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
-          return Promise.reject(`Error: ${tabId} failed.`);
-        });
+      jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+        return Promise.reject(`Error: ${tabId} failed.`);
+      });
 
     // Before each spec, create a mock benchmark and set testing browser
     // configuration this helps ensure that everything is set to the expected
@@ -147,13 +147,13 @@ describe('test app.js cli', () => {
 
     // Expected mockRunOneBenchmark stats
     expect(mockRunOneBenchmark.calls.count())
-        .toEqual(Object.keys(config.browsers).length);
+      .toEqual(Object.keys(config.browsers).length);
     expect(mockRunOneBenchmark).toHaveBeenCalledWith('iPhone_XS_1', undefined);
     expect(mockRunOneBenchmark)
-        .toHaveBeenCalledWith('Samsung_Galaxy_S20_1', undefined);
+      .toHaveBeenCalledWith('Samsung_Galaxy_S20_1', undefined);
     expect(mockRunOneBenchmark).toHaveBeenCalledWith('Windows_10_1', undefined);
     expect(mockRunOneBenchmark)
-        .toHaveBeenCalledWith('OS_X_Catalina_1', undefined);
+      .toHaveBeenCalledWith('OS_X_Catalina_1', undefined);
 
     // Expected value from promise all
     expect(formattedResults).toEqual(mockResults);
@@ -162,51 +162,51 @@ describe('test app.js cli', () => {
   it('getOneBenchmark rejects if a benchmark consistently fails', async () => {
     // Expected failed mock benchmark results
     await expectAsync(
-        getOneBenchmarkResult('iPhone_XS_1', 3, failMockRunOneBenchmark))
-        .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
+      getOneBenchmarkResult('iPhone_XS_1', 3, failMockRunOneBenchmark))
+      .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
 
     // Expected mock function call stats
     expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
   });
 
   it('getOneBenchmark fulfills if a benchmark fails and then succeeds',
-     async () => {
-       /* Bypasses Browserstack with preset results. Benchmark will fail on the
-        * call, but succeed on the second call */
-       let called = false;
-       const failThenSucceedMockRunOneBenchmark =
-           jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
-             if (called) {
-               return mockRunOneBenchmark(tabId);
-             }
-             called = true;
-             return failMockRunOneBenchmark(tabId);
-           });
+    async () => {
+      /* Bypasses Browserstack with preset results. Benchmark will fail on the
+       * call, but succeed on the second call */
+      let called = false;
+      const failThenSucceedMockRunOneBenchmark =
+        jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+          if (called) {
+            return mockRunOneBenchmark(tabId);
+          }
+          called = true;
+          return failMockRunOneBenchmark(tabId);
+        });
 
-       // Gets a successful benchmark result
-       const succeedBenchmarkResult = await getOneBenchmarkResult(
-           'iPhone_XS_1', 3, failThenSucceedMockRunOneBenchmark);
+      // Gets a successful benchmark result
+      const succeedBenchmarkResult = await getOneBenchmarkResult(
+        'iPhone_XS_1', 3, failThenSucceedMockRunOneBenchmark);
 
-       // Expected mock function call stats
-       expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
-       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+      // Expected mock function call stats
+      expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
+      expect(mockRunOneBenchmark.calls.count()).toEqual(1);
 
-       // Expected successful mock benchmark results
-       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
-     });
+      // Expected successful mock benchmark results
+      expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+    });
 
   it('getOneBenchmark fulfills if a benchmark succeeds immediately',
-     async () => {
-       // Gets a successful benchmark result
-       const succeedBenchmarkResult =
-           await getOneBenchmarkResult('iPhone_XS_1', 3, mockRunOneBenchmark);
+    async () => {
+      // Gets a successful benchmark result
+      const succeedBenchmarkResult =
+        await getOneBenchmarkResult('iPhone_XS_1', 3, mockRunOneBenchmark);
 
-       // Expected mock funciton call stats
-       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+      // Expected mock funciton call stats
+      expect(mockRunOneBenchmark.calls.count()).toEqual(1);
 
-       // Expected successful mock benchmark results
-       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
-     });
+      // Expected successful mock benchmark results
+      expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+    });
 
   it('checks that the benchmark is being run with the correct JSON', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
@@ -234,10 +234,10 @@ describe('test adding to firestore', () => {
   });
 
   it('Expects db.add to be called with formatted results', () => {
-    db.add.and.returnValue(Promise.resolve({id: 123}));
+    db.add.and.returnValue(Promise.resolve({ id: 123 }));
     let expectedAdd = {
       result:
-          formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+        formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
     };
     addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
@@ -245,13 +245,13 @@ describe('test adding to firestore', () => {
 
   it('Expects a date key to exist and have the correct value', () => {
     let testFormat =
-        formatForFirestore(mockResultValue, mockSerialization, mockDate);
+      formatForFirestore(mockResultValue, mockSerialization, mockDate);
     expect(testFormat.date).toEqual('7/21/2021');
   });
 
   it('Expects serialization to cover all nested arrays', () => {
     const mockSerializedResults =
-        formatForFirestore(mockResultValue, serializeTensors, mockDate);
+      formatForFirestore(mockResultValue, serializeTensors, mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');
@@ -291,20 +291,20 @@ describe('promise queue', () => {
 
     // Queue should immediately start 3 promises.
     expect(started).toEqual(
-        [true, true, true, false, false]
+      [true, true, true, false, false]
     );
     expect(resolved).toEqual(
-        [false, false, false, false, false]
+      [false, false, false, false, false]
     );
 
     // After the first promise is done, queue should start the fourth one.
     jasmine.clock().tick(15);
     await promises[0];
     expect(started).toEqual(
-        [true, true, true, true, false]
+      [true, true, true, true, false]
     );
     expect(resolved).toEqual(
-        [true, false, false, false, false]
+      [true, false, false, false, false]
     );
 
     // All running promises should finish, and the last should start.
@@ -313,20 +313,47 @@ describe('promise queue', () => {
     await promises[2];
     await promises[3];
     expect(started).toEqual(
-        [true, true, true, true, true]
+      [true, true, true, true, true]
     );
     expect(resolved).toEqual(
-        [true, true, true, true, false]
+      [true, true, true, true, false]
     );
 
     // The last promise should finish
     jasmine.clock().tick(1000);
     await promises[4];
     expect(started).toEqual(
-        [true, true, true, true, true]
+      [true, true, true, true, true]
     );
     expect(resolved).toEqual(
-        [true, true, true, true, true]
+      [true, true, true, true, true]
+    );
+  });
+});
+
+
+describe('weekly schedule', () => {
+  it('scheduling models works for Sun', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 0);
+    expect(res).toEqual(
+      [0, 1, 2, 3]
+    );
+  });
+
+  it('scheduling models works', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 3);
+    expect(res).toEqual(
+      [12, 13, 14, 15]
+    );
+  });
+
+  it('scheduling models works for Sat', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 6);
+    expect(res).toEqual(
+      [24]
     );
   });
 });

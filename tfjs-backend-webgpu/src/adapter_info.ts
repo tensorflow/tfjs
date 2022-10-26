@@ -17,11 +17,26 @@
 
 export class AdapterInfo {
   private vendor: string;
+  private architecture: string;
+  public intelGPUGeneration: number;
 
   constructor(adapterInfo: GPUAdapterInfo) {
     if (adapterInfo) {
       this.vendor = adapterInfo.vendor;
+      this.architecture = adapterInfo.architecture;
+      this.intelGPUGeneration = this.getIntelGPUGeneration();
     }
+  }
+
+  private getIntelGPUGeneration() {
+    if (this.isIntel()) {
+      if (this.architecture.startsWith('gen')) {
+        return Number(this.architecture.match(/\d+/));
+      } else if (this.architecture.startsWith('xe')) {
+        return 12;
+      }
+    }
+    return 0;
   }
 
   isIntel(): boolean {
