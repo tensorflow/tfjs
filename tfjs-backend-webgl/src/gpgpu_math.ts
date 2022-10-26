@@ -94,6 +94,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       texShape: input.isUniform ? null : input.texData.texShape,
       isUniform: input.isUniform,
       isPacked: input.isUniform ? false : input.texData.isPacked,
+      mrtSupport: input.texData.mrtStorage,
       flatOffset: null
     };
     if (input.texData != null && input.texData.slice != null &&
@@ -108,6 +109,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     texShape: output.texData.texShape,
     isUniform: false,
     isPacked: output.texData.isPacked,
+    mrtSupport: output.texData.mrtStorage,
     flatOffset: null
   };
   const source = shader_compiler.makeShader(inputInfos, outShapeInfo, program);
@@ -252,7 +254,11 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
-  if (output.texData.isPacked) {
+  if (output.texData.mrtStorage != null) {
+    gpgpu.setOutputPackedMatrixTextureArray(
+        outTex.texture, outTexShape[0], outTexShape[1],
+        output.texData.mrtStorage);
+  } else if (output.texData.isPacked) {
     gpgpu.setOutputPackedMatrixTexture(
         outTex.texture, outTexShape[0], outTexShape[1]);
   } else {
@@ -328,6 +334,11 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
 
+    if (input.texData.mrtStorage != null) {
+      gpgpu.setInputMatrixTextureArray(
+          input.texData.texture.texture, varLoc, i);
+      return
+    }
     gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
   });
 

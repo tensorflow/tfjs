@@ -358,6 +358,15 @@ export class GPGPUContext {
         this.gl, inputMatrixTexture, uniformLocation, textureUnit);
   }
 
+  public setInputMatrixTextureArray(
+      inputMatrixTexture: WebGLTexture, uniformLocation: WebGLUniformLocation,
+      textureUnit: number) {
+    this.throwIfDisposed();
+    this.throwIfNoProgram();
+    webgl_util.bindTextureArrayToProgramUniformSampler(
+        this.gl, inputMatrixTexture, uniformLocation, textureUnit);
+  }
+
   public setOutputMatrixTexture(
       outputMatrixTexture: WebGLTexture, rows: number, columns: number) {
     this.setOutputMatrixTextureDriver(outputMatrixTexture, columns, rows);
@@ -369,6 +378,16 @@ export class GPGPUContext {
     const [width, height] =
         tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
     this.setOutputMatrixTextureDriver(outputPackedMatrixTexture, width, height);
+  }
+
+  public setOutputPackedMatrixTextureArray(
+      outputPackedMatrixTexture: WebGLTexture, rows: number, columns: number,
+      mrtSupport: [number, number]) {
+    this.throwIfDisposed();
+    const [width, height] =
+        tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+    this.setOutputMatrixTextureArrayDriver(
+        outputPackedMatrixTexture, width, height, mrtSupport);
   }
 
   public setOutputMatrixWriteRegion(
@@ -598,6 +617,28 @@ export class GPGPUContext {
     if (this.debug) {
       webgl_util.validateFramebuffer(gl);
     }
+    this.outputTexture = outputMatrixTextureMaybePacked;
+    webgl_util.callAndCheck(gl, () => gl.viewport(0, 0, width, height));
+    webgl_util.callAndCheck(gl, () => gl.scissor(0, 0, width, height));
+  }
+
+  private setOutputMatrixTextureArrayDriver(
+      outputMatrixTextureMaybePacked: WebGLTexture, width: number,
+      height: number, mrtSupport: [number, number]) {
+    this.throwIfDisposed();
+    const gl = this.gl;
+    // const gl = this.gl as WebGL2RenderingContext;
+    const layers = mrtSupport[0] * mrtSupport[1];
+    webgl_util.bindColorTextureArrayToFramebuffer(
+        gl, outputMatrixTextureMaybePacked, this.framebuffer, layers);
+    if (this.debug) {
+      webgl_util.validateFramebuffer(gl);
+    }
+    // const buffers: number[] = [];
+    // for (let layer = 0; layer < layers; layer++) {
+    //   buffers.push(gl.COLOR_ATTACHMENT0 + layer);
+    // }
+    // webgl_util.callAndCheck(gl, () => gl.drawBuffers(buffers));
     this.outputTexture = outputMatrixTextureMaybePacked;
     webgl_util.callAndCheck(gl, () => gl.viewport(0, 0, width, height));
     webgl_util.callAndCheck(gl, () => gl.scissor(0, 0, width, height));
