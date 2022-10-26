@@ -22,8 +22,7 @@ import {getTextureConfig} from './tex_util';
 
 export function assert(value: boolean, message?: string): void {
   if (!value) {
-    message = message || '';
-    throw new Error(`Assert failed: ${message}`);
+    throw new Error(`Assert failed: ${message || ''}`);
   }
 }
 
@@ -257,6 +256,16 @@ export function bindTextureUnit(
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 }
 
+export function bindTextureArrayUnit(
+    gl: WebGLRenderingContext, texture: WebGLTexture, textureUnit: number) {
+  validateTextureUnit(gl, textureUnit);
+  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
+  callAndCheck(
+      gl,
+      () => gl.bindTexture(
+          (gl as WebGL2RenderingContext).TEXTURE_2D_ARRAY, texture));
+}
+
 export function unbindTextureUnit(
     gl: WebGLRenderingContext, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
@@ -285,6 +294,13 @@ export function bindTextureToProgramUniformSampler(
   callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
 }
 
+export function bindTextureArrayToProgramUniformSampler(
+    gl: WebGLRenderingContext, texture: WebGLTexture,
+    uniformSamplerLocation: WebGLUniformLocation, textureUnit: number) {
+  callAndCheck(gl, () => bindTextureArrayUnit(gl, texture, textureUnit));
+  callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
+}
+
 export function bindCanvasToFramebuffer(gl: WebGLRenderingContext) {
   callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
   callAndCheck(gl, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
@@ -299,6 +315,20 @@ export function bindColorTextureToFramebuffer(
       gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0));
+}
+
+export function bindColorTextureArrayToFramebuffer(
+    gl: WebGLRenderingContext, texture: WebGLTexture,
+    framebuffer: WebGLFramebuffer, layers: number) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
+  for (let layer = 0; layer < layers; layer++) {
+    callAndCheck(
+        gl,
+        () => (gl as WebGL2RenderingContext)
+                  .framebufferTextureLayer(
+                      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + layer, texture, 0,
+                      layer));
+  }
 }
 
 export function unbindColorTextureFromFramebuffer(
