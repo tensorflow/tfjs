@@ -268,8 +268,6 @@ const TEST_FILTERS: TestFilter[] = [
       'erf ',
       'FFT ',
       'IRFFT ',
-      'isFinite ',
-      'isInf ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
@@ -281,7 +279,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
-      'mod ',
       'multinomial ',
       'oneHot ',
       'confusionMatrix ',  // oneHot
