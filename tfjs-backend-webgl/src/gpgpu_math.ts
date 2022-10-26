@@ -32,6 +32,7 @@ export interface GPGPUProgram {
   packedInputs?: boolean;
   /** If true, this program produces a packed texture. Defaults to false. */
   packedOutput?: boolean;
+  mrtSupport?: [number, number];
   /**
    * Affects what type of texture we allocate for the output. Defaults to
    * `TextureUsage.RENDER`.

@@ -150,6 +150,47 @@ describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
   });
 });
 
+
+describeWithFlags('get MRT logical texture shape', WEBGL_ENVS, () => {
+  const mrtSupport: [number, number] = [2, 2];
+  const isPacked = true;
+
+  it('1D tensor', () => {
+    const logicalShape = [1];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([2, 2]);
+  });
+
+  it('2D tensor', () => {
+    const logicalShape = [1, 1];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([2, 2]);
+  });
+
+  it('2D tensor padding', () => {
+    const logicalShape = [1, 5, 5];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([4, 4]);
+  });
+
+  it('2D tensor rectangle', () => {
+    const logicalShape = [1, 5, 1];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([4, 2]);
+  });
+
+  it('3D tensor', () => {
+    const logicalShape = [1, 3, 3];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([2, 2]);
+  });
+});
+
 describeWithFlags('isReshapeFree', WEBGL_ENVS, () => {
   it('is free when shapes have the same inner dimensions', () => {
     const before = [1, 2, 3];

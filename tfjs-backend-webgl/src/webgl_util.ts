@@ -20,6 +20,13 @@ import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
 
+export function assert(value: boolean, message?: string): void {
+  if (!value) {
+    message = message || '';
+    throw new Error(`Assert failed: ${message}`);
+  }
+}
+
 export function callAndCheck<T>(gl: WebGLRenderingContext, func: () => T): T {
   const returnValue = func();
   if (env().getBool('DEBUG')) {
@@ -458,6 +465,21 @@ export function getTextureShapeFromLogicalShape(
   }
 
   return textureShape;
+}
+
+export function nearestLargerMultipleOf4(val: number): number {
+  return Math.ceil(val / 4) * 4;
+}
+
+export function getTextureArrayShapeFromLogicalShape(
+    logShape: number[], isPacked = false,
+    mrtSupport: [number, number]): [number, number] {
+  assert(isPacked);
+  logShape = logShape.map(
+      (d, i) => i >= logShape.length - 2 ? util.nearestLargerEven(logShape[i]) /
+              mrtSupport[i - logShape.length + 2] :
+                                           logShape[i]);
+  return getTextureShapeFromLogicalShape(logShape, isPacked);
 }
 
 function isEven(n: number): boolean {

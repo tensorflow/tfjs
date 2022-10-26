@@ -56,7 +56,7 @@ run --incompatible_strict_action_env
 # Remote builds are sandboxed.
 # TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
 build:linux --spawn_strategy=remote,sandboxed,worker,local
-build:macos --spawn_strategy=remote,sandboxed,worker,local
+build:macos --spawn_strategy=remote,worker,local
 build:windows --spawn_strategy=remote,worker,local
 
 # Pass BrowserStack credentials
