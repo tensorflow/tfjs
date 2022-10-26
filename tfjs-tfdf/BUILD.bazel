@@ -100,15 +100,15 @@ tfjs_web_test(
     srcs = [
         "//tfjs-tfdf/src:tfjs-tfdf_test_bundle",
     ],
-    static_files = [
-        "//tfjs-tfdf/wasm:wasm_files",
-    ],
     browsers = [
         # TODO: Support Safari.
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_android_9",
         "win_10_chrome",
+    ],
+    static_files = [
+        "//tfjs-tfdf/wasm:wasm_files",
     ],
 )
 
