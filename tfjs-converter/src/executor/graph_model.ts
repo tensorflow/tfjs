@@ -387,7 +387,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
                           NamedTensorMap): NamedTensorMap {
     if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
       // The input is already a NamedTensorMap.
-      const signatureInputs = this.signature ?.inputs;
+      const signatureInputs = this.signature?.inputs;
       if (signatureInputs != null) {
         for (const input in signatureInputs) {
           const tensor = signatureInputs[input];
@@ -411,7 +411,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     let inputIndex = 0;
     return this.inputNodes.reduce((map, inputName) => {
-      const resourceId = this.signature ?.inputs ?.[inputName] ?.resourceId;
+      const resourceId = this.signature?.inputs?.[inputName]?.resourceId;
       if (resourceId != null) {
         map[inputName] = this.resourceIdToCapturedInput[resourceId];
       } else {
