@@ -336,9 +336,10 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
                           NamedTensorMap): NamedTensorMap {
     if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
       // The input is already a NamedTensorMap.
-      if (this.signature != null && this.signature.inputs != null) {
-        for (const input in this.signature.inputs) {
-          const tensor = this.signature.inputs[input];
+      const signatureInputs = this.signature ?.inputs;
+      if (signatureInputs != null) {
+        for (const input in signatureInputs) {
+          const tensor = signatureInputs[input];
           if (tensor.resourceId != null) {
             inputs[input] = this.resourceIdToCapturedInput[tensor.resourceId];
           }
@@ -359,10 +360,9 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     let inputIndex = 0;
     return this.inputNodes.reduce((map, inputName) => {
-      const signature =
-          this.signature ? this.signature.inputs[inputName] : null;
-      if (signature != null && signature.resourceId != null) {
-        map[inputName] = this.resourceIdToCapturedInput[signature.resourceId];
+      const resourceId = this.signature ?.inputs ?.[inputName] ?.resourceId;
+      if (resourceId != null) {
+        map[inputName] = this.resourceIdToCapturedInput[resourceId];
       } else {
         map[inputName] = (inputs as Tensor[])[inputIndex++];
       }
@@ -403,10 +403,11 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     this.resourceIdToCapturedInput = {};
 
     if (this.initializerSignature) {
-      const outputNames = Object.keys(this.initializerSignature.outputs);
+      const signatureOutputs = this.initializerSignature.outputs;
+      const outputNames = Object.keys(signatureOutputs);
       for (let i = 0; i < outputNames.length; i++) {
         const outputName = outputNames[i];
-        const tensorInfo = this.initializerSignature.outputs[outputName];
+        const tensorInfo = signatureOutputs[outputName];
         this.resourceIdToCapturedInput[tensorInfo.resourceId] = outputs[i];
       }
     }
@@ -575,10 +576,10 @@ export async function loadGraphModel(
  *
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
-export function loadGraphModelSync(modelSource: io.IOHandlerSync
-  | io.ModelArtifacts | [io.ModelJSON, /* Weights */ ArrayBuffer]):
-  GraphModel<io.IOHandlerSync> {
-
+export function loadGraphModelSync(
+    modelSource: io.IOHandlerSync|
+    io.ModelArtifacts|[io.ModelJSON, /* Weights */ ArrayBuffer]):
+    GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
         'modelUrl in loadGraphModelSync() cannot be null. Please provide ' +
@@ -592,8 +593,9 @@ export function loadGraphModelSync(modelSource: io.IOHandlerSync
       throw new Error('modelJSON must be the first element of the array');
     }
     if (!weights || !(weights instanceof ArrayBuffer)) {
-      throw new Error('An ArrayBuffer of weights must be the second element of'
-                      + ' the array');
+      throw new Error(
+          'An ArrayBuffer of weights must be the second element of' +
+          ' the array');
     }
     if (!('modelTopology' in modelJSON)) {
       throw new Error('Model JSON is missing \'modelTopology\'');
@@ -603,15 +605,15 @@ export function loadGraphModelSync(modelSource: io.IOHandlerSync
     }
 
     const weightSpecs = io.getWeightSpecs(modelJSON.weightsManifest);
-    const modelArtifacts = io.getModelArtifactsForJSONSync(modelJSON,
-                                                           weightSpecs,
-                                                           weights);
+    const modelArtifacts =
+        io.getModelArtifactsForJSONSync(modelJSON, weightSpecs, weights);
     ioHandler = io.fromMemorySync(modelArtifacts);
   } else if ('load' in modelSource) {
     // Then modelSource is already an IOHandlerSync.
     ioHandler = modelSource;
-  } else if ('modelTopology' in modelSource && 'weightSpecs' in modelSource
-      && 'weightData' in modelSource) {
+  } else if (
+      'modelTopology' in modelSource && 'weightSpecs' in modelSource &&
+      'weightData' in modelSource) {
     // modelSource is of type ModelArtifacts.
     ioHandler = io.fromMemorySync(modelSource);
   } else {
