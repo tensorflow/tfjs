@@ -159,6 +159,11 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
         ['a', 'b', 'c']);
   });
 
+
+  it('floatPrecision works', () => {
+    expect(tf.backend().floatPrecision()).toEqual(16);
+  });
+
   it('register string tensor with values and wrong shape throws error', () => {
     const backend = new MathBackendWebGL();
     tf.registerBackend('test-storage', () => backend);
