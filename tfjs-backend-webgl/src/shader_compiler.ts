@@ -144,7 +144,10 @@ export function makeShader(
   let floatTextureSetOutputSnippet: string;
   let shaderPrefix = getShaderPrefix(glsl);
 
-  if (outputShape.isPacked) {
+  if (outputShape.mrtSupport != null) {
+    outputSamplingSnippet = getPackedOutputSamplingSnippetMrt2x2(
+        outputShape.logicalShape, outTexShape);
+  } else if (outputShape.isPacked) {
     outputSamplingSnippet = getPackedOutputSamplingSnippet(
         outputShape.logicalShape, outTexShape, program.enableShapeUniforms);
     floatTextureSetOutputSnippet = getFloatTextureSetRGBASnippet(glsl);
@@ -249,6 +252,20 @@ function getInputSamplingSnippet(
     }
   }
   return res;
+}
+
+function getPackedOutputSamplingSnippetMrt2x2(
+    outShape: number[], outTexShape: [number, number]): string {
+  assert(
+      outShape.length === 3,
+      `Output shape length of ${outShape} is not supported for MRT!`);
+  switch (outShape.length) {
+    case 3:
+      return getOutputPacked3DCoordsMrt2x2(
+          outShape as [number, number, number], outTexShape);
+    default:
+      return '';
+  }
 }
 
 function getPackedOutputSamplingSnippet(
@@ -580,6 +597,25 @@ function getOutput1DCoords(
       return resTexRC.x * ${texShape[1]} + resTexRC.y;
     }
   `;
+}
+
+function getOutputPacked3DCoordsMrt2x2(
+    shape: [number, number, number], texShape: [number, number]): string {
+  const packedTexShape =
+      [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
+  const texelsInLogicalRow = Math.ceil(shape[2] / 4);
+
+  return `
+  ivec3 getOutputCoords() {
+    ivec2 resTexRC = ivec2(resultUV.yx *
+                           vec2(${packedTexShape[0]}, ${packedTexShape[1]}));
+    int index = resTexRC.x * ${packedTexShape[1]} + resTexRC.y;
+    int b = 0;
+    int r = index / ${texelsInLogicalRow};
+    int c = index - r * ${texelsInLogicalRow};
+    return ivec3(b, r * 4, c * 4);
+  }
+`;
 }
 
 function getOutputPacked3DCoords(
