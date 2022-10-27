@@ -45,10 +45,9 @@ export class GraphExecutor implements FunctionExecutor {
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
-  private idsKeepForAsync: Set<number>;
   private tensorsPendingDisposal: Tensor[];
   private tensorsMap: NamedTensorsMap;
-  private keepTensorsForDump = false;
+  private keepIntermediateTensors = false;
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -184,7 +183,7 @@ export class GraphExecutor implements FunctionExecutor {
 
   private keepTensors(
       tensorsToKeep: Tensor[], tensorsPendingDisposal: Tensor[] = null) {
-    if (!this.keepTensorsForDump || tensorsToKeep == null) {
+    if (!this.keepIntermediateTensors || tensorsToKeep == null) {
       return;
     }
     tensorsToKeep.forEach(tensor => {
@@ -231,11 +230,11 @@ export class GraphExecutor implements FunctionExecutor {
       this.compiledMap.set(compilationKey, orderedNodes);
     }
 
-    // Turn on model dump if KEEP_INTERMEDIATE_TENSORS is on.
+    // Keep tensors if KEEP_INTERMEDIATE_TENSORS is on.
     try {
-      this.keepTensorsForDump = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+      this.keepIntermediateTensors = env().getBool('KEEP_INTERMEDIATE_TENSORS');
     } catch (e) {
-      this.keepTensorsForDump = false;
+      this.keepIntermediateTensors = false;
       console.warn(e.message);
     }
     const tensorArrayMap: TensorArrayMap = {};
@@ -246,7 +245,7 @@ export class GraphExecutor implements FunctionExecutor {
       const context = new ExecutionContext(
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
-      if (this.keepTensorsForDump) {
+      if (this.keepIntermediateTensors) {
         this.tensorsPendingDisposal = [];
       }
 
@@ -256,9 +255,10 @@ export class GraphExecutor implements FunctionExecutor {
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
         // For some models, such as bodypix, it will dispose the input tensors
-        // in its top level tidy. In dump mode, these tensors are required, so
-        // call keep to eusure they are preserved. However, this comes with a
-        // side effect in dump mode, tensor leak.
+        // in its top level tidy. In keep intermediate tensors mode, these
+        // tensors are required, so call keep to eusure they are preserved.
+        // However, this comes with a side effect in keep intermediate tensors
+        // mode, tensor leak.
         this.keepTensors(tensors);
       });
 
@@ -289,7 +289,7 @@ export class GraphExecutor implements FunctionExecutor {
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
 
-    if (this.keepTensorsForDump) {
+    if (this.keepIntermediateTensors) {
       this.tensorsMap = tensorsMap;
     } else {
       this.tensorsMap = null;
@@ -335,7 +335,7 @@ export class GraphExecutor implements FunctionExecutor {
             if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
               const count = intermediateTensorConsumerCount[tensor.id];
               if (count === 1) {
-                if (!this.keepTensorsForDump) {
+                if (!this.keepIntermediateTensors) {
                   tensor.dispose();
                 }
                 delete intermediateTensorConsumerCount[tensor.id];
@@ -366,7 +366,7 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   disposeIntermediateTensors() {
-    if (!this.keepTensorsForDump) {
+    if (!this.keepIntermediateTensors) {
       return;
     }
 
@@ -374,24 +374,7 @@ export class GraphExecutor implements FunctionExecutor {
       tensor.dispose();
     });
     this.tensorsPendingDisposal = null;
-    this.keepTensorsForDump = false;
-  }
-
-  private disposeTensorsMap() {
-    if (!this.tensorsMap) {
-      return;
-    }
-
-    Object.keys(this.tensorsMap).forEach(key => {
-      const tensorArray = this.tensorsMap[key];
-      tensorArray.forEach(tensor => {
-        if (tensor && !tensor.kept && !tensor.isDisposed &&
-            !this.idsKeepForAsync.has(tensor.id)) {
-          tensor.dispose();
-        }
-      });
-    });
-    this.tensorsMap = null;
+    this.keepIntermediateTensors = false;
   }
 
   getIntermediateTensors(): NamedTensorsMap {
@@ -424,14 +407,14 @@ export class GraphExecutor implements FunctionExecutor {
       this.checkOutputs(outputs);
     }
 
-    // Turn on model dump if KEEP_INTERMEDIATE_TENSORS is on.
+    // Keep tensors if KEEP_INTERMEDIATE_TENSORS is on.
     try {
-      this.keepTensorsForDump = env().getBool('KEEP_INTERMEDIATE_TENSORS');
-      if (this.keepTensorsForDump) {
+      this.keepIntermediateTensors = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+      if (this.keepIntermediateTensors) {
         this.tensorsPendingDisposal = [];
       }
     } catch (e) {
-      this.keepTensorsForDump = false;
+      this.keepIntermediateTensors = false;
       console.warn(e.message);
     }
 
@@ -450,15 +433,24 @@ export class GraphExecutor implements FunctionExecutor {
     // dispose all the intermediate tensors
     const outputIds = results.map(t => t.id);
     const inputIds = Object.keys(inputs).map(name => inputs[name].id);
-    this.idsKeepForAsync =
+    const keepIds =
         new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
-    if (!this.keepTensorsForDump) {
-      this.disposeTensorsMap();
+    if (!this.keepIntermediateTensors) {
+      Object.keys(this.tensorsMap).forEach(key => {
+        const tensorArray = this.tensorsMap[key];
+        tensorArray.forEach(tensor => {
+          if (tensor && !tensor.kept && !tensor.isDisposed &&
+              !keepIds.has(tensor.id)) {
+            tensor.dispose();
+          }
+        });
+      });
+      this.tensorsMap = null;
     }
 
     // dispose the context for the root executor
     if (this.parent == null) {
-      context.dispose(this.idsKeepForAsync);
+      context.dispose(keepIds);
     }
 
     return results;
@@ -582,9 +574,9 @@ export class GraphExecutor implements FunctionExecutor {
         }
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
-          if (this.keepTensorsForDump) {
+          if (this.keepIntermediateTensors) {
             throw new Error(
-                'Dump is not supported for operator returns promises!');
+                'Keep intermediate tensors is not supported for operator returns promises!');
           }
           promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
@@ -598,7 +590,7 @@ export class GraphExecutor implements FunctionExecutor {
           }));
         } else {
           tensorMap[nodeName] = tensors;
-          if (this.keepTensorsForDump) {
+          if (this.keepIntermediateTensors) {
             this.tensorsPendingDisposal.push(...tensors);
           }
           this.checkTensorForDisposal(
