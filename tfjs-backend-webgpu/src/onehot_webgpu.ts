@@ -24,7 +24,7 @@ export class OneHotProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'onValue : i32, offValue : i32,';
+  uniforms = 'onValue : f32, offValue : f32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -41,8 +41,8 @@ export class OneHotProgram implements WebGPUProgram {
       ${main('index')} {
         if(index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
-          setOutputAtIndex(index, mix(f32(uniforms.offValue), f32(uniforms.onValue),
-                                      f32(i32(getX(coords.x)) == coords.y)));
+          setOutputAtIndex(index, mix(uniforms.offValue, uniforms.onValue,
+                                      f32(i32(round(getX(coords.x))) == coords.y)));
         }
       }
     `;

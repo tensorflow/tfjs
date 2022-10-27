@@ -34,7 +34,7 @@ export function oneHot(
       reshape({inputs: {x: indices}, backend, attrs: {shape: [indicesSize]}});
 
   const uniformData =
-      [{type: 'int32', data: [onValue]}, {type: 'int32', data: [offValue]}];
+      [{type: 'float32', data: [onValue]}, {type: 'float32', data: [offValue]}];
   const result =
       backend.runWebGPUProgram(program, [reshaped], dtype, uniformData);
   backend.disposeData(reshaped.dataId);
