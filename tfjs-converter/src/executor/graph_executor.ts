@@ -184,7 +184,7 @@ export class GraphExecutor implements FunctionExecutor {
 
   private keepTensors(
       tensorsToKeep: Tensor[], tensorsPendingDisposal: Tensor[] = null) {
-    if (this.keepTensorsForDump === false || tensorsToKeep == null) {
+    if (!this.keepTensorsForDump || tensorsToKeep == null) {
       return;
     }
     tensorsToKeep.forEach(tensor => {
@@ -246,7 +246,7 @@ export class GraphExecutor implements FunctionExecutor {
       const context = new ExecutionContext(
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
-      if (this.keepTensorsForDump === true) {
+      if (this.keepTensorsForDump) {
         this.tensorsPendingDisposal = [];
       }
 
@@ -289,7 +289,7 @@ export class GraphExecutor implements FunctionExecutor {
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
 
-    if (this.keepTensorsForDump === true) {
+    if (this.keepTensorsForDump) {
       this.tensorsMap = tensorsMap;
     } else {
       this.tensorsMap = null;
@@ -335,7 +335,7 @@ export class GraphExecutor implements FunctionExecutor {
             if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
               const count = intermediateTensorConsumerCount[tensor.id];
               if (count === 1) {
-                if (this.keepTensorsForDump === false) {
+                if (!this.keepTensorsForDump) {
                   tensor.dispose();
                 }
                 delete intermediateTensorConsumerCount[tensor.id];
@@ -366,7 +366,7 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   disposeIntermediateTensors() {
-    if (this.keepTensorsForDump === false) {
+    if (!this.keepTensorsForDump) {
       return;
     }
 
@@ -452,7 +452,7 @@ export class GraphExecutor implements FunctionExecutor {
     const inputIds = Object.keys(inputs).map(name => inputs[name].id);
     this.idsKeepForAsync =
         new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
-    if (this.keepTensorsForDump === false) {
+    if (!this.keepTensorsForDump) {
       this.disposeTensorsMap();
     }
 
@@ -582,7 +582,7 @@ export class GraphExecutor implements FunctionExecutor {
         }
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
-          if (this.keepTensorsForDump === true) {
+          if (this.keepTensorsForDump) {
             throw new Error(
                 'Dump is not supported for operator returns promises!');
           }
@@ -598,7 +598,7 @@ export class GraphExecutor implements FunctionExecutor {
           }));
         } else {
           tensorMap[nodeName] = tensors;
-          if (this.keepTensorsForDump === true) {
+          if (this.keepTensorsForDump) {
             this.tensorsPendingDisposal.push(...tensors);
           }
           this.checkTensorForDisposal(
@@ -680,7 +680,7 @@ export class GraphExecutor implements FunctionExecutor {
   private mapInputs(inputs: NamedTensorMap) {
     const result: NamedTensorMap = {};
     for (const inputName in inputs) {
-      const tensor = this._signature?.inputs?.[inputName];
+      const tensor = this._signature ?.inputs ?.[inputName];
       if (tensor != null) {
         result[tensor.name] = inputs[inputName];
       } else {
@@ -704,7 +704,7 @@ export class GraphExecutor implements FunctionExecutor {
 
   private mapOutputs(outputs: string[]) {
     return outputs.map(name => {
-      const tensor = this._signature?.outputs?.[name];
+      const tensor = this._signature ?.outputs ?.[name];
       if (tensor != null) {
         return tensor.name;
       }
