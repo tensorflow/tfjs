@@ -63,6 +63,10 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     expect(a).toThrowError();
     tf.env().set('DEBUG', debug);
   });
+
+  it('floatPrecision works', () => {
+    expect(tf.backend().floatPrecision()).toEqual(16);
+  });
 });
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
@@ -157,10 +161,6 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
-  });
-
-  it('floatPrecision works', () => {
-    expect(tf.backend().floatPrecision()).toEqual(16);
   });
 
   it('register string tensor with values and wrong shape throws error', () => {
