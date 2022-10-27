@@ -27,8 +27,8 @@ export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
     'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
 export type Category = 'arithmetic'|'basic_math'|'control'|'convolution'|
     'creation'|'custom'|'dynamic'|'evaluation'|'graph'|'hash_table'|'image'|
-    'logical'|'matrices'|'normalization'|'reduction'|'slice_join'|'sparse'|
-    'spectral'|'string'|'transformation';
+    'logical'|'matrices'|'normalization'|'ragged'|'reduction'|'slice_join'|
+    'sparse'|'spectral'|'string'|'transformation';
 
 // For mapping input or attributes of NodeDef into TensorFlow.js op param.
 export declare interface ParamMapper {
@@ -78,7 +78,7 @@ export declare interface AttrParamMapper extends ParamMapper {
 
 export interface InternalOpExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-   ops?: typeof tfOps): Tensor | Tensor[];
+   ops?: typeof tfOps): Tensor|Tensor[];
 }
 
 export interface InternalOpAsyncExecutor {
