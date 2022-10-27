@@ -22,7 +22,7 @@ import {Conv2DProgram} from '../conv_gpu';
 import {Conv2DPackedProgram} from '../conv_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 
-import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
+import {conv2dByMatMul, conv2dByMatMulMrt2x2, conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
 
 export function fusedConv2d(args: {
@@ -101,24 +101,39 @@ export function fusedConv2d(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-  } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
-    && env().getBool('WEBGL_EXP_CONV')
-    ) {
-      const fusedActivation =
-          activation ? mapActivationToShaderProgram(activation, true) : null;
+    if (convInfo.batchSize === 1 && !hasBias && !hasPreluActivationWeights &&
+        !hasLeakyreluAlpha) {
+      out = conv2dByMatMulMrt2x2({
+        x,
+        filter,
+        convInfo,
+        backend,
+        bias,
+        activation,
+        preluActivationWeights,
+        leakyreluAlpha
+      });
+    } else {
+      out = conv2dByMatMul({
+        x,
+        filter,
+        convInfo,
+        backend,
+        bias,
+        activation,
+        preluActivationWeights,
+        leakyreluAlpha
+      });
+    }
+
+  } else if (
+      convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast' &&
+      env().getBool('WEBGL_EXP_CONV')) {
+    const fusedActivation =
+        activation ? mapActivationToShaderProgram(activation, true) : null;
     const program = new Conv2DPackedProgram(
-      convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
-      hasLeakyreluAlpha);
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
     const customValues = [
       [convInfo.padInfo.top, convInfo.padInfo.left],
       [convInfo.strideHeight, convInfo.strideWidth],

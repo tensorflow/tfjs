@@ -25,7 +25,7 @@ import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
 import * as webgl_util from '../webgl_util';
 
-import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
+import {batchMatMulImpl, batchMatMulMrt2x2Impl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 
@@ -72,6 +72,78 @@ function getShapeForBatchMatMul(
     return null;
   }
 }
+
+// For 1x1 kernels that iterate through every point in the input, convolution
+// can be expressed as matrix multiplication (without need for memory
+// remapping).
+export function conv2dByMatMulMrt2x2({
+  x,
+  filter,
+  convInfo,
+  backend,
+  bias = null,
+  preluActivationWeights = null,
+  leakyreluAlpha = 0,
+  activation = null
+}: Conv2DConfig) {
+  // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
+  // result from 2D to 4D.
+
+  webgl_util.assert(
+      convInfo.batchSize === 1, 'MatMul MRT does not support batch!');
+  webgl_util.assert(bias == null, 'MatMul MRT does not support bias!');
+  webgl_util.assert(
+      leakyreluAlpha == null, 'MatMul MRT does not support leakyreluAlpha!');
+  webgl_util.assert(
+      preluActivationWeights == null,
+      'MatMul MRT does not support preluActivationWeights!');
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+  webgl_util.assert(isChannelsLast, 'MatMul MRT does not support NCHW!');
+
+  let out: TensorInfo;
+  const intermediates: TensorInfo[] = [];
+
+  const numCols = convInfo.outHeight * convInfo.outWidth;
+  const xReshaped = reshape({
+    inputs: {x},
+    backend,
+    attrs: {
+      shape: isChannelsLast ?
+          [convInfo.batchSize, numCols, convInfo.inChannels] :
+          [convInfo.batchSize, convInfo.inChannels, numCols]
+    }
+  });
+  const filterReshaped = reshape({
+    inputs: {x: filter},
+    backend,
+    attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+  });
+  const result = batchMatMulMrt2x2Impl({
+    a: isChannelsLast ? xReshaped : filterReshaped,
+    b: isChannelsLast ? filterReshaped : xReshaped,
+    transposeA: !isChannelsLast,
+    transposeB: false,
+    backend,
+    bias,
+    activation,
+    preluActivationWeights,
+    leakyreluAlpha
+  });
+
+  out = reshape(
+      {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+
+  intermediates.push(xReshaped);
+  intermediates.push(filterReshaped);
+  intermediates.push(result);
+
+  for (const i of intermediates) {
+    backend.disposeIntermediateTensorInfo(i);
+  }
+
+  return out;
+}
+
 
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
