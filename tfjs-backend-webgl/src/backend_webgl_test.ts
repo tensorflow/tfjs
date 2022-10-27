@@ -159,7 +159,6 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
         ['a', 'b', 'c']);
   });
 
-
   it('floatPrecision works', () => {
     expect(tf.backend().floatPrecision()).toEqual(16);
   });
