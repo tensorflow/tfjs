@@ -1,0 +1,86 @@
+[
+  {
+    "tfOpName": "RaggedGather",
+    "category": "ragged",
+    "inputs": [
+      {
+        "start": 0,
+        "end": -3,
+        "name": "paramsNestedSplits",
+        "type": "tensors"
+      },
+      {
+        "start": -2,
+        "name": "paramsDenseValues",
+        "type": "tensor"
+      },
+      {
+        "start": -1,
+        "name": "indices",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "OUTPUT_RAGGED_RANK",
+        "name": "outputRaggedRank",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "tfOpName": "RaggedRange",
+    "category": "ragged",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "starts",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "limits",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "splits",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "RaggedTensorToTensor",
+    "category": "ragged",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "shape",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "values",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "defaultValue",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "end": 0,
+        "name": "rowPartitionTensors",
+        "type": "tensors"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "row_partition_types",
+        "name": "rowPartitionTypes",
+        "type": "string[]"
+      }
+    ]
+  }
+]

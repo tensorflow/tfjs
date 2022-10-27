@@ -36,6 +36,7 @@ import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
+import * as ragged from './executors/ragged_executor';
 import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
 import * as sparse from './executors/sparse_executor';
@@ -83,6 +84,8 @@ export function executeOp(
           case 'normalization':
             return tidy(
                 () => normalization.executeOp(node, tensorMap, context));
+          case 'ragged':
+            return tidy(() => ragged.executeOp(node, tensorMap, context));
           case 'reduction':
             return tidy(() => reduction.executeOp(node, tensorMap, context));
           case 'slice_join':
