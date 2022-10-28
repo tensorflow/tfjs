@@ -179,7 +179,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expectArraysClose(
         backend.readSync(t.dataId) as Float32Array,
         new Float32Array([1, 2, 3]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
+    expect(texManager.getNumUsedTextures()).toBe(1);
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
     backend.disposeData(t.dataId);
@@ -225,6 +225,8 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expectArraysClose(
         backend.readSync(t.dataId) as Float32Array,
         new Float32Array([1, 2, 3]));
+    expect(texManager.getNumUsedTextures()).toBe(1);
+    backend.disposeData(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 });
