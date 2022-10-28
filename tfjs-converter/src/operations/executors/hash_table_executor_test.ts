@@ -161,7 +161,8 @@ describe('hash_table', () => {
 
              const before = memory().numTensors;
              try {
-               await executeOp(node, {input3, input5}, context, resourceManager);
+               await executeOp(node, {input3, input5}, context,
+                               resourceManager);
                fail('Should fail, succeed unexpectedly.');
              } catch (err) {
                expect(err).toMatch(/The number of elements doesn't match/);
