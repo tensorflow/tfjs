@@ -69,4 +69,4 @@ def predict(binary_path,
 
   if popen.returncode != 0:
     raise ValueError('Inference failed with status %d\nstderr:\n%s' %
-                     (popen.returncode, stderr))
+                     (popen.returncode, stderr.decode()))
