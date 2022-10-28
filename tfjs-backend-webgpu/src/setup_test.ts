@@ -280,7 +280,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
       'multinomial ',
-      'oneHot ',
       'confusionMatrix ',  // oneHot
       'poolBackprop ',
       'raggedGather ',
