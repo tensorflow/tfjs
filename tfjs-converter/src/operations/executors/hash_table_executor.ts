@@ -81,6 +81,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const hashTable = resourceManager.getHashTableById(handle.id);
       return [hashTable.tensorSize()];
     }
+    case 'InitializeTable':
     case 'InitializeTableV2': {
       const handle = getParamValue(
                          'tableHandle', node, tensorMap, context,

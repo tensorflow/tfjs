@@ -100,7 +100,7 @@ describe('hash_table', () => {
     });
 
     for (const opName of ['LookupTableImport', 'LookupTableImportV2',
-                          'InitializeTableV2']) {
+                          'InitializeTable', 'InitializeTableV2']) {
       describe(opName, () => {
         it('should return hashTable handle.', async () => {
           const hashTable = new HashTable('string', 'float32');

@@ -80,6 +80,7 @@ describe('kernel2op metadata file', () => {
       'LookupTableFindV2',
       'LookupTableSize',
       'LookupTableSizeV2',
+      'InitializeTable',
       'InitializeTableV2',
     ];
     // tslint:disable-next-line:no-require-imports
