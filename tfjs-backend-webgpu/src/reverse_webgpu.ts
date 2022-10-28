@@ -38,43 +38,35 @@ export class ReverseProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const inputCoordsSnippet = `
+    const reverseCoordsSnippet = `
       // Using uniform variables as judging conditions, so the function has
       // coherent execution within all threads.
-      fn getReverseInputCoords(coords : vec4<i32>) -> vec4<i32> {
-        var inputCoords: vec4<i32>;
-        if ((uniforms.axis[0] == 1) && (uniforms.xShape[0] != 1)) {
-          inputCoords[0] = uniforms.xShape[0] - coords[0] - 1;
-        } else {
-          inputCoords[0] = coords[0];
+      fn getReverseCoords(coords : vec4<i32>) -> vec4<i32> {
+        var reverseCoords = coords;
+        if (uniforms.axis[0] == 1) {
+          reverseCoords[0] = uniforms.xShape[0] - coords[0] - 1;
         }
-        if ((uniforms.axis[1] == 1) && (uniforms.xShape[1] != 1)) {
-          inputCoords[1] = uniforms.xShape[1] - coords[1] - 1;
-        } else {
-          inputCoords[1] = coords[1];
+        if (uniforms.axis[1] == 1) {
+          reverseCoords[1] = uniforms.xShape[1] - coords[1] - 1;
         }
-        if ((uniforms.axis[2] == 1) && (uniforms.xShape[2] != 1)) {
-          inputCoords[2] = uniforms.xShape[2] - coords[2] - 1;
-        } else {
-          inputCoords[2] = coords[2];
+        if (uniforms.axis[2] == 1) {
+          reverseCoords[2] = uniforms.xShape[2] - coords[2] - 1;
         }
-        if ((uniforms.axis[3] == 1) && (uniforms.xShape[3] != 1)) {
-          inputCoords[3] = uniforms.xShape[3] - coords[3] - 1;
-        } else {
-          inputCoords[3] = coords[3];
+        if (uniforms.axis[3] == 1) {
+          reverseCoords[3] = uniforms.xShape[3] - coords[3] - 1;
         }
 
-        return inputCoords;
+        return reverseCoords;
       }
     `;
     const userCode = `
-      ${inputCoordsSnippet}
+      ${reverseCoordsSnippet}
       ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
-          let inputCoords = getReverseInputCoords(coords);
-          setOutputAtIndex(index, getX(inputCoords[0],
-              inputCoords[1], inputCoords[2], inputCoords[3]));
+          let reverseCoords = getReverseCoords(coords);
+          setOutputAtIndex(index, getX(reverseCoords[0],
+              reverseCoords[1], reverseCoords[2], reverseCoords[3]));
         }
       }
     `;

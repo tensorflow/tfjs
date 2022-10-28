@@ -42,10 +42,10 @@ export function reverse(
     xShape4D[index] = d;
   });
 
-  const $dims = util.parseAxisParam(dims, x.shape);
+  const axes = util.parseAxisParam(dims, x.shape);
   const dims4D: [number, number, number, number] = [0, 0, 0, 0];
-  $dims.forEach(d => {
-    const index = d + 4 - xRank;
+  axes.forEach(ax => {
+    const index = ax + 4 - xRank;
     dims4D[index] = 1;
   });
   const uniformData = [{type: 'int32', data: dims4D}];
