@@ -691,25 +691,24 @@ export class MathBackendWebGL extends KernelBackend {
   private releaseGPUData(dataId: DataId): void {
     const {texture, dtype, texShape, usage, isPacked, slice} =
         this.texData.get(dataId);
-    const sliceOrigDataId = slice && slice.origDataId;
-    const key = sliceOrigDataId || dataId;
+    const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
 
     if (refCount > 1) {
       this.dataRefCount.set(key, refCount - 1);
     } else {
       this.dataRefCount.delete(key);
-      const sliceReleased = !!sliceOrigDataId && refCount === undefined;
-      if (texture != null && sliceReleased === false) {
+      if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
         this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
-      const texData = this.texData.get(dataId);
-      texData.texture = null;
-      texData.texShape = null;
-      texData.isPacked = false;
-      texData.slice = null;
     }
+
+    const texData = this.texData.get(dataId);
+    texData.texture = null;
+    texData.texShape = null;
+    texData.isPacked = false;
+    texData.slice = null;
   }
 
   getTexture(dataId: DataId): WebGLTexture {
