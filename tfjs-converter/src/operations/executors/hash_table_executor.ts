@@ -47,6 +47,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
         return [hashTable.handle];
       }
     }
+    case 'InitializeTable':
+    case 'InitializeTableV2':
     case 'LookupTableImport':
     case 'LookupTableImportV2': {
       const handle = getParamValue(
@@ -80,20 +82,6 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const hashTable = resourceManager.getHashTableById(handle.id);
       return [hashTable.tensorSize()];
-    }
-    case 'InitializeTable':
-    case 'InitializeTableV2': {
-      const handle = getParamValue(
-                         'tableHandle', node, tensorMap, context,
-                         resourceManager) as Tensor;
-
-      const keys = getParamValue('keys', node, tensorMap, context) as Tensor;
-      const values =
-        getParamValue('values', node, tensorMap, context) as Tensor;
-
-      const hashTable = resourceManager.getHashTableById(handle.id);
-
-      return [await hashTable.import(keys, values)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
