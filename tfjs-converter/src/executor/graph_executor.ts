@@ -45,7 +45,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
-  private tensorsPendingDisposal: Tensor[];
+  private tensorsPendingDisposal: Set<string>;
   private tensorsMap: NamedTensorsMap;
   private keepIntermediateTensors = false;
 
@@ -182,15 +182,16 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   private keepTensors(
-      tensorsToKeep: Tensor[], tensorsPendingDisposal: Tensor[] = null) {
+      tensorsToKeep: Tensor[], nodeName: string = null,
+      tensorsPendingDisposal: Set<string> = null) {
     if (!this.keepIntermediateTensors || tensorsToKeep == null) {
       return;
     }
+    if (nodeName && tensorsPendingDisposal) {
+      tensorsPendingDisposal.add(nodeName);
+    }
     tensorsToKeep.forEach(tensor => {
       if (tensor && !tensor.kept) {
-        if (tensorsPendingDisposal) {
-          tensorsPendingDisposal.push(tensor);
-        }
         keep(tensor);
       }
     });
@@ -246,7 +247,7 @@ export class GraphExecutor implements FunctionExecutor {
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
       if (this.keepIntermediateTensors) {
-        this.tensorsPendingDisposal = [];
+        this.tensorsPendingDisposal = new Set<string>();
       }
 
       Object.keys(inputs).forEach(name => {
@@ -254,12 +255,11 @@ export class GraphExecutor implements FunctionExecutor {
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
-        // For some models, such as bodypix, it will dispose the input tensors
-        // in its top level tidy. In keep intermediate tensors mode, these
-        // tensors are required, so call keep to eusure they are preserved.
-        // However, this comes with a side effect in keep intermediate tensors
-        // mode, tensor leak.
-        this.keepTensors(tensors);
+        // TODO(xing.xu@intel.com): for some models, such as bodypix, it will
+        // dispose the input tensors in its top level tidy. In keep intermediate
+        // tensors mode, these tensors are required, so we should call keep to
+        // ensure they are preserved. However, this comes with tensor leak in
+        // keep intermediate tensors mode.
       });
 
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
@@ -276,7 +276,7 @@ export class GraphExecutor implements FunctionExecutor {
                 `Please use model.executeAsync() instead.`);
           }
           tensorsMap[node.name] = tensors;
-          this.keepTensors(tensors, this.tensorsPendingDisposal);
+          this.keepTensors(tensors, node.name, this.tensorsPendingDisposal);
           this.checkTensorForDisposal(
               node.name, node, tensorsMap, context, tensorsToKeep,
               outputNodeNames, intermediateTensorConsumerCount);
@@ -366,13 +366,19 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   disposeIntermediateTensors() {
-    if (!this.keepIntermediateTensors) {
+    if (!this.keepIntermediateTensors || this.tensorsPendingDisposal == null ||
+        this.tensorsMap == null) {
       return;
     }
+    for (const nodeName of this.tensorsPendingDisposal) {
+      const tensorArray = this.tensorsMap[nodeName];
+      tensorArray.forEach(tensor => {
+        if (tensor && !tensor.isDisposed) {
+          tensor.dispose();
+        }
+      });
+    }
 
-    this.tensorsPendingDisposal.forEach(tensor => {
-      tensor.dispose();
-    });
     this.tensorsPendingDisposal = null;
     this.keepIntermediateTensors = false;
   }
@@ -411,7 +417,7 @@ export class GraphExecutor implements FunctionExecutor {
     try {
       this.keepIntermediateTensors = env().getBool('KEEP_INTERMEDIATE_TENSORS');
       if (this.keepIntermediateTensors) {
-        this.tensorsPendingDisposal = [];
+        this.tensorsPendingDisposal = new Set<string>();
       }
     } catch (e) {
       this.keepIntermediateTensors = false;
@@ -591,7 +597,7 @@ export class GraphExecutor implements FunctionExecutor {
         } else {
           tensorMap[nodeName] = tensors;
           if (this.keepIntermediateTensors) {
-            this.tensorsPendingDisposal.push(...tensors);
+            this.tensorsPendingDisposal.add(nodeName);
           }
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
