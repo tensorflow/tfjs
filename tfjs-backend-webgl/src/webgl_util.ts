@@ -335,6 +335,31 @@ export function unbindColorTextureFromFramebuffer(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0));
 }
 
+export function unbindColorTextureArrayFromFramebuffer(
+    gl: WebGLRenderingContext, framebuffer: WebGLFramebuffer) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
+  callAndCheck(
+      gl,
+      () => (gl as WebGL2RenderingContext)
+                .framebufferTextureLayer(
+                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0));
+  callAndCheck(
+      gl,
+      () => (gl as WebGL2RenderingContext)
+                .framebufferTextureLayer(
+                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 1));
+  callAndCheck(
+      gl,
+      () => (gl as WebGL2RenderingContext)
+                .framebufferTextureLayer(
+                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 2));
+  callAndCheck(
+      gl,
+      () => (gl as WebGL2RenderingContext)
+                .framebufferTextureLayer(
+                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 3));
+}
+
 export function validateFramebuffer(gl: WebGLRenderingContext) {
   const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
   if (status !== gl.FRAMEBUFFER_COMPLETE) {

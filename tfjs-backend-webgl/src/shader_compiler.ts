@@ -162,8 +162,8 @@ export function makeShader(
   }
 
   const source = [
-    shaderPrefix, floatTextureSampleSnippet, floatTextureSetOutputSnippet,
-    inputPrefixSnippet, outputPrefixSnippet, outputSamplingSnippet,
+    shaderPrefix, floatTextureSampleSnippet, inputPrefixSnippet,
+    outputPrefixSnippet, floatTextureSetOutputSnippet, outputSamplingSnippet,
     inputSamplingSnippet, program.userCode
   ].join('\n');
   return source;
@@ -444,8 +444,8 @@ vec2 packedUVfrom2D(int texelsInLogicalRow, int texNumR,
 ivec3 packedCoordsfrom2D(int texelsInLogicalRow, int texNumR,
   int texNumC, int row, int col) {
   int texelIndexInTex = (row / 4) * texelsInLogicalRow + (col / 4);
-  int x = texelIndexInTex / texNumC;
-  int y = texelIndexInTex - x * texNumC;
+  int y = texelIndexInTex / texNumC;
+  int x = texelIndexInTex - y * texNumC;
   int z = (row & 2) + (col & 2) / 2;
   return ivec3(x, y, z);
 }
@@ -466,7 +466,7 @@ ivec3 packedCoordsfrom3D(int texNumR, int texNumC,
     int row, int col) {
   int texelIndexInTex = b * texelsInBatch + (row / 4) * texelsInLogicalRow + (col / 4);
   int x = texelIndexInTex / texNumC;
-  int y = texelIndexInTex - texR * texNumC;
+  int y = texelIndexInTex - x * texNumC;
   int z = (row & 2) + (col & 2) / 2;
   return ivec3(x, y, z);
 }

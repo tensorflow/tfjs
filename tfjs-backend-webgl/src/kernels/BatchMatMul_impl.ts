@@ -200,7 +200,9 @@ export function batchMatMulMrt2x2Impl({
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   assert(bias == null, 'MatMul MRT does not support bias!');
-  assert(leakyreluAlpha == null, 'MatMul MRT does not support leakyreluAlpha!');
+  assert(
+      activation !== 'leakyrelu',
+      'MatMul MRT does not support leakyreluAlpha!');
   assert(
       preluActivationWeights == null,
       'MatMul MRT does not support preluActivationWeights!');

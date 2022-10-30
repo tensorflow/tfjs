@@ -109,3 +109,89 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
     expectArraysClose(resultData, expected);
   });
 });
+
+describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
+  function makeContinuousArr(size: number) {
+    return Array.from(Array(size).keys());
+  }
+
+  it('basis', async () => {
+    const image = tf.tensor4d(makeContinuousArr(32), [1, 2, 4, 4]);
+    const filter = tf.tensor4d(makeContinuousArr(32), [1, 1, 4, 8]);
+    const result = tf.conv2d(image, filter, 1, 'valid');
+    // const webGLBackend = tf.backend() as MathBackendWebGL;
+    // const resInfo = webGLBackend.getDataInfo(result);
+    const resultData = await result.data();
+
+    const expected = [
+      112,  118,  124,  130,  136,  142,  148,  154,  304,  326,  348,
+      370,  392,  414,  436,  458,  496,  534,  572,  610,  648,  686,
+      724,  762,  688,  742,  796,  850,  904,  958,  1012, 1066, 880,
+      950,  1020, 1090, 1160, 1230, 1300, 1370, 1072, 1158, 1244, 1330,
+      1416, 1502, 1588, 1674, 1264, 1366, 1468, 1570, 1672, 1774, 1876,
+      1978, 1456, 1574, 1692, 1810, 1928, 2046, 2164, 2282
+    ];
+
+    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
+    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
+    expectArraysClose(resultData, expected);
+  });
+
+
+  it('output has paddings', async () => {
+    const image = tf.tensor4d(makeContinuousArr(28), [1, 1, 7, 4]);
+    const filter = tf.tensor4d(makeContinuousArr(28), [1, 1, 4, 7]);
+    const result = tf.conv2d(image, filter, 1, 'valid');
+    // const webGLBackend = tf.backend() as MathBackendWebGL;
+    // const resInfo = webGLBackend.getDataInfo(result);
+    const resultData = await result.data();
+
+    const expected = [
+      98,   104,  110,  116,  122,  128,  134,  266,  288,  310,
+      332,  354,  376,  398,  434,  472,  510,  548,  586,  624,
+      662,  602,  656,  710,  764,  818,  872,  926,  770,  840,
+      910,  980,  1050, 1120, 1190, 938,  1024, 1110, 1196, 1282,
+      1368, 1454, 1106, 1208, 1310, 1412, 1514, 1616, 1718
+    ];
+
+    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
+    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
+    expectArraysClose(result.shape, [1, 1, 7, 7]);
+    expectArraysClose(resultData, expected);
+  });
+
+  it('only one target is used', async () => {
+    const image = tf.tensor4d([1, 2, 3, 4], [1, 1, 2, 2]);
+    const filter = tf.tensor4d([1, 0.1, 0.01, 0.001], [1, 1, 2, 2]);
+    const result = tf.conv2d(image, filter, 1, 'valid');
+    // const webGLBackend = tf.backend() as MathBackendWebGL;
+    // const resInfo = webGLBackend.getDataInfo(result);
+    const resultData = await result.data();
+
+    const expected = [
+      1.0199999809265137, 0.10199999809265137, 3.0399999618530273,
+      0.30400002002716064
+    ];
+
+    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
+    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
+    expectArraysClose(result.shape, [1, 1, 2, 2]);
+    expectArraysClose(resultData, expected);
+  });
+
+  it('edge case', async () => {
+    const image = tf.tensor4d([2], [1, 1, 1, 1]);
+    const filter = tf.tensor4d([3], [1, 1, 1, 1]);
+    const result = tf.conv2d(image, filter, 1, 'valid');
+    // const webGLBackend = tf.backend() as MathBackendWebGL;
+    // const resInfo = webGLBackend.getDataInfo(result);
+    const resultData = await result.data();
+
+    const expected = [6];
+
+    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
+    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
+    expectArraysClose(result.shape, [1, 1, 1, 1]);
+    expectArraysClose(resultData, expected);
+  });
+});

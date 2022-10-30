@@ -93,7 +93,8 @@ export function conv2dByMatMulMrt2x2({
       convInfo.batchSize === 1, 'MatMul MRT does not support batch!');
   webgl_util.assert(bias == null, 'MatMul MRT does not support bias!');
   webgl_util.assert(
-      leakyreluAlpha == null, 'MatMul MRT does not support leakyreluAlpha!');
+      activation !== 'leakyrelu',
+      'MatMul MRT does not support leakyreluAlpha!');
   webgl_util.assert(
       preluActivationWeights == null,
       'MatMul MRT does not support preluActivationWeights!');

@@ -691,7 +691,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice} =
+    const {texture, dtype, texShape, usage, isPacked, slice, mrtStorage} =
         this.texData.get(dataId);
     const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
@@ -702,7 +702,8 @@ export class MathBackendWebGL extends KernelBackend {
       this.dataRefCount.delete(key);
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
+        this.textureManager.releaseTexture(
+            texture, texShape, usage, isPacked, mrtStorage);
       }
     }
 

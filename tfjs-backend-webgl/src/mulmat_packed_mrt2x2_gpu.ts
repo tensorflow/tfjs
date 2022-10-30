@@ -25,7 +25,7 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   enableShapeUniforms: false;
-  mrtSupport: [2, 2];
+  mrtSupport: [number, number] = [2, 2];
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -96,16 +96,21 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
         vec4 res_10 = vec4(0);
         vec4 res_11 = vec4(0);
 
-        for (int ic = 0; ic < ${sharedDimensionPacked}; ++ic) {  // iC/4
+        float rowOOB = ((row + 2) < ${aShape[1]}) ? 1. : 0.;
+        float colOOB = ((col + 2) < ${bShape[2]}) ? 1. : 0.;
+
+        for (int ic = 0; ic < ${sharedDimensionPacked * 4}; ic += 4) {  // iC/4
+          float icOOB = ((ic + 2) < ${aShape[2]}) ? 1. : 0.;
+
           vec4 a_00 = getMatrixA(row, ic);
-          vec4 a_01 = getMatrixA(row, ic + 2);
-          vec4 a_10 = getMatrixA(row + 2, ic);
-          vec4 a_10 = getMatrixA(row + 2, ic + 2);
+          vec4 a_01 = getMatrixA(row, ic + 2) * icOOB;
+          vec4 a_10 = getMatrixA(row + 2, ic) * rowOOB;
+          vec4 a_11 = getMatrixA(row + 2, ic + 2) * icOOB * rowOOB;
 
           vec4 b_00 = getMatrixB(ic, col);
-          vec4 b_01 = getMatrixB(ic, col + 2);
-          vec4 b_10 = getMatrixB(ic + 2, col);
-          vec4 b_10 = getMatrixB(ic + 2, col + 2);
+          vec4 b_01 = getMatrixB(ic, col + 2) * colOOB;
+          vec4 b_10 = getMatrixB(ic + 2, col) * icOOB;
+          vec4 b_11 = getMatrixB(ic + 2, col + 2) * icOOB * colOOB;
 
           vec4 a_row_0 = vec4(a_00.xy, a_01.xy);
           vec4 a_row_1 = vec4(a_00.zw, a_01.zw);
