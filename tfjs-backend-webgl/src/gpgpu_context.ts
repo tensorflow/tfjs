@@ -47,6 +47,7 @@ export class GPGPUContext {
   vertexBuffer: WebGLBuffer;
   indexBuffer: WebGLBuffer;
   framebuffer: WebGLFramebuffer;
+  framebufferMrt: WebGLFramebuffer;
   outputTexture: WebGLTexture|null = null;
   program: GPGPUContextProgram|null = null;
   private disposed = false;
@@ -157,6 +158,7 @@ export class GPGPUContext {
     this.vertexBuffer = gpgpu_util.createVertexBuffer(this.gl);
     this.indexBuffer = gpgpu_util.createIndexBuffer(this.gl);
     this.framebuffer = webgl_util.createFramebuffer(this.gl);
+    this.framebufferMrt = webgl_util.createFramebuffer(this.gl);
 
     this.textureConfig =
         tex_util.getTextureConfig(this.gl, this.textureHalfFloatExtension);
@@ -187,6 +189,8 @@ export class GPGPUContext {
     webgl_util.callAndCheck(gl, () => gl.finish());
     webgl_util.callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
     webgl_util.callAndCheck(gl, () => gl.deleteFramebuffer(this.framebuffer));
+    webgl_util.callAndCheck(
+        gl, () => gl.deleteFramebuffer(this.framebufferMrt));
     webgl_util.callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, null));
     webgl_util.callAndCheck(
         gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null));
@@ -252,6 +256,8 @@ export class GPGPUContext {
     this.throwIfDisposed();
     if (this.outputTexture === texture) {
       webgl_util.unbindColorTextureFromFramebuffer(this.gl, this.framebuffer);
+      webgl_util.unbindColorTextureArrayFromFramebuffer(
+          this.gl, this.framebufferMrt);
       this.outputTexture = null;
     }
     webgl_util.callAndCheck(this.gl, () => this.gl.deleteTexture(texture));
@@ -672,6 +678,8 @@ export class GPGPUContext {
       }
     } else {
       webgl_util.unbindColorTextureFromFramebuffer(this.gl, this.framebuffer);
+      webgl_util.unbindColorTextureArrayFromFramebuffer(
+          this.gl, this.framebufferMrt);
     }
   }
 
@@ -708,15 +716,19 @@ export class GPGPUContext {
     // const gl = this.gl as WebGL2RenderingContext;
     const layers = mrtSupport[0] * mrtSupport[1];
     webgl_util.bindColorTextureArrayToFramebuffer(
-        gl, outputMatrixTextureMaybePacked, this.framebuffer, layers);
+        gl, outputMatrixTextureMaybePacked, this.framebufferMrt, layers);
     if (this.debug) {
       webgl_util.validateFramebuffer(gl);
     }
-    // const buffers: number[] = [];
-    // for (let layer = 0; layer < layers; layer++) {
-    //   buffers.push(gl.COLOR_ATTACHMENT0 + layer);
-    // }
-    // webgl_util.callAndCheck(gl, () => gl.drawBuffers(buffers));
+
+    // MRT
+    const buffers: number[] = [];
+    for (let layer = 0; layer < layers; layer++) {
+      buffers.push(gl.COLOR_ATTACHMENT0 + layer);
+    }
+    webgl_util.callAndCheck(
+        gl, () => (gl as WebGL2RenderingContext).drawBuffers(buffers));
+
     this.outputTexture = outputMatrixTextureMaybePacked;
     webgl_util.callAndCheck(gl, () => gl.viewport(0, 0, width, height));
     webgl_util.callAndCheck(gl, () => gl.scissor(0, 0, width, height));

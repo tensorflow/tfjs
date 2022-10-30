@@ -94,14 +94,15 @@ export class TextureManager {
 
   releaseTexture(
       texture: Texture, shape: [number, number], logicalTexType: TextureUsage,
-      isPacked: boolean): void {
+      isPacked: boolean, mrtSupport?: [number, number]): void {
     if (this.freeTextures == null) {
       // Already disposed.
       return;
     }
     const physicalTexType =
         getPhysicalFromLogicalTextureType(logicalTexType, isPacked);
-    const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
+    const shapeKey =
+        getKeyFromTextureShape(shape, physicalTexType, isPacked, mrtSupport);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
