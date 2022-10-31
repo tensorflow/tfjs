@@ -35,9 +35,19 @@ if (isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    const adapterLimits = adapter.limits;
     const deviceDescriptor: GPUDeviceDescriptor = {};
-    const supportTimeQuery = adapter.features.has('timestamp-query');
+
+    // Note that timestamp-query-inside-passes is not formally in spec as
+    // timestamp within a pass is not generally supported on all the platforms.
+    // More details can be found at
+    // https://github.com/gpuweb/gpuweb/blob/main/proposals/timestamp-query-inside-passes.md
+    if (adapter.features.has('timestamp-query-inside-passes')) {
+      deviceDescriptor.requiredFeatures =
+          // tslint:disable-next-line:no-any
+          ['timestamp-query-inside-passes' as any];
+    }
+
+    const adapterLimits = adapter.limits;
     deviceDescriptor.requiredLimits = {
       'maxComputeWorkgroupStorageSize':
           adapterLimits.maxComputeWorkgroupStorageSize,
@@ -46,9 +56,6 @@ if (isWebGPUSupported()) {
       'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
     };
 
-    if (supportTimeQuery) {
-      deviceDescriptor.requiredFeatures = ['timestamp-query'];
-    }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
     const adapterInfo = await adapter.requestAdapterInfo();
     return new WebGPUBackend(device, adapterInfo);
