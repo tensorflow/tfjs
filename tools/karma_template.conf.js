@@ -84,16 +84,23 @@ const CUSTOM_LAUNCHERS = {
     ]
   },
   chrome_webgpu: {
-    base: 'ChromeCanary',
+    base: 'ChromeCanaryHeadless',
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
       '--flag-switches-begin',
       '--enable-unsafe-webgpu',
       '--flag-switches-end',
+      '--no-sandbox',
     ]
   },
-  chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+  chrome_debugging: {
+    base: 'Chrome',
+    flags: ['--remote-debugging-port=9333'],
+  },
+  chrome_no_sandbox: {
+    base: 'ChromeHeadless',
+    flags: ['--no-sandbox'],
+  }
 };
 
 module.exports = function(config) {
@@ -106,6 +113,9 @@ module.exports = function(config) {
       throw new Error(`Missing launcher for ${browser}`);
     }
     extraConfig.browsers = [browser];
+  } else {
+    // Use no sandbox by default. This has better support on MacOS.
+    extraConfig.browsers = ['chrome_no_sandbox'];
   }
   if (browserLauncher?.base === 'BrowserStack') {
     const username = process.env.BROWSERSTACK_USERNAME;
