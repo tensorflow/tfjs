@@ -88,6 +88,7 @@ import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {rangeConfig} from './kernels/Range';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -199,6 +200,7 @@ const kernelConfigs: KernelConfig[] = [
   prodConfig,
   rangeConfig,
   realDivConfig,
+  reciprocalConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
