@@ -147,7 +147,8 @@ export class WebGPUBackend extends KernelBackend {
     this.queue = device.queue;
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
-    this.supportTimeQuery = device.features.has('timestamp-query');
+    this.supportTimeQuery =
+        device.features.has('timestamp-query-inside-passes');
     this.adapterInfo = new AdapterInfo(adapterInfo);
 
     this.bufferManager = new BufferManager(this.device);
@@ -492,7 +493,7 @@ export class WebGPUBackend extends KernelBackend {
   async time(f: () => void): Promise<WebGPUTimingInfo> {
     if (!this.supportTimeQuery) {
       console.warn(
-          `This device doesn't support timestamp-query extension. ` +
+          `This device doesn't support timestamp-query-inside-passes extension. ` +
           `Start Chrome browser with flag ` +
           `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
           `Otherwise, zero will be shown for the kernel time when profiling ` +
