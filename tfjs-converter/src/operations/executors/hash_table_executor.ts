@@ -47,6 +47,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
         return [hashTable.handle];
       }
     }
+    case 'InitializeTable':
+    case 'InitializeTableV2':
     case 'LookupTableImport':
     case 'LookupTableImportV2': {
       const handle = getParamValue(
