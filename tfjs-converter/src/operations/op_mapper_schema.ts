@@ -40,10 +40,11 @@ export const json = {
     'Category': {
       'type': 'string',
       'enum': [
-        'arithmetic', 'basic_math', 'control', 'convolution', 'custom',
-        'dynamic', 'evaluation', 'image', 'creation', 'graph', 'logical',
-        'matrices', 'normalization', 'reduction', 'slice_join', 'spectral',
-        'transformation', 'sparse', 'string'
+        'arithmetic',    'basic_math',     'control',    'convolution',
+        'custom',        'dynamic',        'evaluation', 'image',
+        'creation',      'graph',          'logical',    'matrices',
+        'normalization', 'ragged',         'reduction',  'slice_join',
+        'spectral',      'transformation', 'sparse',     'string'
       ]
     },
     'InputParamMapper': {

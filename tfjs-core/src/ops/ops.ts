@@ -135,6 +135,8 @@ export {pow} from './pow';
 export {prelu} from './prelu';
 export {print} from './print';
 export {prod} from './prod';
+export {raggedGather} from './ragged_gather';
+export {raggedRange} from './ragged_range';
 export {raggedTensorToTensor} from './ragged_tensor_to_tensor';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';

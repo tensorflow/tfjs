@@ -25,7 +25,7 @@ export class RotateProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   fillSnippet: string;
   size = true;
 
@@ -35,7 +35,7 @@ export class RotateProgram implements WebGPUProgram {
     this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.uniforms = `centerX : f32, centerY : f32, sinRadians : f32,
           cosRadians : f32,`;
     this.shaderKey = 'rotate';

@@ -24,7 +24,7 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
+import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
@@ -187,10 +187,7 @@ export class HTTPRequest implements IOHandler {
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
 
-    const weightSpecs = [];
-    for (const entry of weightsManifest) {
-      weightSpecs.push(...entry.weights);
-    }
+    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
     const urlPromises: Array<Promise<string>> = [];

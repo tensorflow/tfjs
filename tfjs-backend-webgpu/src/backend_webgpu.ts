@@ -19,6 +19,7 @@ import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
+import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
@@ -107,6 +108,7 @@ const reshapeDispatch =
 
 export class WebGPUBackend extends KernelBackend {
   bufferManager: BufferManager;
+  adapterInfo: AdapterInfo;
   device: GPUDevice;
   queue: GPUQueue;
   tensorMap: DataStorage<TensorData>;
@@ -135,7 +137,7 @@ export class WebGPUBackend extends KernelBackend {
     return WebGPUBackend.nextDataId++;
   }
 
-  constructor(device: GPUDevice) {
+  constructor(device: GPUDevice, adapterInfo?: GPUAdapterInfo) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
@@ -145,7 +147,9 @@ export class WebGPUBackend extends KernelBackend {
     this.queue = device.queue;
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
-    this.supportTimeQuery = device.features.has('timestamp-query');
+    this.supportTimeQuery =
+        device.features.has('timestamp-query-inside-passes');
+    this.adapterInfo = new AdapterInfo(adapterInfo);
 
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
@@ -489,7 +493,7 @@ export class WebGPUBackend extends KernelBackend {
   async time(f: () => void): Promise<WebGPUTimingInfo> {
     if (!this.supportTimeQuery) {
       console.warn(
-          `This device doesn't support timestamp-query extension. ` +
+          `This device doesn't support timestamp-query-inside-passes extension. ` +
           `Start Chrome browser with flag ` +
           `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
           `Otherwise, zero will be shown for the kernel time when profiling ` +
@@ -707,12 +711,13 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
-    // There are five kinds of uniforms: NAN, shapes, shape strides, program
-    // size, program defined uniforms.
+    // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
+    // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
     if (!program.isFromPixels) {
-      programUniform.push({type: 'float32', data: [NaN]});
+      programUniform.push(
+          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
       const uniformsType = 'int32';
       bufferShapes.map(d => {

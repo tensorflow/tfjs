@@ -26,7 +26,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [128, 1, 1];
+  workgroupSize: [number, number, number] = [128, 1, 1];
   op: BinaryOpType;
   size = true;
 
@@ -34,7 +34,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = `binaryOpComplex_${op}`;
     this.op = op;

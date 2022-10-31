@@ -65,3 +65,13 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
  * Whether to use import API.
  */
 ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
+
+/**
+ * Whether to use conv2dNaive for debugging.
+ */
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
+
+/**
+ * Default Intel execution units number.
+ */
+ENV.registerFlag('WEBGPU_INTEL_EU_COUNT', () => 96);

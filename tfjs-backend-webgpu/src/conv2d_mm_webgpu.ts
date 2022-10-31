@@ -20,7 +20,7 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
+import {computeDispatch, computeWorkgroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 function conv2dCommonSnippet(
     isChannelsLast: boolean, fitAOuter: boolean, fitBOuter: boolean,
@@ -162,7 +162,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableTypes: string[];
   uniforms =
       `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -176,12 +176,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
   tileInner: number;
   innerElementSize: number;
   isVec4?: boolean;
+  private sequentialAccessByThreads: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
       dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false) {
+      hasPreluActivationWeights = false, sequentialAccessByThreads = false) {
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
     this.isVec4 =
@@ -191,13 +192,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
         convInfo.outChannels % 4 === 0;
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [2, 3], y: [1], z: [0]};
-    this.workGroupSize = computeWorkGroupSizeForConv2d(
+    this.workgroupSize = computeWorkgroupSizeForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
     this.elementsPerThread = computeWorkPerThreadForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         this.elementsPerThread);
 
     if (this.isVec4) {
@@ -229,14 +230,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
       }
     }
 
+    this.sequentialAccessByThreads = sequentialAccessByThreads;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    this.tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
     this.tileInner = Math.max(
-        this.workGroupSize[0] * this.innerElementSize, this.workGroupSize[1]);
+        this.workgroupSize[0] * this.innerElementSize, this.workgroupSize[1]);
 
     this.fitAOuter = dimAOuter % this.tileAOuter === 0;
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
@@ -244,17 +246,18 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
         this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${
-        this.innerElementSize}_${this.isChannelsLast}`;
+        this.innerElementSize}_${this.isChannelsLast}_${
+        this.sequentialAccessByThreads}`;
   }
 
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
+            this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
             this.tileInner) :
         makeMatMulPackedSource(
-            this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
-            this.tileInner);
+            this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
+            this.tileInner, false, null, this.sequentialAccessByThreads);
     const elementsSize =
         this.isVec4 ? [this.innerElementSize, 4, 4] : [1, 1, 1];
     const userCode = `

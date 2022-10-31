@@ -41,6 +41,8 @@ export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
 export {prodImpl} from './kernels/Prod';
+export {raggedGatherImpl} from './kernels/RaggedGather_impl';
+export {raggedRangeImpl} from './kernels/RaggedRange_impl';
 export {raggedTensorToTensorImpl} from './kernels/RaggedTensorToTensor_impl';
 export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';

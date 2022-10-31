@@ -17,7 +17,7 @@
 
 import {backend_util, env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {GPGPUContext} from './gpgpu_context';
+import {GPGPUContext, GPGPUContextProgram} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {InputInfo, ShapeInfo, UniformType} from './shader_compiler';
 import {PackingScheme, TextureData, TextureUsage} from './tex_util';
@@ -47,7 +47,7 @@ export interface GPGPUProgram {
 }
 
 export interface GPGPUBinary {
-  webGLProgram: WebGLProgram;
+  webGLProgram: GPGPUContextProgram;
   program: GPGPUProgram;
   uniformLocations: {[name: string]: WebGLUniformLocation};
   customUniformLocations?: WebGLUniformLocation[];

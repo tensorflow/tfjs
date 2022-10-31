@@ -17,6 +17,12 @@
 
 export enum UnaryOpType {
   ABS,
+  ACOS,
+  ACOSH,
+  ASIN,
+  ASINH,
+  ATAN,
+  ATANH,
   CEIL,
   COS,
   COSH,
@@ -24,6 +30,8 @@ export enum UnaryOpType {
   EXP,
   EXPM1,
   FLOOR,
+  IS_FINITE,
+  IS_INF,
   IS_NAN,
   LINEAR,
   LOG,
@@ -39,11 +47,49 @@ export enum UnaryOpType {
   SIGMOID,
   SQRT,
   SQUARE,
+  TAN,
   TANH,
   TO_INT
 }
 
 const ABS = `return abs(a);`;
+const ACOS = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return acos(a);
+`;
+const ACOSH = `
+  if (a < 1.) {
+    return uniforms.NAN;
+  }
+  return acosh(a);
+`;
+const ASIN = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  return asin(a);
+`;
+const ASINH = `return asinh(a);`;
+const ATAN = `
+  if (isnan(a)) {
+    return uniforms.NAN;
+  }
+  return atan(a);
+`;
+const ATANH = `
+  if (abs(a) > 1.) {
+    return uniforms.NAN;
+  }
+  if (a == 1.) {
+    return uniforms.INFINITY;
+  }
+  if (a == -1.) {
+    return -uniforms.INFINITY;
+  }
+  return atanh(a);
+`;
 const CEIL = `return ceil(a);`;
 const COS = `return cos(a);`;
 const COSH = `
@@ -70,9 +116,11 @@ const ELU_VEC4 = `
 `;
 const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
+const IS_FINITE = `return f32(!isnan(a) && !isinf(a));`;
+const IS_INF = `return f32(isinf(a));`;
 const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
-const LOG = `if (a < 0.0) { return 1.0/0.0; }
+const LOG = `if (a < 0.0) { return uniforms.NAN; }
   return log(a);`;
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
@@ -89,7 +137,7 @@ const RELU6_VEC4 =
 const RELU_VEC4 = `
   return select(a, vec4<f32>(0.0), a < vec4<f32>(0.0));
 `;
-const RSQRT = `return 1.0/sqrt(a);`;
+const RSQRT = `return inverseSqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 const SIN = `return sin(a);`;
 const SINH = `
@@ -98,6 +146,7 @@ const SINH = `
 `;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
+const TAN = `return tan(a);`;
 const TANH = `
   let e2x = exp(-2.0 * abs(a));
   return sign(a) * (1.0 - e2x) / (1.0 + e2x);
@@ -108,6 +157,18 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
   switch (type) {
     case UnaryOpType.ABS:
       return ABS;
+    case UnaryOpType.ACOS:
+      return ACOS;
+    case UnaryOpType.ACOSH:
+      return ACOSH;
+    case UnaryOpType.ASIN:
+      return ASIN;
+    case UnaryOpType.ASINH:
+      return ASINH;
+    case UnaryOpType.ATAN:
+      return ATAN;
+    case UnaryOpType.ATANH:
+      return ATANH;
     case UnaryOpType.COS:
       return COS;
     case UnaryOpType.COSH:
@@ -122,6 +183,10 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return EXPM1;
     case UnaryOpType.FLOOR:
       return FLOOR;
+    case UnaryOpType.IS_FINITE:
+      return IS_FINITE;
+    case UnaryOpType.IS_INF:
+      return IS_INF;
     case UnaryOpType.IS_NAN:
       return IS_NAN;
     case UnaryOpType.LINEAR:
@@ -152,6 +217,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return SQRT;
     case UnaryOpType.SQUARE:
       return SQUARE;
+    case UnaryOpType.TAN:
+      return TAN;
     case UnaryOpType.TANH:
       return TANH;
     case UnaryOpType.TO_INT:

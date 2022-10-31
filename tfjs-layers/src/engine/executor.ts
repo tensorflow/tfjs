@@ -250,7 +250,7 @@ export function execute(
 
   const arrayFetches = Array.isArray(fetches);
   const fetchArray: SymbolicTensor[] =
-      arrayFetches ? fetches as SymbolicTensor[] : [fetches as SymbolicTensor];
+      arrayFetches ? fetches : [fetches];
 
   const outputNames = fetchArray.map(t => t.name);
   const finalOutputs: Tensor[] = [];
