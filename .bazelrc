@@ -34,6 +34,10 @@ build:rbe --extra_execution_platforms=@//remote-execution:platform
 build:rbe --host_platform=@//remote-execution:platform
 build:rbe --platforms=@//remote-execution:platform
 
+# Use dynamic execution to improve remote build performance when the autoscaling
+# build pool has few machines available. https://bazel.build/remote/dynamic
+build:rbe --internal_spawn_scheduler --spawn_strategy=dynamic --dynamic_local_strategy=sandboxed
+
 build:remote --remote_instance_name=projects/learnjs-174218/instances/default_instance
 build:remote --bes_instance_name=learnjs-174218
 build:remote --google_default_credentials
