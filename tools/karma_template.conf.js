@@ -70,8 +70,11 @@ const CUSTOM_LAUNCHERS = {
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
   },
   chrome_autoplay: {
-    base: 'Chrome',
-    flags: ['--autoplay-policy=no-user-gesture-required'],
+    base: 'ChromeHeadless',
+    flags: [
+      '--autoplay-policy=no-user-gesture-required',
+      '--no-sandbox',
+    ],
   },
   chrome_webgpu_linux: {
     base: 'ChromeCanary',
