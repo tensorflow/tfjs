@@ -1622,8 +1622,8 @@ function getPackedSamplerNDArray(inputInfo: InputInfo): string {
   return `
     vec4 ${funcName}(${params}) {
       int texelIndexInTex = ${index};
-      int texX = texelIndexInTex / ${texNumC};
-      int texY = texelIndexInTex - texX * ${texNumC};
+      int texY = texelIndexInTex / ${texNumC};
+      int texX = texelIndexInTex - texY * ${texNumC};
       int texLayer = (row & 2) + (col & 2) / 2;
       return texelFetch(${texName}, ivec3(texX, texY, texLayer), 0);
     }
