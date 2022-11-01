@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {backend_util} from '@tensorflow/tfjs-core';
+
 export enum UnaryOpType {
   ABS,
   ACOS,
@@ -27,6 +29,7 @@ export enum UnaryOpType {
   COS,
   COSH,
   ELU,
+  ERF,
   EXP,
   EXPM1,
   FLOOR,
@@ -114,6 +117,22 @@ const ELU_VEC4 = `
   }
   return resFloat;
 `;
+const ERF = `
+  // Error function is calculated approximately with elementary function.
+  // See "Handbook of Mathematical Functions with Formulas,
+  // Graphs, and Mathematical Tables", Abramowitz and Stegun.
+  let p = ${backend_util.ERF_P};
+  let a1 = ${backend_util.ERF_A1};
+  let a2 = ${backend_util.ERF_A2};
+  let a3 = ${backend_util.ERF_A3};
+  let a4 = ${backend_util.ERF_A4};
+  let a5 = ${backend_util.ERF_A5};
+
+  let sign = sign(a);
+  let absA = abs(a);
+  let t = 1.0 / (1.0 + p * absA);
+  return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-absA*absA));
+`;
 const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
 const IS_FINITE = `return f32(!isnan(a) && !isinf(a));`;
@@ -177,6 +196,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return CEIL;
     case UnaryOpType.ELU:
       return useVec4 ? ELU_VEC4 : ELU;
+    case UnaryOpType.ERF:
+      return ERF;
     case UnaryOpType.EXP:
       return EXP;
     case UnaryOpType.EXPM1:
