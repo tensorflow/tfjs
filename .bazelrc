@@ -34,10 +34,6 @@ build:rbe --extra_execution_platforms=@//remote-execution:platform
 build:rbe --host_platform=@//remote-execution:platform
 build:rbe --platforms=@//remote-execution:platform
 
-# Use dynamic execution to improve remote build performance when the autoscaling
-# build pool has few machines available. https://bazel.build/remote/dynamic
-build:rbe --internal_spawn_scheduler --dynamic_local_strategy=sandboxed
-
 build:remote --remote_instance_name=projects/learnjs-174218/instances/default_instance
 build:remote --bes_instance_name=learnjs-174218
 build:remote --google_default_credentials
@@ -59,9 +55,13 @@ run --incompatible_strict_action_env
 # Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
 # Remote builds are sandboxed.
 # TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
-build:linux --spawn_strategy=dynamic,remote,sandboxed,worker,local
+build:linux --spawn_strategy=dynamic,remote,sandboxed,worker,local --internal_spawn_scheduler
 build:macos --spawn_strategy=remote,sandboxed,worker,local
 build:windows --spawn_strategy=remote,worker,local
+
+# Use dynamic execution to improve remote build performance when the autoscaling
+# build pool has few machines available. https://bazel.build/remote/dynamic
+build:rbe --dynamic_local_strategy=sandboxed
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
