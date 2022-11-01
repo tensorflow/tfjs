@@ -102,7 +102,7 @@ export function fusedConv2d(args: {
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
     if (convInfo.batchSize === 1 && !hasBias && !hasPreluActivationWeights &&
-        !hasLeakyreluAlpha) {
+        !hasLeakyreluAlpha && $dataFormat === 'channelsLast') {
       out = conv2dByMatMulMrt2x2({
         x,
         filter,

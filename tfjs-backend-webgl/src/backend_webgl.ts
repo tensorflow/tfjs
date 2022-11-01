@@ -703,7 +703,8 @@ export class MathBackendWebGL extends KernelBackend {
     } else {
       this.dataRefCount.delete(key);
       if (texture != null) {
-        this.numBytesInGPU -= this.computeBytes(texShape, dtype);
+        this.numBytesInGPU -= this.computeBytes(texShape, dtype) *
+            (mrtStorage == null ? 1 : mrtStorage[0] * mrtStorage[1]);
         this.textureManager.releaseTexture(
             texture, texShape, usage, isPacked, mrtStorage);
       }

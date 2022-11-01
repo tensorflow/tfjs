@@ -234,7 +234,7 @@ export function computeBytes(
 
   const bytesPerElement = numBytesForInternalFormat(gl, internalFormat);
   return numElements * bytesPerElement *
-      (mrtSupport == null ? 1 : mrtSupport[0] * mrtSupport[1]);
+      (mrtSupport == null ? 1 : (mrtSupport[0] * mrtSupport[1]));
 }
 
 function internalFormatForPhysicalTexType(
