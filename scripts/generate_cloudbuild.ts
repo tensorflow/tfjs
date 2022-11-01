@@ -164,8 +164,16 @@ interface CloudbuildStep {
   secretEnv?: string[];
 }
 
-interface CustomCloudbuildStep extends CloudbuildStep{
-  nightlyOnly?: boolean;
+const CUSTOM_PROPS = new Set(['nightlyOnly', 'waitedForByPackages']);
+interface CustomCloudbuildStep extends CloudbuildStep {
+  nightlyOnly?: boolean; // Only run during nightly tests
+  waitedForByPackages?: boolean; // Other non-bazel pacakges `waitFor` this step
+}
+
+function removeCustomProps(step: CustomCloudbuildStep): CloudbuildStep {
+  return Object.fromEntries(
+    Object.entries(step).filter(([k, ]) => !CUSTOM_PROPS.has(k))
+  ) as CloudbuildStep;
 }
 
 interface CloudbuildSecret {
@@ -176,15 +184,10 @@ interface CloudbuildSecret {
 }
 
 export interface CloudbuildYaml {
-  steps: CloudbuildStep[],
+  steps: CustomCloudbuildStep[],
   secrets: CloudbuildSecret[],
 }
 
-function removeCustomProps(step: CustomCloudbuildStep): CloudbuildStep {
-  return Object.fromEntries(
-    Object.entries(step).filter(([k, ]) => k !== 'nightlyOnly')
-  ) as CloudbuildStep;
-}
 
 /**
  * Construct a cloudbuild.yml file that does the following:
@@ -227,6 +230,22 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
     }
     printTable(buildTestTable);
   }
+
+  // Load the general cloudbuild config
+  const baseCloudbuild =
+    yaml.load(fs.readFileSync(path.join(
+      __dirname, 'cloudbuild_general_config.yml'), 'utf8')) as CloudbuildYaml;
+
+  // Filter steps that only run in nightly tests.
+  const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
+  const customSteps = baseCloudbuild.steps.filter(nightlyFilter);
+
+  // Steps that are waited for by non-bazel packages.
+  const waitedForByPackages = customSteps
+    .filter(step => step.waitedForByPackages)
+    .map(step => step.id);
+
+  const steps = customSteps.map(removeCustomProps);
 
   // Load all the cloudbuild files for the packages
   // that need to be built or tested.
@@ -280,7 +299,7 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
     // Construct the set of step ids that rules in this package must wait for.
     // All packages depend on 'yarn-common' and 'yarn-link-package-build', so
     // we special-case them here.
-    const waitForSteps = new Set(['yarn-common', 'yarn-link-package-build']);
+    const waitForSteps = new Set(waitedForByPackages);
     for (const dependencyName of (DEPENDENCY_GRAPH[packageName] || new Set())) {
       const cloudbuildSteps =
           packageCloudbuildSteps.get(dependencyName) || new Set();
@@ -297,17 +316,6 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
       step.waitFor = [...new Set([...(step.waitFor || []), ...waitForSteps])]
     }
   }
-
-  // Load the general cloudbuild config
-  const baseCloudbuild =
-    yaml.load(fs.readFileSync(path.join(
-      __dirname, 'cloudbuild_general_config.yml'), 'utf8')) as CloudbuildYaml;
-
-  // Filter steps that only run in nightly tests.
-  const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
-  const steps = baseCloudbuild.steps
-    .filter(nightlyFilter)
-    .map(removeCustomProps);
 
   // Arrange steps in dependency order
   for (const packageName of DEPENDENCY_ORDER) {
