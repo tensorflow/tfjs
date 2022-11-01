@@ -399,7 +399,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'stringNGrams'},
   {include: 'stringSplit'},
   {include: 'stringToHashBucketFast'},
-  {startsWith: 'reciprocal'},
+  {include: 'reciprocal'},
+  {include: 'isNaN'},
 ];
 
 const customInclude = (testName: string) => {
