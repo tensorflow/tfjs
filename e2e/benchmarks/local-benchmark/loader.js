@@ -68,7 +68,6 @@ async function loadTFJS(localBuild) {
     '../benchmark_util.js',
     './util.js',
     './index.js',
-    './dump.js',
   ]);
 
   for (let url of urls) {
