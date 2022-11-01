@@ -75,7 +75,17 @@ const sentences = [
 ];
 
 function predictFunction(input) {
-  return model => model.predict(input);
+  let debug = false;
+  try {
+    debug = tf.env().getBool('KEEP_INTERMEDIATE_TENSORS');
+  } catch (e) {
+    console.warn(e.message);
+  }
+  if (debug) {
+    return model => model.executeAsync(input);
+  } else {
+    return model => model.predict(input);
+  }
 }
 
 const benchmarks = {
@@ -221,6 +231,7 @@ const benchmarks = {
   'Coco-SSD': {
     type: 'GraphModel',
     // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
     architectures: ['MobileNetV2', 'MobileNetV1', 'liteMobileNetV2'],
     load: async (inputResolution = 227, modelArchitecture = 'MobileNetV2') => {
       const tfliteBased = modelArchitecture.split('MobileNetV')[0];
@@ -316,6 +327,7 @@ const benchmarks = {
   },
   'AutoML Image': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -328,6 +340,7 @@ const benchmarks = {
   },
   'AutoML Object': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -342,6 +355,7 @@ const benchmarks = {
   },
   'USE - batchsize 30': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
@@ -355,6 +369,7 @@ const benchmarks = {
   },
   'USE - batchsize 1': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
@@ -369,6 +384,7 @@ const benchmarks = {
   'TextToxicity': {
     type: 'GraphModel',
     // The model has has the dynamic ops, so it is supposed to use executeAsync.
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/toxicity/1/default/1/model.json';
@@ -409,6 +425,7 @@ const benchmarks = {
     inputSizes: [128, 256, 512, 1024],
     architectures: ['MobileNetV1', 'ResNet50'],
     inputTypes: ['image', 'tensor'],
+    supportDebug: false,
     load: async (
         inputResolution = 128, modelArchitecture = 'MobileNetV1',
         inputType = 'image') => {
@@ -444,6 +461,7 @@ const benchmarks = {
   },
   'bodypix': {
     type: 'GraphModel',
+    supportDebug: false,
     // The ratio to the default camera size [480, 640].
     inputSizes: [0.25, 0.5, 0.75, 1.0],
     architectures: ['ResNet50'],
@@ -475,9 +493,6 @@ const benchmarks = {
     }
   },
   'speech-commands': {
-    // Layer model doesn't support dump. TODO(xing.xu@intel.com):
-    // https://github.com/tensorflow/tfjs/issues/7010
-    supportDump: false,
     load: async () => {
       const recognizer = speechCommands.create('BROWSER_FFT');
       await recognizer.ensureModelLoaded();

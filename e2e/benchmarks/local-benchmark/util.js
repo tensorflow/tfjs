@@ -15,35 +15,29 @@
  * =============================================================================
  */
 
-
-async function convertTensorToData(tensor, needInfo = false) {
+async function convertTensorToData(tensor) {
   const data = await tensor.data();
-
   tensor.dispose();
-  if (needInfo) {
-    return {value: data, shape: tensor.shape, dtype: tensor.dtype};
-  }
   return data;
 }
 
-async function getPredictionData(output, needInfo = false) {
+async function getPredictionData(output) {
   if (output instanceof Promise) {
     output = await output;
   }
 
   if (output instanceof tf.Tensor) {
-    output = [await convertTensorToData(output, needInfo)];
+    output = await convertTensorToData(output);
   } else if (Array.isArray(output)) {
     for (let i = 0; i < output.length; i++) {
       if (output[i] instanceof tf.Tensor) {
-        output[i] = await convertTensorToData(output[i], needInfo);
+        output[i] = await convertTensorToData(output[i]);
       }
     }
   } else if (output != null && typeof output === 'object') {
     for (const property in output) {
       if (output[property] instanceof tf.Tensor) {
-        output[property] =
-            await convertTensorToData(output[property], needInfo);
+        output[property] = await convertTensorToData(output[property]);
       }
     }
   }
@@ -123,8 +117,8 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
   return true;
 }
 
-function expectObjectsClose(actual, expected, epsilon = -1) {
-  if (epsilon === -1) {
+function expectObjectsClose(actual, expected, epsilon) {
+  if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
   }
   expectObjectsPredicate(
@@ -165,7 +159,7 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
 
 // TODO: support relative comparison for array.
 function expectArraysClose(actual, expected, epsilon, key) {
-  if (epsilon === -1) {
+  if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
   }
 
