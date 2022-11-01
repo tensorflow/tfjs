@@ -1164,6 +1164,7 @@ export class MathBackendWebGL extends KernelBackend {
         tempDenseInputTexData.usage = TextureUsage.UPLOAD;
       }
       tempDenseInputTexData.texShape = tempDenseInputTexShape;
+      assert(mrtStorage == null, 'Does not support upload MRT texture!');
       this.gpgpu.uploadDenseMatrixToTexture(
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
