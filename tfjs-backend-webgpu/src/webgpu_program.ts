@@ -211,17 +211,14 @@ function makeShader(
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
     uniformDeclaration +=
-        ` ${x.charAt(0).toLowerCase() + x.slice(1)} Shape: ${perDataType},
-        `;
+        `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
-  uniformDeclaration += ` outShape: ${outputDataType},
-        `;
+  uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
   uniformDeclaration += `
-    outShapeStrides: ${stridesDataType},
-        `;
+         outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
     uniformDeclaration += 'size : i32, ';
@@ -237,27 +234,29 @@ function makeShader(
 
   // Output buffer.
   if (program.atomic) {
-    prefixSnippets.push(` @group(0) @binding(0) var <storage, read_write>result:
-            array<atomic<i32>>;
+    prefixSnippets.push(`
+      @group(0) @binding(0) var<storage, read_write> result: array<atomic<i32>>;
     `);
   } else {
-    prefixSnippets.push(` @group(0) @binding(0) var <storage, read_write>result:
-        array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+    prefixSnippets.push(`
+      @group(0) @binding(0) var<storage, read_write> result: array<${
+        mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }
   program.variableNames.forEach((x, i) => {
-    prefixSnippets.push(` @group(0) @binding(${1 + i}) var <storage, read>${x}:
-        array<${
+    prefixSnippets.push(`
+      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
         program.variableTypes ?
             program.variableTypes[i] :
             mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-    `);
+        `);
   });
 
   if (uniformDeclaration !== '') {
-    prefixSnippets.push(` @group(0) @binding(
-        ${1 + program.variableNames.length}) var <uniform>uniforms: Uniforms;
-    `);
+    prefixSnippets.push(`
+      @group(0) @binding(${
+        1 + program.variableNames.length}) var<uniform> uniforms: Uniforms;
+      `);
   }
 
   const coordsSnippet =
@@ -317,83 +316,70 @@ export function makeShaderKey<R extends Rank>(
 }
 
 const commonSnippet = `
-    struct vec5{x: i32, y: i32, z: i32, w: i32, u: i32};
-    struct vec6{x: i32, y: i32, z: i32, w: i32, u: i32, v: i32};
+  struct vec5 {x: i32, y: i32, z: i32, w: i32, u: i32};
+  struct vec6 {x: i32, y: i32, z: i32, w: i32, u: i32, v: i32};
 
-    // Checks whether coordinates lie within the bounds of the shape.
-    fn coordsInBounds2D(coord: vec2<i32>, shape: vec2<i32>)->bool {
-      return all(coord >= vec2<i32>(0)) && all(coord < shape);
-    }
-    fn coordsInBounds3D(coord: vec3<i32>, shape: vec3<i32>)->bool {
-      return all(coord >= vec3<i32>(0)) && all(coord < shape);
-    }
-    fn coordsInBounds4D(coord: vec4<i32>, shape: vec4<i32>)->bool {
-      return all(coord >= vec4<i32>(0)) && all(coord < shape);
-    }
+  // Checks whether coordinates lie within the bounds of the shape.
+  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
+    return all(coord >= vec2<i32>(0)) && all(coord < shape);
+  }
+  fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
+    return all(coord >= vec3<i32>(0)) && all(coord < shape);
+  }
+  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
+    return all(coord >= vec4<i32>(0)) && all(coord < shape);
+  }
 
-    fn getIndexFromCoords1D(coord: i32, shape: i32)->i32 {
-      return coord;
-    }
-    fn getIndexFromCoords2D(coords: vec2<i32>, shape: vec2<i32>)->i32 {
-      return dot(coords, vec2<i32>(shape.y, 1));
-    }
-    fn getIndexFromCoords3D(coords: vec3<i32>, shape: vec3<i32>)->i32 {
-      return dot(coords, vec3<i32>(shape.y * shape.z, shape.z, 1));
-    }
-    fn getIndexFromCoords4D(coords: vec4<i32>, shape: vec4<i32>)->i32 {
-      return dot(
-          coords,
-          vec4<i32>(
-              shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
-    }
-    fn getIndexFromCoords5D(coords: vec5, shape: vec5)->i32 {
-      let shapeStrides: vec5 = vec5(
-          shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u,
-          shape.w * shape.u, shape.u, 1);
-      return coords.x * shapeStrides.x + coords.y * shapeStrides.y +
-          coords.z * shapeStrides.z + coords.w * shapeStrides.w +
-          coords.u * shapeStrides.u;
-    }
-    fn getIndexFromCoords6D(coords: vec6, shape: vec6)->i32 {
-      let shapeStrides: vec6 = vec6(
-          shape.y * shape.z * shape.w * shape.u * shape.v,
-          shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v,
-          shape.u * shape.v, shape.v, 1);
-      return coords.x * shapeStrides.x + coords.y * shapeStrides.y +
-          coords.z * shapeStrides.z + coords.w * shapeStrides.w +
-          coords.u * shapeStrides.u + coords.v * shapeStrides.v;
-    }
+  fn getIndexFromCoords1D(coord : i32, shape : i32) -> i32 {
+    return coord;
+  }
+  fn getIndexFromCoords2D(coords : vec2<i32>, shape : vec2<i32>) -> i32 {
+    return dot(coords, vec2<i32>(shape.y, 1));
+  }
+  fn getIndexFromCoords3D(coords : vec3<i32>, shape : vec3<i32>) -> i32 {
+    return dot(coords, vec3<i32>(shape.y * shape.z, shape.z, 1));
+  }
+  fn getIndexFromCoords4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
+    return dot(coords, vec4<i32>(
+        shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
+  }
+  fn getIndexFromCoords5D(coords : vec5, shape : vec5) -> i32 {
+    let shapeStrides: vec5 = vec5(shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u, shape.w * shape.u, shape.u, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u;
+  }
+  fn getIndexFromCoords6D(coords : vec6, shape : vec6) -> i32 {
+    let shapeStrides: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
+  }
 
-    fn idiv(a: i32, b: i32, sign: f32)->i32 {
-      var res: i32 = a / b;
-      let modulo: i32 = a % b;
-      if (sign < 0. && modulo != 0) {
-        res = res - 1;
-      }
-      return res;
+  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
+    var res: i32 = a / b;
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
+      res = res - 1;
     }
+    return res;
+  }
 
-    // NaN defination in IEEE 754-1985 is :
-    //   - sign = either 0 or 1.
-    //   - biased exponent = all 1 bits.
-    //   - fraction = anything except all 0 bits (since all 0 bits represents
-    //   infinity).
-    // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
-    fn isnan(val: f32)->bool {
-      let floatToUint: u32 = bitcast<u32>(val);
-      return (floatToUint & 0x7fffffffu) > 0x7f800000u;
-    }
-    fn isnanVec4(val: vec4<f32>)->vec4<bool> {
-      return vec4<bool>(
-          isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
-    }
-    `;
+  // NaN defination in IEEE 754-1985 is :
+  //   - sign = either 0 or 1.
+  //   - biased exponent = all 1 bits.
+  //   - fraction = anything except all 0 bits (since all 0 bits represents infinity).
+  // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
+  fn isnan(val: f32) -> bool {
+    let floatToUint: u32 = bitcast<u32>(val);
+    return (floatToUint & 0x7fffffffu) > 0x7f800000u;
+  }
+  fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+  }
+`;
 
 const isInfSnippet = `
-    fn isinf(val: f32)->bool {
-      return abs(val) == uniforms.INFINITY;
-    }
-    `;
+  fn isinf(val: f32) -> bool {
+    return abs(val) == uniforms.INFINITY;
+  }
+`;
 
 type InputInfo = {
   dtype: DataType; shape: number[]; name: string;
@@ -409,12 +395,7 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
   const rank = shape.length;
 
   if (rank <= 1) {
-    return ` fn
-    getCoordsFromIndex(index: i32)
-        ->i32 {
-      return index;
-    }
-    `;
+    return `fn getCoordsFromIndex(index : i32) -> i32 { return index; }`;
   }
 
   const strides = util.computeStrides(shape);
@@ -422,58 +403,37 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
 
   const coords: string[] = [];
   for (let i = 0; i < rank; i++) {
-    coords.push(` d$ {
-      i
-    }
-    `);
+    coords.push(`d${i}`);
   }
 
   if (strides.length === 1) {
-    return ` fn
-    getCoordsFromIndex(index: i32)
-        ->vec2<i32> {
-      let d0 = index / uniforms.outShapeStrides;
-      let d1 = index - d0 * uniforms.outShapeStrides;
+    return `    fn getCoordsFromIndex(index : i32) -> vec2<i32> {
+      let d0 = index / uniforms.outShapeStrides; let d1 = index - d0 * uniforms.outShapeStrides;
       return vec2<i32>(d0, d1);
-    }
-    `;
+    }`;
   }
   let snippet;
   snippet = 'var index2 = index;' +
       strides
           .map((_, i) => {
             const line1 =
-                ` let ${coords[i]} = index2 / uniforms.outShapeStrides.$ {
-      getCoordsXYZ(i)
-    }
-    `;
+                `let ${coords[i]} = index2 / uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
             const line2 = i === strides.length - 1 ?
-                ` let ${coords[i + 1]} =
-        index2 - ${coords[i]} * uniforms.outShapeStrides.$ {
-      getCoordsXYZ(i)
-    }
-    ` :
-                ` index2 = index2 - ${coords[i]} * uniforms.outShapeStrides.$ {
-      getCoordsXYZ(i)
-    }
-    `;
-            return ` ${line1};
-    ${line2};
-    `;
+                `let ${coords[i + 1]} = index2 - ${
+                    coords[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` :
+                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
+            return `${line1}; ${line2};`;
           })
           .join('');
 
   return `
-    fn getCoordsFromIndex(index: i32)->${dtype} {
-      $ {
-        snippet
-      }
-      return $ {
-        dtype
-      }
-      (${coords.join(',')});
+    fn getCoordsFromIndex(index : i32) -> ${dtype} {
+      ${snippet}
+      return ${dtype}(${coords.join(',')});
     }
-    `;
+  `;
 }
 
 function getInputAtCoordsSnippet(
@@ -483,68 +443,48 @@ function getInputAtCoordsSnippet(
   const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const dims = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].slice(0, rank);
-  const inputs = dims.map(d => ` ${d}: i32`).join(', ');
+  const inputs = dims.map(d => `${d} : i32`).join(', ');
 
   if (rank < 1) {
     if (isVec4) {
       return `
-    fn $ {
-      funcName
-    }
-    ()->vec4<f32> {
-      return vec4<f32>(${texName}[0]);
-    }
-    `;
+        fn ${funcName}() -> vec4<f32> {
+          return vec4<f32>(${texName}[0]);
+        }
+      `;
     }
 
     return `
-    fn $ {
-      funcName
-    }
-    ()->f32 {
-      return f32(${texName}[0]);
-    }
+      fn ${funcName}() ->f32 {
+        return f32(${texName}[0]);
+      }
     `;
   }
 
   const shapeStr =
-      ` uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)} Shape`;
-  let rankStr = ` ${rank} D`;
+      `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  let rankStr = `${rank}D`;
   if (rank === 0) {
     rankStr = '1D';
   }
 
   if (isVec4) {
     return `
-    fn $ {
-      funcName
-    }
-    (${inputs})->vec4<f32> {
-      return vec4<f32>(${texName}
-                           [getIndexFromCoords$ {
-                             rankStr
-                           }(
-                                $ {
-                                  type
-                                }(${dims.join(',')}),
-                                ${shapeStr}) /
-                            4]);
-    }
-    `;
+      fn ${funcName}(${inputs}) -> vec4<f32> {
+        return vec4<f32>(${texName}[getIndexFromCoords${rankStr}(${type}(${
+        dims.join(',')}),
+          ${shapeStr}) / 4]);
+      }
+      `;
   }
 
   return `
-    fn $ {
-      funcName
+    fn ${funcName}(${inputs}) -> f32 {
+      return f32(${texName}[getIndexFromCoords${rankStr}(${type}(${
+      dims.join(',')}),
+        ${shapeStr})]);
     }
-    (${inputs})->f32 {
-      return f32(${texName}[getIndexFromCoords$ {
-        rankStr
-      }($ {
-        type
-      }(${dims.join(',')}), ${shapeStr})]);
-    }
-    `;
+   `;
 }
 
 function getInputByOutputSnippet(
@@ -565,11 +505,11 @@ function getInputByOutputSnippet(
   if (util.arraysEqual(inputInfo.shape, outShape) && isFlatDispatchLayout) {
     if (isVec4) {
       return `
-    fn ${funcName} Index(globalIndex: i32)->vec4<f32> {
-      return vec4<f32>(${texName}[globalIndex]);
-    }
+      fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
+        return vec4<f32>(${texName}[globalIndex]);
+      }
 
-    fn ${funcName} Coords(coords: ${type})->vec4<f32> {
+      fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
         return vec4<f32>(${texName}[${
           outRank > 1 ? 'getOutputIndexFromCoords(coords)' : 'coords'} / 4]);
       }

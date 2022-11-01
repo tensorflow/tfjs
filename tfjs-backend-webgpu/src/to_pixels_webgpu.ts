@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ export class ToPixelsProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
   type: DataType;
   isToPixels = true;
@@ -35,7 +35,7 @@ export class ToPixelsProgram implements WebGPUProgram {
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = `toPixels_${type}`;
     this.type = type;
