@@ -91,7 +91,9 @@ export function conv2dByMatMulMrt2x2({
 
   webgl_util.assert(
       convInfo.batchSize === 1, 'MatMul MRT does not support batch!');
-  webgl_util.assert(bias == null, 'MatMul MRT does not support bias!');
+  webgl_util.assert(
+      bias.shape.length === 1 && bias.shape[0] === convInfo.outChannels,
+      'MatMul MRT only supports 1D bias!');
   webgl_util.assert(
       activation !== 'leakyrelu',
       'MatMul MRT does not support leakyreluAlpha!');

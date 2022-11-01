@@ -243,11 +243,12 @@ function getInputSamplingSnippet(
 
   const inShape = inInfo.shapeInfo.logicalShape;
   const outShape = outShapeInfo.logicalShape;
-  if (inShape.length <= outShape.length &&
-      inInfo.shapeInfo.mrtSupport == null) {
+  if (inShape.length <= outShape.length) {
     if (usesPackedTextures) {
       res += getPackedSamplerAtOutputCoords(inInfo, outShapeInfo);
     } else {
+      assert(
+          inInfo.shapeInfo.mrtSupport == null, 'Unpacked textures uses MRT!');
       res += getSamplerAtOutputCoords(inInfo, outShapeInfo);
     }
   }
@@ -1621,10 +1622,10 @@ function getPackedSamplerNDArray(inputInfo: InputInfo): string {
   return `
     vec4 ${funcName}(${params}) {
       int texelIndexInTex = ${index};
-      int x = texelIndexInTex / ${texNumC};
-      int y = texelIndexInTex - x * ${texNumC};
-      int z = (row & 2) + (col & 2) / 2;
-      return texelFetch(${texName}, ivec3(x, y, z), 0);
+      int texX = texelIndexInTex / ${texNumC};
+      int texY = texelIndexInTex - texX * ${texNumC};
+      int texLayer = (row & 2) + (col & 2) / 2;
+      return texelFetch(${texName}, ivec3(texX, texY, texLayer), 0);
     }
   `;
 }

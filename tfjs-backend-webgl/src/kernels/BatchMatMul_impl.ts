@@ -199,7 +199,9 @@ export function batchMatMulMrt2x2Impl({
   leakyreluAlpha = 0,
   activation = null
 }: BatchMatMulConfig): TensorInfo {
-  assert(bias == null, 'MatMul MRT does not support bias!');
+  assert(
+      bias.shape.length === 1 && bias.shape[0] === b.shape[b.shape.length - 1],
+      'MatMul MRT only supports 1D bias!');
   assert(
       activation !== 'leakyrelu',
       'MatMul MRT does not support leakyreluAlpha!');
@@ -251,7 +253,6 @@ export function batchMatMulMrt2x2Impl({
 
   const batchDim = Math.max(batchDimA, batchDimB);
 
-  const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
   const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation = activation != null ?
@@ -262,7 +263,7 @@ export function batchMatMulMrt2x2Impl({
 
   const program = new MatMulPackedMrt2x2Program(
       a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-      transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
+      transposeB, bias?.shape, fusedActivation, hasPreluActivationWeights,
       hasLeakyreluAlpha);
 
   const inputs: TensorInfo[] = [a3d, b3d];

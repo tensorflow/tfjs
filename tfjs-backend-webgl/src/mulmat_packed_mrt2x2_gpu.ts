@@ -30,7 +30,7 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
       outputShape: [number, number, number], transposeA = false,
-      transposeB = false, addBias = false, activation: string = null,
+      transposeB = false, biasShape: number[] = null, activation: string = null,
       hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
 
@@ -64,9 +64,18 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
       `;
     }
 
-    const addBiasSnippet = addBias ? 'result += getBiasAtOutCoords();' : '';
-    if (addBias) {
-      assert(false, 'Bias add is not supported!');
+    let addBiasSnippet = '';
+    if (biasShape != null) {
+      if (biasShape.length === 1) {
+        addBiasSnippet = `vec4 bias_0 = getBias(col).xyxy;
+        vec4 bias_1 = getBias(col + 2).xyxy * colOOB;
+        res_00 += bias_0;
+        res_01 += bias_1;
+        res_10 += bias_0;
+        res_11 += bias_1;`;
+      } else {
+        assert(false, 'Matmul Bias only suppory 1D tensor!');
+      }
       this.variableNames.push('bias');
     }
 
@@ -142,14 +151,14 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
           res_11.z += dot(a_row_3, b_col_2);
           res_11.w += dot(a_row_3, b_col_3);
         }
+
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+
         result_00 = res_00;
         result_01 = res_01;
         result_10 = res_10;
         result_11 = res_11;
-
-        ${addBiasSnippet}
-
-        ${applyActivationSnippet}
       }
     `;
   }

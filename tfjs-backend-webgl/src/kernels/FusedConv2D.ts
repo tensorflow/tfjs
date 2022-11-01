@@ -101,8 +101,11 @@ export function fusedConv2d(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    if (convInfo.batchSize === 1 && !hasBias && !hasPreluActivationWeights &&
-        !hasLeakyreluAlpha && $dataFormat === 'channelsLast') {
+    if (convInfo.batchSize === 1 &&
+        (!hasBias ||
+         (bias.shape.length === 1 && bias.shape[0] === convInfo.outChannels)) &&
+        !hasPreluActivationWeights && !hasLeakyreluAlpha &&
+        $dataFormat === 'channelsLast') {
       out = conv2dByMatMulMrt2x2({
         x,
         filter,

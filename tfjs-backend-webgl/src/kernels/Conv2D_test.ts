@@ -142,8 +142,6 @@ describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
     const image = tf.tensor4d(makeContinuousArr(28), [1, 1, 7, 4]);
     const filter = tf.tensor4d(makeContinuousArr(28), [1, 1, 4, 7]);
     const result = tf.conv2d(image, filter, 1, 'valid');
-    // const webGLBackend = tf.backend() as MathBackendWebGL;
-    // const resInfo = webGLBackend.getDataInfo(result);
     const resultData = await result.data();
 
     const expected = [
@@ -154,8 +152,6 @@ describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
       1368, 1454, 1106, 1208, 1310, 1412, 1514, 1616, 1718
     ];
 
-    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
-    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
     expectArraysClose(result.shape, [1, 1, 7, 7]);
     expectArraysClose(resultData, expected);
   });
@@ -164,8 +160,6 @@ describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
     const image = tf.tensor4d([1, 2, 3, 4], [1, 1, 2, 2]);
     const filter = tf.tensor4d([1, 0.1, 0.01, 0.001], [1, 1, 2, 2]);
     const result = tf.conv2d(image, filter, 1, 'valid');
-    // const webGLBackend = tf.backend() as MathBackendWebGL;
-    // const resInfo = webGLBackend.getDataInfo(result);
     const resultData = await result.data();
 
     const expected = [
@@ -173,8 +167,6 @@ describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
       0.30400002002716064
     ];
 
-    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
-    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
     expectArraysClose(result.shape, [1, 1, 2, 2]);
     expectArraysClose(resultData, expected);
   });
@@ -183,15 +175,93 @@ describeWithFlags('Matmul MRT works ', ALL_ENVS, () => {
     const image = tf.tensor4d([2], [1, 1, 1, 1]);
     const filter = tf.tensor4d([3], [1, 1, 1, 1]);
     const result = tf.conv2d(image, filter, 1, 'valid');
-    // const webGLBackend = tf.backend() as MathBackendWebGL;
-    // const resInfo = webGLBackend.getDataInfo(result);
     const resultData = await result.data();
 
     const expected = [6];
 
-    // expectArraysClose(resInfo.mrtStorage, [2, 2]);
-    // expectArraysClose(resInfo.texture.texShape, [2, 2]);
     expectArraysClose(result.shape, [1, 1, 1, 1]);
+    expectArraysClose(resultData, expected);
+  });
+});
+
+describeWithFlags('Fused Matmul MRT works ', ALL_ENVS, () => {
+  function makeContinuousArr(size: number) {
+    return Array.from(Array(size).keys());
+  }
+
+  it('Add bias', async () => {
+    const image = tf.tensor4d(makeContinuousArr(32), [1, 2, 4, 4]);
+    const filter = tf.tensor4d(makeContinuousArr(32), [1, 1, 4, 8]);
+    const bias = tf.tensor1d(makeContinuousArr(8));
+    const result =
+        tf.fused.conv2d({x: image, filter, strides: 1, pad: 'valid', bias});
+    const resultData = await result.data();
+
+    const expected = [
+      112,  119,  126,  133,  140,  147,  154,  161,  304,  327,  350,
+      373,  396,  419,  442,  465,  496,  535,  574,  613,  652,  691,
+      730,  769,  688,  743,  798,  853,  908,  963,  1018, 1073, 880,
+      951,  1022, 1093, 1164, 1235, 1306, 1377, 1072, 1159, 1246, 1333,
+      1420, 1507, 1594, 1681, 1264, 1367, 1470, 1573, 1676, 1779, 1882,
+      1985, 1456, 1575, 1694, 1813, 1932, 2051, 2170, 2289
+    ];
+
+    expectArraysClose(resultData, expected);
+  });
+});
+
+describeWithFlags('MRT pipeline works ', ALL_ENVS, () => {
+  function makeContinuousArr(size: number) {
+    return Array.from(Array(size).keys());
+  }
+
+  it('Fused conv + Add ', async () => {
+    const image = tf.tensor4d(makeContinuousArr(32), [1, 2, 4, 4]);
+    const filter = tf.tensor4d(makeContinuousArr(32), [1, 1, 4, 8]);
+    const bias = tf.tensor1d(makeContinuousArr(8));
+    const convRes =
+        tf.fused.conv2d({x: image, filter, strides: 1, pad: 'valid', bias});
+    const t = tf.ones([1, 2, 4, 8]);
+    const result = tf.add(convRes, t);
+    const resultData = await result.data();
+
+    debugger;
+    const expected = [
+      113,  120,  127,  134,  881,  952,  1023, 1094, 305,  328,  351,
+      374,  1073, 1160, 1247, 1334, 497,  536,  575,  614,  1265, 1368,
+      1471, 1574, 689,  744,  799,  854,  1457, 1576, 1695, 1814, 141,
+      148,  155,  162,  1165, 1236, 1307, 1378, 397,  420,  443,  466,
+      1421, 1508, 1595, 1682, 653,  692,  731,  770,  1677, 1780, 1883,
+      1986, 909,  964,  1019, 1074, 1933, 2052, 2171, 2290
+    ];
+
+    expectArraysClose(resultData, expected);
+  });
+
+  it('Fused conv + Depthwise ', async () => {
+    const image = tf.tensor4d(makeContinuousArr(32), [1, 2, 4, 4]);
+    const filter = tf.tensor4d(makeContinuousArr(32), [1, 1, 4, 8]);
+    const bias = tf.tensor1d(makeContinuousArr(8));
+    const convRes =
+        tf.fused.conv2d({x: image, filter, strides: 1, pad: 'valid', bias});
+    const tt = convRes.dataSync();
+    const deothFilter = tf.ones([2, 2, 8, 1]) as tf.Tensor4D;
+    const result = tf.depthwiseConv2d(convRes, deothFilter, 1, 'valid');
+    const resultData = await result.data();
+
+    const expected = [
+      2368, 2556, 2744, 2932, 3120, 3308, 3496, 3684, 3136, 3388, 3640, 3892,
+      4144, 4396, 4648, 4900, 3904, 4220, 4536, 4852, 5168, 5484, 5800, 6116
+    ];
+
+    expectArraysClose(tt, [
+      112,  119,  126,  133,  140,  147,  154,  161,  304,  327,  350,
+      373,  396,  419,  442,  465,  496,  535,  574,  613,  652,  691,
+      730,  769,  688,  743,  798,  853,  908,  963,  1018, 1073, 880,
+      951,  1022, 1093, 1164, 1235, 1306, 1377, 1072, 1159, 1246, 1333,
+      1420, 1507, 1594, 1681, 1264, 1367, 1470, 1573, 1676, 1779, 1882,
+      1985, 1456, 1575, 1694, 1813, 1932, 2051, 2170, 2289
+    ]);
     expectArraysClose(resultData, expected);
   });
 });
