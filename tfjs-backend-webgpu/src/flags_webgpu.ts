@@ -75,3 +75,8 @@ ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
  * Default Intel execution units number.
  */
 ENV.registerFlag('WEBGPU_INTEL_EU_COUNT', () => 96);
+
+/**
+ * Whether we will run im2col as a separate shader for convolution.
+ */
+ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
