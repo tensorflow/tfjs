@@ -131,7 +131,7 @@ const ERF = `
   let sign = sign(a);
   let absA = abs(a);
   let t = 1.0 / (1.0 + p * absA);
-  return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-absA*absA));
+  return sign * (1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * exp(-absA * absA));
 `;
 const EXP = `return exp(a);`;
 const FLOOR = `return floor(a);`;
