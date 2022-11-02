@@ -189,6 +189,13 @@ describeWithFlags('get MRT logical texture shape', WEBGL_ENVS, () => {
         logicalShape, isPacked, mrtSupport);
     expect(texShape).toEqual([2, 2]);
   });
+
+  it('4D tensor', () => {
+    const logicalShape = [1, 6, 6, 4];
+    const texShape = webgl_util.getTextureArrayShapeFromLogicalShape(
+        logicalShape, isPacked, mrtSupport);
+    expect(texShape).toEqual([24, 2]);
+  });
 });
 
 describeWithFlags('isReshapeFree', WEBGL_ENVS, () => {

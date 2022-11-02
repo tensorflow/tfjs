@@ -546,11 +546,16 @@ function isEven(n: number): boolean {
   return n % 2 === 0;
 }
 
+function isMultiplyOf4(n: number): boolean {
+  return n % 4 === 0;
+}
+
 /**
  * This determines whether reshaping a packed texture requires rearranging
  * the data within the texture, assuming 2x2 packing.
  */
-export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
+export function isReshapeFree(
+    shape1: number[], shape2: number[], mrt: boolean = false): boolean {
   shape1 = shape1.slice(-2);
   shape2 = shape2.slice(-2);
 
@@ -578,6 +583,10 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
         (shape1[0] === 1 || shape2[0] === 1)) {
       return true;
     }
+  }
+  if (mrt) {
+    return shape1[1] === shape2[1] && isMultiplyOf4(shape1[0]) &&
+        isMultiplyOf4(shape2[0]);
   }
   return shape1[1] === shape2[1] && isEven(shape1[0]) && isEven(shape2[0]);
 }

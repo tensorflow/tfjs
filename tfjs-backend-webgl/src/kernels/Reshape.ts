@@ -42,8 +42,10 @@ export function reshape(args: {
           `shape must have the same number of elements.`);
 
   const xTexData = webglBackend.texData.get(x.dataId);
-  if (xTexData.isPacked && !isReshapeFree(x.shape, $shape) &&
-      !(xTexData.texture !== null && isReshapeFree(xTexData.shape, $shape))) {
+  const mrt = xTexData.mrtStorage != null;
+  if (xTexData.isPacked && !isReshapeFree(x.shape, $shape, mrt) &&
+      !(xTexData.texture !== null &&
+        isReshapeFree(xTexData.shape, $shape, mrt))) {
     return packedReshape(x, $shape, webglBackend);
   }
 
