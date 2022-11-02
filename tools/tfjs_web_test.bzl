@@ -67,9 +67,9 @@ def _make_karma_config_impl(ctx):
         substitutions = {
             "TEMPLATE_args": str(args),
             "TEMPLATE_browser": ctx.attr.browser,
+            "TEMPLATE_headless": "true" if headless else "false",
             "TEMPLATE_jasmine_random": "false" if seed else "true",
             "TEMPLATE_jasmine_seed": seed if seed else "undefined",
-            "TEMPLATE_headless": "true" if headless else "false",
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -88,6 +88,15 @@ _make_karma_config = rule(
             default = "",
             doc = "The browser to run",
         ),
+        "headless": attr.label(
+            default = "@//:headless",
+            doc = """Whether to run chrome tests headlessly.
+
+            Defaults to true on most platforms. Note that not all browsers
+            support headless mode. Check //tools/karma_template.conf.js for
+            more details.
+            """,
+        ),
         "seed": attr.string(
             default = "",
             doc = """Use this seed for test order.
@@ -101,15 +110,6 @@ _make_karma_config = rule(
             doc = "The karma config template to expand",
         ),
         "_grep": attr.label(default = "@//:grep"),
-        "headless": attr.label(
-            default = "@//:headless",
-            doc = """Whether to run chrome tests headlessly.
-
-            Defaults to true on most platforms. Note that not all browsers
-            support headless mode. Check //tools/karma_template.conf.js for
-            more details.
-            """,
-        ),
     },
     outputs = {"config_file": "%{name}.js"},
 )
