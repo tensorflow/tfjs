@@ -258,3 +258,65 @@ describeWithFlags('MRT pipeline works ', ALL_ENVS, () => {
     expectArraysClose(resultData, expected);
   });
 });
+
+describeWithFlags('MRT model integration works ', ALL_ENVS, () => {
+  it('Fused conv with relu ', async () => {
+    const image = tf.ones([1, 14, 14, 192]) as tf.Tensor4D;
+    const filter = tf.ones([1, 1, 192, 192]) as tf.Tensor4D;
+    const convRes = tf.fused.conv2d(
+        {x: image, filter, strides: 1, pad: 'valid', activation: 'relu'});
+    const bias = tf.ones([192]) as tf.Tensor1D;
+    const depthFilter = tf.ones([5, 5, 192, 1]) as tf.Tensor4D;
+    const result = tf.fused.depthwiseConv2d(
+        {x: convRes, filter: depthFilter, bias, strides: 1, pad: 'same'})
+    const resultData = await result.data();
+
+    debugger;
+    const expected = [
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433,
+      433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433, 433
+    ];
+
+    expectArraysClose(resultData, expected);
+  });
+});
+
+describeWithFlags('Compare MRT against CPU ', ALL_ENVS, () => {
+  it('conv+depth', async () => {
+    const image = tf.ones([1, 6, 6, 8]) as tf.Tensor4D;
+    const filter = tf.ones([1, 1, 8, 4]) as tf.Tensor4D;
+    const depthBias = tf.ones([4]) as tf.Tensor1D;
+    const depthFilter = tf.ones([1, 1, 4, 1]) as tf.Tensor4D;
+
+    const model = async () => {
+      const convRes = tf.fused.conv2d(
+          {x: image, filter, strides: 1, pad: 'valid', activation: 'relu'});
+      const result = tf.fused.depthwiseConv2d({
+        x: convRes,
+        filter: depthFilter,
+        bias: depthBias,
+        strides: 1,
+        pad: 'same'
+      });
+
+      const convResultData = await convRes.data();
+      const resultData = await result.data();
+
+      return {convResultData, resultData};
+    };
+
+    await tf.setBackend('cpu');
+    const expected = await model();
+    await tf.setBackend('webgl');
+    const actual = await model();
+
+    expectArraysClose(actual.convResultData, expected.convResultData);
+    expectArraysClose(actual.resultData, expected.resultData);
+  });
+});
