@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Backend, DataId, DataToGPUOptions, GPUData, Tensor} from '../tensor';
+import {Backend, DataToGPUOptions, GPUData, Tensor} from '../tensor';
+import {DataId} from '../tensor_info';
 import {BackendValues, DataType, WebGLData} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;

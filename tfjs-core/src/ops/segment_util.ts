@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../kernel_registry';
+import { TensorInfo } from '../tensor_info';
 import {nearestDivisor} from '../util';
 
 import {PARALLELIZE_THRESHOLD} from './reduce_util';
