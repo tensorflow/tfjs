@@ -14,7 +14,7 @@
 # =============================================================================
 
 load("@npm//@bazel/concatjs:index.bzl", "ts_config")
-load("//tools:tfjs_web_test.bzl", "grep_flag")
+load("//tools:tfjs_web_test.bzl", "grep_flag", "headless_flag")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -39,6 +39,12 @@ ts_config(
 grep_flag(
     name = "grep",
     build_setting_default = "",
+    visibility = ["//visibility:public"],
+)
+
+headless_flag(
+    name = "headless",
+    build_setting_default = True,
     visibility = ["//visibility:public"],
 )
 

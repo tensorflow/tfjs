@@ -20,6 +20,8 @@ const browserstackConfig = {
   port: 9876,
 };
 
+const CHROME = TEMPLATE_headless ? 'ChromeHeadless' : 'Chrome';
+
 const CUSTOM_LAUNCHERS = {
   // For browserstack configs see:
   // https://www.browserstack.com/automate/node
@@ -66,11 +68,11 @@ const CUSTOM_LAUNCHERS = {
     os_version: '10'
   },
   chrome_with_swift_shader: {
-    base: 'Chrome',
+    base: CHROME,
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
   },
   chrome_autoplay: {
-    base: 'ChromeHeadless',
+    base: CHROME,
     flags: [
       '--autoplay-policy=no-user-gesture-required',
       '--no-sandbox',
@@ -105,7 +107,7 @@ const CUSTOM_LAUNCHERS = {
     flags: ['--remote-debugging-port=9333'],
   },
   chrome_no_sandbox: {
-    base: 'ChromeHeadless',
+    base: CHROME,
     flags: ['--no-sandbox'],
   }
 };

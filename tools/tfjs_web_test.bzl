@@ -29,6 +29,7 @@ PEER_DEPS = [
     "@npm//karma-jasmine-order-reporter",
 ]
 
+# @//:grep flag greps for a set of tests to run
 GrepProvider = provider(fields = ["grep"])
 
 def _grep_flag_impl(ctx):
@@ -39,8 +40,20 @@ grep_flag = rule(
     build_setting = config.string(flag = True),
 )
 
+# @//:headless flag runs tests headlessly. Defaults to true.
+HeadlessProvider = provider(fields = ["headless"])
+
+def _headless_flag_impl(ctx):
+    return HeadlessProvider(headless = ctx.build_setting_value)
+
+headless_flag = rule(
+    implementation = _headless_flag_impl,
+    build_setting = config.bool(flag = True),
+)
+
 def _make_karma_config_impl(ctx):
     grep = ctx.attr._grep[GrepProvider].grep
+    headless = ctx.attr.headless[HeadlessProvider].headless
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
     args = ctx.attr.args
@@ -56,6 +69,7 @@ def _make_karma_config_impl(ctx):
             "TEMPLATE_browser": ctx.attr.browser,
             "TEMPLATE_jasmine_random": "false" if seed else "true",
             "TEMPLATE_jasmine_seed": seed if seed else "undefined",
+            "TEMPLATE_headless": "true" if headless else "false",
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -87,6 +101,13 @@ _make_karma_config = rule(
             doc = "The karma config template to expand",
         ),
         "_grep": attr.label(default = "@//:grep"),
+        "headless": attr.label(
+            default = "@//:headless",
+            doc = """Whether to run chrome tests headlessly.
+
+            Defaults to true on most platforms.
+            """,
+        ),
     },
     outputs = {"config_file": "%{name}.js"},
 )
