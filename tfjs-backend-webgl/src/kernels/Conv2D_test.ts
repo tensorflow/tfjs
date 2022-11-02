@@ -244,13 +244,15 @@ describeWithFlags('MRT pipeline works ', ALL_ENVS, () => {
     const bias = tf.tensor1d(makeContinuousArr(8));
     const convRes =
         tf.fused.conv2d({x: image, filter, strides: 1, pad: 'valid', bias});
-    const deothFilter = tf.ones([2, 2, 8, 1]) as tf.Tensor4D;
+    const deothFilter =
+        tf.tensor4d(makeContinuousArr(32), [2, 2, 8, 1]) as tf.Tensor4D;
     const result = tf.depthwiseConv2d(convRes, deothFilter, 1, 'valid');
     const resultData = await result.data();
 
     const expected = [
-      2368, 2556, 2744, 2932, 3120, 3308, 3496, 3684, 3136, 3388, 3640, 3892,
-      4144, 4396, 4648, 4900, 3904, 4220, 4536, 4852, 5168, 5484, 5800, 6116
+      42240, 48204, 54544, 61260, 68352,  75820,  83664,  91884,
+      51456, 59020, 67088, 75660, 84736,  94316,  104400, 114988,
+      60672, 69836, 79632, 90060, 101120, 112812, 125136, 138092
     ];
 
     expectArraysClose(resultData, expected);

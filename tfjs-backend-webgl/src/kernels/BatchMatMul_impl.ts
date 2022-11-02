@@ -200,7 +200,9 @@ export function batchMatMulMrt2x2Impl({
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   assert(
-      bias.shape.length === 1 && bias.shape[0] === b.shape[b.shape.length - 1],
+      bias == null ||
+          (bias.shape.length === 1 &&
+           bias.shape[0] === b.shape[b.shape.length - 1]),
       'MatMul MRT only supports 1D bias!');
   assert(
       activation !== 'leakyrelu',
