@@ -163,5 +163,6 @@ test_suite(
     name = "tests",
     tests = [
         ":tfjs-layers_webgl2_test",
+        ":tfjs-layers_webgl1_test",
     ],
 )
