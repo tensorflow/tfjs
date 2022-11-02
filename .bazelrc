@@ -64,11 +64,12 @@ build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
-# Platform specific DISPLAY environment variable for webgl
+# Platform specific DISPLAY environment variable for webgl and headless setting
+# for browser tests.
 test --enable_platform_specific_config
 test:linux --test_env=DISPLAY
 test:macos --define DISPLAY=true
-test:windows --define DISPLAY=true
+test:windows --define DISPLAY=true --//:headless=false
 
 # Enable debugging tests with --config=debug
 run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
