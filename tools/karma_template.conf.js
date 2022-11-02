@@ -20,6 +20,7 @@ const browserstackConfig = {
   port: 9876,
 };
 
+// Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
 const CHROME = TEMPLATE_headless ? 'ChromeHeadless' : 'Chrome';
 
 const CUSTOM_LAUNCHERS = {

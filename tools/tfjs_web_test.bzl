@@ -105,7 +105,9 @@ _make_karma_config = rule(
             default = "@//:headless",
             doc = """Whether to run chrome tests headlessly.
 
-            Defaults to true on most platforms.
+            Defaults to true on most platforms. Note that not all browsers
+            support headless mode. Check //tools/karma_template.conf.js for
+            more details.
             """,
         ),
     },

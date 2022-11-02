@@ -67,13 +67,24 @@ $ yarn test --//:grep=multinomial
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
 ```
 
-By default, the tests run once and exit. To keep the browser window open, run the following:
+By default, the tests run once and exit. To keep the karma server active, run the following:
 
 ```bash
 # For packages with only browser tests
 $ yarn test-debug
 # For packages with browser and node tests
 $ yarn test-browser-debug
+```
+
+You can now connect to the server with your own browser.
+
+On most platforms, Karma tests will run with a headless Chrome browser. This can be overridden by setting the
+`--//:headless` flag.
+
+```bash
+# Run tests with a visible browser window. Note this does not work well with
+# 'watch' modes such as 'test-dev' or 'ibazel'.
+$ yarn test --//:headless=false
 ```
 
 #### Packaging (browser and npm)
