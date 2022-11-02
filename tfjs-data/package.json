@@ -22,17 +22,14 @@
   },
   "scripts": {
     "build": "bazel build :tfjs-data_pkg",
-    "build-ci": "yarn build",
-    "bundle": "yarn build",
-    "bundle-ci": "yarn bundle",
-    "build-link-package": "cd ../link-package && yarn build",
-    "build-deps": "yarn build-link-package",
-    "build-deps-ci": "yarn build-deps",
-    "build-npm": "bazel build :tfjs-data_pkg",
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
-    "test-browser": "ibazel run :tfjs-data_browser_test --test-output=streamed",
+    "test": "bazel test :tests",
     "test-dev": "ibazel test :tests",
-    "test": "bazel test :tests"
+    "test-debug": "yarn test-node-debug",
+    "test-browser": "bazel test :tfjs-data_browser_test --test-output=streamed",
+    "test-browser-debug": "bazel run :tfjs-data_browser_test --test-output=streamed",
+    "test-node": "bazel test --test_output=streamed :tfjs-data_test",
+    "test-node-debug": "bazel run --config=debug --test_output=streamed :tfjs-data_test"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
