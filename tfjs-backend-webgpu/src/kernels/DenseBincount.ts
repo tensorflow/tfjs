@@ -18,7 +18,7 @@
 import {DenseBincount, DenseBincountAttrs, DenseBincountInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {BincountRankOneProgram, BincountRankTwoProgram} from '../bincount_webgpu';
+import {BincountProgram} from '../bincount_webgpu';
 
 import {fill} from './Fill';
 import {slice} from './Slice';
@@ -38,16 +38,11 @@ export function denseBincount(args: {
   const hasWeights = weightsSize > 0;
   const dtype = weights.dtype;
 
-  let outputSize: [number]|[number, number];
-  let program: BincountRankOneProgram|BincountRankTwoProgram;
-  if (xRankOne) {
-    outputSize = [Math.max(xBinCountSize, size)];
-    program = new BincountRankOneProgram(outputSize, hasWeights, binaryOutput);
-  } else {
-    outputSize = [x.shape[0], Math.max(xBinCountSize, size)];
-    program = new BincountRankTwoProgram(outputSize, hasWeights, binaryOutput);
-  }
+  const outputSize: [number]|[number, number] = xRankOne ?
+      [Math.max(xBinCountSize, size)] :
+      [x.shape[0], Math.max(xBinCountSize, size)];
 
+  const program = new BincountProgram(outputSize, hasWeights, binaryOutput);
   const bincountInputs: TensorInfo[] = hasWeights ? [x, weights] : [x];
   const uniformData = [{type: 'int32', data: [size]}];
   let result: TensorInfo;

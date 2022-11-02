@@ -39,7 +39,7 @@ const binaryWriteSnippet = `
   }
 `;
 
-export class BincountRankOneProgram implements WebGPUProgram {
+export class BincountProgram implements WebGPUProgram {
   outputShape: number[] = [];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -51,82 +51,56 @@ export class BincountRankOneProgram implements WebGPUProgram {
   atomic = true;
   hasWeights = true;
   binaryOutput = false;
+  rank: number;
 
-  constructor(shape: [number], hasWeights: boolean, binaryOutput = false) {
+  constructor(
+      shape: [number]|[number, number], hasWeights: boolean,
+      binaryOutput = false) {
     this.outputShape = shape;
+    this.rank = shape.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.binaryOutput = binaryOutput;
+    if (binaryOutput) {
+      this.atomic = false;
+    }
     this.hasWeights = hasWeights;
     if (this.hasWeights) {
       this.variableNames.push('w');
     }
-    this.shaderKey = `bincount_${this.hasWeights}_${this.binaryOutput}`;
+    this.shaderKey =
+        `bincount_${this.hasWeights}_${this.binaryOutput}_${this.rank}`;
   }
 
   getUserCode(): string {
     const userCode = `
     ${this.binaryOutput ? binaryWriteSnippet : writeSnippet}
   ${main('index')} {
-    if (index < uniforms.xShape) {
+    ${
+        this.rank === 1 ?
+            `if (index < uniforms.xShape) {
       let indexVal = i32(getX(index));
       if (indexVal < uniforms.binCountSize) {
         let value = ${
-        this.binaryOutput ? 1. : (this.hasWeights ? 'f32(getW(index))' : '1.')};
+                this.binaryOutput ?
+                    1. :
+                    (this.hasWeights ? 'f32(getW(index))' : '1.')};
         bincount_write(indexVal, value);
       }
-    }
-  }
-  `;
-    return userCode;
-  }
-}
-
-export class BincountRankTwoProgram implements WebGPUProgram {
-  outputShape: number[] = [];
-  shaderKey: string;
-  dispatchLayout: {x: number[]};
-  dispatch: [number, number, number];
-  variableNames = ['x'];
-  uniforms = 'binCountSize : i32,';
-  workgroupSize: [number, number, number] = [64, 1, 1];
-  size = true;
-  atomic = true;
-  hasWeights = true;
-  binaryOutput = false;
-
-  constructor(
-      shape: [number, number], hasWeights: boolean, binaryOutput = false) {
-    this.outputShape = shape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize);
-
-    this.binaryOutput = binaryOutput;
-    this.hasWeights = hasWeights;
-    if (this.hasWeights) {
-      this.variableNames.push('w');
-    }
-    this.shaderKey = `bincount_${this.hasWeights}_${this.binaryOutput}`;
-  }
-
-  getUserCode(): string {
-    const userCode = `
-    ${this.binaryOutput ? binaryWriteSnippet : writeSnippet}
-  ${main('index')} {
-    let coord = getCoordsFromIndex(index);
+    }` :
+            `let coord = getCoordsFromIndex(index);
     if (coordsInBounds2D(coord, uniforms.xShape)) {
       let indexVal = i32(getX(coord[0], coord[1]));
       if (indexVal < uniforms.binCountSize) {
         let value = ${
-        this.binaryOutput ?
-            1. :
-            (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' : '1.')};
+                this.binaryOutput ?
+                    1. :
+                    (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' : '1.')};
         bincount_write(coord.x * uniforms.outShape[1] + indexVal, value);
       }
-    }
+    }`}
   }
   `;
     return userCode;
