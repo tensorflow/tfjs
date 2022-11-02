@@ -30,9 +30,9 @@
     "test": "bazel test :tests --test_output=all",
     "test-dev": "ibazel test :tests --test_output=all",
     "test-browser": "bazel test :tfjs-core_test --test_output=all",
-    "test-browser-debug": "bazel run :tfjs-core_test",
+    "test-browser-debug": "bazel run :tfjs-core_test --test_output=all",
     "test-node": "bazel test :tfjs-core_node_test --test_output=all",
-    "test-node-debug": "bazel run :tfjs-core_node_test --config=debug",
+    "test-node-debug": "bazel run :tfjs-core_node_test --config=debug --test_output=all",
     "test-async-backends": "bazel test :tfjs-core_async_backends_test --test_output=all",
     "test-snippets": "bazel test :test_snippets_test --test_output=all"
   },
