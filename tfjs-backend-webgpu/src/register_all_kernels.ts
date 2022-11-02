@@ -51,6 +51,7 @@ import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -172,6 +173,7 @@ const kernelConfigs: KernelConfig[] = [
   einsumConfig,
   eluConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   expm1Config,
