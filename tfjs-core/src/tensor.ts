@@ -19,6 +19,7 @@
 /// <reference types="@webgpu/types/dist" />
 
 import {getGlobal} from './global_util';
+import {TensorInfo} from './kernel_registry';
 import {tensorToString} from './tensor_format';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
@@ -264,7 +265,7 @@ export declare namespace Tensor {}
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-export class Tensor<R extends Rank = Rank> {
+export class Tensor<R extends Rank = Rank> implements TensorInfo {
   /** Unique id of this tensor. */
   readonly id: number;
   /**
