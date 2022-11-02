@@ -58,6 +58,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
@@ -170,6 +171,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  isNaNConfig,
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,

@@ -23,17 +23,10 @@
     "@bazel/bazelisk": "^1.12.0"
   },
   "scripts": {
-    "prep": "./scripts/download-tflite-web-api.sh",
     "build": "bazel build :tfjs-tflite_pkg",
-    "build-ci": "yarn build",
-    "bundle": "bazel build :tfjs-tflite_pkg",
-    "bundle-ci": "yarn bundle",
-    "build-link-package": "cd ../link-package && yarn build",
-    "build-deps": "yarn build-link-package",
-    "build-npm": "bazel build :tfjs-tflite_pkg",
     "publish-npm": "bazel run :tfjs-tflite_pkg.publish",
     "test": "bazel test :tests --test_output=all",
-    "test-ci": "yarn test",
+    "test-dev": "ibazel test :tests --test_output=all",
     "test-debug": "bazel run :tfjs-tflite_test"
   },
   "resolutions": {
