@@ -24,18 +24,12 @@
     "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
-    "build-ci": "yarn build",
     "build": "bazel build :tfjs-backend-cpu_pkg",
-    "bundle": "bazel build :tfjs-backend-cpu_pkg",
-    "bundle-ci": "yarn bundle",
-    "build-npm": "bazel build :tfjs-backend-cpu_pkg",
-    "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
     "coverage": "bazel coverage :tfjs-backend-cpu_test",
     "test": "bazel test :tests --test_output=streamed",
     "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
-    "test-dev": "ibazel run :tests --test-output=streamed",
-    "test-ci": "yarn test"
+    "test-dev": "ibazel run :tests --test-output=streamed"
   },
   "dependencies": {
     "@types/seedrandom": "^2.4.28",
