@@ -265,7 +265,6 @@ const TEST_FILTERS: TestFilter[] = [
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'erf ',
       'FFT ',
       'IRFFT ',
       'linspace ',
