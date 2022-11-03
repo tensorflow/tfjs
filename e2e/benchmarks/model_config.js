@@ -220,7 +220,6 @@ const benchmarks = {
   },
   'Coco-SSD': {
     type: 'GraphModel',
-    supportDump: false,
     // The model has has the dynamic ops, so it is supposed to use executeAsync.
     architectures: ['MobileNetV2', 'MobileNetV1', 'liteMobileNetV2'],
     load: async (inputResolution = 227, modelArchitecture = 'MobileNetV2') => {
@@ -329,7 +328,6 @@ const benchmarks = {
   },
   'AutoML Object': {
     type: 'GraphModel',
-    supportDump: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -370,7 +368,6 @@ const benchmarks = {
   },
   'TextToxicity': {
     type: 'GraphModel',
-    supportDump: false,
     // The model has has the dynamic ops, so it is supposed to use executeAsync.
     load: async () => {
       const url =
@@ -478,6 +475,8 @@ const benchmarks = {
     }
   },
   'speech-commands': {
+    // Sequential model doesn't support dump.
+    supportDump: false,
     load: async () => {
       const recognizer = speechCommands.create('BROWSER_FFT');
       await recognizer.ensureModelLoaded();
