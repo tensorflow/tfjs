@@ -272,12 +272,12 @@ export class GraphExecutor implements FunctionExecutor {
               outputNodeNames, intermediateTensorConsumerCount);
         }
       }
+      if (this.keepIntermediateTensors) {
+        this.clonedTensorsMap = this.cloneTensorMap(tensorsMap);
+      }
       // dispose the context for the root executor
       if (this.parent == null) {
         context.dispose(tensorsToKeep);
-      }
-      if (this.keepIntermediateTensors) {
-        this.clonedTensorsMap = this.cloneTensorMap(tensorsMap);
       }
 
       return outputs.map(name => getTensor(name, tensorsMap, context));
