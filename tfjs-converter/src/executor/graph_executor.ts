@@ -180,7 +180,7 @@ export class GraphExecutor implements FunctionExecutor {
         this.graph, this.weightMap, executionInfo);
   }
 
-  private cloneTensorMap(tensorsMap: NamedTensorsMap) {
+  private cloneTensorMap(tensorsMap: NamedTensorsMap): NamedTensorsMap {
     return Object.fromEntries(
         Object.entries(tensorsMap).map(([name, tensorsList]) => {
           return [
@@ -189,6 +189,9 @@ export class GraphExecutor implements FunctionExecutor {
                 return null;
               }
               const clone = tensor.clone();
+              // Keep the clone because `model.execute()` may be called within
+              // a `tidy()`, but the user may inspect these tensors after the
+              // tidy.
               keep(clone);
               return clone;
             })
@@ -206,6 +209,8 @@ export class GraphExecutor implements FunctionExecutor {
    * outputs array.
    */
   execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
+    // Dispose any tensors from a prior run to avoid leaking them.
+    this.disposeIntermediateTensors();
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -389,6 +394,8 @@ export class GraphExecutor implements FunctionExecutor {
       inputs: NamedTensorMap, outputs?: string[], isFunctionExecution = false,
       tensorArrayMap: TensorArrayMap = {},
       tensorListMap: TensorListMap = {}): Promise<Tensor[]> {
+    // Dispose any tensors from a prior run to avoid leaking them.
+    this.disposeIntermediateTensors();
     if (!isFunctionExecution) {
       inputs = this.mapInputs(inputs);
       this.checkInputs(inputs);
