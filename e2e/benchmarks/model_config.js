@@ -475,7 +475,8 @@ const benchmarks = {
     }
   },
   'speech-commands': {
-    // Sequential model doesn't support dump.
+    // Layer model doesn't support dump. TODO(xing.xu@intel.com):
+    // https://github.com/tensorflow/tfjs/issues/7010
     supportDump: false,
     load: async () => {
       const recognizer = speechCommands.create('BROWSER_FFT');
