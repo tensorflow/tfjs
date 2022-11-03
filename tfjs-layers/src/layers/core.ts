@@ -654,7 +654,8 @@ export class Masking extends Layer {
     return config;
   }
 
-  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     const input = getExactlyOneTensor(inputs);
     const axis = -1;
     return any(notEqual(input, this.maskValue), axis);

@@ -49,8 +49,8 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, engine());
   }
 
-  override write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  override write(values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {

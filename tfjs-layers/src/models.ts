@@ -747,8 +747,8 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  override async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
-      Promise<Scalar|Scalar[]> {
+  override async evaluateDataset(dataset: Dataset<{}>,
+      args: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -783,7 +783,8 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  override predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
+  override predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}):
+      Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
@@ -960,8 +961,8 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
-  override async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
-      Promise<History> {
+  override async fitDataset<T>(dataset: Dataset<T>,
+      args: ModelFitDatasetArgs<T>): Promise<History> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before ' +

@@ -410,7 +410,8 @@ export class CustomCallback extends BaseCallback {
     await Promise.all(ps);
   }
 
-  override async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochBegin(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     this.currentEpoch = epoch;
     if (this.epochBegin != null) {
       await resolveScalarsInLogs(logs);
@@ -418,7 +419,8 @@ export class CustomCallback extends BaseCallback {
     }
   }
 
-  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.epochEnd != null) {
       await resolveScalarsInLogs(logs);
@@ -430,14 +432,16 @@ export class CustomCallback extends BaseCallback {
     await Promise.all(ps);
   }
 
-  override async onBatchBegin(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchBegin(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     if (this.batchBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.batchBegin(batch, logs as Logs);
     }
   }
 
-  override async onBatchEnd(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchEnd(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.batchEnd != null) {
       await resolveScalarsInLogs(logs);

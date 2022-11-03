@@ -228,7 +228,8 @@ export abstract class Merge extends Layer {
     return outputShape;
   }
 
-  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return tfc.tidy(() => {
       if (mask == null) {
         return null;
@@ -727,7 +728,8 @@ export class Concatenate extends Merge {
     return outputShape;
   }
 
-  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     if (mask == null) {
       return null;
     }
@@ -1057,7 +1059,8 @@ export class Dot extends Merge {
     return outputShape;
   }
 
-  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return null;
   }
 

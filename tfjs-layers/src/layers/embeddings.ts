@@ -137,7 +137,8 @@ export class Embedding extends Layer {
   // the input to have varying ranks.
   protected override warnOnIncompatibleInputShape(inputShape: Shape) {}
 
-  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return tidy(() => {
       if (!this.maskZero) {
         return null;

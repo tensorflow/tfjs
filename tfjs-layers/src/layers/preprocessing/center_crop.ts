@@ -82,8 +82,8 @@ export class CenterCrop extends Layer {
 
 }
 
-  override call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs): Tensor[] | Tensor {
-
+  override call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs):
+      Tensor[] | Tensor {
     return tidy(() => {
       const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
       const dtype       = rankedInputs.dtype;

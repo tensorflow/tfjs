@@ -208,7 +208,8 @@ export class MathBackendWebGL extends KernelBackend {
     return output.dataId;
   }
 
-  override write(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  override write(values: BackendValues, shape: number[], dtype: DataType):
+      DataId {
     if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
         env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
@@ -425,7 +426,8 @@ export class MathBackendWebGL extends KernelBackend {
    *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
    */
-  override readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}): GPUData {
+  override readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}):
+      GPUData {
     const texData = this.texData.get(dataId);
     const {values, shape, slice, dtype, isPacked, texture} = texData;
 
@@ -1304,8 +1306,8 @@ export class MathBackendWebGL extends KernelBackend {
    * Create a TF.js tensor out of an existing WebGL texture. A new texture will
    * be created.
    */
-  override createTensorFromTexture(values: WebGLData, shape: number[], dtype: DataType):
-      Tensor {
+  override createTensorFromTexture(values: WebGLData, shape: number[],
+      dtype: DataType): Tensor {
     const {texture, height, width, channels} = values;
     const backend = engine().backend as MathBackendWebGL;
 

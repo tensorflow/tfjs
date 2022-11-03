@@ -31,7 +31,8 @@ import {SGDOptimizer} from './sgd_optimizer';
 /** @doclink Optimizer */
 export class MomentumOptimizer extends SGDOptimizer {
   /** @nocollapse */
-  static override className = 'Momentum';  // Name matters for Python compatibility.
+  // Name matters for Python compatibility.
+  static override className = 'Momentum';
   private m: Scalar;
   private accumulations: OptimizerVariable[] = [];
 
