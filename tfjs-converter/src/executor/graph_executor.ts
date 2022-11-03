@@ -185,6 +185,9 @@ export class GraphExecutor implements FunctionExecutor {
         Object.entries(tensorsMap).map(([name, tensorsList]) => {
           return [
             name, tensorsList.map(tensor => {
+              if (tensor == null) {
+                return null;
+              }
               const clone = tensor.clone();
               keep(clone);
               return clone;
@@ -557,10 +560,6 @@ export class GraphExecutor implements FunctionExecutor {
         }
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
-          if (this.keepIntermediateTensors) {
-            throw new Error(
-                'Keep intermediate tensors is not supported for operator returns promises!');
-          }
           promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
