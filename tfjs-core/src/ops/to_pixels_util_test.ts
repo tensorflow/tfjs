@@ -52,7 +52,6 @@ export function toPixelsTestCase(
   if (navigator && navigator.platform.startsWith('Mac')) {
     console.warn(
         'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
-    return;
   }
   console.log(' navigator.platform 2 =' + navigator.platform);
   it('draws a rank-2 float32 tensor', async () => {
