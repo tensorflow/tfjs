@@ -63,6 +63,7 @@ export {Reduction} from './ops/loss_ops_utils';
 export * from './train';
 export * from './globals';
 export * from './kernel_registry';
+export {TensorInfo, DataId} from './tensor_info';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';

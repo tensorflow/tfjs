@@ -18,7 +18,8 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import { NamedTensorInfoMap } from './kernel_registry';
+import { TensorInfo } from './tensor_info';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
 import {DataType, PixelData} from './types';
