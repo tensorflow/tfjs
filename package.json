@@ -31,7 +31,7 @@
     "ajv": "~6.12.3",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
-    "clang-format": "~1.2.4",
+    "clang-format": "^1.8.0",
     "console-table-printer": "^2.4.32",
     "copyfiles": "~1.2.0",
     "core-js": "3",
