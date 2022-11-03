@@ -225,7 +225,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expectArraysClose(
         backend.readSync(t.dataId) as Float32Array,
         new Float32Array([1, 2, 3]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
+    expect(texManager.getNumUsedTextures()).toBe(1);
   });
 });
 
