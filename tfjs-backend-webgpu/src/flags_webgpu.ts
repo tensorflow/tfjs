@@ -72,9 +72,13 @@ ENV.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
 
 /**
- * Default Intel execution units number.
+ * Threshold to increase dispatched workgroups for matmul. If too few workgroups
+ * are dispatched, it means the hardware may be in low occupancy.
+ *
+ * Default value is 16.
  */
-ENV.registerFlag('WEBGPU_INTEL_EU_COUNT', () => 96);
+ENV.registerFlag(
+    'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => 16);
 
 /**
  * Whether we will run im2col as a separate shader for convolution.

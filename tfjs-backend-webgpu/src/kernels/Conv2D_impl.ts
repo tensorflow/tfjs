@@ -310,9 +310,13 @@ export function conv2DImpl({
     });
   }
 
-  // It needs further tune in what kind of conditions to go to im2col path.
+  const workgroupsBy32x32 = convInfo.batchSize *
+      Math.ceil((convInfo.outHeight * convInfo.outWidth) / 32) *
+      Math.ceil(convInfo.outChannels / 32);
   if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') ||
-      (convInfo.inHeight <= 16 && convInfo.inWidth <= 16)) {
+      workgroupsBy32x32 <=
+          env().getNumber(
+              'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL')) {
     return conv2dWithIm2Col({
       x,
       filter,
