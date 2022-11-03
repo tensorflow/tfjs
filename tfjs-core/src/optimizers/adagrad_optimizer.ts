@@ -81,19 +81,19 @@ export class AdagradOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     if (this.accumulatedGrads != null) {
       dispose(this.accumulatedGrads.map(v => v.variable));
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     return [await this.saveIterations()].concat(this.accumulatedGrads.map(
         v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const trainable = false;
     this.accumulatedGrads = weightValues.map(
@@ -108,7 +108,7 @@ export class AdagradOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate'], config['initialAccumulatorValue']);
   }

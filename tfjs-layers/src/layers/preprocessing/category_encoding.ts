@@ -41,7 +41,7 @@ export class CategoryEncoding extends Layer {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'numTokens': this.numTokens,
       'outputMode': this.outputMode,
@@ -52,7 +52,7 @@ export class CategoryEncoding extends Layer {
     return config;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
 
     if(inputShape == null) {
@@ -68,7 +68,7 @@ export class CategoryEncoding extends Layer {
     return inputShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
     return tidy(() => {
 
         inputs = getExactlyOneTensor(inputs);

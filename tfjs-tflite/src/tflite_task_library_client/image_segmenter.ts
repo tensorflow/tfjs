@@ -89,7 +89,7 @@ export interface ColoredLabel {
  * src/types for more info.
  */
 export class ImageSegmenter extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryImageSegmenter) {
+  constructor(protected override instance: TaskLibraryImageSegmenter) {
     super(instance);
   }
 

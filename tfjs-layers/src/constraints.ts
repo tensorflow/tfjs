@@ -84,7 +84,7 @@ export class MaxNorm extends Constraint {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {maxValue: this.maxValue, axis: this.axis};
   }
 }
@@ -123,7 +123,7 @@ export class UnitNorm extends Constraint {
         () => tfc.div(w, tfc.add(epsilon(), calcL2Norms(w, this.axis))));
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {axis: this.axis};
   }
 }
@@ -206,7 +206,7 @@ export class MinMaxNorm extends Constraint {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       minValue: this.minValue,
       maxValue: this.maxValue,

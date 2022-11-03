@@ -33,7 +33,7 @@ import {preprocessConv2DInput, preprocessConv3DInput} from './convolutional';
  * 2D pooling.
  * @param x
  * @param poolSize
- * @param stridesdes strides. Defaults to [1, 1].
+ * @param strides strides. Defaults to [1, 1].
  * @param padding padding. Defaults to 'valid'.
  * @param dataFormat data format. Defaults to 'channelsLast'.
  * @param poolMode Mode of pooling. Defaults to 'max'.
@@ -201,7 +201,7 @@ export abstract class Pooling1D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 3})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const length = convOutputLength(
         inputShape[1], this.poolSize[0], this.padding, this.strides[0]);
@@ -212,7 +212,7 @@ export abstract class Pooling1D extends Layer {
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Add dummy last dimension.
@@ -225,7 +225,7 @@ export abstract class Pooling1D extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       poolSize: this.poolSize,
       padding: this.padding,
@@ -339,7 +339,7 @@ export abstract class Pooling2D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 4})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     let rows =
         this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
@@ -360,7 +360,7 @@ export abstract class Pooling2D extends Layer {
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       return this.poolingFunction(
@@ -369,7 +369,7 @@ export abstract class Pooling2D extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       poolSize: this.poolSize,
       padding: this.padding,
@@ -484,7 +484,7 @@ export abstract class Pooling3D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 5})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     let depths =
         this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
@@ -510,7 +510,7 @@ export abstract class Pooling3D extends Layer {
       strides: [number, number, number], padding: PaddingMode,
       dataFormat: DataFormat): Tensor;
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       return this.poolingFunction(
@@ -519,7 +519,7 @@ export abstract class Pooling3D extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       poolSize: this.poolSize,
       padding: this.padding,
@@ -579,11 +579,11 @@ export abstract class GlobalPooling1D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 3})];
   }
 
-  computeOutputShape(inputShape: Shape): Shape {
+  override computeOutputShape(inputShape: Shape): Shape {
     return [inputShape[0], inputShape[2]];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     throw new NotImplementedError();
   }
 }
@@ -595,7 +595,7 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
     super(args || {});
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const input = getExactlyOneTensor(inputs);
       return tfc.mean(input, 1);
@@ -611,7 +611,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
     super(args || {});
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const input = getExactlyOneTensor(inputs);
       return tfc.max(input, 1);
@@ -645,7 +645,7 @@ export abstract class GlobalPooling2D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 4})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = inputShape as Shape;
     if (this.dataFormat === 'channelsLast') {
       return [inputShape[0], inputShape[3]];
@@ -654,11 +654,11 @@ export abstract class GlobalPooling2D extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     throw new NotImplementedError();
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {dataFormat: this.dataFormat};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -670,7 +670,7 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
   /** @nocollapse */
   static className = 'GlobalAveragePooling2D';
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const input = getExactlyOneTensor(inputs);
       if (this.dataFormat === 'channelsLast') {
@@ -687,7 +687,7 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
   /** @nocollapse */
   static className = 'GlobalMaxPooling2D';
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const input = getExactlyOneTensor(inputs);
       if (this.dataFormat === 'channelsLast') {

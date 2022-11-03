@@ -396,7 +396,7 @@ export interface SequentialArgs {
  */
 export class Sequential extends LayersModel {
   /** @nocollapse */
-  static className = 'Sequential';
+  static override className = 'Sequential';
   private model: LayersModel;
   constructor(args?: SequentialArgs) {
     super({inputs: [], outputs: []});
@@ -579,14 +579,14 @@ export class Sequential extends LayersModel {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
     return this.model.call(inputs, kwargs);
   }
 
-  build(inputShape?: Shape|Shape[]) {
+  override build(inputShape?: Shape|Shape[]) {
     // Call `getExactlyOneShape` without using its return value,
     // to verify that exactly one input shape is provided.
     getExactlyOneShape(inputShape);
@@ -622,7 +622,7 @@ export class Sequential extends LayersModel {
     this.built = true;
   }
 
-  countParams(): number {
+  override countParams(): number {
     if (!this.built) {
       this.build();
     }
@@ -659,7 +659,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  summary(
+  override summary(
       lineLength?: number, positions?: number[],
       printFn:
           // tslint:disable-next-line:no-any
@@ -676,7 +676,7 @@ export class Sequential extends LayersModel {
    * @param weights Should be a list of Tensors with shapes and types matching
    *   the output of `model.getWeights()`.
    */
-  setWeights(weights: Tensor[]): void {
+  override setWeights(weights: Tensor[]): void {
     if (this.model == null) {
       this.build();
     }
@@ -715,7 +715,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  evaluate(
+  override evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
       args: ModelEvaluateArgs = {}): Scalar|Scalar[] {
     if (!this.built) {
@@ -747,7 +747,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
+  override async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
       Promise<Scalar|Scalar[]> {
     if (!this.built) {
       throw new RuntimeError(
@@ -783,7 +783,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
+  override predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
@@ -797,7 +797,7 @@ export class Sequential extends LayersModel {
    *   has multiple inputs).
    * @return Tensor(s) of predictions
    */
-  predictOnBatch(x: Tensor): Tensor|Tensor[] {
+  override predictOnBatch(x: Tensor): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
@@ -809,7 +809,7 @@ export class Sequential extends LayersModel {
    *
    * @param args
    */
-  compile(args: ModelCompileArgs): void {
+  override compile(args: ModelCompileArgs): void {
     this.build();
     this.model.compile(args);
     this.optimizer_ = this.model.optimizer;
@@ -824,11 +824,11 @@ export class Sequential extends LayersModel {
     // TODO(cais): Add sampleWeights.
   }
 
-  get optimizer(): Optimizer {
+  override get optimizer(): Optimizer {
     return this.model == null ? undefined : this.model.optimizer;
   }
 
-  set optimizer(optimizer: Optimizer) {
+  override set optimizer(optimizer: Optimizer) {
     this.model.optimizer = optimizer;
   }
 
@@ -863,7 +863,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async fit(
+  override async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},
       args: ModelFitArgs = {}): Promise<History> {
@@ -960,7 +960,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
-  async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
+  override async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
       Promise<History> {
     if (!this.built) {
       throw new RuntimeError(
@@ -993,7 +993,7 @@ export class Sequential extends LayersModel {
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async trainOnBatch(
+  override async trainOnBatch(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|
       {[inputName: string]: Tensor}): Promise<number|number[]> {
@@ -1002,7 +1002,7 @@ export class Sequential extends LayersModel {
 
   /* See parent class for JsDoc */
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict,
@@ -1072,7 +1072,7 @@ export class Sequential extends LayersModel {
    * console.log(history.history.loss);
    * ```
    */
-  set stopTraining(stop: boolean) {
+  override set stopTraining(stop: boolean) {
     // TODO(cais): When refactoring to remove the composition pattern happens,
     // remove this method overriding.
     if (this.model == null) {
@@ -1083,7 +1083,7 @@ export class Sequential extends LayersModel {
     this.model.stopTraining = stop;
   }
 
-  get stopTraining(): boolean {
+  override get stopTraining(): boolean {
     if (this.model == null) {
       throw new ValueError(
           'Cannot get the stopTraining property of a sequential model before ' +
@@ -1095,7 +1095,7 @@ export class Sequential extends LayersModel {
   // TODO(cais): Override get trainableWeights() here
 
   // tslint:disable-next-line:no-any
-  getConfig(): any {
+  override getConfig(): any {
     // NOTE(cais): We override the return type of getConfig() to `any` here,
     //   because the `Sequential` class is a special case among `Container`
     //   subtypes in that its getConfig() method returns an Array (not a

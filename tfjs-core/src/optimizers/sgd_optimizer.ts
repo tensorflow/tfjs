@@ -68,15 +68,15 @@ export class SGDOptimizer extends Optimizer {
     this.c = keep(scalar(-learningRate));
   }
 
-  dispose() {
+  override dispose() {
     this.c.dispose();
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     return [await this.saveIterations()];
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     if (weightValues.length !== 0) {
       throw new Error('SGD optimizer does not have settable weights.');
@@ -88,7 +88,7 @@ export class SGDOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate']);
   }
