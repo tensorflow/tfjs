@@ -139,7 +139,7 @@ export class RMSPropOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     if (this.accumulatedMeanSquares != null) {
       dispose(this.accumulatedMeanSquares.map(v => v.variable));
     }
@@ -151,7 +151,7 @@ export class RMSPropOptimizer extends Optimizer {
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     const variables: OptimizerVariable[] =
         [...this.accumulatedMeanSquares, ...this.accumulatedMoments];
@@ -162,7 +162,7 @@ export class RMSPropOptimizer extends Optimizer {
         variables.map(v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const variableCount =
         this.centered ? weightValues.length / 3 : weightValues.length / 2;
@@ -200,7 +200,7 @@ export class RMSPropOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
         config['learningRate'], config['decay'], config['momentum'],

@@ -49,8 +49,8 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, engine());
   }
 
-  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  override write(values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
@@ -93,7 +93,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   /** Return refCount of a `TensorData`. */
-  refCount(dataId: DataId): number {
+  override refCount(dataId: DataId): number {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
       return tensorData.refCount;
@@ -102,7 +102,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   /** Increase refCount of a `TensorData`. */
-  incRef(dataId: DataId): void {
+  override incRef(dataId: DataId): void {
     const tensorData = this.data.get(dataId);
     tensorData.refCount++;
   }
@@ -115,20 +115,20 @@ export class MathBackendCPU extends KernelBackend {
     }
   }
 
-  move(
+  override move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
     this.data.set(dataId, {values, dtype, refCount});
   }
 
-  numDataIds(): number {
+  override numDataIds(): number {
     return this.data.numDataIds();
   }
 
-  async read(dataId: DataId): Promise<backend_util.BackendValues> {
+  override async read(dataId: DataId): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
-  readSync(dataId: DataId): backend_util.BackendValues {
+  override readSync(dataId: DataId): backend_util.BackendValues {
     const {dtype, complexTensorInfos} = this.data.get(dataId);
 
     if (dtype === 'complex64') {
@@ -172,7 +172,7 @@ export class MathBackendCPU extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force = false): boolean {
+  override disposeData(dataId: DataId, force = false): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
       if (!force && this.data.get(dataId).refCount > 0) {
@@ -195,14 +195,14 @@ export class MathBackendCPU extends KernelBackend {
     this.disposeData(tensorInfo.dataId);
   }
 
-  async time(f: () => void): Promise<BackendTimingInfo> {
+  override async time(f: () => void): Promise<BackendTimingInfo> {
     const start = util.now();
     f();
     const kernelMs = util.now() - start;
     return {kernelMs};
   }
 
-  memory() {
+  override memory() {
     return {
       // Unreliable due to automatic gc. The numbers above are cumulative.
       unreliable: true,
@@ -219,14 +219,14 @@ export class MathBackendCPU extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
-  dispose() {}
+  override dispose() {}
 
-  floatPrecision(): 16|32 {
+  override floatPrecision(): 16|32 {
     return 32;
   }
 
   /** Returns the smallest representable number.  */
-  epsilon(): number {
+  override epsilon(): number {
     return super.epsilon();
   }
 }

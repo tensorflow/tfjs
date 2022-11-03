@@ -1913,7 +1913,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     }
   }
 
-  dispose(): DisposeResult {
+  override dispose(): DisposeResult {
     const result = super.dispose();
     if (result.refCountAfterDispose === 0 && this.optimizer != null &&
         this.isOptimizerOwned) {
@@ -2203,6 +2203,6 @@ serialization.registerClass(LayersModel);
  */
 /** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Functional extends LayersModel {
-  static className = 'Functional';
+  static override className = 'Functional';
 }
 serialization.registerClass(Functional);

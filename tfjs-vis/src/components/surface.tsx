@@ -43,12 +43,12 @@ export class SurfaceComponent extends Component<SurfaceProps> {
   label: HTMLElement;
   drawArea: HTMLElement;
 
-  componentDidMount() {
+  override componentDidMount() {
     const { name, tab } = this.props;
     this.props.registerSurface(name, tab, this);
   }
 
-  componentDidUpdate() {
+    override componentDidUpdate() {
     // Prevent re-rendering of this component as it
     // is primarily controlled outside of this class
     return false;

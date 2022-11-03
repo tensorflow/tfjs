@@ -286,7 +286,7 @@ function executeTests(
 }
 
 export class TestKernelBackend extends KernelBackend {
-  dispose(): void {}
+  override dispose(): void {}
 }
 
 let lock = Promise.resolve();
