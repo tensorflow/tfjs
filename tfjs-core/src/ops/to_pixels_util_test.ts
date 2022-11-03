@@ -53,7 +53,7 @@ export function toPixelsTestCase(
     console.warn(
         'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
   }
-  console.log(' navigator.platform 2 =' + navigator.platform);
+  console.log(' navigator.platform  2 =' + navigator.platform);
   it('draws a rank-2 float32 tensor', async () => {
     const x = tf.tensor2d([.15, .2], [2, 1], 'float32');
     const data = await toPixels(x);
