@@ -100,14 +100,14 @@ export class AdadeltaOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     if (this.accumulatedUpdates != null) {
       dispose(this.accumulatedGrads.map(v => v.variable));
       dispose(this.accumulatedUpdates.map(v => v.variable));
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     const variables: OptimizerVariable[] =
         [...this.accumulatedGrads, ...this.accumulatedUpdates];
@@ -115,7 +115,7 @@ export class AdadeltaOptimizer extends Optimizer {
         variables.map(v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const variableCount = weightValues.length / 2;
     const trainable = false;
@@ -142,7 +142,7 @@ export class AdadeltaOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate'], config['rho'], config['epsilon']);
   }

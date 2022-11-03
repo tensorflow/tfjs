@@ -125,7 +125,7 @@ export class Embedding extends Layer {
     this.inputLength = args.inputLength;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     this.embeddings = this.addWeight(
         'embeddings', [this.inputDim, this.outputDim], this.dtype,
         this.embeddingsInitializer, this.embeddingsRegularizer, true,
@@ -135,9 +135,10 @@ export class Embedding extends Layer {
 
   // Override warnOnIncompatibleInputShape because an embedding layer allows
   // the input to have varying ranks.
-  protected warnOnIncompatibleInputShape(inputShape: Shape) {}
+  protected override warnOnIncompatibleInputShape(inputShape: Shape) {}
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return tidy(() => {
       if (!this.maskZero) {
         return null;
@@ -148,7 +149,7 @@ export class Embedding extends Layer {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     if (this.inputLength == null) {
       return [...inputShape, this.outputDim];
@@ -177,7 +178,7 @@ export class Embedding extends Layer {
     return [inputShape[0], ...inLens, this.outputDim];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Embedding layer accepts only a single input.
@@ -192,7 +193,7 @@ export class Embedding extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       inputDim: this.inputDim,
       outputDim: this.outputDim,

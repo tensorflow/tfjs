@@ -547,7 +547,7 @@ export function datasetFromIteratorFn<T extends tf.TensorContainer>(
     iteratorFn: () => Promise<LazyIterator<T>>,
     size: number = null): Dataset<T> {
   return new class extends Dataset<T> {
-    size = size;
+    override size = size;
 
     /*
      * Provide a new stream of elements.  Note this will also start new streams

@@ -85,7 +85,7 @@ export abstract class Merge extends Layer {
     return outputShape;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     // Used purely for shape validation.
     if (Array.isArray(inputShape) && !Array.isArray(inputShape[0])) {
       // Make sure that inputShape is an Array of shape.
@@ -130,7 +130,7 @@ export abstract class Merge extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = inputs as Tensor[];
       if (this.reshapeRequired) {
@@ -200,7 +200,7 @@ export abstract class Merge extends Layer {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = inputShape as Shape[];
     let outputShape: Shape;
     if (inputShape[0] == null) {
@@ -228,7 +228,8 @@ export abstract class Merge extends Layer {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return tfc.tidy(() => {
       if (mask == null) {
         return null;
@@ -265,7 +266,7 @@ export class Add extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -340,7 +341,7 @@ export class Multiply extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -415,7 +416,7 @@ export class Average extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -491,7 +492,7 @@ export class Maximum extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0];
       for (let i = 1; i < inputs.length; ++i) {
@@ -566,7 +567,7 @@ export class Minimum extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0];
       for (let i = 1; i < inputs.length; ++i) {
@@ -657,7 +658,7 @@ export class Concatenate extends Merge {
     this.reshapeRequired = false;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     // Used purely for shape validation.]
     if (!(Array.isArray(inputShape) && Array.isArray(inputShape[0])) ||
         inputShape.length === 1) {
@@ -701,13 +702,13 @@ export class Concatenate extends Merge {
     }
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       return K.concatenate(inputs, this.axis);
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     if (!(Array.isArray(inputShape) && Array.isArray(inputShape[0]))) {
       throw new ValueError(
           'A `Concatenate` layer should be called on a list of inputs.');
@@ -727,7 +728,8 @@ export class Concatenate extends Merge {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     if (mask == null) {
       return null;
     }
@@ -770,7 +772,7 @@ export class Concatenate extends Merge {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'axis': this.axis,
     };
@@ -972,7 +974,7 @@ export class Dot extends Merge {
     this.reshapeRequired = false;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
@@ -992,7 +994,7 @@ export class Dot extends Merge {
     }
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     if (inputs.length !== 2) {
       throw new ValueError(
           'A `Dot` layer must be called on exactly 2 inputs, ' +
@@ -1034,7 +1036,7 @@ export class Dot extends Merge {
     return axes;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
@@ -1057,11 +1059,12 @@ export class Dot extends Merge {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return null;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'axes': this.axes,
       'normalize': this.normalize

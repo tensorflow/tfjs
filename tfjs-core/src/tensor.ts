@@ -603,7 +603,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     trackerFn().incRef(this, null /* backend */);
   }
 
-  dispose(): void {
+  override dispose(): void {
     trackerFn().disposeVariable(this);
     this.isDisposedInternal = true;
   }

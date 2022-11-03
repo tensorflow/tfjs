@@ -23,6 +23,7 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
+    "noImplicitOverride": true,
     "incremental": true
   },
   "include": [

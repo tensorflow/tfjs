@@ -57,7 +57,7 @@ const DEFAULT_NLCLASSIFIER_OPTIONS: NLClassifierOptions = {
  * src/types for more info.
  */
 export class NLClassifier extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryNLClassifier) {
+  constructor(protected override instance: TaskLibraryNLClassifier) {
     super(instance);
   }
 
