@@ -19,7 +19,10 @@
 set -eEuo pipefail
 cd `git rev-parse --show-toplevel`
 
-# `-print` avoids printing `node_modules` and `dist` directories that were pruned.
+# `-print` avoids printing `node_modules` and `dist` directories that were
+# pruned.
 FILES=`find . -type d -name node_modules -prune -o -type d -name dist -prune -o \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -print`
 
-parallel ./node_modules/.bin/clang-format -i --style='file' -- $FILES
+# `-n` passes that many files to each call of `clang-format`. It's ~3x more
+# efficient to pass 32 files than 1 at a time.
+parallel -n 32 ./node_modules/.bin/clang-format -i --style='file' -- $FILES
