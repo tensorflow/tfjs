@@ -18,7 +18,7 @@
 import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
-import {makeZerosTypedArray, sizeFromShape} from '../util';
+import {assertNonNegativeIntegerDimensions, makeZerosTypedArray, sizeFromShape} from '../util';
 
 import {complex} from './complex';
 
@@ -37,6 +37,7 @@ import {complex} from './complex';
  */
 export function zeros<R extends Rank>(
     shape: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype === 'complex64') {
     const real = zeros(shape, 'float32');
     const imag = zeros(shape, 'float32');
