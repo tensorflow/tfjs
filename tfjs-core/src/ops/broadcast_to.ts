@@ -49,7 +49,6 @@ function broadcastTo_<R extends Rank>(
 
   assertNonNegativeIntegerDimensions(shape);
 
-
   if (shape.length < input.rank) {
     throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${
         input.rank}.`);
