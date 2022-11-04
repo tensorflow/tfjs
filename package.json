@@ -78,6 +78,8 @@
     "format":
         "git-clang-format --style='file' && yarn bazel:lint-fix && yarn bazel:format",
     "clang-format-all": "ts-node -s ./scripts/clang_format_all.ts",
+    "precommit":
+        "yarn check-format || (echo && echo Run 'yarn format' to apply these fixes && exit 1)",
     "test": "bazel test //:tests",
     "test-packages-ci":
         "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
