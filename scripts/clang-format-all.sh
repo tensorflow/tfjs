@@ -14,14 +14,14 @@
 # limitations under the License.
 # =============================================================================
 
-# Format all js, ts, jsx, and tsx files with clang-format.
+# Format all js, ts, jsx, tsx, cc, c, and h files with clang-format.
 
 set -eEuo pipefail
 cd `git rev-parse --show-toplevel`
 
 # `-print` avoids printing `node_modules` and `dist` directories that were
 # pruned.
-FILES=`find . -type d -name node_modules -prune -o -type d -name dist -prune -o \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -print`
+FILES=`find . -type d -name node_modules -prune -o -type d -name dist -prune -o \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.cc" -o -name "*.c" -o -name "*.h" \) -print`
 
 # `-n` passes that many files to each call of `clang-format`. It's ~3x more
 # efficient to pass 32 files than 1 at a time.
