@@ -74,10 +74,14 @@
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
     "test": "bazel test //:tests",
-    "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
-    "nightly-cloudbuild": "NIGHTLY=true yarn generate-cloudbuild-for-packages && gcloud builds submit . --config=cloudbuild_generated.yml --substitutions=_NIGHTLY=true",
-    "generate-cloudbuild-for-packages": "ts-node -s ./scripts/generate_cloudbuild_for_packages.ts",
-    "test-generate-cloudbuild": "cd scripts && node --require ts-node/register ../node_modules/jasmine/bin/jasmine.js run generate_cloudbuild_test.ts",
+    "test-packages-ci":
+        "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
+    "nightly-cloudbuild":
+        "NIGHTLY=true yarn generate-cloudbuild-for-packages && gcloud builds submit . --config=cloudbuild_generated.yml --substitutions=_NIGHTLY=true",
+    "generate-cloudbuild-for-packages":
+        "ts-node -s ./scripts/generate_cloudbuild_for_packages.ts",
+    "test-generate-cloudbuild":
+        "cd scripts && node --require ts-node/register ../node_modules/jasmine/bin/jasmine.js run generate_cloudbuild_test.ts",
     "test-run-flaky": "jasmine run scripts/run_flaky_test.js",
     "release": "ts-node -s ./scripts/release.ts",
     "release-tfjs": "ts-node -s ./scripts/release-tfjs.ts",
@@ -86,14 +90,18 @@
     "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts",
     "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles",
     "tag-tfjs-release": "ts-node -s ./scripts/tag-tfjs-release",
-    "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages e2e -o scripts/cloudbuild_e2e_expected.yml",
-    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
+    "update-cloudbuild-tests":
+        "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages e2e -o scripts/cloudbuild_e2e_expected.yml",
+    "bazel:format":
+        "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
     "bazel:format-check": "yarn bazel:format --mode=check",
     "bazel:lint": "yarn bazel:format --lint=warn",
     "bazel:lint-fix": "yarn bazel:format --lint=fix",
     "bazel:lint-check": "yarn bazel:format --lint=warn --mode=check",
     "buildifier-ci": "./scripts/buildifier-ci.sh",
-    "clang-format-all": "./scripts/clang-format-all.sh"
+    "clang-format-all": "./scripts/clang-format-all.sh",
+    "format":
+        "git-clang-format --style='file' && yarn bazel:lint-fix && yarn bazel:format"
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
