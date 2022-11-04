@@ -77,7 +77,7 @@
     "check-format": "git-clang-format --style='file' --diff",
     "format":
         "git-clang-format --style='file' && yarn bazel:lint-fix && yarn bazel:format",
-    "clang-format-all": "./scripts/clang-format-all.sh",
+    "clang-format-all": "ts-node -s ./scripts/clang_format_all.ts",
     "test": "bazel test //:tests",
     "test-packages-ci":
         "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
