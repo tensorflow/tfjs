@@ -19,7 +19,7 @@ import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Im2ColProgram implements WebGPUProgram {
-  variableNames = ['A'];
+  variableNames = ['x'];
   uniforms =
       `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
        inChannels : i32,`;
@@ -46,8 +46,8 @@ export class Im2ColProgram implements WebGPUProgram {
 
     const row = this.isChannelsLast ? 'coords[1]' : 'coords[2]';
     const col = this.isChannelsLast ? 'coords[2]' : 'coords[1]';
-    const getASnippet = this.isChannelsLast ? 'getA(batch, d0, d1, ch)' :
-                                              'getA(batch, ch, d0, d1)';
+    const getXSnippet = this.isChannelsLast ? 'getX(batch, xRow, xCol, ch)' :
+                                              'getX(batch, ch, xRow, xCol)';
 
     const userCode = `
     ${main('index')} {
@@ -57,16 +57,16 @@ export class Im2ColProgram implements WebGPUProgram {
         let row = ${row};
         let col = ${col};
         let offsetY = (row / uniforms.outWidth) * uniforms.stride[0] - uniforms.pad[0];
-        let d0 = offsetY + uniforms.dilation[0] * (col / uniforms.itemsPerBlockRow);
+        let xRow = offsetY + uniforms.dilation[0] * (col / uniforms.itemsPerBlockRow);
         var value = 0.0;
-        if(d0 < uniforms.aShape[${rowDim}] && d0 >= 0) {
+        if(xRow < uniforms.xShape[${rowDim}] && xRow >= 0) {
           let offsetX = (row % uniforms.outWidth) * uniforms.stride[1] -
               uniforms.pad[1];
-          let d1 = offsetX + uniforms.dilation[1] * ((col %
+          let xCol = offsetX + uniforms.dilation[1] * ((col %
               uniforms.itemsPerBlockRow) / uniforms.inChannels);
           let ch = col % uniforms.inChannels;
-          if(d1 < uniforms.aShape[${colDim}] && d1 >= 0) {
-            value = ${getASnippet};
+          if(xCol < uniforms.xShape[${colDim}] && xCol >= 0) {
+            value = ${getXSnippet};
           }
         }
         setOutputAtIndex(index, value);

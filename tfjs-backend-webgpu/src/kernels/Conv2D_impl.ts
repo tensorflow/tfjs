@@ -170,7 +170,7 @@ function conv2dByMatMul({
   return out;
 }
 
-// Implements the im2row algorithm as outlined in "High Performance
+// Implements the im2col algorithm as outlined in "High Performance
 // Convolutional Neural Networks for Document Processing" (Suvisoft, 2006)
 function conv2dWithIm2Col({
   x,
@@ -183,11 +183,11 @@ function conv2dWithIm2Col({
   activation = null
 }: Conv2DConfig) {
   // Rearranges conv2d input so each block to be convolved over forms the
-  // column of a new matrix with shape [filterWidth * filterHeight *
-  // inChannels, outHeight * outWidth]. The filter is also rearranged so each
-  // output channel forms a row of a new matrix with shape [outChannels,
-  // filterWidth * filterHeight * inChannels]. The convolution is then
-  // computed by multiplying these matrices and reshaping the result.
+  // row of a new matrix with shape [outHeight * outWidth,
+  // filterWidth * filterHeight * inChannels]. The filter is also rearranged so
+  // each output channel forms a col of a new matrix with shape [
+  // filterWidth * filterHeight * inChannels, outChannels]. The convolution is
+  // then computed by multiplying these matrices and reshaping the result.
   const {
     filterWidth,
     filterHeight,
