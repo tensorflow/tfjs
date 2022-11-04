@@ -74,11 +74,10 @@ ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
 /**
  * Threshold to increase dispatched workgroups for matmul. If too few workgroups
  * are dispatched, it means the hardware may be in low occupancy.
- *
- * Default value is 16.
+ * -1 means it's not set by the user. A default strategy will be applied.
  */
 ENV.registerFlag(
-    'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => 16);
+    'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => -1);
 
 /**
  * Whether we will run im2col as a separate shader for convolution.

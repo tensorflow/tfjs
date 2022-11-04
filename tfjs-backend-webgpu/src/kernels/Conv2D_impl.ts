@@ -310,13 +310,15 @@ export function conv2DImpl({
     });
   }
 
+  const thresholdFlagValue = env().getNumber(
+    'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+  const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 1 ?
+      thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
   const workgroupsBy32x32 = convInfo.batchSize *
       Math.ceil((convInfo.outHeight * convInfo.outWidth) / 32) *
       Math.ceil(convInfo.outChannels / 32);
   if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') ||
-      workgroupsBy32x32 <=
-          env().getNumber(
-              'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL')) {
+      workgroupsBy32x32 <= thresholdToIncreaseWorkgroups) {
     return conv2dWithIm2Col({
       x,
       filter,
