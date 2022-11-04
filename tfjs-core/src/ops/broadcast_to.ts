@@ -47,11 +47,8 @@ function broadcastTo_<R extends Rank>(
   let input = convertToTensor(x, 'broadcastTo', 'x');
   const xShape = input.shape;
 
-  if (shape.some(d => !(d > 0) || d % 1 !== 0)) {
-    throw new Error(`broadcastTo(): Invalid broadcast shape [${shape}].`);
-  }
-
   assertNonNegativeIntegerDimensions(shape);
+
 
   if (shape.length < input.rank) {
     throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${
