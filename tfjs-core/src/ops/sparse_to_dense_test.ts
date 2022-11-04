@@ -149,4 +149,12 @@ describeWithFlags('sparseToDense', ALL_ENVS, () => {
     expect(() => tf.sparseToDense(indices, values, shape, defaultValue))
         .toThrow();
   });
+
+  it('should throw error when shape is not integer', () => {
+    const indices = [[0, 1], [1, 1]];
+    const values = [5, 6];
+    const shape = [2.22, 2.22];
+    expect(() => tf.sparseToDense(indices, values, shape, tf.scalar(1)))
+        .toThrow();
+  });
 });

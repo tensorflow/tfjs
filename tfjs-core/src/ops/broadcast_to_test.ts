@@ -73,4 +73,9 @@ describeWithFlags('broadcastTo', ALL_ENVS, () => {
 
     expectArraysClose(await df(a).array(), await dh(a).array());
   });
+
+  it('should throw error when shape is not integer', () => {
+    const a = tf.scalar(4.2);
+    expect(() => tf.broadcastTo(a, [2, 2.22, 3.33])).toThrow();
+  });
 });

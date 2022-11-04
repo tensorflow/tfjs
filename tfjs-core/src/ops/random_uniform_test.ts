@@ -154,4 +154,8 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
     expect(result.dtype).toBe('bool');
     expectValuesInRange(await result.data(), 0, 1);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.randomUniform([2, 2.22, 3.33], 0, 1)).toThrow();
+  });
 });
