@@ -31,7 +31,7 @@ steps:
   args: ['buildifier-ci']
   waitFor: ['yarn-common']
 
-# Lint Bazel package typescript files.
+# Lint Bazel package typescript files and check clang formatting.
 - name: 'gcr.io/learnjs-174218/release'
   id: 'tslint'
   entrypoint: 'yarn'
