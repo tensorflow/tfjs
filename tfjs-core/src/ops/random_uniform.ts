@@ -17,6 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {buffer} from './buffer';
 import {op} from './operation';
@@ -45,6 +46,7 @@ import {UniformRandom} from './rand_util';
 function randomUniform_<R extends Rank>(
     shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
     seed?: number|string): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   const res = buffer(shape, dtype);
   const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
