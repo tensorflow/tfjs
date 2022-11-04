@@ -72,8 +72,8 @@
     "typescript": "4.8.4"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig_tslint.json && yarn check-format",
-    "lint-fix": "tslint -p tsconfig_tslint.json --fix && yarn format",
+    "lint": "tslint -p tsconfig_tslint.json",
+    "lint-fix": "tslint -p tsconfig_tslint.json --fix",
     "check-format": "git-clang-format --style='file' --diff",
     "format":
         "git-clang-format --style='file' && yarn bazel:lint-fix && yarn bazel:format",
