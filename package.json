@@ -75,13 +75,14 @@
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
     "lint-fix": "tslint -p tsconfig_tslint.json --fix",
-    "check-format":
-        "git-clang-format --binary=node_modules/.bin/clang-format --style='file' --diff",
+    "_run_git_clang":
+        "git-clang-format --binary=node_modules/.bin/clang-format --style='file' --staged",
+    "check-format": "yarn --silent _run_git_clang --diff",
     "format":
-        "git-clang-format --binary=node_modules/.bin/clang-format --style='file' && yarn bazel:lint-fix && yarn bazel:format",
+        "yarn --silent _run_git_clang && yarn bazel:lint-fix && yarn bazel:format",
     "clang-format-all": "ts-node -s ./scripts/clang_format_all.ts",
     "precommit":
-        "yarn check-format || (echo && echo Run 'yarn format' to apply these fixes && exit 1)",
+        "yarn --silent check-format || (echo && echo Run 'yarn format' to apply these fixes && exit 1)",
     "test": "bazel test //:tests",
     "test-packages-ci":
         "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
