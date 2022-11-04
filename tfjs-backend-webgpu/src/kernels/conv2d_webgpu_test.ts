@@ -34,8 +34,14 @@ function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
 }
 
 describeWebGPU('im2col as separate shader', () => {
+  let flag: boolean;
   beforeAll(() => {
+    flag = tf.env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER');
     tf.env().set('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', true);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', flag);
   });
 
   it('x=[4,4,1] f=[2,2,1,1] s=1 d=2 p=0', async () => {
