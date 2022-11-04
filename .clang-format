@@ -1,6 +1,2 @@
 BasedOnStyle: Google
 ColumnLimit: 80
-
-# Don't fight with `yarn add`'s formatting
-Language: Json
-DisableFormat: true
