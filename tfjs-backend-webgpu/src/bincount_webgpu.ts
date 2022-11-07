@@ -47,7 +47,6 @@ export class BincountProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms = 'binCountSize : i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
-  size = true;
   atomic = true;
   hasWeights = true;
   binaryOutput = false;
@@ -98,7 +97,7 @@ export class BincountProgram implements WebGPUProgram {
                 this.binaryOutput ?
                     1. :
                     (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' : '1.')};
-        bincount_write(coord.x * uniforms.outShape[1] + indexVal, value);
+        bincount_write(coord.x * uniforms.binCountSize + indexVal, value);
       }
     }`}
   }

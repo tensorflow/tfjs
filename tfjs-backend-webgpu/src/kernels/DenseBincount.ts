@@ -21,7 +21,6 @@ import {WebGPUBackend} from '../backend_webgpu';
 import {BincountProgram} from '../bincount_webgpu';
 
 import {fill} from './Fill';
-import {slice} from './Slice';
 
 export function denseBincount(args: {
   inputs: DenseBincountInputs,
@@ -33,40 +32,22 @@ export function denseBincount(args: {
   const {size, binaryOutput} = attrs;
 
   const xRankOne = x.shape.length === 1;
-  const xBinCountSize = xRankOne ? x.shape[0] : x.shape[1];
   const weightsSize = util.sizeFromShape(weights.shape);
   const hasWeights = weightsSize > 0;
   const dtype = weights.dtype;
+  const xSize: [number]|[number, number] =
+      xRankOne ? [x.shape[0]] : [x.shape[0], x.shape[1]];
+  const outputSize: [number]|[number, number] =
+      xRankOne ? [size] : [x.shape[0], size];
 
-  const outputSize: [number]|[number, number] = xRankOne ?
-      [Math.max(xBinCountSize, size)] :
-      [x.shape[0], Math.max(xBinCountSize, size)];
-
-  const program = new BincountProgram(outputSize, hasWeights, binaryOutput);
-  const bincountInputs: TensorInfo[] = hasWeights ? [x, weights] : [x];
+  const output = fill({backend, attrs: {shape: outputSize, value: 0, dtype}});
+  const program = new BincountProgram(xSize, hasWeights, binaryOutput);
   const uniformData = [{type: 'int32', data: [size]}];
-  let result: TensorInfo;
-  result = fill({backend, attrs: {shape: outputSize, value: 0, dtype}});
-  result = backend.runWebGPUProgram(
-      program, bincountInputs, dtype, uniformData, result);
+  const bincountInputs: TensorInfo[] = hasWeights ? [x, weights] : [x];
+  const res = backend.runWebGPUProgram(
+      program, bincountInputs, dtype, uniformData, output);
 
-  if (size === xBinCountSize) {
-    return result;
-  }
-
-  let out: TensorInfo;
-  if (xRankOne) {
-    out = slice({inputs: {x: result}, backend, attrs: {begin: 0, size}});
-  } else {
-    out = slice({
-      inputs: {x: result},
-      backend,
-      attrs: {begin: [0, 0], size: [x.shape[0], size]}
-    });
-  }
-  backend.disposeData(result.dataId);
-
-  return out;
+  return res;
 }
 
 export const denseBincountConfig: KernelConfig = {
