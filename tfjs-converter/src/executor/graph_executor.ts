@@ -192,25 +192,21 @@ export class GraphExecutor implements FunctionExecutor {
     return clone;
   }
 
+  private cloneTensorList(tensors: Tensor[]) {
+    if (!tensors) {
+      return null;
+    }
+    const clonedTensor = tensors.map(tensor => {
+      return this.cloneAndKeepTensor(tensor);
+    });
+    return clonedTensor;
+  }
+
   private cloneTensorMap(tensorsMap: NamedTensorsMap): NamedTensorsMap {
     return Object.fromEntries(
         Object.entries(tensorsMap).map(([name, tensorsList]) => {
-          return [
-            name, tensorsList.map(tensor => {
-              return this.cloneAndKeepTensor(tensor);
-            })
-          ];
+          return [name, this.cloneTensorList(tensorsList)];
         }));
-  }
-
-  private cloneTensorList(
-      tensors: Tensor[], nodeName: string, tensorsMap: NamedTensorsMap) {
-    if (!tensorsMap || !tensors || !nodeName) {
-      return;
-    }
-    tensorsMap[nodeName] = tensors.map(tensor => {
-      return this.cloneAndKeepTensor(tensor);
-    });
   }
 
   /**
@@ -273,7 +269,9 @@ export class GraphExecutor implements FunctionExecutor {
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
-        this.cloneTensorList(tensors, nodeName, this.clonedTensorsMap);
+        if (this.keepIntermediateTensors) {
+          this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
+        }
       });
 
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
@@ -290,7 +288,9 @@ export class GraphExecutor implements FunctionExecutor {
                 `Please use model.executeAsync() instead.`);
           }
           tensorsMap[node.name] = tensors;
-          this.cloneTensorList(tensors, node.name, this.clonedTensorsMap);
+          if (this.keepIntermediateTensors) {
+            this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
+          }
           this.checkTensorForDisposal(
               node.name, node, tensorsMap, context, tensorsToKeep,
               outputNodeNames, intermediateTensorConsumerCount);
@@ -377,11 +377,11 @@ export class GraphExecutor implements FunctionExecutor {
       return;
     }
     Object.values(this.clonedTensorsMap).forEach(tensorsList => {
-      tensorsList.forEach(tensor => {
+      for (const tensor of tensorsList) {
         if (tensor && !tensor.isDisposed) {
           tensor.dispose();
         }
-      });
+      }
     });
 
     this.clonedTensorsMap = null;
@@ -450,8 +450,7 @@ export class GraphExecutor implements FunctionExecutor {
 
     Object.values(tensorsMap).forEach(tensorsList => {
       tensorsList.forEach(tensor => {
-        if (tensor && !tensor.kept && !tensor.isDisposed &&
-            !keepIds.has(tensor.id)) {
+        if (tensor && !tensor.isDisposed && !keepIds.has(tensor.id)) {
           tensor.dispose();
         }
       });
@@ -585,7 +584,9 @@ export class GraphExecutor implements FunctionExecutor {
         if (util.isPromise(tensors)) {
           promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
-            this.cloneTensorList(t, nodeName, this.clonedTensorsMap);
+            if (this.keepIntermediateTensors) {
+              this.clonedTensorsMap[nodeName] = this.cloneTensorList(t);
+            }
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
                 nodeName, item.node, tensorMap, context, tensorsToKeep,
@@ -596,7 +597,9 @@ export class GraphExecutor implements FunctionExecutor {
           }));
         } else {
           tensorMap[nodeName] = tensors;
-          this.cloneTensorList(tensors, nodeName, this.clonedTensorsMap);
+          if (this.keepIntermediateTensors) {
+            this.clonedTensorsMap[nodeName] = this.cloneTensorList(tensors);
+          }
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
               outputNames, intermediateTensorConsumerCount);
