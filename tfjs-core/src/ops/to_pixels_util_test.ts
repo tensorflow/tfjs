@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google Inc. All Rights Reserved.
+ * Copyright 2022 Google Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,12 +48,6 @@ export async function toPixelsNoCanvas(x: tf.Tensor2D|tf.Tensor3D|
 
 export function toPixelsTestCase(
     toPixels: (x: tf.Tensor2D|tf.Tensor3D|tf.TensorLike) => Promise<{}>) {
-  console.log(' navigator.platform 1 =' + navigator.platform);
-  if (navigator && navigator.platform.startsWith('Mac')) {
-    console.warn(
-        'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
-  }
-  console.log(' navigator.platform  2 =' + navigator.platform);
   it('draws a rank-2 float32 tensor', async () => {
     const x = tf.tensor2d([.15, .2], [2, 1], 'float32');
     const data = await toPixels(x);
