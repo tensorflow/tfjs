@@ -62,7 +62,7 @@ export class PlatformBrowser implements Platform {
   // Interleaving window.postMessage and setTimeout will trick the browser and
   // avoid the clamp.
   setTimeoutCustom(functionRef: Function, delay: number): void {
-    if (typeof window === 'undefined' ||
+    if (!('window' in globalThis) ||
         !env().getBool('USE_SETTIMEOUTCUSTOM')) {
       setTimeout(functionRef, delay);
       return;
