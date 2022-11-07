@@ -690,17 +690,13 @@ export class MathBackendWebGL extends KernelBackend {
     return true;
   }
 
-  private releaseGPUData(dataId: DataId, isRead = false): void {
+  private releaseGPUData(dataId: DataId): void {
     const {texture, dtype, texShape, usage, isPacked, slice} =
         this.texData.get(dataId);
     const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
 
     if (refCount > 1) {
-      // When reading a tensor which has been shallow sliced, do nothing.
-      if (slice == null && isRead) {
-        return;
-      }
       this.dataRefCount.set(key, refCount - 1);
     } else {
       this.dataRefCount.delete(key);
@@ -708,12 +704,13 @@ export class MathBackendWebGL extends KernelBackend {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
         this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
-      const texData = this.texData.get(dataId);
-      texData.texture = null;
-      texData.texShape = null;
-      texData.isPacked = false;
-      texData.slice = null;
     }
+
+    const texData = this.texData.get(dataId);
+    texData.texture = null;
+    texData.texShape = null;
+    texData.isPacked = false;
+    texData.slice = null;
   }
 
   getTexture(dataId: DataId): WebGLTexture {
@@ -1196,8 +1193,6 @@ export class MathBackendWebGL extends KernelBackend {
       TypedArray {
     const texData = this.texData.get(dataId);
     const {dtype} = texData;
-
-    this.releaseGPUData(dataId, true);
 
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
