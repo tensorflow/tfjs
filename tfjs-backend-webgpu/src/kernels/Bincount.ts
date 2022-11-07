@@ -21,7 +21,6 @@ import {WebGPUBackend} from '../backend_webgpu';
 import {BincountProgram} from '../bincount_webgpu';
 
 import {fill} from './Fill';
-import {slice} from './Slice';
 
 export function bincount(
     args:
@@ -34,26 +33,17 @@ export function bincount(
   const xSize = util.sizeFromShape(x.shape);
   const weightsSize = util.sizeFromShape(weights.shape);
   const hasWeights = weightsSize > 0;
-  const outputSize: [number] = [Math.max(xSize, size)];
+  const outputSize: [number] = [size];
   const dtype = weights.dtype;
-  const program = new BincountProgram(outputSize, hasWeights);
 
-  const bincountInputs: TensorInfo[] = hasWeights ? [x, weights] : [x];
+  const output = fill({backend, attrs: {shape: outputSize, value: 0, dtype}});
+  const program = new BincountProgram([xSize], hasWeights);
   const uniformData = [{type: 'int32', data: [size]}];
-  let result: TensorInfo;
-  result = fill({backend, attrs: {shape: outputSize, value: 0, dtype}});
-  result = backend.runWebGPUProgram(
-      program, bincountInputs, dtype, uniformData, result);
+  const bincountInputs: TensorInfo[] = hasWeights ? [x, weights] : [x];
+  const res = backend.runWebGPUProgram(
+      program, bincountInputs, dtype, uniformData, output);
 
-  if (size === xSize) {
-    return result;
-  }
-
-  let out: TensorInfo;
-  out = slice({inputs: {x: result}, backend, attrs: {begin: 0, size}});
-  backend.disposeData(result.dataId);
-
-  return out;
+  return res;
 }
 
 export const bincountConfig: KernelConfig = {
