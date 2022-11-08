@@ -25,7 +25,7 @@ function isToPixelSupported() {
       navigator.platform.startsWith('Mac')) {
     console.warn(
         'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
-    return false;
+    return true;
   }
   return true;
 }
