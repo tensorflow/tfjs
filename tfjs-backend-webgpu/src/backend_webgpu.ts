@@ -282,7 +282,8 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  override write(values: backend_util.BackendValues, shape: number[],
+  override write(
+      values: backend_util.BackendValues, shape: number[],
       dtype: DataType): DataId {
     if (dtype === 'complex64' && values != null) {
       throw new Error(
@@ -704,7 +705,7 @@ export class WebGPUBackend extends KernelBackend {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
     }
-    if (program.isToPixels) {
+    if (program.isPixelsOp === webgpu_program.PixelsOpType.TO_PIXELS) {
       const info = this.tensorMap.get(output.dataId);
       info.resourceInfo = outputTextureInfo;
     }
@@ -722,7 +723,7 @@ export class WebGPUBackend extends KernelBackend {
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
-    if (!program.isFromPixels && !program.isToPixels) {
+    if (program.isPixelsOp == null) {
       programUniform.push(
           {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
@@ -807,7 +808,7 @@ export class WebGPUBackend extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-    if (program.isToPixels) {
+    if (program.isPixelsOp === webgpu_program.PixelsOpType.TO_PIXELS) {
       this.submitQueue();
     } else if (
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as

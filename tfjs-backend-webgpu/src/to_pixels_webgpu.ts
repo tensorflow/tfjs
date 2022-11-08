@@ -17,7 +17,7 @@
 
 import {DataType} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, PixelsOpType, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ToPixelsProgram implements WebGPUProgram {
@@ -30,7 +30,7 @@ export class ToPixelsProgram implements WebGPUProgram {
   workPerThread = 4;
   type: DataType;
   textureFormat: GPUTextureFormat;
-  isToPixels = true;
+  isPixelsOp = PixelsOpType.TO_PIXELS;
 
   constructor(
       outShape: number[], type: DataType, textureFormat: GPUTextureFormat) {
