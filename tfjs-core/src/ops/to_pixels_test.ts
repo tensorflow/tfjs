@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google Inc. All Rights Reserved.
+ * Copyright 2022 Google Inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,31 +20,19 @@ import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 
 import {toPixelsNoCanvas, toPixelsTestCase, toPixelsWithCanvas} from './to_pixels_util_test';
 
-function isToPixelSupported() {
-  if (typeof navigator !== 'undefined' &&
-      navigator.platform.startsWith('Mac')) {
-    console.warn(
-        'toPixels does not work on Mac, https://bugs.chromium.org/p/dawn/issues/detail?id=1555');
-    return true;
-  }
-  return true;
-}
-
-if (isToPixelSupported()) {
-  describeWithFlags('toPixels no canvas, returns void', ALL_ENVS, () => {
-    let toPixelsReturnVoidSaved: boolean;
-    beforeAll(() => {
-      toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
-      tf.env().set('TO_PIXELS_RETURN_VOID', true);
-    });
-
-    afterAll(() => {
-      tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
-    });
-
-    toPixelsTestCase(toPixelsNoCanvas);
+describeWithFlags('toPixels no canvas, returns void', ALL_ENVS, () => {
+  let toPixelsReturnVoidSaved: boolean;
+  beforeAll(() => {
+    toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
+    tf.env().set('TO_PIXELS_RETURN_VOID', true);
   });
-}
+
+  afterAll(() => {
+    tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
+  });
+
+  toPixelsTestCase(toPixelsNoCanvas);
+});
 
 describeWithFlags('toPixels no canvas, returns data', ALL_ENVS, () => {
   let toPixelsReturnVoidSaved: boolean;
@@ -60,32 +48,30 @@ describeWithFlags('toPixels no canvas, returns data', ALL_ENVS, () => {
   toPixelsTestCase(toPixelsNoCanvas);
 });
 
-if (isToPixelSupported()) {
-  describeWithFlags('toPixels canvas, returns void', BROWSER_ENVS, () => {
-    let toPixelsReturnVoidSaved: boolean;
-    beforeAll(() => {
-      toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
-      tf.env().set('TO_PIXELS_RETURN_VOID', true);
-    });
-
-    afterAll(() => {
-      tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
-    });
-
-    toPixelsTestCase(toPixelsWithCanvas);
+describeWithFlags('toPixels canvas, returns void', BROWSER_ENVS, () => {
+  let toPixelsReturnVoidSaved: boolean;
+  beforeAll(() => {
+    toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
+    tf.env().set('TO_PIXELS_RETURN_VOID', true);
   });
 
-  describeWithFlags('toPixels canvas, returns data', BROWSER_ENVS, () => {
-    let toPixelsReturnVoidSaved: boolean;
-    beforeAll(() => {
-      toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
-      tf.env().set('TO_PIXELS_RETURN_VOID', false);
-    });
-
-    afterAll(() => {
-      tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
-    });
-
-    toPixelsTestCase(toPixelsWithCanvas);
+  afterAll(() => {
+    tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
   });
-}
+
+  toPixelsTestCase(toPixelsWithCanvas);
+});
+
+describeWithFlags('toPixels canvas, returns data', BROWSER_ENVS, () => {
+  let toPixelsReturnVoidSaved: boolean;
+  beforeAll(() => {
+    toPixelsReturnVoidSaved = tf.env().getBool('TO_PIXELS_RETURN_VOID');
+    tf.env().set('TO_PIXELS_RETURN_VOID', false);
+  });
+
+  afterAll(() => {
+    tf.env().set('TO_PIXELS_RETURN_VOID', toPixelsReturnVoidSaved);
+  });
+
+  toPixelsTestCase(toPixelsWithCanvas);
+});

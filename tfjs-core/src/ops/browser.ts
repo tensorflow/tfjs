@@ -145,9 +145,8 @@ function fromPixels_(
               'Reason: OffscreenCanvas Context2D rendering is not supported.');
         }
       } else {
-        fromPixels2DContext =
-            document.createElement('canvas').getContext(
-                '2d', {willReadFrequently: true});
+        fromPixels2DContext = document.createElement('canvas').getContext(
+            '2d', {willReadFrequently: true});
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -333,7 +332,6 @@ export async function toPixels(
       }
       return;
     }
-    // TODO: support readback by Tensor.data().
   }
 
   const [height, width] = $img.shape.slice(0, 2);
