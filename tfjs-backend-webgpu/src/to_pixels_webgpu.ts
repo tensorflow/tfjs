@@ -67,9 +67,6 @@ export class ToPixelsProgram implements WebGPUProgram {
              ${calculateResult}
            }
            let coords = getCoordsFromIndex(flatIndex);
-           let temp = rgba.r;
-           rgba.r = rgba.b;
-           rgba.b = temp;
            textureStore(outImage, vec2<i32>(coords.yx), rgba);
          }
        }

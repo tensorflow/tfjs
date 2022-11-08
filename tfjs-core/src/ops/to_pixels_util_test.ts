@@ -107,25 +107,6 @@ export function toPixelsTestCase(
     expect(data).toEqual(expected);
   });
 
-  it('draws a rank-3 float32 tensor, 4 channel', async () => {
-    const x = tf.tensor3d(
-        [.05, .1001, .15, .2, .25, .3001, .35, .4], [2, 1, 4], 'float32');
-    const data = await toPixels(x);
-    const expected = new Uint8ClampedArray([
-      Math.round(.05 * 255), Math.round(.1001 * 255), Math.round(.15 * 255),
-      Math.round(.20 * 255), Math.round(.25 * 255), Math.round(.3001 * 255),
-      Math.round(.35 * 255), Math.round(.4 * 255)
-    ]);
-    expect(data).toEqual(expected);
-  });
-
-  it('draws a rank-3 int32 tensor, 4 channel', async () => {
-    const x = tf.tensor3d([10, 20, 30, 40, 50, 60, 70, 80], [2, 1, 4], 'int32');
-    const data = await toPixels(x);
-    const expected = new Uint8ClampedArray([10, 20, 30, 40, 50, 60, 70, 80]);
-    expect(data).toEqual(expected);
-  });
-
   it('throws for scalars', done => {
     // tslint:disable-next-line:no-any
     const x = tf.scalar(1) as any;
