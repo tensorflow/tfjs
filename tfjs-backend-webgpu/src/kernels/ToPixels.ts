@@ -28,7 +28,7 @@ export const toPixelsConfig: KernelConfig = {
 };
 
 function getNumberChannel(format: GPUTextureFormat) {
-  if (format === 'rgba8unorm') {
+  if (format === 'rgba8unorm' || format === 'bgra8unorm') {
     return 4;
   } else {
     throw new Error(`${format} is not supported!`);
@@ -46,7 +46,7 @@ export function toPixels(
 
   const format = 'rgba8unorm';
   const outShape = [height, width, getNumberChannel(format)];
-  const program = new ToPixelsProgram(outShape, $img.dtype);
+  const program = new ToPixelsProgram(outShape, $img.dtype, format);
   canvas.width = width;
   canvas.height = height;
   const gpuContext = canvas.getContext('webgpu');

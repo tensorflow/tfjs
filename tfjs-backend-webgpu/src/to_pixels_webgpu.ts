@@ -29,9 +29,11 @@ export class ToPixelsProgram implements WebGPUProgram {
   workgroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
   type: DataType;
+  textureFormat: GPUTextureFormat;
   isToPixels = true;
 
-  constructor(outShape: number[], type: DataType) {
+  constructor(
+      outShape: number[], type: DataType, textureFormat: GPUTextureFormat) {
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -39,6 +41,7 @@ export class ToPixelsProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.shaderKey = `toPixels_${type}`;
     this.type = type;
+    this.textureFormat = textureFormat;
   }
 
   getUserCode(): string {
@@ -53,7 +56,8 @@ export class ToPixelsProgram implements WebGPUProgram {
       }`;
 
     const userCode = `
-       @group(0) @binding(0) var outImage : texture_storage_2d<rgba8unorm, write>;
+       @group(0) @binding(0) var outImage : texture_storage_2d<${
+        this.textureFormat}, write>;
        ${main('index')} {
          let flatIndex = index * 4;
          if (flatIndex < uniforms.size) {
