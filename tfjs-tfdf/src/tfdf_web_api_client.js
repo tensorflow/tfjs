@@ -22,4 +22,17 @@
 // imported correctly by typescript code.
 const YggdrasilDecisionForests = require('../wasm/inference_bundle.js');
 
-exports.tfdfWeb = YggdrasilDecisionForests();
+let tfdfWeb = null;
+
+// Function is used here instead of variable to make loading lazy in case user
+// uses setLocateFile before module is used.
+exports.tfdfWeb = () => {
+  if (tfdfWeb == null) {
+    tfdfWeb = YggdrasilDecisionForests();
+  }
+  return tfdfWeb;
+};
+
+exports.setLocateFile = (locateFile) => {
+  tfdfWeb = YggdrasilDecisionForests({locateFile});
+};

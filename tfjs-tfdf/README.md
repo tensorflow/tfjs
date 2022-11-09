@@ -48,6 +48,19 @@ import * as tfdf from '@tensorflow/tfjs-tfdf';
 -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tfdf/dist/tf-tfdf.min.js"></script>
 ```
+
+## Set WASM modules location (optional)
+
+By default, it will try to load the WASM modules from the same location where
+the package or your own script is served. Use `setLocateFile` to set your own
+location. See `src/tfdf_web_api_client.d.ts` for more details.
+
+```js
+tfdf.setLocateFile((path, base) => {
+  return `https://your-server/.../${path}`;
+});
+```
+
 ## Load a TFDF model
 ```js
 const tfdfModel = await tfdf.loadTFDFModel('url/to/your/model.json');
