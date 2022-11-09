@@ -312,7 +312,7 @@ export function conv2DImpl({
 
   const thresholdFlagValue = env().getNumber(
     'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
-  const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 1 ?
+  const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 0 ?
       thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
   const workgroupsBy32x32 = convInfo.batchSize *
       Math.ceil((convInfo.outHeight * convInfo.outWidth) / 32) *

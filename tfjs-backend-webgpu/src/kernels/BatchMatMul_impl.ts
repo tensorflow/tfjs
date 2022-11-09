@@ -117,7 +117,7 @@ export function batchMatMulImpl({
     // value.
     const thresholdFlagValue = env().getNumber(
       'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
-    const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 1 ?
+    const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 0 ?
         thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
     const workgroupsBy32x32 =
         batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
