@@ -113,6 +113,7 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   tensorMap: DataStorage<TensorData>;
   textureManager: TextureManager;
+  thresholdToIncreaseWorkgroups: number;
 
   private activeTimers: TimerNode[];
   private currentCommandEncoder: GPUCommandEncoder;
@@ -150,6 +151,8 @@ export class WebGPUBackend extends KernelBackend {
     this.supportTimeQuery =
         device.features.has('timestamp-query-inside-passes');
     this.adapterInfo = new AdapterInfo(adapterInfo);
+    this.thresholdToIncreaseWorkgroups =
+        this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
 
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
