@@ -19,6 +19,7 @@ import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source, matMulReadFnSource} from './matmul_packed_webgpu';
+import {atomicAddSnippet} from './shader_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -80,26 +81,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    // atomicAdd only supports uint/int type. For float, we use
-    // atomicCompareExchangeWeak to simulate.
-    const atomicAddSnippet = (component: number) => {
-      return `
-      for (var i = 0; i < ${component}; i = i + 1)
-      {
-        var oldValue = atomicLoad(&(result[flatIndex + i]));
-        var exchanged = false;
-        for (; !exchanged;) {
-          let newValueF32 = bitcast<f32>(oldValue) + ${
-          component > 1 ? 'value[i]' : 'value'};
-          let newValue = bitcast<i32>(newValueF32);
-          let res = atomicCompareExchangeWeak(&(result[flatIndex + i]), oldValue, newValue);
-          oldValue = res.old_value;
-          exchanged = res.exchanged;
-        }
-      }
-      `;
-    };
-
     const component = this.isVec4 ? 4 : 1;
     const userCode = `
       ${

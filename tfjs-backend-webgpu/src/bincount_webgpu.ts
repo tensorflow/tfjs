@@ -15,21 +15,13 @@
  * =============================================================================
  */
 
+import {atomicAddSnippet} from './shader_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 const writeSnippet = `
-  fn bincount_write(index: i32, value: f32) {
-    var oldValue = atomicLoad(& (result[index]));
-    var exchanged = false;
-    for (; !exchanged;) {
-      let newValueF32 = bitcast<f32>(oldValue) + value;
-      let newValue = bitcast<i32>(newValueF32);
-      let res = atomicCompareExchangeWeak(
-          &(result[index]), oldValue, newValue);
-      oldValue = res.old_value;
-      exchanged = res.exchanged;
-    }
+  fn bincount_write(flatIndex: i32, value: f32) {
+    ${atomicAddSnippet(1)}
   }
 `;
 
