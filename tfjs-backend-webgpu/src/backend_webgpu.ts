@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util, WebGPUData} from '@tensorflow/tfjs-core';
 
 import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
@@ -51,6 +51,8 @@ type TensorData = {
   shape: number[],
   refCount: number,
   resourceInfo?: BufferInfo|TextureInfo,
+  // Indicate the tensor is created from an external GPU resource.
+  external?: boolean,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensorInfos field.
@@ -242,6 +244,11 @@ export class WebGPUBackend extends KernelBackend {
     if (!tensorData || !tensorData.resourceInfo) {
       return;
     }
+    // If tensor data is from external resource, do not release.
+    if (tensorData.external) {
+      tensorData.resourceInfo = null;
+      return;
+    }
     if ('texture' in tensorData.resourceInfo) {
       const textureInfo = tensorData.resourceInfo;
       if (textureInfo.texture instanceof GPUTexture) {
@@ -282,7 +289,8 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  override write(values: backend_util.BackendValues, shape: number[],
+  override write(
+      values: backend_util.BackendValues, shape: number[],
       dtype: DataType): DataId {
     if (dtype === 'complex64' && values != null) {
       throw new Error(
@@ -435,6 +443,32 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.convertAndCacheOnCPU(dataId, vals);
     return vals;
+  }
+
+  /**
+   * Create a TF.js tensor out of an existing WebGPU buffer.
+   */
+  override createTensorFromGPUData(
+      values: WebGPUData, shape: number[], dtype: DataType): Tensor {
+    const buffer = values.buffer;
+    if (dtype === 'complex64') {
+      throw new Error(`Cannot write to a complex64 dtype. `);
+    }
+    const dataId = {id: this.nextDataId()};
+    this.tensorMap.set(
+        dataId, {dtype, shape, values: null, refCount: 1, external: true});
+    const tensorData = this.tensorMap.get(dataId);
+    const sizeFromShape = util.sizeFromShape(tensorData.shape);
+    const size =
+        webgpu_util.GPUBytesPerElement(tensorData.dtype) * sizeFromShape;
+    if (values.size < sizeFromShape) {
+      throw new Error(`GPUBuffer size(${
+          values.size}) is smaller than tensor size(${sizeFromShape})!`);
+    }
+
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
 
   /**

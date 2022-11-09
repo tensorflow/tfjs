@@ -182,3 +182,13 @@ export interface WebGLData {
   width: number;
   channels: WebGLChannels;
 }
+
+/**
+ * Type for representing a buffer data to create a tensor. Use default usage
+ * GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC. If not specified at
+ * creating a tensor, tensor type is float32.
+ */
+export interface WebGPUData {
+  buffer: GPUBuffer;
+  size: number;
+}
