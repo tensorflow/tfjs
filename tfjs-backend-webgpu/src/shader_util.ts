@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-// Generates GLSL that computes strides.
+// Generates WGSL that computes strides.
 export function symbolicallyComputeStrides(
     indicesArr: number[], variableName: string): string[] {
   if (Math.max(...indicesArr) > 3) {
@@ -32,3 +32,23 @@ export function symbolicallyComputeStrides(
 
   return strides;
 }
+
+// atomicAdd only supports uint/int type. For float, we use
+// atomicCompareExchangeWeak to simulate.
+export const atomicAddSnippet = (component: number) => {
+  return `
+    for (var i = 0; i < ${component}; i = i + 1)
+    {
+      var oldValue = atomicLoad(&(result[flatIndex + i]));
+      var exchanged = false;
+      for (; !exchanged;) {
+        let newValueF32 = bitcast<f32>(oldValue) + ${
+      component > 1 ? 'value[i]' : 'value'};
+        let newValue = bitcast<i32>(newValueF32);
+        let res = atomicCompareExchangeWeak(&(result[flatIndex + i]), oldValue, newValue);
+        oldValue = res.old_value;
+        exchanged = res.exchanged;
+      }
+    }
+  `;
+};

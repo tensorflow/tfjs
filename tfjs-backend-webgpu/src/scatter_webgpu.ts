@@ -16,6 +16,7 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
+import {atomicAddSnippet} from './shader_util';
 import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -95,28 +96,15 @@ export class ScatterProgram implements WebGPUProgram {
         Array.from({length: this.updatesRank}, (_, idx) => `coords[${idx}]`);
     const updatesSnippet = `getUpdates(${updatesString.join(', ')})`;
 
-    const atomicRMW = (ptr: string, val: string) => {
-      let atomicAddSnippet = `atomicAdd(${ptr}, bitcast<i32>(${val}))`;
-      if (this.type === 'float32') {
-        atomicAddSnippet = `
-          {
-            var oldBits = 0;
-            var newBits = bitcast<i32>(${val});
-            loop {
-              let info = atomicCompareExchangeWeak(${ptr}, oldBits, newBits);
-              if (info.exchanged) {
-                break;
-              }
-              oldBits = info.old_value;
-              let oldValue = bitcast<f32>(oldBits);
-              let newValue = oldValue + (${val});
-              newBits = bitcast<i32>(newValue);
-            }
-          }
-        `;
-      }
-      const atomicStoreSnippet = `atomicStore(${ptr}, bitcast<i32>(${val}));`;
-      return this.sumDupeIndices ? atomicAddSnippet : atomicStoreSnippet;
+    const atomicRMW = () => {
+      const $atomicAddSnippet = `${
+          this.type === 'float32' ?
+              atomicAddSnippet(1) :
+              'atomicAdd(&result[flatIndex], bitcast<i32>(value))'}
+      `;
+      const atomicStoreSnippet =
+          `atomicStore(&result[flatIndex], bitcast<i32>(value));`;
+      return this.sumDupeIndices ? $atomicAddSnippet : atomicStoreSnippet;
     };
 
     const userCode = `
@@ -130,11 +118,11 @@ export class ScatterProgram implements WebGPUProgram {
             let indexInside = i32(round(${indicesSnippet}));
             flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
-          let updateValue =
+          let value =
               ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
-          ${atomicRMW('&result[flatIndex]', 'updateValue')};
+          ${atomicRMW()};
         }
       }`;
     return userCode;
