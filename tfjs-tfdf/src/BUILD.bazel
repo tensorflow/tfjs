@@ -21,7 +21,6 @@ package(default_visibility = ["//visibility:public"])
 TEST_SRCS = [
     "**/*_test.ts",
     "setup_test.ts",
-    "setup_test_globals.ts",
 ]
 
 ts_library(

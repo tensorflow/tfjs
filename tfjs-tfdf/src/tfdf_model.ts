@@ -139,6 +139,10 @@ export class TFDFModel implements InferenceModel {
     setAssets(this.assets);
     return this.graphModel.executeAsync(inputs, outputs);
   }
+
+  dispose() {
+    this.graphModel.dispose();
+  }
 }
 
 /**
