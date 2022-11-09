@@ -18,7 +18,7 @@
 import {Tensor} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {DataType, Rank, ShapeMap, WebGLData} from '../types';
+import {DataType, Rank, ShapeMap, WebGLData, WebGPUData} from '../types';
 
 import {makeTensor} from './tensor_ops_util';
 
@@ -92,6 +92,67 @@ import {makeTensor} from './tensor_ops_util';
  *
  * const tex = a.dataToGPU();
  * ```
+ *
+ * ```js
+ * // Pass a `WebGPUData` object and specify a shape yourself.
+ *
+ * // This makes it possible for TF.js applications to avoid GPU / CPU sync.
+ * // For example, if your application includes a preprocessing step on the GPU,
+ * // you could upload the GPU output directly to TF.js, rather than first
+ * // downloading the values.
+ *
+ * // Example for WebGPU:
+ * async function createReadonlyGPUBufferFromData(device, data, dtype) {
+ *   const bytesPerElement = 4;
+ *   const sizeInBytes = data.length * bytesPerElement;
+ *
+ *   const gpuWriteBuffer = device.createBuffer({
+ *     mappedAtCreation: true,
+ *     size: sizeInBytes,
+ *     usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
+ *   });
+ *   const arrayBuffer = gpuWriteBuffer.getMappedRange();
+ *   if (dtype === 'float32') {
+ *     new Float32Array(arrayBuffer).set(data);
+ *   } else if (dtype === 'int32') {
+ *     new Int32Array(arrayBuffer).set(data);
+ *   } else {
+ *     throw new Error(
+ *         `Creating tensor from GPUBuffer only supports` +
+ *         `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
+ *   }
+ *   gpuWriteBuffer.unmap();
+ *
+ *   const gpuReadBuffer = device.createBuffer({
+ *     mappedAtCreation: false,
+ *     size: sizeInBytes,
+ *     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+ *   });
+ *
+ *   const copyEncoder = device.createCommandEncoder();
+ *   copyEncoder.copyBufferToBuffer(
+ *       gpuWriteBuffer, 0, gpuReadBuffer, 0, sizeInBytes);
+ *   const copyCommands = copyEncoder.finish();
+ *   device.queue.submit([copyCommands]);
+ *   gpuWriteBuffer.destroy();
+ *   return gpuReadBuffer;
+ * }
+ *
+ * const dtype = 'float32';
+ * const device = tf.backend().device;
+ * const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+ * const bData = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+ * const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
+ * const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+ * const shape = [aData.length];
+ * const a = tf.tensor({buffer: aBuffer, size: aData.length});
+ * const b = tf.tensor(bData, shape, dtype);
+ * const result = tf.add(a, b);
+ * a.dispose();
+ * b.dispose();
+ * result.dispose();
+ * aBuffer.destroy();
+ * ```
  * @param values The values of the tensor. Can be nested array of numbers,
  *     or a flat array, or a `TypedArray`, or a `WebGLData` object. If the
  * values are strings, they will be encoded as utf-8 and kept as `Uint8Array[]`.
@@ -113,7 +174,7 @@ import {makeTensor} from './tensor_ops_util';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 export function tensor<R extends Rank>(
-    values: TensorLike|WebGLData, shape?: ShapeMap[R],
+    values: TensorLike|WebGLData|WebGPUData, shape?: ShapeMap[R],
     dtype?: DataType): Tensor<R> {
   const inferredShape = inferShape(values, dtype);
   return makeTensor(values, shape, inferredShape, dtype) as Tensor<R>;

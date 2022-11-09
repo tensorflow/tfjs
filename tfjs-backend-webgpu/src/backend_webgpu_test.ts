@@ -366,3 +366,121 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
   });
 });
+
+async function createReadonlyGPUBufferFromData(
+    device: GPUDevice, data: number[], dtype: tf.DataType) {
+  const bytesPerElement = 4;
+  const sizeInBytes = data.length * bytesPerElement;
+
+  const gpuWriteBuffer = device.createBuffer({
+    mappedAtCreation: true,
+    size: sizeInBytes,
+    usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
+  });
+  const arrayBuffer = gpuWriteBuffer.getMappedRange();
+  if (dtype === 'float32') {
+    new Float32Array(arrayBuffer).set(data);
+  } else if (dtype === 'int32') {
+    new Int32Array(arrayBuffer).set(data);
+  } else {
+    throw new Error(
+        `Creating tensor from GPUBuffer only supports` +
+        `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
+  }
+  gpuWriteBuffer.unmap();
+
+  const gpuReadBuffer = device.createBuffer({
+    mappedAtCreation: false,
+    size: sizeInBytes,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+  });
+
+  const copyEncoder = device.createCommandEncoder();
+  copyEncoder.copyBufferToBuffer(
+      gpuWriteBuffer, 0, gpuReadBuffer, 0, sizeInBytes);
+  const copyCommands = copyEncoder.finish();
+  device.queue.submit([copyCommands]);
+  gpuWriteBuffer.destroy();
+  return gpuReadBuffer;
+}
+
+async function testCreateTensorFromGPUBuffer(
+    dtype: tf.DataType, useDefaultShapeAndType = false) {
+  const webGPUBackend = tf.backend() as WebGPUBackend;
+  const device = webGPUBackend.device;
+  const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+  const bData = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+  const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
+  const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+  const shape: number[] = [aData.length];
+  const startNumBytes = tf.memory().numBytes;
+  const startNumTensors = tf.memory().numTensors;
+  const a = useDefaultShapeAndType ?
+      tf.tensor({buffer: aBuffer, size: aData.length}) :
+      tf.tensor({buffer: aBuffer, size: aData.length}, shape, dtype);
+  const b = tf.tensor(bData, shape, dtype);
+  const result = tf.add(a, b);
+  tf.test_util.expectArraysClose(await result.data(), expected);
+  a.dispose();
+  b.dispose();
+  result.dispose();
+  const endNumBytes = tf.memory().numBytes;
+  const endNumTensors = tf.memory().numTensors;
+  expect(endNumBytes - startNumBytes).toEqual(0);
+  expect(endNumTensors - startNumTensors).toEqual(0);
+  aBuffer.destroy();
+}
+
+describeWebGPU('create tensor from GPUBuffer', () => {
+  it('use default shape and data type(float32)', async () => {
+    await testCreateTensorFromGPUBuffer('float32', true);
+  });
+
+  it('work for float32', async () => {
+    await testCreateTensorFromGPUBuffer('float32');
+  });
+
+  it('work for int32', async () => {
+    await testCreateTensorFromGPUBuffer('int32');
+  });
+
+  it('throw when size is not set or incorrect', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const shape: number[] = [aData.length];
+    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
+    expect(a).toThrowError();
+    const b = () => tf.tensor({buffer: aBuffer, size: 0}, shape, dtype);
+    expect(b).toThrowError();
+    aBuffer.destroy();
+  });
+
+  it('two tensors share the same GPUBuffer', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const startNumBytes = tf.memory().numBytes;
+    const startNumTensors = tf.memory().numTensors;
+    const shape: number[] = [aData.length];
+    const size = aData.length * 4;
+    const a = tf.tensor({buffer: aBuffer, size}, shape, dtype);
+    const b = tf.tensor({buffer: aBuffer, size}, shape, dtype);
+    const result = tf.add(a, b);
+    const expected =
+        [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32];
+    tf.test_util.expectArraysClose(await result.data(), expected);
+    a.dispose();
+    b.dispose();
+    result.dispose();
+    const endNumBytes = tf.memory().numBytes;
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumBytes - startNumBytes).toEqual(0);
+    expect(endNumTensors - startNumTensors).toEqual(0);
+    aBuffer.destroy();
+  });
+});
