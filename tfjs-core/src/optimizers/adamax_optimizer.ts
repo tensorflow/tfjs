@@ -117,7 +117,7 @@ export class AdamaxOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     this.accBeta1.dispose();
     this.iteration.dispose();
 
@@ -129,11 +129,11 @@ export class AdamaxOptimizer extends Optimizer {
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     throw new Error('getWeights() is not implemented for Adamax yet.');
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     throw new Error('setWeights() is not implemented for Adamax yet.');
   }
 
@@ -148,7 +148,7 @@ export class AdamaxOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
         config['learningRate'], config['beta1'], config['beta2'],

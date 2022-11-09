@@ -78,4 +78,8 @@ describeWithFlags('fill', ALL_ENVS, () => {
     expect(a.shape).toEqual([2, 1, 2, 1, 2]);
     expectArraysClose(await a.data(), [2, 2, 2, 2, 2, 2, 2, 2]);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.fill([2, 2.22, 3.33], 1)).toThrow();
+  });
 });

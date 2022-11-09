@@ -77,9 +77,6 @@ ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
 /** Whether the backend needs to wrap input to imageBitmap. */
 ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
 
-/** Experimental flag, whether enter compile only phase. */
-ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
-
 /** Whether to enable canvas2d willReadFrequently for GPU backends */
 ENV.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
 

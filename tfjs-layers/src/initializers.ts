@@ -94,7 +94,7 @@ export class Constant extends Initializer {
     return tidy(() => mul(scalar(this.value), ones(shape, dtype)));
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       value: this.value,
     };
@@ -131,7 +131,7 @@ export class RandomUniform extends Initializer {
     return randomUniform(shape, this.minval, this.maxval, dtype);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
 }
@@ -172,7 +172,7 @@ export class RandomNormal extends Initializer {
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
@@ -213,7 +213,7 @@ export class TruncatedNormal extends Initializer {
     return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
@@ -247,7 +247,7 @@ export class Identity extends Initializer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {gain: this.gain};
   }
 }
@@ -356,7 +356,7 @@ export class VarianceScaling extends Initializer {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       scale: this.scale,
       mode: this.mode,
@@ -374,7 +374,7 @@ export interface SeedOnlyInitializerArgs {
 
 export class GlorotUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'GlorotUniform';
+  static override className = 'GlorotUniform';
 
   /**
    * Constructor of GlorotUniform
@@ -392,7 +392,7 @@ export class GlorotUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, GlorotUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -403,7 +403,7 @@ serialization.registerClass(GlorotUniform);
 
 export class GlorotNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'GlorotNormal';
+  static override className = 'GlorotNormal';
 
   /**
    * Constructor of GlorotNormal.
@@ -421,7 +421,7 @@ export class GlorotNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, GlorotNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -432,7 +432,7 @@ serialization.registerClass(GlorotNormal);
 
 export class HeNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'HeNormal';
+  static override className = 'HeNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -443,7 +443,7 @@ export class HeNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, HeNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -454,7 +454,7 @@ serialization.registerClass(HeNormal);
 
 export class HeUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'HeUniform';
+  static override className = 'HeUniform';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -465,7 +465,7 @@ export class HeUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, HeUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -476,7 +476,7 @@ serialization.registerClass(HeUniform);
 
 export class LeCunNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'LeCunNormal';
+  static override className = 'LeCunNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -487,7 +487,7 @@ export class LeCunNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, LeCunNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -498,7 +498,7 @@ serialization.registerClass(LeCunNormal);
 
 export class LeCunUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'LeCunNormal';
+  static override className = 'LeCunNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -509,7 +509,7 @@ export class LeCunUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, LeCunUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -567,7 +567,7 @@ export class Orthogonal extends Initializer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       gain: this.gain,
       seed: this.seed,

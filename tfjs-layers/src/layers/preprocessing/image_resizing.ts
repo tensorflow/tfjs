@@ -64,13 +64,13 @@ export class Resizing extends Layer {
     this.cropToAspectRatio = Boolean(args.cropToAspectRatio);
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const numChannels = inputShape[2];
     return [this.height, this.width, numChannels];
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'height': this.height,
       'width': this.width,
@@ -83,7 +83,7 @@ export class Resizing extends Layer {
     return config;
   }
 
-  call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>, kwargs: Kwargs):
+  override call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>, kwargs: Kwargs):
       Tensor[]|Tensor {
     return tidy(() => {
       const size: [number, number] = [this.height, this.width];

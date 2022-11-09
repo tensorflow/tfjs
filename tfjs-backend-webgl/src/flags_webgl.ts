@@ -274,3 +274,6 @@ ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
  * doesn't have the builtin isnan.
  */
 ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
