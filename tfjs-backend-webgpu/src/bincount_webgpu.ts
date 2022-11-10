@@ -20,8 +20,8 @@ import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 const writeSnippet = `
-  fn bincount_write(flatIndex: i32, value: f32) {
-    ${atomicAddSnippet(1)}
+  fn bincount_write(index: i32, value: f32) {
+    ${atomicAddSnippet('result', 'index', 'value', 1)}
   }
 `;
 
