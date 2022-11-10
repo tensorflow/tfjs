@@ -271,7 +271,6 @@ const TEST_FILTERS: TestFilter[] = [
       'logSigmoid ',
       'logicalOr ',
       'logicalXor ',
-      'lowerBound',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
@@ -285,7 +284,6 @@ const TEST_FILTERS: TestFilter[] = [
       'RFFT ',
       'round webgpu',
       'method otsu',  // round
-      'searchSorted',
       'selu ',
       'sign webgpu',
       'stft ',
@@ -301,7 +299,6 @@ const TEST_FILTERS: TestFilter[] = [
       'stringToHashBucketFast ',
       'unique ',
       'unsortedSegmentSum ',
-      'upperBound',
       'valueAndGradients ',
     ]
   },
