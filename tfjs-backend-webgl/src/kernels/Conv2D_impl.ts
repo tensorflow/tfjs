@@ -23,6 +23,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
+import {MatMulPackedMrt2x2Program} from '../mulmat_packed_mrt2x2_gpu';
 import * as webgl_util from '../webgl_util';
 
 import {batchMatMulImpl, batchMatMulMrt2x2Impl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
@@ -399,15 +400,29 @@ export function conv2dWithIm2Row({
   const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
-  const matmulProgram = new MatMulPackedProgram(
-      isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
-                       w2Row.shape as [number, number, number],
-      isChannelsLast ? w2Row.shape as [number, number, number] :
-                       im2ColReshaped.shape as [number, number, number],
-      isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
-                       [convInfo.batchSize, convInfo.outChannels, numCols],
-      transposeA, transposeB, hasBias, fusedActivation,
-      hasPreluActivationWeights, hasLeakyreluAlpha);
+
+  let matmulProgram;
+  if (isChannelsLast && convInfo.batchSize === 1 &&
+      (!hasBias ||
+       (bias.shape.length === 1 && bias.shape[0] === convInfo.outChannels)) &&
+      !hasPreluActivationWeights && !hasLeakyreluAlpha) {
+        matmulProgram = new MatMulPackedMrt2x2Program(
+          im2ColReshaped.shape as [number, number, number],
+          w2Row.shape as [number, number, number],
+          [convInfo.batchSize, numCols, convInfo.outChannels] ,
+          transposeA, transposeB, bias?.shape, fusedActivation,
+          hasPreluActivationWeights, hasLeakyreluAlpha);
+  } else {
+    matmulProgram = new MatMulPackedProgram(
+        isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
+                         w2Row.shape as [number, number, number],
+        isChannelsLast ? w2Row.shape as [number, number, number] :
+                         im2ColReshaped.shape as [number, number, number],
+        isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
+                         [convInfo.batchSize, convInfo.outChannels, numCols],
+        transposeA, transposeB, hasBias, fusedActivation,
+        hasPreluActivationWeights, hasLeakyreluAlpha);
+  }
   const inputs: TensorInfo[] =
       isChannelsLast ? [im2ColReshaped, w2Row] : [w2Row, im2ColReshaped];
   if (bias) {
