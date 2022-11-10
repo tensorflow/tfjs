@@ -33,23 +33,25 @@ export function symbolicallyComputeStrides(
   return strides;
 }
 
-// atomicAdd only supports uint/int type. For float, we use
-// atomicCompareExchangeWeak to simulate.
 export const atomicAddSnippet =
-    (dst: string, index: string, val: string, component: number) => {
-      return `
-    for (var i = 0; i < ${component}; i = i + 1) {
-      var oldValue = atomicLoad(&(${dst}[${index} + i]));
-      var exchanged = false;
-      for (; !exchanged;) {
-        let newValueF32 = bitcast<f32>(oldValue) + ${
-          component > 1 ? `${val}[i]` : val};
-        let newValue = bitcast<i32>(newValueF32);
-        let res = atomicCompareExchangeWeak(&(${dst}[${
-          index} + i]), oldValue, newValue);
-        oldValue = res.old_value;
-        exchanged = res.exchanged;
+    (ptr: string, v: string, type: 'int32'|'float32') => {
+      if (type === 'int32') {
+        return `atomicAdd(${ptr}, bitcast<i32>(${v}));`;
+      } else {
+        // atomicAdd only supports uint/int type. For float, we use
+        // atomicCompareExchangeWeak to simulate.
+        return `
+          {
+            var oldValue = 0;
+            loop {
+              let newValueF32 = bitcast<f32>(oldValue) + (${v});
+              let newValue = bitcast<i32>(newValueF32);
+              let res = atomicCompareExchangeWeak(${ptr}, oldValue, newValue);
+              if res.exchanged {
+                break;
+              }
+              oldValue = res.old_value;
+            }
+          }`;
       }
-    }
-  `;
     };

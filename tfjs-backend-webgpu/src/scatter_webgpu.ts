@@ -96,20 +96,8 @@ export class ScatterProgram implements WebGPUProgram {
         Array.from({length: this.updatesRank}, (_, idx) => `coords[${idx}]`);
     const updatesSnippet = `getUpdates(${updatesString.join(', ')})`;
 
-    const atomicRMW = (dst: string, index: string, val: string) => {
-      const $atomicAddSnippet = `${
-          this.type === 'float32' ?
-              atomicAddSnippet(dst, index, val, 1) :
-              `atomicAdd(&${dst}[${index}], bitcast<i32>(${val}))`}
-      `;
-      const atomicStoreSnippet =
-          `atomicStore(&${dst}[${index}], bitcast<i32>(${val}));`;
-      return this.sumDupeIndices ? $atomicAddSnippet : atomicStoreSnippet;
-    };
-
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
-
       ${main('index')} {
         if (index < uniforms.updatesSize) {
           let coords = getUpdatesCoordsFromFlatIndex(index);
@@ -122,7 +110,12 @@ export class ScatterProgram implements WebGPUProgram {
               ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
-          ${atomicRMW('result', 'flatIndex', 'updateValue')};
+          ${
+        this.sumDupeIndices ?
+            atomicAddSnippet(
+                '&result[flatIndex]', 'updateValue',
+                this.type as 'float32' | 'int32') :
+            `atomicStore(&result[flatIndex], bitcast<i32>(updateValue));`}
         }
       }`;
     return userCode;

@@ -21,13 +21,13 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 const writeSnippet = `
   fn bincount_write(index: i32, value: f32) {
-    ${atomicAddSnippet('result', 'index', 'value', 1)}
+    ${atomicAddSnippet('&result[index]', 'value', 'float32')}
   }
 `;
 
 const binaryWriteSnippet = `
   fn bincount_write(index: i32, value: f32) {
-    result[index] = value;
+    atomicStore(&result[index], bitcast<i32>(value));
   }
 `;
 
@@ -88,7 +88,8 @@ export class BincountProgram implements WebGPUProgram {
         let value = ${
                 this.binaryOutput ?
                     1. :
-                    (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' : '1.')};
+                    (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' :
+                                       '1.')};
         bincount_write(coord.x * uniforms.binCountSize + indexVal, value);
       }
     }`}
