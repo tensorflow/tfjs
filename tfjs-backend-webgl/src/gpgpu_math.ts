@@ -94,7 +94,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       texShape: input.isUniform ? null : input.texData.texShape,
       isUniform: input.isUniform,
       isPacked: input.isUniform ? false : input.texData.isPacked,
-      mrtSupport: input.texData.mrtStorage,
+      mrtSupport: input.texData == null ? null : input.texData.mrtStorage,
       flatOffset: null
     };
     if (input.texData != null && input.texData.slice != null &&
