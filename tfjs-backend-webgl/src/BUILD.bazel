@@ -54,7 +54,7 @@ ts_library(
         "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
         "@npm//@types/webgl-ext",
-        "@npm//@types/webgl2",
+        #"@npm//@types/webgl2",
     ],
 )
 
