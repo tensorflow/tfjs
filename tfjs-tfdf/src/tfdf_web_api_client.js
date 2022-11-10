@@ -23,16 +23,17 @@
 const YggdrasilDecisionForests = require('../wasm/inference.js');
 
 let tfdfWeb = null;
+let locateFile = null;
 
 // Function is used here instead of variable to make loading lazy in case user
 // uses setLocateFile before module is used.
 exports.tfdfWeb = () => {
   if (tfdfWeb == null) {
-    tfdfWeb = YggdrasilDecisionForests();
+    tfdfWeb = YggdrasilDecisionForests({locateFile});
   }
   return tfdfWeb;
 };
 
-exports.setLocateFile = (locateFile) => {
-  tfdfWeb = YggdrasilDecisionForests({locateFile});
+exports.setLocateFile = (newLocateFile) => {
+  locateFile = newLocateFile;
 };
