@@ -34,7 +34,7 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
       hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
 
-    const sharedDim = aShape[2];
+    const sharedDim = bShape[1];
     const sharedDimensionPacked = Math.ceil(sharedDim / 4);
 
     let activationSnippet = '', applyActivationSnippet = '';
@@ -105,51 +105,73 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
         vec4 res_10 = vec4(0);
         vec4 res_11 = vec4(0);
 
-        float rowOOB = ((row + 2) < ${aShape[1]}) ? 1. : 0.;
+        float rowOOB = ((row + 2) < ${
+        transposeA ? aShape[2] : aShape[1]}) ? 1. : 0.;
         float colOOB = ((col + 2) < ${bShape[2]}) ? 1. : 0.;
 
         for (int ic = 0; ic < ${sharedDimensionPacked * 4}; ic += 4) {  // iC/4
-          float icOOB = ((ic + 2) < ${aShape[2]}) ? 1. : 0.;
+          float icOOB = ((ic + 2) < ${bShape[1]}) ? 1. : 0.;
 
+          ${
+        transposeA ? `
+          vec4 a_00 = getMatrixA(ic, row);
+          vec4 a_01 = getMatrixA(ic, row + 2) * icOOB;
+          vec4 a_10 = getMatrixA(ic + 2, row) * rowOOB;
+          vec4 a_11 = getMatrixA(ic + 2, row + 2) * icOOB * rowOOB;
+          ` :
+                     `
           vec4 a_00 = getMatrixA(row, ic);
           vec4 a_01 = getMatrixA(row, ic + 2) * icOOB;
           vec4 a_10 = getMatrixA(row + 2, ic) * rowOOB;
           vec4 a_11 = getMatrixA(row + 2, ic + 2) * icOOB * rowOOB;
+          `}
 
           vec4 b_00 = getMatrixB(ic, col);
           vec4 b_01 = getMatrixB(ic, col + 2) * colOOB;
           vec4 b_10 = getMatrixB(ic + 2, col) * icOOB;
           vec4 b_11 = getMatrixB(ic + 2, col + 2) * icOOB * colOOB;
 
-          vec4 a_row_0 = vec4(a_00.xy, a_01.xy);
-          vec4 a_row_1 = vec4(a_00.zw, a_01.zw);
-          vec4 a_row_2 = vec4(a_10.xy, a_11.xy);
-          vec4 a_row_3 = vec4(a_10.zw, a_11.zw);
+          ${
+        transposeA ? `
+          res_00 += a_00.xxyy * b_00.xyxy;
+          res_00 += a_00.zzww * b_00.zwzw;
+          res_00 += a_10.xxyy * b_10.xyxy;
+          res_00 += a_10.zzww * b_10.zwzw;
 
-          vec4 b_col_0 = vec4(b_00.xz, b_10.xz);
-          vec4 b_col_1 = vec4(b_00.yw, b_10.yw);
-          vec4 b_col_2 = vec4(b_01.xz, b_11.xz);
-          vec4 b_col_3 = vec4(b_01.yw, b_11.yw);
+          res_01 += a_00.xxyy * b_01.xyxy;
+          res_01 += a_00.zzww * b_01.zwzw;
+          res_01 += a_10.xxyy * b_11.xyxy;
+          res_01 += a_10.zzww * b_11.zwzw;
 
-          res_00.x += dot(a_row_0, b_col_0);
-          res_00.y += dot(a_row_0, b_col_1);
-          res_00.z += dot(a_row_1, b_col_0);
-          res_00.w += dot(a_row_1, b_col_1);
+          res_10 += a_01.xxyy * b_00.xyxy;
+          res_10 += a_01.zzww * b_00.zwzw;
+          res_10 += a_11.xxyy * b_10.xyxy;
+          res_10 += a_11.zzww * b_10.zwzw;
 
-          res_01.x += dot(a_row_0, b_col_2);
-          res_01.y += dot(a_row_0, b_col_3);
-          res_01.z += dot(a_row_1, b_col_2);
-          res_01.w += dot(a_row_1, b_col_3);
+          res_11 += a_01.xxyy * b_01.xyxy;
+          res_11 += a_01.zzww * b_01.zwzw;
+          res_11 += a_11.xxyy * b_11.xyxy;
+          res_11 += a_11.zzww * b_11.zwzw;` :
+                     `
+          res_00 += a_00.xxzz * b_00.xyxy;
+          res_00 += a_00.yyww * b_00.zwzw;
+          res_00 += a_01.xxzz * b_10.xyxy;
+          res_00 += a_01.yyww * b_10.zwzw;
 
-          res_10.x += dot(a_row_2, b_col_0);
-          res_10.y += dot(a_row_2, b_col_1);
-          res_10.z += dot(a_row_3, b_col_0);
-          res_10.w += dot(a_row_3, b_col_1);
+          res_01 += a_00.xxzz * b_01.xyxy;
+          res_01 += a_00.yyww * b_01.zwzw;
+          res_01 += a_01.xxzz * b_11.xyxy;
+          res_01 += a_01.yyww * b_11.zwzw;
 
-          res_11.x += dot(a_row_2, b_col_2);
-          res_11.y += dot(a_row_2, b_col_3);
-          res_11.z += dot(a_row_3, b_col_2);
-          res_11.w += dot(a_row_3, b_col_3);
+          res_10 += a_10.xxzz * b_00.xyxy;
+          res_10 += a_10.yyww * b_00.zwzw;
+          res_10 += a_11.xxzz * b_10.xyxy;
+          res_10 += a_11.yyww * b_10.zwzw;
+
+          res_11 += a_10.xxzz * b_01.xyxy;
+          res_11 += a_10.yyww * b_01.zwzw;
+          res_11 += a_11.xxzz * b_11.xyxy;
+          res_11 += a_11.yyww * b_11.zwzw;`}
         }
 
         ${addBiasSnippet}
