@@ -21,7 +21,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 const writeSnippet = `
   fn bincount_write(index: i32, value: f32) {
-    ${atomicAddSnippet('result', 'index', 'value', 1)}
+    ${atomicAddSnippet('result[index]', 'value')}
   }
 `;
 

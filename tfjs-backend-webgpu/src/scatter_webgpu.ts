@@ -96,14 +96,12 @@ export class ScatterProgram implements WebGPUProgram {
         Array.from({length: this.updatesRank}, (_, idx) => `coords[${idx}]`);
     const updatesSnippet = `getUpdates(${updatesString.join(', ')})`;
 
-    const atomicRMW = (dst: string, index: string, val: string) => {
+    const atomicRMW = (dst: string, val: string) => {
       const $atomicAddSnippet = `${
-          this.type === 'float32' ?
-              atomicAddSnippet(dst, index, val, 1) :
-              `atomicAdd(&${dst}[${index}], bitcast<i32>(${val}))`}
+          this.type === 'float32' ? atomicAddSnippet(dst, val) :
+                                    `atomicAdd(&${dst}, bitcast<i32>(${val}))`}
       `;
-      const atomicStoreSnippet =
-          `atomicStore(&${dst}[${index}], bitcast<i32>(${val}));`;
+      const atomicStoreSnippet = `atomicStore(&${dst}, bitcast<i32>(${val}));`;
       return this.sumDupeIndices ? $atomicAddSnippet : atomicStoreSnippet;
     };
 
@@ -122,7 +120,7 @@ export class ScatterProgram implements WebGPUProgram {
               ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
-          ${atomicRMW('result', 'flatIndex', 'updateValue')};
+          ${atomicRMW('result[flatIndex]', 'updateValue')};
         }
       }`;
     return userCode;
