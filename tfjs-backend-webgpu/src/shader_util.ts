@@ -35,21 +35,20 @@ export function symbolicallyComputeStrides(
 
 // atomicAdd only supports uint/int type. For float, we use
 // atomicCompareExchangeWeak to simulate.
-export const atomicAddSnippet =
-    (dst: string, index: string, val: string, component: number) => {
-      return `
-    for (var i = 0; i < ${component}; i = i + 1) {
-      var oldValue = atomicLoad(&(${dst}[${index} + i]));
+export const atomicAddSnippet = (dst: string, val: string) => {
+  return `
+      var oldValue = atomicLoad(&(${dst}));
       var exchanged = false;
-      for (; !exchanged;) {
-        let newValueF32 = bitcast<f32>(oldValue) + ${
-          component > 1 ? `${val}[i]` : val};
+      loop {
+        if exchanged {
+          break;
+        }
+
+        let newValueF32 = bitcast<f32>(oldValue) + ${val};
         let newValue = bitcast<i32>(newValueF32);
-        let res = atomicCompareExchangeWeak(&(${dst}[${
-          index} + i]), oldValue, newValue);
+        let res = atomicCompareExchangeWeak(&(${dst}), oldValue, newValue);
         oldValue = res.old_value;
         exchanged = res.exchanged;
       }
-    }
   `;
-    };
+};
