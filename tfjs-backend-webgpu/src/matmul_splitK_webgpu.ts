@@ -95,7 +95,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           let flatIndex = getOutputIndexFromCoords(coords);
           // The problem is that we should initialize output to zero before using.
           // Otherwise, the original value will be added to the result.
-          ${atomicAddSnippet(component)}
+          ${atomicAddSnippet('result', 'flatIndex', 'value', component)}
         }
       }
       ${
