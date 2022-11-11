@@ -145,7 +145,7 @@ import {makeTensor} from './tensor_ops_util';
  * const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
  * const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
  * const shape = [aData.length];
- * const a = tf.tensor({buffer: aBuffer, size: aData.length});
+ * const a = tf.tensor({buffer: aBuffer}, shape, dtype);
  * const b = tf.tensor(bData, shape, dtype);
  * const result = tf.add(a, b);
  * a.dispose();

@@ -190,5 +190,4 @@ export interface WebGLData {
  */
 export interface WebGPUData {
   buffer: GPUBuffer;
-  size: number;
 }
