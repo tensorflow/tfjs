@@ -461,9 +461,9 @@ export class WebGPUBackend extends KernelBackend {
     const sizeFromShape = util.sizeFromShape(tensorData.shape);
     const size =
         webgpu_util.GPUBytesPerElement(tensorData.dtype) * sizeFromShape;
-    if (values.size < sizeFromShape) {
+    if (values.buffer.size < sizeFromShape) {
       throw new Error(`GPUBuffer size(${
-          values.size}) is smaller than tensor size(${sizeFromShape})!`);
+          values.buffer.size}) is smaller than tensor size(${sizeFromShape})!`);
     }
 
     tensorData
