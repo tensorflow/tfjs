@@ -20,6 +20,7 @@ import {env} from './environment';
 import {Tensor} from './tensor';
 import {DataType, TensorLike, WebGLData, WebGPUData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
+import {bytesPerElement} from './util_base';
 
 export function inferShape(
     val: TensorLike|WebGLData|WebGPUData, dtype?: DataType): number[] {
@@ -34,10 +35,7 @@ export function inferShape(
       const usedChannels = val.channels || 'RGBA';
       return [val.height, val.width * usedChannels.length];
     } else if ('buffer' in val && !(val.buffer instanceof ArrayBuffer)) {
-      if (val.size == null) {
-        throw new Error('size should be defined in WebGPUData!');
-      }
-      return [val.size];
+      return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
     }
   }
   if (!Array.isArray(val)) {
