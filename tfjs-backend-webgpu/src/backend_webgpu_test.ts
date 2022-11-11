@@ -415,9 +415,8 @@ async function testCreateTensorFromGPUBuffer(
   const shape: number[] = [aData.length];
   const startNumBytes = tf.memory().numBytes;
   const startNumTensors = tf.memory().numTensors;
-  const a = useDefaultShapeAndType ?
-      tf.tensor({buffer: aBuffer, size: aData.length}) :
-      tf.tensor({buffer: aBuffer, size: aData.length}, shape, dtype);
+  const a = useDefaultShapeAndType ? tf.tensor({buffer: aBuffer}) :
+                                     tf.tensor({buffer: aBuffer}, shape, dtype);
   const b = tf.tensor(bData, shape, dtype);
   const result = tf.add(a, b);
   tf.test_util.expectArraysClose(await result.data(), expected);
@@ -444,20 +443,6 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     await testCreateTensorFromGPUBuffer('int32');
   });
 
-  it('throw when size is not set or incorrect', async () => {
-    const webGPUBackend = tf.backend() as WebGPUBackend;
-    const device = webGPUBackend.device;
-    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-    const dtype = 'float32';
-    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
-    const shape: number[] = [aData.length];
-    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
-    expect(a).toThrowError();
-    const b = () => tf.tensor({buffer: aBuffer, size: 0}, shape, dtype);
-    expect(b).toThrowError();
-    aBuffer.destroy();
-  });
-
   it('two tensors share the same GPUBuffer', async () => {
     const webGPUBackend = tf.backend() as WebGPUBackend;
     const device = webGPUBackend.device;
@@ -467,9 +452,8 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
     const shape: number[] = [aData.length];
-    const size = aData.length * 4;
-    const a = tf.tensor({buffer: aBuffer, size}, shape, dtype);
-    const b = tf.tensor({buffer: aBuffer, size}, shape, dtype);
+    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const b = tf.tensor({buffer: aBuffer}, shape, dtype);
     const result = tf.add(a, b);
     const expected =
         [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32];
