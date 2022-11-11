@@ -30,10 +30,10 @@ export function inferShape(
   }
   const isObject = typeof val === 'object';
   if (isObject) {
-    if ('texture' in val && val.texture instanceof WebGLTexture) {
+    if ('texture' in val) {
       const usedChannels = val.channels || 'RGBA';
       return [val.height, val.width * usedChannels.length];
-    } else if ('buffer' in val && val.buffer instanceof GPUBuffer) {
+    } else if ('buffer' in val && !(val.buffer instanceof ArrayBuffer)) {
       if (val.size == null) {
         throw new Error('size should be defined in WebGPUData!');
       }
