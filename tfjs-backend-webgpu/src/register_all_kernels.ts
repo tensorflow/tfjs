@@ -57,6 +57,7 @@ import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
+import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -70,6 +71,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
@@ -181,6 +183,7 @@ const kernelConfigs: KernelConfig[] = [
   expConfig,
   expandDimsConfig,
   expm1Config,
+  fftConfig,
   fillConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
@@ -194,6 +197,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  ifftConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
