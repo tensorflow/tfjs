@@ -263,8 +263,6 @@ const TEST_FILTERS: TestFilter[] = [
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'FFT ',
-      'IRFFT ',
       'linspace ',
       'localResponseNormalization ',
       'log1p ',
@@ -282,7 +280,6 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
-      'RFFT ',
       'round webgpu',
       'method otsu',  // round
       'searchSorted',
