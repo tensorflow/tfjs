@@ -34,8 +34,8 @@ export function makeTensor(
   }
 
   if (typeof values === 'object' &&
-      (('texture' in values && values.texture instanceof WebGLTexture) ||
-       ('buffer' in values && values.buffer instanceof GPUBuffer))) {
+      ('texture' in values ||
+       ('buffer' in values && !(values.buffer instanceof ArrayBuffer)))) {
     if (dtype !== 'float32' && dtype !== 'int32') {
       throw new Error(
           `Creating tensor from GPU data only supports ` +
