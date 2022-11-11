@@ -20,6 +20,6 @@
 // typescript code. To workaround this issue, we import and re-export it in this
 // file to essentially convert it to a valid CommonJS module, which can then be
 // imported correctly by typescript code.
-const YggdrasilDecisionForests = require('../wasm/inference.js');
+const YggdrasilDecisionForests = require('../wasm/inference_bundle.js');
 
 exports.tfdfWeb = YggdrasilDecisionForests();
