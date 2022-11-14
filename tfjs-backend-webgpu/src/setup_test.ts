@@ -267,8 +267,6 @@ const TEST_FILTERS: TestFilter[] = [
       'localResponseNormalization ',
       'log1p ',
       'logSigmoid ',
-      'logicalOr ',
-      'logicalXor ',
       'lowerBound',
       'maxPool3d ',
       'maxPool3dBackprop ',
