@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {batchMatMulImpl} from './BatchMatMul_impl';
+import {batchMatMulImpl, batchMatMulMrt2x2Impl} from './BatchMatMul_impl';
 
 export function batchMatMul(args: {
   inputs: BatchMatMulInputs,
@@ -28,6 +28,10 @@ export function batchMatMul(args: {
   const {inputs, backend, attrs} = args;
   const {a, b} = inputs;
   const {transposeA, transposeB} = attrs;
+
+  if (env().getBool('WEBGL2_USE_MRT_FOR_MATMUL')) {
+    return batchMatMulMrt2x2Impl({a, b, transposeA, transposeB, backend});
+  }
 
   return batchMatMulImpl({a, b, transposeA, transposeB, backend});
 }
