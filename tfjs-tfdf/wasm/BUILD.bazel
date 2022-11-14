@@ -13,6 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
+load("//tools:defaults.bzl", "esbuild")
+load("//tools:get_extension.bzl", "get_extension")
+
 package(default_visibility = ["//visibility:public"])
 
 # Download the TFDF web API related WASM files from google storage, and make
@@ -31,4 +34,56 @@ genrule(
         "//tfjs-tfdf/scripts:download_tfdf_web_api",
     ],
     tags = ["no-remote-exec"],
+)
+
+get_extension(
+    name = "inference_js",
+    srcs = [
+        ":wasm_files",
+    ],
+    include = [".js"],
+)
+
+get_extension(
+    name = "wasm_binary",
+    srcs = [
+        ":wasm_files",
+    ],
+    include = [".wasm"],
+)
+
+genrule(
+    name = "inference_jszip",
+    srcs = [
+        ":inference_js",
+    ],
+    outs = [
+        "inference_jszip.js",
+    ],
+    cmd = "sed 's/JSZip/require(\"jszip\")/' $(location :inference_js) > $@",
+)
+
+esbuild(
+    name = "inference_bundle",
+    srcs = [
+        ":inference_jszip",
+    ],
+    entry_point = "inference_jszip.js",
+    external = [
+        "fs",
+        "path",
+    ],
+    format = "cjs",
+    minify = True,
+    deps = [
+        "@npm//jszip",
+    ],
+)
+
+filegroup(
+    name = "wasm",
+    srcs = [
+        ":inference_bundle",
+        ":wasm_binary",
+    ],
 )
