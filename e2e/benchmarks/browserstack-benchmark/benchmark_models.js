@@ -85,7 +85,7 @@ async function benchmarkModel(benchmarkParameters) {
     memoryInfo = await profileModelInference(model, input);
   }
 
-  return {timeInfo, memoryInfo};
+  return { timeInfo, memoryInfo };
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
@@ -97,7 +97,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
 
   if (predict == null) {
     throw new Error(
-        'predict function is suppoed to be defined in codeSnippet.');
+      'predict function is suppoed to be defined in codeSnippet.');
   }
 
   // Warm up.
@@ -107,13 +107,13 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
   memoryInfo = await profileInference(predict);
 
-  return {timeInfo, memoryInfo};
+  return { timeInfo, memoryInfo };
 }
 
 describe('BrowserStack benchmark', () => {
   let benchmarkParameters;
   beforeAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000000;
     const response = await fetch(`${KARMA_SERVER}/benchmark_parameters.json`);
     benchmarkParameters = await response.json();
     tf.env().set('SOFTWARE_WEBGL_ENABLED', true);
@@ -135,11 +135,11 @@ describe('BrowserStack benchmark', () => {
 
       // Get GPU hardware info.
       resultObj.gpuInfo =
-          targetBackend === 'webgl' ? (await getRendererInfo()) : 'MISS';
+        targetBackend === 'webgl' ? (await getRendererInfo()) : 'MISS';
 
       // Report results.
       console.log(
-          `<tfjs_benchmark>${JSON.stringify(resultObj)}</tfjs_benchmark>`);
+        `<tfjs_benchmark>${JSON.stringify(resultObj)}</tfjs_benchmark>`);
     } catch (error) {
       console.log(`<tfjs_error>${error}</tfjs_error>`);
     }
