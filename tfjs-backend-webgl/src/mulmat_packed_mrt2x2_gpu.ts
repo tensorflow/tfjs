@@ -68,7 +68,7 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
     if (biasShape != null) {
       if (biasShape.length === 1) {
         addBiasSnippet = `vec4 bias_0 = getBias(col).xyxy;
-        vec4 bias_1 = getBias(col + 2).xyxy * colOOB;
+        vec4 bias_1 = getBias(col + 2).xyxy;
         res_00 += bias_0;
         res_01 += bias_1;
         res_10 += bias_0;
@@ -105,31 +105,26 @@ export class MatMulPackedMrt2x2Program implements GPGPUProgram {
         vec4 res_10 = vec4(0);
         vec4 res_11 = vec4(0);
 
-        float rowOOB = ((row + 2) < ${
-        transposeA ? aShape[2] : aShape[1]}) ? 1. : 0.;
-        float colOOB = ((col + 2) < ${bShape[2]}) ? 1. : 0.;
-
         for (int ic = 0; ic < ${sharedDimensionPacked * 4}; ic += 4) {  // iC/4
-          float icOOB = ((ic + 2) < ${bShape[1]}) ? 1. : 0.;
 
           ${
         transposeA ? `
           vec4 a_00 = getMatrixA(ic, row);
-          vec4 a_01 = getMatrixA(ic, row + 2) * icOOB;
-          vec4 a_10 = getMatrixA(ic + 2, row) * rowOOB;
-          vec4 a_11 = getMatrixA(ic + 2, row + 2) * icOOB * rowOOB;
+          vec4 a_01 = getMatrixA(ic, row + 2);
+          vec4 a_10 = getMatrixA(ic + 2, row);
+          vec4 a_11 = getMatrixA(ic + 2, row + 2);
           ` :
                      `
           vec4 a_00 = getMatrixA(row, ic);
-          vec4 a_01 = getMatrixA(row, ic + 2) * icOOB;
-          vec4 a_10 = getMatrixA(row + 2, ic) * rowOOB;
-          vec4 a_11 = getMatrixA(row + 2, ic + 2) * icOOB * rowOOB;
+          vec4 a_01 = getMatrixA(row, ic + 2);
+          vec4 a_10 = getMatrixA(row + 2, ic);
+          vec4 a_11 = getMatrixA(row + 2, ic + 2);
           `}
 
           vec4 b_00 = getMatrixB(ic, col);
-          vec4 b_01 = getMatrixB(ic, col + 2) * colOOB;
-          vec4 b_10 = getMatrixB(ic + 2, col) * icOOB;
-          vec4 b_11 = getMatrixB(ic + 2, col + 2) * icOOB * colOOB;
+          vec4 b_01 = getMatrixB(ic, col + 2);
+          vec4 b_10 = getMatrixB(ic + 2, col);
+          vec4 b_11 = getMatrixB(ic + 2, col + 2);
 
           ${
         transposeA ? `
