@@ -22,7 +22,6 @@ const {expectArraysEqual, expectArraysClose} = test_util;
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
-import * as webgpu_util from './webgpu_util';
 
 describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   let cpuForwardFlagSaved: boolean;
@@ -274,8 +273,8 @@ describeWebGPU('keeping data on gpu ', () => {
           `Expected: float32`);
     }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
@@ -294,8 +293,8 @@ describeWebGPU('keeping data on gpu ', () => {
           `Expected: float32`);
     }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
@@ -340,8 +339,8 @@ describeWebGPU('keeping data on gpu ', () => {
 
     const res = result as {} as GPUData;
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
