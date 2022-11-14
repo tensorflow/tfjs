@@ -15,12 +15,13 @@
 
 const express = require('express');
 const {ArgumentParser} = require('argparse');
-const AdmZip = require('adm-zip');
+const JSZip = require('jszip');
 const fetch = require('node-fetch');
 const path = require('node:path');
 
 const TFJS_DEBUGGER_BUNDLE_URL =
     'https://storage.googleapis.com/tfweb/tfjs-debugger-bundle/tfjs-debugger_20221111-105432.zip';
+const EXTS_WITH_ARRAY_BUFFER_CONTENT = ['.ttf'];
 
 const app = express();
 const debuggerStaticFile = {};
@@ -60,16 +61,33 @@ function main(args) {
 async function fetchAndUnzipTfjsDebuggerBundle() {
   const resp = await fetch(TFJS_DEBUGGER_BUNDLE_URL);
   const buffer = await resp.buffer();
-  const zip = new AdmZip(buffer);
-  const entries = zip.getEntries();
-  for (let entry of entries) {
-    const buffer = entry.getData();
-    const fileName = entry.entryName.replace('dist/', '');
-    if (entry.entryName.endsWith('.ttf')) {
-      debuggerStaticFile[fileName] = buffer;
-    } else {
-      debuggerStaticFile[fileName] = buffer.toString('utf-8');
-    }
+
+  // Read zip objects.
+  const zipObjects = await new Promise(resolve => {
+    const zipObjects = [];
+    JSZip.loadAsync(buffer).then((zip) => {
+      zip.folder('dist').forEach((relativePath, zipObject) => {
+        zipObjects.push(zipObject);
+      });
+      resolve(zipObjects);
+    })
+  });
+
+  // Read and index files content.
+  for (const zipObject of zipObjects) {
+    await new Promise(resolve => {
+      const name = zipObject.name;
+      zipObject
+          .async(
+              EXTS_WITH_ARRAY_BUFFER_CONTENT.some(ext => name.endsWith(ext)) ?
+                  'nodebuffer' :
+                  'text')
+          .then(content => {
+            const fileName = name.replace('dist/', '');
+            debuggerStaticFile[fileName] = content;
+            resolve();
+          });
+    });
   }
 }
 
