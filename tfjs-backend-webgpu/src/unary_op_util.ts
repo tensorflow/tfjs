@@ -38,6 +38,7 @@ export enum UnaryOpType {
   IS_NAN,
   LINEAR,
   LOG,
+  LOG1P,
   LOGICAL_NOT,
   NEG,
   RELU,
@@ -141,6 +142,10 @@ const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) { return uniforms.NAN; }
   return log(a);`;
+const LOG1P = `
+  if (isnan(a)) { return a; }
+  return log(1.0 + a);
+`;
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
 const LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
@@ -214,6 +219,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return LINEAR;
     case UnaryOpType.LOG:
       return LOG;
+    case UnaryOpType.LOG1P:
+      return LOG1P;
     case UnaryOpType.LOGICAL_NOT:
       return LOGICAL_NOT;
     case UnaryOpType.NEG:
