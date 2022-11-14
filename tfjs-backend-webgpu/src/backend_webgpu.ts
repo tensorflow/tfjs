@@ -357,7 +357,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   public async getBufferData(buffer: GPUBuffer, size: number):
-      Promise<backend_util.BackendValues> {
+      Promise<ArrayBuffer> {
     const staging = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -383,7 +383,7 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyContext.getCurrentTexture();
     }
 
-    return values as backend_util.BackendValues;
+    return values;
   }
 
   private convertAndCacheOnCPU(dataId: DataId, data: backend_util.TypedArray):
@@ -439,10 +439,9 @@ export class WebGPUBackend extends KernelBackend {
     } else {
       const bufferInfo = tensorData.resourceInfo as BufferInfo;
       const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
-      vals = webgpu_util.ArrayBufferToTypedArray(
-          data as ArrayBuffer, tensorData.dtype);
+      vals = util.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
     }
-    this.convertAndCacheOnCPU(dataId, vals);
+    this.convertAndCacheOnCPU(dataId, vals as backend_util.TypedArray);
     return vals;
   }
 

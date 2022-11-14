@@ -154,18 +154,6 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
-export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
-  if (dtype === 'float32') {
-    return new Float32Array(data);
-  } else if (dtype === 'int32') {
-    return new Int32Array(data);
-  } else if (dtype === 'bool' || dtype === 'string') {
-    return Uint8Array.from(new Int32Array(data));
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
           //@ts-ignore
