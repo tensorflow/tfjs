@@ -27,7 +27,6 @@
     "@types/shelljs": "^0.8.7",
     "@types/webgl-ext": "0.0.30",
     "@webgpu/types": "0.1.21",
-    "adm-zip": "0.5.9",
     "ajv": "~6.12.3",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
