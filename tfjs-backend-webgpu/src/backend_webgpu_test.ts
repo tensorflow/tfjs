@@ -467,4 +467,43 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     expect(endNumTensors - startNumTensors).toEqual(0);
     aBuffer.destroy();
   });
+
+  it('GPUBuffer size is bigger than tensor size', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const startNumBytes = tf.memory().numBytes;
+    const startNumTensors = tf.memory().numTensors;
+    // GPUBuffer.size is bigger than shape size
+    const shape: number[] = [aData.length - 1];
+    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const b = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const result = tf.add(a, b);
+    const expected = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+    console.log(await result.data());
+    tf.test_util.expectArraysClose(await result.data(), expected);
+    a.dispose();
+    b.dispose();
+    result.dispose();
+    const endNumBytes = tf.memory().numBytes;
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumBytes - startNumBytes).toEqual(0);
+    expect(endNumTensors - startNumTensors).toEqual(0);
+    aBuffer.destroy();
+  });
+
+  it('throw for GPUBuffer size is smaller than tensor size', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    // Throw when GPUBuffer.size is smaller than shape size
+    const shape: number[] = [aData.length + 1];
+    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
+    expect(a).toThrowError();
+    aBuffer.destroy();
+  });
 });

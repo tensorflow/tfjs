@@ -458,16 +458,14 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(
         dataId, {dtype, shape, values: null, refCount: 1, external: true});
     const tensorData = this.tensorMap.get(dataId);
-    const sizeFromShape = util.sizeFromShape(tensorData.shape);
-    const size =
-        webgpu_util.GPUBytesPerElement(tensorData.dtype) * sizeFromShape;
-    if (values.buffer.size < sizeFromShape) {
+    const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
+        util.sizeFromShape(tensorData.shape);
+    if (values.buffer.size < size) {
       throw new Error(`GPUBuffer size(${
-          values.buffer.size}) is smaller than tensor size(${sizeFromShape})!`);
+          values.buffer.size}) is smaller than tensor size(${size})!`);
     }
 
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    tensorData.resourceInfo = {size: buffer.size, usage: buffer.usage, buffer};
     return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
 
