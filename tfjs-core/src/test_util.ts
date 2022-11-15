@@ -41,14 +41,7 @@ export function testEpsilon() {
 function expectArraysPredicate(
     actual: TensorLike, expected: TensorLike,
     predicate: (a: {}, b: {}) => boolean) {
-  let checkClassType = true;
-  if (isTypedArray(actual) || isTypedArray(expected)) {
-    checkClassType = false;
-  }
   if (isTypedArray(actual) && isTypedArray(expected)) {
-    checkClassType = true;
-  }
-  if (checkClassType) {
     const aType = actual.constructor.name;
     const bType = expected.constructor.name;
 
