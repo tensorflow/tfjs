@@ -56,6 +56,8 @@ the package or your own script is served. Use `setLocateFile` to set your own
 location. See `src/tfdf_web_api_client.d.ts` for more details.
 
 ```js
+// `base` is the URL to the main javascript file's directory.
+// To return the default URL of the file use `${base}${path}`.
 tfdf.setLocateFile((path, base) => {
   return `https://your-server/.../${path}`;
 });
