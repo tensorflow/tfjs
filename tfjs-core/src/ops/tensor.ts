@@ -99,7 +99,9 @@ import {makeTensor} from './tensor_ops_util';
  * // This makes it possible for TF.js applications to avoid GPU / CPU sync.
  * // For example, if your application includes a preprocessing step on the GPU,
  * // you could upload the GPU output directly to TF.js, rather than first
- * // downloading the values.
+ * // downloading the values. Unlike WebGL, to support zero copy, this GPUBuffer
+ * // is bound directly by the tensor. So donot destroy this GPUBuffer until all
+ * // access are done.
  *
  * // Example for WebGPU:
  * async function createReadonlyGPUBufferFromData(device, data, dtype) {
