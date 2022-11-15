@@ -1194,8 +1194,6 @@ export class MathBackendWebGL extends KernelBackend {
     const texData = this.texData.get(dataId);
     const {dtype} = texData;
 
-    this.releaseGPUData(dataId);
-
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
     }
