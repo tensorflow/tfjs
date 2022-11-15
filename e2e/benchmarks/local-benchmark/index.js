@@ -242,12 +242,13 @@ function getTunableRange(flag) {
 async function benchmarkAll() {
   const numRuns = 50;
   const SHARED_DIM = 256;
-  const OUTPUT_HEIGHT = 1440;
-  const OUTPUT_WIDTH = 2560;
+  const OUTPUT_HEIGHT = 144;
+  const OUTPUT_WIDTH = 256;
 
   console.log('Varying SHARED_DIM:');
   let resData = [];
-  for (let variable = 64; variable <= 4096; variable = variable * 2) {
+  for (let index = 1; index <= 48; index += 1) {
+    const variable = index * 128;
     const res = await benchmark(variable, OUTPUT_HEIGHT, OUTPUT_WIDTH, numRuns);
     resData.push(`${variable}\t${res}`);
   }
@@ -255,8 +256,8 @@ async function benchmarkAll() {
 
   console.log('Varying OUTPUT_HEIGHT:');
   resData = [];
-  for (let variable of [12, 16, 32, 64, 96, 128]) {
-    const height = variable * variable;
+  for (let index = 1; index <= 48; index += 1) {
+    const height = index * 128;
     const res = await benchmark(SHARED_DIM, height, OUTPUT_WIDTH, numRuns);
     resData.push(`${height}\t${res}`);
   }
@@ -265,7 +266,8 @@ async function benchmarkAll() {
   // Vary width
   console.log('Varying OUTPUT_WIDTH:');
   resData = [];
-  for (let variable = 64; variable <= 4096; variable = variable * 2) {
+  for (let index = 1; index <= 48; index += 1) {
+    const variable = index * 128;
     const res = await benchmark(SHARED_DIM, OUTPUT_HEIGHT, variable, numRuns);
     resData.push(`${variable}\t${res}`);
   }
