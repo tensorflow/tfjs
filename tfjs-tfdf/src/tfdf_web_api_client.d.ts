@@ -19,4 +19,8 @@ import {TFDFWebAPIClient} from './types/tfdf_web_api';
 /**
  * The main export for tfdf_web_api_client.js types.
  */
-export declare let tfdfWeb: Promise<TFDFWebAPIClient>;
+export declare const tfdfWeb: () => Promise<TFDFWebAPIClient>;
+
+type LocateFileFunction = (path: string, prefix?: string) => string;
+/** The global function to set WASM path. */
+export declare const setLocateFile: (locateFile: LocateFileFunction) => void;
