@@ -29,12 +29,15 @@ tfjs_bundle(
         "@tensorflow/tfjs-converter",
         "path",
         "fs",
-        "jszip",
+    ],
+    leave_as_require = [
+        "path",
+        "fs",
+        "crypto",
     ],
     globals = {
         "@tensorflow/tfjs-converter": "tf",
         "@tensorflow/tfjs-core": "tf",
-        "jszip": "JSZip",
     },
     umd_name = "tfdf",
     deps = [
@@ -92,7 +95,6 @@ pkg_npm(
         ":copy_bundles",
         ":copy_src_to_dist",
         ":copy_wasm_files",
-        "//tfjs-tfdf/wasm:wasm_files",
     ],
 )
 
