@@ -367,7 +367,7 @@ describeWebGPU('keeping data on gpu ', () => {
   });
 });
 
-async function createReadonlyGPUBufferFromData(
+function createReadonlyGPUBufferFromData(
     device: GPUDevice, data: number[], dtype: tf.DataType) {
   const bytesPerElement = 4;
   const sizeInBytes = data.length * bytesPerElement;
@@ -411,7 +411,7 @@ async function testCreateTensorFromGPUBuffer(
   const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
   const bData = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
   const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
-  const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+  const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
   const shape: number[] = [aData.length];
   const startNumBytes = tf.memory().numBytes;
   const startNumTensors = tf.memory().numTensors;
@@ -448,7 +448,7 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const device = webGPUBackend.device;
     const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const dtype = 'float32';
-    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
     const shape: number[] = [aData.length];
@@ -473,7 +473,7 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const device = webGPUBackend.device;
     const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const dtype = 'float32';
-    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
     // GPUBuffer.size is bigger than shape size
@@ -482,7 +482,6 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const b = tf.tensor({buffer: aBuffer}, shape, dtype);
     const result = tf.add(a, b);
     const expected = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
-    console.log(await result.data());
     tf.test_util.expectArraysClose(await result.data(), expected);
     a.dispose();
     b.dispose();
@@ -499,7 +498,7 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const device = webGPUBackend.device;
     const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const dtype = 'float32';
-    const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+    const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
     // Throw when GPUBuffer.size is smaller than shape size
     const shape: number[] = [aData.length + 1];
     const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
