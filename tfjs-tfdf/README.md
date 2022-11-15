@@ -10,15 +10,13 @@ Under the hood, the TFDF C++ runtime is packaged in a set of WASM modules.
 
 ## Import the packages
 
-To use this package, you will need JSZip, and a TFJS backend installed.
+To use this package, you will need a TFJS backend installed.
 You will also need to import `@tensorflow/tfjs-core` for
 manipulating tensors, and `@tensorflow/tfjs-converter` for loading models.
 
 ### Via NPM
 
 ```js
-// Import JSZip
-import 'jszip';
 // Import @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs-core';
 // Adds the CPU backend.
@@ -32,8 +30,6 @@ import * as tfdf from '@tensorflow/tfjs-tfdf';
 ### Via a script tag
 
 ```html
-<!-- Import jszip -->
-<script src="https://cdn.jsdelivr.net/npm/jszip"></script>
 <!-- Import @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
 <!-- Adds the CPU backend -->

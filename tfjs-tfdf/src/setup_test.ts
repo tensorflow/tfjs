@@ -14,12 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-import jszip from 'jszip';
-// TFDF is Closure-compiled, and expects a global JSZIP variable to exist,
-// rather than passed in as a module.
-// tslint:disable-next-line:no-any
-(window as any).JSZip = jszip;
-
 import '@tensorflow/tfjs-backend-cpu';
 import './tfdf_web_api_client_test';
 import './tfdf_model_test';
