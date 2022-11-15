@@ -170,8 +170,11 @@ import {makeTensor} from './tensor_ops_util';
  * tensor values. ). (If the values passed from texture is less than the tensor
  * size, zeros will be padded at the rear.). If the values is a `WebGPUData`
  * object, the dtype could only be 'float32' or 'int32 and the object has to
- * have: buffer, a `GPUBuffer`, the buffer must share the same `GPUDevice` with
- * TFJS's WebGPU backend.
+ * have: buffer, a `GPUBuffer`. The buffer must: 1. share the same `GPUDevice`
+ * with TFJS's WebGPU backend; 2.buffer.usage should at least support
+ * GPUBufferUsage.STORAGE, to support tensor.data, GPUBufferUsage.COPY_SRC is
+ * also required; 3. buffer.size should not be smaller than the byte size of
+ * tensor shape.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.

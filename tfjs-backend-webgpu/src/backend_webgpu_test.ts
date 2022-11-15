@@ -368,7 +368,8 @@ describeWebGPU('keeping data on gpu ', () => {
 });
 
 function createReadonlyGPUBufferFromData(
-    device: GPUDevice, data: number[], dtype: tf.DataType) {
+    device: GPUDevice, data: number[], dtype: tf.DataType,
+    bufferUsage = GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE) {
   const bytesPerElement = 4;
   const sizeInBytes = data.length * bytesPerElement;
 
@@ -389,11 +390,8 @@ function createReadonlyGPUBufferFromData(
   }
   gpuWriteBuffer.unmap();
 
-  const gpuReadBuffer = device.createBuffer({
-    mappedAtCreation: false,
-    size: sizeInBytes,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
-  });
+  const gpuReadBuffer = device.createBuffer(
+      {mappedAtCreation: false, size: sizeInBytes, usage: bufferUsage});
 
   const copyEncoder = device.createCommandEncoder();
   copyEncoder.copyBufferToBuffer(
@@ -402,6 +400,30 @@ function createReadonlyGPUBufferFromData(
   device.queue.submit([copyCommands]);
   gpuWriteBuffer.destroy();
   return gpuReadBuffer;
+}
+
+function createStagingGPUBufferFromData(
+    device: GPUDevice, data: number[], dtype: tf.DataType) {
+  const bytesPerElement = 4;
+  const sizeInBytes = data.length * bytesPerElement;
+
+  const gpuWriteBuffer = device.createBuffer({
+    mappedAtCreation: true,
+    size: sizeInBytes,
+    usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
+  });
+  const arrayBuffer = gpuWriteBuffer.getMappedRange();
+  if (dtype === 'float32') {
+    new Float32Array(arrayBuffer).set(data);
+  } else if (dtype === 'int32') {
+    new Int32Array(arrayBuffer).set(data);
+  } else {
+    throw new Error(
+        `Creating tensor from GPUBuffer only supports` +
+        `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
+  }
+  gpuWriteBuffer.unmap();
+  return gpuWriteBuffer;
 }
 
 async function testCreateTensorFromGPUBuffer(
@@ -441,6 +463,21 @@ describeWebGPU('create tensor from GPUBuffer', () => {
 
   it('work for int32', async () => {
     await testCreateTensorFromGPUBuffer('int32');
+  });
+
+  it('work for read', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = createReadonlyGPUBufferFromData(
+        device, aData, dtype,
+        GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE |
+            GPUBufferUsage.COPY_SRC);
+    const shape: number[] = [aData.length];
+    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
+    await a.data();
+    aBuffer.destroy();
   });
 
   it('two tensors share the same GPUBuffer', async () => {
@@ -493,7 +530,7 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     aBuffer.destroy();
   });
 
-  it('throw for GPUBuffer size is smaller than tensor size', async () => {
+  it('throw when GPUBuffer size is smaller than tensor size', async () => {
     const webGPUBackend = tf.backend() as WebGPUBackend;
     const device = webGPUBackend.device;
     const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
@@ -501,6 +538,20 @@ describeWebGPU('create tensor from GPUBuffer', () => {
     const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
     // Throw when GPUBuffer.size is smaller than shape size
     const shape: number[] = [aData.length + 1];
+    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
+    expect(a).toThrowError();
+    aBuffer.destroy();
+  });
+
+  it('throw when GPUBuffer usage is not correct', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    // Create a GPUBuffer without GPUBufferUsage.STORAGE.
+    const aBuffer = createStagingGPUBufferFromData(device, aData, dtype);
+    // Throw when GPUBuffer usage is not correct.
+    const shape: number[] = [aData.length];
     const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
     expect(a).toThrowError();
     aBuffer.destroy();
