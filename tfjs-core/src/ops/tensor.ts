@@ -104,7 +104,7 @@ import {makeTensor} from './tensor_ops_util';
  * // access are done.
  *
  * // Example for WebGPU:
- * async function createReadonlyGPUBufferFromData(device, data, dtype) {
+ * function createReadonlyGPUBufferFromData(device, data, dtype) {
  *   const bytesPerElement = 4;
  *   const sizeInBytes = data.length * bytesPerElement;
  *
@@ -145,7 +145,7 @@ import {makeTensor} from './tensor_ops_util';
  * const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
  * const bData = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
  * const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
- * const aBuffer = await createReadonlyGPUBufferFromData(device, aData, dtype);
+ * const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
  * const shape = [aData.length];
  * const a = tf.tensor({buffer: aBuffer}, shape, dtype);
  * const b = tf.tensor(bData, shape, dtype);
@@ -156,19 +156,22 @@ import {makeTensor} from './tensor_ops_util';
  * aBuffer.destroy();
  * ```
  * @param values The values of the tensor. Can be nested array of numbers,
- *     or a flat array, or a `TypedArray`, or a `WebGLData` object. If the
- * values are strings, they will be encoded as utf-8 and kept as `Uint8Array[]`.
- * If the values is a `WebGLData` object, the dtype could only be 'float32' or
- * 'int32' and the object has to have: 1. texture, a `WebGLTexture`, the texture
- * must share the same `WebGLRenderingContext` with TFJS's WebGL backend (you
- * could create a custom WebGL backend from your texture's canvas) and the
- * internal texture format for the input texture must be floating point or
- * normalized integer; 2. height, the height of the texture; 3. width, the width
- * of the texture; 4. channels, a non-empty subset of 'RGBA', indicating the
- * values of which channels will be passed to the tensor, such as 'R' or 'BR'
- * (The order of the channels affect the order of tensor values. ). (If the
- * values passed from texture is less than the tensor size, zeros will be padded
- * at the rear.)
+ *     or a flat array, or a `TypedArray`, or a `WebGLData` object, or a
+ * `WebGPUData` object. If the values are strings, they will be encoded as utf-8
+ * and kept as `Uint8Array[]`. If the values is a `WebGLData` object, the dtype
+ * could only be 'float32' or 'int32' and the object has to have: 1. texture, a
+ * `WebGLTexture`, the texture must share the same `WebGLRenderingContext` with
+ * TFJS's WebGL backend (you could create a custom WebGL backend from your
+ * texture's canvas) and the internal texture format for the input texture must
+ * be floating point or normalized integer; 2. height, the height of the
+ * texture; 3. width, the width of the texture; 4. channels, a non-empty subset
+ * of 'RGBA', indicating the values of which channels will be passed to the
+ * tensor, such as 'R' or 'BR' (The order of the channels affect the order of
+ * tensor values. ). (If the values passed from texture is less than the tensor
+ * size, zeros will be padded at the rear.). If the values is a `WebGPUData`
+ * object, the dtype could only be 'float32' or 'int32 and the object has to
+ * have: buffer, a `GPUBuffer`, the buffer must share the same `GPUDevice` with
+ * TFJS's WebGPU backend.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
