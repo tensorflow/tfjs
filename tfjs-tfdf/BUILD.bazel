@@ -30,15 +30,15 @@ tfjs_bundle(
         "path",
         "fs",
     ],
+    globals = {
+        "@tensorflow/tfjs-converter": "tf",
+        "@tensorflow/tfjs-core": "tf",
+    },
     leave_as_require = [
         "path",
         "fs",
         "crypto",
     ],
-    globals = {
-        "@tensorflow/tfjs-converter": "tf",
-        "@tensorflow/tfjs-core": "tf",
-    },
     umd_name = "tfdf",
     deps = [
         "//tfjs-tfdf/src:tfdf_web_api_client_js",
