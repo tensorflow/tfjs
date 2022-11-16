@@ -59,11 +59,8 @@ export class SearchSortedProgram implements WebGPUProgram {
       ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
-          let batch = coords[0];
-          let valueIndex = coords[1];
-
-          let value = f32(getValues(batch, valueIndex));
-          setOutputAtIndexI32(index, findBound(batch, value));
+          let value = getValuesByOutputIndex(index);
+          setOutputAtIndexI32(index, findBound(coords[0], value));
         }
       }
     `;
