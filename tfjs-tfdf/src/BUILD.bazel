@@ -21,7 +21,6 @@ package(default_visibility = ["//visibility:public"])
 TEST_SRCS = [
     "**/*_test.ts",
     "setup_test.ts",
-    "setup_test_globals.ts",
 ]
 
 ts_library(
@@ -43,7 +42,6 @@ ts_library(
     module_name = "@tensorflow/tfjs-tfdf",
     deps = [
         ":tfjs-tfdf_src_lib",
-        "@npm//jszip",
     ],
 )
 
@@ -62,7 +60,6 @@ ts_library(
         ":tfjs-tfdf_lib",
         ":tfjs-tfdf_src_lib",
         "//tfjs-core/src:tfjs-core_lib",
-        "@npm//jszip",
     ],
 )
 

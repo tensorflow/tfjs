@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,16 @@
  * =============================================================================
  */
 
-// Karma does not preserve the source path, causing the TFDF library to look for
-// the wasm binary in the root path, so fix the path for the library.
-// tslint:disable-next-line:no-any
-(self as any).__filename = '/base/tfjs/tfjs-tfdf/wasm/';
+import {KernelConfig, Log1p} from '@tensorflow/tfjs-core';
+
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {UnaryOpType} from '../unary_op_util';
+
+export const log1p = unaryKernelFunc({opType: UnaryOpType.LOG1P});
+
+export const log1pConfig: KernelConfig = {
+  kernelName: Log1p,
+  backendName: 'webgpu',
+  kernelFunc: log1p
+};

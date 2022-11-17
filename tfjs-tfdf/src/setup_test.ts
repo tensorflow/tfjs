@@ -15,9 +15,14 @@
  * =============================================================================
  */
 import '@tensorflow/tfjs-backend-cpu';
-
-import './setup_test_globals';
-// Register ops.
-import './index';
 import './tfdf_web_api_client_test';
 import './tfdf_model_test';
+
+// Register ops.
+import * as tfdf from './index';
+
+// Karma does not preserve the source path, causing the TFDF library to look for
+// the wasm binary in the root path, so fix the path for the library.
+tfdf.setLocateFile((path: string, _: string) => {
+  return `./base/tfjs/tfjs-tfdf/wasm/${path}`;
+});

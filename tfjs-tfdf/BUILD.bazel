@@ -49,6 +49,7 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
+        "//tfjs-tfdf/src:tfdf_web_api_client_js",
         "//tfjs-tfdf/src:tfjs-tfdf_lib",
         "//tfjs-tfdf/src:tfjs-tfdf_src_lib",
     ],
@@ -91,6 +92,7 @@ pkg_npm(
         ":copy_bundles",
         ":copy_src_to_dist",
         ":copy_wasm_files",
+        "//tfjs-tfdf/wasm:wasm_files",
     ],
 )
 

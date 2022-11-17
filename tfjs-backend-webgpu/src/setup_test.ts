@@ -265,11 +265,9 @@ const TEST_FILTERS: TestFilter[] = [
       'encodeWeights ',
       'linspace ',
       'localResponseNormalization ',
-      'log1p ',
       'logSigmoid ',
       'logicalOr ',
       'logicalXor ',
-      'lowerBound',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
@@ -282,7 +280,6 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedTensorToTensor ',
       'round webgpu',
       'method otsu',  // round
-      'searchSorted',
       'selu ',
       'sign webgpu',
       'stft ',
@@ -298,7 +295,6 @@ const TEST_FILTERS: TestFilter[] = [
       'stringToHashBucketFast ',
       'unique ',
       'unsortedSegmentSum ',
-      'upperBound',
       'valueAndGradients ',
     ]
   },

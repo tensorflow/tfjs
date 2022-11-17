@@ -80,6 +80,7 @@ import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {maxConfig} from './kernels/Max';
@@ -115,6 +116,7 @@ import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
@@ -205,6 +207,7 @@ const kernelConfigs: KernelConfig[] = [
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  log1pConfig,
   logConfig,
   logicalAndConfig,
   logicalNotConfig,
@@ -241,6 +244,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   sigmoidConfig,
   sinConfig,
