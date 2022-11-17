@@ -265,7 +265,6 @@ const TEST_FILTERS: TestFilter[] = [
       'encodeWeights ',
       'linspace ',
       'localResponseNormalization ',
-      'log1p ',
       'logSigmoid ',
       'logicalOr ',
       'logicalXor ',
