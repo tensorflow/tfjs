@@ -14,13 +14,14 @@
 // =============================================================================
 
 const express = require('express');
-const {ArgumentParser} = require('argparse');
+const {ArgumentParser, ArgumentDefaultsHelpFormatter} = require('argparse');
 const JSZip = require('jszip');
 const fetch = require('node-fetch');
 const path = require('node:path');
 
-const TFJS_DEBUGGER_BUNDLE_URL =
-    'https://storage.googleapis.com/tfweb/tfjs-debugger-bundle/tfjs-debugger_20221111-105432.zip';
+const DEFAULT_VERSION = '20221111-105432';
+const TFJS_DEBUGGER_BUNDLE_URL_BASE =
+    'https://storage.googleapis.com/tfweb/tfjs-debugger-bundle';
 const EXTS_WITH_ARRAY_BUFFER_CONTENT = ['.ttf'];
 
 const app = express();
@@ -28,6 +29,7 @@ const debuggerStaticFile = {};
 
 function main(args) {
   const port = parseInt(args['port']);
+  const version = args['version'];
 
   app.get('/*', (req, res) => {
     // Remove leading '/'.
@@ -51,15 +53,29 @@ function main(args) {
   app.listen(port, async () => {
     // On server start-up, fetch the zipped debugger bundle and unzip in memory.
     console.log('Fetching tfjs debugger static files...');
-    await fetchAndUnzipTfjsDebuggerBundle();
+    await fetchAndUnzipTfjsDebuggerBundle(version);
     console.log('Done');
     console.log(`Local debugger server started at http://localhost:${
         port}/?bv__0=Local%20build&bv__1=`);
   });
 }
 
-async function fetchAndUnzipTfjsDebuggerBundle() {
-  const resp = await fetch(TFJS_DEBUGGER_BUNDLE_URL);
+async function fetchAndUnzipTfjsDebuggerBundle(version) {
+  let resp;
+  try {
+    resp = await new Promise(resolve => {
+      const fileUrl =
+          `${TFJS_DEBUGGER_BUNDLE_URL_BASE}/tfjs-debugger_${version}.zip`;
+      fetch(fileUrl).then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load bundle: ${fileUrl}`);
+        }
+        resolve(response);
+      })
+    });
+  } catch (e) {
+    console.error(e.message);
+  }
   const buffer = await resp.buffer();
 
   // Read zip objects.
@@ -92,13 +108,19 @@ async function fetchAndUnzipTfjsDebuggerBundle() {
 }
 
 const parser = new ArgumentParser({
-  description: 'Run tfjs-debugger locally that supports loading local packages'
+  description: 'Run tfjs-debugger locally that supports loading local packages',
 });
 
 parser.addArgument('--port', {
   help: 'Server port',
   defaultValue: 9876,
   type: 'int',
+});
+
+parser.addArgument('--version', {
+  help: `The verison of the bundle. Default: ${DEFAULT_VERSION}`,
+  defaultValue: DEFAULT_VERSION,
+  type: 'string',
 });
 
 main(parser.parseArgs());
