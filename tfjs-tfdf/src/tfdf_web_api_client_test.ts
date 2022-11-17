@@ -31,7 +31,7 @@ describe('TFDFWebAPIClient ', () => {
   // sure that all the types defined in tfdf_web_api_client.d.ts actually
   // exist in the loaded JS client.
   it('all exported types are defined', async () => {
-    const tfdfWeb = await tfdfWebApiClient.tfdfWeb;
+    const tfdfWeb = await tfdfWebApiClient.tfdfWeb();
     expect(tfdfWeb.loadModelFromUrl).toBeDefined();
     expect(tfdfWeb.loadModelFromZipBlob).toBeDefined();
   });

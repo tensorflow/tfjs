@@ -116,6 +116,7 @@ import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
@@ -243,6 +244,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   sigmoidConfig,
   sinConfig,
