@@ -188,6 +188,7 @@ py_library(
         ":graph_rewrite_util",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_packaging_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_decision_forests_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
         "//tfjs-converter/python/tensorflowjs:resource_loader",

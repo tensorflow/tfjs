@@ -58,6 +58,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
@@ -88,6 +89,7 @@ import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {rangeConfig} from './kernels/Range';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -169,6 +171,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  isNaNConfig,
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
@@ -199,6 +202,7 @@ const kernelConfigs: KernelConfig[] = [
   prodConfig,
   rangeConfig,
   realDivConfig,
+  reciprocalConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,

@@ -160,6 +160,8 @@ async function main() {
   const namedInputs =
       createInputTensors(inputsData, inputsShape, inputsDtype, inputName);
 
+  // TODO: Change predict and execute to async versions once predictAsync is
+  // supported in TFJS.
   const result = outputName == null ? model.predict(namedInputs) :
                                       model.execute(namedInputs, outputName);
 
@@ -233,4 +235,7 @@ function createInputTensors(
   }, {});
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

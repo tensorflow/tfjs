@@ -24,30 +24,24 @@
     "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
-    "build-ci": "yarn build",
     "build": "bazel build :tfjs-core_pkg",
-    "bundle": "bazel build :tfjs-core_pkg",
-    "bundle-ci": "yarn bundle",
-    "build-npm": "bazel build :tfjs-core_pkg",
-    "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
-    "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-core_pkg.publish",
     "coverage": "bazel coverage :tfjs-core_node_test",
     "test": "bazel test :tests --test_output=all",
     "test-dev": "ibazel test :tests --test_output=all",
-    "test-browser": "bazel test :tfjs-core_test --test_output=all",
-    "test-browser-debug": "bazel run :tfjs-core_test",
-    "test-node": "bazel test :tfjs-core_node_test --test_output=all",
-    "test-node-debug": "bazel run :tfjs-core_node_test --config=debug",
-    "test-async-backends": "bazel test :tfjs-core_async_backends_test --test_output=all",
-    "test-snippets": "bazel test :test_snippets_test --test_output=all"
+    "test-browser": "bazel test :tfjs-core_test --test_output=streamed",
+    "test-browser-debug": "bazel run :tfjs-core_test --test_output=streamed",
+    "test-node": "bazel test :tfjs-core_node_test --test_output=streamed",
+    "test-node-debug": "bazel run :tfjs-core_node_test --config=debug --test_output=streamed",
+    "test-async-backends": "bazel test :tfjs-core_async_backends_test --test_output=streamed",
+    "test-snippets": "bazel test :test_snippets_test --test_output=streamed"
   },
   "dependencies": {
     "@types/long": "^4.0.1",
-    "@types/offscreencanvas": "~2019.3.0",
+    "@types/offscreencanvas": "~2019.7.0",
     "@types/seedrandom": "^2.4.28",
     "@types/webgl-ext": "0.0.30",
-    "@webgpu/types": "0.1.16",
+    "@webgpu/types": "0.1.21",
     "long": "4.0.0",
     "node-fetch": "~2.6.1",
     "seedrandom": "^3.0.5"

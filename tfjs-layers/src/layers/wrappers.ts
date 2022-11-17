@@ -57,13 +57,13 @@ export abstract class Wrapper extends Layer {
     this.layer = args.layer;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     this.built = true;
   }
 
   // TODO(cais): Implement activityRegularizer getter.
 
-  get trainable(): boolean {
+  override get trainable(): boolean {
     // Porting Note: the check of `this.layer` here is necessary due to the
     //   way the `constructor` of this class is written (see Porting Note
     //   above).
@@ -74,7 +74,7 @@ export abstract class Wrapper extends Layer {
     }
   }
 
-  set trainable(value: boolean) {
+  override set trainable(value: boolean) {
     // Porting Note: the check of `this.layer` here is necessary due to the
     //   way the `constructor` of this class is written (see Porting Note
     //   above).
@@ -83,38 +83,38 @@ export abstract class Wrapper extends Layer {
     }
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     return this.layer.trainableWeights;
   }
   // TODO(cais): Implement setter for trainableWeights.
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     return this.layer.nonTrainableWeights;
   }
   // TODO(cais): Implement setter for nonTrainableWeights.
 
-  get updates(): Tensor[] {
+  override get updates(): Tensor[] {
     // tslint:disable-next-line:no-any
     return (this.layer as any)._updates;
   }
 
   // TODO(cais): Implement getUpdatesFor().
 
-  get losses(): RegularizerFn[] {
+  override get losses(): RegularizerFn[] {
     return this.layer.losses;
   }
 
   // TODO(cais): Implement getLossesFor().
 
-  getWeights(): Tensor[] {
+  override getWeights(): Tensor[] {
     return this.layer.getWeights();
   }
 
-  setWeights(weights: Tensor[]): void {
+  override setWeights(weights: Tensor[]): void {
     this.layer.setWeights(weights);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'layer': {
         'className': this.layer.getClassName(),
@@ -126,7 +126,7 @@ export abstract class Wrapper extends Layer {
     return config;
   }
 
-  setFastWeightInitDuringBuild(value: boolean) {
+  override setFastWeightInitDuringBuild(value: boolean) {
     super.setFastWeightInitDuringBuild(value);
     if (this.layer != null) {
       this.layer.setFastWeightInitDuringBuild(value);
@@ -134,7 +134,7 @@ export abstract class Wrapper extends Layer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict): T {
@@ -155,7 +155,7 @@ export class TimeDistributed extends Wrapper {
     this.supportsMasking = true;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     if (inputShape.length < 3) {
       throw new ValueError(
@@ -171,7 +171,7 @@ export class TimeDistributed extends Wrapper {
     super.build(inputShape);
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const childInputShape = [inputShape[0]].concat(inputShape.slice(2));
     const childOutputShape =
@@ -180,7 +180,7 @@ export class TimeDistributed extends Wrapper {
     return [childOutputShape[0], timesteps].concat(childOutputShape.slice(1));
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       // TODO(cais): Add 'training' and 'useLearningPhase' to kwargs.
       inputs = getExactlyOneTensor(inputs);
@@ -286,11 +286,11 @@ export class Bidirectional extends Wrapper {
     this.numConstants = null;
   }
 
-  get trainable(): boolean {
+  override get trainable(): boolean {
     return this._trainable;
   }
 
-  set trainable(value: boolean) {
+  override set trainable(value: boolean) {
     // Porting Note: the check of `this.layer` here is necessary due to the
     //   way the `constructor` of this class is written (see Porting Note
     //   above).
@@ -303,19 +303,19 @@ export class Bidirectional extends Wrapper {
     }
   }
 
-  getWeights(): Tensor[] {
+  override getWeights(): Tensor[] {
     return this.forwardLayer.getWeights().concat(
         this.backwardLayer.getWeights());
   }
 
-  setWeights(weights: Tensor[]): void {
+  override setWeights(weights: Tensor[]): void {
     const numWeights = weights.length;
     const numeightsOver2 = Math.floor(numWeights / 2);
     this.forwardLayer.setWeights(weights.slice(0, numeightsOver2));
     this.backwardLayer.setWeights(weights.slice(numeightsOver2));
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     let layerShapes: Shape|Shape[] =
         this.forwardLayer.computeOutputShape(inputShape);
     if (!(Array.isArray(layerShapes) && Array.isArray(layerShapes[0]))) {
@@ -351,7 +351,7 @@ export class Bidirectional extends Wrapper {
     return generic_utils.singletonOrArray(outputShapes);
   }
 
-  apply(
+  override apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     let initialState: Tensor[]|SymbolicTensor[] =
@@ -433,7 +433,7 @@ export class Bidirectional extends Wrapper {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const initialState = kwargs['initialState'];
 
@@ -489,12 +489,12 @@ export class Bidirectional extends Wrapper {
     });
   }
 
-  resetStates(states?: Tensor|Tensor[]): void {
+  override resetStates(states?: Tensor|Tensor[]): void {
     this.forwardLayer.resetStates();
     this.backwardLayer.resetStates();
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     nameScope(this.forwardLayer.name, () => {
       this.forwardLayer.build(inputShape);
     });
@@ -504,7 +504,7 @@ export class Bidirectional extends Wrapper {
     this.built = true;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
       |Tensor[] {
     if (Array.isArray(mask)) {
       mask = mask[0];
@@ -536,19 +536,19 @@ export class Bidirectional extends Wrapper {
     }
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     return this.forwardLayer.trainableWeights.concat(
         this.backwardLayer.trainableWeights);
   }
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     return this.forwardLayer.nonTrainableWeights.concat(
         this.backwardLayer.nonTrainableWeights);
   }
 
   // TODO(cais): Implement constraints().
 
-  setFastWeightInitDuringBuild(value: boolean) {
+  override setFastWeightInitDuringBuild(value: boolean) {
     super.setFastWeightInitDuringBuild(value);
     if (this.forwardLayer != null) {
       this.forwardLayer.setFastWeightInitDuringBuild(value);
@@ -558,7 +558,7 @@ export class Bidirectional extends Wrapper {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'mergeMode': this.mergeMode,
     };
@@ -569,7 +569,7 @@ export class Bidirectional extends Wrapper {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
     const rnnLayer =

@@ -67,6 +67,12 @@ const RN_REPO: Repo = {
   path: 'tfjs-react-native',
 };
 
+const TFDF_REPO: Repo = {
+  name: 'tfjs-tfdf',
+  identifier: 'tfjs-tfdf',
+  path: 'tfjs-tfdf',
+};
+
 const TFLITE_REPO: Repo = {
   name: 'tfjs-tflite',
   identifier: 'tfjs-tflite',
@@ -173,6 +179,21 @@ async function generateReactNativeNotes() {
       getTagName(RN_REPO.identifier, RN_REPO.startVersion)}`);
 
   await generateNotes([RN_REPO]);
+}
+
+async function generateTfdfNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tfdf');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tfdf');
+
+  // Get tfjs-tfdf start version and end version.
+  TFDF_REPO.startVersion = startVersion;
+  TFDF_REPO.endVersion = endVersion;
+  TFDF_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFDF_REPO.identifier, TFDF_REPO.startVersion)}`);
+
+  await generateNotes([TFDF_REPO]);
 }
 
 async function generateTfliteNotes() {
@@ -300,9 +321,9 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu|automl. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tfdf|tflite|webgpu|automl. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu', 'automl']
+  choices: ['union', 'vis', 'rn', 'tfdf', 'tflite', 'webgpu', 'automl']
 });
 
 const args = parser.parseArgs();
@@ -313,6 +334,8 @@ if (args.project === 'union') {
   generateVisNotes();
 } else if (args.project === 'rn') {
   generateReactNativeNotes();
+} else if (args.project === 'tfdf') {
+  generateTfdfNotes();
 } else if (args.project === 'tflite') {
   generateTfliteNotes();
 } else if (args.project === 'webgpu') {

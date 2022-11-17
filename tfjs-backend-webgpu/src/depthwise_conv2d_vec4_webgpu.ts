@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class DepthwiseConv2DVec4Program implements WebGPUProgram {
@@ -27,7 +27,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workgroupSize: [number, number, number] = [4, 4, 4];
   workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -41,7 +41,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [4, this.workPerThread, 1]);
 
     util.assert(
@@ -82,8 +82,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
 
       const strideHeight = ${this.convInfo.strideHeight};
       const strideWidth = ${this.convInfo.strideWidth};
-      ${getWorkGroupSizeString()}
-      fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
+      ${main()} {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * ${this.workPerThread};

@@ -55,6 +55,14 @@ void MaxPool(const size_t x_id, const size_t batch_size,
   const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
 
+  // XNNPack does not support 1x1 filters for MaxPool
+  if (filter_width == 1 && filter_height == 1) {
+    tfjs::util::identity_pool(x_id, x_buf, out_buf, out_info.size, batch_size,
+                              input_height, input_width, stride_height,
+                              stride_width, input_channels);
+    return;
+  }
+
   xnn_operator_t max_pool_op = nullptr;
 
   const uint32_t flags = 0;

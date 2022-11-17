@@ -19,7 +19,7 @@ import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {AdapterInfo, GPUAdapterInfo} from './adapter_info';
+import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
@@ -113,6 +113,7 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   tensorMap: DataStorage<TensorData>;
   textureManager: TextureManager;
+  thresholdToIncreaseWorkgroups: number;
 
   private activeTimers: TimerNode[];
   private currentCommandEncoder: GPUCommandEncoder;
@@ -147,8 +148,11 @@ export class WebGPUBackend extends KernelBackend {
     this.queue = device.queue;
     this.currentCommandEncoder = null;
     this.currentComputePass = null;
-    this.supportTimeQuery = device.features.has('timestamp-query');
+    this.supportTimeQuery =
+        device.features.has('timestamp-query-inside-passes');
     this.adapterInfo = new AdapterInfo(adapterInfo);
+    this.thresholdToIncreaseWorkgroups =
+        this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
 
     this.bufferManager = new BufferManager(this.device);
     this.textureManager = new TextureManager(this.device);
@@ -177,7 +181,7 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  floatPrecision(): 32 {
+  override floatPrecision(): 32 {
     return 32;
   }
 
@@ -193,7 +197,7 @@ export class WebGPUBackend extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force = false): boolean {
+  override disposeData(dataId: DataId, force = false): boolean {
     if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
       return false;
     }
@@ -225,7 +229,7 @@ export class WebGPUBackend extends KernelBackend {
     return true;
   }
 
-  memory(): WebGPUMemoryInfo {
+  override memory(): WebGPUMemoryInfo {
     return {
       numBytesInGPU: this.bufferManager.numBytesUsed,
       numBytesAllocatedInGPU: this.bufferManager.numBytesAllocated,
@@ -256,7 +260,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   /** Return refCount of a `TensorData`. */
-  refCount(dataId: DataId): number {
+  override refCount(dataId: DataId): number {
     if (this.tensorMap.has(dataId)) {
       const tensorData = this.tensorMap.get(dataId);
       return tensorData.refCount;
@@ -265,7 +269,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   /** Increase refCount of a `TensorData`. */
-  incRef(dataId: DataId): void {
+  override incRef(dataId: DataId): void {
     const tensorData = this.tensorMap.get(dataId);
     tensorData.refCount++;
   }
@@ -278,8 +282,8 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  override write(values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): DataId {
     if (dtype === 'complex64' && values != null) {
       throw new Error(
           `Cannot write to a complex64 dtype. ` +
@@ -290,7 +294,7 @@ export class WebGPUBackend extends KernelBackend {
     return dataId;
   }
 
-  move(
+  override move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
     if (dtype === 'complex64') {
@@ -383,7 +387,7 @@ export class WebGPUBackend extends KernelBackend {
 
   // TODO: Remove once this is fixed:
   // https://github.com/tensorflow/tfjs/issues/1595
-  readSync(dataId: object): backend_util.BackendValues {
+  override readSync(dataId: object): backend_util.BackendValues {
     const tensorData = this.tensorMap.get(dataId);
     const {values} = tensorData;
 
@@ -395,7 +399,7 @@ export class WebGPUBackend extends KernelBackend {
     return values;
   }
 
-  async read(dataId: object): Promise<backend_util.BackendValues> {
+  override async read(dataId: object): Promise<backend_util.BackendValues> {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -437,7 +441,7 @@ export class WebGPUBackend extends KernelBackend {
    * Read tensor to a new GPUBuffer.
    * @param dataId The source tensor.
    */
-  readToGPU(dataId: DataId): GPUData {
+  override readToGPU(dataId: DataId): GPUData {
     const srcTensorData = this.tensorMap.get(dataId);
     const {values, dtype, shape, resourceInfo} = srcTensorData;
 
@@ -489,10 +493,10 @@ export class WebGPUBackend extends KernelBackend {
         TensorBuffer<R, D>;
   }
 
-  async time(f: () => void): Promise<WebGPUTimingInfo> {
+  override async time(f: () => void): Promise<WebGPUTimingInfo> {
     if (!this.supportTimeQuery) {
       console.warn(
-          `This device doesn't support timestamp-query extension. ` +
+          `This device doesn't support timestamp-query-inside-passes extension. ` +
           `Start Chrome browser with flag ` +
           `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
           `Otherwise, zero will be shown for the kernel time when profiling ` +
@@ -710,12 +714,13 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
-    // There are five kinds of uniforms: NAN, shapes, shape strides, program
-    // size, program defined uniforms.
+    // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
+    // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
     if (!program.isFromPixels) {
-      programUniform.push({type: 'float32', data: [NaN]});
+      programUniform.push(
+          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
       const uniformsType = 'int32';
       bufferShapes.map(d => {
@@ -846,11 +851,11 @@ export class WebGPUBackend extends KernelBackend {
                 util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
-  numDataIds() {
+  override numDataIds() {
     return this.tensorMap.numDataIds() - this.tensorDataPendingDisposal.length;
   }
 
-  dispose() {
+  override dispose() {
     if (this.disposed) {
       return;
     }

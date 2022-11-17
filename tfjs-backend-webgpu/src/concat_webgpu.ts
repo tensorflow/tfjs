@@ -27,7 +27,7 @@ export class ConcatProgram implements WebGPUProgram {
   variableNames: string[];
   uniforms = '';
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   offsetLength: number;
 
@@ -37,7 +37,7 @@ export class ConcatProgram implements WebGPUProgram {
     this.variableNames = shapes.map((_, i) => `T${i}`);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
 
     this.offsetLength = shapes.length - 1;

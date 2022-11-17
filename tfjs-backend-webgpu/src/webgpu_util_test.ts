@@ -19,28 +19,28 @@ import {computeDispatch} from './webgpu_util';
 
 describe('webgpu util', () => {
   it('computeDispatch returns dispatch dimensions based on layout of ' +
-         'output dimensions and workGroupSize.',
+         'output dimensions and workgroupSize.',
      () => {
        const layout = {x: [0], y: [1], z: [2, 3]};
        const outputShape = [1, 2, 3, 2];
 
-       const workGroupSize = [2, 2, 1] as [number, number, number];
+       const workgroupSize = [2, 2, 1] as [number, number, number];
 
-       const dispatch = computeDispatch(layout, outputShape, workGroupSize);
+       const dispatch = computeDispatch(layout, outputShape, workgroupSize);
        expect(dispatch).toEqual([1, 1, 6]);
      });
 
   it('computeDispatch returns dispatch dimensions based on layout of ' +
-         'output dimensions, workGroupSize, and elementsPerThread.',
+         'output dimensions, workgroupSize, and elementsPerThread.',
      () => {
        const layout = {x: [0], y: [1], z: [2, 3]};
        const outputShape = [4, 8, 12, 2];
 
-       const workGroupSize = [2, 1, 1] as [number, number, number];
+       const workgroupSize = [2, 1, 1] as [number, number, number];
        const elementsPerThread = [2, 2, 3] as [number, number, number];
 
        const dispatch = computeDispatch(
-           layout, outputShape, workGroupSize, elementsPerThread);
+           layout, outputShape, workgroupSize, elementsPerThread);
        expect(dispatch).toEqual([1, 4, 8]);
      });
 });

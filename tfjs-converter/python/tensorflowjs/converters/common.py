@@ -17,6 +17,7 @@ from tensorflowjs import version
 
 # File name for the indexing JSON file in an artifact directory.
 ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
+ASSETS_DIRECTORY_NAME = 'assets'
 
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
@@ -31,8 +32,10 @@ GENERATED_BY_KEY = 'generatedBy'
 CONVERTED_BY_KEY = 'convertedBy'
 
 SIGNATURE_KEY = 'signature'
+INITIALIZER_SIGNATURE_KEY = 'initializerSignature'
 USER_DEFINED_METADATA_KEY = 'userDefinedMetadata'
 STRUCTURED_OUTPUTS_KEYS_KEY = 'structuredOutputKeys'
+RESOURCE_ID_KEY = 'resourceId'
 
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'

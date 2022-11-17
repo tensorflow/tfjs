@@ -1,0 +1,124 @@
+# Copyright 2022 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# Run rollup to bundle the compiled files for different execution environments.
+tfjs_bundle(
+    name = "tf-tfdf",
+    entry_point = "//tfjs-tfdf/src:index.ts",
+    external = [
+        "@tensorflow/tfjs-core",
+        "@tensorflow/tfjs-converter",
+        "path",
+        "fs",
+    ],
+    globals = {
+        "@tensorflow/tfjs-converter": "tf",
+        "@tensorflow/tfjs-core": "tf",
+    },
+    leave_as_require = [
+        "path",
+        "fs",
+        "crypto",
+    ],
+    umd_name = "tfdf",
+    deps = [
+        "//tfjs-tfdf/src:tfdf_web_api_client_js",
+        "//tfjs-tfdf/src:tfjs-tfdf_lib",
+        "//tfjs-tfdf/src:tfjs-tfdf_src_lib",
+        "//tfjs-tfdf/wasm",
+    ],
+)
+
+# Copy ouput files to dist/.
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        "//tfjs-tfdf/src:tfdf_web_api_client_js",
+        "//tfjs-tfdf/src:tfjs-tfdf_lib",
+        "//tfjs-tfdf/src:tfjs-tfdf_src_lib",
+    ],
+    root = "src",
+)
+
+# Copy bundled files to dist/.
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-tfdf",
+        ":tf-tfdf.es2017",
+        ":tf-tfdf.es2017.min",
+        ":tf-tfdf.fesm",
+        ":tf-tfdf.fesm.min",
+        ":tf-tfdf.min",
+        ":tf-tfdf.node",
+    ],
+)
+
+# Copy wasm related files to dist/.
+copy_to_dist(
+    name = "copy_wasm_files",
+    srcs = [
+        "//tfjs-tfdf/wasm",
+    ],
+    root = "wasm",
+)
+
+# Package for npm.
+pkg_npm(
+    name = "tfjs-tfdf_pkg",
+    package_name = "@tensorflow/tfjs-tfdf",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_src_to_dist",
+        ":copy_wasm_files",
+    ],
+)
+
+# Tests.
+tfjs_web_test(
+    name = "tfjs-tfdf_test",
+    srcs = [
+        "//tfjs-tfdf/src:tfjs-tfdf_test_bundle",
+    ],
+    browsers = [
+        # TODO: Support Safari.
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    static_files = [
+        "//tfjs-tfdf/wasm",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-tfdf_test",
+    ],
+)

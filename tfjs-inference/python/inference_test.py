@@ -103,8 +103,11 @@ class InferenceTest(tf.test.TestCase):
     test_data_dir = os.path.join('../test_data')
     tmp_dir = tempfile.mkdtemp()
 
-    inference.predict(binary_path, model_path, test_data_dir, tmp_dir, tf_output_name_file='non_exist.json')
+    # Throws an error
+    with self.assertRaises(ValueError):
+      inference.predict(binary_path, model_path, test_data_dir, tmp_dir, tf_output_name_file='non_exist.json')
 
+    # ...and does not create an output file.
     with self.assertRaises(FileNotFoundError):
       with open(os.path.join(tmp_dir, 'data.json'), 'rt') as f:
         json.load(f)

@@ -66,8 +66,55 @@ parser.addArgument('--force', {
   help: 'Force a release even if there are release blockers.',
 });
 
+async function getNewVersion(packageName: string,
+                             incrementVersion: (version: string) => string,
+                             ask = true) {
+
+  let newVersion: string | undefined;
+  try {
+    const latestVersion =
+      $(`npm view @tensorflow/${packageName} dist-tags.latest`);
+    newVersion = incrementVersion(latestVersion);
+  } catch (e) {
+    // Suppress errors when guessing the version.
+  }
+
+  if (newVersion != null) {
+    if (!ask) {
+      return newVersion;
+    }
+    newVersion = await question(
+      `New version for ${packageName} (leave empty for ${newVersion}): `)
+      || newVersion;
+    return newVersion;
+  }
+
+  if (!ask) {
+    console.warn('Guessing version 0.0.1 for unpublished package '
+      + `${packageName}`);
+    return '0.0.1';
+  }
+
+  // Repeat until the user answers.
+  while (true) {
+    newVersion = await question(
+      `New Version for ${packageName} (no current version found on npm): `);
+    if (newVersion !== '') {
+      return newVersion;
+    }
+    console.log(`${packageName} has no version on npm. `
+      + 'Please provide an initial version.');
+  }
+}
+
 async function main() {
   const args = parser.parseArgs();
+
+  let incrementVersion: ((version: string) => string) | undefined;
+  if (args.guess_version === 'nightly') {
+    incrementVersion = getNightlyVersion;
+  }
+
   if (args.use_local_changes) {
     // Force dry run when using local files instead of a release branch.
     // This is for debugging.
@@ -87,15 +134,8 @@ async function main() {
   }
 
   // Guess release version from tfjs-core's latest version, with a minor update.
-  const latestVersion = $(`npm view @tensorflow/tfjs-core dist-tags.latest`);
-  let newVersion = getMinorUpdateVersion(latestVersion);
-  if (!args.guess_version) {
-    newVersion = await question('New version for monorepo (leave empty for '
-                                + `${newVersion}): `) || newVersion;
-  }
-  if (args.guess_version === 'nightly') {
-    newVersion = getNightlyVersion(newVersion);
-  }
+  const newVersion = await getNewVersion('tfjs-core',
+      incrementVersion ?? getMinorUpdateVersion, !args.guess_version);
 
   // Populate the versions map with new versions for monorepo packages.
   const versions = new Map<string /* package name */, string /* version */>();
@@ -109,18 +149,8 @@ async function main() {
   // version as the other monorepo packages.
   for (const phase of ALPHA_RELEASE_UNIT.phases) {
     for (const packageName of phase.packages) {
-      const latestVersion =
-        $(`npm view @tensorflow/${packageName} dist-tags.latest`);
-      let newVersion = getPatchUpdateVersion(latestVersion);
-      if(!args.guess_version) {
-        newVersion =
-          await question(`New version for alpha package ${packageName}`
-                         + ` (leave empty for ${newVersion}): `)
-          || newVersion;
-      }
-      if (args.guess_version === 'nightly') {
-        newVersion = getNightlyVersion(newVersion);
-      }
+      const newVersion = await getNewVersion(packageName,
+          incrementVersion ?? getPatchUpdateVersion, !args.guess_version);
       versions.set(packageName, newVersion);
     }
   }

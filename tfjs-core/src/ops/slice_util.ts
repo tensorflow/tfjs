@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../kernel_registry';
+import { TensorInfo } from '../tensor_info';
 import * as util from '../util';
 
 const NEW_AXIS = -2;

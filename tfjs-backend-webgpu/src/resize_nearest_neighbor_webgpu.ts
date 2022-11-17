@@ -25,7 +25,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'adjustHeightWidth : vec2<f32>, roundBase : f32,';
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   halfPixelCenters: boolean;
   size = true;
 
@@ -37,7 +37,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.halfPixelCenters = halfPixelCenters;
     this.shaderKey = `resizeNearest_${halfPixelCenters}`;

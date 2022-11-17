@@ -89,7 +89,7 @@ export class L1L2 extends Regularizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
     return new cls({l1: config['l1'] as number, l2: config['l2'] as number});

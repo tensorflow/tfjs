@@ -138,4 +138,9 @@ describeWithFlags('randomNormal', ALL_ENVS, () => {
     jarqueBeraNormalityTest(await result.data());
     expectArrayInMeanStdRange(await result.data(), 0, 2, EPSILON);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.randomNormal([2, 2.22, 3.33], 0, 2, 'int32', SEED))
+        .toThrow();
+  });
 });
