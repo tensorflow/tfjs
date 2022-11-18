@@ -23,6 +23,7 @@
     "@types/node": "^12.7.5",
     "@types/node-fetch": "~2.1.2",
     "@types/offscreencanvas": "^2019.7.0",
+    "@types/rimraf": "^3.0.2",
     "@types/rollup-plugin-visualizer": "^4.2.1",
     "@types/seedrandom": "^2.4.28",
     "@types/semver": "^7.3.9",

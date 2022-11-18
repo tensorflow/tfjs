@@ -224,7 +224,8 @@ export async function question(questionStr: string): Promise<string> {
  * @returns stdout returned by the executed bash script.
  */
 export function $(cmd: string, env: Record<string, string> = {}) {
-  env = {...shell.env, ...env};
+  env = {...process.env, ...env};
+
   const result = shell.exec(cmd, {silent: true, env});
   if (result.code > 0) {
     throw new Error(`$ ${cmd}\n ${result.stderr}`);

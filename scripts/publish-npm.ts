@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
+import {RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
 import * as fs from 'fs';
 import semverCompare from 'semver/functions/compare';
 import * as child_process from 'child_process';
@@ -33,7 +33,8 @@ import * as child_process from 'child_process';
 import {BAZEL_PACKAGES} from './bazel_packages';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873/';
+const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873';
+const NPM_REGISTRY = 'https://registry.npmjs.org/';
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -43,7 +44,7 @@ parser.addArgument('--git-protocol', {
 
 parser.addArgument('--registry', {
   type: 'string',
-  defaultValue: 'https://registry.npmjs.org/',
+  defaultValue: NPM_REGISTRY,
   help: 'Which registry to install packages from and publish to.',
 });
 
@@ -63,37 +64,30 @@ parser.addArgument(['--dry'], {
       + 'the registry.',
 });
 
-// async function sleep(ms: number) {
-//   return new Promise(resolve => {
-//     setTimeout(resolve, ms);
-//   });
-// }
-
-
-// async function flaky<T>(f: () => Promise<T>, tries = 3, delay = 1000) {
-//   let err: Error | undefined;
-//   for (let i = 0; i < tries; i++) {
-//     try {
-//       return await f();
-//     } catch (e) {
-//       err = e;
-//       console.warn(err);
-//       await sleep(delay);
-//     }
-//   }
-//   throw err;
-// }
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 async function publish(pkg: string, registry: string, otp?: string,
                        build = true) {
   const registryEnv = {
     YARN_REGISTRY: registry,
     NPM_CONFIG_REGISTRY: registry,
+    NPM_REGISTRY: registry, // For npx npm-cli-login
   };
+
   function run(command: string) {
-    const env = {...process.env, ...registryEnv}
-    return child_process.execSync(command, {env}).toString('utf8');
+    //console.log(`${command} █ ${JSON.stringify(registryEnv)}`);
+    return $(command, registryEnv);
   }
+
+  function yarn(args: string) {
+    return run(`yarn --registry '${registry}' ${args}`);
+  }
+
+  //console.log('Registry is ', run('yarn config get registry'));
 
   const startDir = process.cwd();
   shell.cd(pkg);
@@ -103,26 +97,28 @@ async function publish(pkg: string, registry: string, otp?: string,
     throw res;
   }
 
-  if (build) {
+  if (build && !BAZEL_PACKAGES.has(pkg)) {
+    await delay(20_000);
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
-      run('yarn prep-gpu');
+      yarn('prep-gpu');
     }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
     //console.log($('yarn', registryEnv));
-    console.log(run('yarn'));
-   // console.log(await flaky(() => $async('echo $YARN_REGISTRY && yarn', registryEnv)));
+    //console.log(run(`yarn --registry '${registry}' info @tensorflow/tfjs-backend-cpu`));
+    console.log(run(`yarn --registry '${registry}'`));
+    // console.log(await flaky(() => $async('echo $YARN_REGISTRY && yarn', registryEnv)));
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
-    if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
-      run('yarn build-npm');
+    if (pkg === 'tfjs-react-native') {
+      yarn('build-npm');
     } else {
-      run('yarn build-npm for-publish');
+      yarn('build-npm for-publish');
     }
   }
 
@@ -149,24 +145,24 @@ async function publish(pkg: string, registry: string, otp?: string,
       // in publish-npm.
       dashes = '-- -- --';
     }
-    run(`yarn publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
+    yarn(`publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
   } else {
     let login = '';
     if (registry === VERDACCIO_REGISTRY) {
+      // If publishing to verdaccio, we must log in before every command.
       login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
     }
-    // run('npx npm-cli-login -u user -p password -e user@example.com'
-    //     + ` -r ${registry} && npm publish ${otpFlag} --tag=${tag} --force`);
 
-    // if (pkg.startsWith('tfjs-node')) {
-    //   // Special case for tfjs-node* because it must publish the node addon
-    //   // as well.
-    //   run(`${login}yarn publish-npm ${otpFlag}`);
-    // } else {
-    run(`${login}npm publish ${otpFlag}`);
-    // }
+    if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
+      // Special case for tfjs-node(-gpu), which must upload the node addon
+      // to GCP as well. Only do this when publishing to NPM.
+      yarn(`yarn --registry '${registry}' build-and-upload-addon publish`);
+    }
+
+    // Publish the package to the registry.
+    run(`${login}npm --registry '${registry}' publish ${otpFlag}`);
   }
-  console.log(`Yay! Published ${pkg} to npm.`);
+  console.log(`Yay! Published ${pkg} to ${registry}.`);
 
   shell.cd(startDir);
 }
