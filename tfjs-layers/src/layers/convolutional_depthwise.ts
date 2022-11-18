@@ -101,7 +101,7 @@ export declare interface DepthwiseConv2DLayerArgs extends BaseConvLayerArgs {
   depthwiseConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Regulzarizer function for the depthwise kernel matrix.
+   * Regularizer function for the depthwise kernel matrix.
    */
   depthwiseRegularizer?: RegularizerIdentifier|Regularizer;
 }
@@ -126,7 +126,7 @@ export class DepthwiseConv2D extends BaseConv {
     this.depthwiseRegularizer = getRegularizer(args.depthwiseRegularizer);
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     if (inputShape.length < 4) {
       throw new ValueError(
@@ -158,7 +158,7 @@ export class DepthwiseConv2D extends BaseConv {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
       let outputs = depthwiseConv2d(
@@ -175,7 +175,7 @@ export class DepthwiseConv2D extends BaseConv {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const rows =
         this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
@@ -196,7 +196,7 @@ export class DepthwiseConv2D extends BaseConv {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     config['depthMultiplier'] = this.depthMultiplier;
     config['depthwiseInitializer'] =

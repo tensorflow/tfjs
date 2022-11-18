@@ -29,7 +29,7 @@
     "expo-gl-cpp": "^7.0.0",
     "expo-image-manipulator": "^6.0.0",
     "jasmine-core": "^3.4.0",
-    "jpeg-js": "^0.4.3",
+    "jpeg-js": "^0.4.4",
     "react": "16.8.3",
     "react-native": "0.59.10",
     "react-native-fs": "2.14.1",
@@ -56,7 +56,7 @@
     "ts-node": "~8.8.2",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
-    "typescript": "3.5.3",
+    "typescript": "4.4.2",
     "webdriverio": "^5.13.2"
   },
   "jest": {

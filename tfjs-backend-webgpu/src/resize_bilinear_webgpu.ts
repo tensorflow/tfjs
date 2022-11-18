@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
@@ -25,7 +25,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'adjustHeightWidth : vec2<f32>, halfPixelCenters : f32,';
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(
@@ -36,14 +36,14 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = `resizeBilinear`;
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
           let b = coords[0];

@@ -17,4 +17,4 @@
 # Exit the script on any command with non 0 return code
 set -e
 
-yarn bazel build tfjs-converter/python:python3_wheel tfjs-converter/python:python2_wheel
+yarn bazel build tfjs-converter/python:python3_wheel

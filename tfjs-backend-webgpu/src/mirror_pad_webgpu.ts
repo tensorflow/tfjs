@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MirrorPadProgram implements WebGPUProgram {
@@ -25,7 +25,7 @@ export class MirrorPadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   offset: number;
   size = true;
@@ -37,7 +37,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.xShape = xShape;
     paddings.map((_, i) => {
@@ -66,7 +66,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let start = ${dtype}(${start});
           let end = ${dtype}(${end});

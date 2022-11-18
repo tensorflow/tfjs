@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BatchNormProgram implements WebGPUProgram {
@@ -27,7 +27,7 @@ export class BatchNormProgram implements WebGPUProgram {
   variableNames: string[];
   uniforms = 'varianceEpsilon : f32,';
   // This is an experimental value.
-  workGroupSize: [number, number, number] = [128, 1, 1];
+  workgroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;
   scaleShape: number[]|null;
   varianceEpsilon: number;
@@ -42,7 +42,7 @@ export class BatchNormProgram implements WebGPUProgram {
     this.outputShape = xShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     if (offsetShape != null) {
       backend_util.assertAndGetBroadcastShape(xShape, offsetShape);
@@ -69,7 +69,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size)
         {
           let xValue = getXByOutputIndex(index);

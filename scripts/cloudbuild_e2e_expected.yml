@@ -35,14 +35,14 @@ steps:
       - yarn-common
   - name: gcr.io/learnjs-174218/release
     id: bazel-tests
+    waitFor:
+      - yarn-common
     entrypoint: bash
     args:
       - ./scripts/run_bazel_ci_tests.sh
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
       - NIGHTLY=$_NIGHTLY
-    waitFor:
-      - yarn-common
     secretEnv:
       - BROWSERSTACK_KEY
   - name: gcr.io/learnjs-174218/release
@@ -62,35 +62,6 @@ steps:
       - '--bazel_options=--config=ci'
     waitFor:
       - yarn-link-package
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-backend-wasm
-    entrypoint: yarn
-    id: yarn-tfjs-backend-wasm
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-link-package-build
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-backend-wasm
-    entrypoint: bash
-    id: build-tfjs-backend-wasm
-    args:
-      - ./scripts/build-ci.sh
-    waitFor:
-      - yarn-tfjs-backend-wasm
-      - yarn-common
-      - yarn-link-package-build
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-backend-wasm
-    entrypoint: yarn
-    id: lint-tfjs-backend-wasm
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-backend-wasm
-      - yarn-common
-      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
@@ -200,9 +171,6 @@ steps:
       - build-tfjs-node
       - lint-tfjs-node
       - ensure-cpu-gpu-packages-align-tfjs-node
-      - yarn-tfjs-backend-wasm
-      - build-tfjs-backend-wasm
-      - lint-tfjs-backend-wasm
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
@@ -226,15 +194,12 @@ steps:
       - build-tfjs-node
       - lint-tfjs-node
       - ensure-cpu-gpu-packages-align-tfjs-node
-      - yarn-tfjs-backend-wasm
-      - build-tfjs-backend-wasm
-      - lint-tfjs-backend-wasm
 secrets:
   - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
     secretEnv:
       BROWSERSTACK_KEY: >-
         CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 3600s
+timeout: 7200s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''

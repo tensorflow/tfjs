@@ -33,7 +33,7 @@ import {op} from '../operation';
  *                                           tf.tensor1d([0, 0], 'int32'));
  * result1.print(); // [[0, 0, 0, 0]]
  *
- * // Select two rows, two segment.
+ * // Select two rows, two segments.
  * const result2 = tf.sparse.sparseSegmentSum(c,
  *                                           tf.tensor1d([0, 1], 'int32'),
  *                                           tf.tensor1d([0, 1], 'int32'));

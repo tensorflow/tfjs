@@ -29,7 +29,7 @@ class ResourceLoaderTest(unittest.TestCase):
     files = resource_loader.list_dir('op_list')
     self.assertGreater(len(files), 0)
     for filename in files:
-      self.assertTrue(filename.endswith('.json'))
+      self.assertTrue(filename == 'BUILD' or filename.endswith('.json'))
 
   def testReadingFileInOpList(self):
     file_path = path.join('op_list', 'arithmetic.json')

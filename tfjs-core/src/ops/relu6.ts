@@ -33,7 +33,7 @@ import {op} from './operation';
  * x.relu6().print();  // or tf.relu6(x)
  * ```
  * @param x The input tensor. If the dtype is `bool`, the output dtype will be
- *     `int32'.
+ *     `int32`.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */

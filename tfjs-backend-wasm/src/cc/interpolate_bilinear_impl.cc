@@ -37,7 +37,8 @@ void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
                           float y_ind, float width_scale, float x1, float x2) {
   float top_ind = floor(y_ind);
   float image_height_m1_f = image_height_m1;
-  float bottom_ind = std::min(image_height_m1_f, ceil(y_ind));
+  float bottom_ind = std::min(image_height_m1_f,
+                              static_cast<float>(ceil(y_ind)));
   float y_lerp = y_ind - top_ind;
 
   for (size_t x = 0; x < crop_width; ++x) {
@@ -54,7 +55,8 @@ void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
 
     float left_ind = floor(x_ind);
     float image_width_m1_f = image_width_m1;
-    float right_ind = std::min(image_width_m1_f, ceil(x_ind));
+    float right_ind = std::min(image_width_m1_f,
+                               static_cast<float>(ceil(x_ind)));
     float x_lerp = x_ind - left_ind;
 
     for (size_t c = 0; c < num_channels; ++c) {

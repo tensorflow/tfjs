@@ -509,7 +509,7 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  */
 async function setEnvFlags(flagConfig) {
   if (flagConfig == null) {
-    return;
+    return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
         `An object is expected, while a(n) ${typeof flagConfig} is found.`);
@@ -536,11 +536,11 @@ async function setEnvFlags(flagConfig) {
   // TODO: The following backend rebuild logics can be implemented in `setHook`
   // when registering these flags.
   if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
-    await resetBackend('wasm');
+    return await resetBackend('wasm');
   }
 
   if ('WEBGL_VERSION' in flagConfig) {
-    await resetBackend('webgl');
+    return await resetBackend('webgl');
   }
 }
 
@@ -564,6 +564,36 @@ async function resetBackend(backendName) {
   }
 
   if (currentBackend === backendName) {
-    await tf.setBackend(backendName);
+    const isSuccessful = await tf.setBackend(backendName);
+    if (!isSuccessful) {
+      showMsg(`Failed to set backend ${backendName}.`);
+      return false;
+    }
   }
+
+  return true;
+}
+
+/**
+ * Get the renderer info from the WebGL backend.
+ */
+async function getRendererInfo() {
+  const curBackendName = tf.getBackend();
+  let webglRenderer;
+  try {
+    let webglBackend = tf.findBackend('webgl');
+    if (webglBackend == null) {
+      if (!(await tf.setBackend('webgl'))) {
+        throw new Error('Failed to initialize WebGL backend.');
+      }
+      webglBackend = tf.backend();
+    }
+    const gl = webglBackend.gpgpu.gl;
+    const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    webglRenderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+  } catch (e) {
+    webglRenderer = 'NA';
+  }
+  await tf.setBackend(curBackendName);
+  return webglRenderer;
 }

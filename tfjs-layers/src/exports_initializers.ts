@@ -61,7 +61,7 @@ export function randomNormal(args: RandomNormalArgs): Initializer {
 }
 
 /**
- * Initializer that generates random values initialized to a truncated normal.
+ * Initializer that generates random values initialized to a truncated normal
  * distribution.
  *
  * These values are similar to values from a `RandomNormal` except that values

@@ -19,6 +19,7 @@ import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
 import {sizeFromShape} from '../util';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {op} from './operation';
 
@@ -36,6 +37,7 @@ import {op} from './operation';
 function rand_<R extends Rank>(
     shape: ShapeMap[R], randFunction: () => number,
     dtype?: DataType): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   const size = sizeFromShape(shape);
   let values = null;
   if (dtype == null || dtype === 'float32') {

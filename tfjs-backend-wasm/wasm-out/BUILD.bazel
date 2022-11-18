@@ -1,0 +1,118 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("//tfjs-backend-wasm/scripts:create_worker_module.bzl", "create_worker_module")
+load("//tfjs-backend-wasm/scripts:patch_threaded_simd_module.bzl", "patch_threaded_simd_module")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:get_extension.bzl", "get_extension")
+
+package(default_visibility = ["//visibility:public"])
+
+copy_to_dist(
+    name = "copy_wasm",
+    srcs = [
+        "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm",
+    ],
+    dest_dir = ".",
+    root = "../src/cc/tfjs-backend-wasm",
+)
+
+copy_to_dist(
+    name = "copy_wasm_simd",
+    srcs = [
+        "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd",
+    ],
+    dest_dir = ".",
+    root = "../src/cc/tfjs-backend-wasm-simd",
+)
+
+# Copying the threaded wasm output is more complicated because postprocessing
+# of the output is required.
+get_extension(
+    name = "wasm_threaded_js",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    include = [
+        ".js",
+    ],
+    exclude = [
+        ".worker.js",
+        ".fetch.js",
+    ],
+)
+
+patch_threaded_simd_module(
+    name = "patch_threaded_simd_module",
+    out_file = "tfjs-backend-wasm-threaded-simd.js",
+    threaded_simd_file = ":wasm_threaded_js",
+)
+
+get_extension(
+    name = "wasm_threaded_worker",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    include = [
+        ".worker.js",
+    ],
+)
+
+create_worker_module(
+    name = "create_worker_module",
+    cjs = True,
+    out_file = "tfjs-backend-wasm-threaded-simd.worker.js",
+    worker_file = ":wasm_threaded_worker",
+)
+
+get_extension(
+    name = "wasm_threaded_unpatched",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    # Exclude all the files that were patched.
+    exclude = [
+        "tfjs-backend-wasm-threaded-simd.js",
+        "tfjs-backend-wasm-threaded-simd.worker.js",
+    ],
+)
+
+copy_to_dist(
+    name = "copy_wasm_threaded",
+    srcs = [
+        ":wasm_threaded_unpatched",
+    ],
+    dest_dir = ".",
+    root = "../src/cc/tfjs-backend-wasm-threaded-simd",
+)
+
+filegroup(
+    name = "wasm_types",
+    srcs = glob(["*.d.ts"]),
+)
+
+# This target selects the file extensions that should end up in the
+# wasm-out directory in the npm package.
+get_extension(
+    name = "wasm_for_dist",
+    srcs = [
+        ":copy_wasm",
+        ":copy_wasm_simd",
+        ":copy_wasm_threaded",
+        ":create_worker_module",
+        ":patch_threaded_simd_module",
+    ],
+    include = [
+        ".js",
+        ".cjs",
+        ".wasm",
+    ],
+    exclude = [
+        ".fetch.js",
+        ".debug.wasm",
+    ],
+)
+
+js_library(
+    name = "wasm-out",
+    package_name = "@tensorflow/tfjs-backend-wasm/wasm-out",
+    srcs = [
+        ":wasm_for_dist",
+        ":wasm_types",
+    ],
+    deps = [
+        "@npm//@types/emscripten",
+    ],
+)

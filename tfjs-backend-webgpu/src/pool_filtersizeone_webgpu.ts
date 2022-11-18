@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
@@ -26,7 +26,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = `stride : vec2<i32>,`;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -34,14 +34,14 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = 'poolWithFilterSizeEqualsOne';
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           let batch = coords[0];

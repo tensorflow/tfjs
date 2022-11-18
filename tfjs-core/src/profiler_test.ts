@@ -43,7 +43,7 @@ class TestBackendTimer implements BackendTimer {
 }
 
 class TestLogger extends Logger {
-  logKernelProfile(
+  override logKernelProfile(
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 

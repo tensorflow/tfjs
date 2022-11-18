@@ -18,7 +18,8 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import { NamedTensorInfoMap } from './kernel_registry';
+import { TensorInfo } from './tensor_info';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
 import {DataType, PixelData} from './types';
@@ -627,6 +628,7 @@ export interface OneHotAttrs {
   depth: number;
   onValue: number;
   offValue: number;
+  dtype: DataType;
 }
 
 export const Pack = 'Pack';
@@ -656,6 +658,26 @@ export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ProdAttrs {
   axis: number|number[];
   keepDims: boolean;
+}
+
+export const RaggedGather = 'RaggedGather';
+export type RaggedGatherInputs = {
+  paramsNestedSplits: TensorInfo[]
+}&Pick<NamedTensorInfoMap, 'paramsDenseValues'|'indices'>;
+export interface RaggedGatherAttrs {
+  outputRaggedRank: number;
+}
+
+export const RaggedRange = 'RaggedRange';
+export type RaggedRangeInputs =
+    Pick<NamedTensorInfoMap, 'starts'|'limits'|'deltas'>;
+
+export const RaggedTensorToTensor = 'RaggedTensorToTensor';
+export type RaggedTensorToTensorInputs =
+    Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
+    {rowPartitionTensors: TensorInfo[]};
+export interface RaggedTensorToTensorAttrs {
+  rowPartitionTypes: string[];
 }
 
 export const Range = 'Range';

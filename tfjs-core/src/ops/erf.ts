@@ -27,7 +27,7 @@ import {cast} from './cast';
 import {op} from './operation';
 
 /**
- * Computes gause error function of the input `tf.Tensor` element-wise:
+ * Computes Gauss error function of the input `tf.Tensor` element-wise:
  * `erf(x)`
  *
  * ```js

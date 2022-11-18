@@ -43,6 +43,7 @@ filegroup(
 make_version_test_file(
     name = "version_test",
     package_json = "//tfjs-core:package.json",
+    version_name = "version_core",
 )
 
 filegroup(
@@ -72,8 +73,15 @@ ts_library(
     ),
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
-        "@npm//@types",
+        "@npm//@types/jasmine",
+        "@npm//@types/long",
+        "@npm//@types/node",
+        "@npm//@types/offscreencanvas",
+        "@npm//@types/seedrandom",
         "@npm//@webgpu/types",
+        "@npm//jasmine",
+        "@npm//long",
+        "@npm//node-fetch",
         "@npm//seedrandom",
     ],
 )
@@ -195,7 +203,10 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ],
@@ -222,6 +233,7 @@ ts_library(
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "@npm//@types/offscreencanvas",
     ],
 )
 
@@ -231,7 +243,10 @@ tfjs_web_test(
         "bs_chrome_mac",
         # Omit Firefox since it does not support offscreen canvas.
         "bs_safari_mac",
-        "bs_ios_11",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ],

@@ -15,47 +15,46 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
+  dispatch: [number, number, number];
+  dispatchLayout: {x: number[]};
+  isFromPixels = true;
   outputShape: number[] = [0];
   shaderKey: string;
-  workPerThread: number;
-  dispatchLayout: {x: number[]};
+  importVideo: boolean;
   variableNames: string[] = [];
-  dispatch: [number, number, number];
-  workGroupSize: [number, number, number] =
+  workgroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
 
-  useImport: boolean;
-
-  constructor(outputShape: number[], useImport = false) {
+  constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
+        [numChannels, 1, 1]);
 
-    this.useImport = useImport;
-    this.shaderKey = `fromPixels_${this.useImport}`;
+    this.importVideo = importVideo;
+    this.shaderKey = `fromPixels_${this.importVideo}`;
   }
 
   getUserCode(): string {
-    const textureLoad = this.useImport ?
+    const textureLoad = this.importVideo ?
         'textureLoad(src, vec2<i32>(coords.yx));' :
         'textureLoad(src, vec2<i32>(coords.yx), 0)';
-    const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
+    const textureType =
+        this.importVideo ? 'texture_external' : 'texture_2d<f32>';
     return `
       @binding(1) @group(0) var src: ${textureType};
-
-      ${getMainHeaderAndGlobalIndexString()}
-        let flatIndexBase = index * uniforms.numChannels;
-        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
-          let flatIndex = flatIndexBase + i;
-          if (flatIndex < uniforms.size) {
-            let coords = getCoordsFromIndex(flatIndexBase);
-            let values = ${textureLoad};
-            result[flatIndex] = i32(floor(255.0 * values[i]));
+      ${main('index')} {
+        let flatIndex = index * uniforms.numChannels;
+        if (flatIndex < uniforms.size) {
+          let coords = getCoordsFromIndex(flatIndex);
+          let values = ${textureLoad};
+          for (var i = 0; i < uniforms.numChannels; i = i + 1) {
+            result[flatIndex + i] = i32(floor(255.0 * values[i]));
           }
         }
       }

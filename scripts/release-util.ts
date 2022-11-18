@@ -109,6 +109,11 @@ export const REACT_NATIVE_PHASE: Phase = {
   deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
+export const TFDF_PHASE: Phase = {
+  packages: ['tfjs-tfdf'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-converter']
+};
+
 export const TFLITE_PHASE: Phase = {
   packages: ['tfjs-tflite'],
   deps: ['tfjs-core', 'tfjs-backend-cpu']
@@ -122,8 +127,8 @@ export const AUTOML_PHASE: Phase = {
 export const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
   deps: [
-    'tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native', 'tfjs-tflite',
-    '@tensorflow-models/tasks'
+    'tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native', 'tfjs-tfdf',
+    'tfjs-tflite', '@tensorflow-models/tasks'
   ],
   scripts: {'tfjs-website': {'after-yarn': ['yarn prep && yarn build-prod']}},
   leaveVersion: true,
@@ -157,7 +162,7 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 // replace 'link' dependencies with the new monorepo version.
 export const ALPHA_RELEASE_UNIT: ReleaseUnit = {
   name: 'alpha-monorepo-packages',
-  phases: [WEBGPU_PHASE],
+  phases: [TFDF_PHASE, WEBGPU_PHASE],
 };
 
 export const VIS_RELEASE_UNIT: ReleaseUnit = {
@@ -187,8 +192,12 @@ export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
 };
 
 export const RELEASE_UNITS: ReleaseUnit[] = [
-  TFJS_RELEASE_UNIT, ALPHA_RELEASE_UNIT, VIS_RELEASE_UNIT,
-  REACT_NATIVE_RELEASE_UNIT, TFLITE_RELEASE_UNIT, AUTOML_RELEASE_UNIT,
+  TFJS_RELEASE_UNIT,
+  ALPHA_RELEASE_UNIT,
+  VIS_RELEASE_UNIT,
+  REACT_NATIVE_RELEASE_UNIT,
+  TFLITE_RELEASE_UNIT,
+  AUTOML_RELEASE_UNIT,
   WEBSITE_RELEASE_UNIT,
 ];
 
@@ -211,9 +220,7 @@ export async function question(questionStr: string): Promise<string> {
 export function $(cmd: string) {
   const result = shell.exec(cmd, {silent: true});
   if (result.code > 0) {
-    console.log('$', cmd);
-    console.log(result.stderr);
-    process.exit(1);
+    throw new Error(`$ ${cmd}\n ${result.stderr}`);
   }
   return result.stdout.trim();
 }
@@ -304,12 +311,12 @@ export async function updateDependency(
 // than `updateDependency`, it does not rely on published versions, instead it
 // uses a map from packageName to newVersion to update the versions.
 export function updateTFJSDependencyVersions(
-  pkg: string, versions: Map<string, string>,
-  depsToReplace = [...versions.keys()]): string {
-
+    pkg: string, versions: Map<string, string>,
+    depsToReplace = [...versions.keys()]): string {
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
-  const parsedPkg = JSON.parse(`${pkg}`);JSON.parse(pkg);
+  const parsedPkg = JSON.parse(`${pkg}`);
+  JSON.parse(pkg);
   for (const dep of depsToReplace) {
     const newVersion = versions.get(dep);
     if (!newVersion) {
@@ -319,14 +326,14 @@ export function updateTFJSDependencyVersions(
     let version = '';
     const depNpmName = `@tensorflow/${dep}`;
     if (parsedPkg['dependencies'] != null &&
-      parsedPkg['dependencies'][depNpmName] != null) {
+        parsedPkg['dependencies'][depNpmName] != null) {
       version = parsedPkg['dependencies'][depNpmName];
     } else if (
-      parsedPkg['peerDependencies'] != null &&
+        parsedPkg['peerDependencies'] != null &&
         parsedPkg['peerDependencies'][depNpmName] != null) {
       version = parsedPkg['peerDependencies'][depNpmName];
     } else if (
-      parsedPkg['devDependencies'] != null &&
+        parsedPkg['devDependencies'] != null &&
         parsedPkg['devDependencies'][depNpmName] != null) {
       version = parsedPkg['devDependencies'][depNpmName];
     }
@@ -341,8 +348,8 @@ export function updateTFJSDependencyVersions(
     const versionLatest = relaxedVersionPrefix + newVersion;
 
     pkg = `${pkg}`.replace(
-      new RegExp(`"${depNpmName}": "${version}"`, 'g'),
-      `"${depNpmName}": "${versionLatest}"`);
+        new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+        `"${depNpmName}": "${versionLatest}"`);
   }
   return pkg;
 }
@@ -420,6 +427,15 @@ export function createPR(
   console.log();
 }
 
+/**
+ * Get all GitHub issues tagged as release blockers.
+ *
+ * @return A string of all the issues. Empty if there are none.
+ */
+export function getReleaseBlockers() {
+  return $('hub issue -l "RELEASE BLOCKER"');
+}
+
 // Computes the default updated version (does a patch version update).
 export function getPatchUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
@@ -440,4 +456,12 @@ export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
   return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
+}
+
+// Computes the next nightly version.
+export function getNightlyVersion(version: string): string {
+  // Format date to YYYYMMDD.
+  const date =
+      new Date().toISOString().split('T')[0].replace(new RegExp('-', 'g'), '');
+  return `${version}-dev.${date}`;
 }

@@ -36,7 +36,7 @@ export interface BertNLClassifierOptions {
  * src/types for more info.
  */
 export class BertNLClassifier extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryBertNLClassifier) {
+  constructor(protected override instance: TaskLibraryBertNLClassifier) {
     super(instance);
   }
 

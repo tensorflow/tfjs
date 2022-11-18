@@ -27,7 +27,7 @@ import {cloneTensor, getParamValue, getTensor} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Const': {
           return tensorMap[node.name];
@@ -52,22 +52,22 @@ export const executeOp: InternalOpExecutor =
               (getParamValue('x', node, tensorMap, context) as Tensor);
           return [cloneTensor(snapshot)];
         case 'Shape':
-          return [tfOps.tensor1d(
+          return [ops.tensor1d(
               (getParamValue('x', node, tensorMap, context) as Tensor).shape,
               'int32')];
         case 'ShapeN':
           return (getParamValue('x', node, tensorMap, context) as Tensor[])
-              .map((t: Tensor) => tfOps.tensor1d(t.shape));
+              .map((t: Tensor) => ops.tensor1d(t.shape));
         case 'Size':
-          return [tfOps.scalar(
+          return [ops.scalar(
               (getParamValue('x', node, tensorMap, context) as Tensor).size,
               'int32')];
         case 'Rank':
-          return [tfOps.scalar(
+          return [ops.scalar(
               (getParamValue('x', node, tensorMap, context) as Tensor).rank,
               'int32')];
         case 'NoOp':
-          return [tfOps.scalar(1)];
+          return [ops.scalar(1)];
         case 'Print':
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
           const data =

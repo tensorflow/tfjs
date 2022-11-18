@@ -22,6 +22,7 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {op} from './operation';
 import * as scatter_nd_util from './scatter_nd_util';
@@ -48,6 +49,7 @@ import * as scatter_nd_util from './scatter_nd_util';
 function scatterND_<R extends Rank>(
     indices: Tensor|TensorLike, updates: Tensor|TensorLike,
     shape: ShapeMap[R]): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   const $indices = convertToTensor(indices, 'indices', 'scatterND', 'int32');
   const $updates = convertToTensor(updates, 'updates', 'scatterND');
   scatter_nd_util.validateInput($updates, $indices, shape);

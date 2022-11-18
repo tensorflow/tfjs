@@ -21,6 +21,7 @@ import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import { ResourceManager } from '../../executor/resource_manager';
 import {InternalOpAsyncExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
@@ -50,7 +51,8 @@ function nmsParams(
 
 export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<Tensor[]> => {
+    context: ExecutionContext, resourceManager: ResourceManager,
+    ops = tfOps): Promise<Tensor[]> => {
   switch (node.op) {
     case 'NonMaxSuppressionV5': {
       const {
@@ -62,7 +64,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
         softNmsSigma
       } = nmsParams(node, tensorMap, context);
 
-      const result = await tfOps.image.nonMaxSuppressionWithScoreAsync(
+      const result = await ops.image.nonMaxSuppressionWithScoreAsync(
           boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
           scoreThreshold, softNmsSigma);
 
@@ -76,7 +78,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('padToMaxOutputSize', node, tensorMap, context) as
           boolean;
 
-      const result = await tfOps.image.nonMaxSuppressionPaddedAsync(
+      const result = await ops.image.nonMaxSuppressionPaddedAsync(
           boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
           scoreThreshold, padToMaxOutputSize);
 
@@ -87,20 +89,20 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const {boxes, scores, maxOutputSize, iouThreshold, scoreThreshold} =
           nmsParams(node, tensorMap, context);
 
-      return [await tfOps.image.nonMaxSuppressionAsync(
+      return [await ops.image.nonMaxSuppressionAsync(
           boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
           scoreThreshold)];
     }
     case 'Where': {
-      const condition = tfOps.cast(
+      const condition = ops.cast(
           (getParamValue('condition', node, tensorMap, context) as Tensor),
           'bool');
-      const result = [await tfOps.whereAsync(condition)];
+      const result = [await ops.whereAsync(condition)];
       condition.dispose();
       return result;
     }
     case 'ListDiff': {
-      return tfOps.setdiff1dAsync(
+      return ops.setdiff1dAsync(
           getParamValue('x', node, tensorMap, context) as Tensor,
           getParamValue('y', node, tensorMap, context) as Tensor);
     }

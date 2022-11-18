@@ -16,11 +16,13 @@
  */
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import {KARMA_SERVER, REGRESSION} from './constants';
+import * as tfc from '@tensorflow/tfjs-core';
 
 const DATA_URL = 'metadata';
 
 describe(`${REGRESSION} Metadata`, () => {
   it('can load metadata.', async () => {
+    await tfc.ready();
     const model = await tfconverter.loadGraphModel(
         `${KARMA_SERVER}/${DATA_URL}/model.json`);
     const metadata = {metadata1: {a: 1}, metadata2: {label1: 0, label2: 1}};

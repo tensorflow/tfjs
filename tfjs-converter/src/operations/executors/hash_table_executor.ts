@@ -31,15 +31,24 @@ export const executeOp: InternalOpAsyncExecutor = async(
   switch (node.op) {
     case 'HashTable':
     case 'HashTableV2': {
-      const keyDType =
-          getParamValue('keyDType', node, tensorMap, context) as DataType;
-      const valueDType =
-          getParamValue('valueDType', node, tensorMap, context) as DataType;
+      const existingTableHandle =
+          resourceManager.getHashTableHandleByName(node.name);
+      // Table is shared with initializer.
+      if (existingTableHandle != null) {
+        return [existingTableHandle];
+      } else {
+        const keyDType =
+            getParamValue('keyDType', node, tensorMap, context) as DataType;
+        const valueDType =
+            getParamValue('valueDType', node, tensorMap, context) as DataType;
 
-      const hashTable = new HashTable(keyDType, valueDType);
-      resourceManager.addHashTable(node.name, hashTable);
-      return [hashTable.handle];
+        const hashTable = new HashTable(keyDType, valueDType);
+        resourceManager.addHashTable(node.name, hashTable);
+        return [hashTable.handle];
+      }
     }
+    case 'InitializeTable':
+    case 'InitializeTableV2':
     case 'LookupTableImport':
     case 'LookupTableImportV2': {
       const handle = getParamValue(

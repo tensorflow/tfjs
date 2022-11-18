@@ -24,7 +24,7 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
+import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
@@ -187,10 +187,7 @@ export class HTTPRequest implements IOHandler {
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
 
-    const weightSpecs = [];
-    for (const entry of weightsManifest) {
-      weightSpecs.push(...entry.weights);
-    }
+    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
     const urlPromises: Array<Promise<string>> = [];
@@ -301,7 +298,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  * https://gist.github.com/dsmilkov/1b6046fd6132d7408d5257b0976f7864
  * implements a server based on [flask](https://github.com/pallets/flask) that
  * can receive the request. Upon receiving the model artifacts via the requst,
- * this particular server reconsistutes instances of [Keras
+ * this particular server reconstitutes instances of [Keras
  * Models](https://keras.io/models/model/) in memory.
  *
  *

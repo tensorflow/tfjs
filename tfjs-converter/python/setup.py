@@ -91,6 +91,7 @@ setuptools.setup(
         'tensorflowjs.converters.graph_rewrite_util',
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',
+        'tensorflowjs.converters.jax_conversion',
         'tensorflowjs.converters.tf_saved_model_conversion_v2',
         'tensorflowjs.converters.wizard',
     ],

@@ -737,6 +737,90 @@ describeWithFlags('slice and memory usage', WEBGL_ENVS, () => {
     b.dispose();
     expect(getMem().numBytesInGPU).toBe(0);
   });
+
+  it('slice a tensor twice, read it and check memory', async () => {
+    const getMem = () => tf.memory() as WebGLMemoryInfo;
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Lazy upload won't increase gpu memory.
+    const a = tf.tensor([2, 3]);
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Upload a to the GPU by running an op.
+    a.square().dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Slicing does not allocate new memory.
+    const b = a.slice(0);
+    const c = a.slice(0);
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Download a to the CPU but the texture remains on GPU
+    // since b points to it.
+    await a.data();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose a, but the texture should still remain on the GPU
+    // since b points to it.
+    a.dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose b, but the texture should still remain on the GPU
+    // since c points to it.
+    b.dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Download c to the CPU but the texture remains on GPU
+    // since c points to it.
+    await c.data();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose c and expect 0 memory on GPU.
+    c.dispose();
+    expect(getMem().numBytesInGPU).toBe(0);
+  });
+
+  it('slice a sliced tensor, read it and check memory', async () => {
+    const getMem = () => tf.memory() as WebGLMemoryInfo;
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Lazy upload won't increase gpu memory.
+    const a = tf.tensor([2, 3]);
+    expect(getMem().numBytesInGPU).toBe(0);
+
+    // Upload a to the GPU by running an op.
+    a.square().dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Slicing does not allocate new memory.
+    const b = a.slice(0);
+    const c = b.slice(0);
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Download a to the CPU but the texture remains on GPU
+    // since b points to it.
+    await a.data();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose a, but the texture should still remain on the GPU
+    // since b points to it.
+    a.dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose b, but the texture should still remain on the GPU
+    // since c points to it.
+    b.dispose();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Download c to the CPU but the texture remains on GPU
+    // since c points to it.
+    await c.data();
+    expect(getMem().numBytesInGPU).toBe(8);
+
+    // Dispose c and expect 0 memory on GPU.
+    c.dispose();
+    expect(getMem().numBytesInGPU).toBe(0);
+  });
 });
 
 describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
@@ -918,6 +1002,15 @@ describeWithFlags('gatherNd', WEBGL_ENVS, () => {
     expectArraysEqual(await g.data(), [0, 1, 2, 0]);
   });
 
+  it('works for out of bounds indices 1d', async () => {
+    const x = tf.tensor1d([...Array(4).keys()].map(e => e + 1), 'int32');
+    const indices = [0, 1, 2, 5];
+    const ind = tf.tensor2d(indices, [4, 1], 'int32');
+    const g = tf.gatherND(x, ind);
+    const expected = [1, 2, 3, 0];
+    expectArraysEqual(await g.data(), expected);
+  });
+
   it('works for out of bounds indices 2d', async () => {
     const x =
         tf.tensor2d([...Array(4).keys()].map(e => e + 1), [2, 2], 'int32');
@@ -955,6 +1048,16 @@ describeWithFlags('gatherNd', WEBGL_ENVS, () => {
       2, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ];
+    expectArraysEqual(await g.data(), expected);
+  });
+
+  it('works for out of bounds indices 5d', async () => {
+    const x = tf.tensor5d(
+        [...Array(32).keys()].map(e => e + 1), [2, 2, 2, 2, 2], 'int32');
+    const indices = [0, 0, 0, 0, 0, 2, 1, 1, 1, 1];
+    const ind = tf.tensor2d(indices, [2, 5], 'int32');
+    const g = tf.gatherND(x, ind);
+    const expected = [1, 0];
     expectArraysEqual(await g.data(), expected);
   });
 });

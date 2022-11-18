@@ -27,66 +27,66 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'BiasAdd':
         case 'AddV2':
         case 'Add': {
-          return [tfOps.add(
+          return [ops.add(
               (getParamValue('a', node, tensorMap, context) as Tensor),
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'AddN': {
-          return [tfOps.addN((
+          return [ops.addN((
               getParamValue('tensors', node, tensorMap, context) as Tensor[]))];
         }
         case 'FloorMod':
         case 'Mod':
-          return [tfOps.mod(
+          return [ops.mod(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         case 'Mul':
-          return [tfOps.mul(
+          return [ops.mul(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         case 'RealDiv':
         case 'Div': {
-          return [tfOps.div(
+          return [ops.div(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'DivNoNan': {
-          return [tfOps.divNoNan(
+          return [ops.divNoNan(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'FloorDiv': {
-          return [tfOps.floorDiv(
+          return [ops.floorDiv(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Sub': {
-          return [tfOps.sub(
+          return [ops.sub(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Minimum': {
-          return [tfOps.minimum(
+          return [ops.minimum(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Maximum': {
-          return [tfOps.maximum(
+          return [ops.maximum(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Pow': {
-          return [tfOps.pow(
+          return [ops.pow(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'SquaredDifference': {
-          return [tfOps.squaredDifference(
+          return [ops.squaredDifference(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }

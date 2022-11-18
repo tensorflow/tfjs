@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap} from '../data/types';
@@ -25,8 +27,8 @@ export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
     'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
 export type Category = 'arithmetic'|'basic_math'|'control'|'convolution'|
     'creation'|'custom'|'dynamic'|'evaluation'|'graph'|'hash_table'|'image'|
-    'logical'|'matrices'|'normalization'|'reduction'|'slice_join'|'sparse'|
-    'spectral'|'string'|'transformation';
+    'logical'|'matrices'|'normalization'|'ragged'|'reduction'|'slice_join'|
+    'sparse'|'spectral'|'string'|'transformation';
 
 // For mapping input or attributes of NodeDef into TensorFlow.js op param.
 export declare interface ParamMapper {
@@ -75,13 +77,13 @@ export declare interface AttrParamMapper extends ParamMapper {
 }
 
 export interface InternalOpExecutor {
-  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
-      |Tensor[];
+  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+   ops?: typeof tfOps): Tensor|Tensor[];
 }
 
 export interface InternalOpAsyncExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-   resourceManager?: ResourceManager): Promise<Tensor[]>;
+   resourceManager?: ResourceManager, ops?: typeof tfOps): Promise<Tensor[]>;
 }
 
 export declare interface OpMapper {

@@ -180,8 +180,9 @@ void Transform(const size_t image_id, const size_t transforms_id,
                const bool is_batch_transform, const size_t batch,
                const size_t out_height, const size_t out_width,
                const size_t num_channels, const size_t image_width,
-               const size_t image_height, const int32_t* strides_ptr,
-               const size_t strides_size, const size_t interpolation_mode_id,
+               const size_t image_height, const int32_t* in_strides_ptr,
+               const size_t in_strides_size, const int32_t* out_strides_ptr,
+               const size_t out_strides_size, const size_t interpolation_mode_id,
                const size_t fill_mode_id, const float fill_value,
                const size_t out_id) {
   auto& image_info = backend::get_tensor_info(image_id);
@@ -193,10 +194,16 @@ void Transform(const size_t image_id, const size_t transforms_id,
   float* out_buf = out_info.f32_write();
 
   const auto image_strides =
-      std::vector<size_t>(strides_ptr, strides_ptr + strides_size);
-  const size_t batch_stride = image_strides[0];
-  const size_t row_stride = image_strides[1];
-  const size_t col_stride = image_strides[2];
+      std::vector<size_t>(in_strides_ptr, in_strides_ptr + in_strides_size);
+  const size_t batch_img_stride = image_strides[0];
+  const size_t row_img_stride = image_strides[1];
+  const size_t col_img_stride = image_strides[2];
+
+  const auto output_strides =
+      std::vector<size_t>(out_strides_ptr, out_strides_ptr + out_strides_size);
+  const size_t batch_out_stride = output_strides[0];
+  const size_t row_out_stride = output_strides[1];
+  const size_t col_out_stride = output_strides[2];
 
   // Ref TF implementation:
   // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/image/image_ops.h
@@ -235,13 +242,13 @@ void Transform(const size_t image_id, const size_t transforms_id,
             switch (interpolation_mode_id) {
               case 1:
                 val = nearest_interpolation(
-                    image, image_height, image_width, batch_stride, row_stride,
-                    col_stride, b, y, x, channel, fill_value);
+                    image, image_height, image_width, batch_img_stride, row_img_stride,
+                    col_img_stride, b, y, x, channel, fill_value);
                 break;
               case 2:
                 val = bilinear_interpolation(
-                    image, image_height, image_width, batch_stride, row_stride,
-                    col_stride, b, y, x, channel, fill_value);
+                    image, image_height, image_width, batch_img_stride, row_img_stride,
+                    col_img_stride, b, y, x, channel, fill_value);
                 break;
               default:
                 val = fill_value;
@@ -249,8 +256,8 @@ void Transform(const size_t image_id, const size_t transforms_id,
             }
           }
 
-          size_t offset = b * batch_stride + out_y * row_stride +
-                          out_x * col_stride + channel;
+          size_t offset = b * batch_out_stride + out_y * row_out_stride +
+                          out_x * col_out_stride + channel;
 
           out_buf[offset] = val;
         }

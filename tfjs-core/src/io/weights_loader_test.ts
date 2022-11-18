@@ -24,7 +24,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     [filename: string]: Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(tf.env().platform, 'fetch').and.callFake((path: string) => {
+    spyOn(tf.env().platform, 'fetch').and.callFake(async (path: string) => {
       return new Response(
           fileBufferMap[path],
           {headers: {'Content-type': 'application/octet-stream'}});

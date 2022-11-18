@@ -27,7 +27,7 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'ResizeBilinear': {
           const images =
@@ -40,7 +40,7 @@ export const executeOp: InternalOpExecutor =
           const halfPixelCenters =
               getParamValue('halfPixelCenters', node, tensorMap, context) as
               boolean;
-          return [tfOps.image.resizeBilinear(
+          return [ops.image.resizeBilinear(
               images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners,
               halfPixelCenters)];
         }
@@ -55,7 +55,7 @@ export const executeOp: InternalOpExecutor =
           const halfPixelCenters =
               getParamValue('halfPixelCenters', node, tensorMap, context) as
               boolean;
-          return [tfOps.image.resizeNearestNeighbor(
+          return [ops.image.resizeNearestNeighbor(
               images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners,
               halfPixelCenters)];
         }
@@ -73,7 +73,7 @@ export const executeOp: InternalOpExecutor =
           const extrapolationValue =
               getParamValue('extrapolationValue', node, tensorMap, context) as
               number;
-          return [tfOps.image.cropAndResize(
+          return [ops.image.cropAndResize(
               image as Tensor4D, boxes as Tensor2D, boxInd as Tensor1D,
               cropSize as [number, number], method as 'bilinear' | 'nearest',
               extrapolationValue)];
@@ -93,7 +93,7 @@ export const executeOp: InternalOpExecutor =
               string;
           const fillMode =
               getParamValue('fillMode', node, tensorMap, context) as string;
-          return [tfOps.image.transform(
+          return [ops.image.transform(
               images as Tensor4D,
               transforms as Tensor2D,
               interpolation.toLowerCase() as 'bilinear' | 'nearest',

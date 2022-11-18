@@ -22,7 +22,7 @@ set -e
 OUTPUT_DIR="$1"
 
 # The default version.
-CURRENT_VERSION=0.0.6
+CURRENT_VERSION=0.0.9
 
 # Get the version from the second parameter.
 # Default to the value in CURRENT_VERSION.

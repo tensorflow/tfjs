@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Pool2DProgram implements WebGPUProgram {
@@ -27,9 +27,9 @@ export class Pool2DProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms =
       `stride : vec2<i32>, pad : vec2<i32>, dilation : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
-  // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
+  // TODO(jiajia.qin@intel.com): Dynamically choose different workgroupSize for
   // different output shapes.
-  workGroupSize: [number, number, number] = [128, 1, 1];
+  workgroupSize: [number, number, number] = [128, 1, 1];
   poolType: 'max'|'avg';
   size = true;
 
@@ -39,7 +39,7 @@ export class Pool2DProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = `pool2D_${poolType}`;
     this.poolType = poolType;
@@ -57,7 +57,7 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
           let batch = coords[0];

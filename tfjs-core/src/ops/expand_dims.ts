@@ -36,7 +36,7 @@ import {op} from './operation';
  * x.expandDims(axis).print();
  * ```
  *
- * @param x The input tensor whose dimensions to be expanded.
+ * @param x The input tensor whose dimensions are to be expanded.
  * @param axis The dimension index at which to insert shape of `1`. Defaults
  *     to 0 (the first dimension).
  *

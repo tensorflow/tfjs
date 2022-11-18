@@ -149,4 +149,11 @@ describeWithFlags('scatterND', ALL_ENVS, () => {
     const shape = [5, 3];
     expect(() => tf.scatterND(indices, updates, shape)).toThrow();
   });
+
+  it('should throw error when shape is not integer', () => {
+    const indices = [0, 4, 2];
+    const updates = [100, 101, 102];
+    const shape = [5.55, 2.22];
+    expect(() => tf.scatterND(indices, updates, shape)).toThrow();
+  });
 });
