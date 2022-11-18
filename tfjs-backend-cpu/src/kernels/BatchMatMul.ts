@@ -106,12 +106,17 @@ export function batchMatMul(args: {
               let sum = 0.0;
 
               for (let k = k0; k < kBlock; k++) {
-                const batchOffsetA = Math.min(bi, batchDimA - 1) * aBatch;
-                const batchOffsetB = Math.min(bi, batchDimB - 1) * bBatch;
+                let batchIndexA = bi;
+                let batchIndexB = bi;
+                if (bi >= batchDimA) {
+                  batchIndexA = bi % batchDimA;
+                } else if (bi >= batchDimB) {
+                  batchIndexB = bi % batchDimB;
+                }
                 const aVal =
-                    a3dValues[batchOffsetA + i * aOuterStep + k * aInnerStep];
+                    a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep];
                 const bVal =
-                    b3dValues[k * bInnerStep + j * bOuterStep + batchOffsetB];
+                    b3dValues[k * bInnerStep + j * bOuterStep + batchIndexB * bBatch];
                 sum += aVal * bVal;
               }
               resVals[bi * size + (i * rightDim + j)] += sum;

@@ -174,7 +174,7 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const size_t shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
   const size_t left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
   const size_t right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
-  const size_t batch_dim = a_shape_ptr[0];
+  const size_t batch_dim = std::max(a_shape_ptr[0], b_shape_ptr[0]);
 
   std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_shape_len);
   std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_shape_len);
@@ -235,14 +235,17 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               float sum = 0.0;
 
               for (size_t k = k0; k < k_block; ++k) {
-                const size_t batch_offset_a =
-                    std::min(b, a_shape[0] - 1) * a_batch;
-                const size_t batch_offset_b =
-                    std::min(b, b_shape[0] - 1) * b_batch;
-                sum +=
-                    a_buf[batch_offset_a + i * a_outer_step +
-                          k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + batch_offset_b];
+                size_t batch_index_a = b;
+                size_t batch_index_b = b;
+                if (b >= a_shape[0]) {
+                  batch_index_a = b % a_shape[0];
+                } else if (b >= b_shape[0]) {
+                  batch_index_b = b % b_shape[0];
+                }
+                sum += a_buf[batch_index_a * a_batch + i * a_outer_step +
+                             k * a_inner_step] *
+                       b_buf[k * b_inner_step + j * b_outer_step +
+                             batch_index_b * b_batch];
               }
               size_t innermost_dim = i * right_dim + j;
               size_t out_buf_index = b * size + innermost_dim;

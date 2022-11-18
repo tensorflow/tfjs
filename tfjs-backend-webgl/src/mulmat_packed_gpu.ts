@@ -78,9 +78,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
     let batchASnippet = 'rc.x';
     let batchBSnippet = 'rc.x';
     if (aShape[0] < bShape[0]) {
-      batchASnippet = `int(min(float(rc.x), ${aShape[0] - 1}.))`;
+      batchASnippet = `imod(rc.x, ${aShape[0]})`;
     } else if (bShape[0] < aShape[0]) {
-      batchBSnippet = `int(min(float(rc.x), ${bShape[0] - 1}.))`;
+      batchBSnippet = `imod(rc.x, ${bShape[0]})`;
     }
 
     this.userCode = `
