@@ -114,8 +114,10 @@ export function batchMatMul(args: {
                   batchIndexB = bi % batchDimB;
                 }
                 const aVal =
+                    // tslint:disable-next-line: max-line-length
                     a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep];
                 const bVal =
+                    // tslint:disable-next-line: max-line-length
                     b3dValues[k * bInnerStep + j * bOuterStep + batchIndexB * bBatch];
                 sum += aVal * bVal;
               }
