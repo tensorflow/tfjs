@@ -136,6 +136,11 @@ describe('Util', () => {
 });
 
 describe('util.flatten', () => {
+  it('empty', () => {
+    const data: number[] = [];
+    expect(util.flatten(data)).toEqual([]);
+  });
+
   it('nested number arrays', () => {
     expect(util.flatten([[1, 2, 3], [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
     expect(util.flatten([[[1, 2], [3, 4], [5, 6], [7, 8]]])).toEqual([
@@ -168,6 +173,20 @@ describe('util.flatten', () => {
       new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]),
       new Uint8Array([7, 8])
     ]);
+  });
+
+  it('Int8Array', () => {
+    const data = [new Int8Array([1, 2])];
+    expect(util.flatten(data)).toEqual([1, 2]);
+  });
+
+  it('index signature', () => {
+    const data: {[index: number]: number} = {0: 1, 1: 2};
+    // Will be ignored since array iteration ignores negatives.
+    data[-1] = -1;
+    // Will be ignored since non-integer array keys are ignored.
+    data[3.2] = 4;
+    expect(util.flatten(data)).toEqual([1, 2]);
   });
 });
 
