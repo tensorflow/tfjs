@@ -79,15 +79,12 @@ async function publish(pkg: string, registry: string, otp?: string,
   };
 
   function run(command: string) {
-    //console.log(`${command} █ ${JSON.stringify(registryEnv)}`);
     return $(command, registryEnv);
   }
 
   function yarn(args: string) {
     return run(`yarn --registry '${registry}' ${args}`);
   }
-
-  //console.log('Registry is ', run('yarn config get registry'));
 
   const startDir = process.cwd();
   shell.cd(pkg);
@@ -98,9 +95,11 @@ async function publish(pkg: string, registry: string, otp?: string,
   }
 
   if (build && !BAZEL_PACKAGES.has(pkg)) {
-    await delay(20_000);
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
+    // Without a delay, this sometimes has issues downloading dependencies.
+    await delay(5_000);
+
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
       yarn('prep-gpu');
@@ -108,11 +107,7 @@ async function publish(pkg: string, registry: string, otp?: string,
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
-    //console.log($('yarn', registryEnv));
-    //console.log(run(`yarn --registry '${registry}' info @tensorflow/tfjs-backend-cpu`));
     console.log(run(`yarn --registry '${registry}'`));
-    // console.log(await flaky(() => $async('echo $YARN_REGISTRY && yarn', registryEnv)));
-
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
     if (pkg === 'tfjs-react-native') {
@@ -138,6 +133,12 @@ async function publish(pkg: string, registry: string, otp?: string,
     chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
                        + `${tag} ~~~`));
 
+    let login = '';
+    //    if (registry === VERDACCIO_REGISTRY) {
+    // If publishing to verdaccio, we must log in before every command.
+    login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
+//    }
+
   if (BAZEL_PACKAGES.has(pkg)) {
     let dashes = '-- --';
     if (pkg === 'tfjs-backend-webgpu') {
@@ -145,14 +146,8 @@ async function publish(pkg: string, registry: string, otp?: string,
       // in publish-npm.
       dashes = '-- -- --';
     }
-    yarn(`publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
+    run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
   } else {
-    let login = '';
-    if (registry === VERDACCIO_REGISTRY) {
-      // If publishing to verdaccio, we must log in before every command.
-      login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
-    }
-
     if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
       // Special case for tfjs-node(-gpu), which must upload the node addon
       // to GCP as well. Only do this when publishing to NPM.
@@ -246,16 +241,13 @@ async function main() {
 
   // Build and publish all packages to Verdaccio
   const verdaccio = runVerdaccio();
-  //runVerdaccio;
-  //const verdaccioRegistry = 'http://[::1]:4873/';
-  //const verdaccioRegistry = 'http://localhost:4873/';
-
-  // child_process.execSync('npx npm-cli-login -u user -p password -e user@example.com'
-  //   + ` -r ${VERDACCIO_REGISTRY}`);
-  for (const pkg of packages) {
-    await publish(pkg, VERDACCIO_REGISTRY);
+  try {
+    for (const pkg of packages) {
+      await publish(pkg, VERDACCIO_REGISTRY);
+    }
+  } finally {
+    verdaccio.kill();
   }
-  verdaccio.kill();
 
   if (args.dry) {
     console.log('Not publishing packages due to \'--dry\'');
