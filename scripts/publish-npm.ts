@@ -133,11 +133,11 @@ async function publish(pkg: string, registry: string, otp?: string,
     chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
                        + `${tag} ~~~`));
 
-    let login = '';
-    //    if (registry === VERDACCIO_REGISTRY) {
+  let login = '';
+  if (registry === VERDACCIO_REGISTRY) {
     // If publishing to verdaccio, we must log in before every command.
     login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
-//    }
+  }
 
   if (BAZEL_PACKAGES.has(pkg)) {
     let dashes = '-- --';
@@ -175,7 +175,7 @@ async function main() {
 
     const releaseUnitStr =
       await question('Which release unit (leave empty for 0): ');
-    const releaseUnitInt = +releaseUnitStr;
+    const releaseUnitInt = Number(releaseUnitStr);
     if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
       console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
       process.exit(1);
@@ -257,6 +257,7 @@ async function main() {
     if (!args.no_otp) {
       otp = await question(`Enter one-time password from your authenticator: `);
     }
+    console.log(`Publishing packages to ${args.registry}`);
 
     const promises = packages.map(pkg => publish(pkg, args.registry, otp, false));
     await Promise.all(promises);

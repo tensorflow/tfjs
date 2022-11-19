@@ -25,7 +25,6 @@ import * as readline from 'readline';
 import * as shell from 'shelljs';
 import rimraf from 'rimraf';
 import * as path from 'path';
-import * as child_process from 'child_process';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -209,13 +208,18 @@ export const RELEASE_UNITS: ReleaseUnit[] = [
 
 export const TMP_DIR = '/tmp/tfjs-release';
 
-const rl =
-    readline.createInterface({input: process.stdin, output: process.stdout});
-
 export async function question(questionStr: string): Promise<string> {
+  const rl =
+    readline.createInterface({ input: process.stdin, output: process.stdout });
+
   console.log(chalk.bold(questionStr));
   return new Promise<string>(
-      resolve => rl.question('> ', response => resolve(response)));
+    resolve => {
+      rl.question('> ', response => {
+        resolve(response);
+        rl.close();
+      });
+    });
 }
 
 /**
@@ -560,26 +564,22 @@ export function runVerdaccio() {
   // Remove the verdaccio package store.
   rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
   // Start verdaccio.
-  console.log('Starting verdaccio');
   const serverProcess = shell.exec(
       'yarn verdaccio --config=e2e/scripts/verdaccio.yaml',
       {
         async: true,
+        silent: true,
         cwd: path.join(__dirname, '../'),
       },
       (code, stdout, stderr) => {
-        console.log(`Verdaccio stopped with exit code ${code}`);
-        console.log(stdout);
-        console.log(stderr);
+        if (code !== 0) {
+          console.log(`Verdaccio stopped with exit code ${code}`);
+          console.log(stdout);
+          console.log(stderr);
+        }
       }
   );
-  child_process;
-  // const serverProcess = child_process.spawn(
-  //     'yarn',  ['verdaccio', '--config=e2e/scripts/verdaccio.yaml']).;
-  // serverProcess.stdout.on('data', console.log);
-  // serverProcess.stderr.on('data', console.error);
   process.on('exit', () => {serverProcess.kill();});
-  console.log('Started verdaccio');
   return serverProcess;
 }
 
