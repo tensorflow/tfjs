@@ -146,12 +146,12 @@ async function publish(pkg: string, registry: string, otp?: string,
       // in publish-npm.
       dashes = '-- -- --';
     }
-    run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag={tag} --force`);
+    run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`);
   } else {
     if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
       // Special case for tfjs-node(-gpu), which must upload the node addon
       // to GCP as well. Only do this when publishing to NPM.
-      yarn(`yarn --registry '${registry}' build-and-upload-addon publish`);
+      $('yarn build-and-upload-addon publish');
     }
 
     // Publish the package to the registry.
@@ -259,8 +259,10 @@ async function main() {
     }
     console.log(`Publishing packages to ${args.registry}`);
 
-    const promises = packages.map(pkg => publish(pkg, args.registry, otp, false));
-    await Promise.all(promises);
+    for (const pkg of packages) {
+      await publish(pkg, args.registry, otp, false)
+    }
+
     console.log(`Published packages to ${args.registry}`);
   }
   process.exit(0);
