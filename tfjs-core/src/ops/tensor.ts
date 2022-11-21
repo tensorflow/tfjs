@@ -99,9 +99,7 @@ import {makeTensor} from './tensor_ops_util';
  * // This makes it possible for TF.js applications to avoid GPU / CPU sync.
  * // For example, if your application includes a preprocessing step on the GPU,
  * // you could upload the GPU output directly to TF.js, rather than first
- * // downloading the values. Unlike WebGL, to support zero copy, this GPUBuffer
- * // is bound directly by the tensor. So donot destroy this GPUBuffer until all
- * // access are done.
+ * // downloading the values.
  *
  * // Example for WebGPU:
  * function createReadonlyGPUBufferFromData(device, data, dtype) {
@@ -128,7 +126,8 @@ import {makeTensor} from './tensor_ops_util';
  *   const gpuReadBuffer = device.createBuffer({
  *     mappedAtCreation: false,
  *     size: sizeInBytes,
- *     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE
+ *     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE |
+ *         GPUBufferUsage.COPY_SRC
  *   });
  *
  *   const copyEncoder = device.createCommandEncoder();
@@ -171,10 +170,9 @@ import {makeTensor} from './tensor_ops_util';
  * size, zeros will be padded at the rear.). If the values is a `WebGPUData`
  * object, the dtype could only be 'float32' or 'int32 and the object has to
  * have: buffer, a `GPUBuffer`. The buffer must: 1. share the same `GPUDevice`
- * with TFJS's WebGPU backend; 2.buffer.usage should at least support
- * GPUBufferUsage.STORAGE, to support tensor.data, GPUBufferUsage.COPY_SRC is
- * also required; 3. buffer.size should not be smaller than the byte size of
- * tensor shape.
+ * with TFJS's WebGPU backend; 2. buffer.usage should at least support
+ * GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC; 3. buffer.size should not
+ * be smaller than the byte size of tensor shape.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
