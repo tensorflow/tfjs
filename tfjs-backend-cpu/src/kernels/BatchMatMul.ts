@@ -106,13 +106,8 @@ export function batchMatMul(args: {
               let sum = 0.0;
 
               for (let k = k0; k < kBlock; k++) {
-                let batchIndexA = bi;
-                let batchIndexB = bi;
-                if (bi >= batchDimA) {
-                  batchIndexA = bi % batchDimA;
-                } else if (bi >= batchDimB) {
-                  batchIndexB = bi % batchDimB;
-                }
+                const batchIndexA = bi % batchDimA;
+                const batchIndexB = bi % batchDimB;
                 const aVal =
                     // tslint:disable-next-line: max-line-length
                     a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep];

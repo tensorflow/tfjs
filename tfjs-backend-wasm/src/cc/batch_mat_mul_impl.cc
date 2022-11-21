@@ -235,13 +235,8 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               float sum = 0.0;
 
               for (size_t k = k0; k < k_block; ++k) {
-                size_t batch_index_a = b;
-                size_t batch_index_b = b;
-                if (b >= a_shape[0]) {
-                  batch_index_a = b % a_shape[0];
-                } else if (b >= b_shape[0]) {
-                  batch_index_b = b % b_shape[0];
-                }
+                const size_t batch_index_a = b % a_shape[0];
+                const size_t batch_index_b = b % b_shape[0];
                 sum += a_buf[batch_index_a * a_batch + i * a_outer_step +
                              k * a_inner_step] *
                        b_buf[k * b_inner_step + j * b_outer_step +
