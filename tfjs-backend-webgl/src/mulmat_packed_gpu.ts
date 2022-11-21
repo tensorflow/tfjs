@@ -90,9 +90,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
+        int batchA = ${batchASnippet};
+        int batchB = ${batchBSnippet};
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          int batchA = ${batchASnippet};
-          int batchB = ${batchBSnippet};
           vec4 a = getMatrixA(batchA, ${aSample});
           vec4 b = getMatrixB(batchB, ${bSample});
 
