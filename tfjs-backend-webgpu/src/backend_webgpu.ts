@@ -51,8 +51,12 @@ type TensorData = {
   shape: number[],
   refCount: number,
   resourceInfo?: BufferInfo|TextureInfo,
-  // Indicate the tensor is created from an external GPU resource.
-  external?: boolean,
+  // zeroCopy is used for creating tensor from GPUBuffer. When zeroCopy is false
+  // or undefined (default), this GPUBuffer will be copied to the tensor's
+  // resource buffer. When zeroCopy is true, tensor will use this GPUBUffer as
+  // tensor's resource buffer, user should not destroy this GPUBuffer until all
+  // access are done.
+  zeroCopy?: boolean,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensorInfos field.
@@ -244,8 +248,9 @@ export class WebGPUBackend extends KernelBackend {
     if (!tensorData || !tensorData.resourceInfo) {
       return;
     }
-    // If tensor data is from external resource, do not release.
-    if (tensorData.external) {
+    // If tensor's resource buffer is from a zero copy GPUBuffer, do not
+    // release.
+    if (tensorData.zeroCopy) {
       tensorData.resourceInfo = null;
       return;
     }
@@ -445,18 +450,31 @@ export class WebGPUBackend extends KernelBackend {
     return vals;
   }
 
+  // The source GPUBuffer and destination GPUBuffer have the same size and
+  // usage.
+  private copyBuffer(srcBuffer: GPUBuffer, size: number, usage: number) {
+    const dstBuffer = this.bufferManager.acquireBuffer(size, usage);
+    this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
+    this.currentCommandEncoder.copyBufferToBuffer(
+        srcBuffer, 0, dstBuffer, 0, size);
+    this.submitQueue();
+    return dstBuffer;
+  }
+
   /**
    * Create a TF.js tensor out of an existing WebGPU buffer.
    */
   override createTensorFromGPUData(
       values: WebGPUData, shape: number[], dtype: DataType): Tensor {
-    const buffer = values.buffer;
+    let buffer = values.buffer;
     if (dtype === 'complex64') {
       throw new Error(`Cannot write to a complex64 dtype. `);
     }
     const dataId = {id: this.nextDataId()};
+    const zeroCopy = env().getBool('WEBGPU_TENSOR_FROM_BUFFER_WITH_ZERO_COPY');
     this.tensorMap.set(
-        dataId, {dtype, shape, values: null, refCount: 1, external: true});
+        dataId, {dtype, shape, values: null, refCount: 1, zeroCopy});
     const tensorData = this.tensorMap.get(dataId);
     const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
@@ -469,6 +487,10 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error('GPUBuffer.usage should include GPUBufferUsage.STORAGE!');
     }
 
+    // Do buffer copy by default.
+    if (zeroCopy === false) {
+      buffer = this.copyBuffer(buffer, size, buffer.usage);
+    }
     tensorData.resourceInfo = {size: buffer.size, usage: buffer.usage, buffer};
     return engine().makeTensorFromDataId(dataId, shape, dtype, this);
   }
@@ -659,9 +681,8 @@ export class WebGPUBackend extends KernelBackend {
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
-      // model; 2) swithcing the backend within the model. Temporarilly keep the
-      // values on CPU to solve the first issue.
-      // tensorData.values = null;
+      // model; 2) swithcing the backend within the model. Temporarilly keep
+      // the values on CPU to solve the first issue. tensorData.values = null;
     }
   }
 
