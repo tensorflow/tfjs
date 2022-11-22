@@ -438,8 +438,9 @@ async function testCreateTensorFromGPUBuffer(
   const shape: number[] = [aData.length];
   const startNumBytes = tf.memory().numBytes;
   const startNumTensors = tf.memory().numTensors;
-  const a = useDefaultShapeAndType ? tf.tensor({buffer: aBuffer}) :
-                                     tf.tensor({buffer: aBuffer}, shape, dtype);
+  const webGPUData = {buffer: aBuffer, zeroCopy};
+  const a = useDefaultShapeAndType ? tf.tensor(webGPUData) :
+                                     tf.tensor(webGPUData, shape, dtype);
   if (zeroCopy !== true) {
     aBuffer.destroy();
   }
@@ -478,7 +479,7 @@ function createTensorFromGPUTest(zeroCopy = false) {
     const dtype = 'float32';
     const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
     const shape: number[] = [aData.length];
-    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const a = tf.tensor({buffer: aBuffer, zeroCopy}, shape, dtype);
     if (zeroCopy !== true) {
       aBuffer.destroy();
     }
@@ -497,8 +498,9 @@ function createTensorFromGPUTest(zeroCopy = false) {
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
     const shape: number[] = [aData.length];
-    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
-    const b = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const webGPUData = {buffer: aBuffer, zeroCopy};
+    const a = tf.tensor(webGPUData, shape, dtype);
+    const b = tf.tensor(webGPUData, shape, dtype);
     if (zeroCopy !== true) {
       aBuffer.destroy();
     }
@@ -528,8 +530,9 @@ function createTensorFromGPUTest(zeroCopy = false) {
     const startNumTensors = tf.memory().numTensors;
     // GPUBuffer.size is bigger than shape size
     const shape: number[] = [aData.length - 1];
-    const a = tf.tensor({buffer: aBuffer}, shape, dtype);
-    const b = tf.tensor({buffer: aBuffer}, shape, dtype);
+    const webGPUData = {buffer: aBuffer, zeroCopy};
+    const a = tf.tensor(webGPUData, shape, dtype);
+    const b = tf.tensor(webGPUData, shape, dtype);
     if (zeroCopy !== true) {
       aBuffer.destroy();
     }
@@ -570,7 +573,7 @@ function createTensorFromGPUTest(zeroCopy = false) {
     const aBuffer = createStagingGPUBufferFromData(device, aData, dtype);
     // Throw when GPUBuffer usage is not correct.
     const shape: number[] = [aData.length];
-    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
+    const a = () => tf.tensor({buffer: aBuffer, zeroCopy}, shape, dtype);
     expect(a).toThrowError();
     aBuffer.destroy();
   });
@@ -581,14 +584,5 @@ describeWebGPU('create tensor from GPUBuffer', () => {
 });
 
 describeWebGPU('create tensor from GPUBuffer with zero copy', () => {
-  let savedZeroCopyFlag = false;
-  beforeAll(() => {
-    savedZeroCopyFlag =
-        tf.env().get('WEBGPU_TENSOR_FROM_BUFFER_WITH_ZERO_COPY') as boolean;
-    tf.env().set('WEBGPU_TENSOR_FROM_BUFFER_WITH_ZERO_COPY', true);
-  });
-  afterAll(() => {
-    tf.env().set('WEBGPU_TENSOR_FROM_BUFFER_WITH_ZERO_COPY', savedZeroCopyFlag);
-  });
   createTensorFromGPUTest(true);
 });

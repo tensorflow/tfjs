@@ -99,7 +99,11 @@ import {makeTensor} from './tensor_ops_util';
  * // This makes it possible for TF.js applications to avoid GPU / CPU sync.
  * // For example, if your application includes a preprocessing step on the GPU,
  * // you could upload the GPU output directly to TF.js, rather than first
- * // downloading the values.
+ * // downloading the values. Unlike WebGL, this optionally supports zero copy
+ * // by WebGPUData.zeroCopy. When zeroCopy is false or undefined(default), this
+ * // passing GPUBuffer can be destroyed after tensor is created. When zeroCopy
+ * // is true, this GPUBuffer is bound directly by the tensor, so donot destroy
+ * // this GPUBuffer until all access is done.
  *
  * // Example for WebGPU:
  * function createReadonlyGPUBufferFromData(device, data, dtype) {
@@ -146,6 +150,8 @@ import {makeTensor} from './tensor_ops_util';
  * const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
  * const aBuffer = createReadonlyGPUBufferFromData(device, aData, dtype);
  * const shape = [aData.length];
+ * // To use zeroCopy, use {buffer: aBuffer, zeroCopy: true} instead and destroy
+ * // aBuffer untill all access is done.
  * const a = tf.tensor({buffer: aBuffer}, shape, dtype);
  * const b = tf.tensor(bData, shape, dtype);
  * const result = tf.add(a, b);
@@ -172,7 +178,11 @@ import {makeTensor} from './tensor_ops_util';
  * have: buffer, a `GPUBuffer`. The buffer must: 1. share the same `GPUDevice`
  * with TFJS's WebGPU backend; 2. buffer.usage should at least support
  * GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC; 3. buffer.size should not
- * be smaller than the byte size of tensor shape.
+ * be smaller than the byte size of tensor shape. WebGPUData optionally supports
+ * zero copy by flag zeroCopy. When zeroCopy is false or undefined(default),
+ * this passing GPUBuffer can be destroyed after tensor is created. When
+ * zeroCopy is true, this GPUBuffer is bound directly by the tensor, so donot
+ * destroy this GPUBuffer until all access is done.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
