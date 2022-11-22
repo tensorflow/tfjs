@@ -102,7 +102,7 @@ import {makeTensor} from './tensor_ops_util';
  * // downloading the values. Unlike WebGL, this optionally supports zero copy
  * // by WebGPUData.zeroCopy. When zeroCopy is false or undefined(default), this
  * // passing GPUBuffer can be destroyed after tensor is created. When zeroCopy
- * // is true, this GPUBuffer is bound directly by the tensor, so donot destroy
+ * // is true, this GPUBuffer is bound directly by the tensor, so do not destroy
  * // this GPUBuffer until all access is done.
  *
  * // Example for WebGPU:
@@ -181,7 +181,7 @@ import {makeTensor} from './tensor_ops_util';
  * be smaller than the byte size of tensor shape. WebGPUData optionally supports
  * zero copy by flag zeroCopy. When zeroCopy is false or undefined(default),
  * this passing GPUBuffer can be destroyed after tensor is created. When
- * zeroCopy is true, this GPUBuffer is bound directly by the tensor, so donot
+ * zeroCopy is true, this GPUBuffer is bound directly by the tensor, so do not
  * destroy this GPUBuffer until all access is done.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
