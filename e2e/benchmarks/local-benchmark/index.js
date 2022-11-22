@@ -241,7 +241,7 @@ function getTunableRange(flag) {
 async function benchmarkAll() {
   const numRuns = 50;
   const SHARED_DIM = 256;
-  const OUTPUT_HEIGHT = 144;
+  const OUTPUT_HEIGHT = 256;
   const OUTPUT_WIDTH = 256;
 
   await tf.setBackend('webgl');
@@ -249,7 +249,7 @@ async function benchmarkAll() {
 
   console.log('Varying SHARED_DIM:');
   let resData = [];
-  for (let index = 1; index <= 48; index += 1) {
+  for (let index = 1; index <= 384; index += 1) {
     const variable = index * 128;
     const res = await benchmark(variable, OUTPUT_HEIGHT, OUTPUT_WIDTH, numRuns);
     resData.push(`${variable}\t${res}`);
@@ -258,17 +258,17 @@ async function benchmarkAll() {
 
   console.log('Varying OUTPUT_HEIGHT:');
   resData = [];
-  for (let index = 25; index <= 48; index += 1) {
-    const height = index * 128;
-    const res = await benchmark(SHARED_DIM, height, OUTPUT_WIDTH, numRuns);
-    resData.push(`${height}\t${res}`);
+  for (let index = 1; index <= 384; index += 1) {
+    const variable = index * 128;
+    const res = await benchmark(SHARED_DIM, variable, OUTPUT_WIDTH, numRuns);
+    resData.push(`${variable}\t${res}`);
   }
   console.log(resData.join('\n'));
 
   // Vary width
   console.log('Varying OUTPUT_WIDTH:');
   resData = [];
-  for (let index = 1; index <= 48; index += 1) {
+  for (let index = 1; index <= 384; index += 1) {
     const variable = index * 128;
     const res = await benchmark(SHARED_DIM, OUTPUT_HEIGHT, variable, numRuns);
     resData.push(`${variable}\t${res}`);
@@ -293,6 +293,7 @@ async function getPerf(sharedD, height, width, numRuns) {
 }
 
 async function benchmark(sharedD, height, width, numRuns) {
+  console.log('running setting: ', [sharedD, height, width]);
   const res = (await getPerf(sharedD, height, width, numRuns)).map(e => e.kernelTimeMs);
   return res.reduce((prev, cur) => prev + cur, 0) / numRuns;
 }
