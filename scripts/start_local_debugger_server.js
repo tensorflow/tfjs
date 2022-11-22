@@ -19,7 +19,7 @@ const JSZip = require('jszip');
 const fetch = require('node-fetch');
 const path = require('node:path');
 
-const DEFAULT_VERSION = '20221111-105432';
+const DEFAULT_VERSION = '20221122-100434';
 const TFJS_DEBUGGER_BUNDLE_URL_BASE =
     'https://storage.googleapis.com/tfweb/tfjs-debugger-bundle';
 const EXTS_WITH_ARRAY_BUFFER_CONTENT = ['.ttf'];
