@@ -894,6 +894,15 @@ describeWithFlags('matmulBatch', ALL_ENVS, () => {
     ]);
   });
 
+  it('A has more batch dimensions than B', async () => {
+    const a = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [2, 2, 2, 2]);
+    const b = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+
+    const c = tf.matMul(a, b);
+    expectArraysClose(await c.data(), [5, 11, 39, 53, 29, 35, 95, 109]);
+  });
+
   it('batch dimensions do not match', () => {
     const a = tf.tensor3d(
         [

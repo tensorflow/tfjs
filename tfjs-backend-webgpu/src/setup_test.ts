@@ -266,8 +266,6 @@ const TEST_FILTERS: TestFilter[] = [
       'linspace ',
       'localResponseNormalization ',
       'logSigmoid ',
-      'logicalOr ',
-      'logicalXor ',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
