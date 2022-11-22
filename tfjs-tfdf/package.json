@@ -3,10 +3,16 @@
   "version": "0.0.1",
   "description": "TensorFlow Decision Forests support for TensorFlow.js",
   "main": "dist/tf-tfdf.node.js",
-  "module": "dist/index.js",
+  "module": "dist/tf-tfdf.fesm.js",
   "jsdelivr": "dist/tf-tfdf.min.js",
   "unpkg": "dist/tf-tfdf.min.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/tf-tfdf.fesm.js",
+      "require": "./dist/tf-tfdf.node.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git",
@@ -18,12 +24,10 @@
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter",
-    "jszip": "^3.10.0"
+    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter"
   },
   "devDependencies": {
-    "@bazel/bazelisk": "^1.12.0",
-    "jszip": "^3.10.0"
+    "@bazel/bazelisk": "^1.12.0"
   },
   "scripts": {
     "prep": "./scripts/download-tfdf-web-api.sh",

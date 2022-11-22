@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import '@tensorflow/tfjs-backend-cpu';
-import './tfdf_web_api_client_test';
-import './tfdf_model_test';
 
-// Register ops.
-import * as tfdf from './index';
+import {KernelConfig, LogicalOr} from '@tensorflow/tfjs-core';
 
-// Karma does not preserve the source path, causing the TFDF library to look for
-// the wasm binary in the root path, so fix the path for the library.
-tfdf.setLocateFile((path: string, _: string) => {
-  return `./base/tfjs/tfjs-tfdf/wasm/${path}`;
-});
+import {BinaryOpType} from '../binary_op_util';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+export const logicalOr = binaryKernelFunc({opType: BinaryOpType.LOGICAL_OR});
+
+export const logicalOrConfig: KernelConfig = {
+  kernelName: LogicalOr,
+  backendName: 'webgpu',
+  kernelFunc: logicalOr
+};
