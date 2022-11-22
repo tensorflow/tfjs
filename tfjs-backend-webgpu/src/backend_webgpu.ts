@@ -51,12 +51,9 @@ type TensorData = {
   shape: number[],
   refCount: number,
   resourceInfo?: BufferInfo|TextureInfo,
-  // zeroCopy is used for creating tensor from GPUBuffer. When zeroCopy is false
-  // or undefined (default), this GPUBuffer will be copied to the tensor's
-  // resource buffer. When zeroCopy is true, tensor will use this GPUBUffer as
-  // tensor's resource buffer, user should not destroy this GPUBuffer until all
-  // access are done.
-  zeroCopy?: boolean,
+  // external is true means we use the resource provided by users directly
+  // (without a copy), so users should be responsible for its release.
+  external?: boolean,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensorInfos field.
@@ -248,9 +245,8 @@ export class WebGPUBackend extends KernelBackend {
     if (!tensorData || !tensorData.resourceInfo) {
       return;
     }
-    // If tensor's resource buffer is from a zero copy GPUBuffer, do not
-    // release.
-    if (tensorData.zeroCopy) {
+    // If tensor's resource is from external, do not release.
+    if (tensorData.external) {
       tensorData.resourceInfo = null;
       return;
     }
@@ -472,9 +468,9 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error(`Cannot write to a complex64 dtype. `);
     }
     const dataId = {id: this.nextDataId()};
-    const zeroCopy = env().getBool('WEBGPU_TENSOR_FROM_BUFFER_WITH_ZERO_COPY');
     this.tensorMap.set(
-        dataId, {dtype, shape, values: null, refCount: 1, zeroCopy});
+        dataId,
+        {dtype, shape, values: null, refCount: 1, external: values.zeroCopy});
     const tensorData = this.tensorMap.get(dataId);
     const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
@@ -482,13 +478,15 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error(`GPUBuffer size(${
           values.buffer.size}) is smaller than tensor size(${size})!`);
     } else if (
-        (values.buffer.usage & GPUBufferUsage.STORAGE) !==
-        GPUBufferUsage.STORAGE) {
-      throw new Error('GPUBuffer.usage should include GPUBufferUsage.STORAGE!');
+        (values.buffer.usage &
+         (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) !==
+        (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC)) {
+      throw new Error(
+          'GPUBuffer.usage should include GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC!');
     }
 
     // Do buffer copy by default.
-    if (zeroCopy === false) {
+    if (values.zeroCopy !== true) {
       buffer = this.copyBuffer(buffer, size, buffer.usage);
     }
     tensorData.resourceInfo = {size: buffer.size, usage: buffer.usage, buffer};
