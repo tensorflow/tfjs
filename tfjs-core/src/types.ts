@@ -182,3 +182,17 @@ export interface WebGLData {
   width: number;
   channels: WebGLChannels;
 }
+
+/**
+ * Type for representing a buffer data to create a tensor. Buffer usage should
+ * at least support GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC. When
+ * zeroCopy is false or undefined (default), this GPUBuffer will be copied to
+ * the tensor's resource buffer. When zeroCopy is true, tensor will use this
+ * GPUBuffer as tensor's resource buffer, user should not destroy this GPUBuffer
+ * until all access is done. If not specified at creating a tensor, tensor type
+ * is float32.
+ */
+export interface WebGPUData {
+  buffer: GPUBuffer;
+  zeroCopy?: boolean;
+}
