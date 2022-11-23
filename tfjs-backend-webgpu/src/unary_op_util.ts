@@ -49,6 +49,7 @@ export enum UnaryOpType {
   SIN,
   SINH,
   SIGMOID,
+  SOFTPLUS,
   SQRT,
   SQUARE,
   TAN,
@@ -168,6 +169,24 @@ const SINH = `
   let e2x = exp(a);
   return (e2x - 1.0 / e2x) / 2.0;
 `;
+const SOFTPLUS = `
+  let epsilon = 1.1920928955078125e-7;
+  let threshold = log(epsilon) + 2.0;
+
+  let too_large = a > -threshold;
+  let too_small = a < threshold;
+  let exp_a = exp(a);
+
+  if (too_large){
+    return a;
+  }
+  else if (too_small){
+    return exp_a;
+  }
+  else{
+    return log(exp_a + 1.0);
+  }
+`;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
 const TAN = `return tan(a);`;
@@ -241,6 +260,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return SIN;
     case UnaryOpType.SINH:
       return SINH;
+    case UnaryOpType.SOFTPLUS:
+      return SOFTPLUS;
     case UnaryOpType.SQRT:
       return SQRT;
     case UnaryOpType.SQUARE:
