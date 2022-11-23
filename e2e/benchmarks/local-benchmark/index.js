@@ -242,7 +242,7 @@ function getTunableRange(flag) {
 async function benchmarkAll() {
   const numRuns = 50;
   const SHARED_DIM = 256;
-  const OUTPUT_HEIGHT = 144;
+  const OUTPUT_HEIGHT = 256;
   const OUTPUT_WIDTH = 256;
 
   console.log('Varying SHARED_DIM:');
@@ -291,6 +291,7 @@ async function getPerf(sharedD, height, width, numRuns) {
 }
 
 async function benchmark(sharedD, height, width, numRuns) {
+  console.log('running setting: ', [sharedD, height, width]);
   const res = (await getPerf(sharedD, height, width, numRuns)).map(e => e.kernelTimeMs);
   return res.reduce((prev, cur) => prev + cur, 0) / numRuns;
 }
