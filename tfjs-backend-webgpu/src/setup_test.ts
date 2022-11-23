@@ -159,12 +159,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'min ',
-    excludes: [
-      'stft',  // FFT' not registered.
-    ]
-  },
-  {
     startsWith: 'mul ',
     excludes: [
       'broadcast',  // Various: Actual != Expected, compile fails, etc.
@@ -191,9 +185,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'range ',
     excludes: [
-      'bincount',           // Not yet implemented.
-      'denseBincount',      // Not yet implemented.
-      'oneHot',             // Not yet implemented.
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
@@ -241,8 +232,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'transpose ',
     excludes: [
-      'oneHot',  // Not yet implemented.
-      'fused',   // Not yet implemented.
+      'fused',  // Not yet implemented.
     ]
   },
 
@@ -271,7 +261,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
       'multinomial ',
-      'confusionMatrix ',  // oneHot
       'poolBackprop ',
       'raggedGather ',
       'raggedRange ',
@@ -280,7 +269,6 @@ const TEST_FILTERS: TestFilter[] = [
       'method otsu',  // round
       'selu ',
       'sign webgpu',
-      'stft ',
       'softplus ',
       'sigmoidCrossEntropy ',
       'sparseFillEmptyRows ',
