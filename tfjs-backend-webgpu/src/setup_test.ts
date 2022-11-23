@@ -255,7 +255,6 @@ const TEST_FILTERS: TestFilter[] = [
       'encodeWeights ',
       'linspace ',
       'localResponseNormalization ',
-      'logSigmoid ',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
@@ -269,8 +268,6 @@ const TEST_FILTERS: TestFilter[] = [
       'method otsu',  // round
       'selu ',
       'sign webgpu',
-      'softplus ',
-      'sigmoidCrossEntropy ',
       'sparseFillEmptyRows ',
       'sparseReshape ',
       'sparseSegmentMean ',
