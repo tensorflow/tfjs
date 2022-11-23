@@ -28,13 +28,15 @@ export function makeMatMulReduceSource(): string {
     ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
+      let batchA = batch % uniforms.aShape[0];
+      let batchB = batch % uniforms.bShape[0];
       let row = coords[1];
       let col = coords[2];
       var sum = 0.0;
       let Length = uniforms.dimInner;
       for (var k = i32(localId.x); k < Length; k = k + i32(workgroupSizeX)) {
-        let dataA = mm_readA(batch, row, k);
-        let dataB = mm_readB(batch, k, col);
+        let dataA = mm_readA(batchA, row, k);
+        let dataB = mm_readB(batchB, k, col);
         sum = sum + dataA * dataB;
       }
       sumValues[localId.x] = sum;

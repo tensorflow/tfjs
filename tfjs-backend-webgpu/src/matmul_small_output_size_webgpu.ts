@@ -41,6 +41,8 @@ export function makeMatMulSmallOutputSizeSource(
     let globalRow = i32(globalId.y);
     let globalCol = i32(globalId.x);
     let batch = i32(globalId.z);
+    let batchA = batch % uniforms.aShape[0];
+    let batchB = batch % uniforms.bShape[0];
 
     // uniforms.dimInner should be greater than 0.
     let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
@@ -48,9 +50,9 @@ export function makeMatMulSmallOutputSizeSource(
 
     var globalColA = tileCol;
     var globalRowB = 0;
-    var regA = mm_readA(batch, globalRow, globalColA);
-    var regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
-    var regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
+    var regA = mm_readA(batchA, globalRow, globalColA);
+    var regB0 = mm_readB(batchB, globalRowB + 2 * tileRow, globalCol);
+    var regB1 = mm_readB(batchB, globalRowB + 2 * tileRow + 1, globalCol);
     globalColA = globalColA + ${tileInner};
     globalRowB = globalRowB + ${tileInner};
 
@@ -61,9 +63,9 @@ export function makeMatMulSmallOutputSizeSource(
 
       workgroupBarrier();
 
-      regA = mm_readA(batch, globalRow, globalColA);
-      regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
-      regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
+      regA = mm_readA(batchA, globalRow, globalColA);
+      regB0 = mm_readB(batchB, globalRowB + 2 * tileRow, globalCol);
+      regB1 = mm_readB(batchB, globalRowB + 2 * tileRow + 1, globalCol);
       globalColA = globalColA + ${tileInner};
       globalRowB = globalRowB + ${tileInner};
 
