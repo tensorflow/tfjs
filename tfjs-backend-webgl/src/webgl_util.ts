@@ -439,7 +439,7 @@ export function getTextureShapeFromLogicalShape(
   if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
-      // accommodate the texture data. However in order to squarify such that
+      // accommodate the texture data. However in order to squNarrowarify such that
       // inner dimensions stay even, we rewrite size to equal the number of
       // texels. Then in the return statement we rehydrate the squarified
       // dimensions to channel units.
@@ -450,8 +450,28 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      textureShape =
+      if (env().getBool('WEBGL2_NEW_RESHAPING')) {
+        let width, height;
+        if (cols < batchDim * rows) {
+          width = cols / 2 * Math.ceil(batchDim * rows / maxTexSize);
+          height = Math.ceil(size / width);
+        } else {
+          height = rows / 2 * Math.ceil(cols / maxTexSize);
+          width = Math.ceil(size / height);
+        }
+        if (width <= maxTexSize && height <= maxTexSize) {
+          textureShape = [height, width].map(d => d * 2) as [number, number];
+          console.log(`** Reshape from ${logShape} to ${textureShape}!`);
+        } else {
+          textureShape =
           util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+          console.log(`-- Squarify shape from ${logShape} to ${textureShape}!`);
+        }
+      } else {
+        textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+        // console.log(`-- Squarify shape from ${logShape} to ${textureShape}!`);
+      }
     } else {
       textureShape = util.sizeToSquarishShape(size);
     }

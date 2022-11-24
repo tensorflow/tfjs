@@ -80,6 +80,16 @@ describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {
     const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 3, 1, 8]);
     expect(texShape).toEqual([3, 8]);
   });
+
+  it('Lin', () => {
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 4, 16384, 128], true);
+    expect(texShape).toEqual([32768, 256]);
+  });
+
+  it('Lin', () => {
+    const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 16, 16384, 128], true);
+    expect(texShape).toEqual([32768, 256 * 4]);
+  });
 });
 
 describeWithFlags('getTextureShapeFromLogicalShape packed', WEBGL_ENVS, () => {
