@@ -93,8 +93,6 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -125,10 +123,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = aShape[0] === 1;
-    this.batchBEqualOne = bShape[0] === 1;
-    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${transposeA}_${
-        transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey =
+        `matMulSmallOutputSize_${this.activation}_${transposeA}_${transposeB}`;
   }
 
   getUserCode(): string {
@@ -136,8 +132,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
       ${
         matMulReadWriteFnSource(
-            this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne, this.transposeA, this.transposeB)}
+            this.addBias, this.activation, this.transposeA, this.transposeB)}
       ${makeMatMulSmallOutputSizeSource(this.workgroupSize)}
     `;
     return userCode;
