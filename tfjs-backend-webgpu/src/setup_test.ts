@@ -267,7 +267,6 @@ const TEST_FILTERS: TestFilter[] = [
       'round webgpu',
       'method otsu',  // round
       'selu ',
-      'sign webgpu',
       'sparseFillEmptyRows ',
       'sparseReshape ',
       'sparseSegmentMean ',
