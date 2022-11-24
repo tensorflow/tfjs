@@ -45,6 +45,7 @@ export enum UnaryOpType {
   RELU6,
   LEAKYRELU,
   RECIPROCAL,
+  ROUND,
   RSQRT,
   SIGMOID,
   SIGN,
@@ -163,6 +164,7 @@ const RELU6_VEC4 =
 const RELU_VEC4 = `
   return select(a, vec4<f32>(0.0), a < vec4<f32>(0.0));
 `;
+const ROUND = `return round(a);`;
 const RSQRT = `return inverseSqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 const SIGN = `return sign(a);`;
@@ -252,6 +254,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:
       return useVec4 ? RELU6_VEC4 : RELU6;
+    case UnaryOpType.ROUND:
+      return ROUND;
     case UnaryOpType.RSQRT:
       return RSQRT;
     case UnaryOpType.SIGMOID:

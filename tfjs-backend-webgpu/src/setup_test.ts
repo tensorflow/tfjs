@@ -264,7 +264,6 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
-      'round webgpu',
       'method otsu',  // round
       'selu ',
       'sparseFillEmptyRows ',
