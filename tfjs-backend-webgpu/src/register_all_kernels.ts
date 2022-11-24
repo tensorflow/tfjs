@@ -124,6 +124,7 @@ import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
@@ -255,6 +256,7 @@ const kernelConfigs: KernelConfig[] = [
   stridedSliceConfig,
   stringNGramsConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   splitVConfig,
