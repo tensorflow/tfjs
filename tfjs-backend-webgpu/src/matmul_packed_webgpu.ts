@@ -21,15 +21,13 @@ import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
-    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
-    transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
-    component = 1) {
+    transposeA: boolean, transposeB: boolean, fitAOuter = false,
+    fitBOuter = false, fitInner = false, component = 1) {
   util.assert(
       transposeA && component === 1 || !transposeA,
       () => `transposeA ${transposeA} is not compatible with component size ${
           component}`);
   const sampleA = `
-      let batch = ${batchAEqualOne ? '0' : 'batchIn'};
       ${
       transposeA ? `value = getA(batch, col, row);` :
                    `value = getA(batch, row, col);`}
@@ -39,7 +37,7 @@ export function matMulReadFnSource(
                                `value = getB(batch, row, col);`;
 
   return `
-  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     let col = colIn * ${component};
     ${
@@ -57,9 +55,8 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readB(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     let col = colIn * ${component};
-    let batch = ${batchBEqualOne ? '0' : 'batchIn'};
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -68,15 +65,13 @@ export function matMulReadFnSource(
 }
 
 export function matMulReadWriteFnSource(
-    hasBias: boolean, activation: backend_util.Activation,
-    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
+    hasBias: boolean, activation: backend_util.Activation, transposeA: boolean,
     transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
     component = 1) {
   return `
   ${
       matMulReadFnSource(
-          batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter,
-          fitBOuter, fitInner, component)}
+          transposeA, transposeB, fitAOuter, fitBOuter, fitInner, component)}
   fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${
       typeSnippet(component)}) {
     let col = colIn * ${component};
@@ -515,8 +510,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
   fitAOuter: boolean;
   fitBOuter: boolean;
   fitInner: boolean;
@@ -527,8 +520,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false, bias: TensorInfo = null,
+      transposeA = false, transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null,
       sequentialAccessByThreads = false) {
@@ -571,14 +563,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
     [this.fitAOuter, this.fitBOuter, this.fitInner] =
         this.getShapeFit(outputShape[1], outputShape[2], dimInner);
     this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
         this.fitInner}_${this.isVec4}_${this.isVectorA}_${
-        this.batchAEqualOne}_${this.batchBEqualOne}_${
         this.sequentialAccessByThreads}`;
   }
 
@@ -607,8 +596,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
             this.activation, this.hasPreluActivationWeights, this.isVec4)}
       ${
         matMulReadWriteFnSource(
-            this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne,
+            this.addBias, this.activation,
             false /* transposeA is implemented in makeMatMulPackedSource */,
             this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner,
             this.isVec4 ? 4 : 1)}
