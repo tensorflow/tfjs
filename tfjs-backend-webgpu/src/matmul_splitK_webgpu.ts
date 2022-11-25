@@ -34,15 +34,12 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   transposeA: boolean;
   transposeB: boolean;
   atomic = true;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
   isVec4 = false;
   splitedDimInner = 128;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
-      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false) {
+      transposeA = false, transposeB = false) {
     util.assert(
         outputShape[0] === 1,
         () => 'MatMulSplitKProgram only supports batch = 1.');
@@ -72,11 +69,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
     this.transposeA = transposeA;
     this.transposeB = transposeB;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey =
-        `matMulSplitK_${transposeA}_${transposeB}_${batchAEqualOne}_${
-            batchBEqualOne}_${this.elementsPerThread}_${this.isVec4}`;
+    this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
+        this.elementsPerThread}_${this.isVec4}`;
   }
 
   getUserCode(): string {
@@ -104,8 +98,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     const userCode = `
       ${
         matMulReadFnSource(
-            this.batchAEqualOne, this.batchBEqualOne, false, this.transposeB,
-            false, false, false, component)}
+            false, this.transposeB, false, false, false, component)}
       fn mm_write(batch: i32, row : i32, colIn : i32, value : ${
         typeSnippet(component)}) {
         let col = colIn * ${component};
