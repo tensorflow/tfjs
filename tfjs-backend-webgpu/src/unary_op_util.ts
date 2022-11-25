@@ -47,9 +47,10 @@ export enum UnaryOpType {
   RECIPROCAL,
   ROUND,
   RSQRT,
+  SIGMOID,
+  SIGN,
   SIN,
   SINH,
-  SIGMOID,
   SOFTPLUS,
   SQRT,
   SQUARE,
@@ -166,6 +167,7 @@ const RELU_VEC4 = `
 const ROUND = `return round(a);`;
 const RSQRT = `return inverseSqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+const SIGN = `return sign(a);`;
 const SIN = `return sin(a);`;
 const SINH = `
   let e2x = exp(a);
@@ -258,6 +260,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return RSQRT;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
+    case UnaryOpType.SIGN:
+      return SIGN;
     case UnaryOpType.SIN:
       return SIN;
     case UnaryOpType.SINH:

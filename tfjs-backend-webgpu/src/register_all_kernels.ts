@@ -121,6 +121,7 @@ import {scatterNdConfig} from './kernels/ScatterNd';
 import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
@@ -252,6 +253,7 @@ const kernelConfigs: KernelConfig[] = [
   searchSortedConfig,
   selectConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,
