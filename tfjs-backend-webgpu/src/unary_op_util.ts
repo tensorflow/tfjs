@@ -55,6 +55,7 @@ export enum UnaryOpType {
   SOFTPLUS,
   SQRT,
   SQUARE,
+  STEP,
   TAN,
   TANH,
   TO_INT
@@ -201,6 +202,17 @@ const SOFTPLUS = `
 `;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
+const STEP = `
+  if (isnan(a)) {
+    return a;
+  }
+
+  if (a > 0.0) {
+    return 1.0;
+  } else {
+    return f32(uniforms.stepAlpha);
+  }
+`;
 const TAN = `return tan(a);`;
 const TANH = `
   let e2x = exp(-2.0 * abs(a));
@@ -284,6 +296,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return SQRT;
     case UnaryOpType.SQUARE:
       return SQUARE;
+    case UnaryOpType.STEP:
+      return STEP;
     case UnaryOpType.TAN:
       return TAN;
     case UnaryOpType.TANH:
