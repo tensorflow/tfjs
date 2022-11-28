@@ -47,6 +47,7 @@ export enum UnaryOpType {
   RECIPROCAL,
   ROUND,
   RSQRT,
+  SELU,
   SIGMOID,
   SIGN,
   SIN,
@@ -166,6 +167,15 @@ const RELU_VEC4 = `
 `;
 const ROUND = `return round(a);`;
 const RSQRT = `return inverseSqrt(a);`;
+const SELU = `
+  // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
+  // see: https://arxiv.org/abs/1706.02515
+  if (a >= 0.0) {
+    return ${backend_util.SELU_SCALE} * a;
+  } else {
+    return ${backend_util.SELU_SCALEALPHA} * (exp(a) - 1.0);
+  }
+`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 const SIGN = `return sign(a);`;
 const SIN = `return sin(a);`;
@@ -258,6 +268,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return ROUND;
     case UnaryOpType.RSQRT:
       return RSQRT;
+    case UnaryOpType.SELU:
+      return SELU;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
     case UnaryOpType.SIGN:
