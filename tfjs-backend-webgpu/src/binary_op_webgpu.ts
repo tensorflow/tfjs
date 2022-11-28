@@ -107,8 +107,8 @@ export class BinaryOpProgram implements WebGPUProgram {
           // Fill in the shared memory buffer.
           let localIndex = i32(localId.x);
           if(localIndex < ${this.lastDimensionSize}) {
-            sharedBuf[localIndex] = f32(${
-          this.useSharedMemoryWithB ? 'B' : 'A'}[localIndex]);
+            sharedBuf[localIndex] = ${
+          this.useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
           }
           workgroupBarrier();
 

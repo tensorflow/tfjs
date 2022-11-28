@@ -652,11 +652,15 @@ export class WebGPUBackend extends KernelBackend {
       const stagingBuffer = this.bufferManager.acquireUploadBuffer(
           size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
       const arrayBuffer = stagingBuffer.getMappedRange();
+      let values;
       if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-        new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        //new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        values = Float32Array.from(tensorData.values as TypedArray);
       } else {
-        new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        //new Float32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        values = tensorData.values;
       }
+      new Float32Array(arrayBuffer).set(values as TypedArray);
       stagingBuffer.unmap();
       this.ensureCommandEncoderReady();
       this.ensureComputePassEnded();

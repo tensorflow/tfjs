@@ -444,14 +444,14 @@ function getInputAtCoordsSnippet(
     if (isVec4) {
       return `
         fn ${funcName}() -> vec4<f32> {
-          return vec4<f32>(${texName}[0]);
+          return ${texName}[0];
         }
       `;
     }
 
     return `
       fn ${funcName}() ->f32 {
-        return f32(${texName}[0]);
+        return ${texName}[0];
       }
     `;
   }
@@ -466,18 +466,18 @@ function getInputAtCoordsSnippet(
   if (isVec4) {
     return `
       fn ${funcName}(${inputs}) -> vec4<f32> {
-        return vec4<f32>(${texName}[getIndexFromCoords${rankStr}(${type}(${
+        return ${texName}[getIndexFromCoords${rankStr}(${type}(${
         dims.join(',')}),
-          ${shapeStr}) / 4]);
+          ${shapeStr}) / 4];
       }
       `;
   }
 
   return `
     fn ${funcName}(${inputs}) -> f32 {
-      return f32(${texName}[getIndexFromCoords${rankStr}(${type}(${
+      return ${texName}[getIndexFromCoords${rankStr}(${type}(${
       dims.join(',')}),
-        ${shapeStr})]);
+        ${shapeStr})];
     }
    `;
 }
@@ -501,23 +501,23 @@ function getInputByOutputSnippet(
     if (isVec4) {
       return `
       fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
-        return vec4<f32>(${texName}[globalIndex]);
+        return ${texName}[globalIndex];
       }
 
       fn ${funcName}Coords(coords : ${type}) -> vec4<f32> {
-        return vec4<f32>(${texName}[${
-          outRank > 1 ? 'getOutputIndexFromCoords(coords)' : 'coords'} / 4]);
+        return ${texName}[${
+          outRank > 1 ? 'getOutputIndexFromCoords(coords)' : 'coords'} / 4];
       }
       `;
     } else {
       return `
     fn ${funcName}Index(globalIndex : i32) -> f32 {
-      return f32(${texName}[globalIndex]);
+      return ${texName}[globalIndex];
     }
 
     fn ${funcName}Coords(coords : ${type}) -> f32 {
-      return f32(${texName}[${
-          outRank > 1 ? 'getOutputIndexFromCoords(coords)' : 'coords'}]);
+      return ${texName}[${
+          outRank > 1 ? 'getOutputIndexFromCoords(coords)' : 'coords'}];
     }
     `;
     }
@@ -600,15 +600,15 @@ function getInputByOutputSnippet(
   fn ${funcName}Index(globalIndex : i32) -> f32 {
     var coords = getCoordsFromIndex(globalIndex);
     ${coordsSnippet}
-    return f32(${texName}[getIndexFromCoords${rankStr}(${
-      unpackedCoordsSnippet}, ${shapeStr})]);
+    return ${texName}[getIndexFromCoords${rankStr}(${
+      unpackedCoordsSnippet}, ${shapeStr})];
   }
 
   fn ${funcName}Coords(coordsIn : ${type}) -> f32 {
     var coords = coordsIn;
     ${coordsSnippet}
-    return f32(${texName}[getIndexFromCoords${rankStr}(${
-      unpackedCoordsSnippet}, ${shapeStr})]);
+    return ${texName}[getIndexFromCoords${rankStr}(${
+      unpackedCoordsSnippet}, ${shapeStr})];
   }
 `;
 }
@@ -770,14 +770,14 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
 
 export function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
-  if (type === 'float32') {
+  if (type === 'float32' || type === 'int32' || type === 'bool') {
     return isVec4 ? 'vec4<f32>' : 'f32';
-  } else if (type === 'int32') {
-    return isVec4 ? 'vec4<i32>' : 'i32';
-  } else if (type === 'bool') {
-    // Type 'bool' cannot be used in storage class,
-    // https://www.w3.org/TR/WGSL/#host-shareable-types.
-    return isVec4 ? 'vec4<i32>' : 'i32';
+  //} else if (type === 'int32') {
+  //  return isVec4 ? 'vec4<i32>' : 'i32';
+  //} else if (type === 'bool') {
+  //  // Type 'bool' cannot be used in storage class,
+  //  // https://www.w3.org/TR/WGSL/#host-shareable-types.
+  //  return isVec4 ? 'vec4<i32>' : 'i32';
   }
 
   return type;
@@ -790,14 +790,14 @@ function setOutputSnippet(
   let snippet;
   if (isVec4) {
     snippet = `fn setOutputAtIndex(flatIndex : i32, value : vec4<f32>) {
-      result[flatIndex] = ${wgslType}(value);
+      result[flatIndex] = value;
     }
     fn setOutputAtIndexI32(flatIndex : i32, value : vec4<i32>) {
       result[flatIndex] = ${wgslType}(value);
     }`;
   } else {
     snippet = `fn setOutputAtIndex(flatIndex : i32, value : f32) {
-      result[flatIndex] = ${wgslType}(value);
+      result[flatIndex] = value;
     }
     fn setOutputAtIndexI32(flatIndex : i32, value : i32) {
       result[flatIndex] = ${wgslType}(value);

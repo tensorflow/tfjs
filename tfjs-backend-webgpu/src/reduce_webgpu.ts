@@ -104,7 +104,7 @@ export class ReduceProgram implements WebGPUProgram {
          let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
              k = k + i32(workgroupSizeX)) {
-           let candidate = f32(x[offset + k]);
+           let candidate = x[offset + k];
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
