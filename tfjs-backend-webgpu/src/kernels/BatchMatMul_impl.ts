@@ -90,8 +90,6 @@ export function batchMatMulImpl({
   const intermediates: TensorInfo[] = [a3d, b3d];
 
   const batchDim = Math.max(batchDimA, batchDimB);
-  const batchAEqualOne = batchDimA === 1;
-  const batchBEqualOne = batchDimB === 1;
 
   const inputs: TensorInfo[] = [a3d, b3d];
   const dimensions = [
@@ -115,10 +113,11 @@ export function batchMatMulImpl({
     // So here we set a |thresholdToIncreaseWorkgroups| to indicate whether we
     // need to increase workgroups. And the literal number is an empirical
     // value.
-    const thresholdFlagValue = env().getNumber(
-      'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
-    const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 0 ?
-        thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
+    const thresholdFlagValue =
+        env().getNumber('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+    const thresholdToIncreaseWorkgroups = thresholdFlagValue > 0 ?
+        thresholdFlagValue :
+        backend.thresholdToIncreaseWorkgroups;
     const workgroupsBy32x32 =
         batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
     const hasFewWorkgroups =
@@ -141,8 +140,8 @@ export function batchMatMulImpl({
   switch (matmulProgramType) {
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
-          outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
-          bias, activation, preluActivationWeights);
+          outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights);
       break;
     case MatMulProgramType.MatMulSplitKProgram: {
       // The output buffer must be initailzed to zero before using since we
@@ -150,8 +149,7 @@ export function batchMatMulImpl({
       out = fill(
           {backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
       program = new MatMulSplitKProgram(
-          outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB);
+          outputShape, innerShapeB, transposeA, transposeB);
       if (bias || activation) {
         out =
             backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
@@ -192,9 +190,8 @@ export function batchMatMulImpl({
       // GPUs.
       const sequentialAccessByThreads = backend.adapterInfo.isIntel();
       program = new MatMulPackedProgram(
-          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights,
-          sequentialAccessByThreads);
+          a3dShape, outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights, sequentialAccessByThreads);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
