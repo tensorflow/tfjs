@@ -50,7 +50,7 @@ function greaterEqual_<T extends Tensor>(
 
   const inputs: GreaterEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(GreaterEqual, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(GreaterEqual, inputs as unknown as NamedTensorMap);
 }
 
 export const greaterEqual = op({greaterEqual_});

@@ -41,5 +41,5 @@ export const relu =
 export const reluConfig: KernelConfig = {
   kernelName: Relu,
   backendName: 'webgl',
-  kernelFunc: relu as {} as KernelFunc
+  kernelFunc: relu as unknown as KernelFunc
 };

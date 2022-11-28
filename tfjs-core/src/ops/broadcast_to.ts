@@ -82,7 +82,7 @@ function broadcastTo_<R extends Rank>(
   const inputs: TileInputs = {x: input};
   const attrs: TileAttrs = {reps};
   return ENGINE.runKernel(
-      Tile, inputs as {} as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Tile, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
 }
 
 export const broadcastTo = op({broadcastTo_});

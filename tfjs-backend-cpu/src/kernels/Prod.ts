@@ -84,5 +84,5 @@ export function prod(
 export const prodConfig: KernelConfig = {
   kernelName: Prod,
   backendName: 'cpu',
-  kernelFunc: prod as {} as KernelFunc
+  kernelFunc: prod as unknown as KernelFunc
 };

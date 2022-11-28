@@ -46,5 +46,5 @@ export const oneHot = (args: {
 export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'webgl',
-  kernelFunc: oneHot as {} as KernelFunc
+  kernelFunc: oneHot as unknown as KernelFunc
 };

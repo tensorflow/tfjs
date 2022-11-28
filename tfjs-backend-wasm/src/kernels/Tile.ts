@@ -62,5 +62,5 @@ export const tileConfig: KernelConfig = {
   kernelName: Tile,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: tile as {} as KernelFunc
+  kernelFunc: tile as unknown as KernelFunc
 };

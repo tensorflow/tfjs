@@ -50,5 +50,5 @@ export function argMin(
 export const argMinConfig: KernelConfig = {
   kernelName: ArgMin,
   backendName: 'webgpu',
-  kernelFunc: argMin as {} as KernelFunc
+  kernelFunc: argMin as unknown as KernelFunc
 };

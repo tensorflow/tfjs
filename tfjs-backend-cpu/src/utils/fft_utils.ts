@@ -123,7 +123,7 @@ export function fftImpl(
 
       const sizeInfo: TensorInfo = cpuBackend.makeTensorInfo(
           [], 'float32',
-          util.createScalarValue(inputSize as {} as 'float32', 'float32'));
+          util.createScalarValue(inputSize as unknown as 'float32', 'float32'));
       const sizeInfoCopy =
           identity({inputs: {x: sizeInfo}, backend: cpuBackend});
 

@@ -64,5 +64,5 @@ export function depthwiseConv2dNative(args: {
 export const depthwiseConv2dNativeConfig: KernelConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: 'webgl',
-  kernelFunc: depthwiseConv2dNative as {} as KernelFunc,
+  kernelFunc: depthwiseConv2dNative as unknown as KernelFunc,
 };

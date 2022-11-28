@@ -58,5 +58,5 @@ export const pow =
 export const powConfig: KernelConfig = {
   kernelName: Pow,
   backendName: 'webgl',
-  kernelFunc: pow as {} as KernelFunc
+  kernelFunc: pow as unknown as KernelFunc
 };

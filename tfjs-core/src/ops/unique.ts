@@ -83,8 +83,8 @@ function unique_<T extends Tensor>(
   const inputs: UniqueInputs = {x: $x};
   const attrs: UniqueAttrs = {axis};
   const [values, indices] = ENGINE.runKernel(
-                                Unique, inputs as {} as NamedTensorMap,
-                                attrs as {} as NamedAttrMap) as [T, Tensor1D];
+                                Unique, inputs as unknown as NamedTensorMap,
+                                attrs as unknown as NamedAttrMap) as [T, Tensor1D];
   return {values, indices};
 }
 

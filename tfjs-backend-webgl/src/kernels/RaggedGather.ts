@@ -54,5 +54,5 @@ export function raggedGather(args: {
 export const raggedGatherConfig: KernelConfig = {
   kernelName: RaggedGather,
   backendName: 'webgl',
-  kernelFunc: raggedGather as {} as KernelFunc,
+  kernelFunc: raggedGather as unknown as KernelFunc,
 };

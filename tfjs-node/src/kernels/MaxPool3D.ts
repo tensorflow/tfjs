@@ -26,7 +26,7 @@ export const maxPool3DConfig: KernelConfig = {
     const {x} = args.inputs as MaxPool3DInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {filterSize, strides, pad, dataFormat, dimRoundingMode} =
-        args.attrs as {} as MaxPool3DAttrs;
+        args.attrs as unknown as MaxPool3DAttrs;
 
     const convInfo = backend_util.computePool3DInfo(
         x.shape as [number, number, number, number, number], filterSize,

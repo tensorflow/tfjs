@@ -118,7 +118,7 @@ async function main() {
     }
   });
 
-  const options = argParser.argv as {} as Options;
+  const options = argParser.argv as unknown as Options;
 
   if (options.backend === 'wasm') {
     // Placeholder for g3 specific code.

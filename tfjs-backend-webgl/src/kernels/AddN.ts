@@ -53,5 +53,5 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
 export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'webgl',
-  kernelFunc: addN as {} as KernelFunc
+  kernelFunc: addN as unknown as KernelFunc
 };

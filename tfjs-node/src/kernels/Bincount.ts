@@ -24,7 +24,7 @@ export const bincountConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, weights} = inputs as BincountInputs;
-    const {size} = attrs as {} as BincountAttrs;
+    const {size} = attrs as unknown as BincountAttrs;
     const nodeBackend = backend as NodeJSKernelBackend;
 
     const $size = scalar(size, 'int32');

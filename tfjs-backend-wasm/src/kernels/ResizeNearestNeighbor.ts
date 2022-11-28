@@ -118,5 +118,5 @@ export const resizeNearestNeighborConfig: KernelConfig = {
   kernelName: ResizeNearestNeighbor,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: resizeNearestNeighbor as {} as KernelFunc,
+  kernelFunc: resizeNearestNeighbor as unknown as KernelFunc,
 };

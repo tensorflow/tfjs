@@ -46,7 +46,7 @@ function depthwiseConv2dNativeBackpropFilter_<T extends Tensor3D|Tensor4D>(
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
              DepthwiseConv2dNativeBackpropFilter,
-             inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap) as
+             inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap) as
       Tensor4D;
 }
 

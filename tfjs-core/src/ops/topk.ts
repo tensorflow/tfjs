@@ -71,7 +71,7 @@ function topk_<T extends Tensor>(
   const attrs: TopKAttrs = {k, sorted};
 
   const [values, indices] = ENGINE.runKernel(
-      TopK, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap) as
+      TopK, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap) as
     [T, T];
 
   return {values, indices};

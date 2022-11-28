@@ -58,6 +58,6 @@ function reshape_<R extends Rank>(
   const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
   return ENGINE.runKernel(
-      Reshape, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Reshape, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
 }
 export const reshape = op({reshape_});

@@ -25,7 +25,7 @@ export const argMaxConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as ArgMaxInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis} = args.attrs as {} as ArgMaxAttrs;
+    const {axis} = args.attrs as unknown as ArgMaxAttrs;
 
     const toDispose: Tensor[] = [];
     let xInput = x;

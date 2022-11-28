@@ -63,7 +63,7 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   const attrs = {};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
-  return ENGINE.runKernel(RealDiv, inputs as {} as NamedTensorMap, attrs) as T;
+  return ENGINE.runKernel(RealDiv, inputs as unknown as NamedTensorMap, attrs) as T;
 }
 
 export const div = op({div_});

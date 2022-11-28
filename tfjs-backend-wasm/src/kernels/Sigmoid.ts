@@ -45,5 +45,5 @@ export const sigmoidConfig: KernelConfig = {
   kernelName: 'Sigmoid',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sigmoid as {} as KernelFunc
+  kernelFunc: sigmoid as unknown as KernelFunc
 };

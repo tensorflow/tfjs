@@ -608,7 +608,7 @@ export class WebGPUBackend extends KernelBackend {
       values?: backend_util.BackendValues|string[]): TensorInfo {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
-      values = (values as {} as string[]).map(d => util.encodeString(d));
+      values = (values as unknown as string[]).map(d => util.encodeString(d));
     }
     const dataId =
         this.write(values as backend_util.BackendValues, shape, dtype);
