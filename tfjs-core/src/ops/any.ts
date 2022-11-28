@@ -62,7 +62,8 @@ function any_<T extends Tensor>(
   const attrs: AnyAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      Any, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Any, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 // tslint:disable-next-line:variable-name

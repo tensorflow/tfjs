@@ -70,7 +70,8 @@ export function fusedDepthwiseConv2D(args: {
   if (hasLeakyreluAlpha) {
     const $leakyreluAlpha = backend.makeTensorInfo(
         [], 'float32',
-        util.createScalarValue(leakyreluAlpha as unknown as 'float32', 'float32'));
+        util.createScalarValue(leakyreluAlpha as unknown as 'float32',
+                               'float32'));
     programInputs.push($leakyreluAlpha);
     intermediates.push($leakyreluAlpha);
   }

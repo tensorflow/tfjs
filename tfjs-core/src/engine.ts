@@ -503,7 +503,8 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y: Tensor = ENGINE.runKernel(Identity, {x} as unknown as NamedTensorMap);
+    const y: Tensor = ENGINE.runKernel(Identity,
+                                       {x} as unknown as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {

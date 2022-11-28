@@ -44,7 +44,8 @@ function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
   const res =
       // tslint:disable-next-line: no-unnecessary-type-assertion
       ENGINE.runKernel(
-          DepthwiseConv2dNativeBackpropInput, inputs as unknown as NamedTensorMap,
+          DepthwiseConv2dNativeBackpropInput,
+          inputs as unknown as NamedTensorMap,
           attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {

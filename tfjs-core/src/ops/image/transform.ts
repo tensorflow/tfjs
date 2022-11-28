@@ -87,7 +87,8 @@ function transform_(
       TransformAttrs = {interpolation, fillMode, fillValue, outputShape};
 
   return ENGINE.runKernel(
-      Transform, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Transform, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const transform = op({transform_});

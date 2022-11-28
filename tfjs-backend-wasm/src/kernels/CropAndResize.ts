@@ -80,7 +80,8 @@ function cropAndResize(args: {
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes, cropHeight,
       cropWidth,
-      InterpolationMethod[method as unknown as keyof typeof InterpolationMethod],
+      InterpolationMethod[method as unknown as
+                          keyof typeof InterpolationMethod],
       extrapolationValue, outId);
 
   if (castedData != null) {

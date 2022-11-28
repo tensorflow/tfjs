@@ -93,7 +93,8 @@ function transpose_<T extends Tensor>(
   }
 
   return ENGINE.runKernel(
-      Transpose, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Transpose, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const transpose = op({transpose_});

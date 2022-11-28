@@ -77,7 +77,8 @@ function fusedBatchMatMul(args: {
       0 :
       backend.dataIdMap.get(preluActivationWeights.dataId).id;
   const fusedActivation =
-      FusableActivation[activation as unknown as keyof typeof FusableActivation];
+      FusableActivation[activation as unknown as
+                        keyof typeof FusableActivation];
   if (fusedActivation == null) {
     throw new Error(
         `${activation} activation not yet supported for FusedConv2D ` +

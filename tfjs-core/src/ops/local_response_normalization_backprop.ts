@@ -30,7 +30,8 @@ function localResponseNormalizationBackprop_<T extends Tensor4D>(
   const attrs: LRNGradAttrs = {depthRadius, bias, alpha, beta};
 
   return ENGINE.runKernel(
-      LRNGrad, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      LRNGrad, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const localResponseNormalizationBackprop =

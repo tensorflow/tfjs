@@ -63,7 +63,8 @@ function bincount_<T extends Tensor1D>(
   const attrs: BincountAttrs = {size};
 
   return ENGINE.runKernel(
-      Bincount, inputs as unknown as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Bincount, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const bincount = op({bincount_});
