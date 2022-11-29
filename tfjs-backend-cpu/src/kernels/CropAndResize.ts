@@ -162,5 +162,5 @@ export function cropAndResize(args: {
 export const cropAndResizeConfig: KernelConfig = {
   kernelName: CropAndResize,
   backendName: 'cpu',
-  kernelFunc: cropAndResize as {} as KernelFunc
+  kernelFunc: cropAndResize as unknown as KernelFunc
 };

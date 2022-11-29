@@ -93,8 +93,8 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
-                AvgPool3D, inputs as {} as NamedTensorMap,
-                attrs as {} as NamedAttrMap) as T;
+                AvgPool3D, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, x5D.dtype);
 

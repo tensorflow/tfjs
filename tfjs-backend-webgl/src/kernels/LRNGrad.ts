@@ -37,5 +37,5 @@ export const lrnGrad = (args: {
 export const LRNGradConfig: KernelConfig = {
   kernelName: LRNGrad,
   backendName: 'webgl',
-  kernelFunc: lrnGrad as {} as KernelFunc
+  kernelFunc: lrnGrad as unknown as KernelFunc
 };

@@ -47,7 +47,7 @@ function ifft_(input: Tensor): Tensor {
 
   const inputs: IFFTInputs = {input};
 
-  return ENGINE.runKernel(IFFT, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(IFFT, inputs as unknown as NamedTensorMap);
 }
 
 export const ifft = op({ifft_});

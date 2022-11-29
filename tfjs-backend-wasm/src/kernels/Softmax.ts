@@ -55,5 +55,5 @@ export const softmaxConfig: KernelConfig = {
   kernelName: Softmax,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: softmax as {} as KernelFunc
+  kernelFunc: softmax as unknown as KernelFunc
 };

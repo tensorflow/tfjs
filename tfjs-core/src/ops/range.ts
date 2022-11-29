@@ -48,5 +48,6 @@ export function range(
 
   const attrs: RangeAttrs = {start, stop, step, dtype};
 
-  return ENGINE.runKernel(Range, {} /* inputs */, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Range, {} /* inputs */,
+      attrs as unknown as NamedAttrMap);
 }

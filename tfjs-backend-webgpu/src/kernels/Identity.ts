@@ -30,5 +30,5 @@ export function identity(
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
   backendName: 'webgpu',
-  kernelFunc: identity as {} as KernelFunc
+  kernelFunc: identity as unknown as KernelFunc
 };

@@ -102,8 +102,8 @@ function batchNorm_<R extends Rank>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  FusedBatchNorm, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as Tensor<R>;
+                  FusedBatchNorm, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as Tensor<R>;
 
   return reshape(res, $x.shape);
 }

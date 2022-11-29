@@ -26,7 +26,7 @@ export const depthwiseConv2dNativeConfig: KernelConfig = {
     const {x, filter} = args.inputs as DepthwiseConv2dNativeInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, pad, dilations, dimRoundingMode} =
-        args.attrs as {} as DepthwiseConv2dNativeAttrs;
+        args.attrs as unknown as DepthwiseConv2dNativeAttrs;
 
     let $dilations = dilations;
     if ($dilations == null) {

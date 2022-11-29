@@ -25,7 +25,7 @@ export const depthToSpaceConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as DepthToSpaceInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {blockSize, dataFormat} = args.attrs as {} as DepthToSpaceAttrs;
+    const {blockSize, dataFormat} = args.attrs as unknown as DepthToSpaceAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', x as Tensor), {

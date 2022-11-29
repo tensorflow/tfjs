@@ -79,5 +79,5 @@ export const cumprodConfig: KernelConfig = {
   kernelName: Cumprod,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cumprod as {} as KernelFunc
+  kernelFunc: cumprod as unknown as KernelFunc
 };

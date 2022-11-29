@@ -49,5 +49,5 @@ export function complex(
 export const complexConfig: KernelConfig = {
   kernelName: Complex,
   backendName: 'webgl',
-  kernelFunc: complex as {} as KernelFunc
+  kernelFunc: complex as unknown as KernelFunc
 };

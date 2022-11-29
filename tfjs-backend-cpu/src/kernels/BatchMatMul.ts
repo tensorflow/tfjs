@@ -135,5 +135,5 @@ export function batchMatMul(args: {
 export const batchMatMulConfig: KernelConfig = {
   kernelName: BatchMatMul,
   backendName: 'cpu',
-  kernelFunc: batchMatMul as {} as KernelFunc,
+  kernelFunc: batchMatMul as unknown as KernelFunc,
 };

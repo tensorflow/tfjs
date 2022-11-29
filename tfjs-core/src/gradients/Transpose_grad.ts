@@ -24,7 +24,7 @@ import {Tensor} from '../tensor';
 export const transposeGradConfig: GradConfig = {
   kernelName: Transpose,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const transposeAttrs: TransposeAttrs = attrs as {} as TransposeAttrs;
+    const transposeAttrs: TransposeAttrs = attrs as unknown as TransposeAttrs;
     const {perm} = transposeAttrs;
     const undoPerm = axis_util.getUndoAxesPermutation(perm);
     return {x: () => transpose(dy, undoPerm)};

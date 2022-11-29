@@ -81,7 +81,8 @@ function fusedConv2d(args: {
       pad, dimRoundingMode);
 
   const fusedActivation =
-      FusableActivation[activation as {} as keyof typeof FusableActivation];
+      FusableActivation[activation as unknown as
+                        keyof typeof FusableActivation];
   if (fusedActivation == null) {
     throw new Error(
         `${activation} activation not yet supported for FusedConv2D ` +
@@ -150,5 +151,5 @@ export const fusedConv2DConfig: KernelConfig = {
   kernelName: FusedConv2D,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedConv2d as {} as KernelFunc
+  kernelFunc: fusedConv2d as unknown as KernelFunc
 };

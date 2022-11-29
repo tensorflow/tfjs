@@ -36,5 +36,5 @@ const elu = unaryKernelFunc({opSnippet: ELU, packedOpSnippet: ELU_PACKED});
 export const eluConfig: KernelConfig = {
   kernelName: Elu,
   backendName: 'webgl',
-  kernelFunc: elu as {} as KernelFunc
+  kernelFunc: elu as unknown as KernelFunc
 };

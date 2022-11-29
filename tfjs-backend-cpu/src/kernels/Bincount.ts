@@ -41,5 +41,5 @@ export function bincount(args: {
 export const bincountConfig: KernelConfig = {
   kernelName: Bincount,
   backendName: 'cpu',
-  kernelFunc: bincount as {} as KernelFunc
+  kernelFunc: bincount as unknown as KernelFunc
 };

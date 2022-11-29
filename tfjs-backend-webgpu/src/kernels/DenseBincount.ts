@@ -53,5 +53,5 @@ export function denseBincount(args: {
 export const denseBincountConfig: KernelConfig = {
   kernelName: DenseBincount,
   backendName: 'webgpu',
-  kernelFunc: denseBincount as {} as KernelFunc
+  kernelFunc: denseBincount as unknown as KernelFunc
 };

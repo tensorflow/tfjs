@@ -118,7 +118,7 @@ export function transform(args: {
 export const transformConfig: KernelConfig = {
   kernelName: Transform,
   backendName: 'cpu',
-  kernelFunc: transform as {} as KernelFunc
+  kernelFunc: transform as unknown as KernelFunc
 };
 
 function mapCoord(

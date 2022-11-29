@@ -44,5 +44,5 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendCPU}):
 export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'cpu',
-  kernelFunc: addN as {} as KernelFunc
+  kernelFunc: addN as unknown as KernelFunc
 };

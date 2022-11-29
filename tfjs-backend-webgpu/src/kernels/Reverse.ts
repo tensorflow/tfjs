@@ -67,5 +67,5 @@ export function reverse(
 export const reverseConfig: KernelConfig = {
   kernelName: Reverse,
   backendName: 'webgpu',
-  kernelFunc: reverse as {} as KernelFunc
+  kernelFunc: reverse as unknown as KernelFunc
 };

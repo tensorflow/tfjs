@@ -33,5 +33,5 @@ export function linSpace(args: {backend: MathBackendCPU, attrs: LinSpaceAttrs}):
 export const linSpaceConfig: KernelConfig = {
   kernelName: LinSpace,
   backendName: 'cpu',
-  kernelFunc: linSpace as {} as KernelFunc
+  kernelFunc: linSpace as unknown as KernelFunc
 };

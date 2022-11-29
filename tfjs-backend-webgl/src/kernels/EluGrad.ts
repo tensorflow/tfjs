@@ -41,5 +41,5 @@ export const eluGrad =
 export const eluGradConfig: KernelConfig = {
   kernelName: EluGrad,
   backendName: 'webgl',
-  kernelFunc: eluGrad as {} as KernelFunc
+  kernelFunc: eluGrad as unknown as KernelFunc
 };
