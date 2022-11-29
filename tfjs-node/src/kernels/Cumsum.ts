@@ -25,7 +25,7 @@ export const cumsumConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as CumsumInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis, exclusive, reverse} = args.attrs as {} as CumsumAttrs;
+    const {axis, exclusive, reverse} = args.attrs as unknown as CumsumAttrs;
 
     const axisTensor = scalar(axis, 'int32');
     const opAttrs = [

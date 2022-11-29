@@ -105,5 +105,5 @@ export function conv2D(
 export const conv2DConfig: KernelConfig = {
   kernelName: Conv2D,
   backendName: 'cpu',
-  kernelFunc: conv2D as {} as KernelFunc
+  kernelFunc: conv2D as unknown as KernelFunc
 };

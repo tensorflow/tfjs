@@ -35,5 +35,5 @@ export const logicalAnd = binaryKernelFunc({
 export const logicalAndConfig: KernelConfig = {
   kernelName: LogicalAnd,
   backendName: 'webgl',
-  kernelFunc: logicalAnd as {} as KernelFunc
+  kernelFunc: logicalAnd as unknown as KernelFunc
 };

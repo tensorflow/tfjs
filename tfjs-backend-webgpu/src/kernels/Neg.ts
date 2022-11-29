@@ -45,5 +45,5 @@ export function neg(args: {inputs: NegInputs, backend: WebGPUBackend}):
 export const negConfig: KernelConfig = {
   kernelName: Neg,
   backendName: 'webgpu',
-  kernelFunc: neg as {} as KernelFunc
+  kernelFunc: neg as unknown as KernelFunc
 };

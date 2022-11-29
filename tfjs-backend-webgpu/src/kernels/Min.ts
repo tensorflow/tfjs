@@ -33,5 +33,5 @@ export function min(
 export const minConfig: KernelConfig = {
   kernelName: Min,
   backendName: 'webgpu',
-  kernelFunc: min as {} as KernelFunc
+  kernelFunc: min as unknown as KernelFunc
 };

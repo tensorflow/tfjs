@@ -57,5 +57,5 @@ export function select(args: {inputs: SelectInputs, backend: MathBackendCPU}):
 export const selectConfig: KernelConfig = {
   kernelName: Select,
   backendName: 'cpu',
-  kernelFunc: select as {} as KernelFunc
+  kernelFunc: select as unknown as KernelFunc
 };

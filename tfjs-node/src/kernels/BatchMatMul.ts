@@ -25,7 +25,7 @@ export const batchMatMulConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {a, b} = args.inputs as BatchMatMulInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {transposeA, transposeB} = args.attrs as {} as BatchMatMulAttrs;
+    const {transposeA, transposeB} = args.attrs as unknown as BatchMatMulAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', a.dtype),

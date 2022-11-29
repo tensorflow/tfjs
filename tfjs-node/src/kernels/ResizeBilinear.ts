@@ -26,7 +26,7 @@ export const resizeBilinearConfig: KernelConfig = {
     const {images} = args.inputs as ResizeBilinearInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {alignCorners, halfPixelCenters, size} =
-        args.attrs as {} as ResizeBilinearAttrs;
+        args.attrs as unknown as ResizeBilinearAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype),

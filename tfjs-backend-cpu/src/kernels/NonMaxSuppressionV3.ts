@@ -46,5 +46,5 @@ export function nonMaxSuppressionV3(args: {
 export const nonMaxSuppressionV3Config: KernelConfig = {
   kernelName: NonMaxSuppressionV3,
   backendName: 'cpu',
-  kernelFunc: nonMaxSuppressionV3 as {} as KernelFunc
+  kernelFunc: nonMaxSuppressionV3 as unknown as KernelFunc
 };

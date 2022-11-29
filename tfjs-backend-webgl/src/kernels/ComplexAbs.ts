@@ -52,5 +52,5 @@ export function complexAbs(
 export const complexAbsConfig: KernelConfig = {
   kernelName: ComplexAbs,
   backendName: 'webgl',
-  kernelFunc: complexAbs as {} as KernelFunc
+  kernelFunc: complexAbs as unknown as KernelFunc
 };

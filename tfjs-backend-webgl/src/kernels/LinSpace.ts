@@ -33,5 +33,5 @@ export function linSpace(
 export const linSpaceConfig: KernelConfig = {
   kernelName: LinSpace,
   backendName: 'webgl',
-  kernelFunc: linSpace as {} as KernelFunc
+  kernelFunc: linSpace as unknown as KernelFunc
 };

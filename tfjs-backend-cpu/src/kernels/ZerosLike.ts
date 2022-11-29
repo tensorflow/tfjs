@@ -53,5 +53,5 @@ export function zerosLike(
 export const zerosLikeConfig: KernelConfig = {
   kernelName: ZerosLike,
   backendName: 'cpu',
-  kernelFunc: zerosLike as {} as KernelFunc
+  kernelFunc: zerosLike as unknown as KernelFunc
 };

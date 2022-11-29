@@ -95,5 +95,5 @@ export function cast(
 export const castConfig: KernelConfig = {
   kernelName: Cast,
   backendName: 'webgl',
-  kernelFunc: cast as {} as KernelFunc
+  kernelFunc: cast as unknown as KernelFunc
 };

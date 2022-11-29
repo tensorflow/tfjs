@@ -51,7 +51,7 @@ function diag_(x: Tensor): Tensor {
 
   const inputs: DiagInputs = {x: $x};
 
-  return ENGINE.runKernel(Diag, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Diag, inputs as unknown as NamedTensorMap);
 }
 
 export const diag = op({diag_});

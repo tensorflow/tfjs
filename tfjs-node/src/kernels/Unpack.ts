@@ -25,7 +25,7 @@ export const unpackConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {value} = args.inputs as UnpackInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    let {axis} = args.attrs as {} as UnpackAttrs;
+    let {axis} = args.attrs as unknown as UnpackAttrs;
 
     if (axis < 0) {
       axis += value.shape.length;
