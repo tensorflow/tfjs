@@ -94,6 +94,12 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(dilations),
+      () => 'Error in conv2D: Dilated rates should be larger than 0.');
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(strides),
+      () => 'Error in conv2D: Strides should be larger than 0.');
 
   const inputs: Conv2DInputs = {x: x4D, filter: $filter};
   const attrs:

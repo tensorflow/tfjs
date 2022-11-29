@@ -582,6 +582,11 @@ export function eitherStridesOrDilationsAreOne(
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
 
+export function stridesOrDilationsArePositive(values: number|
+                                              number[]): boolean {
+  return parseTupleParam(values).every(value => value > 0);
+}
+
 /**
  * Convert Conv2D dataFormat from 'NHWC'|'NCHW' to
  *    'channelsLast'|'channelsFirst'
@@ -621,19 +626,20 @@ export function checkPadOnDimRoundingMode(
   if (dimRoundingMode != null) {
     if (typeof pad === 'string') {
       throw Error(
-          `Error in ${opDesc}: pad must be an integer when using `  +
+          `Error in ${opDesc}: pad must be an integer when using ` +
           `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     } else if (typeof pad === 'number') {
       util.assert(
-        util.isInt(pad),
+          util.isInt(pad),
           () => `Error in ${opDesc}: pad must be an integer when using ` +
               `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     } else if (typeof pad === 'object') {
-      (pad as ExplicitPadding).forEach(p => {p.forEach(v =>{
-        util.assert(
-          util.isInt(v),
-            () => `Error in ${opDesc}: pad must be an integer when using ` +
-                `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+      (pad as ExplicitPadding).forEach(p => {
+        p.forEach(v => {
+          util.assert(
+              util.isInt(v),
+              () => `Error in ${opDesc}: pad must be an integer when using ` +
+                  `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
         });
       });
     } else {
