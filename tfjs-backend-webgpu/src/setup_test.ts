@@ -91,7 +91,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'elu ',
     excludes: [
-      'selu',        // Not yet implemented.
       'derivative',  // gradient function not found.
       'gradient'     // gradient function not found.
     ]
@@ -265,7 +264,6 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedRange ',
       'raggedTensorToTensor ',
       'method otsu',  // round
-      'selu ',
       'sparseFillEmptyRows ',
       'sparseReshape ',
       'sparseSegmentMean ',
