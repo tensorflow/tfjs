@@ -78,9 +78,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
     let batchASnippet = 'rc.x';
     let batchBSnippet = 'rc.x';
     if (aShape[0] < bShape[0]) {
-      batchASnippet = `int(min(float(rc.x), ${aShape[0] - 1}.))`;
+      batchASnippet = `imod(rc.x, ${aShape[0]})`;
     } else if (bShape[0] < aShape[0]) {
-      batchBSnippet = `int(min(float(rc.x), ${bShape[0] - 1}.))`;
+      batchBSnippet = `imod(rc.x, ${bShape[0]})`;
     }
 
     this.userCode = `
@@ -90,9 +90,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
+        int batchA = ${batchASnippet};
+        int batchB = ${batchBSnippet};
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          int batchA = ${batchASnippet};
-          int batchB = ${batchBSnippet};
           vec4 a = getMatrixA(batchA, ${aSample});
           vec4 b = getMatrixB(batchB, ${bSample});
 

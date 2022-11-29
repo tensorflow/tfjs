@@ -41,6 +41,8 @@ export function makeMatMulSmallOutputSizeSource(
     let globalRow = i32(globalId.y);
     let globalCol = i32(globalId.x);
     let batch = i32(globalId.z);
+    let batchA = batch % uniforms.aShape[0];
+    let batchB = batch % uniforms.bShape[0];
 
     // uniforms.dimInner should be greater than 0.
     let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
@@ -48,9 +50,9 @@ export function makeMatMulSmallOutputSizeSource(
 
     var globalColA = tileCol;
     var globalRowB = 0;
-    var regA = mm_readA(batch, globalRow, globalColA);
-    var regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
-    var regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
+    var regA = mm_readA(batchA, globalRow, globalColA);
+    var regB0 = mm_readB(batchB, globalRowB + 2 * tileRow, globalCol);
+    var regB1 = mm_readB(batchB, globalRowB + 2 * tileRow + 1, globalCol);
     globalColA = globalColA + ${tileInner};
     globalRowB = globalRowB + ${tileInner};
 
@@ -61,9 +63,9 @@ export function makeMatMulSmallOutputSizeSource(
 
       workgroupBarrier();
 
-      regA = mm_readA(batch, globalRow, globalColA);
-      regB0 = mm_readB(batch, globalRowB + 2 * tileRow, globalCol);
-      regB1 = mm_readB(batch, globalRowB + 2 * tileRow + 1, globalCol);
+      regA = mm_readA(batchA, globalRow, globalColA);
+      regB0 = mm_readB(batchB, globalRowB + 2 * tileRow, globalCol);
+      regB1 = mm_readB(batchB, globalRowB + 2 * tileRow + 1, globalCol);
       globalColA = globalColA + ${tileInner};
       globalRowB = globalRowB + ${tileInner};
 
@@ -91,8 +93,6 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -123,10 +123,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = aShape[0] === 1;
-    this.batchBEqualOne = bShape[0] === 1;
-    this.shaderKey = `matMulSmallOutputSize_${this.activation}_${transposeA}_${
-        transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey =
+        `matMulSmallOutputSize_${this.activation}_${transposeA}_${transposeB}`;
   }
 
   getUserCode(): string {
@@ -134,8 +132,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
       ${
         matMulReadWriteFnSource(
-            this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne, this.transposeA, this.transposeB)}
+            this.addBias, this.activation, this.transposeA, this.transposeB)}
       ${makeMatMulSmallOutputSizeSource(this.workgroupSize)}
     `;
     return userCode;

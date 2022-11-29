@@ -18,19 +18,25 @@
 import {ENGINE} from './engine';
 import {env} from './environment';
 import {Tensor} from './tensor';
-import {DataType, TensorLike, WebGLData} from './types';
+import {DataType, TensorLike, WebGLData, WebGPUData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
+import {bytesPerElement} from './util_base';
 
 export function inferShape(
-    val: TensorLike|WebGLData, dtype?: DataType): number[] {
+    val: TensorLike|WebGLData|WebGPUData, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
     return dtype === 'string' ? [] : [val.length];
   }
-  if (typeof val === 'object' && 'texture' in val) {
-    const usedChannels = val.channels || 'RGBA';
-    return [val.height, val.width * usedChannels.length];
+  const isObject = typeof val === 'object';
+  if (isObject) {
+    if ('texture' in val) {
+      const usedChannels = val.channels || 'RGBA';
+      return [val.height, val.width * usedChannels.length];
+    } else if ('buffer' in val && !(val.buffer instanceof ArrayBuffer)) {
+      return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
+    }
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.

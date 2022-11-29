@@ -83,6 +83,7 @@ import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
+import {logicalOrConfig} from './kernels/LogicalOr';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -114,15 +115,18 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
@@ -211,6 +215,7 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   logicalAndConfig,
   logicalNotConfig,
+  logicalOrConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -242,17 +247,20 @@ const kernelConfigs: KernelConfig[] = [
   resizeNearestNeighborConfig,
   reverseConfig,
   rotateWithOffsetConfig,
+  roundConfig,
   rsqrtConfig,
   scatterNdConfig,
   searchSortedConfig,
   selectConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,
   stridedSliceConfig,
   stringNGramsConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   splitVConfig,

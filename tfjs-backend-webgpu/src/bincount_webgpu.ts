@@ -15,27 +15,19 @@
  * =============================================================================
  */
 
+import {atomicAddSnippet} from './shader_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 const writeSnippet = `
   fn bincount_write(index: i32, value: f32) {
-    var oldValue = atomicLoad(& (result[index]));
-    var exchanged = false;
-    for (; !exchanged;) {
-      let newValueF32 = bitcast<f32>(oldValue) + value;
-      let newValue = bitcast<i32>(newValueF32);
-      let res = atomicCompareExchangeWeak(
-          &(result[index]), oldValue, newValue);
-      oldValue = res.old_value;
-      exchanged = res.exchanged;
-    }
+    ${atomicAddSnippet('&result[index]', 'value', 'float32')}
   }
 `;
 
 const binaryWriteSnippet = `
   fn bincount_write(index: i32, value: f32) {
-    result[index] = value;
+    atomicStore(&result[index], bitcast<i32>(value));
   }
 `;
 
@@ -83,9 +75,8 @@ export class BincountProgram implements WebGPUProgram {
       let indexVal = i32(getX(index));
       if (indexVal < uniforms.binCountSize) {
         let value = ${
-                this.binaryOutput ?
-                    1. :
-                    (this.hasWeights ? 'f32(getW(index))' : '1.')};
+                this.binaryOutput ? 1. :
+                                    (this.hasWeights ? 'getW(index)' : '1.')};
         bincount_write(indexVal, value);
       }
     }` :
@@ -96,7 +87,7 @@ export class BincountProgram implements WebGPUProgram {
         let value = ${
                 this.binaryOutput ?
                     1. :
-                    (this.hasWeights ? 'f32(getW(coord[0], coord[1]))' : '1.')};
+                    (this.hasWeights ? 'getW(coord[0], coord[1])' : '1.')};
         bincount_write(coord.x * uniforms.binCountSize + indexVal, value);
       }
     }`}
