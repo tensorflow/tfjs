@@ -35,10 +35,10 @@ tfjs_bundle(
     },
     umd_name = "tflite",
     deps = [
-        ":copy_wasm_files",
         "//tfjs-tflite/src:tfjs-tflite_lib",
         "//tfjs-tflite/src:tfjs-tflite_src_lib",
         "//tfjs-tflite/src:tflite_web_api_client_js",
+        "//tfjs-tflite/wasm",
     ],
 )
 
@@ -66,16 +66,6 @@ copy_to_dist(
     ],
 )
 
-# Copy wasm related files to dist/.
-copy_to_dist(
-    name = "copy_wasm_files",
-    srcs = [
-        "@tflite_wasm_files//:wasm_files",
-    ],
-    dest_dir = "wasm",
-    global_root = "../tflite_wasm_files",  # See tflite_repositories.bzl
-)
-
 # Package for npm.
 pkg_npm(
     name = "tfjs-tflite_pkg",
@@ -88,7 +78,7 @@ pkg_npm(
     deps = [
         ":copy_bundles",
         ":copy_src_to_dist",
-        ":copy_wasm_files",
+        "//tfjs-tflite/wasm",
     ],
 )
 

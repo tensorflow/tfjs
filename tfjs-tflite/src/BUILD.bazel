@@ -84,7 +84,7 @@ esbuild(
         ":tflite_web_api_client_js",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-tflite:copy_wasm_files",
+        "//tfjs-tflite/wasm",
     ],
 )
 
@@ -121,7 +121,7 @@ tfjs_web_test(
         "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
         "//tfjs-tflite:tf-tflite.min.js",
         "//tfjs-tflite:tf-tflite.min.js.map",
-        "//tfjs-tflite:copy_wasm_files",
+        "//tfjs-tflite/wasm",
         "//tfjs-tflite/test_files:add4.tflite",
     ],
     deps = [
