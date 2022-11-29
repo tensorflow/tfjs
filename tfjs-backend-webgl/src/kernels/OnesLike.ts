@@ -56,5 +56,5 @@ export function onesLike(
 export const onesLikeConfig: KernelConfig = {
   kernelName: OnesLike,
   backendName: 'webgl',
-  kernelFunc: onesLike as {} as KernelFunc
+  kernelFunc: onesLike as unknown as KernelFunc
 };

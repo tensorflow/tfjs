@@ -105,5 +105,5 @@ export const maxPoolConfig: KernelConfig = {
   kernelName: MaxPool,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: maxPool as {} as KernelFunc
+  kernelFunc: maxPool as unknown as KernelFunc
 };

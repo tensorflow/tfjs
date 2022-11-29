@@ -64,5 +64,5 @@ export const topKConfig: KernelConfig = {
   kernelName: TopK,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: topk as {} as KernelFunc,
+  kernelFunc: topk as unknown as KernelFunc,
 };

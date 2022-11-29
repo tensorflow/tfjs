@@ -141,5 +141,5 @@ function slice4d(
 export const sliceConfig: KernelConfig = {
   kernelName: Slice,
   backendName: 'wasm',
-  kernelFunc: slice as {} as KernelFunc,
+  kernelFunc: slice as unknown as KernelFunc,
 };

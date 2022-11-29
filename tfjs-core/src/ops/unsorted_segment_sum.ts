@@ -55,8 +55,8 @@ function unsortedSegmentSum_<T extends Tensor>(
   const attrs: UnsortedSegmentSumAttrs = {numSegments};
 
   return ENGINE.runKernel(
-      UnsortedSegmentSum, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      UnsortedSegmentSum, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const unsortedSegmentSum = op({unsortedSegmentSum_});

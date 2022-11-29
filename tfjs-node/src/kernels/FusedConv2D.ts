@@ -36,7 +36,7 @@ export const fusedConv2DConfig: KernelConfig = {
       dimRoundingMode,
       activation,
       leakyreluAlpha
-    } = args.attrs as {} as FusedConv2DAttrs;
+    } = args.attrs as unknown as FusedConv2DAttrs;
 
     if (dataFormat !== 'NHWC') {
       throw new Error(

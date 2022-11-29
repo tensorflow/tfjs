@@ -22,7 +22,7 @@ import {Tensor} from '../tensor';
 export const splitVGradConfig: GradConfig = {
   kernelName: SplitV,
   gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
-    const {axis} = attrs as {} as SplitVAttrs;
+    const {axis} = attrs as unknown as SplitVAttrs;
 
     return {x: () => concat(dy, axis)};
   }

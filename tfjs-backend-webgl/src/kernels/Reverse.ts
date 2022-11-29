@@ -49,5 +49,5 @@ export function reverse(args: {
 export const reverseConfig: KernelConfig = {
   kernelName: Reverse,
   backendName: 'webgl',
-  kernelFunc: reverse as {} as KernelFunc
+  kernelFunc: reverse as unknown as KernelFunc
 };

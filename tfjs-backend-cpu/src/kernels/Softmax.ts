@@ -79,5 +79,5 @@ export function softmax(
 export const softmaxConfig: KernelConfig = {
   kernelName: Softmax,
   backendName: 'cpu',
-  kernelFunc: softmax as {} as KernelFunc
+  kernelFunc: softmax as unknown as KernelFunc
 };

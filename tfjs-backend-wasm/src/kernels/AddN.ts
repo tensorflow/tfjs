@@ -55,5 +55,5 @@ export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'wasm',
   setupFunc,
-  kernelFunc: addn as {} as KernelFunc,
+  kernelFunc: addn as unknown as KernelFunc,
 };

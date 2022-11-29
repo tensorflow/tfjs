@@ -95,5 +95,5 @@ export function fusedDepthwiseConv2D(args: {
 export const fusedDepthwiseConv2DConfig: KernelConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: 'webgpu',
-  kernelFunc: fusedDepthwiseConv2D as {} as KernelFunc,
+  kernelFunc: fusedDepthwiseConv2D as unknown as KernelFunc,
 };

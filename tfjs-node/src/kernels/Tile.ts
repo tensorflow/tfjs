@@ -25,7 +25,7 @@ export const tileConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as TileInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {reps} = args.attrs as {} as TileAttrs;
+    const {reps} = args.attrs as unknown as TileAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),

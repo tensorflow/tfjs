@@ -29,7 +29,7 @@ export const logSoftmaxGradConfig: GradConfig = {
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [value] = saved;
-    const {axis} = attrs as {} as LogSoftmaxAttrs;
+    const {axis} = attrs as unknown as LogSoftmaxAttrs;
     return {
       logits: () => {
         const keepDims = true;

@@ -124,5 +124,5 @@ export function conv3DBackpropInputV2(args: {
 export const conv3DBackpropInputV2Config: KernelConfig = {
   kernelName: Conv3DBackpropInputV2,
   backendName: 'cpu',
-  kernelFunc: conv3DBackpropInputV2 as {} as KernelFunc
+  kernelFunc: conv3DBackpropInputV2 as unknown as KernelFunc
 };

@@ -31,7 +31,7 @@ export const resizeBilinearGradConfig: GradConfig = {
     const imagesDer = () =>
         // tslint:disable-next-line: no-unnecessary-type-assertion
         ENGINE.runKernel(
-            ResizeBilinearGrad, inputs as {} as NamedTensorMap, attrs) as
+            ResizeBilinearGrad, inputs as unknown as NamedTensorMap, attrs) as
         Tensor4D;
 
     return {images: imagesDer};

@@ -41,5 +41,5 @@ export const mirrorPadKernelFunc: (params: {
 export const mirrorPadConfig: KernelConfig = {
   kernelName: MirrorPad,
   backendName: 'webgl',
-  kernelFunc: mirrorPadKernelFunc as {} as KernelFunc,
+  kernelFunc: mirrorPadKernelFunc as unknown as KernelFunc,
 };

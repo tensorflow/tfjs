@@ -39,5 +39,5 @@ export function maxPool3d(args: {
 export const maxPool3DConfig: KernelConfig = {
   kernelName: MaxPool3D,
   backendName: 'webgl',
-  kernelFunc: maxPool3d as {} as KernelFunc
+  kernelFunc: maxPool3d as unknown as KernelFunc
 };

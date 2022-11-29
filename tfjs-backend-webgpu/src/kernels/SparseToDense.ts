@@ -132,5 +132,5 @@ export function sparseToDense(args: {
 export const sparseToDenseConfig: KernelConfig = {
   kernelName: SparseToDense,
   backendName: 'webgpu',
-  kernelFunc: sparseToDense as {} as KernelFunc
+  kernelFunc: sparseToDense as unknown as KernelFunc
 };

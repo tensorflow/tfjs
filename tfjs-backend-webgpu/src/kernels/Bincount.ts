@@ -49,5 +49,5 @@ export function bincount(
 export const bincountConfig: KernelConfig = {
   kernelName: Bincount,
   backendName: 'webgpu',
-  kernelFunc: bincount as {} as KernelFunc
+  kernelFunc: bincount as unknown as KernelFunc
 };

@@ -45,6 +45,7 @@ function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
   const attrs: StepAttrs = {alpha};
 
   return ENGINE.runKernel(
-      Step, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Step, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 export const step = op({step_});

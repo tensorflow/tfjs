@@ -25,7 +25,8 @@ export const rotateWithOffsetConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {image} = inputs as RotateWithOffsetInputs;
-    const {radians, fillValue, center} = attrs as {} as RotateWithOffsetAttrs;
+    const {radians, fillValue, center} =
+      attrs as unknown as RotateWithOffsetAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const output = util.getTypedArrayFromDType(

@@ -503,7 +503,8 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y: Tensor = ENGINE.runKernel(Identity, {x} as {} as NamedTensorMap);
+    const y: Tensor = ENGINE.runKernel(Identity,
+                                       {x} as unknown as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {
@@ -512,9 +513,9 @@ export class Engine implements TensorTracker, DataMover {
         const attrs = {dtype};
 
         return ENGINE.runKernel(
-                   Cast, gradInputs as {} as NamedTensorMap,
+                   Cast, gradInputs as unknown as NamedTensorMap,
                    // tslint:disable-next-line: no-unnecessary-type-assertion
-                   attrs as {} as NamedAttrMap) as Tensor;
+                   attrs as unknown as NamedAttrMap) as Tensor;
       }
     });
     const saved: Tensor[] = [];
@@ -1286,7 +1287,7 @@ function ones(shape: number[]): Tensor {
 }
 
 export function getOrMakeEngine(): Engine {
-  const ns = getGlobalNamespace() as {} as {_tfengine: Engine};
+  const ns = getGlobalNamespace() as unknown as {_tfengine: Engine};
   if (ns._tfengine == null) {
     const environment = new Environment(ns);
     ns._tfengine = new Engine(environment);
@@ -1310,5 +1311,5 @@ export const ENGINE = getOrMakeEngine();
 export function add(a: Tensor, b: Tensor): Tensor {
   // We duplicate Add here to avoid a circular dependency with add.ts.
   const inputs = {a, b};
-  return ENGINE.runKernel(Add, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Add, inputs as unknown as NamedTensorMap);
 }

@@ -80,5 +80,5 @@ export function prod(
 export const prodConfig: KernelConfig = {
   kernelName: Prod,
   backendName: 'webgl',
-  kernelFunc: prod as {} as KernelFunc
+  kernelFunc: prod as unknown as KernelFunc
 };

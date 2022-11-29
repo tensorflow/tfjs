@@ -32,5 +32,5 @@ export const sparseSegmentSumConfig: KernelConfig = {
   kernelName: SparseSegmentSum,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sparseSegmentSum as {} as KernelFunc
+  kernelFunc: sparseSegmentSum as unknown as KernelFunc
 };

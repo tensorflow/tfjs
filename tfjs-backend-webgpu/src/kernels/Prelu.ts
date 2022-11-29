@@ -34,5 +34,5 @@ export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
 export const preluConfig: KernelConfig = {
   kernelName: Prelu,
   backendName: 'webgpu',
-  kernelFunc: prelu as {} as KernelFunc
+  kernelFunc: prelu as unknown as KernelFunc
 };

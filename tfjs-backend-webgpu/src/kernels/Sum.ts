@@ -33,5 +33,5 @@ export function sum(
 export const sumConfig: KernelConfig = {
   kernelName: Sum,
   backendName: 'webgpu',
-  kernelFunc: sum as {} as KernelFunc
+  kernelFunc: sum as unknown as KernelFunc
 };
