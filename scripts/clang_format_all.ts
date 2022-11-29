@@ -16,79 +16,26 @@
  */
 
 import {spawn} from 'child_process';
-import {StringDecoder} from 'string_decoder';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as os from 'os';
-import {PromiseQueue} from './promise_queue';
-
 // @ts-ignore because clang-format does not have types.
 import {getNativeBinary} from 'clang-format';
+import * as glob from 'glob';
+import * as os from 'os';
+import {StringDecoder} from 'string_decoder';
+
+import {PromiseQueue} from './promise_queue';
 
 const CLANG_FORMAT = getNativeBinary() as string;
 
-const EXCLUDE_DIRECTORY = [
-  /^.*node_modules.*$/,
-  /^.*dist.*$/,
-  /^.*\/\..*$/, // Directories that start with '.'
-];
-const MATCH_FILE = [
-  /^.*\.ts$/,
-  /^.*\.tsx$/,
-  /^.*\.js$/,
-  /^.*\.jsx$/,
-  /^.*\.c$/,
-  /^.*\.cc$/,
-  /^.*\.h$/,
-];
-
-function matchesAny(val: string, regexes: RegExp[]): boolean {
-  for (const regexp of regexes) {
-    if (regexp.test(val)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-// Filter paths that should be clang-formatted
-function filter(path: string, stats: fs.Stats): boolean {
-  // Never edit yourself because that makes it difficult to find errors.
-  // The sourcemap is wrong.
-  if (path.endsWith('clang_format_all.ts')) {
-    return false;
-  }
-
-  // Check directories separately from files because there are different
-  // conditions for each.
-  if (stats.isDirectory()) {
-    if (!matchesAny(path, EXCLUDE_DIRECTORY)) {
-      return true;
-    }
-  } else if (stats.isFile()) {
-    return matchesAny(path, MATCH_FILE);
-  }
-  return false;
-}
-
-// Recursively get the files in a directory. This is essentially `find` with a
-// filter.
-async function* getFiles(rootPath: string, filter: (path: string, stats: fs.Stats) => boolean = () => true): AsyncGenerator<string> {
-  const stats = await fs.promises.lstat(rootPath);
-  if (!filter(rootPath, stats)) {
-    return;
-  }
-
-  if (stats.isDirectory()) {
-    const contents = await fs.promises.readdir(rootPath);
-    for (const fileName of contents) {
-      const filePath = path.join(rootPath, fileName);
-      yield * getFiles(filePath, filter);
-    }
-  } else if (stats.isFile()) {
-    // Already filtered above
-    yield rootPath;
-  }
+function globAsync(pattern: string, options: glob.IOptions): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    glob.default(pattern, options, (err, matches) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(matches);
+    });
+  });
 }
 
 async function readStream<T>(stream: AsyncIterable<T>): Promise<T[]> {
@@ -120,43 +67,36 @@ async function runClang(args: string[]): Promise<string> {
   return lines.map(decode).join('\n');
 }
 
-async function* batch<V>(iterator: AsyncIterator<V>, size: number): AsyncGenerator<V[]> {
-  let allDone = false;
-  while (!allDone) {
-    const resultPromises: Array<Promise<IteratorResult<V>>> = [];
-
-    for (let i = 0; i < size; i++) {
-      resultPromises.push(iterator.next());
-    }
-
-    const results = await Promise.all(resultPromises);
-
-    const values: V[] = [];
-    for (const {value, done} of results) {
-      if (done) {
-        allDone = true;
-        if (value != null) {
-          values.push(value);
-        }
-        break;
-      }
-      values.push(value);
-    }
-
-    if (values.length > 0) {
+function* batch<V>(iterable: Iterable<V>, size: number): Generator<V[]> {
+  let values: V[] = [];
+  for (let val of iterable) {
+    values.push(val);
+    if (values.length === size) {
       yield values;
+      values = [];
     }
+  }
+
+  // Make sure to yield the last one
+  if (values.length > 0) {
+    yield values;
   }
 }
 
 async function main() {
-  const files = getFiles(path.join(__dirname, '../'), filter);
-  const batches = batch(files, 32)
+  const files = await globAsync('**/*.@(t|j)s?(x)', {
+    ignore: [
+      '**/node_modules/**', '**/dist/**',
+      '**/*_pb.js',  // Compiled protobuf files
+      '**.**',       // Files that start with '.'
+    ]
+  });
+  const batches = batch(files, 32);
 
   const threads = os.cpus().length;
   const threadQueue = new PromiseQueue<string>(threads);
 
-  for await (const batch of batches) {
+  for (const batch of batches) {
     threadQueue.add(() => {
       return runClang(['-i', '-style=file', ...batch]);
     });
@@ -167,4 +107,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
