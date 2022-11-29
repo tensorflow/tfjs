@@ -160,10 +160,8 @@ async function main() {
   const namedInputs =
       createInputTensors(inputsData, inputsShape, inputsDtype, inputName);
 
-  // TODO: Change predict and execute to async versions once predictAsync is
-  // supported in TFJS.
-  const result = outputName == null ? model.predict(namedInputs) :
-                                      model.execute(namedInputs, outputName);
+  const result = outputName == null ? await model.predictAsync(namedInputs) :
+                                      await model.executeAsync(namedInputs, outputName);
 
   // execute can return a single tensor or an
   // array of tensors. predict can return a map as well.
