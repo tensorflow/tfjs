@@ -238,3 +238,7 @@ pip_install(
     python_interpreter_target = interpreter,
     requirements = "@//tfjs-converter/python:requirements.txt",
 )
+
+load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
+
+tflite_repositories()
