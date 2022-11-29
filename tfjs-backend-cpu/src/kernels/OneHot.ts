@@ -47,5 +47,5 @@ export function oneHot(
 export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'cpu',
-  kernelFunc: oneHot as {} as KernelFunc
+  kernelFunc: oneHot as unknown as KernelFunc
 };

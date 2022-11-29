@@ -26,7 +26,7 @@ export const batchMatMulGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [a, b] = saved;
 
-    const {transposeA, transposeB} = attrs as {} as BatchMatMulAttrs;
+    const {transposeA, transposeB} = attrs as unknown as BatchMatMulAttrs;
 
     if (!transposeA && !transposeB) {
       return {

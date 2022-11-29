@@ -110,5 +110,5 @@ export function unsortedSegmentSum(args: {
 export const unsortedSegmentSumConfig: KernelConfig = {
   kernelName: UnsortedSegmentSum,
   backendName: 'webgl',
-  kernelFunc: unsortedSegmentSum as {} as KernelFunc
+  kernelFunc: unsortedSegmentSum as unknown as KernelFunc
 };

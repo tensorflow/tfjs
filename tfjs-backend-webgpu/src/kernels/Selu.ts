@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {SplitV, SplitVAttrs} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {concat} from '../ops/concat';
-import {Tensor} from '../tensor';
 
-export const splitVGradConfig: GradConfig = {
-  kernelName: SplitV,
-  gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
-    const {axis} = attrs as unknown as SplitVAttrs;
+import {KernelConfig, Selu} from '@tensorflow/tfjs-core';
 
-    return {x: () => concat(dy, axis)};
-  }
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {UnaryOpType} from '../unary_op_util';
+
+export const selu = unaryKernelFunc({opType: UnaryOpType.SELU});
+
+export const seluConfig: KernelConfig = {
+  kernelName: Selu,
+  backendName: 'webgpu',
+  kernelFunc: selu
 };

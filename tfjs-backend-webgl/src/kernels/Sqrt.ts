@@ -28,5 +28,5 @@ export const sqrt = unaryKernelFunc(
 export const sqrtConfig: KernelConfig = {
   kernelName: Sqrt,
   backendName: 'webgl',
-  kernelFunc: sqrt as {} as KernelFunc
+  kernelFunc: sqrt as unknown as KernelFunc
 };

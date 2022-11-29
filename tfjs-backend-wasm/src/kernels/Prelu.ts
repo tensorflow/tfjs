@@ -59,5 +59,5 @@ export const preluConfig: KernelConfig = {
   kernelName: Prelu,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: prelu as {} as KernelFunc
+  kernelFunc: prelu as unknown as KernelFunc
 };

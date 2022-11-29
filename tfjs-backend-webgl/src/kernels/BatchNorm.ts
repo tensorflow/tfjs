@@ -77,5 +77,5 @@ export const batchNorm: (params: {
 export const batchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'webgl',
-  kernelFunc: batchNorm as {} as KernelFunc,
+  kernelFunc: batchNorm as unknown as KernelFunc,
 };

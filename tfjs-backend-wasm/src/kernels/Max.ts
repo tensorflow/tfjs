@@ -82,5 +82,5 @@ export const maxConfig: KernelConfig = {
   kernelName: Max,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: max as {} as KernelFunc
+  kernelFunc: max as unknown as KernelFunc
 };

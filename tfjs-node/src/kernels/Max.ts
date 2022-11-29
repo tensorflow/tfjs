@@ -25,7 +25,7 @@ export const maxConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as MaxInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {reductionIndices, keepDims} = args.attrs as {} as MaxAttrs;
+    const {reductionIndices, keepDims} = args.attrs as unknown as MaxAttrs;
 
     const axes = util.parseAxisParam(reductionIndices, x.shape);
     const axesTensor = tensor1d(axes, 'int32');

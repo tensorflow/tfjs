@@ -221,8 +221,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
           // tslint:disable-next-line: no-unnecessary-type-assertion
           let res: Tensor4D|Tensor3D = ENGINE.runKernel(
-              FusedDepthwiseConv2D, inputs as {} as NamedTensorMap,
-              attrs as {} as NamedAttrMap);
+              FusedDepthwiseConv2D, inputs as unknown as NamedTensorMap,
+              attrs as unknown as NamedAttrMap);
 
           save([filter, x4D, res]);
 
@@ -240,8 +240,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
           // tslint:disable-next-line: no-unnecessary-type-assertion
           let res: Tensor4D|Tensor3D = ENGINE.runKernel(
-              FusedDepthwiseConv2D, inputs as {} as NamedTensorMap,
-              attrs as {} as NamedAttrMap);
+              FusedDepthwiseConv2D, inputs as unknown as NamedTensorMap,
+              attrs as unknown as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 

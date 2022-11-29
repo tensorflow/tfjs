@@ -73,5 +73,5 @@ export function argMin(
 export const argMinConfig: KernelConfig = {
   kernelName: ArgMin,
   backendName: 'cpu',
-  kernelFunc: argMin as {} as KernelFunc
+  kernelFunc: argMin as unknown as KernelFunc
 };

@@ -33,5 +33,5 @@ export function prod(
 export const prodConfig: KernelConfig = {
   kernelName: Prod,
   backendName: 'webgpu',
-  kernelFunc: prod as {} as KernelFunc
+  kernelFunc: prod as unknown as KernelFunc
 };

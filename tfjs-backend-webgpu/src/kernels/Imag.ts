@@ -32,5 +32,5 @@ export function imag(args: {inputs: ImagInputs, backend: WebGPUBackend}):
 export const imagConfig: KernelConfig = {
   kernelName: Imag,
   backendName: 'webgpu',
-  kernelFunc: imag as {} as KernelFunc
+  kernelFunc: imag as unknown as KernelFunc
 };

@@ -53,5 +53,5 @@ export function depthToSpace(args: {
 export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
   backendName: 'webgpu',
-  kernelFunc: depthToSpace as {} as KernelFunc
+  kernelFunc: depthToSpace as unknown as KernelFunc
 };

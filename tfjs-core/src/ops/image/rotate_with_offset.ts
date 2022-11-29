@@ -56,8 +56,8 @@ function rotateWithOffset_(
   const inputs: RotateWithOffsetInputs = {image: $image};
   const attrs: RotateWithOffsetAttrs = {radians, fillValue, center};
   const res = ENGINE.runKernel(
-      RotateWithOffset, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      RotateWithOffset, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
   return res as Tensor4D;
 }
 

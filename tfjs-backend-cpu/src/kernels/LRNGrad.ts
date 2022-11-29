@@ -69,5 +69,5 @@ export function lRNGrad(
 export const LRNGradConfig: KernelConfig = {
   kernelName: LRNGrad,
   backendName: 'cpu',
-  kernelFunc: lRNGrad as {} as KernelFunc
+  kernelFunc: lRNGrad as unknown as KernelFunc
 };
