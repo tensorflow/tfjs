@@ -111,5 +111,5 @@ export const transformConfig: KernelConfig = {
   kernelName: Transform,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: transform as {} as KernelFunc
+  kernelFunc: transform as unknown as KernelFunc
 };

@@ -55,5 +55,5 @@ export function mean(
 export const meanConfig: KernelConfig = {
   kernelName: Mean,
   backendName: 'cpu',
-  kernelFunc: mean as {} as KernelFunc
+  kernelFunc: mean as unknown as KernelFunc
 };

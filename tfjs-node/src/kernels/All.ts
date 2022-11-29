@@ -25,7 +25,7 @@ export const allConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as AllInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis, keepDims} = args.attrs as {} as AllAttrs;
+    const {axis, keepDims} = args.attrs as unknown as AllAttrs;
 
     const origAxes = util.parseAxisParam(axis, x.shape);
     const opAttrs = [

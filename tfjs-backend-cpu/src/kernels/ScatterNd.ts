@@ -46,5 +46,5 @@ export function scatterNd(args: {
 export const scatterNdConfig: KernelConfig = {
   kernelName: ScatterNd,
   backendName: 'cpu',
-  kernelFunc: scatterNd as {} as KernelFunc
+  kernelFunc: scatterNd as unknown as KernelFunc
 };

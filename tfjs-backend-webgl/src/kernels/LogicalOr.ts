@@ -33,5 +33,5 @@ export const logicalOr = binaryKernelFunc(
 export const logicalOrConfig: KernelConfig = {
   kernelName: LogicalOr,
   backendName: 'webgl',
-  kernelFunc: logicalOr as {} as KernelFunc
+  kernelFunc: logicalOr as unknown as KernelFunc
 };

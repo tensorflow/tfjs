@@ -71,5 +71,5 @@ export function sparseFillEmptyRows(args: {
 export const sparseFillEmptyRowsConfig: KernelConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: 'webgl',
-  kernelFunc: sparseFillEmptyRows as {} as KernelFunc,
+  kernelFunc: sparseFillEmptyRows as unknown as KernelFunc,
 };

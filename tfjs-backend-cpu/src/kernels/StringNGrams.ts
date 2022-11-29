@@ -51,5 +51,5 @@ export function stringNGrams(args: {
 export const stringNGramsConfig: KernelConfig = {
   kernelName: StringNGrams,
   backendName: 'cpu',
-  kernelFunc: stringNGrams as {} as KernelFunc,
+  kernelFunc: stringNGrams as unknown as KernelFunc,
 };

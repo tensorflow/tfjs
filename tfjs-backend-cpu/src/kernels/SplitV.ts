@@ -46,5 +46,5 @@ export function splitV(
 export const splitVConfig: KernelConfig = {
   kernelName: SplitV,
   backendName: 'cpu',
-  kernelFunc: splitV as {} as KernelFunc
+  kernelFunc: splitV as unknown as KernelFunc
 };

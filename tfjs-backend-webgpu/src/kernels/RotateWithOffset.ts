@@ -26,7 +26,8 @@ export const rotateWithOffsetConfig: KernelConfig = {
     backendName: 'webgpu',
     kernelFunc: ({inputs, attrs, backend}) => {
       const {image} = inputs as RotateWithOffsetInputs;
-      const {radians, fillValue, center} = attrs as {} as RotateWithOffsetAttrs;
+      const {radians, fillValue, center} =
+          attrs as unknown as RotateWithOffsetAttrs;
       const webgpuBackend = backend as WebGPUBackend;
 
       const program = new RotateProgram((image as Tensor4D).shape, fillValue);

@@ -23,7 +23,7 @@ export const leakyReluConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: (args) => {
     const inputs = args.inputs as LeakyReluInputs;
-    const attrs = args.attrs as {} as LeakyReluAttrs;
+    const attrs = args.attrs as unknown as LeakyReluAttrs;
     const backend = args.backend as NodeJSKernelBackend;
     const x = inputs.x as Tensor;
     const alpha = attrs.alpha;

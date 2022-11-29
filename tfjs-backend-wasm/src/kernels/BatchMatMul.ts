@@ -117,5 +117,5 @@ export const batchMatMulConfig: KernelConfig = {
   kernelName: BatchMatMul,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: batchMatMul as {} as KernelFunc
+  kernelFunc: batchMatMul as unknown as KernelFunc
 };

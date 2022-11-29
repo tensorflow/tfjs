@@ -25,7 +25,8 @@ export const avgPoolGradConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {dy, input} = args.inputs as AvgPoolGradInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {filterSize, strides, pad} = args.attrs as {} as AvgPoolGradAttrs;
+    const {filterSize, strides, pad} =
+        args.attrs as unknown as AvgPoolGradAttrs;
 
     const convInfo = backend_util.computePool2DInfo(
         input.shape as [number, number, number, number], filterSize, strides,

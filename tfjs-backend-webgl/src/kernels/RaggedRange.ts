@@ -45,5 +45,5 @@ export function raggedRange(
 export const raggedRangeConfig: KernelConfig = {
   kernelName: RaggedRange,
   backendName: 'webgl',
-  kernelFunc: raggedRange as {} as KernelFunc,
+  kernelFunc: raggedRange as unknown as KernelFunc,
 };

@@ -51,5 +51,5 @@ export function maxPool(args: {
 export const maxPoolConfig: KernelConfig = {
   kernelName: MaxPool,
   backendName: 'webgl',
-  kernelFunc: maxPool as {} as KernelFunc
+  kernelFunc: maxPool as unknown as KernelFunc
 };

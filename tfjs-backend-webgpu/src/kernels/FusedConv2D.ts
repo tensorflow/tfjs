@@ -59,5 +59,5 @@ export function fusedConv2d(args: {
 export const fusedConv2DConfig: KernelConfig = {
   kernelName: FusedConv2D,
   backendName: 'webgpu',
-  kernelFunc: fusedConv2d as {} as KernelFunc,
+  kernelFunc: fusedConv2d as unknown as KernelFunc,
 };

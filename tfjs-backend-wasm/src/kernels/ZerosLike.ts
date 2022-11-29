@@ -30,5 +30,5 @@ function zerosLike(args: {inputs: ZerosLikeInputs, backend: BackendWasm}) {
 export const zerosLikeConfig: KernelConfig = {
   kernelName: ZerosLike,
   backendName: 'wasm',
-  kernelFunc: zerosLike as {} as KernelFunc,
+  kernelFunc: zerosLike as unknown as KernelFunc,
 };

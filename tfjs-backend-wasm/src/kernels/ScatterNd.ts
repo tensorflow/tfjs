@@ -76,5 +76,5 @@ export const scatterNdConfig: KernelConfig = {
   kernelName: ScatterNd,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: scatterNd as {} as KernelFunc
+  kernelFunc: scatterNd as unknown as KernelFunc
 };

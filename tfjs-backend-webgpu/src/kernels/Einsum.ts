@@ -99,5 +99,5 @@ export function einsum(
 export const einsumConfig: KernelConfig = {
   kernelName: Einsum,
   backendName: 'webgpu',
-  kernelFunc: einsum as {} as KernelFunc
+  kernelFunc: einsum as unknown as KernelFunc
 };

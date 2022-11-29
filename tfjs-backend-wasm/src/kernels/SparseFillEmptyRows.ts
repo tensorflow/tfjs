@@ -150,5 +150,5 @@ export const sparseFillEmptyRowsConfig: KernelConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sparseFillEmptyRows as {} as KernelFunc
+  kernelFunc: sparseFillEmptyRows as unknown as KernelFunc
 };

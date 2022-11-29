@@ -55,7 +55,7 @@ export function depthwiseConv2dNative(args: {
     program = new DepthwiseConv2DNCHWSharedProgram(
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
   } else if (
-      isChannelsLast && convInfo.inHeight > 4 && convInfo.inWidth > 4 &&
+      isChannelsLast && convInfo.outHeight > 4 && convInfo.outWidth > 4 &&
       convInfo.strideWidth <= 2 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
@@ -78,5 +78,5 @@ export function depthwiseConv2dNative(args: {
 export const depthwiseConv2dNativeConfig: KernelConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: 'webgpu',
-  kernelFunc: depthwiseConv2dNative as {} as KernelFunc,
+  kernelFunc: depthwiseConv2dNative as unknown as KernelFunc,
 };

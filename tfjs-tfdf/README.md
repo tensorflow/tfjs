@@ -10,15 +10,13 @@ Under the hood, the TFDF C++ runtime is packaged in a set of WASM modules.
 
 ## Import the packages
 
-To use this package, you will need JSZip, and a TFJS backend installed.
+To use this package, you will need a TFJS backend installed.
 You will also need to import `@tensorflow/tfjs-core` for
 manipulating tensors, and `@tensorflow/tfjs-converter` for loading models.
 
 ### Via NPM
 
 ```js
-// Import JSZip
-import 'jszip';
 // Import @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs-core';
 // Adds the CPU backend.
@@ -32,8 +30,6 @@ import * as tfdf from '@tensorflow/tfjs-tfdf';
 ### Via a script tag
 
 ```html
-<!-- Import jszip -->
-<script src="https://cdn.jsdelivr.net/npm/jszip"></script>
 <!-- Import @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
 <!-- Adds the CPU backend -->
@@ -48,6 +44,21 @@ import * as tfdf from '@tensorflow/tfjs-tfdf';
 -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tfdf/dist/tf-tfdf.min.js"></script>
 ```
+
+## Set WASM modules location (optional)
+
+By default, it will try to load the WASM modules from the same location where
+the package or your own script is served. Use `setLocateFile` to set your own
+location. See `src/tfdf_web_api_client.d.ts` for more details.
+
+```js
+// `base` is the URL to the main javascript file's directory.
+// To return the default URL of the file use `${base}${path}`.
+tfdf.setLocateFile((path, base) => {
+  return `https://your-server/.../${path}`;
+});
+```
+
 ## Load a TFDF model
 ```js
 const tfdfModel = await tfdf.loadTFDFModel('url/to/your/model.json');

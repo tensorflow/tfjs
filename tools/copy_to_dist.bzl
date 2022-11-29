@@ -16,9 +16,16 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _copy_to_dist_impl(ctx):
+    if ctx.attr.global_root and ctx.attr.root:
+        fail("Both 'root' and 'global_root' were passed " +
+             "but only one is expected")
+
     files = [f for s in ctx.attr.srcs for f in s.files.to_list()]
 
-    root_dir = paths.join(paths.dirname(ctx.build_file_path), ctx.attr.root)
+    if ctx.attr.global_root:
+        root_dir = ctx.attr.global_root
+    else:
+        root_dir = paths.join(paths.dirname(ctx.build_file_path), ctx.attr.root)
 
     outputs = []
     for f in files:
@@ -44,6 +51,10 @@ copy_to_dist = rule(
         ),
         "extension": attr.string(
             doc = "New file extension to use for each file",
+        ),
+        "global_root": attr.string(
+            default = "",
+            doc = "Root path to remove when symlinking. Relative to the repository root",
         ),
         "root": attr.string(
             default = "",
