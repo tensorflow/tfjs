@@ -242,3 +242,7 @@ pip_install(
 load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
 
 tflite_repositories()
+
+load("//tfjs-tfdf:tfdf_repositories.bzl", "tfdf_repositories")
+
+tfdf_repositories()
