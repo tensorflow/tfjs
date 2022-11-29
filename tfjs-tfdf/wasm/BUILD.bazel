@@ -13,6 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:defaults.bzl", "esbuild")
 load("//tools:get_extension.bzl", "get_extension")
 
@@ -22,18 +23,14 @@ package(default_visibility = ["//visibility:public"])
 # them available for other targets.
 #
 # The downloaded files will be in `tfjs/dist/bin/tfjs-tfdf/wasm`.
-genrule(
+
+copy_to_dist(
     name = "wasm_files",
-    outs = [
-        "inference.js",
-        "inference.wasm",
+    srcs = [
+        "@tfdf_wasm_files//:wasm_files",
     ],
-    # $(@D) stores the output directory.
-    cmd = "$(location //tfjs-tfdf/scripts:download_tfdf_web_api) \"$(@D)\"",
-    exec_tools = [
-        "//tfjs-tfdf/scripts:download_tfdf_web_api",
-    ],
-    tags = ["no-remote-exec"],
+    dest_dir = ".",
+    global_root = "../tfdf_wasm_files",  # See tfdf_repositories.bzl
 )
 
 get_extension(
