@@ -252,7 +252,6 @@ const TEST_FILTERS: TestFilter[] = [
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'linspace ',
       'localResponseNormalization ',
       'maxPool3d ',
       'maxPool3dBackprop ',
