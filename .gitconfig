@@ -1,0 +1,2 @@
+[clangFormat]
+	extensions = ts,tsx,js,jsx
