@@ -75,7 +75,7 @@
     "scripts": {
         "lint": "tslint -p tsconfig_tslint.json",
         "lint-fix": "tslint -p tsconfig_tslint.json --fix",
-        "_run_git_clang": "git-clang-format --binary=node_modules/.bin/clang-format --style='file' --staged",
+        "_run_git_clang": "git-clang-format --binary=node_modules/.bin/clang-format --style='file' --staged --extensions 'ts,js,tsx,jsx'",
         "check-format": "yarn --silent _run_git_clang --diff",
         "format": "yarn --silent _run_git_clang && yarn bazel:lint-fix && yarn bazel:format",
         "clang-format-all": "ts-node -s ./scripts/clang_format_all.ts",
