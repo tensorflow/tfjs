@@ -130,6 +130,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'localResponseNormalization ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+    ]
+  },
+  {
     startsWith: 'matmul',
     excludes: [
       'has zero in its shape',  // Test times out.
@@ -252,7 +258,6 @@ const TEST_FILTERS: TestFilter[] = [
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'localResponseNormalization ',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
