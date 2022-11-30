@@ -95,5 +95,5 @@ export const meanConfig: KernelConfig = {
   kernelName: Mean,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: mean as {} as KernelFunc
+  kernelFunc: mean as unknown as KernelFunc
 };

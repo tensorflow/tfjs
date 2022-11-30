@@ -44,5 +44,5 @@ export const abs = (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'cpu',
-  kernelFunc: abs as {} as KernelFunc,
+  kernelFunc: abs as unknown as KernelFunc,
 };

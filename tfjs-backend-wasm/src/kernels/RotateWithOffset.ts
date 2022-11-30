@@ -76,6 +76,6 @@ export function rotateWithOffset(args: {
 export const rotateWithOffsetConfig: KernelConfig = {
   kernelName: RotateWithOffset,
   backendName: 'wasm',
-  kernelFunc: rotateWithOffset as {} as KernelFunc,
+  kernelFunc: rotateWithOffset as unknown as KernelFunc,
   setupFunc: setup
 };

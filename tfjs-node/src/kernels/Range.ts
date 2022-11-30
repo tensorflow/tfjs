@@ -24,8 +24,8 @@ export const rangeConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: (args) => {
     const backend = args.backend as NodeJSKernelBackend;
-    const {start, stop, dtype} = args.attrs as {} as RangeAttrs;
-    let {step} = args.attrs as {} as RangeAttrs;
+    const {start, stop, dtype} = args.attrs as unknown as RangeAttrs;
+    let {step} = args.attrs as unknown as RangeAttrs;
 
     // TensorFlow.js specific allowances
     const sameStartStop = start === stop;

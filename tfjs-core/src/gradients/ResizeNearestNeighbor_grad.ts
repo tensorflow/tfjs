@@ -31,8 +31,8 @@ export const resizeNearestNeighborGradConfig: GradConfig = {
     const imagesDer = () =>
         // tslint:disable-next-line: no-unnecessary-type-assertion
         ENGINE.runKernel(
-            ResizeNearestNeighborGrad, inputs as {} as NamedTensorMap, attrs) as
-        Tensor4D;
+            ResizeNearestNeighborGrad, inputs as unknown as NamedTensorMap,
+            attrs) as Tensor4D;
 
     return {images: imagesDer};
   }

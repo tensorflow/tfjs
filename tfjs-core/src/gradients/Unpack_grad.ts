@@ -22,7 +22,7 @@ import {Tensor} from '../tensor';
 export const unpackGradConfig: GradConfig = {
   kernelName: Unpack,
   gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
-    const unpackAttrs: UnpackAttrs = attrs as {} as UnpackAttrs;
+    const unpackAttrs: UnpackAttrs = attrs as unknown as UnpackAttrs;
     const {axis} = unpackAttrs;
     return {value: () => stack(dy, axis)};
   }

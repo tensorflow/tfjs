@@ -46,5 +46,5 @@ export function maxPool3D(args: {
 export const maxPool3DConfig: KernelConfig = {
   kernelName: MaxPool3D,
   backendName: 'cpu',
-  kernelFunc: maxPool3D as {} as KernelFunc
+  kernelFunc: maxPool3D as unknown as KernelFunc
 };

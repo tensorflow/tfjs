@@ -37,5 +37,5 @@ export function step(
 export const stepConfig: KernelConfig = {
   kernelName: Step,
   backendName: 'webgl',
-  kernelFunc: step as {} as KernelFunc,
+  kernelFunc: step as unknown as KernelFunc,
 };

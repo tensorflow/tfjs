@@ -27,5 +27,5 @@ export const ceil = unaryKernelFunc(
 export const ceilConfig: KernelConfig = {
   kernelName: Ceil,
   backendName: 'webgl',
-  kernelFunc: ceil as {} as KernelFunc
+  kernelFunc: ceil as unknown as KernelFunc
 };

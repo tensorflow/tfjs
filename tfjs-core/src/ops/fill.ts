@@ -42,7 +42,7 @@ function fill<R extends Rank>(
 
   const attrs: FillAttrs = {shape, value, dtype};
 
-  return ENGINE.runKernel(Fill, {}, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Fill, {}, attrs as unknown as NamedAttrMap);
 }
 
 export {fill};

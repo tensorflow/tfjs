@@ -39,5 +39,5 @@ export const mod = binaryKernelFunc({
 export const modConfig: KernelConfig = {
   kernelName: Mod,
   backendName: 'webgl',
-  kernelFunc: mod as {} as KernelFunc
+  kernelFunc: mod as unknown as KernelFunc
 };

@@ -45,10 +45,14 @@ export enum UnaryOpType {
   RELU6,
   LEAKYRELU,
   RECIPROCAL,
+  ROUND,
   RSQRT,
+  SELU,
+  SIGMOID,
+  SIGN,
   SIN,
   SINH,
-  SIGMOID,
+  SOFTPLUS,
   SQRT,
   SQUARE,
   TAN,
@@ -161,12 +165,39 @@ const RELU6_VEC4 =
 const RELU_VEC4 = `
   return select(a, vec4<f32>(0.0), a < vec4<f32>(0.0));
 `;
+const ROUND = `return round(a);`;
 const RSQRT = `return inverseSqrt(a);`;
+// Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
+// See: https://arxiv.org/abs/1706.02515
+const SELU = `
+  if (a >= 0.0) {
+    return ${backend_util.SELU_SCALE} * a;
+  } else {
+    return ${backend_util.SELU_SCALEALPHA} * (exp(a) - 1.0);
+  }
+`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+const SIGN = `return sign(a);`;
 const SIN = `return sin(a);`;
 const SINH = `
   let e2x = exp(a);
   return (e2x - 1.0 / e2x) / 2.0;
+`;
+const SOFTPLUS = `
+  let epsilon = 1.1920928955078125e-7;
+  let threshold = log(epsilon) + 2.0;
+
+  let too_large = a > -threshold;
+  let too_small = a < threshold;
+  let exp_a = exp(a);
+
+  if (too_large) {
+    return a;
+  } else if (too_small) {
+    return exp_a;
+  } else {
+    return log(exp_a + 1.0);
+  }
 `;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
@@ -233,14 +264,22 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:
       return useVec4 ? RELU6_VEC4 : RELU6;
+    case UnaryOpType.ROUND:
+      return ROUND;
     case UnaryOpType.RSQRT:
       return RSQRT;
+    case UnaryOpType.SELU:
+      return SELU;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
+    case UnaryOpType.SIGN:
+      return SIGN;
     case UnaryOpType.SIN:
       return SIN;
     case UnaryOpType.SINH:
       return SINH;
+    case UnaryOpType.SOFTPLUS:
+      return SOFTPLUS;
     case UnaryOpType.SQRT:
       return SQRT;
     case UnaryOpType.SQUARE:

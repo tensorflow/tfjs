@@ -57,5 +57,5 @@ export function avgPool(
 export const avgPoolConfig: KernelConfig = {
   kernelName: AvgPool,
   backendName: 'cpu',
-  kernelFunc: avgPool as {} as KernelFunc
+  kernelFunc: avgPool as unknown as KernelFunc
 };

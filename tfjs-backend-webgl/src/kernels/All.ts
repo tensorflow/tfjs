@@ -71,5 +71,5 @@ export function all(
 export const allConfig: KernelConfig = {
   kernelName: All,
   backendName: 'webgl',
-  kernelFunc: all as {} as KernelFunc
+  kernelFunc: all as unknown as KernelFunc
 };

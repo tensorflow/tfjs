@@ -97,5 +97,5 @@ export function fusedConv2D(args: {
 export const fusedConv2DConfig: KernelConfig = {
   kernelName: FusedConv2D,
   backendName: 'cpu',
-  kernelFunc: fusedConv2D as {} as KernelFunc
+  kernelFunc: fusedConv2D as unknown as KernelFunc
 };

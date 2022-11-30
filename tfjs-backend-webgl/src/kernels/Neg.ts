@@ -65,5 +65,5 @@ export function neg(args: {inputs: NegInputs, backend: MathBackendWebGL}):
 export const negConfig: KernelConfig = {
   kernelName: Neg,
   backendName: 'webgl',
-  kernelFunc: neg as {} as KernelFunc
+  kernelFunc: neg as unknown as KernelFunc
 };

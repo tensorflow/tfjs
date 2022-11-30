@@ -77,8 +77,8 @@ function stridedSlice_(
   };
 
   return ENGINE.runKernel(
-      StridedSlice, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      StridedSlice, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const stridedSlice = op({stridedSlice_});

@@ -23,7 +23,7 @@ export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const tensors = args.inputs as {} as AddNInputs;
+    const tensors = args.inputs as unknown as AddNInputs;
     const backend = args.backend as NodeJSKernelBackend;
 
     const opAttrs = [

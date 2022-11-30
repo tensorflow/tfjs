@@ -50,5 +50,5 @@ export function sparseSegmentMean(
 export const sparseSegmentMeanConfig: KernelConfig = {
   kernelName: SparseSegmentMean,
   backendName: 'webgl',
-  kernelFunc: sparseSegmentMean as {} as KernelFunc,
+  kernelFunc: sparseSegmentMean as unknown as KernelFunc,
 };

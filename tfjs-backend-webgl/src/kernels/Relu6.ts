@@ -41,5 +41,5 @@ export const relu6 =
 export const relu6Config: KernelConfig = {
   kernelName: Relu6,
   backendName: 'webgl',
-  kernelFunc: relu6 as {} as KernelFunc
+  kernelFunc: relu6 as unknown as KernelFunc
 };

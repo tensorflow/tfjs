@@ -49,5 +49,5 @@ export function oneHot(
 export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'webgpu',
-  kernelFunc: oneHot as {} as KernelFunc
+  kernelFunc: oneHot as unknown as KernelFunc
 };

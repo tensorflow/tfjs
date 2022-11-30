@@ -75,5 +75,5 @@ export const anyConfig: KernelConfig = {
   kernelName: Any,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: any as {} as KernelFunc
+  kernelFunc: any as unknown as KernelFunc
 };

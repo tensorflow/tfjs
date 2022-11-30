@@ -47,5 +47,5 @@ export function resizeBilinear(args: {
 export const resizeBilinearConfig: KernelConfig = {
   kernelName: ResizeBilinear,
   backendName: 'webgpu',
-  kernelFunc: resizeBilinear as {} as KernelFunc
+  kernelFunc: resizeBilinear as unknown as KernelFunc
 };

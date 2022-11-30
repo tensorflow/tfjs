@@ -41,5 +41,5 @@ export function addN(args: {inputs: AddNInputs, backend: WebGPUBackend}):
 export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'webgpu',
-  kernelFunc: addN as {} as KernelFunc
+  kernelFunc: addN as unknown as KernelFunc
 };

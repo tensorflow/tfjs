@@ -54,5 +54,5 @@ function stringSplit(args: {
 export const stringSplitConfig: KernelConfig = {
   kernelName: StringSplit,
   backendName: 'wasm',
-  kernelFunc: stringSplit as {} as KernelFunc
+  kernelFunc: stringSplit as unknown as KernelFunc
 };

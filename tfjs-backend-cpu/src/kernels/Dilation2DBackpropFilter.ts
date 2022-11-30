@@ -26,7 +26,7 @@ export const dilation2DBackpropFilterConfig: KernelConfig = {
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter, dy} =
         inputs as {x: Tensor4D, filter: Tensor3D, dy: Tensor4D};
-    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as unknown as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const $x =
