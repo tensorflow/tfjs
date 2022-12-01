@@ -378,7 +378,7 @@ function computeOutputShape4D(
       outShape[index] = round(
           (inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] +
               1,
-          roundingMode)
+          roundingMode);
     }
   }
   return outShape;
