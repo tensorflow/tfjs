@@ -366,11 +366,11 @@ function computeOutputShape2D(
 
 function computeOutputShape4D(
     inShape: [number, number, number, number],
-    fieldSize: [number, number, number], outChannels: number,
-    stride: [number, number, number], zeroPad?: number,
+    filterShape: [number, number, number], outChannels: number,
+    strides: [number, number, number], zeroPad?: number,
     roundingMode?: 'floor'|'round'|'ceil'): [number, number, number, number] {
   if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inShape, fieldSize[0], stride[0]);
+    zeroPad = computeDefaultPad(inShape, filterShape[0], strides[0]);
   }
   const inputDepth = inShape[0];
   const inputRows = inShape[1];
@@ -379,17 +379,17 @@ function computeOutputShape4D(
   const outputDepths = Math.max(
       0,
       round(
-          (inputDepth - fieldSize[0] + 2 * zeroPad + 1) / stride[0],
+          (inputDepth - filterShape[0] + 2 * zeroPad + 1) / strides[0],
           roundingMode));
   const outputRows = Math.max(
       0,
       round(
-          (inputRows - fieldSize[1] + 2 * zeroPad + 1) / stride[1],
+          (inputRows - filterShape[1] + 2 * zeroPad + 1) / strides[1],
           roundingMode));
   const outputCols = Math.max(
       0,
       round(
-          (inputCols - fieldSize[2] + 2 * zeroPad + 1) / stride[2],
+          (inputCols - filterShape[2] + 2 * zeroPad + 1) / strides[2],
           roundingMode));
 
   return [outputDepths, outputRows, outputCols, outChannels];
