@@ -372,27 +372,16 @@ function computeOutputShape4D(
   if (zeroPad == null) {
     zeroPad = computeDefaultPad(inShape, filterShape[0], strides[0]);
   }
-  const inputDepth = inShape[0];
-  const inputRows = inShape[1];
-  const inputCols = inShape[2];
-
-  const outputDepths = Math.max(
-      0,
-      round(
-          (inputDepth - filterShape[0] + 2 * zeroPad + 1) / strides[0],
-          roundingMode));
-  const outputRows = Math.max(
-      0,
-      round(
-          (inputRows - filterShape[1] + 2 * zeroPad + 1) / strides[1],
-          roundingMode));
-  const outputCols = Math.max(
-      0,
-      round(
-          (inputCols - filterShape[2] + 2 * zeroPad + 1) / strides[2],
-          roundingMode));
-
-  return [outputDepths, outputRows, outputCols, outChannels];
+  const outShape: [number, number, number, number] = [0, 0, 0, outChannels];
+  for (let index = 0; index < 3; index++) {
+    if (inShape[index] + 2 * zeroPad >= filterShape[index]) {
+      outShape[index] = round(
+          (inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] +
+              1,
+          roundingMode)
+    }
+  }
+  return outShape;
 }
 
 export function computeDefaultPad(
