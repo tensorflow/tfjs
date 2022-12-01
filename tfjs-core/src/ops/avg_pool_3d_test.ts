@@ -159,17 +159,6 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('x=[1,1,1,1,1] f=[1,1,3] s=1 p=valid', async () => {
-    // Output tensor would have a dimension of zero, if a certain filter's
-    // dimension is larger than the input's.
-    const x = tf.tensor5d([1], [1, 1, 1, 1, 1]);
-    const expected: number[] = [];
-    const result = tf.avgPool3d(x, [1, 1, 3], 1, 'valid');
-
-    expect(result.shape).toEqual([1, 1, 1, 0, 1]);
-    expectArraysClose(await result.data(), expected);
-  });
-
   it('x=[1,1,1,4,1] f=[1,1,1] s=[1,1,2] p=0', async () => {
     // Works if the padding is a number.
     const x = tf.ones([1, 1, 1, 4, 1]) as tf.Tensor5D;
