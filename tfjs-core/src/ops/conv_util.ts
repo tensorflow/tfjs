@@ -495,6 +495,10 @@ function get3DPadAndOutInfo(
   let outHeight: number;
   let outWidth: number;
 
+  if (pad === 'valid') {
+    pad = 0;
+  }
+
   if (typeof pad === 'number') {
     const padType = (pad === 0) ? 'VALID' : 'NUMBER';
     padInfo = {
@@ -529,23 +533,6 @@ function get3DPadAndOutInfo(
     const right = padAlongWidth - left;
 
     padInfo = {top, bottom, left, right, front, back, type: 'SAME'};
-  } else if (pad === 'valid') {
-    padInfo = {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      front: 0,
-      back: 0,
-      type: 'VALID'
-    };
-    const outShape = computeOutputShape4D(
-        [inDepth, inHeight, inWidth, 1],
-        [filterDepth, filterHeight, filterWidth], 1,
-        [strideDepth, strideHeight, strideWidth], 0, 'ceil');
-    outDepth = outShape[0];
-    outHeight = outShape[1];
-    outWidth = outShape[2];
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }
