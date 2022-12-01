@@ -26,7 +26,7 @@ export const conv2DBackpropInputConfig: KernelConfig = {
     const {dy, filter} = args.inputs as Conv2DBackpropInputInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, pad, dataFormat, dimRoundingMode, inputShape} =
-        args.attrs as {} as Conv2DBackpropInputAttrs;
+        args.attrs as unknown as Conv2DBackpropInputAttrs;
 
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(

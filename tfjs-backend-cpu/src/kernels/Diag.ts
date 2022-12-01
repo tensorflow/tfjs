@@ -41,5 +41,5 @@ export function diag(args: {inputs: DiagInputs, backend: MathBackendCPU}):
 export const diagConfig: KernelConfig = {
   kernelName: Diag,
   backendName: 'cpu',
-  kernelFunc: diag as {} as KernelFunc
+  kernelFunc: diag as unknown as KernelFunc
 };

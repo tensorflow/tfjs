@@ -72,5 +72,5 @@ export function gatherNd(
 export const gatherNdConfig: KernelConfig = {
   kernelName: GatherNd,
   backendName: 'webgl',
-  kernelFunc: gatherNd as {} as KernelFunc
+  kernelFunc: gatherNd as unknown as KernelFunc
 };

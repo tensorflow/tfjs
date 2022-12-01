@@ -49,5 +49,5 @@ export const clipByValueConfig: KernelConfig = {
   kernelName: ClipByValue,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: clip as {} as KernelFunc
+  kernelFunc: clip as unknown as KernelFunc
 };

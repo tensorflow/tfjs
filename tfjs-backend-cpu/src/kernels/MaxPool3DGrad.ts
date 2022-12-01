@@ -119,5 +119,5 @@ export function maxPool3DGrad(args: {
 export const maxPool3DGradConfig: KernelConfig = {
   kernelName: MaxPool3DGrad,
   backendName: 'cpu',
-  kernelFunc: maxPool3DGrad as {} as KernelFunc
+  kernelFunc: maxPool3DGrad as unknown as KernelFunc
 };

@@ -26,7 +26,7 @@ export const conv3DGradConfig: GradConfig = {
   kernelName: Conv3D,
   inputsToSave: ['x', 'filter'],
   gradFunc: (dy: Tensor5D, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {dilations, strides, pad} = attrs as {} as Conv3DAttrs;
+    const {dilations, strides, pad} = attrs as unknown as Conv3DAttrs;
     util.assert(
         tupleValuesAreOne(dilations),
         () =>

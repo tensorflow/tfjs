@@ -52,8 +52,8 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac",
         "bs_firefox_mac",
-        # disabled android 9 test due to training flakiness
-        # "bs_android_9",
+        # disabled android test due to training flakiness
+        # "bs_android_10",
         "win_10_chrome",
     ],
     headless = False,

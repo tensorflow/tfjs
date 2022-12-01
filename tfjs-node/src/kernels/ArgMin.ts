@@ -25,7 +25,7 @@ export const argMinConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as ArgMinInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis} = args.attrs as {} as ArgMinAttrs;
+    const {axis} = args.attrs as unknown as ArgMinAttrs;
 
     const toDispose: Tensor[] = [];
     let xInput = x;

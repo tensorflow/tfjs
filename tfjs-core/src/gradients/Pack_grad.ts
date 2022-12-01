@@ -24,7 +24,7 @@ export const packGradConfig: GradConfig = {
   kernelName: Pack,
   saveAllInputs: true,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {axis} = attrs as {} as PackAttrs;
+    const {axis} = attrs as unknown as PackAttrs;
     const derTensors = unstack(dy, axis);
     return derTensors.map(t => () => t) as {};
   }

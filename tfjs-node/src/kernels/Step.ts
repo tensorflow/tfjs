@@ -25,7 +25,7 @@ export const stepConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as StepInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alpha} = args.attrs as {} as StepAttrs;
+    const {alpha} = args.attrs as unknown as StepAttrs;
 
     const dtype = x.dtype;
     return tidy(() => {

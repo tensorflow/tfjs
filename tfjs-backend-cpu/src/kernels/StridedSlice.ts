@@ -89,5 +89,5 @@ export function stridedSlice(args: {
 export const stridedSliceConfig: KernelConfig = {
   kernelName: StridedSlice,
   backendName: 'cpu',
-  kernelFunc: stridedSlice as {} as KernelFunc
+  kernelFunc: stridedSlice as unknown as KernelFunc
 };

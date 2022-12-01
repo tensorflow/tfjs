@@ -35,5 +35,5 @@ export const greater = binaryKernelFunc({
 export const greaterConfig: KernelConfig = {
   kernelName: Greater,
   backendName: 'webgl',
-  kernelFunc: greater as {} as KernelFunc
+  kernelFunc: greater as unknown as KernelFunc
 };

@@ -26,7 +26,7 @@ export const sparseToDenseConfig: KernelConfig = {
     const {sparseIndices, sparseValues, defaultValue} =
         args.inputs as SparseToDenseInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {outputShape} = args.attrs as {} as SparseToDenseAttrs;
+    const {outputShape} = args.attrs as unknown as SparseToDenseAttrs;
 
     const opAttrs = [
       {

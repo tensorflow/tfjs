@@ -45,5 +45,5 @@ export function eluGrad(args: {inputs: EluGradInputs, backend: MathBackendCPU}):
 export const eluGradConfig: KernelConfig = {
   kernelName: EluGrad,
   backendName: 'cpu',
-  kernelFunc: eluGrad as {} as KernelFunc
+  kernelFunc: eluGrad as unknown as KernelFunc
 };

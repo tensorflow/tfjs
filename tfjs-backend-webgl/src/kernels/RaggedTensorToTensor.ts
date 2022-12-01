@@ -46,5 +46,5 @@ export function raggedTensorToTensor(args: {
 export const raggedTensorToTensorConfig: KernelConfig = {
   kernelName: RaggedTensorToTensor,
   backendName: 'webgl',
-  kernelFunc: raggedTensorToTensor as {} as KernelFunc,
+  kernelFunc: raggedTensorToTensor as unknown as KernelFunc,
 };

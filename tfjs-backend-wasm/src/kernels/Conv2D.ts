@@ -99,5 +99,5 @@ export const conv2DConfig: KernelConfig = {
   kernelName: Conv2D,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: conv2d as {} as KernelFunc
+  kernelFunc: conv2d as unknown as KernelFunc
 };

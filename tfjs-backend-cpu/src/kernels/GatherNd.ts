@@ -49,5 +49,5 @@ export function gatherNd(
 export const gatherNdConfig: KernelConfig = {
   kernelName: GatherNd,
   backendName: 'cpu',
-  kernelFunc: gatherNd as {} as KernelFunc
+  kernelFunc: gatherNd as unknown as KernelFunc
 };

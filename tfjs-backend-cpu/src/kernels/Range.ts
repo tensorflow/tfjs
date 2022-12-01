@@ -32,5 +32,5 @@ export function range(args: {backend: MathBackendCPU, attrs: RangeAttrs}):
 export const rangeConfig: KernelConfig = {
   kernelName: Range,
   backendName: 'cpu',
-  kernelFunc: range as {} as KernelFunc
+  kernelFunc: range as unknown as KernelFunc
 };

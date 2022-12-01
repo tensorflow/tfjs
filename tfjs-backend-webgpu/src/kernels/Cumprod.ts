@@ -33,5 +33,5 @@ export function cumprod(
 export const cumprodConfig: KernelConfig = {
   kernelName: Cumprod,
   backendName: 'webgpu',
-  kernelFunc: cumprod as {} as KernelFunc
+  kernelFunc: cumprod as unknown as KernelFunc
 };

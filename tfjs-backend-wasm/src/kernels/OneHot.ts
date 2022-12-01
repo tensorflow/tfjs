@@ -54,5 +54,5 @@ export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: oneHot as {} as KernelFunc,
+  kernelFunc: oneHot as unknown as KernelFunc,
 };

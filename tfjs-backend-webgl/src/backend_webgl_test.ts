@@ -775,7 +775,7 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
     const result = tf.tidy(() => {
       const a = tf.tensor(data, [1, 3, 4]);
       const b = tf.add(a, 0);
-      return b.dataToGPU() as {} as tf.Tensor;
+      return b.dataToGPU() as unknown as tf.Tensor;
     });
 
     const endTensor = tf.memory().numTensors;
@@ -784,7 +784,7 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
     expect(endTensor).toEqual(startTensor + 1);
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
 
-    const res = result as {} as GPUData;
+    const res = result as unknown as GPUData;
     const buffer = webGLBackend.gpgpu.createBufferFromTexture(
         res.texture, res.texShape[0], res.texShape[1]);
     const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);

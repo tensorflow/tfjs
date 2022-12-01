@@ -40,5 +40,5 @@ export function conv3DBackpropInput(args: {
 export const conv3DBackpropInputConfig: KernelConfig = {
   kernelName: Conv3DBackpropInputV2,
   backendName: 'webgl',
-  kernelFunc: conv3DBackpropInput as {} as KernelFunc,
+  kernelFunc: conv3DBackpropInput as unknown as KernelFunc,
 };

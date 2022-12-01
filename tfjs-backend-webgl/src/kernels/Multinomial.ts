@@ -49,5 +49,5 @@ export function multinomial(args: {
 export const multinomialConfig: KernelConfig = {
   kernelName: Multinomial,
   backendName: 'webgl',
-  kernelFunc: multinomial as {} as KernelFunc
+  kernelFunc: multinomial as unknown as KernelFunc
 };

@@ -63,5 +63,5 @@ export function pack(
 export const packConfig: KernelConfig = {
   kernelName: Pack,
   backendName: 'webgl',
-  kernelFunc: pack as {} as KernelFunc
+  kernelFunc: pack as unknown as KernelFunc
 };

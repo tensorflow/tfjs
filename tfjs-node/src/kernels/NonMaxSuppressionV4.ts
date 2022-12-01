@@ -26,7 +26,7 @@ export const nonMaxSuppressionV4Config: KernelConfig = {
   kernelFunc: ({inputs, backend, attrs}) => {
     const {boxes, scores} = inputs as NonMaxSuppressionV4Inputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize} =
-        attrs as {} as NonMaxSuppressionV4Attrs;
+        attrs as unknown as NonMaxSuppressionV4Attrs;
     const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
     const iouThresholdTensor = scalar(iouThreshold, 'float32');
     const scoreThresholdTensor = scalar(scoreThreshold, 'float32');

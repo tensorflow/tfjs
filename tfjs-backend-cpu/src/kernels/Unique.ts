@@ -42,5 +42,5 @@ export function unique(
 export const uniqueConfig: KernelConfig = {
   kernelName: Unique,
   backendName: 'cpu',
-  kernelFunc: unique as {} as KernelFunc,
+  kernelFunc: unique as unknown as KernelFunc,
 };
