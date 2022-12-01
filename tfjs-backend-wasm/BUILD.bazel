@@ -155,7 +155,7 @@ tfjs_web_test(
         "bs_safari_mac",
         "bs_ios_12",
         # TODO(mattsoulanille): Fix clipByValue on Android.
-        # "bs_android_9",
+        # "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [

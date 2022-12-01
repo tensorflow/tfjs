@@ -211,7 +211,7 @@ tfjs_web_test(
         "bs_firefox_mac",
         "bs_safari_mac",
         "bs_ios_12",
-        "bs_android_9",
+        "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [

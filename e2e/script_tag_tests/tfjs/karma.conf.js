@@ -96,11 +96,11 @@ module.exports = function(config) {
         os_version: '11.0',
         real_mobile: true
       },
-      bs_android_9: {
+      bs_android_10: {
         base: 'BrowserStack',
-        device: 'Google Pixel 3 XL',
+        device: 'Google Pixel 4 XL',
         os: 'android',
-        os_version: '9.0',
+        os_version: '10.0',
         real_mobile: true
       },
       win_10_chrome: {
