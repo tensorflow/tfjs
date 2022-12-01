@@ -365,22 +365,32 @@ function computeOutputShape2D(
 }
 
 function computeOutputShape4D(
-    inShape: [number, number, number, number], fieldSize: number,
-    outChannels: number, stride: number, zeroPad?: number,
+    inShape: [number, number, number, number],
+    fieldSize: [number, number, number], outChannels: number,
+    stride: [number, number, number], zeroPad?: number,
     roundingMode?: 'floor'|'round'|'ceil'): [number, number, number, number] {
   if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inShape, fieldSize, stride);
+    zeroPad = computeDefaultPad(inShape, fieldSize[0], stride[0]);
   }
   const inputDepth = inShape[0];
   const inputRows = inShape[1];
   const inputCols = inShape[2];
 
-  const outputDepths =
-      round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputRows =
-      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols =
-      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputDepths = Math.max(
+      0,
+      round(
+          (inputDepth - fieldSize[0] + 2 * zeroPad + 1) / stride[0],
+          roundingMode));
+  const outputRows = Math.max(
+      0,
+      round(
+          (inputRows - fieldSize[1] + 2 * zeroPad + 1) / stride[1],
+          roundingMode));
+  const outputCols = Math.max(
+      0,
+      round(
+          (inputCols - fieldSize[2] + 2 * zeroPad + 1) / stride[2],
+          roundingMode));
 
   return [outputDepths, outputRows, outputCols, outChannels];
 }
@@ -508,8 +518,9 @@ function get3DPadAndOutInfo(
       type: padType
     };
     const outShape = computeOutputShape4D(
-        [inDepth, inHeight, inWidth, 1], filterDepth, 1, strideDepth, pad,
-        roundingMode);
+        [inDepth, inHeight, inWidth, 1],
+        [filterDepth, filterHeight, filterWidth], 1,
+        [strideDepth, strideHeight, strideWidth], pad, roundingMode);
     outDepth = outShape[0];
     outHeight = outShape[1];
     outWidth = outShape[2];
@@ -539,9 +550,13 @@ function get3DPadAndOutInfo(
       back: 0,
       type: 'VALID'
     };
-    outDepth = Math.ceil((inDepth - filterDepth + 1) / strideDepth);
-    outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
-    outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+    const outShape = computeOutputShape4D(
+        [inDepth, inHeight, inWidth, 1],
+        [filterDepth, filterHeight, filterWidth], 1,
+        [strideDepth, strideHeight, strideWidth], 0, 'ceil');
+    outDepth = outShape[0];
+    outHeight = outShape[1];
+    outWidth = outShape[2];
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }
