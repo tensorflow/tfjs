@@ -121,7 +121,7 @@ export class Pool2DProgram implements GPGPUProgram {
     let returnValue = `${poolType}(${poolType}(${poolType}(` +
         'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
     if (poolType === 'avg') {
-      returnValue = `avgValue / count`;
+      returnValue = `avgValue / max(count, 1.0)`;
     }
 
     const filterWidthNearestVec4 = Math.floor(filterWidth / 4) * 4;
