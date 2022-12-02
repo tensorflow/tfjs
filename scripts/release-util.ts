@@ -536,25 +536,37 @@ export async function selectPackages({
   return choice['packages'] as string[];
 }
 
-export function getLocalVersion(pkg: string) {
-  return JSON.parse(fs.readFileSync(`${pkg}/package.json`)
+export function getVersion(packageJsonPath: string) {
+  return JSON.parse(fs.readFileSync(packageJsonPath)
                     .toString('utf8')).version as string;
 }
 
-export async function getNpmVersion(pkg: string, registry?: string) {
+export function getLocalVersion(pkg: string) {
+  return getVersion(path.join(pkg, 'package.json'));
+}
+
+export async function getNpmVersion(pkg: string, registry?: string,
+                                    tag = 'latest') {
   // TODO: This might be slow without async promise.all
   const env: Record<string, string> = {};
   if (registry) {
     env['NPM_CONFIG_REGISTRY'] = registry;
   }
-  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`, env);
+  return $async(`npm view @tensorflow/${pkg} dist-tags.${tag}`, env);
+}
+
+export function getTagFromVersion(version: string): string {
+  if (version.includes('dev')) {
+    return 'nightly';
+  }
+  return 'latest';
 }
 
 export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
-  const map = new Map<I, O>();
+  const map = new Map<I, Promise<O>>();
   return async (i:I) => {
     if (!map.has(i)) {
-      map.set(i, await f(i));
+      map.set(i, f(i));
     }
     return map.get(i)!;
   }

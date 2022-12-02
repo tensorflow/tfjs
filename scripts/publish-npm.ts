@@ -25,8 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
-import * as fs from 'fs';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion } from './release-util';
 import semverCompare from 'semver/functions/compare';
 import * as child_process from 'child_process';
 
@@ -118,11 +117,8 @@ async function publish(pkg: string, registry: string, otp?: string,
   }
 
   // Used for nightly dev releases.
-  const version = JSON.parse(fs.readFileSync('package.json')
-                             .toString('utf8')).version as string;
-  const nightly = version.includes('dev');
-
-  const tag = nightly ? 'nightly' : 'latest';
+  const version = getVersion('package.json');
+  const tag = getTagFromVersion(version);
 
   let otpFlag = '';
   if (otp) {
@@ -200,7 +196,12 @@ async function main() {
     shell.cd(TMP_DIR);
   }
 
-  const getNpmVersionMemoized = memoize(getNpmVersion);
+  const getNpmVersionMemoized = memoize((pkg: string) => {
+    const version = getLocalVersion(pkg);
+    const tag = getTagFromVersion(version);
+    return getNpmVersion(pkg, args.registry, tag);
+  });
+
   const packages = await selectPackages({
     message: 'Select packages to publish',
     releaseUnits,
@@ -213,6 +214,7 @@ async function main() {
         const localIsNewer = semverCompare(localVersion, npmVersion) > 0;
         return localVersion !== '0.0.0' && localIsNewer;
       } catch (e) {
+        console.warn(e);
         return false;
       }
     },
@@ -230,6 +232,7 @@ async function main() {
           return pkgWithVersion;
         }
       } catch (e) {
+        console.warn(e);
         return pkg;
       }
     }
