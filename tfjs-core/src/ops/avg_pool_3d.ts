@@ -88,7 +88,7 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
           `but got dataFormat of ${dataFormat}`);
   util.assert(
       (typeof strides === 'number' && strides > 0) ||
-          (typeof strides === 'object' && strides[0] > 0 && strides[1] > 0 &&
+          (Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 &&
            strides[2] > 0),
       () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`);
   checkPadOnDimRoundingMode('avgPool3d', pad, dimRoundingMode);
