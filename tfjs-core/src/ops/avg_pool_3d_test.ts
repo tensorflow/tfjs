@@ -180,7 +180,7 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('x=[1,1,1,1,1] f=[2,2,2] s=[1,1,1] p=2', async () => {
+  it('x=[1,1,1,1,1] f=[2,2,2] s=1 p=2', async () => {
     // Works if the padding is larger than filter size.
     const x = tf.ones([1, 1, 1, 1, 1]) as tf.Tensor5D;
     const expected = [
@@ -188,7 +188,7 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
       1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ];
-    const result = tf.avgPool3d(x, [2, 2, 2], [1, 1, 1], 2);
+    const result = tf.avgPool3d(x, [2, 2, 2], 1, 2);
 
     expect(result.shape).toEqual([1, 4, 4, 4, 1]);
     expectArraysClose(await result.data(), expected);
