@@ -180,6 +180,16 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  fit('x=[1,1,1,2,1] f=[1,1,2] s=[1,1,2] p=3', async () => {
+    // Works if the padding is larger than filter size.
+    const x = tf.ones([1, 1, 1, 2, 1]) as tf.Tensor5D;
+    const expected = [1, 1];
+    const result = tf.avgPool3d(x, [1, 1, 2], [1, 1, 1], 3);
+
+    expect(result.shape).toEqual([1, 1, 1, 2, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('throws when x is not rank 5', async () => {
     // tslint:disable-next-line:no-any
     const x: any = tf.tensor1d([1]);
