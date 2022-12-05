@@ -688,7 +688,7 @@ export class WebGPUBackend extends KernelBackend {
     let currentOffset = 0;
     let preLength = 0;
     const offsets: number[] = [];
-    let maxAlignmentOfField = 4;
+    let maxAlignmentOfField = 1;
     programUniform.forEach((d) => {
       if (d.data.length === 0) {
         d.data = [1];
@@ -730,8 +730,7 @@ export class WebGPUBackend extends KernelBackend {
       currentOffset += d.data.length * 4;
     });
 
-    currentOffset = currentOffset % maxAlignmentOfField === 0 ?
-        currentOffset :
+    currentOffset =
         Math.ceil(currentOffset / maxAlignmentOfField) * maxAlignmentOfField;
     const arrayBuffer = new ArrayBuffer(currentOffset);
     programUniform.forEach((d, i) => {
