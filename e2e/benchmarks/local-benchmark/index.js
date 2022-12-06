@@ -245,6 +245,8 @@ async function benchmarkAll() {
   const OUTPUT_HEIGHT = 256;
   const OUTPUT_WIDTH = 256;
 
+  tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', true);
+
   console.log('Varying SHARED_DIM:');
   let resData = [];
   for (let index = 1; index <= 384; index += 1) {
