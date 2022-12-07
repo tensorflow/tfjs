@@ -76,5 +76,5 @@ export const batchToSpaceND = (args: {
 export const batchToSpaceNDConfig: KernelConfig = {
   kernelName: BatchToSpaceND,
   backendName: 'webgpu',
-  kernelFunc: batchToSpaceND as {} as KernelFunc
+  kernelFunc: batchToSpaceND as unknown as KernelFunc
 };

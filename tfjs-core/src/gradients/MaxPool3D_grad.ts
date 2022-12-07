@@ -27,7 +27,7 @@ export const maxPool3DGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, y] = saved as [Tensor5D, Tensor5D];
     const {filterSize, strides, pad, dimRoundingMode} =
-        attrs as {} as MaxPool3DAttrs;
+        attrs as unknown as MaxPool3DAttrs;
 
     return {
       x: () => maxPool3dGrad(

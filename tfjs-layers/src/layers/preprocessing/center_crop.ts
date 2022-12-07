@@ -82,8 +82,8 @@ export class CenterCrop extends Layer {
 
 }
 
-  call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs): Tensor[] | Tensor {
-
+  override call(inputs: Tensor3D | Tensor4D , kwargs: Kwargs):
+      Tensor[] | Tensor {
     return tidy(() => {
       const rankedInputs = getExactlyOneTensor(inputs) as Tensor3D | Tensor4D;
       const dtype       = rankedInputs.dtype;
@@ -116,7 +116,7 @@ export class CenterCrop extends Layer {
 
   }
 
-  getConfig(): serialization.ConfigDict{
+  override getConfig(): serialization.ConfigDict{
 
     const config: serialization.ConfigDict = {
       'height' : this.height,
@@ -128,7 +128,7 @@ export class CenterCrop extends Layer {
     return config;
   }
 
-  computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
+  override computeOutputShape(inputShape: Shape | Shape[]): Shape | Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const hAxis = inputShape.length - 3;
     const wAxis = inputShape.length - 2;

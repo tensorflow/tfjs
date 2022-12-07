@@ -19,6 +19,7 @@ import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source, matMulReadFnSource} from './matmul_packed_webgpu';
+import {atomicAddSnippet} from './shader_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -34,15 +35,12 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   transposeA: boolean;
   transposeB: boolean;
   atomic = true;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
   isVec4 = false;
   splitedDimInner = 128;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
-      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false) {
+      transposeA = false, transposeB = false) {
     util.assert(
         outputShape[0] === 1,
         () => 'MatMulSplitKProgram only supports batch = 1.');
@@ -72,40 +70,16 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
     this.transposeA = transposeA;
     this.transposeB = transposeB;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey =
-        `matMulSplitK_${transposeA}_${transposeB}_${batchAEqualOne}_${
-            batchBEqualOne}_${this.elementsPerThread}_${this.isVec4}`;
+    this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
+        this.elementsPerThread}_${this.isVec4}`;
   }
 
   getUserCode(): string {
-    // atomicAdd only supports uint/int type. For float, we use
-    // atomicCompareExchangeWeak to simulate.
-    const atomicAddSnippet = (component: number) => {
-      return `
-      for (var i = 0; i < ${component}; i = i + 1)
-      {
-        var oldValue = atomicLoad(&(result[flatIndex + i]));
-        var exchanged = false;
-        for (; !exchanged;) {
-          let newValueF32 = bitcast<f32>(oldValue) + ${
-          component > 1 ? 'value[i]' : 'value'};
-          let newValue = bitcast<i32>(newValueF32);
-          let res = atomicCompareExchangeWeak(&(result[flatIndex + i]), oldValue, newValue);
-          oldValue = res.old_value;
-          exchanged = res.exchanged;
-        }
-      }
-      `;
-    };
-
     const component = this.isVec4 ? 4 : 1;
     const userCode = `
       ${
         matMulReadFnSource(
-            this.batchAEqualOne, this.batchBEqualOne, false, this.transposeB,
-            false, false, false, component)}
+            false, this.transposeB, false, false, false, component)}
       fn mm_write(batch: i32, row : i32, colIn : i32, value : ${
         typeSnippet(component)}) {
         let col = colIn * ${component};
@@ -114,7 +88,12 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           let flatIndex = getOutputIndexFromCoords(coords);
           // The problem is that we should initialize output to zero before using.
           // Otherwise, the original value will be added to the result.
-          ${atomicAddSnippet(component)}
+          for (var i = 0; i < ${component}; i = i + 1) {
+            ${
+        atomicAddSnippet(
+            '&result[flatIndex + i]', `${component > 1 ? 'value[i]' : 'value'}`,
+            'float32')}
+          }
         }
       }
       ${

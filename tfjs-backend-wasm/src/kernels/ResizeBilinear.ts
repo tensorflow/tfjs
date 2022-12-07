@@ -85,5 +85,5 @@ export const resizeBilinearConfig: KernelConfig = {
   kernelName: ResizeBilinear,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: resizeBilinear as {} as KernelFunc
+  kernelFunc: resizeBilinear as unknown as KernelFunc
 };

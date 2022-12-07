@@ -37,7 +37,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'abs ',
     excludes: [
       'complex64',  // Kernel 'ComplexAbs' not registered.
-      'gradient',   // Step kernel not yet implemented.
     ]
   },
   {
@@ -91,7 +90,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'elu ',
     excludes: [
-      'selu',        // Not yet implemented.
       'derivative',  // gradient function not found.
       'gradient'     // gradient function not found.
     ]
@@ -159,12 +157,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'min ',
-    excludes: [
-      'stft',  // FFT' not registered.
-    ]
-  },
-  {
     startsWith: 'mul ',
     excludes: [
       'broadcast',  // Various: Actual != Expected, compile fails, etc.
@@ -191,9 +183,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'range ',
     excludes: [
-      'bincount',           // Not yet implemented.
-      'denseBincount',      // Not yet implemented.
-      'oneHot',             // Not yet implemented.
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
@@ -241,8 +230,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'transpose ',
     excludes: [
-      'oneHot',  // Not yet implemented.
-      'fused',   // Not yet implemented.
+      'fused',  // Not yet implemented.
     ]
   },
 
@@ -253,7 +241,6 @@ const TEST_FILTERS: TestFilter[] = [
       // Not implemented kernel list.
       'avgPool3d ',
       'avgPool3dBackprop ',
-      'bincount ',
       'broadcastArgs ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
@@ -261,49 +248,28 @@ const TEST_FILTERS: TestFilter[] = [
       'conv3d ',
       'conv3dTranspose ',
       'decodeWeights ',
-      'denseBincount ',
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'FFT ',
-      'IRFFT ',
-      'linspace ',
       'localResponseNormalization ',
-      'log1p ',
-      'logSigmoid ',
-      'logicalOr ',
-      'logicalXor ',
-      'lowerBound',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
       'multinomial ',
-      'confusionMatrix ',  // oneHot
       'poolBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
-      'RFFT ',
-      'round webgpu',
       'method otsu',  // round
-      'searchSorted',
-      'selu ',
-      'sign webgpu',
-      'stft ',
-      'softplus ',
-      'sigmoidCrossEntropy ',
       'sparseFillEmptyRows ',
       'sparseReshape ',
       'sparseSegmentMean ',
       'sparseSegmentSum ',
-      'step kernel',
-      'gradients: relu6',  // Step
       'stringSplit ',
       'stringToHashBucketFast ',
       'unique ',
       'unsortedSegmentSum ',
-      'upperBound',
       'valueAndGradients ',
     ]
   },

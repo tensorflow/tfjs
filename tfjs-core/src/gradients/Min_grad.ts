@@ -27,7 +27,7 @@ export const minGradConfig: GradConfig = {
   inputsToSave: ['x'],
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const minAttrs: MinAttrs = attrs as {} as MinAttrs;
+    const minAttrs: MinAttrs = attrs as unknown as MinAttrs;
     const {axis} = minAttrs;
     const [x, y] = saved;
     const origAxes = util.parseAxisParam(axis, x.shape);

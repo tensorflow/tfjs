@@ -34,5 +34,5 @@ export function select(args: {inputs: SelectInputs, backend: WebGPUBackend}):
 export const selectConfig: KernelConfig = {
   kernelName: Select,
   backendName: 'webgpu',
-  kernelFunc: select as {} as KernelFunc
+  kernelFunc: select as unknown as KernelFunc
 };

@@ -77,7 +77,7 @@ export class Dropout extends Layer {
     return noiseShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -94,7 +94,7 @@ export class Dropout extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       rate: this.rate,
       noiseShape: this.noiseShape,
@@ -105,7 +105,7 @@ export class Dropout extends Layer {
     return config;
   }
 
-  dispose(): DisposeResult {
+  override dispose(): DisposeResult {
     return super.dispose();
   }
 }
@@ -171,14 +171,14 @@ export interface SpatialDropout1DLayerConfig extends LayerConfig {
 
 export class SpatialDropout1D extends Dropout {
   /** @nocollapse */
-  static className = 'SpatialDropout1D';
+  static override className = 'SpatialDropout1D';
 
   constructor(args: SpatialDropout1DLayerConfig) {
     super(args);
     this.inputSpec = [{ndim: 3}];
   }
 
-  protected getNoiseShape(input: Tensor): Shape {
+  protected override getNoiseShape(input: Tensor): Shape {
     const inputShape = input.shape;
     return [inputShape[0], 1, inputShape[2]];
   }
@@ -237,7 +237,7 @@ export class Dense extends Layer {
     this.inputSpec = [{minNDim: 2}];
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const inputLastDim = inputShape[inputShape.length - 1];
     if (this.kernel == null) {
@@ -255,14 +255,14 @@ export class Dense extends Layer {
     this.built = true;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
     outputShape[outputShape.length - 1] = this.units;
     return outputShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Dense layer accepts only a single input.
@@ -289,7 +289,7 @@ export class Dense extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -326,7 +326,7 @@ export class Flatten extends Layer {
     this.dataFormat = args.dataFormat;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     for (const dim of inputShape.slice(1)) {
       if (dim == null) {
@@ -340,7 +340,7 @@ export class Flatten extends Layer {
     return [inputShape[0], arrayProd(inputShape, 1)];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
 
@@ -358,7 +358,7 @@ export class Flatten extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {};
     if (this.dataFormat != null) {
       config['dataFormat'] = this.dataFormat;
@@ -388,7 +388,7 @@ export class Activation extends Layer {
     this.activation = getActivation(args.activation);
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -396,7 +396,7 @@ export class Activation extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {activation: serializeActivation(this.activation)};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -428,18 +428,18 @@ export class RepeatVector extends Layer {
     this.inputSpec = [{ndim: 2}];
   }
 
-  computeOutputShape(inputShape: Shape): Shape {
+  override computeOutputShape(inputShape: Shape): Shape {
     return [inputShape[0], this.n, inputShape[1]];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
       return K.repeat(inputs, this.n);
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       n: this.n,
     };
@@ -516,7 +516,7 @@ export class Reshape extends Layer {
     return finalShape;
   }
 
-  computeOutputShape(inputShape: Shape): Shape {
+  override computeOutputShape(inputShape: Shape): Shape {
     let anyUnknownDims = false;
     for (let i = 0; i < inputShape.length; ++i) {
       if (this.isUnknown(inputShape[i])) {
@@ -533,7 +533,7 @@ export class Reshape extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -544,7 +544,7 @@ export class Reshape extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       targetShape: this.targetShape,
     };
@@ -597,7 +597,7 @@ export class Permute extends Layer {
     this.inputSpec = [new InputSpec({ndim: this.dims.length + 1})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
     this.dims.forEach((dim: number, i: number) => {
@@ -606,11 +606,11 @@ export class Permute extends Layer {
     return outputShape;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return transpose(getExactlyOneTensor(inputs), this.dimsIncludingBatch);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       dims: this.dims,
     };
@@ -643,24 +643,25 @@ export class Masking extends Layer {
     }
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {maskValue: this.maskValue};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     const input = getExactlyOneTensor(inputs);
     const axis = -1;
     return any(notEqual(input, this.maskValue), axis);
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);

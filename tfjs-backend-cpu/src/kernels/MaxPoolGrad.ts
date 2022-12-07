@@ -97,5 +97,5 @@ export function maxPoolGrad(args: {
 export const maxPoolGradConfig: KernelConfig = {
   kernelName: MaxPoolGrad,
   backendName: 'cpu',
-  kernelFunc: maxPoolGrad as {} as KernelFunc
+  kernelFunc: maxPoolGrad as unknown as KernelFunc
 };

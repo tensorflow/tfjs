@@ -26,7 +26,7 @@ export const avgPool3DConfig: KernelConfig = {
     const {x} = args.inputs as AvgPool3DInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {filterSize, strides, pad, dimRoundingMode, dataFormat} =
-        args.attrs as {} as AvgPool3DAttrs;
+        args.attrs as unknown as AvgPool3DAttrs;
 
     const convInfo = backend_util.computePool3DInfo(
         x.shape as [number, number, number, number, number], filterSize,

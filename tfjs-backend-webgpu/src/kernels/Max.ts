@@ -33,5 +33,5 @@ export function max(
 export const maxConfig: KernelConfig = {
   kernelName: Max,
   backendName: 'webgpu',
-  kernelFunc: max as {} as KernelFunc
+  kernelFunc: max as unknown as KernelFunc
 };

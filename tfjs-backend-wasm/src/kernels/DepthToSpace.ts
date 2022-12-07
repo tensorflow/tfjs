@@ -84,5 +84,5 @@ export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: depthToSpace as {} as KernelFunc
+  kernelFunc: depthToSpace as unknown as KernelFunc
 };

@@ -38,18 +38,24 @@ export enum UnaryOpType {
   IS_NAN,
   LINEAR,
   LOG,
+  LOG1P,
   LOGICAL_NOT,
   NEG,
   RELU,
   RELU6,
   LEAKYRELU,
   RECIPROCAL,
+  ROUND,
   RSQRT,
+  SELU,
+  SIGMOID,
+  SIGN,
   SIN,
   SINH,
-  SIGMOID,
+  SOFTPLUS,
   SQRT,
   SQUARE,
+  STEP,
   TAN,
   TANH,
   TO_INT
@@ -141,6 +147,10 @@ const IS_NAN = `return f32(isnan(a));`;
 const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) { return uniforms.NAN; }
   return log(a);`;
+const LOG1P = `
+  if (isnan(a)) { return a; }
+  return log(1.0 + a);
+`;
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
 const LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
@@ -156,15 +166,49 @@ const RELU6_VEC4 =
 const RELU_VEC4 = `
   return select(a, vec4<f32>(0.0), a < vec4<f32>(0.0));
 `;
+const ROUND = `return round(a);`;
 const RSQRT = `return inverseSqrt(a);`;
+// Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
+// See: https://arxiv.org/abs/1706.02515
+const SELU = `
+  if (a >= 0.0) {
+    return ${backend_util.SELU_SCALE} * a;
+  } else {
+    return ${backend_util.SELU_SCALEALPHA} * (exp(a) - 1.0);
+  }
+`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+const SIGN = `return sign(a);`;
 const SIN = `return sin(a);`;
 const SINH = `
   let e2x = exp(a);
   return (e2x - 1.0 / e2x) / 2.0;
 `;
+const SOFTPLUS = `
+  let epsilon = 1.1920928955078125e-7;
+  let threshold = log(epsilon) + 2.0;
+
+  let too_large = a > -threshold;
+  let too_small = a < threshold;
+  let exp_a = exp(a);
+
+  if (too_large) {
+    return a;
+  } else if (too_small) {
+    return exp_a;
+  } else {
+    return log(exp_a + 1.0);
+  }
+`;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
+const STEP = `
+  if (isnan(a)) {
+    return a;
+  }
+
+  return select(uniforms.stepAlpha, 1.0, a > 0.0);
+`;
 const TAN = `return tan(a);`;
 const TANH = `
   let e2x = exp(-2.0 * abs(a));
@@ -214,6 +258,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return LINEAR;
     case UnaryOpType.LOG:
       return LOG;
+    case UnaryOpType.LOG1P:
+      return LOG1P;
     case UnaryOpType.LOGICAL_NOT:
       return LOGICAL_NOT;
     case UnaryOpType.NEG:
@@ -226,18 +272,28 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:
       return useVec4 ? RELU6_VEC4 : RELU6;
+    case UnaryOpType.ROUND:
+      return ROUND;
     case UnaryOpType.RSQRT:
       return RSQRT;
+    case UnaryOpType.SELU:
+      return SELU;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
+    case UnaryOpType.SIGN:
+      return SIGN;
     case UnaryOpType.SIN:
       return SIN;
     case UnaryOpType.SINH:
       return SINH;
+    case UnaryOpType.SOFTPLUS:
+      return SOFTPLUS;
     case UnaryOpType.SQRT:
       return SQRT;
     case UnaryOpType.SQUARE:
       return SQUARE;
+    case UnaryOpType.STEP:
+      return STEP;
     case UnaryOpType.TAN:
       return TAN;
     case UnaryOpType.TANH:

@@ -28,6 +28,7 @@ export enum BinaryOpType {
   LESS,
   LESS_EQUAL,
   LOGICAL_AND,
+  LOGICAL_OR,
   MAX,
   MIN,
   MOD,
@@ -112,9 +113,12 @@ const LESS = 'return f32(a < b);';
 const LESS_VEC4 = 'return vec4<f32>(a < b);';
 const LESS_EQUAL = 'return f32(a <= b);';
 const LESS_EQUAL_VEC4 = 'return vec4<f32>(a <= b);';
-const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
+const LOGICAL_AND = 'return f32(a >= 1.0 && b >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
+const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
+const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
+  vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
 const MOD = `
   ${CHECK_NAN_SNIPPET}
   if (b == 0.) {
@@ -263,6 +267,8 @@ export function getBinaryOpString(
       return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
     case BinaryOpType.LOGICAL_AND:
       return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
+    case BinaryOpType.LOGICAL_OR:
+      return useVec4 ? LOGICAL_OR_VEC4 : LOGICAL_OR;
     case BinaryOpType.MAX:
       return getBinaryWithNanString('max', useVec4);
     case BinaryOpType.MIN:

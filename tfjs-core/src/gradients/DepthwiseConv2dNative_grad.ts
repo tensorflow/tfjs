@@ -27,7 +27,7 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
   inputsToSave: ['x', 'filter'],
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
     const {dilations, strides, pad, dimRoundingMode} =
-        attrs as {} as DepthwiseConv2dNativeAttrs;
+        attrs as unknown as DepthwiseConv2dNativeAttrs;
     const $dilations = dilations == null ? [1, 1] as[number,number] : dilations;
 
     util.assert(

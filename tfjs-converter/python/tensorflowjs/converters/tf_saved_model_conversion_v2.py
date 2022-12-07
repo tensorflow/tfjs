@@ -43,8 +43,8 @@ from tensorflow.python.keras.saving.saving_utils import def_function
 from tensorflow.python.keras.saving.saving_utils import model_input_signature
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
+from tensorflow.python.tools.saved_model_utils import get_meta_graph_def
 from tensorflow.python.training.saver import export_meta_graph
-from tensorflow.python.tools.saved_model_cli import get_signature_def_map
 from tensorflow.saved_model.experimental import TrackableResource
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
@@ -640,7 +640,8 @@ def _load_model(saved_model_dir, saved_model_tags):
   return model
 
 def _find_signature(saved_model_dir, saved_model_tags, signature_def):
-  signature_def_map = get_signature_def_map(saved_model_dir, saved_model_tags)
+  meta_graph = get_meta_graph_def(saved_model_dir, saved_model_tags)
+  signature_def_map = meta_graph.signature_def
   if signature_def not in signature_def_map.keys():
     raise ValueError('Signature "%s" does not exist in the saved model'
                      % (signature_def))

@@ -24,7 +24,7 @@ export const linSpaceConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: (args) => {
     const backend = args.backend as NodeJSKernelBackend;
-    const {start, stop, num} = args.attrs as {} as LinSpaceAttrs;
+    const {start, stop, num} = args.attrs as unknown as LinSpaceAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', 'float32'),

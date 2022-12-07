@@ -117,7 +117,7 @@ export class AdamOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     this.accBeta1.dispose();
     this.accBeta2.dispose();
 
@@ -129,7 +129,7 @@ export class AdamOptimizer extends Optimizer {
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     const variables: OptimizerVariable[] =
         [...this.accumulatedFirstMoment, ...this.accumulatedSecondMoment];
@@ -137,7 +137,7 @@ export class AdamOptimizer extends Optimizer {
         variables.map(v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     tidy(() => {
       this.accBeta1.assign(pow(this.beta1, this.iterations_ + 1));
@@ -170,7 +170,7 @@ export class AdamOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
         config['learningRate'], config['beta1'], config['beta2'],

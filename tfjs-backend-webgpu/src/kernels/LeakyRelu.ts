@@ -30,13 +30,13 @@ export function leakyRelu(args: {
   const {x} = inputs;
   const {alpha} = attrs;
   const uniformData = [{type: 'float32', data: [alpha]}];
-  const program = new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU);
-  program.uniforms = 'alpha : f32,';
+  const program =
+      new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU, 'alpha : f32,');
   return backend.runWebGPUProgram(program, [x], 'float32', uniformData);
 }
 
 export const leakyReluConfig: KernelConfig = {
   kernelName: LeakyRelu,
   backendName: 'webgpu',
-  kernelFunc: leakyRelu as {} as KernelFunc
+  kernelFunc: leakyRelu as unknown as KernelFunc
 };

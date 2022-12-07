@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData} from './types';
+import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -192,12 +192,26 @@ flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
   if (result == null) {
     result = [];
   }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
+  if (typeof arr === 'boolean' || typeof arr === 'number' ||
+      typeof arr === 'string' || isPromise(arr) || arr == null ||
+      isTypedArray(arr) && skipTypedArray) {
+    result.push(arr as T);
+  } else if (Array.isArray(arr) || isTypedArray(arr)) {
     for (let i = 0; i < arr.length; ++i) {
       flatten(arr[i], result, skipTypedArray);
     }
   } else {
-    result.push(arr as T);
+    let maxIndex = -1;
+    for (const key of Object.keys(arr)) {
+      // 0 or positive integer.
+      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
+        maxIndex = Math.max(maxIndex, Number(key));
+      }
+    }
+    for (let i = 0; i <= maxIndex; i++) {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      flatten((arr as RecursiveArray<T>)[i], result, skipTypedArray);
+    }
   }
   return result;
 }
@@ -304,8 +318,8 @@ export function rightPad(a: string, size: number): string {
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
     maxCounter?: number,
-    scheduleFn?: (functionRef: Function, delay: number) => void
-  ): Promise<void> {
+    scheduleFn?: (functionRef: Function, delay: number) =>
+        void): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -559,7 +573,7 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike|WebGLData): DataType {
+export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }

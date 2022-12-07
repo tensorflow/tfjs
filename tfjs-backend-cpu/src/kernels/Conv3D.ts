@@ -111,5 +111,5 @@ export function conv3D(
 export const conv3DConfig: KernelConfig = {
   kernelName: Conv3D,
   backendName: 'cpu',
-  kernelFunc: conv3D as {} as KernelFunc
+  kernelFunc: conv3D as unknown as KernelFunc
 };

@@ -45,5 +45,5 @@ export const minimum = binaryKernelFunc({
 export const minimumConfig: KernelConfig = {
   kernelName: Minimum,
   backendName: 'webgl',
-  kernelFunc: minimum as {} as KernelFunc
+  kernelFunc: minimum as unknown as KernelFunc
 };

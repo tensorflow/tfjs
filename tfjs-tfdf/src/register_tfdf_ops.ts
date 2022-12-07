@@ -34,7 +34,7 @@ registerOp('SimpleMLCreateModelResource', () => {
 });
 
 registerOp('SimpleMLLoadModelFromPathWithHandle', async (node: GraphNode) => {
-  const tfdfWeb = await tfdfWebAPIClient.tfdfWeb;
+  const tfdfWeb = await tfdfWebAPIClient.tfdfWeb();
   const loadOptions = {createdTFDFSignature: true};
 
   modelRunner = typeof assets === 'string' ?

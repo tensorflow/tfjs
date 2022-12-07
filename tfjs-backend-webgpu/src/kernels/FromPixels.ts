@@ -25,7 +25,7 @@ import {FromPixelsProgram} from '../from_pixels_webgpu';
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
   backendName: 'webgpu',
-  kernelFunc: fromPixels as {} as KernelFunc,
+  kernelFunc: fromPixels as unknown as KernelFunc,
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;

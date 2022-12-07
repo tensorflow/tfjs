@@ -29,19 +29,22 @@ tfjs_bundle(
         "@tensorflow/tfjs-converter",
         "path",
         "fs",
-        "jszip",
     ],
     globals = {
         "@tensorflow/tfjs-converter": "tf",
         "@tensorflow/tfjs-core": "tf",
-        "jszip": "JSZip",
     },
+    leave_as_require = [
+        "path",
+        "fs",
+        "crypto",
+    ],
     umd_name = "tfdf",
     deps = [
         "//tfjs-tfdf/src:tfdf_web_api_client_js",
         "//tfjs-tfdf/src:tfjs-tfdf_lib",
         "//tfjs-tfdf/src:tfjs-tfdf_src_lib",
-        "//tfjs-tfdf/wasm:wasm_files",
+        "//tfjs-tfdf/wasm",
     ],
 )
 
@@ -49,6 +52,7 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
+        "//tfjs-tfdf/src:tfdf_web_api_client_js",
         "//tfjs-tfdf/src:tfjs-tfdf_lib",
         "//tfjs-tfdf/src:tfjs-tfdf_src_lib",
     ],
@@ -73,7 +77,7 @@ copy_to_dist(
 copy_to_dist(
     name = "copy_wasm_files",
     srcs = [
-        "//tfjs-tfdf/wasm:wasm_files",
+        "//tfjs-tfdf/wasm",
     ],
     root = "wasm",
 )
@@ -104,11 +108,11 @@ tfjs_web_test(
         # TODO: Support Safari.
         "bs_chrome_mac",
         "bs_firefox_mac",
-        "bs_android_9",
+        "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [
-        "//tfjs-tfdf/wasm:wasm_files",
+        "//tfjs-tfdf/wasm",
     ],
 )
 

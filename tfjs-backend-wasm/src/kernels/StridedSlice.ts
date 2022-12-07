@@ -124,5 +124,5 @@ export const stridedSliceConfig: KernelConfig = {
   kernelName: StridedSlice,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: stridedSlice as {} as KernelFunc
+  kernelFunc: stridedSlice as unknown as KernelFunc
 };

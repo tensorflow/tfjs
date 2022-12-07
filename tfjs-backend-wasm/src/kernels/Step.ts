@@ -51,5 +51,5 @@ export const stepConfig: KernelConfig = {
   kernelName: Step,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: step as {} as KernelFunc
+  kernelFunc: step as unknown as KernelFunc
 };

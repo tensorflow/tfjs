@@ -25,7 +25,7 @@ export const sliceConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as SliceInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {begin, size} = args.attrs as {} as SliceAttrs;
+    const {begin, size} = args.attrs as unknown as SliceAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),
