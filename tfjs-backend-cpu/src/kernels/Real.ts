@@ -36,5 +36,5 @@ export function real(args: {inputs: RealInputs, backend: MathBackendCPU}):
 export const realConfig: KernelConfig = {
   kernelName: Real,
   backendName: 'cpu',
-  kernelFunc: real as {} as KernelFunc
+  kernelFunc: real as unknown as KernelFunc
 };

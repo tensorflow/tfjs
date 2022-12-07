@@ -45,5 +45,5 @@ export function leakyRelu(args: {
 export const leakyReluConfig: KernelConfig = {
   kernelName: LeakyRelu,
   backendName: 'cpu',
-  kernelFunc: leakyRelu as {} as KernelFunc
+  kernelFunc: leakyRelu as unknown as KernelFunc
 };

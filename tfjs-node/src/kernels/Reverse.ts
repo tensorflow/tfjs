@@ -25,7 +25,7 @@ export const reverseConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as ReverseInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {dims} = args.attrs as {} as ReverseAttrs;
+    const {dims} = args.attrs as unknown as ReverseAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('Tidx', 'int32'),

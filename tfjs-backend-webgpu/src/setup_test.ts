@@ -91,7 +91,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'elu ',
     excludes: [
-      'selu',        // Not yet implemented.
       'derivative',  // gradient function not found.
       'gradient'     // gradient function not found.
     ]
@@ -253,7 +252,6 @@ const TEST_FILTERS: TestFilter[] = [
       'diag ',
       'dilation2d ',
       'encodeWeights ',
-      'linspace ',
       'localResponseNormalization ',
       'maxPool3d ',
       'maxPool3dBackprop ',
@@ -264,10 +262,7 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
-      'round webgpu',
       'method otsu',  // round
-      'selu ',
-      'sign webgpu',
       'sparseFillEmptyRows ',
       'sparseReshape ',
       'sparseSegmentMean ',

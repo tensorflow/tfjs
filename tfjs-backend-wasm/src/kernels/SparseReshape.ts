@@ -135,5 +135,5 @@ export const sparseReshapeConfig: KernelConfig = {
   kernelName: SparseReshape,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sparseReshape as {} as KernelFunc
+  kernelFunc: sparseReshape as unknown as KernelFunc
 };

@@ -26,7 +26,7 @@ export const fusedBatchNormConfig: KernelConfig = {
     const {x, mean, variance} = args.inputs as FusedBatchNormInputs;
     let {scale, offset} = args.inputs as FusedBatchNormInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {varianceEpsilon} = args.attrs as {} as FusedBatchNormAttrs;
+    const {varianceEpsilon} = args.attrs as unknown as FusedBatchNormAttrs;
 
     return tidy(() => {
       if ((mean as Tensor).rank > 1) {

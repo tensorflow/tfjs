@@ -59,8 +59,8 @@ function scatterND_<R extends Rank>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             ScatterNd, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor<R>;
+             ScatterNd, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor<R>;
 }
 
 export const scatterND = op({scatterND_});

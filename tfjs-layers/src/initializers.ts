@@ -128,7 +128,7 @@ export class RandomUniform extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return randomUniform(shape, this.minval, this.maxval, dtype);
+    return randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
   }
 
   override getConfig(): serialization.ConfigDict {
@@ -352,7 +352,7 @@ export class VarianceScaling extends Initializer {
       return truncatedNormal(shape, 0, stddev, dtype, this.seed);
     } else {
       const limit = Math.sqrt(3 * scale);
-      return randomUniform(shape, -limit, limit, dtype);
+      return randomUniform(shape, -limit, limit, dtype, this.seed);
     }
   }
 
@@ -498,7 +498,7 @@ serialization.registerClass(LeCunNormal);
 
 export class LeCunUniform extends VarianceScaling {
   /** @nocollapse */
-  static override className = 'LeCunNormal';
+  static override className = 'LeCunUniform';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({

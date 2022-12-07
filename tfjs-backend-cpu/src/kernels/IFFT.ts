@@ -52,5 +52,5 @@ export function ifft(args: {inputs: IFFTInputs, backend: MathBackendCPU}):
 export const ifftConfig: KernelConfig = {
   kernelName: IFFT,
   backendName: 'cpu',
-  kernelFunc: ifft as {} as KernelFunc
+  kernelFunc: ifft as unknown as KernelFunc
 };

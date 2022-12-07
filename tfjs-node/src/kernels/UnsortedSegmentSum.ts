@@ -25,7 +25,7 @@ export const unsortedSegmentSumConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x, segmentIds} = args.inputs as UnsortedSegmentSumInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {numSegments} = args.attrs as {} as UnsortedSegmentSumAttrs;
+    const {numSegments} = args.attrs as unknown as UnsortedSegmentSumAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),

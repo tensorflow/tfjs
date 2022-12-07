@@ -53,7 +53,7 @@ export class Pool2DProgram implements WebGPUProgram {
 
     let returnValue = `resultValue`;
     if (this.poolType === 'avg') {
-      returnValue = `resultValue / count`;
+      returnValue = `resultValue / max(count, 1.0)`;
     }
 
     const userCode = `

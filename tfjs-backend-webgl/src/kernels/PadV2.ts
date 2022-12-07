@@ -51,5 +51,5 @@ export const padV2 =
 export const padV2Config: KernelConfig = {
   kernelName: PadV2,
   backendName: 'webgl',
-  kernelFunc: padV2 as {} as KernelFunc
+  kernelFunc: padV2 as unknown as KernelFunc
 };

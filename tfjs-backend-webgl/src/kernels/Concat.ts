@@ -52,5 +52,5 @@ export function concat(
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'webgl',
-  kernelFunc: concat as {} as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc
 };

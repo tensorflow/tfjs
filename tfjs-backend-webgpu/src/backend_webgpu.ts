@@ -602,7 +602,7 @@ export class WebGPUBackend extends KernelBackend {
       values?: BackendValues|string[]): TensorInfo {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
-      values = (values as {} as string[]).map(d => util.encodeString(d));
+      values = (values as unknown as string[]).map(d => util.encodeString(d));
     }
     const dataId = this.write(values as BackendValues, shape, dtype);
     return {dataId, shape, dtype};
@@ -681,6 +681,7 @@ export class WebGPUBackend extends KernelBackend {
     let currentOffset = 0;
     let preLength = 0;
     const offsets: number[] = [];
+    let maxAlignmentOfField = 1;
     programUniform.forEach((d) => {
       if (d.data.length === 0) {
         d.data = [1];
@@ -713,12 +714,17 @@ export class WebGPUBackend extends KernelBackend {
       if (preLength === 5 || preLength === 6) {
         baseAlignment = 16;
       }
+      if (baseAlignment > maxAlignmentOfField) {
+        maxAlignmentOfField = baseAlignment;
+      }
       currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
       preLength = d.data.length;
       offsets.push(currentOffset);
       currentOffset += d.data.length * 4;
     });
 
+    currentOffset =
+        Math.ceil(currentOffset / maxAlignmentOfField) * maxAlignmentOfField;
     const arrayBuffer = new ArrayBuffer(currentOffset);
     programUniform.forEach((d, i) => {
       const offset = offsets[i];

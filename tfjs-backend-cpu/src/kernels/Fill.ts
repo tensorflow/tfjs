@@ -34,7 +34,7 @@ export function fill(args: {backend: MathBackendCPU, attrs: FillAttrs}):
 export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'cpu',
-  kernelFunc: fill as {} as KernelFunc
+  kernelFunc: fill as unknown as KernelFunc
 };
 
 function fillValues(

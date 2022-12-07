@@ -72,5 +72,5 @@ export function depthToSpace(args: {
 export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
   backendName: 'cpu',
-  kernelFunc: depthToSpace as {} as KernelFunc
+  kernelFunc: depthToSpace as unknown as KernelFunc
 };

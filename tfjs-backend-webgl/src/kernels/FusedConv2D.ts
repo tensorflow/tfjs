@@ -90,7 +90,7 @@ export function fusedConv2d(args: {
     if (hasLeakyreluAlpha) {
       const $leakyreluAlpha = backend.makeTensorInfo(
           [], 'float32',
-          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+          util.createScalarValue(leakyreluAlpha as unknown as 'float32', 'float32'));
       inputs.push($leakyreluAlpha);
       intermediates.push($leakyreluAlpha);
     }
@@ -161,5 +161,5 @@ export function fusedConv2d(args: {
 export const fusedConv2DConfig: KernelConfig = {
   kernelName: FusedConv2D,
   backendName: 'webgl',
-  kernelFunc: fusedConv2d as {} as KernelFunc,
+  kernelFunc: fusedConv2d as unknown as KernelFunc,
 };

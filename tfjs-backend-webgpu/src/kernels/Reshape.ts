@@ -44,5 +44,5 @@ export function reshape(
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'webgpu',
-  kernelFunc: reshape as {} as KernelFunc
+  kernelFunc: reshape as unknown as KernelFunc
 };

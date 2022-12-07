@@ -22,7 +22,8 @@ export const clipByValueConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: (args) => {
     const {x} = args.inputs as ClipByValueInputs;
-    const {clipValueMin, clipValueMax} = args.attrs as {} as ClipByValueAttrs;
+    const {clipValueMin, clipValueMax} =
+        args.attrs as unknown as ClipByValueAttrs;
 
     return tidy(() => {
       const xMin = minimum(x as Tensor, scalar(clipValueMax, x.dtype));

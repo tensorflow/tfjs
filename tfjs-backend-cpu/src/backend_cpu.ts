@@ -83,7 +83,7 @@ export class MathBackendCPU extends KernelBackend {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
       const encodedValues =
-          (values as {} as string[]).map(d => util.encodeString(d));
+          (values as unknown as string[]).map(d => util.encodeString(d));
 
       outId = this.write(encodedValues, shape, dtype);
     } else {

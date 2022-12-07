@@ -38,5 +38,5 @@ export const cropAndResize = (args: {
 export const cropAndResizeConfig: KernelConfig = {
   kernelName: CropAndResize,
   backendName: 'webgl',
-  kernelFunc: cropAndResize as {} as KernelFunc
+  kernelFunc: cropAndResize as unknown as KernelFunc
 };

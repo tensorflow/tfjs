@@ -79,6 +79,7 @@ import {isNaNConfig} from './kernels/IsNaN';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
@@ -115,11 +116,14 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
@@ -209,6 +213,7 @@ const kernelConfigs: KernelConfig[] = [
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   log1pConfig,
   logConfig,
   logicalAndConfig,
@@ -245,11 +250,14 @@ const kernelConfigs: KernelConfig[] = [
   resizeNearestNeighborConfig,
   reverseConfig,
   rotateWithOffsetConfig,
+  roundConfig,
   rsqrtConfig,
   scatterNdConfig,
   searchSortedConfig,
   selectConfig,
+  seluConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,

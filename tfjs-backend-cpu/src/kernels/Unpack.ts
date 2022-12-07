@@ -60,5 +60,5 @@ export function unpack(
 export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
   backendName: 'cpu',
-  kernelFunc: unpack as {} as KernelFunc
+  kernelFunc: unpack as unknown as KernelFunc
 };

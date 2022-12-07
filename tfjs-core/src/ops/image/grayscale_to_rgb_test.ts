@@ -77,7 +77,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
   });
 
   it('should throw an error because of image\'s rank is less than 2', () => {
-    const grayscale = tf.tensor1d([1, 2, 3]) as {} as Tensor2D;
+    const grayscale = tf.tensor1d([1, 2, 3]) as unknown as Tensor2D;
 
     expect(() => tf.image.grayscaleToRGB(grayscale))
         .toThrowError(/images must be at least rank 2/);

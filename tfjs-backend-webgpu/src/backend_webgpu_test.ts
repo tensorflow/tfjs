@@ -328,7 +328,7 @@ describeWebGPU('keeping data on gpu ', () => {
     const result = tf.tidy(() => {
       const a = tf.tensor(data, [1, 3, 4]);
       const b = tf.add(a, 0);
-      return b.dataToGPU() as {} as tf.Tensor;
+      return b.dataToGPU() as unknown as tf.Tensor;
     });
 
     const endTensor = tf.memory().numTensors;
@@ -337,7 +337,7 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endTensor).toEqual(startTensor + 1);
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
 
-    const res = result as {} as GPUData;
+    const res = result as unknown as GPUData;
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
     const values = tf.util.convertBackendValuesAndArrayBuffer(
         resData, res.tensorRef.dtype);

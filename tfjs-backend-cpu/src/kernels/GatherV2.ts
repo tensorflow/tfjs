@@ -92,5 +92,5 @@ export function gatherV2(args: {
 export const gatherV2Config: KernelConfig = {
   kernelName: GatherV2,
   backendName: 'cpu',
-  kernelFunc: gatherV2 as {} as KernelFunc
+  kernelFunc: gatherV2 as unknown as KernelFunc
 };

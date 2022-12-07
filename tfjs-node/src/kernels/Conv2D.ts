@@ -26,7 +26,7 @@ export const conv2DConfig: KernelConfig = {
     const {x, filter} = args.inputs as Conv2DInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, pad, dataFormat, dilations, dimRoundingMode} =
-        args.attrs as {} as Conv2DAttrs;
+        args.attrs as unknown as Conv2DAttrs;
 
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(

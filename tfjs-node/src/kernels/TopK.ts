@@ -26,7 +26,7 @@ export const topKConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as TopKInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {k, sorted} = args.attrs as {} as TopKAttrs;
+    const {k, sorted} = args.attrs as unknown as TopKAttrs;
 
     const kCount = isNullOrUndefined(k) ? 1 : k;
     const isSorted = isNullOrUndefined(sorted) ? true : sorted;
