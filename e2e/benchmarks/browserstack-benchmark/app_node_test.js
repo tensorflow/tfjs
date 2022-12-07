@@ -6,6 +6,7 @@ const {
   serializeTensors,
   getReadableDate,
   formatForFirestore,
+  makeCompatableWithFirestore,
   runFirestore,
   firebaseConfig
 } = require('./firestore.js');
@@ -237,10 +238,16 @@ describe('test adding to firestore', () => {
     db.add.and.returnValue(Promise.resolve({ id: 123 }));
     let expectedAdd = {
       result:
-        formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+        formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+          getReadableDate)
     };
     addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
+  });
+
+  it('Expects gpu info is appended to device info', () => {
+    addGpuInfo(mockResultValue);
+    expect(mockResultValue.deviceInfo.device).toEqual('');
   });
 
   it('Expects a date key to exist and have the correct value', () => {
