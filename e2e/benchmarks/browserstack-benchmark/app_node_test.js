@@ -3,10 +3,10 @@ const { benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile, scheduleM
   require('./app.js');
 const {
   addResultToFirestore,
-  serializeTensors,
+  makeCompatableWithFirestore,
+  addGpuInfo,
   getReadableDate,
   formatForFirestore,
-  makeCompatableWithFirestore,
   runFirestore,
   firebaseConfig
 } = require('./firestore.js');
@@ -247,7 +247,9 @@ describe('test adding to firestore', () => {
 
   it('Expects gpu info is appended to device info', () => {
     addGpuInfo(mockResultValue);
-    expect(mockResultValue.deviceInfo.device).toEqual('');
+    expect(mockResultValue.deviceInfo.device).toEqual(
+      '(GPU: ANGLE (ATI Technologies Inc., AMD Radeon Pro 5300M OpenGL ' +
+      'Engine, OpenGL 4.1))');
   });
 
   it('Expects a date key to exist and have the correct value', () => {
@@ -258,7 +260,8 @@ describe('test adding to firestore', () => {
 
   it('Expects serialization to cover all nested arrays', () => {
     const mockSerializedResults =
-      formatForFirestore(mockResultValue, serializeTensors, mockDate);
+      formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+        mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');

@@ -148,6 +148,7 @@ function getReadableDate() {
 
 exports.addResultToFirestore = addResultToFirestore;
 exports.makeCompatableWithFirestore = makeCompatableWithFirestore;
+exports.addGpuInfo = addGpuInfo;
 exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
