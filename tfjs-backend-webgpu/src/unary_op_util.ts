@@ -207,11 +207,7 @@ const STEP = `
     return a;
   }
 
-  if (a > 0.0) {
-    return 1.0;
-  } else {
-    return f32(uniforms.stepAlpha);
-  }
+  return select(uniforms.stepAlpha, 1.0, a > 0.0);
 `;
 const TAN = `return tan(a);`;
 const TANH = `
