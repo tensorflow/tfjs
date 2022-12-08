@@ -42,5 +42,5 @@ function stringToHashBucketFast(args: {
 export const stringToHashBucketFastConfig: KernelConfig = {
   kernelName: StringToHashBucketFast,
   backendName: 'wasm',
-  kernelFunc: stringToHashBucketFast as {} as KernelFunc
+  kernelFunc: stringToHashBucketFast as unknown as KernelFunc
 };

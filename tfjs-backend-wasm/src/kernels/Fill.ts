@@ -31,5 +31,5 @@ export function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
 export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'wasm',
-  kernelFunc: fill as {} as KernelFunc,
+  kernelFunc: fill as unknown as KernelFunc,
 };

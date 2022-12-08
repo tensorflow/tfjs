@@ -51,5 +51,5 @@ export function slice(
 export const sliceConfig: KernelConfig = {
   kernelName: Slice,
   backendName: 'webgpu',
-  kernelFunc: slice as {} as KernelFunc
+  kernelFunc: slice as unknown as KernelFunc
 };

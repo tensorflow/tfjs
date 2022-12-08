@@ -41,5 +41,5 @@ export function prelu(args: {inputs: PreluInputs, backend: MathBackendWebGL}):
 export const preluConfig: KernelConfig = {
   kernelName: Prelu,
   backendName: 'webgl',
-  kernelFunc: prelu as {} as KernelFunc
+  kernelFunc: prelu as unknown as KernelFunc
 };

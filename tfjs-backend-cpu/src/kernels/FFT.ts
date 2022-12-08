@@ -52,5 +52,5 @@ export function fft(args: {inputs: FFTInputs, backend: MathBackendCPU}):
 export const fftConfig: KernelConfig = {
   kernelName: FFT,
   backendName: 'cpu',
-  kernelFunc: fft as {} as KernelFunc
+  kernelFunc: fft as unknown as KernelFunc
 };

@@ -115,7 +115,7 @@ export const ${downcaseFirstChar(kernelName)}GradConfig: GradConfig = {
   outputsToSave: [], // UPDATE ME
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [] = saved;
-    const {} = attrs as {} as ${kernelName}Attrs;
+    const {} = attrs as unknown as ${kernelName}Attrs;
     return {
     };
   }

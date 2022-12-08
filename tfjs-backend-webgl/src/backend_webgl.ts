@@ -787,7 +787,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
       const encodedValues =
-          (values as {} as string[]).map(d => util.encodeString(d));
+          (values as unknown as string[]).map(d => util.encodeString(d));
 
       dataId = this.write(encodedValues, shape, dtype);
     } else {
@@ -1304,8 +1304,9 @@ export class MathBackendWebGL extends KernelBackend {
    * Create a TF.js tensor out of an existing WebGL texture. A new texture will
    * be created.
    */
-  override createTensorFromTexture(values: WebGLData, shape: number[],
-      dtype: DataType): Tensor {
+  override createTensorFromGPUData(
+      values: WebGLData, shape: number[], dtype: DataType): Tensor {
+    values.channels = values.channels || 'RGBA';
     const {texture, height, width, channels} = values;
     const backend = engine().backend as MathBackendWebGL;
 

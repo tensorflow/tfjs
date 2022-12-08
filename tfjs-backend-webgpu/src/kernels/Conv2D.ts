@@ -37,5 +37,5 @@ export function conv2d(
 export const conv2DConfig: KernelConfig = {
   kernelName: Conv2D,
   backendName: 'webgpu',
-  kernelFunc: conv2d as {} as KernelFunc
+  kernelFunc: conv2d as unknown as KernelFunc
 };

@@ -27,7 +27,7 @@ export const conv2DBackpropInputGradConfig: GradConfig = {
     const [dy, filter] = saved as [Tensor4D, Tensor4D];
 
     const {strides, pad, dataFormat, dimRoundingMode} =
-        attrs as {} as Conv2DBackpropInputAttrs;
+        attrs as unknown as Conv2DBackpropInputAttrs;
 
     return {
       dy: () => conv2d(

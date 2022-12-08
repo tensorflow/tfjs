@@ -30,5 +30,5 @@ function onesLike(args: {inputs: OnesLikeInputs, backend: BackendWasm}) {
 export const onesLikeConfig: KernelConfig = {
   kernelName: OnesLike,
   backendName: 'wasm',
-  kernelFunc: onesLike as {} as KernelFunc,
+  kernelFunc: onesLike as unknown as KernelFunc,
 };

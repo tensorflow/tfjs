@@ -33,7 +33,7 @@
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-npm",
     "build-all-link-packages": "cd ../../../ && yarn && cd ./link-package && yarn build",
     "build-individual-link-package": "cd ../../../ && yarn && cd ./link-package && yarn build-deps-for",
-    "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --cloud --maxBenchmarks=9 --firestore",
+    "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --cloud --maxBenchmarks=12 --firestore",
     "run-cloud-benchmarks-weekly-cycle": "yarn run-cloud-benchmarks --weeklyCycleRun=-1"
   },
   "license": "Apache-2.0",

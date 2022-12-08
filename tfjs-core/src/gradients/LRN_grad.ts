@@ -25,7 +25,7 @@ export const lrnGradConfig: GradConfig = {
   outputsToSave: [true],
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, y] = saved as [Tensor4D, Tensor4D];
-    const {depthRadius, bias, alpha, beta} = attrs as {} as LRNAttrs;
+    const {depthRadius, bias, alpha, beta} = attrs as unknown as LRNAttrs;
 
     return {
       x: () => localResponseNormalizationBackprop(

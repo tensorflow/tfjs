@@ -24,7 +24,7 @@ export const dilation2DConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter} = inputs as Dilation2DInputs;
-    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as unknown as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;

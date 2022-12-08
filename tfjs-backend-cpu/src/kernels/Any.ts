@@ -79,5 +79,5 @@ export function any(
 export const anyConfig: KernelConfig = {
   kernelName: Any,
   backendName: 'cpu',
-  kernelFunc: any as {} as KernelFunc
+  kernelFunc: any as unknown as KernelFunc
 };

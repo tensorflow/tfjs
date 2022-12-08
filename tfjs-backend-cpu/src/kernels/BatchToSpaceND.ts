@@ -66,5 +66,5 @@ export function batchToSpaceND(args: {
 export const batchToSpaceNDConfig: KernelConfig = {
   kernelName: BatchToSpaceND,
   backendName: 'cpu',
-  kernelFunc: batchToSpaceND as {} as KernelFunc
+  kernelFunc: batchToSpaceND as unknown as KernelFunc
 };

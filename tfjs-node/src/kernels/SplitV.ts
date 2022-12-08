@@ -25,7 +25,7 @@ export const splitVConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as SplitVInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {numOrSizeSplits, axis} = args.attrs as {} as SplitVAttrs;
+    const {numOrSizeSplits, axis} = args.attrs as unknown as SplitVAttrs;
 
     const $axis = util.parseAxisParam(axis, x.shape)[0];
     const splitSizes = backend_util.prepareSplitSize(x, numOrSizeSplits, $axis);

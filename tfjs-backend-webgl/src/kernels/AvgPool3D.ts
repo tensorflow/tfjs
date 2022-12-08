@@ -39,5 +39,5 @@ export function avgPool3D(args: {
 export const avgPool3DConfig: KernelConfig = {
   kernelName: AvgPool3D,
   backendName: 'webgl',
-  kernelFunc: avgPool3D as {} as KernelFunc
+  kernelFunc: avgPool3D as unknown as KernelFunc
 };

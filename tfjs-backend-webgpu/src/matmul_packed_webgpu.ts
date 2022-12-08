@@ -21,15 +21,13 @@ import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
-    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
-    transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
-    component = 1) {
+    transposeA: boolean, transposeB: boolean, fitAOuter = false,
+    fitBOuter = false, fitInner = false, component = 1) {
   util.assert(
       transposeA && component === 1 || !transposeA,
       () => `transposeA ${transposeA} is not compatible with component size ${
           component}`);
   const sampleA = `
-      let batch = ${batchAEqualOne ? '0' : 'batchIn'};
       ${
       transposeA ? `value = getA(batch, col, row);` :
                    `value = getA(batch, row, col);`}
@@ -39,8 +37,7 @@ export function matMulReadFnSource(
                                `value = getB(batch, row, col);`;
 
   return `
-  fn mm_readA(batchIn: i32, row: i32, colIn: i32) -> ${
-      typeSnippet(component)} {
+  fn mm_readA(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     let col = colIn * ${component};
     ${
@@ -58,10 +55,8 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batchIn: i32, row: i32, colIn: i32) -> ${
-      typeSnippet(component)} {
+  fn mm_readB(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
     let col = colIn * ${component};
-    let batch = ${batchBEqualOne ? '0' : 'batchIn'};
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -70,15 +65,13 @@ export function matMulReadFnSource(
 }
 
 export function matMulReadWriteFnSource(
-    hasBias: boolean, activation: backend_util.Activation,
-    batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
+    hasBias: boolean, activation: backend_util.Activation, transposeA: boolean,
     transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
     component = 1) {
   return `
   ${
       matMulReadFnSource(
-          batchAEqualOne, batchBEqualOne, transposeA, transposeB, fitAOuter,
-          fitBOuter, fitInner, component)}
+          transposeA, transposeB, fitAOuter, fitBOuter, fitInner, component)}
   fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${
       typeSnippet(component)}) {
     let col = colIn * ${component};
@@ -99,14 +92,14 @@ export function matMulReadWriteFnSource(
 const writeDataToSubAVec4Snippet = (transpose: boolean) => {
   if (transpose) {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+        mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           kStart + inputRow,
           globalRowStart / innerElementSize + inputCol);
         `;
 
   } else {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+        mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           globalRow + innerRow,
           kStart / innerElementSize + inputCol);
         `;
@@ -150,7 +143,7 @@ const calculateResultSnippet =
 export function makeMatMulPackedVec4Source(
     workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
-    isVectorA = false): string {
+    isVectorA = false, broadcastBatch = false): string {
   const tileAOuter = workgroupSize[1] * workPerThread[1];
   const tileBOuter = workgroupSize[0] * workPerThread[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -188,6 +181,10 @@ export function makeMatMulPackedVec4Source(
     let globalRow = ${isVectorA ? '0' : 'i32(globalId.y) * rowPerThread'};
     let globalCol = i32(globalId.x);
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
+    let batchA = ${
+      splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.aShape[0]'};
+    let batchB = ${
+      splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.bShape[0]'};
     let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
     let numTiles = ${
@@ -212,7 +209,7 @@ export function makeMatMulPackedVec4Source(
       rowPerThreadB}; innerRow = innerRow + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(batch, kStart + inputRow, globalCol);
+            mm_Bsub[inputRow][inputCol] = mm_readB(batchB, kStart + inputRow, globalCol);
         }
         kStart = kStart + tileInner;
         workgroupBarrier();
@@ -242,14 +239,14 @@ export function makeMatMulPackedVec4Source(
 const writeDataToSubASnippet = (transpose: boolean) => {
   if (transpose) {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+        mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           kStart + inputRow,
           globalRowStart + inputCol);
         `;
 
   } else {
     return `
-        mm_Asub[inputRow][inputCol] = mm_readA(batch,
+        mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           globalRowStart + inputRow,
           kStart + inputCol);
         `;
@@ -267,7 +264,7 @@ const readDataFromSubASnippet = (transposeA: boolean) => {
 export function makeMatMulPackedSource(
     workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
-    sequentialAccessByThreads = false): string {
+    sequentialAccessByThreads = false, broadcastBatch = false): string {
   const tileAOuter = workPerThread[1] * workgroupSize[1];
   const tileBOuter = workPerThread[0] * workgroupSize[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
@@ -306,7 +303,7 @@ export function makeMatMulPackedSource(
           tileInner}; inputRow = inputRow + ${workgroupSize[1]}) {
               for (var inputCol = localCol; inputCol < ${
           tileBOuter}; inputCol = inputCol + ${workgroupSize[0]}) {
-            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+            mm_Bsub[inputRow][inputCol] = mm_readB(batchB,
               kStart + inputRow,
               globalColStart + inputCol);
           }
@@ -318,8 +315,7 @@ export function makeMatMulPackedSource(
         var BCached : array<f32, colPerThread>;
         for (var k = 0; k < tileInner; k = k + 1) {
           for (var inner = 0; inner < colPerThread; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][localCol + inner * ${
-          workgroupSize[0]}];
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${workgroupSize[0]}];
           }
           for (var innerRow = 0; innerRow < rowPerThread; innerRow = innerRow + 1) {
             let ACached = ${
@@ -337,8 +333,7 @@ export function makeMatMulPackedSource(
       for (var innerRow = 0; innerRow < rowPerThread; innerRow = innerRow + 1) {
         let gRow = globalRowStart + localRow + innerRow * ${workgroupSize[1]};
         for (var innerCol = 0; innerCol < colPerThread; innerCol = innerCol + 1) {
-          let gCol = globalColStart + localCol + innerCol * ${
-          workgroupSize[0]};
+          let gCol = globalColStart + localCol + innerCol * ${workgroupSize[0]};
           mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
         }
       }
@@ -373,7 +368,7 @@ export function makeMatMulPackedSource(
       for (var innerCol = 0; innerCol < colPerThread; innerCol = innerCol + 1) {
         let inputRow = tileRowB + innerRow;
         let inputCol = tileCol + innerCol;
-        mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+        mm_Bsub[inputRow][inputCol] = mm_readB(batchB,
           kStart + inputRow,
           globalCol + innerCol);
       }
@@ -416,6 +411,10 @@ export function makeMatMulPackedSource(
 
     ${main()} {
       let batch = ${splitK ? '0' : 'i32(globalId.z)'};
+      let batchA = ${
+      splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.aShape[0]'};
+      let batchB = ${
+      splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.bShape[0]'};
       let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
                '(uniforms.dimInner - 1) / tileInner + 1'};
@@ -436,16 +435,16 @@ export function makeMatMulPackedSource(
 
 const readVectorASnippet = (transpose: boolean) => {
   return transpose ? `
-      mm_readA(batch, colA, globalRow),
-      mm_readA(batch, colA + 1, globalRow),
-      mm_readA(batch, colA + 2, globalRow),
-      mm_readA(batch, colA + 3, globalRow)
+      mm_readA(batchA, colA, globalRow),
+      mm_readA(batchA, colA + 1, globalRow),
+      mm_readA(batchA, colA + 2, globalRow),
+      mm_readA(batchA, colA + 3, globalRow)
   ` :
                      `
-      mm_readA(batch, globalRow, colA),
-      mm_readA(batch, globalRow, colA + 1),
-      mm_readA(batch, globalRow, colA + 2),
-      mm_readA(batch, globalRow, colA + 3)
+      mm_readA(batchA, globalRow, colA),
+      mm_readA(batchA, globalRow, colA + 1),
+      mm_readA(batchA, globalRow, colA + 2),
+      mm_readA(batchA, globalRow, colA + 3)
   `;
 };
 
@@ -465,6 +464,8 @@ export function makeVectorMatrixProductSource(
 
       let numTiles = (uniforms.dimInner - 1) / tileSize + 1;
       let batch = i32(globalId.z);
+      let batchA = batch % uniforms.aShape[0];
+      let batchB = batch % uniforms.bShape[0];
       // Without this initialization strange values show up in acc.
       var acc = 0.0;
 
@@ -478,10 +479,10 @@ export function makeVectorMatrixProductSource(
         // Compute acc values for a single thread.
         for (var k = 0; k < tileSize / 4; k = k + 1) {
           let rowB = t * tileSize + k * 4;
-          let BCached = vec4<f32>(mm_readB(batch, rowB, globalCol),
-                              mm_readB(batch, rowB + 1, globalCol),
-                              mm_readB(batch, rowB + 2, globalCol),
-                              mm_readB(batch, rowB + 3, globalCol));
+          let BCached = vec4<f32>(mm_readB(batchB, rowB, globalCol),
+                              mm_readB(batchB, rowB + 1, globalCol),
+                              mm_readB(batchB, rowB + 2, globalCol),
+                              mm_readB(batchB, rowB + 3, globalCol));
 
           let ACached = mm_Asub[k];
           acc = acc + dot(ACached, BCached);
@@ -509,8 +510,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
   fitAOuter: boolean;
   fitBOuter: boolean;
   fitInner: boolean;
@@ -521,8 +520,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false, bias: TensorInfo = null,
+      transposeA = false, transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null,
       sequentialAccessByThreads = false) {
@@ -565,14 +563,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
     [this.fitAOuter, this.fitBOuter, this.fitInner] =
         this.getShapeFit(outputShape[1], outputShape[2], dimInner);
     this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
         this.fitInner}_${this.isVec4}_${this.isVectorA}_${
-        this.batchAEqualOne}_${this.batchBEqualOne}_${
         this.sequentialAccessByThreads}`;
   }
 
@@ -601,8 +596,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
             this.activation, this.hasPreluActivationWeights, this.isVec4)}
       ${
         matMulReadWriteFnSource(
-            this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne,
+            this.addBias, this.activation,
             false /* transposeA is implemented in makeMatMulPackedSource */,
             this.transposeB, this.fitAOuter, this.fitBOuter, this.fitInner,
             this.isVec4 ? 4 : 1)}
@@ -610,13 +604,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
         this.isVec4 ?
             makeMatMulPackedVec4Source(
                 this.elementsPerThread, this.workgroupSize, this.transposeA,
-                this.tileInner, false, null, this.isVectorA) :
+                this.tileInner, false, null, this.isVectorA, true) :
             (this.isVectorA ? makeVectorMatrixProductSource(
                                   this.workgroupSize, this.transposeA) :
                               makeMatMulPackedSource(
                                   this.elementsPerThread, this.workgroupSize,
                                   this.transposeA, this.tileInner, false, null,
-                                  this.sequentialAccessByThreads))}
+                                  this.sequentialAccessByThreads, true))}
     `;
     return userCode;
   }

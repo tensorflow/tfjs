@@ -87,5 +87,5 @@ export const minConfig: KernelConfig = {
   kernelName: Min,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: min as {} as KernelFunc
+  kernelFunc: min as unknown as KernelFunc
 };

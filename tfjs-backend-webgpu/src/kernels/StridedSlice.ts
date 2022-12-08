@@ -99,5 +99,5 @@ export function stridedSlice(args: {
 export const stridedSliceConfig: KernelConfig = {
   kernelName: StridedSlice,
   backendName: 'webgpu',
-  kernelFunc: stridedSlice as {} as KernelFunc
+  kernelFunc: stridedSlice as unknown as KernelFunc
 };

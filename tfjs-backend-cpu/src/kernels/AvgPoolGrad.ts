@@ -88,5 +88,5 @@ export function avgPoolGrad(args: {
 export const avgPoolGradConfig: KernelConfig = {
   kernelName: AvgPoolGrad,
   backendName: 'cpu',
-  kernelFunc: avgPoolGrad as {} as KernelFunc
+  kernelFunc: avgPoolGrad as unknown as KernelFunc
 };

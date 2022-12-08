@@ -41,7 +41,7 @@ function elu_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: EluInputs = {x: $x};
 
-  return ENGINE.runKernel(Elu, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Elu, inputs as unknown as NamedTensorMap);
 }
 
 export const elu = op({elu_});

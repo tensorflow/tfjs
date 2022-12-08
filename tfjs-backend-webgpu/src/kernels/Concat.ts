@@ -51,5 +51,5 @@ export function concat(
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'webgpu',
-  kernelFunc: concat as {} as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc
 };

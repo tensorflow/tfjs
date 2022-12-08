@@ -40,5 +40,5 @@ export function conv3DBackpropFilterV2(args: {
 export const conv3DBackpropFilterV2Config: KernelConfig = {
   kernelName: Conv3DBackpropFilterV2,
   backendName: 'webgl',
-  kernelFunc: conv3DBackpropFilterV2 as {} as KernelFunc
+  kernelFunc: conv3DBackpropFilterV2 as unknown as KernelFunc
 };
