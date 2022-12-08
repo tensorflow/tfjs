@@ -20,7 +20,7 @@ import {keep, tidy} from '../globals';
 import {add} from '../ops/add';
 import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 
@@ -93,4 +93,3 @@ export class SGDOptimizer extends Optimizer {
     return new cls(config['learningRate']);
   }
 }
-registerClass(SGDOptimizer);

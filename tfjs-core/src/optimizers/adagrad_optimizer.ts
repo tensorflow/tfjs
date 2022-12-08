@@ -23,7 +23,7 @@ import {fill} from '../ops/fill';
 import {mul} from '../ops/mul';
 import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -113,4 +113,3 @@ export class AdagradOptimizer extends Optimizer {
     return new cls(config['learningRate'], config['initialAccumulatorValue']);
   }
 }
-registerClass(AdagradOptimizer);
