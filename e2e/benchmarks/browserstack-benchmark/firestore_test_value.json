@@ -4186,5 +4186,14 @@
       }
     ]
   },
-  "tabId": "OS_X_Catalina_1"
+  "deviceInfo": {
+    "base": "BrowserStack",
+    "browser": "chrome",
+    "browser_version": "103.0",
+    "device": null,
+    "os": "OS X",
+    "os_version": "Monterey"
+  },
+  "tabId": "OS_X_Catalina_1",
+  "gpuInfo": "ANGLE (ATI Technologies Inc., AMD Radeon Pro 5300M OpenGL Engine, OpenGL 4.1)"
 }
