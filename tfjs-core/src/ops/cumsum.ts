@@ -60,4 +60,4 @@ function cumsum_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const cumsum = op({cumsum_});
+export const cumsum = /* @__PURE__ */ op({cumsum_});

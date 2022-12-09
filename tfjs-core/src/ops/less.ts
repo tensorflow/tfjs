@@ -52,4 +52,4 @@ function less_<T extends Tensor>(
   return ENGINE.runKernel(Less, inputs as unknown as NamedTensorMap);
 }
 
-export const less = op({less_});
+export const less = /* @__PURE__ */ op({less_});

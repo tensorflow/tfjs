@@ -63,4 +63,4 @@ function pow_<T extends Tensor>(
   return ENGINE.runKernel(Pow, inputs as unknown as NamedTensorMap);
 }
 
-export const pow = op({pow_});
+export const pow = /* @__PURE__ */ op({pow_});

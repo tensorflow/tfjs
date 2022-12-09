@@ -81,4 +81,4 @@ function stridedSlice_(
       attrs as unknown as NamedAttrMap);
 }
 
-export const stridedSlice = op({stridedSlice_});
+export const stridedSlice = /* @__PURE__ */ op({stridedSlice_});

@@ -43,4 +43,4 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Tanh, inputs as unknown as NamedTensorMap);
 }
-export const tanh = op({tanh_});
+export const tanh = /* @__PURE__ */ op({tanh_});

@@ -57,4 +57,4 @@ function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   return ENGINE.runKernel(Sub, inputs as unknown as NamedTensorMap);
 }
 
-export const sub = op({sub_});
+export const sub = /* @__PURE__ */ op({sub_});

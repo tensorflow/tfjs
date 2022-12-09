@@ -66,4 +66,4 @@ function max_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const max = op({max_});
+export const max = /* @__PURE__ */ op({max_});

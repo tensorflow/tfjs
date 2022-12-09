@@ -55,4 +55,4 @@ function rand_<R extends Rank>(
   return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
-export const rand = op({rand_});
+export const rand = /* @__PURE__ */ op({rand_});

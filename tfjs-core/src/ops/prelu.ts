@@ -48,4 +48,4 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
   return ENGINE.runKernel(Prelu, inputs as unknown as NamedTensorMap);
 }
 
-export const prelu = op({prelu_});
+export const prelu = /* @__PURE__ */ op({prelu_});

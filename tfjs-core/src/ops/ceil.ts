@@ -42,4 +42,4 @@ function ceil_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: CeilInputs = {x: $x};
   return ENGINE.runKernel(Ceil, inputs as unknown as NamedTensorMap);
 }
-export const ceil = op({ceil_});
+export const ceil = /* @__PURE__ */ op({ceil_});

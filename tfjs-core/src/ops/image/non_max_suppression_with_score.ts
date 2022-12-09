@@ -83,4 +83,4 @@ function nonMaxSuppressionWithScore_(
   return {selectedIndices: result[0], selectedScores: result[1]};
 }
 
-export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
+export const nonMaxSuppressionWithScore = /* @__PURE__ */ op({nonMaxSuppressionWithScore_});

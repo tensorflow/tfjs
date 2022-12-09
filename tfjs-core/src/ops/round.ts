@@ -44,4 +44,4 @@ function round_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel(Round, inputs as unknown as NamedTensorMap);
 }
 
-export const round = op({round_});
+export const round = /* @__PURE__ */ op({round_});

@@ -54,4 +54,4 @@ function randomNormal_<R extends Rank>(
   return res.toTensor();
 }
 
-export const randomNormal = op({randomNormal_});
+export const randomNormal = /* @__PURE__ */ op({randomNormal_});

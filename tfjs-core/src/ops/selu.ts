@@ -46,4 +46,4 @@ function selu_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel(Selu, inputs as unknown as NamedTensorMap);
 }
 
-export const selu = op({selu_});
+export const selu = /* @__PURE__ */ op({selu_});

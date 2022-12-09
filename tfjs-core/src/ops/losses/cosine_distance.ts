@@ -61,4 +61,4 @@ function cosineDistance_<T extends Tensor, O extends Tensor>(
   const losses = sub(one, sum(mul($labels, $predictions), axis, true));
   return computeWeightedLoss(losses, $weights, reduction);
 }
-export const cosineDistance = op({cosineDistance_});
+export const cosineDistance = /* @__PURE__ */ op({cosineDistance_});

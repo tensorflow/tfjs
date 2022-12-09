@@ -52,4 +52,4 @@ function atan2_<T extends Tensor>(
   return ENGINE.runKernel(Atan2, inputs as unknown as NamedTensorMap);
 }
 
-export const atan2 = op({atan2_});
+export const atan2 = /* @__PURE__ */ op({atan2_});

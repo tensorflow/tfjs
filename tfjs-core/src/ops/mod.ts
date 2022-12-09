@@ -63,4 +63,4 @@ function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   return ENGINE.runKernel(Mod, inputs as unknown as NamedTensorMap);
 }
 
-export const mod = op({mod_});
+export const mod = /* @__PURE__ */ op({mod_});

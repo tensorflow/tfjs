@@ -71,4 +71,4 @@ function split_<T extends Tensor>(
              attr as unknown as NamedAttrMap) as unknown as T[];
 }
 
-export const split = op({split_});
+export const split = /* @__PURE__ */ op({split_});

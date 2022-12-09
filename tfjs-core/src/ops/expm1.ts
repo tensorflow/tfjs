@@ -43,4 +43,4 @@ function expm1_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: Expm1Inputs = {x: $x};
   return ENGINE.runKernel(Expm1, inputs as unknown as NamedTensorMap);
 }
-export const expm1 = op({expm1_});
+export const expm1 = /* @__PURE__ */ op({expm1_});
