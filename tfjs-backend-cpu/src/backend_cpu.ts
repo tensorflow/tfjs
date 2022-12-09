@@ -49,7 +49,8 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, engine());
   }
 
-  override write(values: backend_util.BackendValues, shape: number[],
+  override write(
+      values: backend_util.BackendValues, shape: number[],
       dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
@@ -138,8 +139,8 @@ export class MathBackendCPU extends KernelBackend {
           this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
       return backend_util.mergeRealAndImagArrays(realValues, imagValues);
     }
-
-    return this.data.get(dataId).values;
+    return util.convertBackendValuesAndArrayBuffer(
+        this.data.get(dataId).values, dtype);
   }
 
   bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
