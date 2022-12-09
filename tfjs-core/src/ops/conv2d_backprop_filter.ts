@@ -92,4 +92,4 @@ function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
              attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const conv2DBackpropFilter = op({conv2DBackpropFilter_});
+export const conv2DBackpropFilter = /* @__PURE__ */ op({conv2DBackpropFilter_});

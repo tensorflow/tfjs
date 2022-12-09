@@ -83,4 +83,4 @@ function irfft_(input: Tensor): Tensor {
   return ret;
 }
 
-export const irfft = op({irfft_});
+export const irfft = /* @__PURE__ */ op({irfft_});

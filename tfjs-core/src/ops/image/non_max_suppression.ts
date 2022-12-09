@@ -61,4 +61,4 @@ function nonMaxSuppression_(
       NonMaxSuppressionV3, {boxes: $boxes, scores: $scores}, attrs);
 }
 
-export const nonMaxSuppression = op({nonMaxSuppression_});
+export const nonMaxSuppression = /* @__PURE__ */ op({nonMaxSuppression_});

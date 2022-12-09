@@ -70,4 +70,4 @@ function sum_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const sum = op({sum_});
+export const sum = /* @__PURE__ */ op({sum_});

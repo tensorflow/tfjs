@@ -106,4 +106,4 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
   }
 }
 
-export const gramSchmidt = op({gramSchmidt_});
+export const gramSchmidt = /* @__PURE__ */ op({gramSchmidt_});

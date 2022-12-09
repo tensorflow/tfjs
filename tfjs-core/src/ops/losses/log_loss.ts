@@ -67,4 +67,4 @@ function logLoss_<T extends Tensor, O extends Tensor>(
   const losses = sub(l1, l2);
   return computeWeightedLoss(losses, $weights, reduction);
 }
-export const logLoss = op({logLoss_});
+export const logLoss = /* @__PURE__ */ op({logLoss_});

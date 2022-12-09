@@ -42,4 +42,4 @@ function sinh_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Sinh, inputs as unknown as NamedTensorMap);
 }
-export const sinh = op({sinh_});
+export const sinh = /* @__PURE__ */ op({sinh_});

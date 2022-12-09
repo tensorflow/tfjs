@@ -55,4 +55,4 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
       attrs as unknown as NamedAttrMap);
 }
 
-export const unstack = op({unstack_});
+export const unstack = /* @__PURE__ */ op({unstack_});

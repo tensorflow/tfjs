@@ -50,4 +50,4 @@ function euclideanNorm_(
   return norm(x, 'euclidean', axis, keepDims);
 }
 
-export const euclideanNorm = op({euclideanNorm_});
+export const euclideanNorm = /* @__PURE__ */ op({euclideanNorm_});

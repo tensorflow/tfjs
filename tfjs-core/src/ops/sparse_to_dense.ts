@@ -93,4 +93,4 @@ function sparseToDense_<R extends Rank>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const sparseToDense = op({sparseToDense_});
+export const sparseToDense = /* @__PURE__ */ op({sparseToDense_});

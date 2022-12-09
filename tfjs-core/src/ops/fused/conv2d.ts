@@ -329,4 +329,4 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     return customOpWithBias(x4D, $filter, $bias) as T;
   }
 }
-export const conv2d = op({fusedConv2d_});
+export const conv2d = /* @__PURE__ */ op({fusedConv2d_});

@@ -71,4 +71,4 @@ function maximum_<T extends Tensor>(
   return ENGINE.runKernel(Maximum, inputs as unknown as NamedTensorMap);
 }
 
-export const maximum = op({maximum_});
+export const maximum = /* @__PURE__ */ op({maximum_});

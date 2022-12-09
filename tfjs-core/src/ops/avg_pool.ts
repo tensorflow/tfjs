@@ -92,4 +92,4 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const avgPool = op({avgPool_});
+export const avgPool = /* @__PURE__ */ op({avgPool_});

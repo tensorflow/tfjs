@@ -64,4 +64,4 @@ function gather_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const gather = op({gather_});
+export const gather = /* @__PURE__ */ op({gather_});

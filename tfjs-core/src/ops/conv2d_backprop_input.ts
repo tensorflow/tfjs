@@ -108,4 +108,4 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2DBackpropInput = op({conv2DBackpropInput_});
+export const conv2DBackpropInput = /* @__PURE__ */ op({conv2DBackpropInput_});

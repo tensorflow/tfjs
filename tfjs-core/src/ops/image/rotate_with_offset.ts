@@ -61,4 +61,4 @@ function rotateWithOffset_(
   return res as Tensor4D;
 }
 
-export const rotateWithOffset = op({rotateWithOffset_});
+export const rotateWithOffset = /* @__PURE__ */ op({rotateWithOffset_});

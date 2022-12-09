@@ -44,4 +44,4 @@ function randomStandardNormal_<R extends Rank>(
   return randomNormal(shape, 0, 1, dtype, seed);
 }
 
-export const randomStandardNormal = op({randomStandardNormal_});
+export const randomStandardNormal = /* @__PURE__ */ op({randomStandardNormal_});

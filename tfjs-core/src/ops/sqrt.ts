@@ -43,4 +43,4 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Sqrt, inputs as unknown as NamedTensorMap);
 }
-export const sqrt = op({sqrt_});
+export const sqrt = /* @__PURE__ */ op({sqrt_});

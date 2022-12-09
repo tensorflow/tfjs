@@ -76,4 +76,4 @@ function maxPoolWithArgmax_<T extends Tensor4D>(
   return {result: result[0], indexes: result[1]};
 }
 
-export const maxPoolWithArgmax = op({maxPoolWithArgmax_});
+export const maxPoolWithArgmax = /* @__PURE__ */ op({maxPoolWithArgmax_});

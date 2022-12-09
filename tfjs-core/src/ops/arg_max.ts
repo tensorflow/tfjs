@@ -60,4 +60,4 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const argMax = op({argMax_});
+export const argMax = /* @__PURE__ */ op({argMax_});
