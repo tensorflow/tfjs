@@ -33,7 +33,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adamax';  // Note: Name matters for Python compatbility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adamax';
+  }
   private accBeta1: Variable;
   private iteration: Variable;
 

@@ -31,7 +31,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class AdagradOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adagrad';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adagrad';
+  }
 
   private accumulatedGrads: OptimizerVariable[] = [];
 

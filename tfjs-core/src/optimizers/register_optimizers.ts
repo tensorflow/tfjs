@@ -35,7 +35,6 @@ const OPTIMIZERS = [
   SGDOptimizer,
 ];
 
-
 export function registerOptimizers() {
   for (const optimizer of OPTIMIZERS) {
     registerClass(optimizer);
