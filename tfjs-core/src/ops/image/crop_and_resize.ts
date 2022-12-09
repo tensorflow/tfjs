@@ -95,4 +95,4 @@ function cropAndResize_(
   return res as Tensor4D;
 }
 
-export const cropAndResize = op({cropAndResize_});
+export const cropAndResize = /* @__PURE__ */ op({cropAndResize_});

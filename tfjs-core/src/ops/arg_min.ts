@@ -60,4 +60,4 @@ function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const argMin = op({argMin_});
+export const argMin = /* @__PURE__ */ op({argMin_});

@@ -50,4 +50,4 @@ function ifft_(input: Tensor): Tensor {
   return ENGINE.runKernel(IFFT, inputs as unknown as NamedTensorMap);
 }
 
-export const ifft = op({ifft_});
+export const ifft = /* @__PURE__ */ op({ifft_});

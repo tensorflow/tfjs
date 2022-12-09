@@ -42,4 +42,4 @@ function cosh_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Cosh, inputs as unknown as NamedTensorMap);
 }
-export const cosh = op({cosh_});
+export const cosh = /* @__PURE__ */ op({cosh_});

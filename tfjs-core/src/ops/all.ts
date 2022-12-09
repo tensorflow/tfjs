@@ -66,4 +66,4 @@ function all_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const all = op({all_});
+export const all = /* @__PURE__ */ op({all_});

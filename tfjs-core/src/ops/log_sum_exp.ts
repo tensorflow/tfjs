@@ -78,4 +78,4 @@ function logSumExp_<T extends Tensor>(
   return res as T;
 }
 
-export const logSumExp = op({logSumExp_});
+export const logSumExp = /* @__PURE__ */ op({logSumExp_});

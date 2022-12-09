@@ -73,4 +73,4 @@ function prod_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const prod = op({prod_});
+export const prod = /* @__PURE__ */ op({prod_});

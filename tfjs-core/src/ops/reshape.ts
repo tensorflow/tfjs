@@ -61,4 +61,4 @@ function reshape_<R extends Rank>(
       Reshape, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
 }
-export const reshape = op({reshape_});
+export const reshape = /* @__PURE__ */ op({reshape_});

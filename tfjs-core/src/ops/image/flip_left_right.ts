@@ -45,4 +45,4 @@ function flipLeftRight_(image: Tensor4D|TensorLike): Tensor4D {
   return res as Tensor4D;
 }
 
-export const flipLeftRight = op({flipLeftRight_});
+export const flipLeftRight = /* @__PURE__ */ op({flipLeftRight_});

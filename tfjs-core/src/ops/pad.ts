@@ -64,4 +64,4 @@ function pad_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const pad = op({pad_});
+export const pad = /* @__PURE__ */ op({pad_});

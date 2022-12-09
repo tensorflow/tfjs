@@ -55,4 +55,4 @@ function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const expandDims = op({expandDims_});
+export const expandDims = /* @__PURE__ */ op({expandDims_});

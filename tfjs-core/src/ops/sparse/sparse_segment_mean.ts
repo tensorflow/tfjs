@@ -87,4 +87,4 @@ function sparseSegmentMean_(
   return ENGINE.runKernel(SparseSegmentMean, inputs as {});
 }
 
-export const sparseSegmentMean = op({sparseSegmentMean_});
+export const sparseSegmentMean = /* @__PURE__ */ op({sparseSegmentMean_});

@@ -109,4 +109,4 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       attrs as unknown as NamedAttrMap);
 }
 
-export const einsum = op({einsum_});
+export const einsum = /* @__PURE__ */ op({einsum_});

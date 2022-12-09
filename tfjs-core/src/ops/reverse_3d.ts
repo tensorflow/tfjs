@@ -37,4 +37,4 @@ function reverse3d_(x: Tensor3D|TensorLike, axis?: number|number[]): Tensor3D {
   return reverse($x, axis);
 }
 
-export const reverse3d = op({reverse3d_});
+export const reverse3d = /* @__PURE__ */ op({reverse3d_});

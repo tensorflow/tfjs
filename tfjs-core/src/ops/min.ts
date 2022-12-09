@@ -66,4 +66,4 @@ function min_<T extends Tensor>(
              attrs as unknown as NamedAttrMap) as T;
 }
 
-export const min = op({min_});
+export const min = /* @__PURE__ */ op({min_});

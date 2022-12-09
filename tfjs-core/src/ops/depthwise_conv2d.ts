@@ -119,4 +119,4 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const depthwiseConv2d = op({depthwiseConv2d_});
+export const depthwiseConv2d = /* @__PURE__ */ op({depthwiseConv2d_});

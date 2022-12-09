@@ -91,4 +91,4 @@ function transform_(
       attrs as unknown as NamedAttrMap);
 }
 
-export const transform = op({transform_});
+export const transform = /* @__PURE__ */ op({transform_});

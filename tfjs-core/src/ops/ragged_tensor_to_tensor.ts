@@ -99,4 +99,4 @@ function raggedTensorToTensor_(
   return ENGINE.runKernel(RaggedTensorToTensor, inputs as {}, attrs as {});
 }
 
-export const raggedTensorToTensor = op({raggedTensorToTensor_});
+export const raggedTensorToTensor = /* @__PURE__ */ op({raggedTensorToTensor_});

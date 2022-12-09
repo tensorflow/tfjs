@@ -69,4 +69,4 @@ function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   return ENGINE.runKernel(GatherNd, inputs as unknown as NamedTensorMap);
 }
 
-export const gatherND = op({gatherND_});
+export const gatherND = /* @__PURE__ */ op({gatherND_});

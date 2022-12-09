@@ -34,4 +34,4 @@ import {cosineWindow} from '../signal_ops_util';
 function hammingWindow_(windowLength: number): Tensor1D {
   return cosineWindow(windowLength, 0.54, 0.46);
 }
-export const hammingWindow = op({hammingWindow_});
+export const hammingWindow = /* @__PURE__ */ op({hammingWindow_});

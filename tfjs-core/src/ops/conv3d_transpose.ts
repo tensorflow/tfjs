@@ -52,4 +52,4 @@ function conv3dTranspose_<T extends Tensor4D|Tensor5D>(
   return conv3DBackpropInput(outputShape, $x, $filter, strides, pad);
 }
 
-export const conv3dTranspose = op({conv3dTranspose_});
+export const conv3dTranspose = /* @__PURE__ */ op({conv3dTranspose_});
