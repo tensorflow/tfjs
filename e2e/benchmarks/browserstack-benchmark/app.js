@@ -281,7 +281,7 @@ function runBrowserStackBenchmark(tabId) {
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
-    execFile('yarn', args, (error, stdout, stderr) => {
+    execFile('yarn', args, { timeout: 3e5 }, (error, stdout, stderr) => {
       if (error) {
         console.log(`\n${error}`);
         console.log(`stdout: ${stdout}`);

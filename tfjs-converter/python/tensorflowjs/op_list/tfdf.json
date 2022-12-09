@@ -1,0 +1,11 @@
+[
+  {
+    "tfOpName": "SimpleMLCreateModelResource"
+  },
+  {
+    "tfOpName": "SimpleMLLoadModelFromPathWithHandle"
+  },
+  {
+    "tfOpName": "SimpleMLInferenceOpWithHandle"
+  }
+]

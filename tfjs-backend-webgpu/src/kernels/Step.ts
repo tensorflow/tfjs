@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,28 +15,25 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluAttrs, LeakyReluInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Step, StepAttrs, TensorInfo, UnaryInputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {UnaryOpType} from '../unary_op_util';
 import {UnaryOpProgram} from '../unary_op_webgpu';
 
-export function leakyRelu(args: {
-  inputs: LeakyReluInputs,
-  backend: WebGPUBackend,
-  attrs: LeakyReluAttrs
-}): TensorInfo {
-  const {inputs, backend, attrs} = args;
+export function step(
+    {inputs, attrs, backend}:
+        {inputs: UnaryInputs, attrs: StepAttrs, backend: WebGPUBackend}):
+    TensorInfo {
   const {x} = inputs;
-  const {alpha} = attrs;
-  const uniformData = [{type: 'float32', data: [alpha]}];
   const program =
-      new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU, 'alpha : f32,');
-  return backend.runWebGPUProgram(program, [x], 'float32', uniformData);
+      new UnaryOpProgram(x.shape, UnaryOpType.STEP, 'stepAlpha : f32,');
+  const uniformData = [{type: 'float32', data: [attrs.alpha]}];
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
-export const leakyReluConfig: KernelConfig = {
-  kernelName: LeakyRelu,
+export const stepConfig: KernelConfig = {
+  kernelName: Step,
   backendName: 'webgpu',
-  kernelFunc: leakyRelu as unknown as KernelFunc
+  kernelFunc: step as unknown as KernelFunc
 };
