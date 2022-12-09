@@ -48,7 +48,7 @@ py_wheel(
     license = "Apache 2.0",
     python_tag = "py3",
     requires = [
-        "flax>=0.5.3",
+        "flax<0.6.3,>=0.5.3",
         "importlib_resources>=5.9.0",
         "jax>=0.3.16",
         "protobuf<3.20,>=3.9.2",
