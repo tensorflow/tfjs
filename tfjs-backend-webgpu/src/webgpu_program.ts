@@ -124,10 +124,10 @@ export function getMainHeaderString(...params: string[]): string {
   return snippet;
 }
 
-export function getStartHeaderString(useGlobalIndex: boolean): string {
+export function getStartHeaderString(useGlobalIndex: boolean, program: WebGPUProgram): string {
   let snippet: string;
   snippet = `
-     ${getWorkgroupSizeString()}
+     ${getWorkgroupSizeString(program)}
       fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
                 @builtin(global_invocation_id) GlobalId : vec3<u32>,
                 @builtin(local_invocation_index) LocalIndex: u32,
@@ -144,9 +144,10 @@ export function getStartHeaderString(useGlobalIndex: boolean): string {
   return snippet;
 }
 
-export function getWorkgroupSizeString(): string {
+export function getWorkgroupSizeString(program: WebGPUProgram): string {
   return `
-  @compute @workgroup_size(workgroupSizeX, workgroupSizeY, workgroupSizeZ)
+  @compute @workgroup_size(${program.workgroupSize[0]}, ${
+      program.workgroupSize[1]}, ${program.workgroupSize[2]})
 `;
 }
 
@@ -157,9 +158,6 @@ function makeShader(
   const flatWorkgroupSize = program.workgroupSize[0] *
       program.workgroupSize[1] * program.workgroupSize[2];
   prefixSnippets.push(`
-      const workgroupSizeX = ${program.workgroupSize[0]}u;
-      const workgroupSizeY = ${program.workgroupSize[1]}u;
-      const workgroupSizeZ = ${program.workgroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> localIndex: u32;
@@ -198,7 +196,7 @@ function makeShader(
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
-      getStartHeaderString(useGlobalIndex),
+      getStartHeaderString(useGlobalIndex, program),
     ].join('\n');
   }
 
@@ -258,7 +256,7 @@ function makeShader(
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet + isInfSnippet, prefixSnippets.join('\n'),
+    commonSnippet , prefixSnippets.join('\n') + isInfSnippet,
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
@@ -280,7 +278,7 @@ function makeShader(
   sources.push(inputSnippet);
   sources.push(program.getUserCode());
   const useGlobalIndex = isFlatDispatchLayout(program);
-  sources.push(getStartHeaderString(useGlobalIndex));
+  sources.push(getStartHeaderString(useGlobalIndex, program));
   const source = sources.join('\n');
   return source;
 }
