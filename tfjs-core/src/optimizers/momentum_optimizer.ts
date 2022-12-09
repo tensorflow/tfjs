@@ -32,7 +32,12 @@ import {SGDOptimizer} from './sgd_optimizer';
 export class MomentumOptimizer extends SGDOptimizer {
   /** @nocollapse */
   // Name matters for Python compatibility.
-  static override className = 'Momentum';
+  static override get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Momentum';
+  }
   private m: Scalar;
   private accumulations: OptimizerVariable[] = [];
 
