@@ -89,4 +89,4 @@ function mirrorPad_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const mirrorPad = op({mirrorPad_});
+export const mirrorPad = /* @__PURE__ */ op({mirrorPad_});

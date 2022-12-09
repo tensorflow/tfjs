@@ -257,4 +257,4 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     return customOpWithBias(x4D, $filter, $bias) as T;
   }
 }
-export const depthwiseConv2d = op({fusedDepthwiseConv2d_});
+export const depthwiseConv2d = /* @__PURE__ */ op({fusedDepthwiseConv2d_});

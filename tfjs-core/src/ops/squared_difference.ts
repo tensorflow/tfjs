@@ -65,4 +65,4 @@ function squaredDifference_<T extends Tensor>(
       SquaredDifference, inputs as unknown as NamedTensorMap, attrs);
 }
 
-export const squaredDifference = op({squaredDifference_});
+export const squaredDifference = /* @__PURE__ */ op({squaredDifference_});

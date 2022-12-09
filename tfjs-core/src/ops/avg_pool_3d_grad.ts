@@ -96,4 +96,4 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const avgPool3dGrad = op({avgPool3dGrad_});
+export const avgPool3dGrad = /* @__PURE__ */ op({avgPool3dGrad_});

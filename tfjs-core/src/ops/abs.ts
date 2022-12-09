@@ -48,4 +48,4 @@ function abs_<T extends Tensor>(x: T|TensorLike): T {
   }
 }
 
-export const abs = op({abs_});
+export const abs = /* @__PURE__ */ op({abs_});

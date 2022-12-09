@@ -113,4 +113,4 @@ function searchSorted_(
   return ENGINE.runKernel(SearchSorted, inputs as {}, attrs as {});
 }
 
-export const searchSorted = op({searchSorted_});
+export const searchSorted = /* @__PURE__ */ op({searchSorted_});

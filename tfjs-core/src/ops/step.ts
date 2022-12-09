@@ -48,4 +48,4 @@ function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
       Step, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
 }
-export const step = op({step_});
+export const step = /* @__PURE__ */ op({step_});

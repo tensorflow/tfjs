@@ -67,4 +67,4 @@ function any_<T extends Tensor>(
 }
 
 // tslint:disable-next-line:variable-name
-export const any = op({any_});
+export const any = /* @__PURE__ */ op({any_});

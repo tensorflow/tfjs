@@ -75,4 +75,4 @@ function slice_<R extends Rank, T extends Tensor<R>>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const slice = op({slice_});
+export const slice = /* @__PURE__ */ op({slice_});

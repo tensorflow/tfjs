@@ -89,4 +89,4 @@ function sparseReshape_(
   return {outputIndices: result[0], outputShape: result[1]};
 }
 
-export const sparseReshape = op({sparseReshape_});
+export const sparseReshape = /* @__PURE__ */ op({sparseReshape_});

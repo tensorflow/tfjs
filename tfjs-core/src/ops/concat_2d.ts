@@ -52,4 +52,4 @@ function concat2d_(
   return concat(tensors, axis);
 }
 
-export const concat2d = op({concat2d_});
+export const concat2d = /* @__PURE__ */ op({concat2d_});

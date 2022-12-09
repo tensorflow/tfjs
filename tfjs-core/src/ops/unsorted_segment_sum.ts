@@ -59,4 +59,4 @@ function unsortedSegmentSum_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const unsortedSegmentSum = op({unsortedSegmentSum_});
+export const unsortedSegmentSum = /* @__PURE__ */ op({unsortedSegmentSum_});

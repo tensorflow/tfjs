@@ -67,4 +67,4 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
                           inputs as unknown as NamedTensorMap, attrs) as T;
 }
 
-export const div = op({div_});
+export const div = /* @__PURE__ */ op({div_});

@@ -53,4 +53,4 @@ function greater_<T extends Tensor>(
   return ENGINE.runKernel(Greater, inputs as unknown as NamedTensorMap);
 }
 
-export const greater = op({greater_});
+export const greater = /* @__PURE__ */ op({greater_});

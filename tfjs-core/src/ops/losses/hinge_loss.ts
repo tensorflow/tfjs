@@ -60,4 +60,4 @@ function hingeLoss_<T extends Tensor, O extends Tensor>(
   const losses = relu(sub(one, mul($labels, $predictions)));
   return computeWeightedLoss(losses, $weights, reduction);
 }
-export const hingeLoss = op({hingeLoss_});
+export const hingeLoss = /* @__PURE__ */ op({hingeLoss_});

@@ -371,4 +371,4 @@ export async function toPixels(
   return bytes;
 }
 
-export const fromPixels = op({fromPixels_});
+export const fromPixels = /* @__PURE__ */ op({fromPixels_});

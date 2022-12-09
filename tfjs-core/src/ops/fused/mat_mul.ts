@@ -210,4 +210,4 @@ function fusedMatMul_({
     }
   }
 
-  export const matMul = op({fusedMatMul_});
+  export const matMul = /* @__PURE__ */ op({fusedMatMul_});

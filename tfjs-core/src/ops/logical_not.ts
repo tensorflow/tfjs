@@ -42,4 +42,4 @@ function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel(LogicalNot, inputs as unknown as NamedTensorMap);
 }
 
-export const logicalNot = op({logicalNot_});
+export const logicalNot = /* @__PURE__ */ op({logicalNot_});

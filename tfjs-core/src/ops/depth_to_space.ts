@@ -102,4 +102,4 @@ function depthToSpace_(
       attrs as unknown as NamedAttrMap);
 }
 
-export const depthToSpace = op({depthToSpace_});
+export const depthToSpace = /* @__PURE__ */ op({depthToSpace_});

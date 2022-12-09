@@ -57,4 +57,4 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const cast = op({cast_});
+export const cast = /* @__PURE__ */ op({cast_});

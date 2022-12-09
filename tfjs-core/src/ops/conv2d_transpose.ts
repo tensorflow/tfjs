@@ -55,4 +55,4 @@ function conv2dTranspose_<T extends Tensor3D|Tensor4D>(
       outputShape, $x, $filter, strides, pad, 'NHWC', dimRoundingMode);
 }
 
-export const conv2dTranspose = op({conv2dTranspose_});
+export const conv2dTranspose = /* @__PURE__ */ op({conv2dTranspose_});

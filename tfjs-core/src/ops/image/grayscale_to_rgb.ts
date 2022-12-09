@@ -56,4 +56,4 @@ function grayscaleToRGB_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
   return tile($image, reps);
 }
 
-export const grayscaleToRGB = op({grayscaleToRGB_});
+export const grayscaleToRGB = /* @__PURE__ */ op({grayscaleToRGB_});

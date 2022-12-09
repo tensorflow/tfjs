@@ -54,4 +54,4 @@ function diag_(x: Tensor): Tensor {
   return ENGINE.runKernel(Diag, inputs as unknown as NamedTensorMap);
 }
 
-export const diag = op({diag_});
+export const diag = /* @__PURE__ */ op({diag_});

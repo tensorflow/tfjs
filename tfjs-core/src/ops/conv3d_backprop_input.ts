@@ -104,4 +104,4 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const conv3DBackpropInput = op({conv3DBackpropInput_});
+export const conv3DBackpropInput = /* @__PURE__ */ op({conv3DBackpropInput_});

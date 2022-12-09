@@ -43,4 +43,4 @@ function imag_<T extends Tensor>(input: T|TensorLike): T {
   return ENGINE.runKernel(Imag, inputs as unknown as NamedTensorMap);
 }
 
-export const imag = op({imag_});
+export const imag = /* @__PURE__ */ op({imag_});

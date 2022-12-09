@@ -66,4 +66,4 @@ function multiRNNCell_(
   }
   return [newC, newH];
 }
-export const multiRNNCell = op({multiRNNCell_});
+export const multiRNNCell = /* @__PURE__ */ op({multiRNNCell_});

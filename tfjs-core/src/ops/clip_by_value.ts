@@ -60,4 +60,4 @@ function clipByValue_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const clipByValue = op({clipByValue_});
+export const clipByValue = /* @__PURE__ */ op({clipByValue_});

@@ -79,4 +79,4 @@ function dot_(t1: Tensor|TensorLike, t2: Tensor|TensorLike): Tensor {
   }
 }
 
-export const dot = op({dot_});
+export const dot = /* @__PURE__ */ op({dot_});

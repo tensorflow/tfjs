@@ -107,4 +107,4 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const dilation2d = op({dilation2d_});
+export const dilation2d = /* @__PURE__ */ op({dilation2d_});

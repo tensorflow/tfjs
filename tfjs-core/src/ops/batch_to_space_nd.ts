@@ -104,4 +104,4 @@ function batchToSpaceND_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const batchToSpaceND = op({batchToSpaceND_});
+export const batchToSpaceND = /* @__PURE__ */ op({batchToSpaceND_});
