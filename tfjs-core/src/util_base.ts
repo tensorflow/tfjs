@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -659,6 +659,23 @@ export function toNestedArray(
   }
 
   return createNestedArray(0, shape, a, isComplex);
+}
+
+export function convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }
 
 export function makeOnesTypedArray<D extends DataType>(
