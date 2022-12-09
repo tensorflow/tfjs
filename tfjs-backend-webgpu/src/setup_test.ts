@@ -256,7 +256,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
-      'multinomial ',
       'poolBackprop ',
       'raggedGather ',
       'raggedRange ',
