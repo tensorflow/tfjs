@@ -108,4 +108,4 @@ function batchNorm_<R extends Rank>(
   return reshape(res, $x.shape);
 }
 
-export const batchNorm = op({batchNorm_});
+export const batchNorm = /* @__PURE__ */ op({batchNorm_});

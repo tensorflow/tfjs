@@ -43,4 +43,4 @@ function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
   return reshape($x, squeezeShape($x.shape, axis).newShape) as T;
 }
 
-export const squeeze = op({squeeze_});
+export const squeeze = /* @__PURE__ */ op({squeeze_});

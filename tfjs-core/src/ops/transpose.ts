@@ -97,4 +97,4 @@ function transpose_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const transpose = op({transpose_});
+export const transpose = /* @__PURE__ */ op({transpose_});

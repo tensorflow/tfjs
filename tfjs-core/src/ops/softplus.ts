@@ -42,4 +42,4 @@ function softplus_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: SoftplusInputs = {x: $x};
   return ENGINE.runKernel(Softplus, inputs as unknown as NamedTensorMap);
 }
-export const softplus = op({softplus_});
+export const softplus = /* @__PURE__ */ op({softplus_});

@@ -35,4 +35,4 @@ function hannWindow_(windowLength: number): Tensor1D {
   return cosineWindow(windowLength, 0.5, 0.5);
 }
 
-export const hannWindow = op({hannWindow_});
+export const hannWindow = /* @__PURE__ */ op({hannWindow_});

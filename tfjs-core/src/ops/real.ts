@@ -45,4 +45,4 @@ function real_<T extends Tensor>(input: T|TensorLike): T {
   return ENGINE.runKernel(Real, inputs as unknown as NamedTensorMap);
 }
 
-export const real = op({real_});
+export const real = /* @__PURE__ */ op({real_});

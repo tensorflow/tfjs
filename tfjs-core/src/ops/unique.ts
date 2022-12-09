@@ -88,4 +88,4 @@ function unique_<T extends Tensor>(
   return {values, indices};
 }
 
-export const unique = op({unique_});
+export const unique = /* @__PURE__ */ op({unique_});

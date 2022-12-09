@@ -67,4 +67,4 @@ function bincount_<T extends Tensor1D>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const bincount = op({bincount_});
+export const bincount = /* @__PURE__ */ op({bincount_});

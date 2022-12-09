@@ -56,4 +56,4 @@ function matMul_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const matMul = op({matMul_});
+export const matMul = /* @__PURE__ */ op({matMul_});

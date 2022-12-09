@@ -90,4 +90,4 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
+export const resizeNearestNeighbor = /* @__PURE__ */ op({resizeNearestNeighbor_});

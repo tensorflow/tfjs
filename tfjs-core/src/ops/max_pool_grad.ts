@@ -81,4 +81,4 @@ function maxPoolGrad_(
              attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const maxPoolGrad = op({maxPoolGrad_});
+export const maxPoolGrad = /* @__PURE__ */ op({maxPoolGrad_});

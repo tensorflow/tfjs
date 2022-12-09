@@ -50,4 +50,4 @@ function fft_(input: Tensor): Tensor {
   return ENGINE.runKernel(FFT, inputs as unknown as NamedTensorMap);
 }
 
-export const fft = op({fft_});
+export const fft = /* @__PURE__ */ op({fft_});

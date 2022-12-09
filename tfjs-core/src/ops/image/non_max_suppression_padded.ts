@@ -80,4 +80,4 @@ function nonMaxSuppressionPadded_(
   return {selectedIndices: result[0], validOutputs: result[1]};
 }
 
-export const nonMaxSuppressionPadded = op({nonMaxSuppressionPadded_});
+export const nonMaxSuppressionPadded = /* @__PURE__ */ op({nonMaxSuppressionPadded_});

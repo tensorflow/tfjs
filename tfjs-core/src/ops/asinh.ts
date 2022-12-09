@@ -44,4 +44,4 @@ function asinh_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Asinh, inputs as unknown as NamedTensorMap);
 }
-export const asinh = op({asinh_});
+export const asinh = /* @__PURE__ */ op({asinh_});

@@ -113,4 +113,4 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
   return reshape(res, [res.shape[0], res.shape[2], res.shape[3]]) as T;
 }
 
-export const conv1d = op({conv1d_});
+export const conv1d = /* @__PURE__ */ op({conv1d_});

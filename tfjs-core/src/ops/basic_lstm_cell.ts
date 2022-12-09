@@ -77,4 +77,4 @@ function basicLSTMCell_(
   return [newC, newH];
 }
 
-export const basicLSTMCell = op({basicLSTMCell_});
+export const basicLSTMCell = /* @__PURE__ */ op({basicLSTMCell_});

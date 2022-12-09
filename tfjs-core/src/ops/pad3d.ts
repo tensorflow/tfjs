@@ -34,4 +34,4 @@ function pad3d_(
   return pad(x, paddings, constantValue);
 }
 
-export const pad3d = op({pad3d_});
+export const pad3d = /* @__PURE__ */ op({pad3d_});

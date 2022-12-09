@@ -87,4 +87,4 @@ function sparseSegmentSum_(
   return ENGINE.runKernel(SparseSegmentSum, inputs as {});
 }
 
-export const sparseSegmentSum = op({sparseSegmentSum_});
+export const sparseSegmentSum = /* @__PURE__ */ op({sparseSegmentSum_});

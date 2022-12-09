@@ -116,4 +116,4 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2d = op({conv2d_});
+export const conv2d = /* @__PURE__ */ op({conv2d_});

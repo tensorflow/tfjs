@@ -40,4 +40,4 @@ function acos_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Acos, inputs as unknown as NamedTensorMap);
 }
-export const acos = op({acos_});
+export const acos = /* @__PURE__ */ op({acos_});

@@ -72,4 +72,4 @@ function minimum_<T extends Tensor>(
   return ENGINE.runKernel(Minimum, inputs as unknown as NamedTensorMap);
 }
 
-export const minimum = op({minimum_});
+export const minimum = /* @__PURE__ */ op({minimum_});

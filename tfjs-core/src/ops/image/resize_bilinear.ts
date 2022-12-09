@@ -86,4 +86,4 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const resizeBilinear = op({resizeBilinear_});
+export const resizeBilinear = /* @__PURE__ */ op({resizeBilinear_});

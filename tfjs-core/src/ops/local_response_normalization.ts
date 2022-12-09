@@ -77,4 +77,4 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
   }
 }
 
-export const localResponseNormalization = op({localResponseNormalization_});
+export const localResponseNormalization = /* @__PURE__ */ op({localResponseNormalization_});

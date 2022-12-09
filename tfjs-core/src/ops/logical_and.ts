@@ -50,4 +50,4 @@ function logicalAnd_<T extends Tensor>(
   return ENGINE.runKernel(LogicalAnd, inputs as unknown as NamedTensorMap);
 }
 
-export const logicalAnd = op({logicalAnd_});
+export const logicalAnd = /* @__PURE__ */ op({logicalAnd_});

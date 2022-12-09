@@ -56,4 +56,4 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
   return ENGINE.runKernel(Complex, inputs as unknown as NamedTensorMap);
 }
 
-export const complex = op({complex_});
+export const complex = /* @__PURE__ */ op({complex_});
