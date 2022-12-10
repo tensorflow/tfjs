@@ -211,9 +211,9 @@ http_archive(
 
 http_archive(
     name = "rules_python",
-    sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
-    strip_prefix = "rules_python-0.9.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
@@ -225,19 +225,27 @@ python_register_toolchains(
 )
 
 load("@python3_8//:defs.bzl", "interpreter")
-load("@rules_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip_install(
-    name = "tensorflowjs_dev_deps",
-    python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements-dev.txt",
-)
-
-pip_install(
+pip_parse(
     name = "tensorflowjs_deps",
     python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements.txt",
+    requirements_lock = "@//tfjs-converter/python:requirements_lock.txt",
 )
+
+load("@tensorflowjs_deps//:requirements.bzl", install_tfjs_deps = "install_deps")
+
+install_tfjs_deps()
+
+pip_parse(
+    name = "tensorflowjs_dev_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tfjs-converter/python:requirements-dev_lock.txt",
+)
+
+load("@tensorflowjs_dev_deps//:requirements.bzl", install_tfjs_dev_deps = "install_deps")
+
+install_tfjs_dev_deps()
 
 load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
 
