@@ -218,8 +218,12 @@ http_archive(
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
+# TODO(mattSoulanille): Change the docker so it doesn't run as root?
+# https://github.com/bazelbuild/rules_python/pull/713
+# https://github.com/GoogleCloudPlatform/cloud-builders/issues/641
 python_register_toolchains(
     name = "python3_8",
+    ignore_root_user_error = True,
     # Available versions are listed in @rules_python//python:versions.bzl.
     python_version = "3.8",
 )
