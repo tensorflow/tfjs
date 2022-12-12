@@ -18,21 +18,22 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
-import {computeDispatch} from './webgpu_util';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Dilation2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'w'];
   uniforms =
       'filterDims: vec2<i32>, pad: vec2<i32>, stride: vec2<i32>, dilation: vec2<i32>';
-  workgroupSize: [number, number, number] = [8, 16, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
@@ -41,35 +42,35 @@ export class Dilation2DProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-       ${main()} {
-         let neg_infinity = -3.4e38;
-         let coords = getOutputCoords();
-         let batch = coords.x;
-         let d1 = coords.w;
-         let outTopLeftCorner = coords.yz * uniforms.stride - uniforms.pad;
-         let hBeg = outTopLeftCorner.x;
-         let wBeg = outTopLeftCorner.y;
+       ${main('index')} {
+         if (index < uniforms.size) {
+           let neg_infinity = -3.4e38;
+           let coords = getOutputCoords();
+           let batch = coords.x;
+           let d1 = coords.w;
+           let outTopLeftCorner = coords.yz * uniforms.stride - uniforms.pad;
+           let hBeg = outTopLeftCorner.x;
+           let wBeg = outTopLeftCorner.y;
 
-         var curVal = neg_infinity;
-         for (var h = 0; h < uniforms.filterDims[0]; h = h + 1) {
-           let hIn = hBeg + h * uniforms.dilation[0];
+           var curVal = neg_infinity;
+           for (var h = 0; h < uniforms.filterDims[0]; h = h + 1) {
+             let hIn = hBeg + h * uniforms.dilation[0];
 
-           if (hIn >= 0 && hIn < uniforms.xShape[1]) {
-             for (var w = 0; w < uniforms.filterDims[1]; w = w + 1) {
-               let wIn = wBeg + w * uniforms.dilation[1];
+             if (hIn >= 0 && hIn < uniforms.xShape[1]) {
+               for (var w = 0; w < uniforms.filterDims[1]; w = w + 1) {
+                 let wIn = wBeg + w * uniforms.dilation[1];
 
-               if (wIn >= 0 && wIn < uniforms.xShape[2]) {
-                 let val = getX(batch, hIn, wIn, d1) + getW(h, w, d1);
-                 if (val > curVal) {
-                   curVal = val;
+                 if (wIn >= 0 && wIn < uniforms.xShape[2]) {
+                   let val = getX(batch, hIn, wIn, d1) + getW(h, w, d1);
+                   if (val > curVal) {
+                     curVal = val;
+                   }
                  }
                }
              }
            }
-         }
 
-         if (coordsInBounds4D(coords, uniforms.outShape)) {
-           setOutputAtCoords(coords.x, coords.y, coords.z, coords.w, curVal);
+           setOutputAtIndex(index, curVal);
          }
        }
      `;
