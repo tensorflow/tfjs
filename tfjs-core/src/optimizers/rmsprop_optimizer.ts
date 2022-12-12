@@ -24,7 +24,7 @@ import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -207,4 +207,3 @@ export class RMSPropOptimizer extends Optimizer {
         config['epsilon'], config['centered']);
   }
 }
-registerClass(RMSPropOptimizer);
