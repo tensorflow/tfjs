@@ -28,7 +28,7 @@ const powOperatorSnippet = `
     powValue = 1.0 / basis;
   } else {
     powValue = exp(log(basis) * (-uniforms.beta));
-}
+  }
 `;
 
 export class LRNProgram implements WebGPUProgram {
@@ -96,7 +96,10 @@ export class LRNSharedProgram implements WebGPUProgram {
             this.maxAllowRadius}, current radius is ${radius}`);
 
     this.outputShape = xShape;
-    this.elementsPerWorkgroup = this.workgroupSize[0] - 2 * radius;
+    // The reason why not using this.workgroupSize[0] + 2 * maxAllowRadius here
+    // is to make sure that there is only one time global memory load access for
+    // each thread.
+    this.elementsPerWorkgroup = this.workgroupSize[0] - 2 * this.maxAllowRadius;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [
       this.elementsPerWorkgroup, this.workgroupSize[1], this.workgroupSize[2]
@@ -106,38 +109,36 @@ export class LRNSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-    var <workgroup>lrn_Sub: array<f32, ${this.workgroupSize[0]}>;
+    var <workgroup>lrnSub: array<f32, ${this.workgroupSize[0]}>;
     const elementsPerWorkgroup = ${this.elementsPerWorkgroup};
     const maxAllowRadius = ${this.maxAllowRadius};
 
     ${main()} {
+      let localDepth = i32(localId.x);
+      let workgroupDepth = i32(workgroupId.x) * elementsPerWorkgroup;
+      let xDepth = workgroupDepth + localDepth - maxAllowRadius;
       let b = i32(globalId.z) / uniforms.xShape[1];
       let r = i32(globalId.z) - b * uniforms.xShape[1];
       let c = i32(globalId.y);
-      let d = i32(globalId.x);
-      let localDepth = i32(localId.x);
-      let workgroupDepth = i32(workgroupId.x) * elementsPerWorkgroup;
-      let elementGlobalDepth = workgroupDepth + localDepth - maxAllowRadius;
+      let d = workgroupDepth + localDepth;
 
       var x = 0.0;
-      if (elementGlobalDepth >= 0 && elementGlobalDepth < uniforms.xShape[3]) {
-        x = getX(b, r, c, elementGlobalDepth);
+      if (xDepth >= 0 && xDepth < uniforms.xShape[3]) {
+        x = getX(b, r, c, xDepth);
       }
-      lrn_Sub[localDepth] = x;
+      lrnSub[localDepth] = x;
       workgroupBarrier();
 
-      if ((localDepth - maxAllowRadius) >= 0 &&
-          (localDepth - maxAllowRadius) < elementsPerWorkgroup &&
-          (elementGlobalDepth) < uniforms.xShape[3]) {
+      if (localDepth < elementsPerWorkgroup && d < uniforms.outShape[3]) {
         var sum = 0.0;
+        let index = localDepth + maxAllowRadius;
         for (var i = -uniforms.radius; i <= uniforms.radius; i = i + 1) {
-          let idx = localDepth + i;
-          let z = lrn_Sub[idx];
+          let z = lrnSub[index + i];
           sum = sum + z * z;
         }
         ${powOperatorSnippet}
 
-        setOutputAtCoords(b, r, c, d - ${this.maxAllowRadius}, x * powValue);
+        setOutputAtCoords(b, r, c, d, lrnSub[index] * powValue);
       }
     } `;
     return userCode;
