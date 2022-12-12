@@ -27,6 +27,11 @@ export function lrn(
   const {x} = inputs;
   const {depthRadius, bias, alpha, beta} = attrs;
 
+  // When the adjacent channels is less than or equal to 16, which could cover
+  // most cases, we use shared memory version to get better performance.
+  // The theoretical adjacent channels may be very large, but the shared memory
+  // size of hardware is limited, so we use the naive version when the adjacent
+  // channels is large.
   let program: LRNProgram|LRNSharedProgram;
   if (depthRadius > 16) {
     program = new LRNProgram(x.shape);

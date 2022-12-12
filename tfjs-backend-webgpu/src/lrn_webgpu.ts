@@ -96,7 +96,10 @@ export class LRNSharedProgram implements WebGPUProgram {
             this.maxAllowRadius}, current radius is ${radius}`);
 
     this.outputShape = xShape;
-    this.elementsPerWorkgroup = this.workgroupSize[0] - 2 * radius;
+    // The reason why not using this.workgroupSize[0] + 2 * maxAllowRadius here
+    // is to make sure that there is only one time gobal memory access for each
+    // thread.
+    this.elementsPerWorkgroup = this.workgroupSize[0] - 2 * this.maxAllowRadius;
     this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, [
       this.elementsPerWorkgroup, this.workgroupSize[1], this.workgroupSize[2]
@@ -106,7 +109,7 @@ export class LRNSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-    var <workgroup>lrn_Sub: array<f32, ${this.workgroupSize[0]}>;
+    var <workgroup>lrnSub: array<f32, ${this.workgroupSize[0]}>;
     const elementsPerWorkgroup = ${this.elementsPerWorkgroup};
     const maxAllowRadius = ${this.maxAllowRadius};
 
@@ -123,7 +126,7 @@ export class LRNSharedProgram implements WebGPUProgram {
       if (elementGlobalDepth >= 0 && elementGlobalDepth < uniforms.xShape[3]) {
         x = getX(b, r, c, elementGlobalDepth);
       }
-      lrn_Sub[localDepth] = x;
+      lrnSub[localDepth] = x;
       workgroupBarrier();
 
       if ((localDepth - maxAllowRadius) >= 0 &&
@@ -132,7 +135,7 @@ export class LRNSharedProgram implements WebGPUProgram {
         var sum = 0.0;
         for (var i = -uniforms.radius; i <= uniforms.radius; i = i + 1) {
           let idx = localDepth + i;
-          let z = lrn_Sub[idx];
+          let z = lrnSub[idx];
           sum = sum + z * z;
         }
         ${powOperatorSnippet}
