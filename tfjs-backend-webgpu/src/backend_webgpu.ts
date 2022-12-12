@@ -654,10 +654,10 @@ export class WebGPUBackend extends KernelBackend {
       const arrayBuffer = stagingBuffer.getMappedRange();
       let values;
       if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-        //new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        // Type conversion here from int32 to float32 may cause precision lost
+        // when value is out the scope of 2^24
         values = Float32Array.from(tensorData.values as TypedArray);
       } else {
-        //new Float32Array(arrayBuffer).set(tensorData.values as TypedArray);
         values = tensorData.values;
       }
       new Float32Array(arrayBuffer).set(values as TypedArray);

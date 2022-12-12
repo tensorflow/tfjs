@@ -54,7 +54,7 @@ export class FromPixelsProgram implements WebGPUProgram {
           let coords = getCoordsFromIndex(flatIndex);
           let values = ${textureLoad};
           for (var i = 0; i < uniforms.numChannels; i = i + 1) {
-            result[flatIndex + i] = i32(floor(255.0 * values[i]));
+            result[flatIndex + i] = floor(255.0 * values[i]);
           }
         }
       }

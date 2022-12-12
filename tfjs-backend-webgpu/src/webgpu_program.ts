@@ -772,12 +772,6 @@ export function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
   if (type === 'float32' || type === 'int32' || type === 'bool') {
     return isVec4 ? 'vec4<f32>' : 'f32';
-  //} else if (type === 'int32') {
-  //  return isVec4 ? 'vec4<i32>' : 'i32';
-  //} else if (type === 'bool') {
-  //  // Type 'bool' cannot be used in storage class,
-  //  // https://www.w3.org/TR/WGSL/#host-shareable-types.
-  //  return isVec4 ? 'vec4<i32>' : 'i32';
   }
 
   return type;
