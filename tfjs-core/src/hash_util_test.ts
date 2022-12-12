@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import Long from 'long';
 import {fingerPrint64, hexToLong} from './hash_util';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 

@@ -113,6 +113,8 @@ ts_library(
     deps = [
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
+        "@npm//@types/long",
+        "@npm//long",
     ],
 )
 

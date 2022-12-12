@@ -14,13 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-// Workaround for allowing cjs module to be included in bundle created by
-// rollup.
-import * as LongExports from 'long';
-// tslint:disable-next-line
-const Long: LongExports.LongConstructor =
-    // tslint:disable-next-line
-    (LongExports as any).default || LongExports;
+
+import Long from 'long';
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
@@ -28,11 +23,11 @@ export function hexToLong(hex: string): Long {
 
 // Some primes between 2^63 and 2^64 for various uses.
 // Hex 0xc3a5c85c97cb3127
-const k0: Long = hexToLong('c3a5c85c97cb3127');
+const k0: Long = /* @__PURE__ */ hexToLong('c3a5c85c97cb3127');
 // Hex 0xb492b66fbe98f273
-const k1: Long = hexToLong('b492b66fbe98f273');
+const k1: Long = /* @__PURE__ */ hexToLong('b492b66fbe98f273');
 // Hex 0x9ae16a3b2f90404f
-const k2: Long = hexToLong('9ae16a3b2f90404f');
+const k2: Long = /* @__PURE__ */ hexToLong('9ae16a3b2f90404f');
 
 function shiftMix(val: Long): Long {
   return val.xor(val.shru(47));

@@ -15,18 +15,12 @@
  * =============================================================================
  */
 
-import * as commonjs_import from '@rollup/plugin-commonjs';
+import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import * as sourcemaps_import from 'rollup-plugin-sourcemaps';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import {visualizer} from 'rollup-plugin-visualizer';
 import {terser as terserPlugin} from 'rollup-plugin-terser';
 import {downlevelToEs5Plugin} from 'downlevel_to_es5_plugin/downlevel_to_es5_plugin';
-
-// These workarounds would not be necessary with esModuleInterop = true,
-// but we likely can't set that.
-const commonjs = commonjs_import as unknown as typeof commonjs_import.default;
-const sourcemaps =
-  sourcemaps_import as unknown as typeof sourcemaps_import.default;
 
 const preamble = `/**
  * @license
