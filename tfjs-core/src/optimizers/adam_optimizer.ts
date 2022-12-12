@@ -26,7 +26,7 @@ import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -177,4 +177,3 @@ export class AdamOptimizer extends Optimizer {
         config['epsilon']);
   }
 }
-registerClass(AdamOptimizer);

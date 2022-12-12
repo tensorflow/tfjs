@@ -23,7 +23,7 @@ import {mul} from '../ops/mul';
 import {sqrt} from '../ops/ops';
 import {square} from '../ops/square';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -147,4 +147,3 @@ export class AdadeltaOptimizer extends Optimizer {
     return new cls(config['learningRate'], config['rho'], config['epsilon']);
   }
 }
-registerClass(AdadeltaOptimizer);
