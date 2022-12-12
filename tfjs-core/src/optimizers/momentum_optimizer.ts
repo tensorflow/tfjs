@@ -21,7 +21,7 @@ import {add} from '../ops/add';
 import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -126,4 +126,3 @@ export class MomentumOptimizer extends SGDOptimizer {
         config['learningRate'], config['momentum'], config['useNesterov']);
   }
 }
-registerClass(MomentumOptimizer);
