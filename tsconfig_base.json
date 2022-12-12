@@ -7,6 +7,7 @@
     "inlineSources": true,
     "removeComments": false,
     "preserveConstEnums": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "target": "es2017",

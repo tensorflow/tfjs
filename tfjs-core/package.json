@@ -37,12 +37,12 @@
     "test-snippets": "bazel test :test_snippets_test --test_output=streamed"
   },
   "dependencies": {
-    "@types/long": "^4.0.1",
+    "@types/long": "^5.0.0",
     "@types/offscreencanvas": "~2019.7.0",
     "@types/seedrandom": "^2.4.28",
     "@types/webgl-ext": "0.0.30",
     "@webgpu/types": "0.1.21",
-    "long": "4.0.0",
+    "long": "5.2.1",
     "node-fetch": "~2.6.1",
     "seedrandom": "^3.0.5"
   },
