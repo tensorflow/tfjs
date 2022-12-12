@@ -29,7 +29,12 @@ import {Optimizer} from './optimizer';
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'SGD';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'SGD';
+  }
   protected c: Scalar;
 
   constructor(protected learningRate: number) {
