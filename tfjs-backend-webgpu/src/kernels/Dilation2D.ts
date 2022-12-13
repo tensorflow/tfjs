@@ -19,7 +19,6 @@ import {backend_util, Dilation2D, Dilation2DAttrs, Dilation2DInputs, KernelConfi
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Dilation2DProgram} from '../dilation_webgpu';
-import {reshape} from './Reshape';
 
 export function dilation2D(args: {
   inputs: Dilation2DInputs,
@@ -44,13 +43,9 @@ export function dilation2D(args: {
 
   const program = new Dilation2DProgram(convInfo);
   const out =
-      backend.runWebGPUProgram(program, [x, filter], 'float32', uniformData);
+      backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
 
-  const outReshaped =
-      reshape({inputs: {x: out}, backend, attrs: {shape: convInfo.outShape}});
-  backend.disposeData(out.dataId);
-
-  return outReshaped;
+  return out;
 }
 
 export const dilation2DConfig: KernelConfig = {
