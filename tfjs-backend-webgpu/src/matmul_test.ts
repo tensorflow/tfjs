@@ -1192,7 +1192,7 @@ function matmulTest(programType: MatMulProgramType) {
       expectArraysClose(await c.data(), [0, 8, -3, 20]);
     });
 
-    it('[8,4]x[4,8]', async () => {
+    it('A x B with M/N/K divisible by 4. [8,4]x[4,8]', async () => {
       const a = tf.tensor2d(
           [
             1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
