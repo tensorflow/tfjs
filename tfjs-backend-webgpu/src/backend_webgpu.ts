@@ -434,11 +434,28 @@ export class WebGPUBackend extends KernelBackend {
     } else {
       const bufferInfo = tensorData.resourceInfo as BufferInfo;
       const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
-      vals = util.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
+      vals = this.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
     }
     this.convertAndCacheOnCPU(dataId, vals);
     return vals;
   }
+  convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  const f32TypedArray = new Float32Array(data);
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : f32TypedArray;
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : Int32Array.from(f32TypedArray);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(f32TypedArray);
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
 
   // The source GPUBuffer and destination GPUBuffer have the same size and
   // usage.
