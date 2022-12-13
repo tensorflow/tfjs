@@ -44,15 +44,9 @@ export class ClipVec4Program implements WebGPUProgram {
       ${main('index')} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
-          var clampedValue : vec4<f32>;
-          for (var i = 0; i < 4; i = i + 1) {
-            if (isnan(value[i])) {
-              clampedValue[i] = value[i];
-            } else {
-              clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
-            }
-          }
-
+          var clampedValue = clamp(
+              value, vec4<f32>(uniforms.minVal), vec4<f32>(uniforms.maxVal));
+          clampedValue = select(clampedValue, value, isnanVec4(value));
           setOutputAtIndex(index, clampedValue);
         }
       }
