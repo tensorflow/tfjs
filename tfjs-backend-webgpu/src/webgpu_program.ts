@@ -366,7 +366,8 @@ const commonSnippet = `
     return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
   fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+    let floatToUint: vec4<u32> = bitcast<vec4<u32>>(val);
+    return (floatToUint & vec4<u32>(0x7fffffffu)) > vec4<u32>(0x7f800000u);
   }
 `;
 
