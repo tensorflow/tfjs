@@ -88,6 +88,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'dilation2d ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'elu ',
     excludes: [
       'derivative',  // gradient function not found.
@@ -247,10 +253,7 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
-      'decodeWeights ',
       'diag ',
-      'dilation2d ',
-      'encodeWeights ',
       'localResponseNormalization ',
       'maxPool3d ',
       'maxPool3dBackprop ',
