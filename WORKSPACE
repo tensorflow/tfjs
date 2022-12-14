@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "a2609fd97580e4e332acbf49b6cc363714982f06cb6970d54c9789df8e91381c",
-    strip_prefix = "emsdk-3.1.23/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.23.tar.gz"],
+    sha256 = "b8270749b99d8d14922d1831b93781a5560fba6f7bce65cd477fc1b6aa262535",
+    strip_prefix = "emsdk-3.1.28/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.28.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -114,6 +114,10 @@ emsdk_deps()
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 
 emsdk_emscripten_deps()
+
+load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
+
+register_emscripten_toolchains()
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
