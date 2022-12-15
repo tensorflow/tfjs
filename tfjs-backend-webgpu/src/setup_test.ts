@@ -243,7 +243,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
-      'maxPoolWithArgmax ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
