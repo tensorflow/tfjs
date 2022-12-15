@@ -46,18 +46,7 @@ const CHECK_NAN_SNIPPET = `
   `;
 
 const CHECK_NAN_SNIPPET_VEC4_INNER = `
-  if (isNaN.r) {
-    resultTemp.r = valueForNaN;
-  }
-  if (isNaN.g) {
-    resultTemp.g = valueForNaN;
-  }
-  if (isNaN.b) {
-    resultTemp.b = valueForNaN;
-  }
-  if (isNaN.a) {
-    resultTemp.a = valueForNaN;
-  }
+  resultTemp = select(resultTemp, vec4<f32>(valueForNaN), isNaN);
   `;
 
 const CHECK_NAN_SNIPPET_VEC4 = `
