@@ -372,8 +372,7 @@ function setupHelpMessage() {
   parser.add_argument('--date', {
     help: 'set the date for selecting models and this works only if period ' +
       'is set. The value could be 1~31. If it is not set, the date would be ' +
-      'the date at runtime) ' +
-      'or ',
+      'the date at runtime).',
     type: 'int',
     action: 'store'
   });
