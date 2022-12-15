@@ -371,10 +371,10 @@ function setupHelpMessage() {
   });
   parser.add_argument('--date', {
     help: 'set the date for selecting models and this works only if period ' +
-      'is set. The value could be -1 (the day will the date at the runtime) ' +
-      'or 1~31.',
+      'is set. The value could be 1~31. If it is not set, the date would be ' +
+      'the date at runtime) ' +
+      'or ',
     type: 'int',
-    default: -1,
     action: 'store'
   });
   parser.add_argument('--maxBenchmarks', {
@@ -423,18 +423,15 @@ function setupHelpMessage() {
  *
  * @param models The models to schedule.
  * @param period The period to run all models.
- * @param date The value could be -1 or 1~31, and it determines the models to
- *    benchmark. If value is -1, the date will be the date at the runtime.
+ * @param date The value could be 1~31, and it determines the models to
+ *    benchmark. By default, the date would be the date at runtime.
  */
-function scheduleModels(models, period, date) {
+function scheduleModels(models, period, date = new Date().getDate()) {
   if (period < 1 || period > 31) {
     throw new Error('--period must be an integer of 1~31.');
   }
-  if (date === -1) {
-    const date = new Date();
-    date = date.getDate();
-  } else if (date <= 0 || date > 31) {
-    throw new Error('--date must be an integer of -1 or 1~31.');
+  if (date <= 0 || date > 31) {
+    throw new Error('--date must be an integer of 1~31.');
   }
   date = (date - 1) % period;
   const bucketSize = Math.ceil(models.length / period);

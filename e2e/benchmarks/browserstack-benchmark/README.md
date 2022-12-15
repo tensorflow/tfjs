@@ -107,9 +107,9 @@ The following are supported options arguments which trigger options features:
     node app.js --period=15
     ```
   * --date
-    - Set the date for selecting models and this works only if `--period` is set. The value could be -1 (the day will the date at the runtime) or 1~31.
+    - Set the date for selecting models and this works only if `--period` is set. The value could be 1~31. If it is not declared, the date will the real date at runtime.
     ``` shell
-    node app.js --period=15 --date=-1
+    node app.js --period=15 --date=1
     ```
   * --maxBenchmarks
     - Sets maximum for number of benchmarks run in parallel. Expects a positive integer.

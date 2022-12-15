@@ -367,12 +367,27 @@ describe('schedule models', () => {
     );
   });
 
-
-  it('scheduling models works for half-month', () => {
+  fit('scheduling models works for half-month', () => {
     models = Array.from(Array(25).keys());
     const res = scheduleModels(models, 15, 6);
     expect(res).toEqual(
       [10, 11]
     );
+  });
+
+  fit('scheduling models works for default date', () => {
+    jasmine.clock().install();
+
+    const baseTime = new Date(2022, 12, 6);
+    jasmine.clock().mockDate(baseTime);
+    expect(new Date().getDate()).toEqual(6);
+
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15);
+    expect(res).toEqual(
+      [10, 11]
+    );
+
+    jasmine.clock().uninstall();
   });
 });
