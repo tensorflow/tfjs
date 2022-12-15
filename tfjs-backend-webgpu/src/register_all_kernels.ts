@@ -50,6 +50,7 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
@@ -85,6 +86,7 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {lrnConfig} from './kernels/LRN';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -185,6 +187,7 @@ const kernelConfigs: KernelConfig[] = [
   denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  dilation2DConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
@@ -220,6 +223,7 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  lrnConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
