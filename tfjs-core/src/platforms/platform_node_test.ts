@@ -125,4 +125,19 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
     expect(s.length).toBe(6);
     expect(s).toEqual('Здраво');
   });
+
+  it('isTypedArray returns false if not a typed array', () => {
+    const platform = new PlatformNode();
+    expect(platform.isTypedArray([1, 2, 3])).toBeFalse();
+  });
+
+  for (const typedArrayConstructor of [Float32Array, Int32Array, Uint8Array,
+      Uint8ClampedArray]) {
+    it(`isTypedArray returns true if it is a ${typedArrayConstructor.name}`,
+       () => {
+         const platform = new PlatformNode();
+         const array = new typedArrayConstructor([1,2,3]);
+         expect(platform.isTypedArray(array)).toBeTrue();
+       });
+  }
 });
