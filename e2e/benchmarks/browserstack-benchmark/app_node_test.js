@@ -342,28 +342,52 @@ describe('promise queue', () => {
 });
 
 
-describe('weekly schedule', () => {
-  it('scheduling models works for Sun', () => {
+describe('schedule models', () => {
+  it('scheduling models works for the first day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 0);
+    const res = scheduleModels(models, 7, 1);
     expect(res).toEqual(
       [0, 1, 2, 3]
     );
   });
 
-  it('scheduling models works', () => {
+  it('scheduling models works for weekly period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 3);
+    const res = scheduleModels(models, 7, 4);
     expect(res).toEqual(
       [12, 13, 14, 15]
     );
   });
 
-  it('scheduling models works for Sat', () => {
+  it('scheduling models works for the last day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 6);
+    const res = scheduleModels(models, 7, 7);
     expect(res).toEqual(
       [24]
     );
+  });
+
+  it('scheduling models works for half-month', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15, 6);
+    expect(res).toEqual(
+      [10, 11]
+    );
+  });
+
+  it('scheduling models works for default date', () => {
+    jasmine.clock().install();
+
+    const baseTime = new Date(2022, 12, 6);
+    jasmine.clock().mockDate(baseTime);
+    expect(new Date().getDate()).toEqual(6);
+
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15);
+    expect(res).toEqual(
+      [10, 11]
+    );
+
+    jasmine.clock().uninstall();
   });
 });
