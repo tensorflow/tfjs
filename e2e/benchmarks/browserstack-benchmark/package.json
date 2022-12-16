@@ -34,7 +34,7 @@
     "build-all-link-packages": "cd ../../../ && yarn && cd ./link-package && yarn build",
     "build-individual-link-package": "cd ../../../ && yarn && cd ./link-package && yarn build-deps-for",
     "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --cloud --maxBenchmarks=12 --firestore",
-    "run-cloud-benchmarks-weekly-cycle": "yarn run-cloud-benchmarks --weeklyCycleRun=-1"
+    "run-cloud-benchmarks-half-month-cycle": "yarn run-cloud-benchmarks --period=15 --date=-1"
   },
   "license": "Apache-2.0",
   "engines": {
