@@ -50,6 +50,7 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
@@ -187,6 +188,7 @@ const kernelConfigs: KernelConfig[] = [
   denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
   dilation2DConfig,
   einsumConfig,
   eluConfig,

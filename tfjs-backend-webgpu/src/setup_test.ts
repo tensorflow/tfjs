@@ -259,7 +259,6 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
-      'diag ',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
