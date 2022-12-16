@@ -45,13 +45,9 @@ const CHECK_NAN_SNIPPET = `
   if (isnan(b)) { return b; }
   `;
 
-const CHECK_NAN_SNIPPET_VEC4_INNER = `
-  resultTemp = select(resultTemp, vec4<f32>(valueForNaN), isNaN);
-  `;
-
 const CHECK_NAN_SNIPPET_VEC4 = `
   let isNaN = isnanVec4(a) | isnanVec4(b);
-  ${CHECK_NAN_SNIPPET_VEC4_INNER}
+  resultTemp = select(resultTemp, vec4<f32>(valueForNaN), isNaN);
   `;
 
 const ADD = 'return a + b;';
@@ -201,9 +197,7 @@ const POW_VEC4 = `
     resultTemp.a = 1.0;
   }
   let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
-  let valueForNaN = uniforms.NAN;
-  ${CHECK_NAN_SNIPPET_VEC4_INNER}
-  return resultTemp;
+  return select(resultTemp, vec4<f32>(uniforms.NAN), isNaN);
 `;
 
 const PRELU = `if (a < 0.0) { return b * a; }  return a;`;

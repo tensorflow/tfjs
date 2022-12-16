@@ -31,6 +31,7 @@ TEST_ENTRYPOINTS = [
     "setup_test.ts",
     "worker_test.ts",
     "worker_node_test.ts",
+    "platforms/platform_node_test.ts",
     "ops/from_pixels_worker_test.ts",
 ]
 
@@ -182,6 +183,26 @@ jasmine_node_test(
         "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
         "//tfjs-core:tf-core.min.js",
         "//tfjs-core:tf-core.min.js.map",
+    ],
+)
+
+ts_library(
+    name = "platform_node_test_lib",
+    srcs = [
+        "platforms/platform_node_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "@npm//@types/node",
+    ],
+)
+
+jasmine_node_test(
+    name = "platform_node_test",
+    deps = [
+        ":platform_node_test_lib",
     ],
 )
 
