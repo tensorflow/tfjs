@@ -172,7 +172,7 @@ function makeShader(
           `  return i32(globalId.x);` :
           `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
                 workgroupId.y * numWorkgroups.x + workgroupId.x) * ${
-              flatWorkgroupSize} +
+              flatWorkgroupSize}u +
                 localIndex);
         `}
       }

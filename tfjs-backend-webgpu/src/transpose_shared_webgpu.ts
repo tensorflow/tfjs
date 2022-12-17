@@ -47,7 +47,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
         () => `Must be a square tile, current tile shape is ${
             this.workgroupSize[0]} x ${this.workgroupSize[1]}`);
     const userCode = `
-      const tileSize = ${this.workgroupSize[0]};
+      let tileSize = ${this.workgroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workgroupSize[0] + 1}>, ${
         this.workgroupSize[0]}>;
       ${main()} {

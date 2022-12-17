@@ -80,8 +80,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         return value;
       }
 
-      const strideHeight = ${this.convInfo.strideHeight};
-      const strideWidth = ${this.convInfo.strideWidth};
+      let strideHeight = ${this.convInfo.strideHeight};
+      let strideWidth = ${this.convInfo.strideWidth};
       ${main()} {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];

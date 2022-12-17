@@ -97,20 +97,20 @@ export class ReduceProgram implements WebGPUProgram {
           return offset;
        }
        ${main('index')} {
-         let outputIndex = index / i32(workgroupSizeX);
+         let outputIndex = index / i32(${this.workgroupSize[0]}u);
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
+         let WorkPerThread = DIV_CEIL(u32(Length), ${this.workgroupSize[0]}u);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workgroupSizeX)) {
+             k = k + i32(${this.workgroupSize[0]})) {
            let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
          workgroupBarrier();
 
-         var reduceSize = min(u32(Length), workgroupSizeX);
+         var reduceSize = min(u32(Length), ${this.workgroupSize[0]}u);
          for (var currentSize = reduceSize / 2u; reduceSize > 1u;
              currentSize = reduceSize / 2u) {
            let interval = DIV_CEIL(reduceSize, 2u);

@@ -102,14 +102,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       ${sharedMemorySnippet}
 
       ${main('index')} {
-        let outputIndex = index / i32(workgroupSizeX);
+        let outputIndex = index / i32(${this.workgroupSize[0]}u);
         let reduceLength = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
         let outputCoords = getCoordsFromIndex(outputIndex);
         for (var k = i32(localId.x); k < reduceLength && outputIndex < uniforms.size;
-            k = k + i32(workgroupSizeX)) {
+            k = k + i32(${this.workgroupSize[0]}u)) {
           let candidate = getX(${splitOutputCoords()} k);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
@@ -120,7 +120,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[localId.x] = bestIndex;
         workgroupBarrier();
 
-        var reduceSize = min(u32(reduceLength), workgroupSizeX);
+        var reduceSize = min(u32(reduceLength), ${this.workgroupSize[0]}u);
         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);

@@ -168,10 +168,10 @@ export function makeMatMulPackedVec4Source(
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
       tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
-  const rowPerThread = ${workPerThread[1]};
-  const colPerThread = ${workPerThread[0]};
-  const innerElementSize = ${innerElementSize};
-  const tileInner = ${tileInner};
+  let rowPerThread = ${workPerThread[1]};
+  let colPerThread = ${workPerThread[0]};
+  let innerElementSize = ${innerElementSize};
+  let tileInner = ${tileInner};
 
   ${main()} {
     let localRow = i32(localId.y);
@@ -405,9 +405,9 @@ export function makeMatMulPackedSource(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    const rowPerThread = ${workPerThread[1]};
-    const colPerThread = ${workPerThread[0]};
-    const tileInner = ${tileInner};
+    let rowPerThread = ${workPerThread[1]};
+    let colPerThread = ${workPerThread[0]};
+    let tileInner = ${tileInner};
 
     ${main()} {
       let batch = ${splitK ? '0' : 'i32(globalId.z)'};
@@ -454,7 +454,7 @@ export function makeVectorMatrixProductSource(
       workgroupSize[1] === 1 && workgroupSize[2] === 1,
       () => `A linear work group size is required. But got ${workgroupSize}.`);
   return `
-    const tileSize = ${workgroupSize[0] * 4};
+    let tileSize = ${workgroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workgroupSize[0]}>;
 
     ${main()} {
