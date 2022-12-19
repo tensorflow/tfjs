@@ -41,10 +41,11 @@ import * as scatter_nd_util from './scatter_nd_util';
  *  - The order in which updates are applied is nondeterministic, so the output
  * will be nondeterministic if indices contains duplicates.
  * ```js
- * const tensor = tf.ones([8], 'int32');
+ * const shape = [8];
+ * const tensor = tf.ones(shape);
  * const indices = tf.tensor2d([4, 3, 1, 7], [4, 1], 'int32');
  * const updates = tf.tensor1d([9, 10, 11, 12]);
- * const shape = [8];
+ *
  * tf.tensorScatterUpdate(tensor, indices, updates).print();
  *    //[1, 11, 1, 10, 9, 1, 1, 12]
  * ```
