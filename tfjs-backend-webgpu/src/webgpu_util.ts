@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType} from '@tensorflow/tfjs-core';
+import {DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -159,6 +159,21 @@ export function isWebGPUSupported(): boolean {
           //@ts-ignore
           (typeof WorkerGlobalScope !== 'undefined')) &&
       !!navigator.gpu;
+}
+
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors ` +
+              'in the WebGPU backend.');
+    }
+  });
 }
 
 export enum MatMulProgramType {
