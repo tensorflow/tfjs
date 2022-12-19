@@ -96,6 +96,7 @@ import {lrnConfig} from './kernels/LRN';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
@@ -241,6 +242,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   minConfig,
