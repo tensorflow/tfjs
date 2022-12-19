@@ -42,4 +42,4 @@ function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: ReciprocalInputs = {x: $x};
   return ENGINE.runKernel(Reciprocal, inputs as unknown as NamedTensorMap);
 }
-export const reciprocal = op({reciprocal_});
+export const reciprocal = /* @__PURE__ */ op({reciprocal_});

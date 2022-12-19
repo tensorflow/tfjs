@@ -32,6 +32,7 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
@@ -50,6 +51,8 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
@@ -85,6 +88,7 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {lrnConfig} from './kernels/LRN';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -135,6 +139,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
@@ -166,6 +171,7 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
   bincountConfig,
@@ -184,6 +190,8 @@ const kernelConfigs: KernelConfig[] = [
   denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
+  dilation2DConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
@@ -219,6 +227,7 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  lrnConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -261,6 +270,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sinhConfig,
   sliceConfig,
+  stepConfig,
   stridedSliceConfig,
   stringNGramsConfig,
   softmaxConfig,

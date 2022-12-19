@@ -66,4 +66,4 @@ function frame_(
 
   return reshape(concat(output), [output.length, frameLength]);
 }
-export const frame = op({frame_});
+export const frame = /* @__PURE__ */ op({frame_});

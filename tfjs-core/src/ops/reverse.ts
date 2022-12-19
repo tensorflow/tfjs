@@ -68,4 +68,4 @@ function reverse_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const reverse = op({reverse_});
+export const reverse = /* @__PURE__ */ op({reverse_});

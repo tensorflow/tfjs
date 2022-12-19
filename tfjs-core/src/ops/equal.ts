@@ -53,4 +53,4 @@ function equal_<T extends Tensor>(
   return ENGINE.runKernel(Equal, inputs as unknown as NamedTensorMap);
 }
 
-export const equal = op({equal_});
+export const equal = /* @__PURE__ */ op({equal_});

@@ -44,4 +44,4 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Rsqrt, inputs as unknown as NamedTensorMap);
 }
-export const rsqrt = op({rsqrt_});
+export const rsqrt = /* @__PURE__ */ op({rsqrt_});

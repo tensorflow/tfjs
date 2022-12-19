@@ -41,4 +41,4 @@ function sign_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: SignInputs = {x: $x};
   return ENGINE.runKernel(Sign, inputs as unknown as NamedTensorMap);
 }
-export const sign = op({sign_});
+export const sign = /* @__PURE__ */ op({sign_});

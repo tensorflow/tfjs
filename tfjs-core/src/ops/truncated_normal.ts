@@ -59,4 +59,4 @@ function truncatedNormal_<R extends Rank>(
   return res.toTensor();
 }
 
-export const truncatedNormal = op({truncatedNormal_});
+export const truncatedNormal = /* @__PURE__ */ op({truncatedNormal_});

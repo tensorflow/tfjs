@@ -59,4 +59,4 @@ function broadcastArgs_<R extends Rank>(
   return ENGINE.runKernel(BroadcastArgs, inputs as unknown as NamedTensorMap);
 }
 
-export const broadcastArgs = op({ broadcastArgs_ });
+export const broadcastArgs = /* @__PURE__ */ op({ broadcastArgs_ });

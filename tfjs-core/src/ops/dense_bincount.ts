@@ -75,4 +75,4 @@ function denseBincount_<T extends Tensor1D|Tensor2D>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const denseBincount = op({denseBincount_});
+export const denseBincount = /* @__PURE__ */ op({denseBincount_});

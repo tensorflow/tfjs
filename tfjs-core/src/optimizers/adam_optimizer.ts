@@ -26,7 +26,7 @@ import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -34,7 +34,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adam';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adam';
+  }
   private accBeta1: Variable;
   private accBeta2: Variable;
 
@@ -177,4 +182,3 @@ export class AdamOptimizer extends Optimizer {
         config['epsilon']);
   }
 }
-registerClass(AdamOptimizer);

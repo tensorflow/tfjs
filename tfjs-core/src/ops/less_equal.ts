@@ -53,4 +53,4 @@ function lessEqual_<T extends Tensor>(
   return ENGINE.runKernel(LessEqual, inputs as unknown as NamedTensorMap);
 }
 
-export const lessEqual = op({lessEqual_});
+export const lessEqual = /* @__PURE__ */ op({lessEqual_});

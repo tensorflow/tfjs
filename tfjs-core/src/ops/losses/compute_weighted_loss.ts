@@ -81,4 +81,4 @@ function computeWeightedLoss_<T extends Tensor, O extends Tensor>(
 
   throw Error(`Unknown reduction: ${reduction}`);
 }
-export const computeWeightedLoss = op({computeWeightedLoss_});
+export const computeWeightedLoss = /* @__PURE__ */ op({computeWeightedLoss_});

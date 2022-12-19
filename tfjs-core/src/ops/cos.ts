@@ -43,4 +43,4 @@ function cos_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Cos, inputs as unknown as NamedTensorMap);
 }
-export const cos = op({cos_});
+export const cos = /* @__PURE__ */ op({cos_});

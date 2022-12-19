@@ -52,4 +52,4 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: ErfInputs = {x: $x};
   return ENGINE.runKernel(Erf, inputs as unknown as NamedTensorMap);
 }
-export const erf = op({erf_});
+export const erf = /* @__PURE__ */ op({erf_});

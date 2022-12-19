@@ -63,4 +63,4 @@ function scatterND_<R extends Rank>(
              attrs as unknown as NamedAttrMap) as Tensor<R>;
 }
 
-export const scatterND = op({scatterND_});
+export const scatterND = /* @__PURE__ */ op({scatterND_});

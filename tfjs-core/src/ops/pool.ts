@@ -164,4 +164,4 @@ function withSpaceToBatchBasePaddings(
   });
 }
 
-export const pool = op({pool_});
+export const pool = /* @__PURE__ */ op({pool_});

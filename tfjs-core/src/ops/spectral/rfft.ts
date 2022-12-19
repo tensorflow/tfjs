@@ -96,4 +96,4 @@ function rfft_(input: Tensor, fftLength?: number): Tensor {
       complex(realComplexConjugate[0], imagComplexConjugate[0]), outputShape);
 }
 
-export const rfft = op({rfft_});
+export const rfft = /* @__PURE__ */ op({rfft_});

@@ -66,4 +66,4 @@ function cumprod_<T extends Tensor>(
   );
 }
 
-export const cumprod = op({ cumprod_ });
+export const cumprod = /* @__PURE__ */ op({ cumprod_ });

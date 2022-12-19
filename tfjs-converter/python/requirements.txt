@@ -1,4 +1,4 @@
-flax>=0.5.3
+flax>=0.6.2,<0.6.3
 jax>=0.3.16
 importlib_resources>=5.9.0
 protobuf<3.20,>=3.9.2

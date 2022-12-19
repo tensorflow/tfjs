@@ -45,4 +45,4 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel(Relu, inputs as unknown as NamedTensorMap);
 }
 
-export const relu = op({relu_});
+export const relu = /* @__PURE__ */ op({relu_});

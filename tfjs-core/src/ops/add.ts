@@ -57,4 +57,4 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   return ENGINE.runKernel(Add, inputs as unknown as NamedTensorMap);
 }
 
-export const add = op({add_});
+export const add = /* @__PURE__ */ op({add_});

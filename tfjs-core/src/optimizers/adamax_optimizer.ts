@@ -25,7 +25,7 @@ import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -33,7 +33,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adamax';  // Note: Name matters for Python compatbility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adamax';
+  }
   private accBeta1: Variable;
   private iteration: Variable;
 
@@ -155,4 +160,3 @@ export class AdamaxOptimizer extends Optimizer {
         config['epsilon'], config['decay']);
   }
 }
-registerClass(AdamaxOptimizer);

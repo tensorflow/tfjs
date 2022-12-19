@@ -21,7 +21,7 @@ import {add} from '../ops/add';
 import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -32,7 +32,12 @@ import {SGDOptimizer} from './sgd_optimizer';
 export class MomentumOptimizer extends SGDOptimizer {
   /** @nocollapse */
   // Name matters for Python compatibility.
-  static override className = 'Momentum';
+  static override get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Momentum';
+  }
   private m: Scalar;
   private accumulations: OptimizerVariable[] = [];
 
@@ -126,4 +131,3 @@ export class MomentumOptimizer extends SGDOptimizer {
         config['learningRate'], config['momentum'], config['useNesterov']);
   }
 }
-registerClass(MomentumOptimizer);

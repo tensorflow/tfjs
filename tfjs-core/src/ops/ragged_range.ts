@@ -60,4 +60,4 @@ function raggedRange_(
   };
 }
 
-export const raggedRange = op({raggedRange_});
+export const raggedRange = /* @__PURE__ */ op({raggedRange_});

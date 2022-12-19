@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -165,55 +165,6 @@ export function assertNonNull(a: TensorLike): void {
   assert(
       a != null,
       () => `The input to the tensor constructor must be a non-null value.`);
-}
-
-// NOTE: We explicitly type out what T extends instead of any so that
-// util.flatten on a nested array of number doesn't try to infer T as a
-// number[][], causing us to explicitly type util.flatten<number>().
-/**
- *  Flattens an arbitrarily nested array.
- *
- * ```js
- * const a = [[1, 2], [3, 4], [5, [6, [7]]]];
- * const flat = tf.util.flatten(a);
- * console.log(flat);
- * ```
- *
- *  @param arr The nested array to flatten.
- *  @param result The destination array which holds the elements.
- *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
- *      to false.
- *
- * @doc {heading: 'Util', namespace: 'util'}
- */
-export function
-flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
-    arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
-  if (result == null) {
-    result = [];
-  }
-  if (typeof arr === 'boolean' || typeof arr === 'number' ||
-      typeof arr === 'string' || isPromise(arr) || arr == null ||
-      isTypedArray(arr) && skipTypedArray) {
-    result.push(arr as T);
-  } else if (Array.isArray(arr) || isTypedArray(arr)) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    let maxIndex = -1;
-    for (const key of Object.keys(arr)) {
-      // 0 or positive integer.
-      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
-        maxIndex = Math.max(maxIndex, Number(key));
-      }
-    }
-    for (let i = 0; i <= maxIndex; i++) {
-      // tslint:disable-next-line: no-unnecessary-type-assertion
-      flatten((arr as RecursiveArray<T>)[i], result, skipTypedArray);
-    }
-  }
-  return result;
 }
 
 /**
@@ -527,12 +478,6 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
-    Uint8ClampedArray {
-  return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
-}
-
 export function bytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32') {
     return 4;
@@ -659,6 +604,23 @@ export function toNestedArray(
   }
 
   return createNestedArray(0, shape, a, isComplex);
+}
+
+export function convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }
 
 export function makeOnesTypedArray<D extends DataType>(

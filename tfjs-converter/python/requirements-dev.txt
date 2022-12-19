@@ -1,3 +1,4 @@
 -r requirements.txt
 PyInquirer==1.0.3
 pylint==2.5.0; python_version > '3.0'
+setuptools==65.6.3

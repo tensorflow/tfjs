@@ -24,7 +24,7 @@ import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -32,7 +32,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class RMSPropOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'RMSProp';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'RMSProp';
+  }
   private centered: boolean;
 
   private accumulatedMeanSquares: OptimizerVariable[] = [];
@@ -207,4 +212,3 @@ export class RMSPropOptimizer extends Optimizer {
         config['epsilon'], config['centered']);
   }
 }
-registerClass(RMSPropOptimizer);
