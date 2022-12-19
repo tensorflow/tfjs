@@ -32,6 +32,7 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
@@ -170,6 +171,7 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
   bincountConfig,
