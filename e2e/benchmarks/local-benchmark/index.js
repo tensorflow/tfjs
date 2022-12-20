@@ -245,32 +245,20 @@ async function benchmarkAll() {
   const OUTPUT_HEIGHT = 256;
   const OUTPUT_WIDTH = 256;
 
+  tf.env().set('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', false);
+  tf.env().set('WEBGL2_TEX_RESHAPE_MAX_WIDTH', false);
+  tf.env().set('WEBGL2_TEX_RESHAPE_MAX_HEIGHT', true);
+
+  assert(tf.env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0, 'ext is unavailable!');
   tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', true);
 
-  console.log('Varying SHARED_DIM:');
-  let resData = [];
-  for (let index = 1; index <= 384; index += 1) {
-    const variable = index * 128;
-    const res = await benchmark(variable, OUTPUT_HEIGHT, OUTPUT_WIDTH, numRuns);
-    resData.push(`${variable}\t${res}`);
-  }
-  console.log(resData.join('\n'));
-
   console.log('Varying OUTPUT_HEIGHT:');
+  const maxTexSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  const bias = maxTexSize * 2 - 128 * 9;
   resData = [];
-  for (let index = 1; index <= 384; index += 1) {
-    const variable = index * 128;
+  for (let index = 0; index < 20; index += 1) {
+    const variable = index * 128 + bias;
     const res = await benchmark(SHARED_DIM, variable, OUTPUT_WIDTH, numRuns);
-    resData.push(`${variable}\t${res}`);
-  }
-  console.log(resData.join('\n'));
-
-  // Vary width
-  console.log('Varying OUTPUT_WIDTH:');
-  resData = [];
-  for (let index = 1; index <= 384; index += 1) {
-    const variable = index * 128;
-    const res = await benchmark(SHARED_DIM, OUTPUT_HEIGHT, variable, numRuns);
     resData.push(`${variable}\t${res}`);
   }
   console.log(resData.join('\n'));
