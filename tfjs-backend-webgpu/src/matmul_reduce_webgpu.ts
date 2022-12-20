@@ -22,9 +22,9 @@ import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
-export function makeMatMulReduceSource(): string {
+export function makeMatMulReduceSource(workgroupSizeX: number): string {
   return `
-    var<workgroup> sumValues : array<f32, 256u>;
+    var<workgroup> sumValues : array<f32, ${workgroupSizeX}u>;
     ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
@@ -34,7 +34,8 @@ export function makeMatMulReduceSource(): string {
       let col = coords[2];
       var sum = 0.0;
       let Length = uniforms.dimInner;
-      for (var k = i32(localId.x); k < Length; k = k + i32(256u)) {
+      for (var k = i32(localId.x); k < Length; k = k + i32(${
+      workgroupSizeX}u)) {
         let dataA = mm_readA(batchA, row, k);
         let dataB = mm_readB(batchB, k, col);
         sum = sum + dataA * dataB;
@@ -42,7 +43,7 @@ export function makeMatMulReduceSource(): string {
       sumValues[localId.x] = sum;
       workgroupBarrier();
 
-      for(var currentSize = 256u / 2u; currentSize > 1u;
+      for(var currentSize = ${workgroupSizeX}u / 2u; currentSize > 1u;
           currentSize = currentSize / 2u) {
         if (localId.x < currentSize)
         {
@@ -108,7 +109,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
       ${
         matMulReadWriteFnSource(
             this.addBias, this.activation, this.transposeA, this.transposeB)}
-      ${makeMatMulReduceSource()}
+      ${makeMatMulReduceSource(this.workgroupSize[0])}
     `;
     return userCode;
   }
