@@ -52,12 +52,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'conv2d ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'conv2dTranspose ',
     excludes: [
       'gradient',  // gradient function not found.
