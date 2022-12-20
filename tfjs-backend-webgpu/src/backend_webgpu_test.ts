@@ -353,6 +353,138 @@ describeWebGPU('keeping data on gpu ', () => {
   });
 });
 
+async function parallelCompilationCommon(webGPUBackend: WebGPUBackend) {
+  const startNumBytes = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+  const startTensor = tf.memory().numTensors;
+  const startDataBuckets = webGPUBackend.numDataIds();
+
+  const a1 = tf.tensor1d([1, 1, 1]);
+  const b1 = tf.tensor1d([1, 1, 1]);
+
+  // Parallel compile.
+  tf.env().set('ENGINE_COMPILE_ONLY', true);
+  const c1 = tf.add(a1, b1);
+  await webGPUBackend.checkCompileCompletionAsync();
+
+  // Actual inference.
+  tf.env().set('ENGINE_COMPILE_ONLY', false);
+  const c2 = tf.add(a1, b1);
+  expectArraysEqual(await c2.data(), [2, 2, 2]);
+
+  tf.dispose([a1, b1, c1, c2]);
+  const endNumBytes = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+  const endTensor = tf.memory().numTensors;
+  const endDataBuckets = webGPUBackend.numDataIds();
+
+  // We only check numBytesInGPU. For parallel compilation,
+  // numBytesInGPUAllocated will be more because of the two pass
+  // uploadToGPU, but they will all be freed, resulting in endNumbytes equal
+  // to startNumBytes.
+  expect(startNumBytes).toEqual(endNumBytes);
+  expect(startTensor).toEqual(endTensor);
+  expect(endDataBuckets).toEqual(startDataBuckets);
+}
+
+describeWebGPU('parallel compilation', () => {
+  let prevBackend: string;
+  let savedWebGPUCPUForward: boolean;
+  let savedEngineCompileOnly: boolean;
+  let webGPUBackend: WebGPUBackend;
+  const customWebGPUBackendName = 'test-parallel';
+
+  beforeAll(() => {
+    prevBackend = tf.getBackend();
+  });
+
+  beforeEach(async () => {
+    const adapter = await navigator.gpu.requestAdapter({});
+    const device = await adapter.requestDevice({});
+    webGPUBackend = new WebGPUBackend(device);
+
+    tf.copyRegisteredKernels('webgpu', customWebGPUBackendName);
+    tf.registerBackend(customWebGPUBackendName, () => webGPUBackend);
+    tf.setBackend('test-parallel');
+
+    savedWebGPUCPUForward = tf.env().get('WEBGPU_CPU_FORWARD') as boolean;
+    savedEngineCompileOnly = tf.env().get('ENGINE_COMPILE_ONLY') as boolean;
+    tf.env().set('WEBGPU_CPU_FORWARD', false);
+    await tf.ready();
+  });
+
+  afterEach(() => {
+    tf.env().set('WEBGPU_CPU_FORWARD', savedWebGPUCPUForward);
+    tf.env().set('ENGINE_COMPILE_ONLY', savedEngineCompileOnly);
+    tf.setBackend(prevBackend);
+    tf.removeBackend(customWebGPUBackendName);
+  });
+
+  it('should work if pipeline cache not exist.', async () => {
+    await parallelCompilationCommon(webGPUBackend);
+  });
+
+  it('should work if pipeline cache exists.', async () => {
+    // This will create pipeline cache.
+    const a0 = tf.tensor1d([1, 1, 1]);
+    const b0 = tf.tensor1d([1, 1, 1]);
+    const c0 = tf.add(a0, b0);
+    const data = await c0.data();
+    expectArraysClose(data, [2, 2, 2]);
+
+    await parallelCompilationCommon(webGPUBackend);
+  });
+
+  it('should work when running parallel compile again', async () => {
+    // This will create pipeline cache.
+    const a0 = tf.tensor1d([1, 1, 1]);
+    const b0 = tf.tensor1d([1, 1, 1]);
+    const c0 = tf.add(a0, b0);
+    const data = await c0.data();
+    expectArraysClose(data, [2, 2, 2]);
+
+    await parallelCompilationCommon(webGPUBackend);
+    await parallelCompilationCommon(webGPUBackend);
+  });
+
+  it('should not work if not call checkCompileCompletionAsync', async () => {
+    const a1 = tf.tensor1d([1, 1, 1]);
+    const b1 = tf.tensor1d([1, 1, 1]);
+
+    // Parallel compile but not call await (tf.backend() as
+    // WebGPUBackend).checkCompileCompletionAsync().
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    tf.add(a1, b1);
+
+    // Actual inference.
+    tf.env().set('ENGINE_COMPILE_ONLY', false);
+    expect(() => tf.add(a1, b1))
+        .toThrowError(
+            'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
+  });
+
+  it('read data is invalid if parallel compilation is true', async () => {
+    const a1 = tf.tensor1d([1, 1, 1]);
+    const b1 = tf.tensor1d([1, 1, 1]);
+
+    // Parallel compile.
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    const c1 = tf.add(a1, b1);
+    await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
+    // Read data is invalid.
+    expectArraysClose((await c1.data()).length, 0);
+  });
+
+  it('checkCompileCompletionAsync is nop if parallel compilation is false',
+     async () => {
+       const a1 = tf.tensor1d([1, 1, 1]);
+       const b1 = tf.tensor1d([1, 1, 1]);
+       // If parallel compilation is false, checkCompileCompletionAsync is nop.
+       tf.env().set('ENGINE_COMPILE_ONLY', false);
+       const c1 = tf.add(a1, b1);
+       await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
+       expectArraysClose(await c1.data(), [2, 2, 2]);
+     });
+});
+
 function createStagingGPUBufferFromData(
     device: GPUDevice, data: number[], dtype: tf.DataType) {
   const bytesPerElement = 4;
