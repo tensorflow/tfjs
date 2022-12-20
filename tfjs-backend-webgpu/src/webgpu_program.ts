@@ -48,6 +48,8 @@ export interface WebGPUProgram {
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
   workPerThread?: number;
+  pipeline?: GPUComputePipeline|Promise<GPUComputePipeline>;
+  bindGroup?: GPUBindGroup;
   getUserCode: () => string;
 }
 
@@ -63,6 +65,19 @@ export const compileProgram =
         label: program.constructor.name,
         layout: 'auto'
       });
+
+      return pipeline;
+    };
+
+export const compileProgramAsync =
+    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
+     output: TensorInfo): Promise<GPUComputePipeline> => {
+      const outputData = {dtype: output.dtype, shape: output.shape};
+
+      const source = makeShader(inputsData, outputData, program);
+      const module = device.createShaderModule({code: source});
+      const pipeline = device.createComputePipelineAsync(
+          {layout: 'auto', compute: {module, entryPoint: '_start'}});
 
       return pipeline;
     };
