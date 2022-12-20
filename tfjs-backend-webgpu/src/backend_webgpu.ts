@@ -45,6 +45,11 @@ export type TextureInfo = {
   texture: GPUTexture|GPUExternalTexture
 };
 
+type AsyncProgramInfo = {
+  program: webgpu_program.WebGPUProgram,
+  bindings: GPUBindingResource[]
+};
+
 type TensorData = {
   values: BackendValues,
   dtype: DataType,
@@ -129,7 +134,9 @@ export class WebGPUBackend extends KernelBackend {
   private dummyContext: GPUCanvasContext;
   private tensorDataPendingDisposal: DataId[] = [];
   private static nextDataId = 0;
-  private pipelineCache: {[key: string]: GPUComputePipeline};
+  private pipelineCache:
+      {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
+  private asyncProgramInfos: AsyncProgramInfo[] = [];
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
   private stagingPendingDisposal: BufferInfo[] = [];
@@ -355,8 +362,30 @@ export class WebGPUBackend extends KernelBackend {
     return this.currentComputePass;
   }
 
+  // Check if parallel compilation is done.
+  async checkCompileCompletion() {
+    if (env().getBool('ENGINE_COMPILE_ONLY') === false) {
+      throw new Error(
+          'This can only be called when ENGINE_COMPILE_ONLY is true');
+    }
+    const asyncProgramInfos = this.asyncProgramInfos;
+    this.asyncProgramInfos = [];
+    const pipelinesPromise =
+        asyncProgramInfos.map(item => item.program.pipeline);
+    const pipelines = await Promise.all(pipelinesPromise);
+    for (let i = 0; i < asyncProgramInfos.length; i++) {
+      const program = asyncProgramInfos[i].program;
+      const pipeline = pipelines[i];
+      this.pipelineCache[program.shaderKey] = pipeline;
+    }
+  }
+
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<ArrayBuffer> {
+    if (env().getBool('ENGINE_COMPILE_ONLY')) {
+      throw new Error(
+          'This can only be called when ENGINE_COMPILE_ONLY is false');
+    }
     const staging = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -807,17 +836,8 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
 
-    const key =
+    program.shaderKey =
         webgpu_program.makeShaderKey(program, bufferShapes, inputsData, output);
-
-    let pipeline;
-    if (key in this.pipelineCache) {
-      pipeline = this.pipelineCache[key];
-    } else {
-      pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
-      this.pipelineCache[key] = pipeline;
-    }
 
     if (programDefinedUniform) {
       programUniform = [...programUniform, ...programDefinedUniform];
@@ -827,49 +847,72 @@ export class WebGPUBackend extends KernelBackend {
       this.makeUniforms(programUniform)
     ];
 
-    const bindGroup = this.device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
-      entries: bindings.map((b, i) => ({binding: i, resource: b})),
-    });
-
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 0);
+
+    // Currently only support parallel compilation for non-profiling mode.
+    const parallelCompilation =
+        env().getBool('ENGINE_COMPILE_ONLY') && !shouldTimeProgram;
+    if (!(program.shaderKey in this.pipelineCache)) {
+      if (parallelCompilation) {
+        this.pipelineCache[program.shaderKey] =
+            webgpu_program.compileProgramAsync(
+                this.device, program, inputsData, output);
+      } else {
+        this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
+            this.device, program, inputsData, output);
       }
     }
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(
-        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 1);
-      }
-    }
-    this.dispatchNumberInEncoder++;
+    program.pipeline = this.pipelineCache[program.shaderKey];
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
+    if (!parallelCompilation) {
+      this.recordAndSubmit(program, bindings, shouldTimeProgram);
+      if (shouldTimeProgram) {
+        this.activeTimers.push({
+          name: program.constructor.name,
+          query: this.getQueryTime(this.querySet)
+        });
+      }
+    } else {
+      this.asyncProgramInfos.push({program, bindings});
+    }
+    return output;
+  }
+
+  private recordAndSubmit(
+      program: webgpu_program.WebGPUProgram, bindings: GPUBindingResource[],
+      shouldTimeProgram: boolean) {
+    program.bindGroup = this.device.createBindGroup({
+      layout: (program.pipeline as GPUComputePipeline).getBindGroupLayout(0),
+      entries: bindings.map((b, i) => ({binding: i, resource: b})),
+    });
+    this.ensureCommandEncoderReady();
+    const pass = this.getComputePass();
+
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      // tslint:disable-next-line:no-any
+      (pass as any).writeTimestamp(this.querySet, 0);
+    }
+
+    pass.setPipeline(program.pipeline as GPUComputePipeline);
+    pass.setBindGroup(0, program.bindGroup);
+    pass.dispatch(
+        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      // tslint:disable-next-line:no-any
+      (pass as any).writeTimestamp(this.querySet, 1);
+    }
+    this.dispatchNumberInEncoder++;
+
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
-
-    if (shouldTimeProgram) {
-      this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
-      });
-    }
-    return output;
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
