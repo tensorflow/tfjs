@@ -276,5 +276,6 @@ ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
 ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 
 
-ENV.registerFlag('WEBGL2_NEW_RESHAPING', () => true);
-
+ENV.registerFlag('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', () => true);
+ENV.registerFlag('WEBGL2_TEX_RESHAPE_MAX_WIDTH', () => true);
+ENV.registerFlag('WEBGL2_TEX_RESHAPE_MAX_HEIGHT', () => true);

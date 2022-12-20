@@ -450,7 +450,7 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      if (env().getBool('WEBGL2_NEW_RESHAPING')) {
+      if (env().getBool('WEBGL2_TEX_RESHAPE_MULTI_WIDTH')) {
         let width, height;
         if (cols < batchDim * rows) {
           width = cols / 2 * Math.ceil(batchDim * rows / maxTexSize);
@@ -468,6 +468,10 @@ export function getTextureShapeFromLogicalShape(
           // console.log(`-- Squarify shape from ${logShape} to
           // ${textureShape}!`);
         }
+      } else if (env().getBool('WEBGL2_TEX_RESHAPE_MAX_WIDTH')) {
+        textureShape = [Math.ceil(size / maxTexSize * 2) * 2, maxTexSize];
+      } else if (env().getBool('WEBGL2_TEX_RESHAPE_MAX_HEIGHT')) {
+        textureShape = [maxTexSize, Math.ceil(size / maxTexSize * 2) * 2];
       } else {
         textureShape =
             util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
