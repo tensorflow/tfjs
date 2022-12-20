@@ -82,3 +82,6 @@ ENV.registerFlag('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => 0);
  * Whether we will run im2col as a separate shader for convolution.
  */
 ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);

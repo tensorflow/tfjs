@@ -48,23 +48,31 @@ export interface WebGPUProgram {
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
   workPerThread?: number;
+  pipeline?: GPUComputePipeline|Promise<GPUComputePipeline>;
   getUserCode: () => string;
 }
 
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): GPUComputePipeline => {
+     output: TensorInfo, parallelCompilation: boolean): GPUComputePipeline|
+    Promise<GPUComputePipeline> => {
       const outputData = {dtype: output.dtype, shape: output.shape};
       const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
-      const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: '_start'},
-        label: program.constructor.name,
-        layout: 'auto'
-      });
-
-      return pipeline;
+      if (parallelCompilation) {
+        return device.createComputePipelineAsync({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      } else {
+        return device.createComputePipeline({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      }
     };
 
 export function getCoordsDataType(rank: number): string {
