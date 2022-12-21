@@ -55,6 +55,7 @@ run --incompatible_strict_action_env
 # Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
 # Remote builds are sandboxed.
 # TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
+common --enable_platform_specific_config
 build:linux --spawn_strategy=dynamic,remote,sandboxed,worker,local --internal_spawn_scheduler
 build:macos --spawn_strategy=remote,sandboxed,worker,local
 build:windows --spawn_strategy=remote,worker,local
@@ -70,7 +71,6 @@ test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
 # Platform specific DISPLAY environment variable for webgl and headless setting
 # for browser tests.
-test --enable_platform_specific_config
 test:linux --test_env=DISPLAY
 test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true --//:headless=false

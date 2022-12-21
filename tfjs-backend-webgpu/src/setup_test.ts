@@ -46,12 +46,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'batchToSpaceND ',
     excludes: [
       'gradient',  // Not yet implemented.
@@ -187,6 +181,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'poolBackprop ',
+    excludes: [
+      'max',  // maxPoolBackprop not yet implemented.
+    ]
+  },
+  {
     startsWith: 'prod ',
     excludes: [
       'gradients',  // Not yet implemented
@@ -264,7 +264,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
       'multinomial ',
-      'poolBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
