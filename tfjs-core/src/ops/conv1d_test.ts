@@ -149,8 +149,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
 
     expect(
-        () => tf.conv1d(
-            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        () =>
+            tf.conv1d(x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
         .toThrowError();
   });
 
@@ -169,8 +169,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
 
     expect(
-        () => tf.conv1d(
-            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        () =>
+            tf.conv1d(x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
         .toThrowError();
   });
 
@@ -203,7 +203,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
        const outputDepth = 1;
        const fSize = 1;
        const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
-          tf.backend_util.ExplicitPadding;
+           tf.backend_util.ExplicitPadding;
        const stride = 1;
        const dataFormat = 'NWC';
        const dilation = 1;
@@ -295,6 +295,42 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
 
     const x = tf.tensor3d([1, 2, 3, 4], inputShape);
     const w = tf.randomNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
+
+    expect(() => tf.conv1d(x, w, stride, pad, dataFormat, dilation))
+        .toThrowError();
+  });
+
+  it('throws when stride is less than or equal to 0', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad =
+        [[0, 0], [0, 0], [0, 0], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const stride = 0;
+    const dataFormat = 'NWC';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv1d(x, w, stride, pad, dataFormat, dilation))
+        .toThrowError();
+  });
+
+  it('throws when dilation is less than or equal to 0', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad =
+        [[0, 0], [0, 0], [0, 0], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const stride = 1;
+    const dataFormat = 'NWC';
+    const dilation = 0;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
 
     expect(() => tf.conv1d(x, w, stride, pad, dataFormat, dilation))
         .toThrowError();

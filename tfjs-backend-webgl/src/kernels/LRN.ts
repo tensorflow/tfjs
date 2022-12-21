@@ -38,5 +38,5 @@ export const lrn =
 export const LRNConfig: KernelConfig = {
   kernelName: LRN,
   backendName: 'webgl',
-  kernelFunc: lrn as {} as KernelFunc
+  kernelFunc: lrn as unknown as KernelFunc
 };

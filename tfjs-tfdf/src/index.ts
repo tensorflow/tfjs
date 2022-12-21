@@ -16,4 +16,5 @@
  */
 
 export * from './tfdf_model';
+export {setLocateFile} from './tfdf_web_api_client';
 import './register_tfdf_ops';

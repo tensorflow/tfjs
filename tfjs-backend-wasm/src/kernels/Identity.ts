@@ -38,5 +38,5 @@ export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
   backendName: 'wasm',
-  kernelFunc: identity as {} as KernelFunc,
+  kernelFunc: identity as unknown as KernelFunc,
 };

@@ -114,6 +114,6 @@ function removeOneSizeDims(
 export const transposeConfig: KernelConfig = {
   kernelName: Transpose,
   backendName: 'wasm',
-  kernelFunc: transpose as {} as KernelFunc,
+  kernelFunc: transpose as unknown as KernelFunc,
   setupFunc: setup,
 };

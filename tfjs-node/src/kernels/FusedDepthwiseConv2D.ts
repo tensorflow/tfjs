@@ -35,7 +35,7 @@ export const fusedDepthwiseConv2DConfig: KernelConfig = {
       dimRoundingMode,
       activation,
       leakyreluAlpha
-    } = args.attrs as {} as FusedDepthwiseConv2DAttrs;
+    } = args.attrs as unknown as FusedDepthwiseConv2DAttrs;
 
     let $dilations = dilations;
     if ($dilations == null) {

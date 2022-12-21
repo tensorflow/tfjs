@@ -281,7 +281,8 @@ function runBrowserStackBenchmark(tabId) {
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
-    execFile('yarn', args, { timeout: 300000 }, (error, stdout, stderr) => {
+
+    execFile('yarn', args, { timeout: 3e5 }, (error, stdout, stderr) => {
       if (error) {
         console.log(`\n${error}`);
         console.log(`stdout: ${stdout}`);
@@ -362,11 +363,17 @@ function setupHelpMessage() {
     help: 'runs GCP compatible version of benchmarking system',
     action: 'store_true'
   });
-  parser.add_argument('--weeklyCycleRun', {
+  parser.add_argument('--period', {
     help: 'runs a part of models specified in --benchmarks\'s file in a ' +
-      'weekly cycle and the part of models to run is determined by the day ' +
-      'of a week. The value could be -1 (the day will the day at the ' +
-      'runtime) or 0~6 (representing Sunday to Saturday).',
+      'cycle and the part of models to run is determined by the date ' +
+      'of a month. The value could be 1~31.',
+    type: 'int',
+    action: 'store'
+  });
+  parser.add_argument('--date', {
+    help: 'set the date for selecting models and this works only if period ' +
+      'is set. The value could be 1~31. If it is not set, the date would be ' +
+      'the date at runtime).',
     type: 'int',
     action: 'store'
   });
@@ -411,22 +418,24 @@ function setupHelpMessage() {
 
 /**
  * Get the models to benchmark for the day running the script. (All models are
- * spilted to 7 buckets, associated with the day of the week, and the function
- * returns a certain bucket.)
+ * spilted to n buckets and n === period, associated with the date of the month,
+ * and the function returns a certain bucket.)
  *
  * @param models The models to schedule.
- * @param day The value could be -1 or 0~6, and it determines the models to
- *    benchmark. If value is -1, the day will be the day at the runtime.
+ * @param period The period to run all models.
+ * @param date The value could be 1~31, and it determines the models to
+ *    benchmark. By default, the date would be the date at runtime.
  */
-function scheduleModels(models, day) {
-  if (day === -1) {
-    const date = new Date();
-    day = date.getDay();
-  } else if (day < 0 || day > 6) {
-    throw new Error('--weeklyCycleRun must be an integer of -1 or 0~6.');
+function scheduleModels(models, period, date = new Date().getDate()) {
+  if (period < 1 || period > 31) {
+    throw new Error('--period must be an integer of 1~31.');
   }
-  const bucketSize = Math.ceil(models.length / 7);
-  return models.slice(day * bucketSize, (day + 1) * bucketSize);
+  if (date <= 0 || date > 31) {
+    throw new Error('--date must be an integer of 1~31.');
+  }
+  date = (date - 1) % period;
+  const bucketSize = Math.ceil(models.length / period);
+  return models.slice(date * bucketSize, (date + 1) * bucketSize);
 }
 
 /**
@@ -438,8 +447,8 @@ function scheduleModels(models, day) {
 async function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
   const { benchmark, browsers } = file;
-  if (cliArgs?.weeklyCycleRun != null) {
-    benchmark.model = scheduleModels(benchmark.model, cliArgs.weeklyCycleRun);
+  if (cliArgs?.period != null) {
+    benchmark.model = scheduleModels(benchmark.model, cliArgs.period, cliArgs.date);
     console.log(
       `\nWill benchmark the following models: \n\t` +
       `${benchmark.model.join('\n\t')} \n`);

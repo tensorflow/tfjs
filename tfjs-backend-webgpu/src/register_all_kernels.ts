@@ -32,8 +32,10 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -46,14 +48,19 @@ import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
+import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -67,6 +74,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
@@ -74,9 +82,13 @@ import {isNaNConfig} from './kernels/IsNaN';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
+import {logicalOrConfig} from './kernels/LogicalOr';
+import {lrnConfig} from './kernels/LRN';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -90,6 +102,7 @@ import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
@@ -105,21 +118,28 @@ import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
@@ -151,8 +171,10 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -165,14 +187,19 @@ const kernelConfigs: KernelConfig[] = [
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
+  dilation2DConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   expm1Config,
+  fftConfig,
   fillConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
@@ -186,6 +213,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  ifftConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
@@ -193,9 +221,13 @@ const kernelConfigs: KernelConfig[] = [
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
+  log1pConfig,
   logConfig,
   logicalAndConfig,
   logicalNotConfig,
+  logicalOrConfig,
+  lrnConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -209,6 +241,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   onesLikeConfig,
   packConfig,
   padV2Config,
@@ -224,17 +257,24 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
+  roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
+  seluConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,
+  stepConfig,
   stridedSliceConfig,
   stringNGramsConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   splitVConfig,

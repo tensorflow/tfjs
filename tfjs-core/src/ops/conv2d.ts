@@ -94,6 +94,12 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(dilations),
+      () => 'Error in conv2D: Dilated rates should be larger than 0.');
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(strides),
+      () => 'Error in conv2D: Strides should be larger than 0.');
 
   const inputs: Conv2DInputs = {x: x4D, filter: $filter};
   const attrs:
@@ -101,8 +107,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Conv2D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  Conv2D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -110,4 +116,4 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2d = op({conv2d_});
+export const conv2d = /* @__PURE__ */ op({conv2d_});

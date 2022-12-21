@@ -83,7 +83,7 @@ if (os.platform() === 'win32') {
   destLibTensorFlowName += '.so';
   destLibTensorFlowFrameworkName += '.so';
 } else {
-  throw Exception('Unsupported platform: ' + os.platform());
+  throw new Error('Unsupported platform: ' + os.platform());
 }
 
 const depsPath = join(__dirname, '..', 'deps');
@@ -117,6 +117,6 @@ module.exports = {
   PLATFORM_MAPPING,
   PLATFORM_EXTENSION,
   ALL_SUPPORTED_COMBINATION,
-  customTFLibUri: customBinaries['tf-lib'],
-  customAddon: customBinaries['addon']
+  customTFLibUri : customBinaries['tf-lib'],
+  customAddon : customBinaries['addon']
 };

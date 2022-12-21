@@ -25,7 +25,7 @@ export const cumprodConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as CumprodInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis, exclusive, reverse} = args.attrs as {} as CumprodAttrs;
+    const {axis, exclusive, reverse} = args.attrs as unknown as CumprodAttrs;
 
     const axisTensor = scalar(axis, 'int32');
     const opAttrs = [

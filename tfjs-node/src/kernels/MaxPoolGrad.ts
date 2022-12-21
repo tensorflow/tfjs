@@ -26,7 +26,7 @@ export const maxPoolGradConfig: KernelConfig = {
     const {dy, input, output} = args.inputs as MaxPoolGradInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {filterSize, strides, pad, dimRoundingMode} =
-        args.attrs as {} as MaxPoolGradAttrs;
+        args.attrs as unknown as MaxPoolGradAttrs;
 
     const convInfo = backend_util.computePool2DInfo(
         input.shape as [number, number, number, number], filterSize, strides,

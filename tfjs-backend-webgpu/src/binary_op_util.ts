@@ -28,6 +28,7 @@ export enum BinaryOpType {
   LESS,
   LESS_EQUAL,
   LOGICAL_AND,
+  LOGICAL_OR,
   MAX,
   MIN,
   MOD,
@@ -44,24 +45,10 @@ const CHECK_NAN_SNIPPET = `
   if (isnan(b)) { return b; }
   `;
 
-const CHECK_NAN_SNIPPET_VEC4_INNER = `
-  if (isNaN.r) {
-    resultTemp.r = valueForNaN;
-  }
-  if (isNaN.g) {
-    resultTemp.g = valueForNaN;
-  }
-  if (isNaN.b) {
-    resultTemp.b = valueForNaN;
-  }
-  if (isNaN.a) {
-    resultTemp.a = valueForNaN;
-  }
-  `;
-
 const CHECK_NAN_SNIPPET_VEC4 = `
-  let isNaN = isnanVec4(a) | isnanVec4(b);
-  ${CHECK_NAN_SNIPPET_VEC4_INNER}
+  resultTemp = select(
+      resultTemp, vec4<f32>(valueForNaN),
+      vec4<bool>(isNaN) | isnanVec4(a) | isnanVec4(b));
   `;
 
 const ADD = 'return a + b;';
@@ -112,9 +99,12 @@ const LESS = 'return f32(a < b);';
 const LESS_VEC4 = 'return vec4<f32>(a < b);';
 const LESS_EQUAL = 'return f32(a <= b);';
 const LESS_EQUAL_VEC4 = 'return vec4<f32>(a <= b);';
-const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
+const LOGICAL_AND = 'return f32(a >= 1.0 && b >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
+const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
+const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
+  vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
 const MOD = `
   ${CHECK_NAN_SNIPPET}
   if (b == 0.) {
@@ -128,22 +118,10 @@ const MOD = `
   }
 `;
 const MOD_VEC4 = `
+  let isNaN = !vec4<bool>(b);
   let valueForNaN = uniforms.NAN;
   var resultTemp = vec4<f32>(a % b);
   ${CHECK_NAN_SNIPPET_VEC4}
-
-  if (b[0] == 0.) {
-    resultTemp[0] = uniforms.NAN;
-  }
-  if (b[1] == 0.) {
-    resultTemp[1] = uniforms.NAN;
-  }
-  if (b[2] == 0.) {
-    resultTemp[2] = uniforms.NAN;
-  }
-  if (b[3] == 0.) {
-    resultTemp[3] = uniforms.NAN;
-  }
 
   if (!((a[0] < 0. && b[0] < 0.) || (a[0] >= 0. && b[0] > 0.))) {
     resultTemp[0] = (resultTemp[0] + b[0]) % b[0];
@@ -209,7 +187,7 @@ const POW_VEC4 = `
   }
   let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
   let valueForNaN = uniforms.NAN;
-  ${CHECK_NAN_SNIPPET_VEC4_INNER}
+  ${CHECK_NAN_SNIPPET_VEC4}
   return resultTemp;
 `;
 
@@ -263,6 +241,8 @@ export function getBinaryOpString(
       return useVec4 ? LESS_EQUAL_VEC4 : LESS_EQUAL;
     case BinaryOpType.LOGICAL_AND:
       return useVec4 ? LOGICAL_AND_VEC4 : LOGICAL_AND;
+    case BinaryOpType.LOGICAL_OR:
+      return useVec4 ? LOGICAL_OR_VEC4 : LOGICAL_OR;
     case BinaryOpType.MAX:
       return getBinaryWithNanString('max', useVec4);
     case BinaryOpType.MIN:

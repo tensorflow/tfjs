@@ -1146,14 +1146,14 @@ export class ShuffleIterator<T> extends PrefetchIterator<T> {
   private upstreamExhausted = false;
 
   constructor(
-      protected upstream: LazyIterator<T>, protected windowSize: number,
+    protected override upstream: LazyIterator<T>, protected windowSize: number,
       seed?: string) {
     super(upstream, windowSize);
     this.random = seedrandom.alea(seed || tf.util.now().toString());
     this.lastRead = Promise.resolve({value: null, done: false});
   }
 
-  async next(): Promise<IteratorResult<T>> {
+  override async next(): Promise<IteratorResult<T>> {
     // This sets this.lastRead to a new Promise right away, as opposed to
     // saying `await this.lastRead; this.lastRead = this.serialNext();` which
     // would not work because this.nextRead would be updated only after the

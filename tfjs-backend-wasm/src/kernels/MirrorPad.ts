@@ -75,6 +75,6 @@ function mirrorPad(args: {
 export const mirrorPadConfig: KernelConfig = {
   kernelName: MirrorPad,
   backendName: 'wasm',
-  kernelFunc: mirrorPad as {} as KernelFunc,
+  kernelFunc: mirrorPad as unknown as KernelFunc,
   setupFunc: setup
 };

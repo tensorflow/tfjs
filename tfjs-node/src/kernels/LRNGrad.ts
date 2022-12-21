@@ -26,7 +26,8 @@ export const LRNGradConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x, y, dy} = args.inputs as LRNGradInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {depthRadius, bias, alpha, beta} = args.attrs as {} as LRNGradAttrs;
+    const {depthRadius, bias, alpha, beta} =
+        args.attrs as unknown as LRNGradAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', dy.dtype),

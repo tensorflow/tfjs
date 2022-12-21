@@ -71,5 +71,5 @@ export function softmax(args: {
 export const softmaxConfig: KernelConfig = {
   kernelName: Softmax,
   backendName: 'webgl',
-  kernelFunc: softmax as {} as KernelFunc
+  kernelFunc: softmax as unknown as KernelFunc
 };

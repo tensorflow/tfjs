@@ -218,7 +218,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   }
 
   // Override toArray() function to prevent collecting.
-  toArray(): Promise<Tensor3D[]> {
+  override toArray(): Promise<Tensor3D[]> {
     throw new Error('Can not convert infinite video stream to array.');
   }
 }

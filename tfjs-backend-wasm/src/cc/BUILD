@@ -323,6 +323,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IsNan",
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
@@ -343,6 +344,7 @@ tfjs_cc_library(
         ":Pow",
         ":Prelu",
         ":RealDiv",
+        ":Reciprocal",
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
@@ -1284,6 +1286,24 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Cosh",
     srcs = ["kernels/Cosh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Reciprocal",
+    srcs = ["kernels/Reciprocal.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsNan",
+    srcs = ["kernels/IsNan.cc"],
     deps = [
         ":backend",
         ":unary",

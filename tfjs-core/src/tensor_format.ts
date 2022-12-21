@@ -174,7 +174,7 @@ function subTensorToString(
     }
   }
   const sep = rank === 2 ? ',' : '';
-  lines[0] = '[' + lines[0] + sep;
+  lines[0] = '[' + (size > 0 ? lines[0] + sep : '');
   for (let i = 1; i < lines.length - 1; i++) {
     lines[i] = ' ' + lines[i] + sep;
   }

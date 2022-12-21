@@ -53,7 +53,8 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const attrs: CastAttrs = {dtype};
 
   return ENGINE.runKernel(
-      Cast, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Cast, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const cast = op({cast_});
+export const cast = /* @__PURE__ */ op({cast_});

@@ -70,10 +70,10 @@ function maxPoolWithArgmax_<T extends Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
-                     MaxPoolWithArgmax, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+                     MaxPoolWithArgmax, inputs as unknown as NamedTensorMap,
+                     attrs as unknown as NamedAttrMap) as Tensor[];
 
   return {result: result[0], indexes: result[1]};
 }
 
-export const maxPoolWithArgmax = op({maxPoolWithArgmax_});
+export const maxPoolWithArgmax = /* @__PURE__ */ op({maxPoolWithArgmax_});

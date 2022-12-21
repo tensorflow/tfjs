@@ -50,7 +50,7 @@ function greater_<T extends Tensor>(
 
   const inputs: GreaterInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Greater, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Greater, inputs as unknown as NamedTensorMap);
 }
 
-export const greater = op({greater_});
+export const greater = /* @__PURE__ */ op({greater_});

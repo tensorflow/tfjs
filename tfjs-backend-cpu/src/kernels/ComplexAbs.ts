@@ -41,5 +41,5 @@ export const complexAbs =
 export const complexAbsConfig: KernelConfig = {
   kernelName: ComplexAbs,
   backendName: 'cpu',
-  kernelFunc: complexAbs as {} as KernelFunc,
+  kernelFunc: complexAbs as unknown as KernelFunc,
 };

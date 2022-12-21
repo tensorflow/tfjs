@@ -39,5 +39,5 @@ export function searchSorted(args: {
 export const searchSortedConfig: KernelConfig = {
   kernelName: SearchSorted,
   backendName: 'webgl',
-  kernelFunc: searchSorted as {} as KernelFunc,
+  kernelFunc: searchSorted as unknown as KernelFunc,
 };

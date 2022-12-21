@@ -56,7 +56,7 @@ export interface BoundingBox {
  * src/types for more info.
  */
 export class ObjectDetector extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryObjectDetector) {
+  constructor(protected override instance: TaskLibraryObjectDetector) {
     super(instance);
   }
 

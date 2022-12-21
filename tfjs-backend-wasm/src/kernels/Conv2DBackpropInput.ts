@@ -124,5 +124,5 @@ export const conv2DBackpropInputConfig: KernelConfig = {
   kernelName: Conv2DBackpropInput,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: conv2DBackpropInput as {} as KernelFunc
+  kernelFunc: conv2DBackpropInput as unknown as KernelFunc
 };

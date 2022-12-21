@@ -21,16 +21,20 @@
     "clang-format": "~1.8.0"
   },
   "scripts": {
-    "prep": "yarn install && yarn build-ci",
     "build": "bazel build :tfjs-layers_pkg",
-    "build-ci": "yarn build",
-    "bundle": "yarn build",
-    "bundle-ci": "yarn bundle",
-    "build-npm": "bazel build :tfjs-layers_pkg",
     "format": "./tools/clang_format_ts.sh",
     "publish-npm": "bazel run :tfjs-layers_pkg.publish",
-    "test-dev": "bazel test :tests --test_output=streamed",
-    "test": "yarn test-dev",
+    "test": "bazel test :tests --test_output=all",
+    "test-dev": "ibazel test :tests --test_output=streamed",
+    "test-debug": "yarn test-webgl2-debug",
+    "test-browser": "yarn test-webgl2",
+    "test-browser-debug": "yarn test-webgl2-debug",
+    "test-webgl2": "bazel test :tfjs-layers_webgl2_test --test_output=streamed",
+    "test-webgl2-debug": "bazel run :tfjs-layers_webgl2_test --test_output=streamed",
+    "test-webgl2-dev": "ibazel test :tfjs-layers_webgl2_test --test_output=streamed",
+    "test-webgl1": "bazel test :tfjs-layers_webgl1_test --test_output=streamed",
+    "test-webgl1-debug": "bazel run :tfjs-layers_webgl1_test --test_output=streamed",
+    "test-webgl1-dev": "ibazel test :tfjs-layers_webgl1_test --test_output=streamed",
     "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-layers_webgl2_test"
   },
   "peerDependencies": {

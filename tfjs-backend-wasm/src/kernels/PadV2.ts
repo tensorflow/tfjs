@@ -80,6 +80,6 @@ function pad(
 export const padV2Config: KernelConfig = {
   kernelName: PadV2,
   backendName: 'wasm',
-  kernelFunc: pad as {} as KernelFunc,
+  kernelFunc: pad as unknown as KernelFunc,
   setupFunc: setup
 };

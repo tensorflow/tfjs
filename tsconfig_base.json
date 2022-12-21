@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "target": "es2017",
+    "lib": [
+      "es2019",
+      "dom"
+    ],
+    "outDir": "./dist",
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "noImplicitOverride": true,
+    "incremental": true
+  },
+  "include": [
+    "**/src/"
+  ],
+  "exclude": [
+    "bazel-out",
+    "dist",
+    "tfjs",
+    "tfjs-automl",
+    "tfjs-backend-nodegl",
+    "tfjs-backend-wasm",
+    "tfjs-backend-webgpu",
+    "tfjs-node",
+    "tfjs-node-gpu",
+    "tfjs-react-native",
+    "tfjs-vis",
+    "node_modules"
+  ]
+}

@@ -1,4 +1,5 @@
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -8,6 +9,23 @@ CONSOLE_SCRIPTS = {
     "tensorflowjs_converter": "tensorflowjs.converters.converter:pip_main",
     "tensorflowjs_wizard": "tensorflowjs.converters.wizard:pip_main",
 }
+
+compile_pip_requirements(
+    name = "tensorflowjs_deps_requirements",
+    extra_args = ["--allow-unsafe"],  # Allow pinning setuptools
+    requirements_in = "requirements.txt",
+    requirements_txt = "requirements_lock.txt",
+)
+
+compile_pip_requirements(
+    name = "tensorflowjs_dev_deps_requirements",
+    data = [
+        ":requirements.txt",
+    ],
+    extra_args = ["--allow-unsafe"],  # Allow pinning setuptools
+    requirements_in = "requirements-dev.txt",
+    requirements_txt = "requirements-dev_lock.txt",
+)
 
 py_package(
     name = "tensorflowjs_pkg",
@@ -48,7 +66,7 @@ py_wheel(
     license = "Apache 2.0",
     python_tag = "py3",
     requires = [
-        "flax>=0.5.3",
+        "flax>=0.6.2",
         "importlib_resources>=5.9.0",
         "jax>=0.3.16",
         "protobuf<3.20,>=3.9.2",

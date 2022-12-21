@@ -64,7 +64,7 @@ export function fusedDepthwiseConv2D(args: {
   ];
 
   let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program;
-  if (convInfo.inHeight > 4 && convInfo.inWidth > 4 &&
+  if (convInfo.outHeight > 4 && convInfo.outWidth > 4 &&
       convInfo.strideWidth <= 2 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
@@ -95,5 +95,5 @@ export function fusedDepthwiseConv2D(args: {
 export const fusedDepthwiseConv2DConfig: KernelConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: 'webgpu',
-  kernelFunc: fusedDepthwiseConv2D as {} as KernelFunc,
+  kernelFunc: fusedDepthwiseConv2D as unknown as KernelFunc,
 };

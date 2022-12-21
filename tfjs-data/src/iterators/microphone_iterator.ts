@@ -208,7 +208,7 @@ export class MicrophoneIterator extends LazyIterator<TensorContainer> {
   }
 
   // Override toArray() function to prevent collecting.
-  toArray(): Promise<Tensor[]> {
+  override toArray(): Promise<Tensor[]> {
     throw new Error('Can not convert infinite audio stream to array.');
   }
 

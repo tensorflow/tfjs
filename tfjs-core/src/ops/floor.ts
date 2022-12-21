@@ -39,6 +39,6 @@ function floor_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'floor', 'float32');
 
   const inputs: FloorInputs = {x: $x};
-  return ENGINE.runKernel(Floor, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Floor, inputs as unknown as NamedTensorMap);
 }
-export const floor = op({floor_});
+export const floor = /* @__PURE__ */ op({floor_});

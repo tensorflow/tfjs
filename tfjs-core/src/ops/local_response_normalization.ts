@@ -67,8 +67,8 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  LRN, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  LRN, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -77,4 +77,4 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
   }
 }
 
-export const localResponseNormalization = op({localResponseNormalization_});
+export const localResponseNormalization = /* @__PURE__ */ op({localResponseNormalization_});

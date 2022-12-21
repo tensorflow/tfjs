@@ -26,7 +26,7 @@ export const conv3DBackpropInputV2Config: KernelConfig = {
     const {dy, filter} = args.inputs as Conv3DBackpropInputV2Inputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, pad, inputShape} =
-        args.attrs as {} as Conv3DBackpropInputV2Attrs;
+        args.attrs as unknown as Conv3DBackpropInputV2Attrs;
 
     const dilations = 1;
 

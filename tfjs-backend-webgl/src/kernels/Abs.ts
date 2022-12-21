@@ -49,5 +49,5 @@ export function abs(args: {inputs: AbsInputs, backend: MathBackendWebGL}):
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'webgl',
-  kernelFunc: abs as {} as KernelFunc
+  kernelFunc: abs as unknown as KernelFunc
 };

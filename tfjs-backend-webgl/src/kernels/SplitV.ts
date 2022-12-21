@@ -48,5 +48,5 @@ export function splitV(
 export const splitVConfig: KernelConfig = {
   kernelName: SplitV,
   backendName: 'webgl',
-  kernelFunc: splitV as {} as KernelFunc
+  kernelFunc: splitV as unknown as KernelFunc
 };

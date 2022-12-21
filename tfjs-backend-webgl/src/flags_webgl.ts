@@ -275,6 +275,8 @@ ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
  */
 ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
 
 ENV.registerFlag('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', () => false);
 ENV.registerFlag('WEBGL2_TEX_RESHAPE_MAX_WIDTH', () => false);

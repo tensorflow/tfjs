@@ -40,5 +40,5 @@ export function depthwiseConv2dNativeBackpropFilter(args: {
 export const depthwiseConv2dNativeBackpropFilterConfig: KernelConfig = {
   kernelName: DepthwiseConv2dNativeBackpropFilter,
   backendName: 'webgl',
-  kernelFunc: depthwiseConv2dNativeBackpropFilter as {} as KernelFunc
+  kernelFunc: depthwiseConv2dNativeBackpropFilter as unknown as KernelFunc
 };

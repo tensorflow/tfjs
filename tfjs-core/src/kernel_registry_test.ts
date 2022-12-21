@@ -18,7 +18,8 @@
 import * as tf from './index';
 import {KernelBackend} from './index';
 import {ALL_ENVS, describeWithFlags, TestEnv} from './jasmine_util';
-import {KernelFunc, TensorInfo} from './kernel_registry';
+import { KernelFunc } from './kernel_registry';
+import { TensorInfo } from './tensor_info';
 import {expectArraysClose} from './test_util';
 
 describeWithFlags('kernel_registry', ALL_ENVS, (testEnv: TestEnv) => {
@@ -317,7 +318,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
     const z = (...x: tf.Tensor[]) =>
         // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel(
-            kernelName, x as {} as tf.NamedTensorMap, {} /* attrs */) as
+            kernelName, x as unknown as tf.NamedTensorMap, {} /* attrs */) as
         tf.Tensor;
     const gradFunc = tf.grads(z);
     const dx = gradFunc(x);

@@ -51,5 +51,5 @@ export function nonMaxSuppressionV4(args: {
 export const nonMaxSuppressionV4Config: KernelConfig = {
   kernelName: NonMaxSuppressionV4,
   backendName: 'webgl',
-  kernelFunc: nonMaxSuppressionV4 as {} as KernelFunc
+  kernelFunc: nonMaxSuppressionV4 as unknown as KernelFunc
 };

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-const {initializeApp, deleteApp, applicationDefault, cert} = require('firebase-admin/app');
-const {getFirestore, Timestamp, FieldValue} = require('firebase-admin/firestore');
+const { initializeApp, deleteApp, applicationDefault, cert } = require('firebase-admin/app');
+const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
 
 let app;
 /**
@@ -62,8 +62,8 @@ async function endFirebaseInstance() {
 async function addResultToFirestore(db, resultId, result) {
   try {
     const firestoreMap =
-        formatForFirestore(result, serializeTensors, getReadableDate);
-    await db.add({result: firestoreMap}).then((ref) => {
+      formatForFirestore(result, makeCompatableWithFirestore, getReadableDate);
+    await db.add({ result: firestoreMap }).then((ref) => {
       console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
     });
   } catch (err) {
@@ -78,7 +78,8 @@ async function addResultToFirestore(db, resultId, result) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-    result, makeCompatable = serializeTensors, getDate = getReadableDate) {
+  result, makeCompatable = makeCompatableWithFirestore,
+  getDate = getReadableDate) {
   let firestoreMap = {};
   firestoreMap.benchmarkInfo = makeCompatable(result);
   firestoreMap.date = getDate();
@@ -87,9 +88,41 @@ function formatForFirestore(
 }
 
 /**
- *Benchmark results contain tensors that are represented as nested arrays.
- *Nested arrays are not supported on Firestore, so they are serialized
- *before they are stored.
+ * This function makes the result object returned from benchmark app aligned
+ * with target firestore collection's schema.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
+function makeCompatableWithFirestore(result) {
+  addGpuInfo(result);
+  serializeTensors(result);
+  return result;
+}
+
+/**
+ * Append GPU info to device name.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
+function addGpuInfo(result) {
+  const gpuInfo = result.gpuInfo;
+  delete result.gpuInfo;
+  if (gpuInfo == null || gpuInfo === 'MISS') {
+    return;
+  }
+
+  if (result.deviceInfo.device == null) {
+    result.deviceInfo.device = `(GPU: ${gpuInfo})`;
+  } else {
+    result.deviceInfo.device = `${result.deviceInfo.device} (GPU: ${gpuInfo})`;
+  }
+  return result;
+}
+
+/**
+ * Benchmark results contain tensors that are represented as nested arrays.
+ * Nested arrays are not supported on Firestore, so they are serialized
+ * before they are stored.
  *
  * @param result Individual result in a list of fulfilled promises
  */
@@ -114,6 +147,8 @@ function getReadableDate() {
 }
 
 exports.addResultToFirestore = addResultToFirestore;
+exports.makeCompatableWithFirestore = makeCompatableWithFirestore;
+exports.addGpuInfo = addGpuInfo;
 exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;

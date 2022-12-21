@@ -24,7 +24,7 @@ export const dilation2dBackpropFilterConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter, dy} = inputs as Dilation2DBackpropFilterInputs;
-    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as unknown as Dilation2DAttrs;
     const {dilationHeight, dilationWidth, padInfo, strideHeight, strideWidth} =
         backend_util.computeDilation2DInfo(
             x.shape as [number, number, number, number],

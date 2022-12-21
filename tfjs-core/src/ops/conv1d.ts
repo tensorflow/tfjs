@@ -84,6 +84,12 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
       () => 'Error in conv1D: Either stride or dilation must be 1. ' +
           `Got stride ${stride} and dilation '${dilation}'`);
   util.assert(
+      conv_util.stridesOrDilationsArePositive(dilation),
+      () => 'Error in conv1D: Dilated rates should be larger than 0.');
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(stride),
+      () => 'Error in conv1D: Stride should be larger than 0.');
+  util.assert(
       dataFormat === 'NWC',
       () => `Error in conv1d: got dataFormat of ${
           dataFormat} but only NWC is currently supported.`);
@@ -107,4 +113,4 @@ function conv1d_<T extends Tensor2D|Tensor3D>(
   return reshape(res, [res.shape[0], res.shape[2], res.shape[3]]) as T;
 }
 
-export const conv1d = op({conv1d_});
+export const conv1d = /* @__PURE__ */ op({conv1d_});

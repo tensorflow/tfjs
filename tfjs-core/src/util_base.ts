@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray, WebGLData} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -167,41 +167,6 @@ export function assertNonNull(a: TensorLike): void {
       () => `The input to the tensor constructor must be a non-null value.`);
 }
 
-// NOTE: We explicitly type out what T extends instead of any so that
-// util.flatten on a nested array of number doesn't try to infer T as a
-// number[][], causing us to explicitly type util.flatten<number>().
-/**
- *  Flattens an arbitrarily nested array.
- *
- * ```js
- * const a = [[1, 2], [3, 4], [5, [6, [7]]]];
- * const flat = tf.util.flatten(a);
- * console.log(flat);
- * ```
- *
- *  @param arr The nested array to flatten.
- *  @param result The destination array which holds the elements.
- *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
- *      to false.
- *
- * @doc {heading: 'Util', namespace: 'util'}
- */
-export function
-flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
-    arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr as T);
-  }
-  return result;
-}
-
 /**
  * Returns the size (number of elements) of the tensor given its shape.
  *
@@ -304,8 +269,8 @@ export function rightPad(a: string, size: number): string {
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
     maxCounter?: number,
-    scheduleFn?: (functionRef: Function, delay: number) => void
-  ): Promise<void> {
+    scheduleFn?: (functionRef: Function, delay: number) =>
+        void): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -513,12 +478,6 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
-    Uint8ClampedArray {
-  return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
-}
-
 export function bytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32') {
     return 4;
@@ -559,7 +518,7 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike|WebGLData): DataType {
+export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
@@ -645,6 +604,23 @@ export function toNestedArray(
   }
 
   return createNestedArray(0, shape, a, isComplex);
+}
+
+export function convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }
 
 export function makeOnesTypedArray<D extends DataType>(

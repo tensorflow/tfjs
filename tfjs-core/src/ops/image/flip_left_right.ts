@@ -41,8 +41,8 @@ function flipLeftRight_(image: Tensor4D|TensorLike): Tensor4D {
 
   const inputs: FlipLeftRightInputs = {image: $image};
   const res =
-      ENGINE.runKernel(FlipLeftRight, inputs as {} as NamedTensorMap, {});
+      ENGINE.runKernel(FlipLeftRight, inputs as unknown as NamedTensorMap, {});
   return res as Tensor4D;
 }
 
-export const flipLeftRight = op({flipLeftRight_});
+export const flipLeftRight = /* @__PURE__ */ op({flipLeftRight_});

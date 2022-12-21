@@ -1605,6 +1605,30 @@ describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
         '    true');
   });
 
+  it('2D 0 shaped tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([0, 1]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 2\n' +
+        '  shape: [0,1]\n' +
+        '  values:\n' +
+        '     []');
+  });
+
+  it('3D 0 shaped tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([1, 0, 1]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 3\n' +
+        '  shape: [1,0,1]\n' +
+        '  values:\n' +
+        '     [ []]');
+  });
+
   it('1d tensor verbose', () => {
     const verbose = true;
     const str = tf.zeros([4]).toString(verbose);

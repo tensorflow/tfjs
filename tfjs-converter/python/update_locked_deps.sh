@@ -1,4 +1,5 @@
-# Copyright 2021 Google LLC. All Rights Reserved.
+#!/usr/bin/env bash
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +14,9 @@
 # limitations under the License.
 # =============================================================================
 
-package(default_visibility = ["//visibility:public"])
 
-sh_binary(
-    name = "download_tflite_web_api",
-    srcs = ["download-tflite-web-api.sh"],
-)
+# This script updates the pip requirements lock files that pin the installed
+# versions of pypi packages.
+
+bazel run //tfjs-converter/python:tensorflowjs_deps_requirements.update
+bazel run //tfjs-converter/python:tensorflowjs_dev_deps_requirements.update

@@ -71,7 +71,8 @@ function slice_<R extends Rank, T extends Tensor<R>>(
   const attrs: SliceAttrs = {begin, size};
 
   return ENGINE.runKernel(
-      Slice, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Slice, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const slice = op({slice_});
+export const slice = /* @__PURE__ */ op({slice_});

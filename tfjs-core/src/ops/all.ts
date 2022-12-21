@@ -62,7 +62,8 @@ function all_<T extends Tensor>(
   const attrs: AllAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      All, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      All, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const all = op({all_});
+export const all = /* @__PURE__ */ op({all_});

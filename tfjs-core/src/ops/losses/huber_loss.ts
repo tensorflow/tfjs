@@ -68,4 +68,4 @@ function huberLoss_<T extends Tensor, O extends Tensor>(
       add(mul(scalar(0.5), square(quadratic)), mul(deltaScalar, linear));
   return computeWeightedLoss(losses, $weights, reduction);
 }
-export const huberLoss = op({huberLoss_});
+export const huberLoss = /* @__PURE__ */ op({huberLoss_});

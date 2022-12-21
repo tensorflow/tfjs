@@ -123,4 +123,4 @@ function bandPart_<T extends Tensor>(
              shape) as T;
 }
 
-export const bandPart = op({bandPart_});
+export const bandPart = /* @__PURE__ */ op({bandPart_});

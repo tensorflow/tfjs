@@ -39,5 +39,5 @@ export function resizeBilinearGrad(args: {
 export const resizeBilinearGradConfig: KernelConfig = {
   kernelName: ResizeBilinearGrad,
   backendName: 'webgl',
-  kernelFunc: resizeBilinearGrad as {} as KernelFunc
+  kernelFunc: resizeBilinearGrad as unknown as KernelFunc
 };

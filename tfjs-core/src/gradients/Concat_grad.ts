@@ -25,7 +25,7 @@ export const concatGradConfig: GradConfig = {
   saveAllInputs: true,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const shapes = saved.map(t => t.shape);
-    const {axis} = attrs as {} as ConcatAttrs;
+    const {axis} = attrs as unknown as ConcatAttrs;
     const $axis = parseAxisParam(axis, saved[0].shape)[0];
     const sizeSplits = shapes.map(s => s[$axis]);
     const derTensors = split(dy, sizeSplits, $axis);

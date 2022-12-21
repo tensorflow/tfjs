@@ -89,7 +89,8 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   const attr: ConcatAttrs = {axis};
 
   return ENGINE.runKernel(
-      Concat, inputs as {} as NamedTensorMap, attr as {} as NamedAttrMap);
+      Concat, inputs as unknown as NamedTensorMap,
+      attr as unknown as NamedAttrMap);
 }
 
-export const concat = op({concat_});
+export const concat = /* @__PURE__ */ op({concat_});

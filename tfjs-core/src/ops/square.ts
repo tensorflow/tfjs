@@ -39,4 +39,4 @@ function square_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel('Square', {x: $x}, attrs);
 }
 
-export const square = op({square_});
+export const square = /* @__PURE__ */ op({square_});

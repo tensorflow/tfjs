@@ -56,7 +56,8 @@ function clipByValue_<T extends Tensor>(
   const attrs: ClipByValueAttrs = {clipValueMin, clipValueMax};
 
   return ENGINE.runKernel(
-      ClipByValue, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      ClipByValue, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const clipByValue = op({clipByValue_});
+export const clipByValue = /* @__PURE__ */ op({clipByValue_});

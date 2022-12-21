@@ -27,5 +27,5 @@ export const rsqrt =
 export const rsqrtConfig: KernelConfig = {
   kernelName: Rsqrt,
   backendName: 'webgl',
-  kernelFunc: rsqrt as {} as KernelFunc
+  kernelFunc: rsqrt as unknown as KernelFunc
 };

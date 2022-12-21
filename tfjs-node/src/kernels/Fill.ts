@@ -24,8 +24,8 @@ export const fillConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: (args) => {
     const backend = args.backend as NodeJSKernelBackend;
-    const {shape, value} = args.attrs as {} as FillAttrs;
-    let {dtype} = args.attrs as {} as FillAttrs;
+    const {shape, value} = args.attrs as unknown as FillAttrs;
+    let {dtype} = args.attrs as unknown as FillAttrs;
 
     // TODO(cais, nkreeger): Investigate whether backend can be made into
     // a dtype helper method. The underlying op kernel doesn't accept undefined

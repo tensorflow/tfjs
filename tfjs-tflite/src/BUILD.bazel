@@ -84,7 +84,7 @@ esbuild(
         ":tflite_web_api_client_js",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-tflite/wasm:wasm_files",
+        "//tfjs-tflite/wasm",
     ],
 )
 
@@ -110,7 +110,7 @@ tfjs_web_test(
         # absolute paths in iOS, which is required for loading the worker.
         # https://www.browserstack.com/question/39573
         # "bs_ios_12",
-        "bs_android_9",
+        "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [
@@ -121,7 +121,7 @@ tfjs_web_test(
         "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
         "//tfjs-tflite:tf-tflite.min.js",
         "//tfjs-tflite:tf-tflite.min.js.map",
-        "//tfjs-tflite/wasm:wasm_files",
+        "//tfjs-tflite/wasm",
         "//tfjs-tflite/test_files:add4.tflite",
     ],
     deps = [

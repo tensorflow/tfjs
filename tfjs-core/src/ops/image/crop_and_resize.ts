@@ -90,9 +90,9 @@ function cropAndResize_(
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};
   const attrs: CropAndResizeAttrs = {method, extrapolationValue, cropSize};
   const res = ENGINE.runKernel(
-      CropAndResize, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      CropAndResize, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
   return res as Tensor4D;
 }
 
-export const cropAndResize = op({cropAndResize_});
+export const cropAndResize = /* @__PURE__ */ op({cropAndResize_});
