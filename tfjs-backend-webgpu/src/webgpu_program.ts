@@ -124,7 +124,8 @@ export function getMainHeaderString(...params: string[]): string {
   return snippet;
 }
 
-export function getStartHeaderString(useGlobalIndex: boolean, program: WebGPUProgram): string {
+export function getStartHeaderString(
+    useGlobalIndex: boolean, program: WebGPUProgram): string {
   let snippet: string;
   snippet = `
      ${getWorkgroupSizeString(program)}
@@ -256,7 +257,7 @@ function makeShader(
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet , prefixSnippets.join('\n') + isInfSnippet,
+    commonSnippet, prefixSnippets.join('\n') + isInfSnippet,
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
