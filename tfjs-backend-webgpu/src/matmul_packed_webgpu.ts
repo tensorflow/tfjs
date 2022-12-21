@@ -118,7 +118,7 @@ const calculateResultSnippet =
             innerElementSize === 3 ? '' :
                                      `let ACached3 = mm_Asub[k * ${
                                          innerElementSize} + 3][localRow];`}
-        for (var i = 0; i < ${rowPerThread}; i = i + 1) {
+        for (var i = 0; i < ${rowPerThread}; i++) {
           acc[i] = BCached0 * ACached0[i] + acc[i];
           acc[i] = BCached1 * ACached1[i] + acc[i];
           acc[i] = BCached2 * ACached2[i] + acc[i];
@@ -129,7 +129,7 @@ const calculateResultSnippet =
         }`;
       } else {
         return `
-        for (var i = 0; i < ${rowPerThread}; i = i + 1) {
+        for (var i = 0; i < ${rowPerThread}; i++) {
           let ACached = mm_Asub[tileRow + i][k];
           acc[i] = BCached0 * ACached.x + acc[i];
           acc[i] = BCached1 * ACached.y + acc[i];
@@ -193,18 +193,16 @@ export function makeMatMulPackedVec4Source(
 
     // Loop over shared dimension.
     let tileRowB = localRow * ${rowPerThreadB};
-    for (var t = 0; t < numTiles; t = t + 1) {
+    for (var t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${
-      rowPerThread}; innerRow = innerRow + 1) {
+        for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
             let inputRow = tileRow + innerRow;
             let inputCol = tileCol;
             ${writeDataToSubAVec4Snippet(transposeA, innerElementSize)}
         }
 
         // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < ${
-      rowPerThreadB}; innerRow = innerRow + 1) {
+        for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow++) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol;
             mm_Bsub[inputRow][inputCol] = mm_readB(batchB, kStart + inputRow, globalCol);
@@ -213,7 +211,7 @@ export function makeMatMulPackedVec4Source(
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < ${tileInner / innerElementSize}; k = k + 1) {
+        for (var k = 0; k < ${tileInner / innerElementSize}; k++) {
             let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
             let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
             let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
@@ -229,8 +227,7 @@ export function makeMatMulPackedVec4Source(
         workgroupBarrier();
     }
 
-    for (var innerRow = 0; innerRow < ${
-      rowPerThread}; innerRow = innerRow + 1) {
+    for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
         mm_write(batch, globalRow + innerRow, globalCol, acc[innerRow]);
     }
   }`;
@@ -291,7 +288,7 @@ export function makeMatMulPackedSource(
       let globalColStart = i32(workgroupId.x) * ${tileBOuter};
 
       // Loop over shared dimension.
-      for (var t = 0; t < numTiles; t = t + 1) {
+      for (var t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
         for (var inputRow = localRow; inputRow < ${
           tileAHight}; inputRow = inputRow + ${workgroupSize[1]}) {
@@ -315,19 +312,17 @@ export function makeMatMulPackedSource(
 
         // Compute acc values for a single thread.
         var BCached : array<f32, ${colPerThread}>;
-        for (var k = 0; k < ${tileInner}; k = k + 1) {
-          for (var inner = 0; inner < ${colPerThread}; inner = inner + 1) {
+        for (var k = 0; k < ${tileInner}; k++) {
+          for (var inner = 0; inner < ${colPerThread}; inner++) {
             BCached[inner] = mm_Bsub[k][localCol + inner * ${
           workgroupSize[0]}];
           }
-          for (var innerRow = 0; innerRow < ${
-          rowPerThread}; innerRow = innerRow + 1) {
+          for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
             let ACached = ${
           transposeA ?
               `mm_Asub[k][localRow + innerRow * ${workgroupSize[1]}];` :
               `mm_Asub[localRow + innerRow * ${workgroupSize[1]}][k];`}
-            for (var innerCol = 0; innerCol < ${
-          colPerThread}; innerCol = innerCol + 1) {
+            for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
               acc[innerRow][innerCol] = acc[innerRow][innerCol] +
                   ACached * BCached[innerCol];
             }
@@ -335,11 +330,9 @@ export function makeMatMulPackedSource(
         }
         workgroupBarrier();
       }
-      for (var innerRow = 0; innerRow < ${
-          rowPerThread}; innerRow = innerRow + 1) {
+      for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
         let gRow = globalRowStart + localRow + innerRow * ${workgroupSize[1]};
-        for (var innerCol = 0; innerCol < ${
-          colPerThread}; innerCol = innerCol + 1) {
+        for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
           let gCol = globalColStart + localCol + innerCol * ${
           workgroupSize[0]};
           mm_write(batch, gRow, gCol, acc[innerRow][innerCol]);
@@ -358,12 +351,10 @@ export function makeMatMulPackedSource(
   let tileColA = i32(localId.x) * ${colPerThreadA};
   let tileRowB = i32(localId.y) * ${rowPerThreadB};
   // Loop over shared dimension.
-  for (var t = 0; t < numTiles; t = t + 1) {
+  for (var t = 0; t < numTiles; t++) {
     // Load one tile of A into local memory.
-    for (var innerRow = 0; innerRow < ${
-          rowPerThreadA}; innerRow = innerRow + 1) {
-      for (var innerCol = 0; innerCol < ${
-          colPerThreadA}; innerCol = innerCol + 1) {
+    for (var innerRow = 0; innerRow < ${rowPerThreadA}; innerRow++) {
+      for (var innerCol = 0; innerCol < ${colPerThreadA}; innerCol++) {
         let inputRow = tileRowA + innerRow;
         let inputCol = tileColA + innerCol;
         ${writeDataToSubASnippet(transposeA)}
@@ -371,10 +362,8 @@ export function makeMatMulPackedSource(
     }
 
     // Load one tile of B into local memory.
-    for (var innerRow = 0; innerRow < ${
-          rowPerThreadB}; innerRow = innerRow + 1) {
-      for (var innerCol = 0; innerCol < ${
-          colPerThread}; innerCol = innerCol + 1) {
+    for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow++) {
+      for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
         let inputRow = tileRowB + innerRow;
         let inputCol = tileCol + innerCol;
         mm_Bsub[inputRow][inputCol] = mm_readB(batchB,
@@ -387,16 +376,14 @@ export function makeMatMulPackedSource(
 
     // Compute acc values for a single thread.
     var BCached : array<f32, ${colPerThread}>;
-    for (var k = 0; k < ${tileInner}; k = k + 1) {
-      for (var inner = 0; inner < ${colPerThread}; inner = inner + 1) {
+    for (var k = 0; k < ${tileInner}; k++) {
+      for (var inner = 0; inner < ${colPerThread}; inner++) {
         BCached[inner] = mm_Bsub[k][tileCol + inner];
       }
 
-      for (var innerRow = 0; innerRow < ${
-          rowPerThread}; innerRow = innerRow + 1) {
+      for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
         ${readDataFromSubASnippet(transposeA)}
-        for (var innerCol = 0; innerCol < ${
-          colPerThread}; innerCol = innerCol + 1) {
+        for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
           acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
         }
       }
@@ -405,9 +392,8 @@ export function makeMatMulPackedSource(
     workgroupBarrier();
   }
 
-  for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow = innerRow + 1) {
-    for (var innerCol = 0; innerCol < ${
-          colPerThread}; innerCol = innerCol + 1) {
+  for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
+    for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
       mm_write(batch, globalRow + innerRow, globalCol + innerCol,
           acc[innerRow][innerCol]);
     }
@@ -432,10 +418,8 @@ export function makeMatMulPackedSource(
       var acc : array<array<f32, ${colPerThread}>, ${rowPerThread}>;
 
       // Without this initialization strange values show up in acc.
-      for (var innerRow = 0; innerRow < ${
-      rowPerThread}; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < ${
-      colPerThread}; innerCol = innerCol + 1) {
+      for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
+        for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
           acc[innerRow][innerCol] = 0.0;
         }
       }
@@ -481,14 +465,14 @@ export function makeVectorMatrixProductSource(
       var acc = 0.0;
 
       // Loop over shared dimension.
-      for (var t = 0; t < numTiles; t = t + 1) {
+      for (var t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
         let colA = t * ${tileSize} + tileCol * 4;
         mm_Asub[tileCol] = vec4<f32>(${readVectorASnippet(transposeA)});
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < ${tileSize / 4}; k = k + 1) {
+        for (var k = 0; k < ${tileSize / 4}; k++) {
           let rowB = t * ${tileSize} + k * 4;
           let BCached = vec4<f32>(mm_readB(batchB, rowB, globalCol),
                               mm_readB(batchB, rowB + 1, globalCol),
