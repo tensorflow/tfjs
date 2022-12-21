@@ -46,8 +46,9 @@ const CHECK_NAN_SNIPPET = `
   `;
 
 const CHECK_NAN_SNIPPET_VEC4 = `
-  let isNaN = isnanVec4(a) | isnanVec4(b);
-  resultTemp = select(resultTemp, vec4<f32>(valueForNaN), isNaN);
+  resultTemp = select(
+      resultTemp, vec4<f32>(valueForNaN),
+      vec4<bool>(isNaN) | isnanVec4(a) | isnanVec4(b));
   `;
 
 const ADD = 'return a + b;';
@@ -117,22 +118,10 @@ const MOD = `
   }
 `;
 const MOD_VEC4 = `
+  let isNaN = !vec4<bool>(b);
   let valueForNaN = uniforms.NAN;
   var resultTemp = vec4<f32>(a % b);
   ${CHECK_NAN_SNIPPET_VEC4}
-
-  if (b[0] == 0.) {
-    resultTemp[0] = uniforms.NAN;
-  }
-  if (b[1] == 0.) {
-    resultTemp[1] = uniforms.NAN;
-  }
-  if (b[2] == 0.) {
-    resultTemp[2] = uniforms.NAN;
-  }
-  if (b[3] == 0.) {
-    resultTemp[3] = uniforms.NAN;
-  }
 
   if (!((a[0] < 0. && b[0] < 0.) || (a[0] >= 0. && b[0] > 0.))) {
     resultTemp[0] = (resultTemp[0] + b[0]) % b[0];
@@ -197,7 +186,9 @@ const POW_VEC4 = `
     resultTemp.a = 1.0;
   }
   let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
-  return select(resultTemp, vec4<f32>(uniforms.NAN), isNaN);
+  let valueForNaN = uniforms.NAN;
+  ${CHECK_NAN_SNIPPET_VEC4}
+  return resultTemp;
 `;
 
 const PRELU = `if (a < 0.0) { return b * a; }  return a;`;
