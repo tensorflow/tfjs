@@ -82,13 +82,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'elu ',
-    excludes: [
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
