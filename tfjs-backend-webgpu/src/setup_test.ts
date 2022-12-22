@@ -129,12 +129,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'localResponseNormalization ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'matmul',
     excludes: [
       'has zero in its shape',  // Test times out.
