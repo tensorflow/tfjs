@@ -58,6 +58,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
@@ -201,6 +202,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2DConfig,
   einsumConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   erfConfig,
   expConfig,
