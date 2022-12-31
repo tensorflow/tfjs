@@ -56,6 +56,9 @@ export abstract class Optimizer extends Serializable {
    *
    * @doc {heading: 'Training', subheading: 'Optimizers'}
    */
+  minimize(f: () => Scalar): null
+  minimize(f: () => Scalar, returnCost: true, varList?: Variable[]): Scalar
+  minimize(f: () => Scalar, returnCost: false, varList?: Variable[]): null
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
     const {value, grads} = this.computeGradients(f, varList);
