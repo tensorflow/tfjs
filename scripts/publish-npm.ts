@@ -86,76 +86,80 @@ async function publish(pkg: string, registry: string, otp?: string,
   }
 
   const startDir = process.cwd();
-  shell.cd(pkg);
+  try {
+    // Use a try block so cwd can be restored in 'finally' if an error occurs.
+    shell.cd(pkg);
 
-  const res = publishable('./package.json');
-  if (res instanceof Error) {
-    throw res;
-  }
-
-  if (build && !BAZEL_PACKAGES.has(pkg)) {
-    console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
-    console.log(chalk.magenta('~~~ Installing packages ~~~'));
-    // Without a delay, this sometimes has issues downloading dependencies.
-    await delay(5_000);
-
-    // tfjs-node-gpu needs to get some files from tfjs-node.
-    if (pkg === 'tfjs-node-gpu') {
-      yarn('prep-gpu');
+    const res = publishable('./package.json');
+    if (res instanceof Error) {
+      throw res;
     }
 
-    // Yarn above the other checks to make sure yarn doesn't change the lock
-    // file.
-    console.log(run(`yarn --registry '${registry}'`));
-    console.log(chalk.magenta('~~~ Build npm ~~~'));
+    if (build && !BAZEL_PACKAGES.has(pkg)) {
+      console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
+      console.log(chalk.magenta('~~~ Installing packages ~~~'));
+      // Without a delay, this sometimes has issues downloading dependencies.
+      await delay(5_000);
 
-    if (pkg === 'tfjs-react-native') {
-      yarn('build-npm');
+      // tfjs-node-gpu needs to get some files from tfjs-node.
+      if (pkg === 'tfjs-node-gpu') {
+        yarn('prep-gpu');
+      }
+
+      // Yarn above the other checks to make sure yarn doesn't change the lock
+      // file.
+      console.log(run(`yarn --registry '${registry}'`));
+      console.log(chalk.magenta('~~~ Build npm ~~~'));
+
+      if (pkg === 'tfjs-react-native') {
+        yarn('build-npm');
+      } else {
+        yarn('build-npm for-publish');
+      }
+    }
+
+    // Used for nightly dev releases.
+    const version = getVersion('package.json');
+    const tag = getTagFromVersion(version);
+
+    let otpFlag = '';
+    if (otp) {
+      otpFlag = `--otp=${otp} `;
+    }
+
+    console.log(
+      chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
+        + `${tag} ~~~`));
+
+    let login = '';
+    if (registry === VERDACCIO_REGISTRY) {
+      // If publishing to verdaccio, we must log in before every command.
+      login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
+    }
+
+    if (BAZEL_PACKAGES.has(pkg)) {
+      let dashes = '-- --';
+      if (pkg === 'tfjs-backend-webgpu') {
+        // Special case for webgpu, which has an additional call to `yarn`
+        // in publish-npm.
+        dashes = '-- -- --';
+      }
+      run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`);
     } else {
-      yarn('build-npm for-publish');
+      if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
+        // Special case for tfjs-node(-gpu), which must upload the node addon
+        // to GCP as well. Only do this when publishing to NPM.
+        $('yarn build-and-upload-addon publish');
+      }
+
+      // Publish the package to the registry.
+      run(`${login}npm --registry '${registry}' publish ${otpFlag}`);
     }
+    console.log(`Yay! Published ${pkg} to ${registry}.`);
+
+  } finally {
+    shell.cd(startDir);
   }
-
-  // Used for nightly dev releases.
-  const version = getVersion('package.json');
-  const tag = getTagFromVersion(version);
-
-  let otpFlag = '';
-  if (otp) {
-    otpFlag = `--otp=${otp} `;
-  }
-
-  console.log(
-    chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
-                       + `${tag} ~~~`));
-
-  let login = '';
-  if (registry === VERDACCIO_REGISTRY) {
-    // If publishing to verdaccio, we must log in before every command.
-    login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
-  }
-
-  if (BAZEL_PACKAGES.has(pkg)) {
-    let dashes = '-- --';
-    if (pkg === 'tfjs-backend-webgpu') {
-      // Special case for webgpu, which has an additional call to `yarn`
-      // in publish-npm.
-      dashes = '-- -- --';
-    }
-    run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`);
-  } else {
-    if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
-      // Special case for tfjs-node(-gpu), which must upload the node addon
-      // to GCP as well. Only do this when publishing to NPM.
-      $('yarn build-and-upload-addon publish');
-    }
-
-    // Publish the package to the registry.
-    run(`${login}npm --registry '${registry}' publish ${otpFlag}`);
-  }
-  console.log(`Yay! Published ${pkg} to ${registry}.`);
-
-  shell.cd(startDir);
 }
 
 async function main() {
@@ -262,8 +266,27 @@ async function main() {
     }
     console.log(`Publishing packages to ${args.registry}`);
 
-    for (const pkg of packages) {
-      await publish(pkg, args.registry, otp, false)
+    const toPublish = [...packages];
+    while (toPublish.length > 0) {
+      let pkg = toPublish[0];
+      if (args.no_otp) {
+        await publish(pkg, args.registry, '', false);
+        toPublish.shift(); // Remove the published package from 'toPublish'.
+        continue;
+      }
+
+      try {
+        await publish(pkg, args.registry, otp, false)
+        toPublish.shift(); // Remove the published package from 'toPublish'.
+      } catch (err) {
+        if ((err as Error).message.includes('code EOTP')) {
+          // Try again with a new otp
+          otp = await question(`OTP ${otp} failed. Enter a new one-time `
+                               + `password from your authenticator: `);
+          continue; // Don't shift the package since it failed to publish.
+        }
+        throw err;
+      }
     }
 
     console.log(`Published packages to ${args.registry}`);
