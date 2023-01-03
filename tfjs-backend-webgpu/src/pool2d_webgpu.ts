@@ -33,7 +33,8 @@ export class Pool2DProgram implements WebGPUProgram {
   poolType: 'max'|'avg';
   size = true;
   computePositions: boolean;
-  positionStr = '';
+  flattenPositions: boolean;
+  includeBatchIndex: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg',
@@ -44,36 +45,36 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     this.outputShape = convInfo.outShape;
-    this.computePositions = computePositions;
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
-    if (computePositions) {
-      this.positionStr = flattenPositions ?
-          (includeBatchIndex ?
-               `((batch * uniforms.xShape[1] + xR) * uniforms.xShape[2] + xC) * uniforms.xShape[3] + d` :
-               `(xR * uniforms.xShape[2] + xC) * uniforms.xShape[3] + d`) :
-          `wR * uniforms.filterDims.y + wC`;
-    }
-
     this.poolType = poolType;
+    this.computePositions = computePositions;
+    this.flattenPositions = flattenPositions;
+    this.includeBatchIndex = includeBatchIndex;
     this.shaderKey = `pool2D_${poolType}_${computePositions}_${
         flattenPositions}_${includeBatchIndex}`;
   }
 
   getUserCode(): string {
-    let updateSnippet = this.computePositions ?
-        `let currMaxValue = mix(value, maxValue, maxValueFound);
-        if (value >= currMaxValue) {
-          maxValue = value;
-          maxValueFound = 1.0;
-          maxPosition = ${this.positionStr};
-        }` :
-        `resultValue = max(value, resultValue);`;
+    let updateSnippet: string;
     if (this.poolType === 'avg') {
       updateSnippet = `resultValue = resultValue + value; count = count + 1.0;`;
+    } else if (this.computePositions) {
+      const positionStr = this.flattenPositions ?
+          (this.includeBatchIndex ?
+               `((batch * uniforms.xShape[1] + xR) * uniforms.xShape[2] + xC) * uniforms.xShape[3] + d` :
+               `(xR * uniforms.xShape[2] + xC) * uniforms.xShape[3] + d`) :
+          `wR * uniforms.filterDims.y + wC`;
+      updateSnippet = `let currMaxValue = mix(value, maxValue, maxValueFound);
+      if (value >= currMaxValue) {
+        maxValue = value;
+        maxValueFound = 1.0;
+        maxPosition = ${positionStr};
+      }`;
+    } else {
+      updateSnippet = `resultValue = max(value, resultValue);`;
     }
 
     let returnValue = `resultValue`;
@@ -92,15 +93,14 @@ export class Pool2DProgram implements WebGPUProgram {
           let xCCorner = xRCCorner.y;
 
           ${
-        this.computePositions ? `var maxValue = 0.0;
+        this.computePositions ?
+            `var maxValue = 0.0;
             var maxValueFound = 0.0;
             var maxPosition = 0;` :
-                                ''}
+            `var resultValue = ${
+                this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};`}
 
-          var resultValue = ${
-        this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};
           var count = 0.0;
-
           for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + uniforms.dilation.x) {
             let xR = xRCorner + wR;
 
