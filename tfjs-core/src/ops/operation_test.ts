@@ -20,7 +20,7 @@ import {op} from './operation';
 describeWithFlags('operation', ALL_ENVS, () => {
   it('executes and preserves function name', () => {
     const f = () => 2;
-    const opfn = op({'opName': f});
+    const opfn = /* @__PURE__ */ op({'opName': f});
 
     expect(opfn.name).toBe('opName__op');
     expect(opfn()).toBe(2);
@@ -28,7 +28,7 @@ describeWithFlags('operation', ALL_ENVS, () => {
 
   it('executes, preserves function name, strips underscore', () => {
     const f = () => 2;
-    const opfn = op({'opName_': f});
+    const opfn = /* @__PURE__ */ op({'opName_': f});
 
     expect(opfn.name).toBe('opName__op');
     expect(opfn()).toBe(2);

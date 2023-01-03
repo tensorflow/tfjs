@@ -65,4 +65,4 @@ function oneHot_(
       attrs as unknown as NamedAttrMap);
 }
 
-export const oneHot = op({oneHot_});
+export const oneHot = /* @__PURE__ */ op({oneHot_});

@@ -57,4 +57,4 @@ function meanSquaredError_<T extends Tensor, O extends Tensor>(
   const losses = squaredDifference($labels, $predictions);
   return computeWeightedLoss(losses, $weights, reduction);
 }
-export const meanSquaredError = op({meanSquaredError_});
+export const meanSquaredError = /* @__PURE__ */ op({meanSquaredError_});

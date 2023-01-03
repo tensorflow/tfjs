@@ -3,7 +3,8 @@ const { benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile, scheduleM
   require('./app.js');
 const {
   addResultToFirestore,
-  serializeTensors,
+  makeCompatableWithFirestore,
+  addGpuInfo,
   getReadableDate,
   formatForFirestore,
   runFirestore,
@@ -237,10 +238,18 @@ describe('test adding to firestore', () => {
     db.add.and.returnValue(Promise.resolve({ id: 123 }));
     let expectedAdd = {
       result:
-        formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+        formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+          getReadableDate)
     };
     addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
+  });
+
+  it('Expects gpu info is appended to device info', () => {
+    addGpuInfo(mockResultValue);
+    expect(mockResultValue.deviceInfo.device).toEqual(
+      '(GPU: ANGLE (ATI Technologies Inc., AMD Radeon Pro 5300M OpenGL ' +
+      'Engine, OpenGL 4.1))');
   });
 
   it('Expects a date key to exist and have the correct value', () => {
@@ -251,7 +260,8 @@ describe('test adding to firestore', () => {
 
   it('Expects serialization to cover all nested arrays', () => {
     const mockSerializedResults =
-      formatForFirestore(mockResultValue, serializeTensors, mockDate);
+      formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+        mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');
@@ -332,28 +342,52 @@ describe('promise queue', () => {
 });
 
 
-describe('weekly schedule', () => {
-  it('scheduling models works for Sun', () => {
+describe('schedule models', () => {
+  it('scheduling models works for the first day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 0);
+    const res = scheduleModels(models, 7, 1);
     expect(res).toEqual(
       [0, 1, 2, 3]
     );
   });
 
-  it('scheduling models works', () => {
+  it('scheduling models works for weekly period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 3);
+    const res = scheduleModels(models, 7, 4);
     expect(res).toEqual(
       [12, 13, 14, 15]
     );
   });
 
-  it('scheduling models works for Sat', () => {
+  it('scheduling models works for the last day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 6);
+    const res = scheduleModels(models, 7, 7);
     expect(res).toEqual(
       [24]
     );
+  });
+
+  it('scheduling models works for half-month', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15, 6);
+    expect(res).toEqual(
+      [10, 11]
+    );
+  });
+
+  it('scheduling models works for default date', () => {
+    jasmine.clock().install();
+
+    const baseTime = new Date(2022, 12, 6);
+    jasmine.clock().mockDate(baseTime);
+    expect(new Date().getDate()).toEqual(6);
+
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15);
+    expect(res).toEqual(
+      [10, 11]
+    );
+
+    jasmine.clock().uninstall();
   });
 });

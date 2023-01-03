@@ -62,4 +62,4 @@ function stack_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const stack = op({stack_});
+export const stack = /* @__PURE__ */ op({stack_});

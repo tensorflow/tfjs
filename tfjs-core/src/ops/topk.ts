@@ -77,4 +77,4 @@ function topk_<T extends Tensor>(
   return {values, indices};
 }
 
-export const topk = op({topk_});
+export const topk = /* @__PURE__ */ op({topk_});

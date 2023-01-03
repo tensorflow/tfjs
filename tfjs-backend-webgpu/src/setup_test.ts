@@ -37,7 +37,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'abs ',
     excludes: [
       'complex64',  // Kernel 'ComplexAbs' not registered.
-      'gradient',   // Step kernel not yet implemented.
     ]
   },
   {
@@ -47,21 +46,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'batchToSpaceND ',
     excludes: [
       'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'conv2d ',
-    excludes: [
-      'gradient',  // gradient function not found.
     ]
   },
   {
@@ -86,6 +73,12 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'dilation2d ',
+    excludes: [
+      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -127,6 +120,12 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'throws when index is out of bound',
       'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'localResponseNormalization ',
+    excludes: [
+      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -173,6 +172,12 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'pool ',
     excludes: [
       'poolBackprop',  // maxPoolBackprop not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'poolBackprop ',
+    excludes: [
+      'max',  // maxPoolBackprop not yet implemented.
     ]
   },
   {
@@ -248,17 +253,11 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
-      'decodeWeights ',
-      'diag ',
-      'dilation2d ',
-      'encodeWeights ',
-      'localResponseNormalization ',
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
       'multinomial ',
-      'poolBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
@@ -267,8 +266,6 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseReshape ',
       'sparseSegmentMean ',
       'sparseSegmentSum ',
-      'step kernel',
-      'gradients: relu6',  // Step
       'stringSplit ',
       'stringToHashBucketFast ',
       'unique ',

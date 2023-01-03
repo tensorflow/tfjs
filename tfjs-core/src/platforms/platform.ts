@@ -48,4 +48,7 @@ export interface Platform {
   decode(bytes: Uint8Array, encoding: string): string;
 
   setTimeoutCustom?(functionRef: Function, delay: number): void;
+
+  isTypedArray(a: unknown): a is Float32Array|Int32Array|Uint8Array|
+    Uint8ClampedArray;
 }

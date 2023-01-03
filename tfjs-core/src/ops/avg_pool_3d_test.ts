@@ -29,6 +29,15 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [4.5]);
   });
 
+  it('x=[2,2,2,1] f=[1,2,2] s=1 p=valid', async () => {
+    const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
+
+    const result = tf.avgPool3d(x, [1, 2, 2], 1, 'valid');
+
+    expect(result.shape).toEqual([2, 1, 1, 1]);
+    expectArraysClose(await result.data(), [2.5, 6.5]);
+  });
+
   it('x=[1,1,1,1,1] f=[1,1,1] s=1 [0] => [0]', async () => {
     const x = tf.tensor5d([0], [1, 1, 1, 1, 1]);
 
@@ -147,6 +156,41 @@ describeWithFlags('avgPool3d', ALL_ENVS, () => {
     const result = tf.avgPool3d(x, 2, 1, 1, 'floor');
 
     expect(result.shape).toEqual([1, 3, 3, 3, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('x=[1,1,1,1,1] f=[1,1,3] s=1 p=valid', async () => {
+    // Output tensor would have a dimension of zero, if a certain filter's
+    // dimension is larger than the input's.
+    const x = tf.tensor5d([1], [1, 1, 1, 1, 1]);
+    const expected: number[] = [];
+    const result = tf.avgPool3d(x, [1, 1, 3], 1, 'valid');
+
+    expect(result.shape).toEqual([1, 1, 1, 0, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('x=[1,1,1,4,1] f=[1,1,1] s=[1,1,2] p=0', async () => {
+    // Works if the padding is a number.
+    const x = tf.ones([1, 1, 1, 4, 1]) as tf.Tensor5D;
+    const expected = [1, 1];
+    const result = tf.avgPool3d(x, [1, 1, 1], [1, 1, 2], 0);
+
+    expect(result.shape).toEqual([1, 1, 1, 2, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('x=[1,1,1,1,1] f=[2,2,2] s=1 p=2', async () => {
+    // Works if the padding is larger than filter size.
+    const x = tf.ones([1, 1, 1, 1, 1]) as tf.Tensor5D;
+    const expected = [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ];
+    const result = tf.avgPool3d(x, [2, 2, 2], 1, 2);
+
+    expect(result.shape).toEqual([1, 4, 4, 4, 1]);
     expectArraysClose(await result.data(), expected);
   });
 

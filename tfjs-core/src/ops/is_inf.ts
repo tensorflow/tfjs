@@ -43,4 +43,4 @@ function isInf_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(IsInf, inputs as unknown as NamedTensorMap);
 }
-export const isInf = op({isInf_});
+export const isInf = /* @__PURE__ */ op({isInf_});

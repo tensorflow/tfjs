@@ -53,4 +53,4 @@ function greaterEqual_<T extends Tensor>(
   return ENGINE.runKernel(GreaterEqual, inputs as unknown as NamedTensorMap);
 }
 
-export const greaterEqual = op({greaterEqual_});
+export const greaterEqual = /* @__PURE__ */ op({greaterEqual_});

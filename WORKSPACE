@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "a2609fd97580e4e332acbf49b6cc363714982f06cb6970d54c9789df8e91381c",
-    strip_prefix = "emsdk-3.1.23/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.23.tar.gz"],
+    sha256 = "b8270749b99d8d14922d1831b93781a5560fba6f7bce65cd477fc1b6aa262535",
+    strip_prefix = "emsdk-3.1.28/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.28.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -114,6 +114,10 @@ emsdk_deps()
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 
 emsdk_emscripten_deps()
+
+load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
+
+register_emscripten_toolchains()
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
@@ -211,33 +215,45 @@ http_archive(
 
 http_archive(
     name = "rules_python",
-    sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
-    strip_prefix = "rules_python-0.9.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
+# TODO(mattSoulanille): Change the docker so it doesn't run as root?
+# https://github.com/bazelbuild/rules_python/pull/713
+# https://github.com/GoogleCloudPlatform/cloud-builders/issues/641
 python_register_toolchains(
     name = "python3_8",
+    ignore_root_user_error = True,
     # Available versions are listed in @rules_python//python:versions.bzl.
     python_version = "3.8",
 )
 
 load("@python3_8//:defs.bzl", "interpreter")
-load("@rules_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip_install(
-    name = "tensorflowjs_dev_deps",
-    python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements-dev.txt",
-)
-
-pip_install(
+pip_parse(
     name = "tensorflowjs_deps",
     python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements.txt",
+    requirements_lock = "@//tfjs-converter/python:requirements_lock.txt",
 )
+
+load("@tensorflowjs_deps//:requirements.bzl", install_tfjs_deps = "install_deps")
+
+install_tfjs_deps()
+
+pip_parse(
+    name = "tensorflowjs_dev_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tfjs-converter/python:requirements-dev_lock.txt",
+)
+
+load("@tensorflowjs_dev_deps//:requirements.bzl", install_tfjs_dev_deps = "install_deps")
+
+install_tfjs_dev_deps()
 
 load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
 

@@ -79,6 +79,13 @@ export class PlatformNode implements Platform {
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
   }
+  isTypedArray(a: unknown): a is Float32Array | Int32Array | Uint8Array
+    | Uint8ClampedArray {
+    return this.util.types.isFloat32Array(a)
+      || this.util.types.isInt32Array(a)
+      || this.util.types.isUint8Array(a)
+      || this.util.types.isUint8ClampedArray(a);
+  }
 }
 
 if (env().get('IS_NODE') && !env().get('IS_BROWSER')) {

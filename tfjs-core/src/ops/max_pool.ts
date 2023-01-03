@@ -90,4 +90,4 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const maxPool = op({maxPool_});
+export const maxPool = /* @__PURE__ */ op({maxPool_});

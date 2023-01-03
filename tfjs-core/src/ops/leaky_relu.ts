@@ -53,4 +53,4 @@ function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const leakyRelu = op({leakyRelu_});
+export const leakyRelu = /* @__PURE__ */ op({leakyRelu_});

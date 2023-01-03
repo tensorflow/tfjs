@@ -43,4 +43,4 @@ function log1p_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: Log1pInputs = {x: $x};
   return ENGINE.runKernel(Log1p, inputs as unknown as NamedTensorMap);
 }
-export const log1p = op({log1p_});
+export const log1p = /* @__PURE__ */ op({log1p_});

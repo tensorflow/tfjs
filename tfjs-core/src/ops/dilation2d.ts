@@ -31,7 +31,7 @@ import {reshape} from './reshape';
  * Computes the grayscale dilation over the input `x`.
  *
  * @param x The input tensor, rank 3 or rank 4 of shape
- *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+ *     `[batch, height, width, depth]`. If rank 3, batch of 1 is assumed.
  * @param filter The filter tensor, rank 3, of shape
  *     `[filterHeight, filterWidth, depth]`.
  * @param strides The strides of the sliding window for each dimension of the
@@ -87,6 +87,11 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
     reshapedTo4D = true;
   }
 
+  util.assert(
+      x4D.shape[3] === $filter.shape[2],
+      () => `Error in dilation2d:  input and filter must have the same depth: ${
+          x4D.shape[3]} vs ${$filter.shape[2]}`);
+
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dilations};
 
@@ -102,4 +107,4 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const dilation2d = op({dilation2d_});
+export const dilation2d = /* @__PURE__ */ op({dilation2d_});

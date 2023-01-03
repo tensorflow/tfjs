@@ -1192,7 +1192,7 @@ function matmulTest(programType: MatMulProgramType) {
       expectArraysClose(await c.data(), [0, 8, -3, 20]);
     });
 
-    it('[8,4]x[4,8]', async () => {
+    it('A x B with M/N/K divisible by 4. [8,4]x[4,8]', async () => {
       const a = tf.tensor2d(
           [
             1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
@@ -1217,6 +1217,17 @@ function matmulTest(programType: MatMulProgramType) {
         388, 409, 453, 185, 161, 28,  125, 213, 472, 49,  53,  25,  21,
         8,   25,  33,  52,  121, 133, 57,  49,  12,  45,  69,  136
       ]);
+    });
+
+    it('A x B with large K. [16,2048]x[2048,16]', async () => {
+      const a = tf.tensor2d(new Array(16 * 2048).fill(1), [16, 2048]);
+      const b = tf.tensor2d(new Array(2048 * 16).fill(1), [2048, 16]);
+
+      const c = tf.matMul(a, b);
+      const cData = await c.data();
+
+      expect(c.shape).toEqual([16, 16]);
+      expectArraysClose(cData, new Array(16 * 16).fill(2048));
     });
 
     it('matmul followed by mul', async () => {

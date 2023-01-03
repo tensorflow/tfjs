@@ -67,6 +67,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    const workgroupSizeX = this.workgroupSize[0];
     const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
@@ -91,8 +92,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     if (this.type === 'shared') {
       const sharedMemorySnippet = `
-      var<workgroup> xBestIndices : array<i32, ${this.workgroupSize[0]}>;
-      var<workgroup> xBestValues : array<f32, ${this.workgroupSize[0]}>;
+      var<workgroup> xBestIndices : array<i32, ${workgroupSizeX}>;
+      var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
     `;
       const userCode = `
       fn DIV_CEIL(a : u32, b : u32) -> u32 {
@@ -102,14 +103,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       ${sharedMemorySnippet}
 
       ${main('index')} {
-        let outputIndex = index / i32(workgroupSizeX);
+        let outputIndex = index / ${workgroupSizeX};
         let reduceLength = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
         let outputCoords = getCoordsFromIndex(outputIndex);
         for (var k = i32(localId.x); k < reduceLength && outputIndex < uniforms.size;
-            k = k + i32(workgroupSizeX)) {
+            k = k + ${workgroupSizeX}) {
           let candidate = getX(${splitOutputCoords()} k);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
@@ -120,7 +121,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[localId.x] = bestIndex;
         workgroupBarrier();
 
-        var reduceSize = min(u32(reduceLength), workgroupSizeX);
+        var reduceSize = min(u32(reduceLength), ${workgroupSizeX}u);
         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);

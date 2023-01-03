@@ -96,4 +96,4 @@ function stringNGrams_(
   return {nGrams: result[0], nGramsSplits: result[1]};
 }
 
-export const stringNGrams = op({stringNGrams_});
+export const stringNGrams = /* @__PURE__ */ op({stringNGrams_});

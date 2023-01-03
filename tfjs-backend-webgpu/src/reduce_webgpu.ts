@@ -52,6 +52,7 @@ export class ReduceProgram implements WebGPUProgram {
   getUserCode(): string {
     let reduceOp = ``;
     let initValue = '0.0';
+    const workgroupSizeX = this.workgroupSize[0];
     if (this.reduceType === 'min' || this.reduceType === 'max') {
       reduceOp = `
          if (isnan(candidate)) {
@@ -79,7 +80,7 @@ export class ReduceProgram implements WebGPUProgram {
         `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workgroupSize[0]}>;
+         var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
        `;
 
     const userCode = `
@@ -97,20 +98,20 @@ export class ReduceProgram implements WebGPUProgram {
           return offset;
        }
        ${main('index')} {
-         let outputIndex = index / i32(workgroupSizeX);
+         let outputIndex = index / ${workgroupSizeX};
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workgroupSizeX);
+         let WorkPerThread = DIV_CEIL(u32(Length), ${workgroupSizeX}u);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workgroupSizeX)) {
+             k = k + ${workgroupSizeX}) {
            let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
          workgroupBarrier();
 
-         var reduceSize = min(u32(Length), workgroupSizeX);
+         var reduceSize = min(u32(Length), ${workgroupSizeX}u);
          for (var currentSize = reduceSize / 2u; reduceSize > 1u;
              currentSize = reduceSize / 2u) {
            let interval = DIV_CEIL(reduceSize, 2u);

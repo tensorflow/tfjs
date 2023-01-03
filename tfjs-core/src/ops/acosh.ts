@@ -43,4 +43,4 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
 
   return ENGINE.runKernel(Acosh, inputs as unknown as NamedTensorMap);
 }
-export const acosh = op({acosh_});
+export const acosh = /* @__PURE__ */ op({acosh_});

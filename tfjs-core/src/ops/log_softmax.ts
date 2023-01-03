@@ -103,4 +103,4 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
   //            attrs as unknown as NamedAttrMap);
 }
 
-export const logSoftmax = op({logSoftmax_});
+export const logSoftmax = /* @__PURE__ */ op({logSoftmax_});

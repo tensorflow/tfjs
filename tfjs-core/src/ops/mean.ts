@@ -66,4 +66,4 @@ function mean_<T extends Tensor>(
       attrs as unknown as NamedAttrMap);
 }
 
-export const mean = op({mean_});
+export const mean = /* @__PURE__ */ op({mean_});

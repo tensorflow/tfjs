@@ -42,4 +42,4 @@ function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const inputs: ZerosLikeInputs = {x: $x};
   return ENGINE.runKernel(ZerosLike, inputs as unknown as NamedTensorMap);
 }
-export const zerosLike = op({zerosLike_});
+export const zerosLike = /* @__PURE__ */ op({zerosLike_});

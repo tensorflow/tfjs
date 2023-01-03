@@ -77,4 +77,4 @@ function batchNorm3d_(
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
-export const batchNorm3d = op({batchNorm3d_});
+export const batchNorm3d = /* @__PURE__ */ op({batchNorm3d_});

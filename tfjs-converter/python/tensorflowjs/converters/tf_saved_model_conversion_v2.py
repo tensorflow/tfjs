@@ -455,15 +455,13 @@ def _copy_assets(saved_model_dir, output_dir):
     if gfile.isdir(tmp_dir):
       gfile.rmtree(tmp_dir)
 
-# TFDF stores the necessary files for its binary in the assets folder.
-ASSET_REQUIRING_OPS = frozenset([
-  'SimpleMLCreateModelResource'
-  'SimpleMLLoadModelFromPathWithHandle',
-  'SimpleMLInferenceOpWithHandle',
-])
-
 def _is_assets_required(model_ops):
-  return not ASSET_REQUIRING_OPS.isdisjoint(model_ops)
+  # TFDF stores the necessary files for its binary in the assets folder.
+  # Check if any TFDF ops are used in the model.
+  with resource_loader.open_file('op_list/tfdf.json') as tfdf_json:
+    ops = json.load(tfdf_json)
+    opNames = frozenset([x['tfOpName'] for x in ops])
+    return not opNames.isdisjoint(model_ops)
 
 def _get_frozen_graph_ops(frozen_graph):
   if frozen_graph is None:

@@ -80,4 +80,4 @@ function multinomial_(
   return origRank === 1 ? reshape(res, [res.size]) as Tensor1D : res;
 }
 
-export const multinomial = op({multinomial_});
+export const multinomial = /* @__PURE__ */ op({multinomial_});
