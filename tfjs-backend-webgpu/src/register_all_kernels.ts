@@ -98,6 +98,7 @@ import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -238,6 +239,7 @@ const kernelConfigs: KernelConfig[] = [
   minimumConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
