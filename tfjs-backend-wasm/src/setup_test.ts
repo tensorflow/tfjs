@@ -168,6 +168,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'scatterND '},
+  {include: 'tensorScatterUpdate '},
   {
     include: 'abs ',
     excludes: [
