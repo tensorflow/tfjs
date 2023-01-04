@@ -195,6 +195,7 @@ export {tensor3d} from './tensor3d';
 export {tensor4d} from './tensor4d';
 export {tensor5d} from './tensor5d';
 export {tensor6d} from './tensor6d';
+export {tensorScatterUpdate} from './tensor_scatter_update';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
