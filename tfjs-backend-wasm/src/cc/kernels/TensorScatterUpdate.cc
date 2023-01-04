@@ -42,12 +42,9 @@ void scatter(const int* indices_ptr, const T* updates_ptr,
 
     out_buf_ptr += flattened_index * slice_size;
 
-    for (size_t k = 0; k < slice_size; ++k) {
-      *out_buf_ptr = static_cast<T>(*updates_ptr);
-
-      out_buf_ptr++;
-      updates_ptr++;
-    }
+    memcpy(out_buf_ptr, updates_ptr, slice_size * dtype_size);
+    out_buf_ptr += slice_size;
+    updates_ptr += slice_size;
 
     out_buf_ptr -= (flattened_index * slice_size + slice_size);
   }
