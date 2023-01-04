@@ -350,6 +350,10 @@ function getShaderPrefix(glsl: GLSL): string {
       return fract((p3.x + p3.y) * p3.z);
     }
 
+    vec4 fakeRead(sampler2D sampler, vec2 coord) {
+      return vec4(0., 0., 0., 0.);
+    }
+
     ${SAMPLE_1D_SNIPPET}
     ${SAMPLE_2D_SNIPPET}
     ${SAMPLE_3D_SNIPPET}

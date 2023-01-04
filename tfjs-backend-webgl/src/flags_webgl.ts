@@ -277,3 +277,6 @@ ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 
 /** Experimental flag, whether enter compile only phase. */
 ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('WEBGL_FAKE_READ', () => true);

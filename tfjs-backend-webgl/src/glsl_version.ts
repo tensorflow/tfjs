@@ -128,6 +128,10 @@ export function getGlslDifferences(): GLSL {
     `;
   }
 
+  if (env().getBool('WEBGL_FAKE_READ')) {
+    texture2D = 'fakeRead';
+  }
+
   return {
     version,
     attribute,
