@@ -42,6 +42,7 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
@@ -97,6 +98,7 @@ import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -181,6 +183,7 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
   cosConfig,
   coshConfig,
@@ -236,6 +239,7 @@ const kernelConfigs: KernelConfig[] = [
   minimumConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,

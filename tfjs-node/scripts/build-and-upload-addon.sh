@@ -28,7 +28,7 @@ NAPI_VERSION=`node -p "process.versions.napi"`
 # remove the pre-built addon tarball if it already exist
 rm -f $PACKAGE_NAME
 # Build the native binding in docker to use a known version of GLIBC
-docker run -it --rm --mount type=bind,source=$(pwd),target=/tfjs-node/ --user "$(id -u):$(id -g)" gcr.io/learnjs-174218/release  bash -c "cd tfjs-node && yarn build-addon-from-source"
+docker run --rm --mount type=bind,source=$(pwd),target=/tfjs-node/ --user "$(id -u):$(id -g)" gcr.io/learnjs-174218/release  bash -c "cd tfjs-node && yarn build-addon-from-source"
 if [ "$1" = "publish" ]; then
   # build a new pre-built addon tarball
   tar -czvf $PACKAGE_NAME -C lib napi-v$NAPI_VERSION/tfjs_binding.node

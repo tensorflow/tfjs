@@ -97,3 +97,70 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   `;
   }
 }
+
+export class Conv2DDerFilterProgram implements WebGPUProgram {
+  variableNames = ['x', 'dy'];
+  uniforms =
+      'pad : vec2<i32>, stride : vec2<i32>, batchSize : i32, outHeight : i32, outWidth : i32, inHeight : i32, inWidth : i32,';
+  outputShape: number[];
+  shaderKey: string;
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  isChannelsLast: boolean;
+  size = true;
+
+  constructor(convInfo: backend_util.Conv2DInfo) {
+    this.outputShape = convInfo.filterShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
+    this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    this.shaderKey = `conv2DDerFilter_${this.isChannelsLast}`;
+  }
+
+  getUserCode(): string {
+    return `
+    ${main('index')} {
+      if(index < uniforms.size) {
+        let coords = getCoordsFromIndex(index);
+        let wR = coords[0];
+        let wC = coords[1];
+        let d1 = coords[2];
+        let d2 = coords[3];
+
+        // Convolve x(?, ?, d1) with dy(:, :, d2) to get dw(wR, wC, d1, d2).
+        // ? = to be determined. : = across all values in that axis.
+        var dotProd = 0.0;
+        for (var b = 0; b < uniforms.batchSize; b = b + 1) {
+          for (var yR = 0; yR < uniforms.outHeight; yR = yR + 1) {
+            let xR = wR + yR * uniforms.stride[0] - uniforms.pad[0];
+            if (xR < 0 || xR >= uniforms.inHeight) {
+              continue;
+            }
+
+            for (var yC = 0; yC < uniforms.outWidth; yC = yC + 1) {
+              let xC = wC + yC * uniforms.stride[1] - uniforms.pad[1];
+
+              if (xC < 0 || xC >= uniforms.inWidth) {
+                continue;
+              }
+
+              if (${this.isChannelsLast}) {
+                let dyValue = getDy(b, yR, yC, d2);
+                let xValue = getX(b, xR, xC, d1);
+                dotProd = dotProd + xValue * dyValue;
+              } else {
+                let dyValue = getDy(b, d2, yR, yC);
+                let xValue = getX(b, d1, xR, xC);
+                dotProd = dotProd + xValue * dyValue;
+              }
+            }
+          }
+        }
+        setOutputAtIndex(index, dotProd);
+      }
+    }
+  `;
+  }
+}
