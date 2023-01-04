@@ -49,7 +49,7 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
   const benchmarkSummary = `
   benchmark the ${modelName} on ${envSummary}
   1st inference time: ${printTime(timeInfo.times[0])}
-  Average inference time (${numRuns} runs): ${printTime(timeInfo.averageTime)}
+  Subsequent average inference time (${numRuns} runs): ${printTime(timeInfo.averageTimeExclFirst)}
   Best inference time: ${printTime(timeInfo.minTime)}
   Peak memory: ${printMemory(memoryInfo.peakBytes)}
   `;
