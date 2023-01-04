@@ -88,6 +88,9 @@ function runServer() {
 function setupBenchmarkEnv(config) {
   // Write the map (tabId - browser setting) to `./browsers.json`.
   for (const tabId in config.browsers) {
+    if (tabId === 'local') {
+      continue;
+    }
     const browser = config.browsers[tabId];
     browser.base = 'BrowserStack';
     // For mobile devices, we would use real devices instead of emulators.
@@ -274,7 +277,10 @@ async function getOneBenchmarkResult(
  */
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
-    const args = ['test', '--browserstack', `--browsers=${tabId}`];
+    const args = ['test'];
+    if (tabId !== 'local') {
+      args.push('--browserstack', `--browsers=${tabId}`);
+    }
     if (cliArgs.localBuild) {
       args.push(`--localBuild=${cliArgs.localBuild}`)
     };
