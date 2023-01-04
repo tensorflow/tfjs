@@ -58,6 +58,7 @@ The following are supported options arguments which trigger options features:
         "backend": ["backend_name"] //List of one or more backends to be benchmarked
       },
       "browsers": {
+        "local": {},  // Benchmark on your local device
         "unique_identifier_laptop_or_desktop": {
           "base": "BrowserStack",
           "browser": "browser_name",
