@@ -549,7 +549,17 @@ class ConvertTest(tf.test.TestCase):
     self.assertIn('HashTableV2', initializer_ops)
     self.assertIn('LookupTableImportV2', initializer_ops)
 
-    weights_manifest = model_json['weightsManifest']
+    weights_manifest = model_json['weightsManifest'][0]
+    weights_manifest = model_json['weightsManifest'][0]
+    self.assertEqual(weights_manifest['paths'], ['group1-shard1of1.bin'])
+    self.assertEqual(weights_manifest['weights'][0],
+                     {'name': 'unknown_0', 'shape': [], 'dtype': 'int32'})
+    # Only check weights and dtype since name may vary between TF versions.
+    self.assertEqual(weights_manifest['weights'][1]['shape'], [2])
+    self.assertEqual(weights_manifest['weights'][1]['dtype'], 'string')
+    self.assertEqual(weights_manifest['weights'][2]['shape'], [2])
+    self.assertEqual(weights_manifest['weights'][2]['dtype'], 'int32')
+
     self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
