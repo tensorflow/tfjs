@@ -24,7 +24,7 @@ export class BroadcastArgsProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['s0', 's1'];
-  uniforms = 's0Length : i32, s1Length : i32, ';
+  uniforms = 's0Size : i32, s1Size : i32, ';
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -43,8 +43,8 @@ export class BroadcastArgsProgram implements WebGPUProgram {
     if (index < uniforms.size) {
       var s0 = 1.0;
       var s1 = 1.0;
-      let indexS0 = index - uniforms.size + uniforms.s0Length;
-      let indexS1 = index - uniforms.size + uniforms.s1Length;
+      let indexS0 = index - uniforms.size + uniforms.s0Size;
+      let indexS1 = index - uniforms.size + uniforms.s1Size;
       if (indexS0 >= 0) {
         s0 = getS0(indexS0);
       }
