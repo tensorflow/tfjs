@@ -18,7 +18,7 @@
 import {backend_util, DepthwiseConv2dNativeBackpropFilter, DepthwiseConv2dNativeBackpropFilterAttrs, DepthwiseConv2dNativeBackpropFilterInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2DDerFilterProgram} from '../conv_backprop_webgpu_depthwise';
+import {DepthwiseConv2DDerFilterProgram} from '../conv_backprop_depthwise_webgpu';
 
 export function depthwiseConv2dNativeBackpropFilter(args: {
   inputs: DepthwiseConv2dNativeBackpropFilterInputs,

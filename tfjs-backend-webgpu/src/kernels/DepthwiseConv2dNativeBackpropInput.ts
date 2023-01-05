@@ -18,7 +18,7 @@
 import {backend_util, DepthwiseConv2dNativeBackpropInput, DepthwiseConv2dNativeBackpropInputAttrs, DepthwiseConv2dNativeBackpropInputInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2DDerInputProgram} from '../conv_backprop_webgpu_depthwise';
+import {DepthwiseConv2DDerInputProgram} from '../conv_backprop_depthwise_webgpu';
 
 export function depthwiseConv2dNativeBackpropInput(args: {
   inputs: DepthwiseConv2dNativeBackpropInputInputs,
