@@ -542,7 +542,6 @@ class ConvertTest(tf.test.TestCase):
     self.assertIn('LookupTableImportV2', initializer_ops)
 
     weights_manifest = model_json['weightsManifest'][0]
-    weights_manifest = model_json['weightsManifest'][0]
     self.assertEqual(weights_manifest['paths'], ['group1-shard1of1.bin'])
     self.assertEqual(weights_manifest['weights'][0],
                      {'name': 'unknown_0', 'shape': [], 'dtype': 'int32'})
