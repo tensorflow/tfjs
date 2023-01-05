@@ -104,12 +104,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'fused depthwiseConv2D ',
-    excludes: [
-      'gradient',  // DepthwiseConv2dNativeBackpropInput
-    ]
-  },
-  {
     startsWith: 'fused matmul ',
     excludes: [
       'gradient',  // Not yet implemented.
