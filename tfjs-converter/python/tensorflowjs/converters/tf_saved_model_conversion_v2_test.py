@@ -513,14 +513,6 @@ class ConvertTest(tf.test.TestCase):
       }
     }
 
-    expected_weights_manifest = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [
-            {'name': 'unknown_0', 'shape': [], 'dtype': 'int32'},
-            {'name': '4609', 'shape': [2], 'dtype': 'string'},
-            {'name': '4611', 'shape': [2], 'dtype': 'int32'}
-        ]}]
-
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
