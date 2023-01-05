@@ -11,6 +11,29 @@
     "backend": ["webgl"]
   },
   "browsers": {
-    "local": {}
+    "iPhone_13_Pro_Max_1": {
+      "base": "BrowserStack",
+      "os": "ios",
+      "os_version": "15",
+      "browser": "iphone",
+      "device": "iPhone 13 Pro Max",
+      "browser_version": null
+    },
+    "Google_Pixel_6_Pro_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "12.0",
+      "device": "Google Pixel 6 Pro"
+    },
+    "Samsung_Galaxy_S22_Ultra_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "12.0",
+      "device": "Samsung Galaxy S22 Ultra"
+    }
   }
 }
