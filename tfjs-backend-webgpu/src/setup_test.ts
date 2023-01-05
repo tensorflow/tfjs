@@ -247,7 +247,6 @@ const TEST_FILTERS: TestFilter[] = [
       // Not implemented kernel list.
       'avgPool3d ',
       'avgPool3dBackprop ',
-      'broadcastArgs ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
       'conv1d gradients',  // Conv2DBackpropFilter
