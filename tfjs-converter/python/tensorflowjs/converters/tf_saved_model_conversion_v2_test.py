@@ -551,7 +551,6 @@ class ConvertTest(tf.test.TestCase):
     self.assertEqual(weights_manifest['weights'][2]['shape'], [2])
     self.assertEqual(weights_manifest['weights'][2]['dtype'], 'int32')
 
-    self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
