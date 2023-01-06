@@ -18,10 +18,10 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import { NamedTensorInfoMap } from './kernel_registry';
-import { TensorInfo } from './tensor_info';
+import {NamedTensorInfoMap} from './kernel_registry';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
+import {TensorInfo} from './tensor_info';
 import {DataType, PixelData} from './types';
 
 export const Abs = 'Abs';
@@ -748,6 +748,11 @@ export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
 export interface ScatterNdAttrs {
   shape: number[];
 }
+
+export const TensorScatterUpdate = 'TensorScatterUpdate';
+export type TensorScatterUpdateInputs =
+    Pick<NamedTensorInfoMap, 'tensor'|'indices'|'updates'>;
+export interface TensorScatterUpdateAttrs {}
 
 export const SearchSorted = 'SearchSorted';
 export type SearchSortedInputs =

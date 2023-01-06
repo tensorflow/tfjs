@@ -49,7 +49,7 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
   const benchmarkSummary = `
   benchmark the ${modelName} on ${envSummary}
   1st inference time: ${printTime(timeInfo.times[0])}
-  Average inference time (${numRuns} runs): ${printTime(timeInfo.averageTime)}
+  Subsequent average inference time (${numRuns} runs): ${printTime(timeInfo.averageTimeExclFirst)}
   Best inference time: ${printTime(timeInfo.minTime)}
   Peak memory: ${printMemory(memoryInfo.peakBytes)}
   `;
@@ -85,7 +85,7 @@ async function benchmarkModel(benchmarkParameters) {
     memoryInfo = await profileModelInference(model, input);
   }
 
-  return {timeInfo, memoryInfo};
+  return { timeInfo, memoryInfo };
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
@@ -97,7 +97,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
 
   if (predict == null) {
     throw new Error(
-        'predict function is suppoed to be defined in codeSnippet.');
+      'predict function is suppoed to be defined in codeSnippet.');
   }
 
   // Warm up.
@@ -107,7 +107,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
   memoryInfo = await profileInference(predict);
 
-  return {timeInfo, memoryInfo};
+  return { timeInfo, memoryInfo };
 }
 
 describe('BrowserStack benchmark', () => {
@@ -135,11 +135,11 @@ describe('BrowserStack benchmark', () => {
 
       // Get GPU hardware info.
       resultObj.gpuInfo =
-          targetBackend === 'webgl' ? (await getRendererInfo()) : 'MISS';
+        targetBackend === 'webgl' ? (await getRendererInfo()) : 'MISS';
 
       // Report results.
       console.log(
-          `<tfjs_benchmark>${JSON.stringify(resultObj)}</tfjs_benchmark>`);
+        `<tfjs_benchmark>${JSON.stringify(resultObj)}</tfjs_benchmark>`);
     } catch (error) {
       console.log(`<tfjs_error>${error}</tfjs_error>`);
     }

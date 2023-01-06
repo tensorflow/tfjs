@@ -26,8 +26,8 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'ConcatV2':
         case 'Concat': {
@@ -120,8 +120,7 @@ export const executeOp: InternalOpExecutor =
             const mapped = tensors.map(tensor => {
               const sameShape = util.arraysEqual(tensor.shape, shape);
               if (!sameShape &&
-                  !util.arraysEqual(
-                      ops.squeeze(tensor).shape, squeezedShape)) {
+                  !util.arraysEqual(ops.squeeze(tensor).shape, squeezedShape)) {
                 throw new Error('the input tensors shape does not match');
               }
               return sameShape ? tensor : ops.reshape(tensor, shape);
@@ -185,6 +184,15 @@ export const executeOp: InternalOpExecutor =
               sparseValues.dtype === defaultValue.dtype ?
                   defaultValue :
                   ops.cast(defaultValue, sparseValues.dtype))];
+        }
+        case 'TensorScatterUpdate': {
+          const indices =
+              getParamValue('indices', node, tensorMap, context) as Tensor;
+          const values =
+              getParamValue('values', node, tensorMap, context) as Tensor;
+          const tensor =
+              getParamValue('tensor', node, tensorMap, context) as Tensor;
+          return [ops.tensorScatterUpdate(tensor, indices, values)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
