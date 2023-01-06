@@ -119,7 +119,6 @@ const MOD = `
 `;
 const MOD_VEC4 = `
   let isNaN = !vec4<bool>(b);
-  let valueForNaN = uniforms.NAN;
   var resultTemp = vec4<f32>(a % b);
   ${CHECK_NAN_SNIPPET_VEC4}
 
@@ -186,7 +185,6 @@ const POW_VEC4 = `
     resultTemp.a = 1.0;
   }
   let isNaN = (a < vec4<f32>(0.0)) & (floor(b) < b);
-  let valueForNaN = uniforms.NAN;
   ${CHECK_NAN_SNIPPET_VEC4}
   return resultTemp;
 `;
@@ -199,11 +197,9 @@ const PRELU_VEC4 = `
 const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 const SUB = 'return a - b;';
 
-function getBinaryWithNanString(
-    op: string, useVec4: boolean, valueForNaN = 'uniforms.NAN') {
+function getBinaryWithNanString(op: string, useVec4: boolean) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
-    let valueForNaN = ${valueForNaN};
     var resultTemp = vec4<f32>(${op}(a, b));
     ` + checkNanSnippet +
           `
