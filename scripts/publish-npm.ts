@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion } from './release-util';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages } from './release-util';
 import semverCompare from 'semver/functions/compare';
 import * as child_process from 'child_process';
 
@@ -34,6 +34,23 @@ import {BAZEL_PACKAGES} from './bazel_packages';
 const TMP_DIR = '/tmp/tfjs-publish';
 const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873';
 const NPM_REGISTRY = 'https://registry.npmjs.org/';
+
+async function retry<T>(f: () => T, tries = 3, sleep=5_000): Promise<T> {
+  let lastError;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return f();
+    } catch (e) {
+      lastError = e;
+      console.warn(e);
+      if (i + 1 < tries) {
+        // Only delay if the loop will run again.
+        await delay(sleep);
+      }
+    }
+  }
+  throw lastError;
+}
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -61,6 +78,12 @@ parser.addArgument(['--dry'], {
   action: 'storeTrue',
   help: 'Dry run. Stage all packages in verdaccio but do not publish them to '
       + 'the registry.',
+});
+
+parser.addArgument(['--auto', '--guess-version'], {
+  action: 'storeTrue',
+  help: 'Automatically publish local packages that have newer versions than'
+      + ' the packages in the registry',
 });
 
 function delay(ms: number): Promise<void> {
@@ -108,7 +131,8 @@ async function publish(pkg: string, registry: string, otp?: string,
 
       // Yarn above the other checks to make sure yarn doesn't change the lock
       // file.
-      console.log(run(`yarn --registry '${registry}'`));
+      await retry(() =>
+          console.log(run(`yarn --registry '${registry}'`)));
       console.log(chalk.magenta('~~~ Build npm ~~~'));
 
       if (pkg === 'tfjs-react-native') {
@@ -144,7 +168,8 @@ async function publish(pkg: string, registry: string, otp?: string,
         // in publish-npm.
         dashes = '-- -- --';
       }
-      run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`);
+      await retry(() =>
+          run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`));
     } else {
       if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
         // Special case for tfjs-node(-gpu), which must upload the node addon
@@ -153,9 +178,10 @@ async function publish(pkg: string, registry: string, otp?: string,
       }
 
       // Publish the package to the registry.
-      run(`${login}npm --registry '${registry}' publish ${otpFlag}`);
+      await retry(() =>
+          run(`${login}npm --registry '${registry}' publish ${otpFlag}`));
     }
-    console.log(`Yay! Published ${pkg} to ${registry}.`);
+    console.log(`Published ${pkg} to ${registry}.`);
 
   } finally {
     shell.cd(startDir);
@@ -217,10 +243,7 @@ async function main() {
     return {localVersion, npmVersion, localIsNewer};
   }
 
-  const packages = await selectPackages({
-    message: 'Select packages to publish',
-    releaseUnits,
-    async selected(pkg) {
+  async function packageSelected(pkg: string) {
       // Automatically select local packages with version numbers greater than
       // npm.
       try {
@@ -230,24 +253,35 @@ async function main() {
         console.warn(e);
         return false;
       }
-    },
-    async modifyName(pkg) {
-      // Add the local and remote versions to the printed name.
-      try {
-        const {localVersion, npmVersion, localIsNewer} = await getVersions(pkg);
-        const pkgWithVersion =
-          `${pkg.padEnd(20)} (${npmVersion ?? 'unpublished'} → ${localVersion})`;
-        if (localIsNewer) {
-          return chalk.bold(pkgWithVersion);
-        } else {
-          return pkgWithVersion;
+  }
+
+  let packages: string[];
+  if (args.auto) {
+    packages = await filterPackages(packageSelected);
+    console.log(`Publishing ${packages}`);
+  } else {
+    packages = await selectPackages({
+      message: 'Select packages to publish',
+      releaseUnits,
+      selected: packageSelected,
+      async modifyName(pkg) {
+        // Add the local and remote versions to the printed name.
+        try {
+          const {localVersion, npmVersion, localIsNewer} = await getVersions(pkg);
+          const pkgWithVersion =
+            `${pkg.padEnd(20)} (${npmVersion ?? 'unpublished'} → ${localVersion})`;
+          if (localIsNewer) {
+            return chalk.bold(pkgWithVersion);
+          } else {
+            return pkgWithVersion;
+          }
+        } catch (e) {
+          console.warn(e);
+          return pkg;
         }
-      } catch (e) {
-        console.warn(e);
-        return pkg;
       }
-    }
-  });
+    });
+  }
 
   // Yarn in the top-level and in the directory.
   child_process.execSync('yarn');

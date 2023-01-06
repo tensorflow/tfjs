@@ -508,6 +508,22 @@ export function getNightlyVersion(version: string): string {
   return `${version}-dev.${date}`;
 }
 
+async function filterAsync<T>(
+  array: T[],
+  condition: (t: T) => Promise<boolean>): Promise<T[]> {
+
+  const results = await Promise.all(array.map(condition));
+  return array.filter((_val, index) => results[index]);
+}
+
+export async function filterPackages(filter: (pkg: string) => Promise<boolean>,
+                                     releaseUnits = RELEASE_UNITS) {
+  const packages = releaseUnits.map(releaseUnit => releaseUnit.phases)
+    .flat().map(phase => phase.packages)
+    .flat();
+  return filterAsync(packages, filter);
+}
+
 export async function selectPackages({
   message = "Select packages",
   selected = async (_pkg: string) => false,
