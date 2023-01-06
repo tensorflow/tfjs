@@ -49,37 +49,30 @@ export interface WebGPUProgram {
   // buffer.
   workPerThread?: number;
   pipeline?: GPUComputePipeline|Promise<GPUComputePipeline>;
-  bindGroup?: GPUBindGroup;
   getUserCode: () => string;
 }
 
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): GPUComputePipeline => {
+     output: TensorInfo, parallelCompilation: boolean): GPUComputePipeline|
+    Promise<GPUComputePipeline> => {
       const outputData = {dtype: output.dtype, shape: output.shape};
       const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
-      const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: '_start'},
-        label: program.constructor.name,
-        layout: 'auto'
-      });
-
-      return pipeline;
-    };
-
-export const compileProgramAsync =
-    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): Promise<GPUComputePipeline> => {
-      const outputData = {dtype: output.dtype, shape: output.shape};
-
-      const source = makeShader(inputsData, outputData, program);
-      const module = device.createShaderModule({code: source});
-      const pipeline = device.createComputePipelineAsync(
-          {layout: 'auto', compute: {module, entryPoint: '_start'}});
-
-      return pipeline;
+      if (parallelCompilation) {
+        return device.createComputePipelineAsync({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      } else {
+        return device.createComputePipeline({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      }
     };
 
 export function getCoordsDataType(rank: number): string {
