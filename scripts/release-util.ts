@@ -479,14 +479,28 @@ export function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
-// Computes the default updated version (does a minor version update).
+
+/**
+ * Get the next minor update version for the given version.
+ *
+ * i.e. given a.b.c, return a.b+1.0
+ */
 export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
-  return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
+  return [versionSplit[0], + versionSplit[1] + 1, '0'].join('.');
 }
 
-// Computes the next nightly version.
+/**
+ * Create the nightly version string by appending `dev-{current date}` to the
+ * given version.
+ *
+ * Versioning format is from semver: https://semver.org/spec/v2.0.0.html
+ * This version should be published with the 'next' tag and should increment the
+ * current 'latest' tfjs version.
+ * We approximate TypeScript's versioning practice as seen on their npm page
+ * https://www.npmjs.com/package/typescript?activeTab=versions
+ */
 export function getNightlyVersion(version: string): string {
   // Format date to YYYYMMDD.
   const date =
