@@ -298,6 +298,7 @@ tfjs_cc_library(
         ":All",
         ":Any",
         ":ArgMax",
+        ":Atan",
         ":AvgPool",
         ":BatchMatMul",
         ":Ceil",
@@ -425,6 +426,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atan",
+    srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":util",
+        ":unary",
     ],
 )
 
