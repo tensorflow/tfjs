@@ -36,23 +36,25 @@ describeWithFlags('elu', ALL_ENVS, () => {
   });
 
   it('derivative', async () => {
-    const x = tf.tensor1d([1, 3, -2]);
-    const dy = tf.tensor1d([5, 50, 500]);
+    const x = tf.tensor1d([1, 3, -2, 0.4]);
+    const dy = tf.tensor1d([5, 50, 500, 5000]);
     const gradients = tf.grad(a => tf.elu(a))(x, dy);
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.data(), [5, 50, 500 * Math.exp(-2)]);
+    expectArraysClose(
+        await gradients.data(), [5, 50, 500 * Math.exp(-2), 5000]);
   });
 
   it('gradient with clones', async () => {
-    const x = tf.tensor1d([1, 3, -2]);
-    const dy = tf.tensor1d([5, 50, 500]);
+    const x = tf.tensor1d([1, 3, -2, 0.4]);
+    const dy = tf.tensor1d([5, 50, 500, 5000]);
     const gradients = tf.grad(a => tf.elu(a.clone()).clone())(x, dy);
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.data(), [5, 50, 500 * Math.exp(-2)]);
+    expectArraysClose(
+        await gradients.data(), [5, 50, 500 * Math.exp(-2), 5000]);
   });
 
   it('throws when passed a non-tensor', () => {
