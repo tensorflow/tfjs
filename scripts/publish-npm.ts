@@ -206,6 +206,17 @@ async function main() {
     return getNpmVersion(pkg, args.registry, tag);
   });
 
+  async function getVersions(pkg: string) {
+    const localVersion = getLocalVersion(pkg);
+    const npmVersion = await getNpmVersionMemoized(pkg);
+    let localIsNewer = true;
+    if (npmVersion !== '') {
+      // Unpublished tags return '' for their version.
+      localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+    }
+    return {localVersion, npmVersion, localIsNewer};
+  }
+
   const packages = await selectPackages({
     message: 'Select packages to publish',
     releaseUnits,
@@ -213,9 +224,7 @@ async function main() {
       // Automatically select local packages with version numbers greater than
       // npm.
       try {
-        const localVersion = getLocalVersion(pkg);
-        const npmVersion = await getNpmVersionMemoized(pkg);
-        const localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+        const {localVersion, localIsNewer} = await getVersions(pkg);
         return localVersion !== '0.0.0' && localIsNewer;
       } catch (e) {
         console.warn(e);
@@ -225,11 +234,9 @@ async function main() {
     async modifyName(pkg) {
       // Add the local and remote versions to the printed name.
       try {
-        const localVersion = getLocalVersion(pkg);
-        const npmVersion = await getNpmVersionMemoized(pkg);
-        const localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+        const {localVersion, npmVersion, localIsNewer} = await getVersions(pkg);
         const pkgWithVersion =
-          `${pkg.padEnd(20)} (${npmVersion} → ${localVersion})`;
+          `${pkg.padEnd(20)} (${npmVersion ?? 'unpublished'} → ${localVersion})`;
         if (localIsNewer) {
           return chalk.bold(pkgWithVersion);
         } else {
