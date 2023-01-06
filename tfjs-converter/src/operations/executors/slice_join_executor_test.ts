@@ -460,6 +460,27 @@ describe('slice join', () => {
 
         expect(validateParam(node, slice_join.json)).toBeTruthy();
       });
+      it('should call tfOps.tensorScatterUpdate', () => {
+        node.op = 'TensorScatterUpdate';
+        node.inputParams.tensor = createTensorAttr(0);
+        node.inputParams.indices = createTensorAttr(1);
+        node.inputParams.values = createTensorAttr(2);
+        node.inputNames = ['input3', 'input1', 'input2'];
+        spyOps.tensorScatterUpdate.and.returnValue({});
+        executeOp(node, {input3, input1, input2}, context, spyOpsAsTfOps);
+
+        expect(spyOps.tensorScatterUpdate)
+            .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+      });
+      it('should match json def for tensorScatterUpdate', () => {
+        node.op = 'TensorScatterUpdate';
+        delete node.inputParams.x;
+        node.inputParams.tensor = createTensorAttr(0);
+        node.inputParams.indices = createTensorAttr(1);
+        node.inputParams.values = createTensorAttr(2);
+
+        expect(validateParam(node, slice_join.json)).toBeTruthy();
+      });
     });
   });
 });
