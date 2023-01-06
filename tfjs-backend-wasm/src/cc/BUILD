@@ -434,8 +434,8 @@ tfjs_cc_library(
     srcs = ["kernels/Atan.cc"],
     deps = [
         ":backend",
-        ":util",
         ":unary",
+        ":util",
     ],
 )
 
