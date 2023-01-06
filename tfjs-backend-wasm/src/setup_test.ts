@@ -402,6 +402,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'stringToHashBucketFast'},
   {include: 'reciprocal'},
   {include: 'isNaN'},
+  {include: 'atan '},
 ];
 
 const customInclude = (testName: string) => {
