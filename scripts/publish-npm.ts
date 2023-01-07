@@ -287,7 +287,17 @@ async function main() {
   child_process.execSync('yarn');
   console.log();
 
-  // Build and publish all packages to Verdaccio
+  // Pre-build all the bazel packages in a single bazel command for better
+  // efficiency.
+  const bazelTargets = packages.filter(pkg => BAZEL_PACKAGES.has(pkg))
+    .map(name => `//${name}:${name}_pkg`);
+  // Use child_process.spawnSync to show bazel build progress.
+  child_process.spawnSync('yarn', ['bazel', 'build', ...bazelTargets],
+                          {stdio:'inherit'});
+
+  // Build and publish all packages to a local Verdaccio repo for staging.
+  console.log(
+    chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
   const verdaccio = runVerdaccio();
   try {
     for (const pkg of packages) {
