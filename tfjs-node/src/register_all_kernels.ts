@@ -164,6 +164,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
@@ -319,6 +320,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transposeConfig,

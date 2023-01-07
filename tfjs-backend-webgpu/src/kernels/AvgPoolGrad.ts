@@ -35,7 +35,7 @@ export function avgPoolGrad(args: {
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       1 /* dilations */, pad);
-  const avgPoolBackpropProgram = new AvgPool2DBackpropProgram(convInfo);
+  const program = new AvgPool2DBackpropProgram(convInfo);
   const avgMultiplier = 1 / (convInfo.filterHeight * convInfo.filterWidth);
   const uniformData = [
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
@@ -53,8 +53,7 @@ export function avgPoolGrad(args: {
     {type: 'int32', data: [convInfo.outWidth]},
     {type: 'float32', data: [avgMultiplier]}
   ];
-  return backend.runWebGPUProgram(
-      avgPoolBackpropProgram, [dy], x.dtype, uniformData);
+  return backend.runWebGPUProgram(program, [dy], x.dtype, uniformData);
 }
 
 export const avgPoolGradConfig: KernelConfig = {

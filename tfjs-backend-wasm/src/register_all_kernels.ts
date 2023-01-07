@@ -26,6 +26,7 @@ import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -123,6 +124,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
@@ -139,6 +141,7 @@ const kernelConfigs: KernelConfig[] = [
   allConfig,
   anyConfig,
   argMaxConfig,
+  atanConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -236,6 +239,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,

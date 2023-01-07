@@ -74,7 +74,7 @@ export class LRNGradProgram implements GPGPUProgram {
             else if (k >= depthBegin && k < depthEnd){
               float dyi = -2.0 * float(${alpha})
                 * float(${beta})
-                * getInputImage(b ,r ,c, k) * getOutputImage(b, r, c, d)
+                * getInputImage(b, r, c, k) * getOutputImage(b, r, c, d)
                 / norm;
               if (k == d) {
                 dyi += pow(norm, -1.0 * ${beta});
