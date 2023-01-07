@@ -1,5 +1,6 @@
 {
   "benchmark": {
+    "model": ["MobileNetV3", "MobileNetV2", "HandPoseDetector",
     "HandPoseLandmark", "MoveNet-SinglePose", "MoveNet-MultiPose",
     "BlazePoseDetector", "BlazePoseLandmark", "Coco-SSD", "DeepLabV3",
     "FaceDetection", "FaceLandmarkDetection", "ArPortraitDepth",
