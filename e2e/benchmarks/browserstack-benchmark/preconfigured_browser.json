@@ -27,6 +27,38 @@
       "device": "iPhone 13",
       "browser_version": null
     },
+    "iPhone_12_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12 Pro Max"
+    },
+    "iPhone_12_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12"
+    },
+    "iPhone_11_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 11 Pro Max"
+    },
+    "iPhone_11_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 11"
+    },
     "iPhone_XS_1": {
       "base": "BrowserStack",
       "browser": "iphone",
