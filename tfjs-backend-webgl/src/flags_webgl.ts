@@ -275,4 +275,7 @@ ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
  */
 ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 
-ENV.registerFlag('WEBGL2_USE_MRT_FOR_MATMUL', () => false);
+ENV.registerFlag('WEBGL2_USE_MRT_FOR_MATMUL', () => true);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
