@@ -42,6 +42,7 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
@@ -51,6 +52,8 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
+import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {einsumConfig} from './kernels/Einsum';
@@ -97,6 +100,7 @@ import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -181,6 +185,7 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
   cosConfig,
   coshConfig,
@@ -189,6 +194,8 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
@@ -236,6 +243,7 @@ const kernelConfigs: KernelConfig[] = [
   minimumConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,

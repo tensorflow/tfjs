@@ -52,12 +52,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'conv2d ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'conv2dTranspose ',
     excludes: [
       'gradient',  // gradient function not found.
@@ -107,12 +101,6 @@ const TEST_FILTERS: TestFilter[] = [
                                                    // implemented
       'backProp',  // Conv2DBackpropFilter not yet
                    // implemented
-    ]
-  },
-  {
-    startsWith: 'fused depthwiseConv2D ',
-    excludes: [
-      'gradient',  // DepthwiseConv2dNativeBackpropInput
     ]
   },
   {
@@ -263,7 +251,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
       'maxPoolWithArgmax ',
-      'multinomial ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
