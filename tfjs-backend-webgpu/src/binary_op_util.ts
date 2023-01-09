@@ -42,8 +42,9 @@ export enum BinaryOpType {
 }
 
 const CHECK_NAN_SNIPPET = `
-  if (isnan(a)) { return a; }
-  if (isnan(b)) { return b; }
+  if isNaN { return valueForNaN; }
+  if isnan(a) { return valueForNaN; }
+  if isnan(b) { return valueForNaN; }
   `;
 
 const CHECK_NAN_SNIPPET_VEC4 = `
@@ -216,6 +217,59 @@ function getBinaryWithNanString(op: string, useVec4: boolean) {
 
 export function getBinaryOpString(
     type: BinaryOpType, useVec4?: boolean): string {
+  let doOpSnippet: string;
+
+  // NaN-sensitive ops
+  do {
+    switch (type) {
+      case BinaryOpType.ATAN2:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = getBinaryWithNanString('atan2', true);
+        break;
+      case BinaryOpType.MAX:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = getBinaryWithNanString('max', true);
+        break;
+      case BinaryOpType.MIN:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = getBinaryWithNanString('min', true);
+        break;
+      case BinaryOpType.MOD:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = MOD_VEC4;
+        break;
+      case BinaryOpType.NOT_EQUAL:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = NOT_EQUAL_VEC4;
+        break;
+      case BinaryOpType.POW:
+        if (!useVec4) {
+          continue;
+        }
+        doOpSnippet = POW_VEC4;
+        break;
+      default:
+        continue;
+    }
+    const checkNaNSnippet =
+        useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
+    return `
+      ${doOpSnippet}
+      ${checkNaNSnippet}
+      return resultTemp;
+    `;
+  } while (false);
+
   switch (type) {
     case BinaryOpType.ADD:
       return ADD;
@@ -264,6 +318,10 @@ export function getBinaryOpString(
     case BinaryOpType.SUB:
       return SUB;
     default:
-      throw new Error(`BinaryType ${type} is not implemented!`);
+      // throw new Error(`BinaryType ${type} is not implemented!`);
   }
+  return `
+    ${doOpSnippet}
+    return resultTemp;
+  `;
 }
