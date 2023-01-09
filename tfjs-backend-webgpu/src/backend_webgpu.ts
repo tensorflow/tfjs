@@ -45,11 +45,6 @@ export type TextureInfo = {
   texture: GPUTexture|GPUExternalTexture
 };
 
-type AsyncProgramInfo = {
-  program: webgpu_program.WebGPUProgram,
-  bindings: GPUBindingResource[]
-};
-
 type TensorData = {
   values: BackendValues,
   dtype: DataType,
@@ -136,7 +131,7 @@ export class WebGPUBackend extends KernelBackend {
   private static nextDataId = 0;
   private pipelineCache:
       {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
-  private asyncProgramInfos: AsyncProgramInfo[] = [];
+  private asyncProgramInfos: webgpu_program.WebGPUProgram[] = [];
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
   private stagingPendingDisposal: BufferInfo[] = [];
@@ -364,17 +359,12 @@ export class WebGPUBackend extends KernelBackend {
 
   // Check if parallel compilation is done.
   async checkCompileCompletion() {
-    if (env().getBool('ENGINE_COMPILE_ONLY') === false) {
-      console.warn('This can only be called when ENGINE_COMPILE_ONLY is true');
-      return;
-    }
     const asyncProgramInfos = this.asyncProgramInfos;
     this.asyncProgramInfos = [];
-    const pipelinesPromise =
-        asyncProgramInfos.map(item => item.program.pipeline);
+    const pipelinesPromise = asyncProgramInfos.map(program => program.pipeline);
     const pipelines = await Promise.all(pipelinesPromise);
-    for (let i = 0; i < asyncProgramInfos.length; i++) {
-      this.pipelineCache[asyncProgramInfos[i].program.shaderKey] = pipelines[i];
+    for (let i = 0; i < pipelines.length; i++) {
+      this.pipelineCache[asyncProgramInfos[i].shaderKey] = pipelines[i];
     }
   }
 
@@ -852,15 +842,14 @@ export class WebGPUBackend extends KernelBackend {
     }
     program.pipeline = this.pipelineCache[program.shaderKey];
 
-    inputs.forEach(input => {
-      this.commandQueueOwnedIds.add(input.dataId);
-    });
-    this.commandQueueOwnedIds.add(output.dataId);
-
     if (!parallelCompilation) {
+      inputs.forEach(input => {
+        this.commandQueueOwnedIds.add(input.dataId);
+      });
+      this.commandQueueOwnedIds.add(output.dataId);
       this.recordAndSubmit(program, bindings);
     } else {
-      this.asyncProgramInfos.push({program, bindings});
+      this.asyncProgramInfos.push(program);
     }
     return output;
   }
