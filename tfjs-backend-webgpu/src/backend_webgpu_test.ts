@@ -377,7 +377,7 @@ async function parallelCompilationCommon(webGPUBackend: WebGPUBackend) {
   // Parallel compile.
   tf.env().set('ENGINE_COMPILE_ONLY', true);
   const c1 = tf.add(a1, b1);
-  await webGPUBackend.checkCompileCompletion();
+  await webGPUBackend.checkCompileCompletionAsync();
 
   // Actual inference.
   tf.env().set('ENGINE_COMPILE_ONLY', false);
@@ -460,12 +460,12 @@ describeWebGPU('parallel compilation', () => {
     await parallelCompilationCommon(webGPUBackend);
   });
 
-  it('should not work if not call checkCompileCompletion', async () => {
+  it('should not work if not call checkCompileCompletionAsync', async () => {
     const a1 = tf.tensor1d([1, 1, 1]);
     const b1 = tf.tensor1d([1, 1, 1]);
 
     // Parallel compile but not call await (tf.backend() as
-    // WebGPUBackend).checkCompileCompletion().
+    // WebGPUBackend).checkCompileCompletionAsync().
     tf.env().set('ENGINE_COMPILE_ONLY', true);
     const c1 = tf.add(a1, b1);
 
@@ -473,7 +473,7 @@ describeWebGPU('parallel compilation', () => {
     tf.env().set('ENGINE_COMPILE_ONLY', false);
     expect(() => tf.add(a1, b1))
         .toThrowError(
-            'Please call checkCompileCompletion to ensure parallel compilation is done!');
+            'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
     tf.dispose([a1, b1, c1]);
   });
 
@@ -484,20 +484,20 @@ describeWebGPU('parallel compilation', () => {
     // Parallel compile.
     tf.env().set('ENGINE_COMPILE_ONLY', true);
     const c1 = tf.add(a1, b1);
-    await (tf.backend() as WebGPUBackend).checkCompileCompletion();
+    await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
     // Read data is invalid.
     expectArraysClose((await c1.data()).length, 0);
     tf.dispose([a1, b1, c1]);
   });
 
-  it('checkCompileCompletion is nop if parallel compilation is false',
+  it('checkCompileCompletionAsync is nop if parallel compilation is false',
      async () => {
        const a1 = tf.tensor1d([1, 1, 1]);
        const b1 = tf.tensor1d([1, 1, 1]);
-       // If parallel compilation is false, checkCompileCompletion is nop.
+       // If parallel compilation is false, checkCompileCompletionAsync is nop.
        tf.env().set('ENGINE_COMPILE_ONLY', false);
        const c1 = tf.add(a1, b1);
-       await (tf.backend() as WebGPUBackend).checkCompileCompletion();
+       await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
        expectArraysClose(await c1.data(), [2, 2, 2]);
        tf.dispose([a1, b1, c1]);
      });

@@ -45,11 +45,6 @@ export type TextureInfo = {
   texture: GPUTexture|GPUExternalTexture
 };
 
-type AsyncProgramInfo = {
-  program: webgpu_program.WebGPUProgram,
-  bindings: GPUBindingResource[]
-};
-
 type TensorData = {
   values: BackendValues,
   dtype: DataType,
@@ -136,7 +131,7 @@ export class WebGPUBackend extends KernelBackend {
   private static nextDataId = 0;
   private pipelineCache:
       {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
-  private asyncProgramInfos: AsyncProgramInfo[] = [];
+  private asyncProgramInfos: webgpu_program.WebGPUProgram[] = [];
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
   private stagingPendingDisposal: BufferInfo[] = [];
@@ -363,25 +358,21 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   // Check if parallel compilation is done.
-  async checkCompileCompletion() {
-    if (env().getBool('ENGINE_COMPILE_ONLY') === false) {
-      console.warn('This can only be called when ENGINE_COMPILE_ONLY is true');
-      return;
-    }
+  async checkCompileCompletionAsync() {
     const asyncProgramInfos = this.asyncProgramInfos;
     this.asyncProgramInfos = [];
-    const pipelinesPromise =
-        asyncProgramInfos.map(item => item.program.pipeline);
+    const pipelinesPromise = asyncProgramInfos.map(program => program.pipeline);
     const pipelines = await Promise.all(pipelinesPromise);
-    for (let i = 0; i < asyncProgramInfos.length; i++) {
-      this.pipelineCache[asyncProgramInfos[i].program.shaderKey] = pipelines[i];
+    for (let i = 0; i < pipelines.length; i++) {
+      this.pipelineCache[asyncProgramInfos[i].shaderKey] = pipelines[i];
     }
   }
 
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<ArrayBuffer> {
     if (env().getBool('ENGINE_COMPILE_ONLY')) {
-      console.warn('This can only be called when ENGINE_COMPILE_ONLY is false');
+      console.warn(
+          'The data may be invalid since ENGINE_COMPILE_ONLY is true, this can only be called when ENGINE_COMPILE_ONLY is false');
       return null;
     }
     const staging = this.bufferManager.acquireBuffer(
@@ -797,7 +788,7 @@ export class WebGPUBackend extends KernelBackend {
 
     // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
     // program size, program defined uniforms.
-    let programUniform: ProgramUniform = [];
+    const programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
     if (!program.isFromPixels) {
       programUniform.push(
@@ -837,6 +828,32 @@ export class WebGPUBackend extends KernelBackend {
     program.shaderKey =
         webgpu_program.makeShaderKey(program, bufferShapes, inputsData, output);
 
+    const parallelCompilation = env().getBool('ENGINE_COMPILE_ONLY');
+    if (!(program.shaderKey in this.pipelineCache)) {
+      this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
+          this.device, program, inputsData, output, parallelCompilation);
+    }
+    program.pipeline = this.pipelineCache[program.shaderKey];
+
+    if (!parallelCompilation) {
+      this.recordAndSubmit(
+          program, output, inputs, programUniform, programDefinedUniform);
+    } else {
+      this.asyncProgramInfos.push(program);
+    }
+    return output;
+  }
+
+  private recordAndSubmit(
+      program: webgpu_program.WebGPUProgram, output: TensorInfo,
+      inputs: TensorInfo[], programUniform: ProgramUniform,
+      programDefinedUniform?: ProgramUniform) {
+    const shouldTimeProgram = this.activeTimers != null;
+    if (program.pipeline instanceof Promise<GPUComputePipeline>) {
+      throw new Error(
+          'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
+    }
+
     if (programDefinedUniform) {
       programUniform = [...programUniform, ...programDefinedUniform];
     }
@@ -845,33 +862,11 @@ export class WebGPUBackend extends KernelBackend {
       this.makeUniforms(programUniform)
     ];
 
-    const parallelCompilation = env().getBool('ENGINE_COMPILE_ONLY');
-    if (!(program.shaderKey in this.pipelineCache)) {
-      this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
-          this.device, program, inputsData, output, parallelCompilation);
-    }
-    program.pipeline = this.pipelineCache[program.shaderKey];
-
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
-    if (!parallelCompilation) {
-      this.recordAndSubmit(program, bindings);
-    } else {
-      this.asyncProgramInfos.push({program, bindings});
-    }
-    return output;
-  }
-
-  private recordAndSubmit(
-      program: webgpu_program.WebGPUProgram, bindings: GPUBindingResource[]) {
-    const shouldTimeProgram = this.activeTimers != null;
-    if (program.pipeline instanceof Promise<GPUComputePipeline>) {
-      throw new Error(
-          'Please call checkCompileCompletion to ensure parallel compilation is done!');
-    }
     const bindGroup = this.device.createBindGroup({
       layout: program.pipeline.getBindGroupLayout(0),
       entries: bindings.map((b, i) => ({binding: i, resource: b})),
@@ -886,7 +881,7 @@ export class WebGPUBackend extends KernelBackend {
 
     pass.setPipeline(program.pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatch(
+    pass.dispatchWorkgroups(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
 
     if (shouldTimeProgram && this.supportTimeQuery) {
