@@ -23,10 +23,9 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
-import {MatMulPackedMrt2x2Program} from '../mulmat_packed_mrt2x2_gpu';
 import * as webgl_util from '../webgl_util';
 
-import {batchMatMulImpl, batchMatMulMrt2x2Impl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
+import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 
@@ -73,82 +72,6 @@ function getShapeForBatchMatMul(
     return null;
   }
 }
-
-// For 1x1 kernels that iterate through every point in the input, convolution
-// can be expressed as matrix multiplication (without need for memory
-// remapping).
-export function conv2dByMatMulMrt2x2({
-  x,
-  filter,
-  convInfo,
-  backend,
-  bias = null,
-  preluActivationWeights = null,
-  leakyreluAlpha = 0,
-  activation = null
-}: Conv2DConfig) {
-  // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
-  // result from 2D to 4D.
-
-  webgl_util.assert(
-      convInfo.batchSize === 1, 'MatMul MRT does not support batch!');
-  webgl_util.assert(
-      bias == null ||
-          (bias.shape.length === 1 && bias.shape[0] === convInfo.outChannels),
-      'MatMul MRT only supports 1D bias!');
-  webgl_util.assert(
-      activation !== 'leakyrelu',
-      'MatMul MRT does not support leakyreluAlpha!');
-  webgl_util.assert(
-      preluActivationWeights == null,
-      'MatMul MRT does not support preluActivationWeights!');
-  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  webgl_util.assert(isChannelsLast, 'MatMul MRT does not support NCHW!');
-
-  let out: TensorInfo;
-  const intermediates: TensorInfo[] = [];
-
-  const numCols = convInfo.outHeight * convInfo.outWidth;
-  const xReshaped = reshape({
-    inputs: {x},
-    backend,
-    attrs: {
-      shape: isChannelsLast ?
-          [convInfo.batchSize, numCols, convInfo.inChannels] :
-          [convInfo.batchSize, convInfo.inChannels, numCols]
-    }
-  });
-  const filterReshaped = reshape({
-    inputs: {x: filter},
-    backend,
-    attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
-  });
-  const result = batchMatMulMrt2x2Impl({
-    a: isChannelsLast ? xReshaped : filterReshaped,
-    b: isChannelsLast ? filterReshaped : xReshaped,
-    transposeA: !isChannelsLast,
-    transposeB: false,
-    backend,
-    bias,
-    activation,
-    preluActivationWeights,
-    leakyreluAlpha
-  });
-
-  out = reshape(
-      {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
-
-  intermediates.push(xReshaped);
-  intermediates.push(filterReshaped);
-  intermediates.push(result);
-
-  for (const i of intermediates) {
-    backend.disposeIntermediateTensorInfo(i);
-  }
-
-  return out;
-}
-
 
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
@@ -400,29 +323,15 @@ export function conv2dWithIm2Row({
   const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
-
-  let matmulProgram;
-  if (isChannelsLast && convInfo.batchSize === 1 &&
-      (!hasBias ||
-       (bias.shape.length === 1 && bias.shape[0] === convInfo.outChannels)) &&
-      !hasPreluActivationWeights && !hasLeakyreluAlpha) {
-        matmulProgram = new MatMulPackedMrt2x2Program(
-          im2ColReshaped.shape as [number, number, number],
-          w2Row.shape as [number, number, number],
-          [convInfo.batchSize, numCols, convInfo.outChannels] ,
-          transposeA, transposeB, bias?.shape, fusedActivation,
-          hasPreluActivationWeights, hasLeakyreluAlpha);
-  } else {
-    matmulProgram = new MatMulPackedProgram(
-        isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
-                         w2Row.shape as [number, number, number],
-        isChannelsLast ? w2Row.shape as [number, number, number] :
-                         im2ColReshaped.shape as [number, number, number],
-        isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
-                         [convInfo.batchSize, convInfo.outChannels, numCols],
-        transposeA, transposeB, hasBias, fusedActivation,
-        hasPreluActivationWeights, hasLeakyreluAlpha);
-  }
+  const matmulProgram = new MatMulPackedProgram(
+      isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
+                       w2Row.shape as [number, number, number],
+      isChannelsLast ? w2Row.shape as [number, number, number] :
+                       im2ColReshaped.shape as [number, number, number],
+      isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
+                       [convInfo.batchSize, convInfo.outChannels, numCols],
+      transposeA, transposeB, hasBias, fusedActivation,
+      hasPreluActivationWeights, hasLeakyreluAlpha);
   const inputs: TensorInfo[] =
       isChannelsLast ? [im2ColReshaped, w2Row] : [w2Row, im2ColReshaped];
   if (bias) {

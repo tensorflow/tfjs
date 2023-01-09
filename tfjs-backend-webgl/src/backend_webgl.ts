@@ -20,7 +20,6 @@ import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
-
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -42,7 +41,6 @@ import {UnaryOpProgram} from './unaryop_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
-import {assert} from './webgl_util';
 
 const whereImpl = kernel_impls.whereImpl;
 
@@ -693,7 +691,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice, mrtStorage} =
+    const {texture, dtype, texShape, usage, isPacked, slice} =
         this.texData.get(dataId);
     const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
@@ -703,10 +701,8 @@ export class MathBackendWebGL extends KernelBackend {
     } else {
       this.dataRefCount.delete(key);
       if (texture != null) {
-        this.numBytesInGPU -= this.computeBytes(texShape, dtype) *
-            (mrtStorage == null ? 1 : mrtStorage[0] * mrtStorage[1]);
-        this.textureManager.releaseTexture(
-            texture, texShape, usage, isPacked, mrtStorage);
+        this.numBytesInGPU -= this.computeBytes(texShape, dtype);
+        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
     }
 
@@ -883,12 +879,8 @@ export class MathBackendWebGL extends KernelBackend {
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
-      if (program.mrtSupport) {
-        outData.mrtStorage = [...program.mrtSupport];
-      }
     }
     if (program.outPackingScheme === tex_util.PackingScheme.DENSE) {
-      assert(program.mrtSupport == null);
       const texelShape = customTexShape != null ?
           customTexShape :
           tex_util.getDenseTexShape(program.outputShape);
@@ -899,7 +891,6 @@ export class MathBackendWebGL extends KernelBackend {
       outData.texShape = texelShape.map(d => d * 2) as [number, number];
     }
     if (program.outTexUsage != null) {
-      assert(program.mrtSupport == null);
       outData.usage = program.outTexUsage;
     }
 
@@ -1104,8 +1095,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   uploadToGPU(dataId: DataId): void {
     const texData = this.texData.get(dataId);
-    const {shape, dtype, values, texture, usage, isPacked, mrtStorage} =
-        texData;
+    const {shape, dtype, values, texture, usage, isPacked} = texData;
 
     if (texture != null) {
       // Array is already on GPU. No-op.
@@ -1121,10 +1111,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (texShape == null) {
       // This texShape may not be the final texture shape. For packed or dense
       // textures, the texShape will be changed when textures are created.
-      texShape = mrtStorage == null ?
-          webgl_util.getTextureShapeFromLogicalShape(shape, isPacked) :
-          webgl_util.getTextureArrayShapeFromLogicalShape(
-              shape, isPacked, mrtStorage);
+      texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
       texData.texShape = texShape;
     }
 
@@ -1164,7 +1151,6 @@ export class MathBackendWebGL extends KernelBackend {
         tempDenseInputTexData.usage = TextureUsage.UPLOAD;
       }
       tempDenseInputTexData.texShape = tempDenseInputTexShape;
-      assert(mrtStorage == null, 'Does not support upload MRT texture!');
       this.gpgpu.uploadDenseMatrixToTexture(
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
@@ -1198,8 +1184,7 @@ export class MathBackendWebGL extends KernelBackend {
         this.uploadWaitMs += util.now() - start;
       }
     } else {
-      const newTexture =
-          this.acquireTexture(texShape, usage, dtype, isPacked, mrtStorage);
+      const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
       texData.texture = newTexture;
     }
   }
@@ -1217,9 +1202,8 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean, mrtSupport?: [number, number]): Texture {
-    this.numBytesInGPU += this.computeBytes(texShape, dtype) *
-        (mrtSupport == null ? 1 : mrtSupport[0] * mrtSupport[1]);
+      isPacked: boolean): Texture {
+    this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {
       const mb = (this.numBytesInGPU / 1024 / 1024).toFixed(2);
@@ -1228,8 +1212,7 @@ export class MathBackendWebGL extends KernelBackend {
           `High memory usage in GPU: ${mb} MB, ` +
           `most likely due to a memory leak`);
     }
-    return this.textureManager.acquireTexture(
-        texShape, texType, isPacked, mrtSupport);
+    return this.textureManager.acquireTexture(texShape, texType, isPacked);
   }
 
   private computeBytes(shape: [number, number], dtype: DataType) {

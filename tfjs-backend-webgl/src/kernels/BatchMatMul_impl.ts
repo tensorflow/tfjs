@@ -20,8 +20,6 @@ import {backend_util, broadcast_util, TensorInfo, upcastType, util} from '@tenso
 import {MathBackendWebGL} from '../backend_webgl';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
-import {MatMulPackedMrt2x2Program} from '../mulmat_packed_mrt2x2_gpu';
-import {assert} from '../webgl_util';
 
 import {multiply} from './Multiply';
 import {reshape} from './Reshape';
@@ -178,112 +176,6 @@ export function batchMatMulImpl({
 
     out = backend.runWebGLProgram(program, inputs, dtype);
   }
-
-  const outReshaped =
-      reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
-  intermediates.push(out);
-  for (const i of intermediates) {
-    backend.disposeIntermediateTensorInfo(i);
-  }
-  return outReshaped;
-}
-
-export function batchMatMulMrt2x2Impl({
-  a,
-  b,
-  transposeA,
-  transposeB,
-  backend,
-  bias = null,
-  preluActivationWeights = null,
-  leakyreluAlpha = 0,
-  activation = null
-}: BatchMatMulConfig): TensorInfo {
-  assert(
-      bias == null ||
-          (bias.shape.length === 1 &&
-           bias.shape[0] === b.shape[b.shape.length - 1]),
-      'MatMul MRT only supports 1D bias!');
-  assert(
-      activation !== 'leakyrelu',
-      'MatMul MRT does not support leakyreluAlpha!');
-  assert(
-      preluActivationWeights == null,
-      'MatMul MRT does not support preluActivationWeights!');
-
-  const aRank = a.shape.length;
-  const bRank = b.shape.length;
-
-  const innerShapeA = transposeA ? a.shape[aRank - 2] : a.shape[aRank - 1];
-  const innerShapeB = transposeB ? b.shape[bRank - 1] : b.shape[bRank - 2];
-
-  const outerShapeA = transposeA ? a.shape[aRank - 1] : a.shape[aRank - 2];
-  const outerShapeB = transposeB ? b.shape[bRank - 2] : b.shape[bRank - 1];
-
-  const outerDimsA = a.shape.slice(0, -2);
-  const outerDimsB = b.shape.slice(0, -2);
-
-  const batchDimA = util.sizeFromShape(outerDimsA);
-  const batchDimB = util.sizeFromShape(outerDimsB);
-
-  assert(batchDimA === 1, 'MatMul MRT does not support batch!');
-  assert(batchDimB === 1, 'MatMul MRT does not support batch!');
-
-  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
-      a.shape.slice(0, -2), b.shape.slice(0, -2));
-  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
-
-  util.assert(
-      innerShapeA === innerShapeB,
-      () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
-          `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
-          `${b.shape} and transposeA=${transposeA}` +
-          ` and transposeB=${transposeB} must match.`);
-
-  const a3dShape: [number, number, number] = transposeA ?
-      [batchDimA, innerShapeA, outerShapeA] :
-      [batchDimA, outerShapeA, innerShapeA];
-  const b3dShape: [number, number, number] = transposeB ?
-      [batchDimB, outerShapeB, innerShapeB] :
-      [batchDimB, innerShapeB, outerShapeB];
-
-  // The rest of the implementation is designed to operate on rank-3 tensors
-  const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
-  const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
-
-  const intermediates: TensorInfo[] = [a3d, b3d];
-
-  const batchDim = Math.max(batchDimA, batchDimB);
-
-  const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha = activation === 'leakyrelu';
-  const fusedActivation = activation != null ?
-      mapActivationToShaderProgram(activation, true) :
-      null;
-  let out: TensorInfo;
-  const dtype = upcastType(a.dtype, b.dtype);
-
-  const program = new MatMulPackedMrt2x2Program(
-      a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-      transposeB, bias?.shape, fusedActivation, hasPreluActivationWeights,
-      hasLeakyreluAlpha);
-
-  const inputs: TensorInfo[] = [a3d, b3d];
-  if (bias != null) {
-    inputs.push(bias);
-  }
-  if (hasPreluActivationWeights) {
-    inputs.push(preluActivationWeights);
-  }
-  if (hasLeakyreluAlpha) {
-    const $leakyreluAlpha = backend.makeTensorInfo(
-        [], 'float32',
-        util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
-    inputs.push($leakyreluAlpha);
-    intermediates.push($leakyreluAlpha);
-  }
-
-  out = backend.runWebGLProgram(program, inputs, dtype);
 
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});

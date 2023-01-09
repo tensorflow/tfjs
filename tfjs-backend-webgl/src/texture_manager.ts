@@ -20,7 +20,6 @@ import {env} from '@tensorflow/tfjs-core';
 import {GPGPUContext} from './gpgpu_context';
 import {getInternalFormatForFloat16MatrixTexture, getInternalFormatForFloat16PackedMatrixTexture, getInternalFormatForFloat32MatrixTexture, getInternalFormatForPackedMatrixTexture, getInternalFormatForUnsignedBytesMatrixTexture} from './gpgpu_util';
 import {getPackedMatrixTextureShapeWidthHeight, getUnpackedMatrixTextureShapeWidthHeight, PhysicalTextureType, Texture, TextureConfig, TextureUsage} from './tex_util';
-import {assert} from './webgl_util';
 
 export class TextureManager {
   private numUsedTextures = 0;
@@ -35,12 +34,11 @@ export class TextureManager {
   constructor(private gpgpu: GPGPUContext) {}
 
   acquireTexture(
-      shapeRC: [number, number], usage: TextureUsage, isPacked: boolean,
-      mrtSupport?: [number, number]): Texture {
+      shapeRC: [number, number], usage: TextureUsage,
+      isPacked: boolean): Texture {
     const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
 
-    const shapeKey =
-        getKeyFromTextureShape(shapeRC, physicalTexType, isPacked, mrtSupport);
+    const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -50,7 +48,7 @@ export class TextureManager {
 
     const texBytes = computeBytes(
         shapeRC, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
-        isPacked, mrtSupport);
+        isPacked);
 
     if (this.freeTextures[shapeKey].length > 0) {
       this.numFreeTextures--;
@@ -63,11 +61,7 @@ export class TextureManager {
     }
 
     let newTexture: Texture;
-    if (mrtSupport != null) {
-      assert(physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32);
-      newTexture = this.gpgpu.createPackedMatrixTextureArray(
-          shapeRC[0], shapeRC[1], mrtSupport[0] * mrtSupport[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
+    if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
       newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
     } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
       newTexture =
@@ -94,15 +88,14 @@ export class TextureManager {
 
   releaseTexture(
       texture: Texture, shape: [number, number], logicalTexType: TextureUsage,
-      isPacked: boolean, mrtSupport?: [number, number]): void {
+      isPacked: boolean): void {
     if (this.freeTextures == null) {
       // Already disposed.
       return;
     }
     const physicalTexType =
         getPhysicalFromLogicalTextureType(logicalTexType, isPacked);
-    const shapeKey =
-        getKeyFromTextureShape(shape, physicalTexType, isPacked, mrtSupport);
+    const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -210,8 +203,8 @@ function numBytesForInternalFormat(
 
 export function computeBytes(
     shape: [number, number], physicalTexType: PhysicalTextureType,
-    gl: WebGLRenderingContext, textureConfig: TextureConfig, isPacked: boolean,
-    mrtSupport?: [number, number]): number {
+    gl: WebGLRenderingContext, textureConfig: TextureConfig,
+    isPacked: boolean): number {
   // It is not possible to infer packed status from the texture type because
   // depending on the textureConfig, different  texture types may resolve to the
   // same internal format (e.g. in WebGL1, the internal format for
@@ -233,8 +226,7 @@ export function computeBytes(
   }
 
   const bytesPerElement = numBytesForInternalFormat(gl, internalFormat);
-  return numElements * bytesPerElement *
-      (mrtSupport == null ? 1 : (mrtSupport[0] * mrtSupport[1]));
+  return numElements * bytesPerElement;
 }
 
 function internalFormatForPhysicalTexType(
@@ -287,8 +279,6 @@ function getPhysicalFromLogicalTextureType(
 
 function getKeyFromTextureShape(
     shapeRowsCol: [number, number], physicalTexType: PhysicalTextureType,
-    isPacked: boolean, mrtSupport?: [number, number]): string {
-  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}_${physicalTexType}_${
-             isPacked}` +
-      (mrtSupport == null ? '' : `_MRT${mrtSupport[0]}x${mrtSupport[1]}`);
+    isPacked: boolean): string {
+  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}_${physicalTexType}_${isPacked}`;
 }

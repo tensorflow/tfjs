@@ -89,7 +89,6 @@ export interface TextureData {
   texShape?: [number, number];
   usage?: TextureUsage;
   isPacked?: boolean;
-  mrtStorage?: [number, number];
 
   refCount: number;
 

@@ -20,12 +20,6 @@ import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
 
-export function assert(value: boolean, message?: string): void {
-  if (!value) {
-    throw new Error(`Assert failed: ${message || ''}`);
-  }
-}
-
 export function callAndCheck<T>(gl: WebGLRenderingContext, func: () => T): T {
   const returnValue = func();
   if (env().getBool('DEBUG')) {
@@ -256,16 +250,6 @@ export function bindTextureUnit(
   callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 }
 
-export function bindTextureArrayUnit(
-    gl: WebGLRenderingContext, texture: WebGLTexture, textureUnit: number) {
-  validateTextureUnit(gl, textureUnit);
-  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
-  callAndCheck(
-      gl,
-      () => gl.bindTexture(
-          (gl as WebGL2RenderingContext).TEXTURE_2D_ARRAY, texture));
-}
-
 export function unbindTextureUnit(
     gl: WebGLRenderingContext, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
@@ -294,13 +278,6 @@ export function bindTextureToProgramUniformSampler(
   callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
 }
 
-export function bindTextureArrayToProgramUniformSampler(
-    gl: WebGLRenderingContext, texture: WebGLTexture,
-    uniformSamplerLocation: WebGLUniformLocation, textureUnit: number) {
-  callAndCheck(gl, () => bindTextureArrayUnit(gl, texture, textureUnit));
-  callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
-}
-
 export function bindCanvasToFramebuffer(gl: WebGLRenderingContext) {
   callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
   callAndCheck(gl, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
@@ -317,20 +294,6 @@ export function bindColorTextureToFramebuffer(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0));
 }
 
-export function bindColorTextureArrayToFramebuffer(
-    gl: WebGLRenderingContext, texture: WebGLTexture,
-    framebuffer: WebGLFramebuffer, layers: number) {
-  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  for (let layer = 0; layer < layers; layer++) {
-    callAndCheck(
-        gl,
-        () => (gl as WebGL2RenderingContext)
-                  .framebufferTextureLayer(
-                      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + layer, texture, 0,
-                      layer));
-  }
-}
-
 export function unbindColorTextureFromFramebuffer(
     gl: WebGLRenderingContext, framebuffer: WebGLFramebuffer) {
   callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
@@ -338,31 +301,6 @@ export function unbindColorTextureFromFramebuffer(
       gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0));
-}
-
-export function unbindColorTextureArrayFromFramebuffer(
-    gl: WebGLRenderingContext, framebuffer: WebGLFramebuffer) {
-  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  callAndCheck(
-      gl,
-      () => (gl as WebGL2RenderingContext)
-                .framebufferTextureLayer(
-                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0));
-  callAndCheck(
-      gl,
-      () => (gl as WebGL2RenderingContext)
-                .framebufferTextureLayer(
-                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 1));
-  callAndCheck(
-      gl,
-      () => (gl as WebGL2RenderingContext)
-                .framebufferTextureLayer(
-                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 2));
-  callAndCheck(
-      gl,
-      () => (gl as WebGL2RenderingContext)
-                .framebufferTextureLayer(
-                    gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 3));
 }
 
 export function validateFramebuffer(gl: WebGLRenderingContext) {
@@ -506,8 +444,8 @@ export function getTextureShapeFromLogicalShape(
   if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
-      // accommodate the texture data. However in order to squarify such that
-      // inner dimensions stay even, we rewrite size to equal the number of
+      // accommodate the texture data. However in order to squNarrowarify such
+      // that inner dimensions stay even, we rewrite size to equal the number of
       // texels. Then in the return statement we rehydrate the squarified
       // dimensions to channel units.
 
@@ -517,8 +455,34 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      textureShape =
-          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      if (env().getBool('WEBGL2_TEX_RESHAPE_MULTI_WIDTH')) {
+        let width, height;
+        if (cols < batchDim * rows) {
+          width = cols / 2 * Math.ceil(batchDim * rows / maxTexSize);
+          height = Math.ceil(size / width);
+        } else {
+          height = rows / 2 * Math.ceil(cols / maxTexSize);
+          width = Math.ceil(size / height);
+        }
+        if (width <= maxTexSize && height <= maxTexSize) {
+          textureShape = [height, width].map(d => d * 2) as [number, number];
+          // console.log(`** Reshape from ${logShape} to ${textureShape}!`);
+        } else {
+          textureShape = util.sizeToSquarishShape(size).map(
+                             d => d * 2) as [number, number];
+          // console.log(`-- Squarify shape from ${logShape} to
+          // ${textureShape}!`);
+        }
+      } else if (env().getBool('WEBGL2_TEX_RESHAPE_MAX_WIDTH')) {
+        textureShape = [Math.ceil(size / maxTexSize * 2) * 2, maxTexSize];
+      } else if (env().getBool('WEBGL2_TEX_RESHAPE_MAX_HEIGHT')) {
+        textureShape = [maxTexSize, Math.ceil(size / maxTexSize * 2) * 2];
+      } else {
+        textureShape =
+            util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+        // console.log(`-- Squarify shape from ${logShape} to
+        // ${textureShape}!`);
+      }
     } else {
       textureShape = util.sizeToSquarishShape(size);
     }
@@ -527,35 +491,15 @@ export function getTextureShapeFromLogicalShape(
   return textureShape;
 }
 
-export function nearestLargerMultipleOf4(val: number): number {
-  return Math.ceil(val / 4) * 4;
-}
-
-export function getTextureArrayShapeFromLogicalShape(
-    logShape: number[], isPacked = false,
-    mrtSupport: [number, number]): [number, number] {
-  assert(isPacked);
-  logShape = logShape.map(
-      (d, i) => i >= logShape.length - 2 ? util.nearestLargerEven(logShape[i]) /
-              mrtSupport[i - logShape.length + 2] :
-                                           logShape[i]);
-  return getTextureShapeFromLogicalShape(logShape, isPacked);
-}
-
 function isEven(n: number): boolean {
   return n % 2 === 0;
-}
-
-function isMultiplyOf4(n: number): boolean {
-  return n % 4 === 0;
 }
 
 /**
  * This determines whether reshaping a packed texture requires rearranging
  * the data within the texture, assuming 2x2 packing.
  */
-export function isReshapeFree(
-    shape1: number[], shape2: number[], mrt: boolean = false): boolean {
+export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
   shape1 = shape1.slice(-2);
   shape2 = shape2.slice(-2);
 
@@ -583,10 +527,6 @@ export function isReshapeFree(
         (shape1[0] === 1 || shape2[0] === 1)) {
       return true;
     }
-  }
-  if (mrt) {
-    return shape1[1] === shape2[1] && isMultiplyOf4(shape1[0]) &&
-        isMultiplyOf4(shape2[0]);
   }
   return shape1[1] === shape2[1] && isEven(shape1[0]) && isEven(shape2[0]);
 }
