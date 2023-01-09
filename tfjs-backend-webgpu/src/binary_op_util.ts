@@ -21,6 +21,7 @@ export enum BinaryOpType {
   COMPLEX_MULTIPLY_IMAG,
   COMPLEX_MULTIPLY_REAL,
   DIV,
+  ELU_DER,
   EQUAL,
   GREATER,
   GREATER_EQUAL,
@@ -59,6 +60,9 @@ const ADD = 'return a + b;';
 const COMPLEX_MULTIPLY_REAL = 'return areal * breal - aimag * bimag;';
 const COMPLEX_MULTIPLY_IMAG = 'return areal * bimag + aimag * breal;';
 const DIV = 'return a / b;';
+const ELU_DER = 'return select(a * (b + 1.0), a, b >= 0.);';
+const ELU_DER_VEC4 =
+    'return select(a * (b + vec4<f32>(1.0)), a, b >= vec4<f32>(0.));';
 const EQUAL = 'return f32(a == b);';
 const EQUAL_VEC4 = 'return vec4<f32>(a == b);';
 const GREATER = 'return f32(a > b);';
@@ -223,6 +227,8 @@ export function getBinaryOpString(
       return COMPLEX_MULTIPLY_REAL;
     case BinaryOpType.DIV:
       return DIV;
+    case BinaryOpType.ELU_DER:
+      return useVec4 ? ELU_DER_VEC4 : ELU_DER;
     case BinaryOpType.EQUAL:
       return useVec4 ? EQUAL_VEC4 : EQUAL;
     case BinaryOpType.GREATER:
