@@ -50,9 +50,6 @@ void Atan(const int x_id, const DType dtype, const int out_id) {
     case DType::int32:
       unary_i32(x_id, out_id, atan_impl<int>);
       break;
-    case DType::boolean:
-      unary_bool(x_id, out_id, atan_impl<bool>);
-      break;
     default:
       util::warn("Atan for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);

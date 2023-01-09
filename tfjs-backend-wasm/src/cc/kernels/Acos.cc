@@ -50,9 +50,6 @@ void Acos(const int x_id, const DType dtype, const int out_id) {
     case DType::int32:
       unary_i32(x_id, out_id, acos_impl<int>);
       break;
-    case DType::boolean:
-      unary_bool(x_id, out_id, acos_impl<bool>);
-      break;
     default:
       util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);

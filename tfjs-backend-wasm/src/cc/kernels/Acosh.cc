@@ -47,12 +47,6 @@ void Acosh(const int x_id, const DType dtype, const int out_id) {
     case DType::float32:
       unary_f32(x_id, out_id, acosh_impl<float>);
       break;
-    case DType::int32:
-      unary_i32(x_id, out_id, acosh_impl<int>);
-      break;
-    case DType::boolean:
-      unary_bool(x_id, out_id, acosh_impl<bool>);
-      break;
     default:
       util::warn("Acosh for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
