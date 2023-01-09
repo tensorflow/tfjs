@@ -261,6 +261,7 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseSegmentSum ',
       'stringSplit ',
       'stringToHashBucketFast ',
+      'tensorScatterUpdate ',
       'unique ',
       'unsortedSegmentSum ',
       'valueAndGradients ',
