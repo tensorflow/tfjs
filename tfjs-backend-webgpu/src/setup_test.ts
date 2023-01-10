@@ -82,13 +82,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'elu ',
-    excludes: [
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
@@ -250,7 +243,6 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3d ',
       'maxPool3dBackprop ',
       'maxPoolBackprop ',
-      'maxPoolWithArgmax ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
@@ -261,6 +253,7 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseSegmentSum ',
       'stringSplit ',
       'stringToHashBucketFast ',
+      'tensorScatterUpdate ',
       'unique ',
       'unsortedSegmentSum ',
       'valueAndGradients ',
