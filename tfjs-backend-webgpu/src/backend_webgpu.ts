@@ -786,26 +786,7 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
-    // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
-    // program size, program defined uniforms.
-    const programUniform: ProgramUniform = [];
-    let bufferShapes: number[][] = [];
-    if (!program.isFromPixels) {
-      programUniform.push(
-          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
-      bufferShapes = inputs.concat(output).map(d => d.shape);
-      const uniformsType = 'int32';
-      bufferShapes.map(d => {
-        programUniform.push({type: uniformsType, data: d});
-      });
-      const strides = util.computeStrides(output.shape);
-      programUniform.push({type: uniformsType, data: strides});
-      if (program.size) {
-        const size = util.sizeFromShape(program.outputShape);
-        programUniform.push(
-            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
-      }
-    }
+    const bufferShapes: number[][] = inputs.concat(output).map(d => d.shape);
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
       if (input.dtype === 'complex64') {
@@ -837,7 +818,7 @@ export class WebGPUBackend extends KernelBackend {
 
     if (!parallelCompilation) {
       this.recordAndSubmit(
-          program, output, inputs, programUniform, programDefinedUniform);
+          program, output, inputs, bufferShapes, programDefinedUniform);
     } else {
       this.asyncProgramInfos.push(program);
     }
@@ -846,12 +827,29 @@ export class WebGPUBackend extends KernelBackend {
 
   private recordAndSubmit(
       program: webgpu_program.WebGPUProgram, output: TensorInfo,
-      inputs: TensorInfo[], programUniform: ProgramUniform,
+      inputs: TensorInfo[], bufferShapes: number[][],
       programDefinedUniform?: ProgramUniform) {
-    const shouldTimeProgram = this.activeTimers != null;
     if (program.pipeline instanceof Promise<GPUComputePipeline>) {
       throw new Error(
           'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
+    }
+    // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
+    // program size, program defined uniforms.
+    let programUniform: ProgramUniform = [];
+    if (!program.isFromPixels) {
+      programUniform.push(
+          {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
+      const uniformsType = 'int32';
+      bufferShapes.map(d => {
+        programUniform.push({type: uniformsType, data: d});
+      });
+      const strides = util.computeStrides(output.shape);
+      programUniform.push({type: uniformsType, data: strides});
+      if (program.size) {
+        const size = util.sizeFromShape(program.outputShape);
+        programUniform.push(
+            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+      }
     }
 
     if (programDefinedUniform) {
@@ -874,6 +872,7 @@ export class WebGPUBackend extends KernelBackend {
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
 
+    const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram && this.supportTimeQuery) {
       // tslint:disable-next-line:no-any
       (pass as any).writeTimestamp(this.querySet, 0);
