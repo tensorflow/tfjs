@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import { Asinh, KernelConfig } from '@tensorflow/tfjs-core';
+import {Asinh, KernelConfig} from '@tensorflow/tfjs-core';
 
-import { createUnaryKernelConfig } from './unary_kernel';
+import {createUnaryKernelConfig} from './unary_kernel';
 
 export const asinhConfig: KernelConfig = createUnaryKernelConfig(Asinh);
