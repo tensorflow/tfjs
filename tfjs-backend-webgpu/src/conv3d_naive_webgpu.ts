@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,21 +18,22 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
-import {computeDispatch} from './webgpu_util';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Conv3DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms =
-      'filterDims: vec3<i32>, pad: vec3<i32>, strides: vec3<i32>, dilations: vec3<i32>,';
-  workgroupSize: [number, number, number] = [4, 4, 8];
+      'filterDims: vec3<i32>, pads: vec3<i32>, strides: vec3<i32>, dilations: vec3<i32>,';
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
 
   constructor(convInfo: backend_util.Conv3DInfo) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [3], y: [1, 2], z: [0, 4]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
@@ -41,12 +42,13 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${main()} {
+    ${main('index')} {
+      if (index < uniforms.size) {
         let coords = getOutputCoords();
         let batch = coords.x;
         let d2 = coords.u;
 
-        let xFRCCorner = vec3<i32>(coords.y, coords.z, coords.w) * uniforms.strides - uniforms.pad;
+        let xFRCCorner = vec3<i32>(coords.y, coords.z, coords.w) * uniforms.strides - uniforms.pads;
         let xFCorner = xFRCCorner.x;
         let xRCorner = xFRCCorner.y;
         let xCCorner = xFRCCorner.z;
@@ -119,11 +121,9 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
             }
           }
         }
-        if (coords.x < uniforms.outShape.x && coords.y < uniforms.outShape.y && coords.z < uniforms.outShape.z
-            && coords.w < uniforms.outShape.w && coords.u < uniforms.outShape.u) {
-          setOutputAtCoords(coords.x, coords.y, coords.z, coords.w, coords.u, dotProd);
-        }
-      }`;
+        setOutputAtIndex(index, dotProd);
+      }
+    }`;
     return userCode;
   }
 }
