@@ -61,10 +61,10 @@ version = '${version}'
             `Version file for pip version ${version} saved sucessfully.`);
       });
 
-  const buildFilename = dirName + '/python/BUILD';
+  const buildFilename = dirName + '/python/BUILD.bazel';
   fs.readFile(buildFilename, 'utf-8', function(err, data) {
     if (err != null) {
-      throw new Error(`Could not update the BUILD file: ${err}`);
+      throw new Error(`Could not update the BUILD.bazel file: ${err}`);
     }
 
     const newValue = data.replace(
@@ -72,6 +72,6 @@ version = '${version}'
     fs.writeFileSync(buildFilename, newValue, 'utf-8');
 
     console.log(
-        `pip version ${version} for BUILD file is updated sucessfully.`);
+        `pip version ${version} for BUILD.bazel file is updated sucessfully.`);
   });
 }
