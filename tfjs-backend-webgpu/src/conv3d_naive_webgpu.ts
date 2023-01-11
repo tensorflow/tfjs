@@ -55,25 +55,25 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
         let inputDepthVec4Remainder = uniforms.xShape.u % 4;
 
         var dotProd = 0.0;
-        for (var wF = 0; wF < uniforms.filterDims[0]; wF = wF + 1) {
+        for (var wF = 0; wF < uniforms.filterDims[0]; wF++) {
           let xF = xFCorner + wF * uniforms.dilations[0];
           if (xF < 0 || xF >= uniforms.xShape.y) {
             continue;
           }
 
-          for (var wR = 0; wR < uniforms.filterDims[1]; wR = wR + 1) {
+          for (var wR = 0; wR < uniforms.filterDims[1]; wR++) {
             let xR = xRCorner + wR * uniforms.dilations[1];
             if (xR < 0 || xR >= uniforms.xShape.z) {
               continue;
             }
 
-            for (var wC = 0; wC < uniforms.filterDims[2]; wC = wC + 1) {
+            for (var wC = 0; wC < uniforms.filterDims[2]; wC++) {
               let xC = xCCorner + wC * uniforms.dilations[2];
               if (xC < 0 || xC >= uniforms.xShape.w) {
                 continue;
               }
 
-              for (var d1 = 0; d1 < inputDepthNearestVec4; d1 = d1 + 4) {
+              for (var d1 = 0; d1 < inputDepthNearestVec4; d1 += 4) {
                 let xValues = vec4<f32>(
                   getX(batch, xF, xR, xC, d1),
                   getX(batch, xF, xR, xC, d1 + 1),
@@ -87,12 +87,11 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
                   getW(wF, wR, wC, d1 + 3, d2)
                 );
 
-                dotProd = dotProd + dot(xValues, wValues);
+                dotProd += dot(xValues, wValues);
               }
 
               if (inputDepthVec4Remainder == 1) {
-                dotProd = dotProd +
-                  getX(batch, xF, xR, xC, inputDepthNearestVec4) *
+                dotProd += getX(batch, xF, xR, xC, inputDepthNearestVec4) *
                   getW(wF, wR, wC, inputDepthNearestVec4, d2);
               } else if (inputDepthVec4Remainder == 2) {
                 let xValues = vec2<f32>(
@@ -103,7 +102,7 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
                   getW(wF, wR, wC, inputDepthNearestVec4, d2),
                   getW(wF, wR, wC, inputDepthNearestVec4 + 1, d2)
                 );
-                dotProd = dotProd + dot(xValues, wValues);
+                dotProd += dot(xValues, wValues);
               } else if (inputDepthVec4Remainder == 3) {
                 let xValues = vec3<f32>(
                   getX(batch, xF, xR, xC, inputDepthNearestVec4),
@@ -115,7 +114,7 @@ export class Conv3DNaiveProgram implements WebGPUProgram {
                   getW(wF, wR, wC, inputDepthNearestVec4 + 1, d2),
                   getW(wF, wR, wC, inputDepthNearestVec4 + 2, d2)
                 );
-                dotProd = dotProd + dot(xValues, wValues);
+                dotProd += dot(xValues, wValues);
               }
             }
           }

@@ -23,8 +23,8 @@ export function symbolicallyComputeStrides(
   }
 
   const numCoords = indicesArr.length;
-  const indicesStr = ['.x', '.y', '.z', '.w', '.u', '.v'];
-  const shape = indicesArr.map(d => `${variableName}${indicesStr[d]}`);
+  const indicesStr = 'xyzwuv';
+  const shape = indicesArr.map(d => `${variableName}.${indicesStr[d]}`);
   const strides = new Array(numCoords - 1);
   strides[numCoords - 2] = shape[numCoords - 1];
   for (let i = numCoords - 3; i >= 0; --i) {
