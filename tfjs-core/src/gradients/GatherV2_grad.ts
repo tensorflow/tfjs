@@ -29,7 +29,7 @@ export const gatherGradConfig: GradConfig = {
   inputsToSave: ['x', 'indices'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, indices] = saved;
-    const {axis} = attrs as {} as GatherV2Attrs;
+    const {axis} = attrs as unknown as GatherV2Attrs;
 
     const parsedAxis = parseAxisParam(axis, x.shape)[0];
 

@@ -198,4 +198,4 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
   }) as [Tensor2D, Tensor2D];
 }
 
-export const qr = op({qr_});
+export const qr = /* @__PURE__ */ op({qr_});

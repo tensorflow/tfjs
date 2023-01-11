@@ -57,5 +57,5 @@ export function transpose(args: {
 export const transposeConfig: KernelConfig = {
   kernelName: Transpose,
   backendName: 'webgl',
-  kernelFunc: transpose as {} as KernelFunc
+  kernelFunc: transpose as unknown as KernelFunc
 };

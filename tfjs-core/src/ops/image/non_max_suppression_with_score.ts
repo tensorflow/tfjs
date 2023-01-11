@@ -77,10 +77,10 @@ function nonMaxSuppressionWithScore_(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
-                     NonMaxSuppressionV5, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+                     NonMaxSuppressionV5, inputs as unknown as NamedTensorMap,
+                     attrs as unknown as NamedAttrMap) as Tensor[];
 
   return {selectedIndices: result[0], selectedScores: result[1]};
 }
 
-export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
+export const nonMaxSuppressionWithScore = /* @__PURE__ */ op({nonMaxSuppressionWithScore_});

@@ -245,8 +245,9 @@ export function pool3d(
               }
             }
             const outputOffset = outputColOffset + channel;
-            outputVals[outputOffset] =
-                poolType === 'avg' ? avgValue / count : minMaxValue;
+            outputVals[outputOffset] = poolType === 'avg' ?
+                avgValue / Math.max(count, 1) :
+                minMaxValue;
           }
         }
       }

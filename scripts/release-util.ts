@@ -162,7 +162,7 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 // replace 'link' dependencies with the new monorepo version.
 export const ALPHA_RELEASE_UNIT: ReleaseUnit = {
   name: 'alpha-monorepo-packages',
-  phases: [WEBGPU_PHASE],
+  phases: [TFDF_PHASE, WEBGPU_PHASE],
 };
 
 export const VIS_RELEASE_UNIT: ReleaseUnit = {
@@ -173,11 +173,6 @@ export const VIS_RELEASE_UNIT: ReleaseUnit = {
 export const REACT_NATIVE_RELEASE_UNIT: ReleaseUnit = {
   name: 'react-native',
   phases: [REACT_NATIVE_PHASE]
-};
-
-export const TFDF_RELEASE_UNIT: ReleaseUnit = {
-  name: 'tfdf',
-  phases: [TFDF_PHASE]
 };
 
 export const TFLITE_RELEASE_UNIT: ReleaseUnit = {
@@ -201,7 +196,6 @@ export const RELEASE_UNITS: ReleaseUnit[] = [
   ALPHA_RELEASE_UNIT,
   VIS_RELEASE_UNIT,
   REACT_NATIVE_RELEASE_UNIT,
-  TFDF_RELEASE_UNIT,
   TFLITE_RELEASE_UNIT,
   AUTOML_RELEASE_UNIT,
   WEBSITE_RELEASE_UNIT,
@@ -226,9 +220,7 @@ export async function question(questionStr: string): Promise<string> {
 export function $(cmd: string) {
   const result = shell.exec(cmd, {silent: true});
   if (result.code > 0) {
-    console.log('$', cmd);
-    console.log(result.stderr);
-    process.exit(1);
+    throw new Error(`$ ${cmd}\n ${result.stderr}`);
   }
   return result.stdout.trim();
 }

@@ -293,11 +293,14 @@ tfjs_cc_library(
     name = "all_kernels",
     deps = [
         ":Abs",
+        ":Acos",
+        ":Acosh",
         ":Add",
         ":AddN",
         ":All",
         ":Any",
         ":ArgMax",
+        ":Atan",
         ":AvgPool",
         ":BatchMatMul",
         ":Ceil",
@@ -323,6 +326,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IsNan",
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
@@ -343,6 +347,7 @@ tfjs_cc_library(
         ":Pow",
         ":Prelu",
         ":RealDiv",
+        ":Reciprocal",
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
@@ -373,6 +378,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Abs",
     srcs = ["kernels/Abs.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acos",
+    srcs = ["kernels/Acos.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acosh",
+    srcs = ["kernels/Acosh.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -422,6 +447,36 @@ tfjs_cc_library(
     srcs = ["kernels/ArgMax.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atan",
+    srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asin",
+    srcs = ["kernels/Asin.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asinh",
+    srcs = ["kernels/Asinh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )
@@ -1284,6 +1339,24 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Cosh",
     srcs = ["kernels/Cosh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Reciprocal",
+    srcs = ["kernels/Reciprocal.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsNan",
+    srcs = ["kernels/IsNan.cc"],
     deps = [
         ":backend",
         ":unary",

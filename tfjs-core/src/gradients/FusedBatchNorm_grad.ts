@@ -33,7 +33,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
   inputsToSave: ['x', 'mean', 'variance', 'scale'],
   gradFunc: <R extends Rank>(
       dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {varianceEpsilon} = attrs as {} as FusedBatchNormAttrs;
+    const {varianceEpsilon} = attrs as unknown as FusedBatchNormAttrs;
     const [x, mean, variance, scale] = saved;
 
     const scaleValue = scale == null ? scalar(1) : scale;

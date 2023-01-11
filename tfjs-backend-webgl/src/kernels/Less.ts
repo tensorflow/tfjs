@@ -35,5 +35,5 @@ export const less = binaryKernelFunc({
 export const lessConfig: KernelConfig = {
   kernelName: Less,
   backendName: 'webgl',
-  kernelFunc: less as {} as KernelFunc
+  kernelFunc: less as unknown as KernelFunc
 };

@@ -81,8 +81,8 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  MaxPool, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  MaxPool, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -90,4 +90,4 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const maxPool = op({maxPool_});
+export const maxPool = /* @__PURE__ */ op({maxPool_});

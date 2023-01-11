@@ -72,5 +72,5 @@ export function sparseFillEmptyRows(args: {
 export const sparseFillEmptyRowsConfig: KernelConfig = {
   kernelName: SparseFillEmptyRows,
   backendName: 'cpu',
-  kernelFunc: sparseFillEmptyRows as {} as KernelFunc,
+  kernelFunc: sparseFillEmptyRows as unknown as KernelFunc,
 };

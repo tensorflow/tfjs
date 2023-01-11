@@ -26,7 +26,7 @@ export const leakyReluGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const {alpha} = attrs as {} as LeakyReluAttrs;
+    const {alpha} = attrs as unknown as LeakyReluAttrs;
     const mask = greater(x, 0);
 
     // Returns `gradients * (features > 0) + alpha * gradients * (features <=

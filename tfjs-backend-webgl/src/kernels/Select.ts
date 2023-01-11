@@ -34,5 +34,5 @@ export function select(args: {inputs: SelectInputs, backend: MathBackendWebGL}):
 export const selectConfig: KernelConfig = {
   kernelName: Select,
   backendName: 'webgl',
-  kernelFunc: select as {} as KernelFunc
+  kernelFunc: select as unknown as KernelFunc
 };

@@ -53,6 +53,6 @@ export function flipLeftRight(
 export const flipLeftRightConfig: KernelConfig = {
   kernelName: FlipLeftRight,
   backendName: 'wasm',
-  kernelFunc: flipLeftRight as {} as KernelFunc,
+  kernelFunc: flipLeftRight as unknown as KernelFunc,
   setupFunc: setup
 };

@@ -50,5 +50,5 @@ export function tile(
 export const tileConfig: KernelConfig = {
   kernelName: Tile,
   backendName: 'webgl',
-  kernelFunc: tile as {} as KernelFunc,
+  kernelFunc: tile as unknown as KernelFunc,
 };

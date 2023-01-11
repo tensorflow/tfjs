@@ -78,4 +78,4 @@ function stringSplit_(
   return {indices: result[0], values: result[1], shape: result[2]};
 }
 
-export const stringSplit = op({stringSplit_});
+export const stringSplit = /* @__PURE__ */ op({stringSplit_});

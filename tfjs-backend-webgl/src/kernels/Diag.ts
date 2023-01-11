@@ -45,5 +45,5 @@ export function diag(args: {inputs: DiagInputs, backend: MathBackendWebGL}):
 export const diagConfig: KernelConfig = {
   kernelName: Diag,
   backendName: 'webgl',
-  kernelFunc: diag as {} as KernelFunc
+  kernelFunc: diag as unknown as KernelFunc
 };

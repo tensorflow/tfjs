@@ -59,7 +59,7 @@ function floorDiv_<T extends Tensor>(
 
   const inputs: FloorDivInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(FloorDiv, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(FloorDiv, inputs as unknown as NamedTensorMap);
 }
 
-export const floorDiv = op({floorDiv_});
+export const floorDiv = /* @__PURE__ */ op({floorDiv_});

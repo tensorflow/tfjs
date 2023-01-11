@@ -55,7 +55,7 @@ class TestObjectIterator extends LazyIterator<{}> {
 }
 
 export class TestDataset extends tfd.Dataset<TensorContainerObject> {
-  readonly size: number;
+  override readonly size: number;
   constructor(setSize = false) {
     super();
     if (setSize) {

@@ -91,8 +91,8 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  MaxPool3D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  MaxPool3D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -103,4 +103,4 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const maxPool3d = op({maxPool3d_});
+export const maxPool3d = /* @__PURE__ */ op({maxPool3d_});

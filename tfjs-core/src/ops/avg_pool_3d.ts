@@ -24,8 +24,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {checkPadOnDimRoundingMode} from './conv_util';
 import {cast} from './cast';
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -86,6 +86,11 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
+  util.assert(
+      (typeof strides === 'number' && strides > 0) ||
+          (Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 &&
+           strides[2] > 0),
+      () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`);
   checkPadOnDimRoundingMode('avgPool3d', pad, dimRoundingMode);
   const inputs: AvgPool3DInputs = {x: x5D};
   const attrs:
@@ -93,8 +98,8 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
-                AvgPool3D, inputs as {} as NamedTensorMap,
-                attrs as {} as NamedAttrMap) as T;
+                AvgPool3D, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, x5D.dtype);
 
@@ -107,4 +112,4 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const avgPool3d = op({avgPool3d_});
+export const avgPool3d = /* @__PURE__ */ op({avgPool3d_});

@@ -153,4 +153,4 @@ function softmaxCrossEntropy_<T extends Tensor, O extends Tensor>(
   return computeWeightedLoss(losses, $weights, reduction);
 }
 
-export const softmaxCrossEntropy = op({softmaxCrossEntropy_});
+export const softmaxCrossEntropy = /* @__PURE__ */ op({softmaxCrossEntropy_});

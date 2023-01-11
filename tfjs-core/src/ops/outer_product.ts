@@ -52,4 +52,4 @@ function outerProduct_(
   return matMul(v12D, v22D);
 }
 
-export const outerProduct = op({outerProduct_});
+export const outerProduct = /* @__PURE__ */ op({outerProduct_});

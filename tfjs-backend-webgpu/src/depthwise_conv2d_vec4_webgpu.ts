@@ -69,6 +69,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   getUserCode(): string {
     const xNumber = (this.workPerThread - 1) * this.convInfo.strideWidth +
         this.convInfo.filterWidth;
+    const strideHeight = this.convInfo.strideHeight;
+    const strideWidth = this.convInfo.strideWidth;
 
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, true, 4)}
@@ -80,14 +82,12 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         return value;
       }
 
-      const strideHeight = ${this.convInfo.strideHeight};
-      const strideWidth = ${this.convInfo.strideWidth};
       ${main()} {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * ${this.workPerThread};
         let d1 = i32(globalId.x) * 4;
-        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(strideHeight, strideWidth) - uniforms.pad;
+        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(${strideHeight}, ${strideWidth}) - uniforms.pad;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
@@ -107,7 +107,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
             for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
               let wValue = getW(wR, wC, d1, 0);
               for (var i = 0; i < ${this.workPerThread}; i++) {
-                dotProd[i] = fma(xVals[i * strideWidth + wC], wValue, dotProd[i]);
+                dotProd[i] = fma(xVals[i * ${strideWidth} + wC], wValue, dotProd[i]);
               }
             }
           }

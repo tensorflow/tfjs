@@ -48,5 +48,5 @@ export function resizeNearestNeighbor(args: {
 export const resizeNearestNeighborConfig: KernelConfig = {
   kernelName: ResizeNearestNeighbor,
   backendName: 'webgpu',
-  kernelFunc: resizeNearestNeighbor as {} as KernelFunc
+  kernelFunc: resizeNearestNeighbor as unknown as KernelFunc
 };

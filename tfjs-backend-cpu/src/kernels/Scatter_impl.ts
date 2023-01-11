@@ -27,7 +27,8 @@ export function
 scatterImpl<R extends Rank, D extends 'float32'|'int32'|'bool'|'string'>(
     indices: TensorBuffer<R, 'int32'>, updates: TensorBuffer<R, D>,
     shape: number[], outputSize: number, sliceSize: number, numUpdates: number,
-    sliceRank: number, strides: number[], defaultValue: DefaultValueTypeMap[D],
+    sliceRank: number, strides: number[],
+    defaultValue: TensorBuffer<R, D>|DefaultValueTypeMap[D],
     sumDupeIndices: boolean): TensorBuffer<R, D> {
   const flattenShape = [outputSize / sliceSize, sliceSize];
 
@@ -38,7 +39,9 @@ scatterImpl<R extends Rank, D extends 'float32'|'int32'|'bool'|'string'>(
     return buffer(shape as ShapeMap[R], updates.dtype);
   }
 
-  const outBuf = buffer(flattenShape, updates.dtype);
+  const outBuf = (defaultValue instanceof TensorBuffer) ?
+      defaultValue :
+      buffer(flattenShape, updates.dtype);
   if (typeof defaultValue === 'string') {
     (outBuf.values as string[]).fill(defaultValue);
   } else if (typeof defaultValue === 'number') {

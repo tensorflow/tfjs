@@ -49,7 +49,7 @@ function notEqual_<T extends Tensor>(
 
   const inputs: NotEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(NotEqual, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(NotEqual, inputs as unknown as NamedTensorMap);
 }
 
-export const notEqual = op({notEqual_});
+export const notEqual = /* @__PURE__ */ op({notEqual_});

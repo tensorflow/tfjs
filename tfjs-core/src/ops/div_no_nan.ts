@@ -69,4 +69,4 @@ function divNoNan_<T extends Tensor>(
   return where(bEqualsZero, zeros, divResult) as T;
 }
 
-export const divNoNan = op({divNoNan_});
+export const divNoNan = /* @__PURE__ */ op({divNoNan_});

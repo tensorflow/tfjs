@@ -47,7 +47,7 @@ function fft_(input: Tensor): Tensor {
 
   const inputs: FFTInputs = {input};
 
-  return ENGINE.runKernel(FFT, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(FFT, inputs as unknown as NamedTensorMap);
 }
 
-export const fft = op({fft_});
+export const fft = /* @__PURE__ */ op({fft_});

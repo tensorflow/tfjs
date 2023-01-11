@@ -137,4 +137,4 @@ function normImpl(
   throw new Error(`Error in norm: invalid axis: ${axis}`);
 }
 
-export const norm = op({norm_});
+export const norm = /* @__PURE__ */ op({norm_});

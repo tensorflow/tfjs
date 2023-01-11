@@ -3,7 +3,8 @@ const { benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile, scheduleM
   require('./app.js');
 const {
   addResultToFirestore,
-  serializeTensors,
+  makeCompatableWithFirestore,
+  addGpuInfo,
   getReadableDate,
   formatForFirestore,
   runFirestore,
@@ -29,37 +30,41 @@ describe('test app.js cli', () => {
     mockResults = {
       'iPhone_XS_1': {
         timeInfo: {
-          times: [216.00000000000045],
-          averageTime: 216.00000000000045,
+          times: [218.00000000000045, 216.00000000000045],
+          averageTime: 217.00000000000045,
+          averageTimeExclFirst: 216.00000000000045,
           minTime: 216.00000000000045,
-          maxTime: 216.00000000000045
+          maxTime: 218.00000000000045
         },
         tabId: 'iPhone_XS_1'
       },
       'Samsung_Galaxy_S20_1': {
         timeInfo: {
-          times: [428.89999999897555],
-          averageTime: 428.89999999897555,
+          times: [428.89999999897555, 430.89999999897555],
+          averageTime: 429.89999999897555,
+          averageTimeExclFirst: 430.89999999897555,
           minTime: 428.89999999897555,
-          maxTime: 428.89999999897555
+          maxTime: 430.89999999897555
         },
         tabId: 'Samsung_Galaxy_S20_1'
       },
       'Windows_10_1': {
         timeInfo: {
-          times: [395.8500000001095],
-          averageTime: 395.8500000001095,
+          times: [395.8500000001095, 397.8500000001095],
+          averageTime: 396.8500000001095,
+          averageTimeExclFirst: 397.8500000001095,
           minTime: 395.8500000001095,
-          maxTime: 395.8500000001095
+          maxTime: 397.8500000001095
         },
         tabId: 'Windows_10_1'
       },
       'OS_X_Catalina_1': {
         timeInfo: {
-          times: [176.19500000728294],
-          averageTime: 176.19500000728294,
+          times: [178.19500000728294, 176.19500000728294],
+          averageTime: 177.19500000728294,
+          averageTimeExclFirst: 176.19500000728294,
           minTime: 176.19500000728294,
-          maxTime: 176.19500000728294
+          maxTime: 178.19500000728294
         },
         tabId: 'OS_X_Catalina_1'
       }
@@ -237,10 +242,18 @@ describe('test adding to firestore', () => {
     db.add.and.returnValue(Promise.resolve({ id: 123 }));
     let expectedAdd = {
       result:
-        formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+        formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+          getReadableDate)
     };
     addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
+  });
+
+  it('Expects gpu info is appended to device info', () => {
+    addGpuInfo(mockResultValue);
+    expect(mockResultValue.deviceInfo.device).toEqual(
+      '(GPU: ANGLE (ATI Technologies Inc., AMD Radeon Pro 5300M OpenGL ' +
+      'Engine, OpenGL 4.1))');
   });
 
   it('Expects a date key to exist and have the correct value', () => {
@@ -251,7 +264,8 @@ describe('test adding to firestore', () => {
 
   it('Expects serialization to cover all nested arrays', () => {
     const mockSerializedResults =
-      formatForFirestore(mockResultValue, serializeTensors, mockDate);
+      formatForFirestore(mockResultValue, makeCompatableWithFirestore,
+        mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
       expect(typeof (kernel.inputShapes)).toEqual('string');
       expect(typeof (kernel.outputShapes)).toEqual('string');
@@ -332,28 +346,52 @@ describe('promise queue', () => {
 });
 
 
-describe('weekly schedule', () => {
-  it('scheduling models works for Sun', () => {
+describe('schedule models', () => {
+  it('scheduling models works for the first day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 0);
+    const res = scheduleModels(models, 7, 1);
     expect(res).toEqual(
       [0, 1, 2, 3]
     );
   });
 
-  it('scheduling models works', () => {
+  it('scheduling models works for weekly period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 3);
+    const res = scheduleModels(models, 7, 4);
     expect(res).toEqual(
       [12, 13, 14, 15]
     );
   });
 
-  it('scheduling models works for Sat', () => {
+  it('scheduling models works for the last day of a period', () => {
     models = Array.from(Array(25).keys());
-    const res = scheduleModels(models, 6);
+    const res = scheduleModels(models, 7, 7);
     expect(res).toEqual(
       [24]
     );
+  });
+
+  it('scheduling models works for half-month', () => {
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15, 6);
+    expect(res).toEqual(
+      [10, 11]
+    );
+  });
+
+  it('scheduling models works for default date', () => {
+    jasmine.clock().install();
+
+    const baseTime = new Date(2022, 12, 6);
+    jasmine.clock().mockDate(baseTime);
+    expect(new Date().getDate()).toEqual(6);
+
+    models = Array.from(Array(25).keys());
+    const res = scheduleModels(models, 15);
+    expect(res).toEqual(
+      [10, 11]
+    );
+
+    jasmine.clock().uninstall();
   });
 });

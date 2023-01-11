@@ -36,18 +36,18 @@ export class GaussianNoise extends Layer {
     this.stddev = args.stddev;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {stddev: this.stddev};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -77,18 +77,18 @@ export class GaussianDropout extends Layer {
     this.rate = args.rate;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {rate: this.rate};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
@@ -161,18 +161,18 @@ export class AlphaDropout extends Layer {
     return this.noiseShape || getExactlyOneTensor(inputs).shape;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {rate: this.rate};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       if (this.rate < 1 && this.rate > 0) {
         const noiseShape = this._getNoiseShape(inputs);

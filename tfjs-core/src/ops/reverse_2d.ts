@@ -37,4 +37,4 @@ function reverse2d_(x: Tensor2D|TensorLike, axis?: number|number[]): Tensor2D {
   return reverse($x, axis);
 }
 
-export const reverse2d = op({reverse2d_});
+export const reverse2d = /* @__PURE__ */ op({reverse2d_});

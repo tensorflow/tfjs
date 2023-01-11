@@ -86,7 +86,7 @@ limitations under the License.
       }
 
       structuredBenchmarkResults[tableName][deviceName][benchmarkTargetName]
-        = benchmarkReocrd?.value?.timeInfo?.averageTime;
+        = benchmarkReocrd?.value?.timeInfo?.averageTimeExclFirst;
     }
     return structuredBenchmarkResults;
   }

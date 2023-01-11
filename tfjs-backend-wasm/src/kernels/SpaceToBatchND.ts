@@ -82,5 +82,5 @@ function spaceToBatchND(args: {
 export const spaceToBatchNDConfig: KernelConfig = {
   kernelName: SpaceToBatchND,
   backendName: 'wasm',
-  kernelFunc: spaceToBatchND as {} as KernelFunc
+  kernelFunc: spaceToBatchND as unknown as KernelFunc
 };

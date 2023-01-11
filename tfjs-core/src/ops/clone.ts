@@ -44,7 +44,7 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
 
   // Note this op is called tf.identity in python. Hence the kernel name used
   // here.
-  return ENGINE.runKernel(Identity, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Identity, inputs as unknown as NamedTensorMap);
 }
 
-export const clone = op({clone_});
+export const clone = /* @__PURE__ */ op({clone_});

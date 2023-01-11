@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC. All Rights Reserved.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,31 +13,16 @@
 # limitations under the License.
 # =============================================================================
 
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+
 package(default_visibility = ["//visibility:public"])
 
-# Download the TFLite web API related WASM files from google storage, and make
-# them available for other targets.
-#
-# The downloaded files will be in `tfjs/dist/bin/tfjs-tflite/wasm`.
-genrule(
-    name = "wasm_files",
-    outs = [
-        "tflite_web_api_cc.js",
-        "tflite_web_api_cc.wasm",
-        "tflite_web_api_cc_simd.js",
-        "tflite_web_api_cc_simd.wasm",
-        "tflite_web_api_cc_simd_threaded.js",
-        "tflite_web_api_cc_simd_threaded.wasm",
-        "tflite_web_api_cc_simd_threaded.worker.js",
-        "tflite_web_api_cc_threaded.js",
-        "tflite_web_api_cc_threaded.wasm",
-        "tflite_web_api_cc_threaded.worker.js",
-        "tflite_web_api_client.js",
+# Copy wasm related files to dist/.
+copy_to_dist(
+    name = "wasm",
+    srcs = [
+        "@tflite_wasm_files//:wasm_files",
     ],
-    # $(@D) stores the output directory.
-    cmd = "$(location //tfjs-tflite/scripts:download_tflite_web_api) \"$(@D)\"",
-    exec_tools = [
-        "//tfjs-tflite/scripts:download_tflite_web_api",
-    ],
-    tags = ["no-remote-exec"],
+    dest_dir = ".",
+    global_root = "../tflite_wasm_files",  # See tflite_repositories.bzl
 )

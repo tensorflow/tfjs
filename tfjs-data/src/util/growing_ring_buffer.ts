@@ -28,18 +28,18 @@ export class GrowingRingBuffer<T> extends RingBuffer<T> {
     super(GrowingRingBuffer.INITIAL_CAPACITY);
   }
 
-  isFull() {
+  override isFull() {
     return false;
   }
 
-  push(value: T) {
+  override push(value: T) {
     if (super.isFull()) {
       this.expand();
     }
     super.push(value);
   }
 
-  unshift(value: T) {
+  override unshift(value: T) {
     if (super.isFull()) {
       this.expand();
     }

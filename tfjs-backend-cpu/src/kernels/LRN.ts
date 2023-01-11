@@ -63,5 +63,5 @@ export function lRN(
 export const LRNConfig: KernelConfig = {
   kernelName: LRN,
   backendName: 'cpu',
-  kernelFunc: lRN as {} as KernelFunc
+  kernelFunc: lRN as unknown as KernelFunc
 };

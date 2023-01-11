@@ -58,6 +58,7 @@ The following are supported options arguments which trigger options features:
         "backend": ["backend_name"] //List of one or more backends to be benchmarked
       },
       "browsers": {
+        "local": {},  // Benchmark on your local device
         "unique_identifier_laptop_or_desktop": {
           "base": "BrowserStack",
           "browser": "browser_name",
@@ -101,10 +102,15 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --help
     ```
-  * --weeklyCycleRun
-    - Runs a part of models specified in `--benchmarks`'s file in a weekly cycle and the part of models to run is determined by the day of a week. The value could be -1 (the day will the day at the runtime) or 0~6 (representing Sunday to Saturday). This argument takes effect only if `--benchmarks` is set.
+  * --period
+    - Runs a part of models specified in `--benchmarks`'s file in a cycle and the part of models to run is determined by the date of a month. The value could be or 1~31 (representing Sunday to Saturday). This argument takes effect only if `--benchmarks` is set.
     ``` shell
-    node app.js --weeklyCycleRun=-1
+    node app.js --period=15
+    ```
+  * --date
+    - Set the date for selecting models and this works only if `--period` is set. The value could be 1~31. If it is not declared, the date will the real date at runtime.
+    ``` shell
+    node app.js --period=15 --date=1
     ```
   * --maxBenchmarks
     - Sets maximum for number of benchmarks run in parallel. Expects a positive integer.

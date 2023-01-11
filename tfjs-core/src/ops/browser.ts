@@ -114,8 +114,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return ENGINE.runKernel(
-        FromPixels, inputs as {} as NamedTensorMap,
-        attrs as {} as NamedAttrMap);
+        FromPixels, inputs as unknown as NamedTensorMap,
+        attrs as unknown as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?
@@ -371,4 +371,4 @@ export async function toPixels(
   return bytes;
 }
 
-export const fromPixels = op({fromPixels_});
+export const fromPixels = /* @__PURE__ */ op({fromPixels_});

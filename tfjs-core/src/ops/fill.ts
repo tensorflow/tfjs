@@ -20,6 +20,7 @@ import {Fill, FillAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 /**
  * Creates a `tf.Tensor` filled with a scalar value.
@@ -37,9 +38,11 @@ import {DataType, Rank, ShapeMap} from '../types';
  */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
+
   const attrs: FillAttrs = {shape, value, dtype};
 
-  return ENGINE.runKernel(Fill, {}, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Fill, {}, attrs as unknown as NamedAttrMap);
 }
 
 export {fill};

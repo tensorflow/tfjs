@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import jszip from 'jszip';
-// Karma does not preserve the source path, causing the TFDF library to look for
-// the wasm binary in the root path, so fix the path for the library.
-// tslint:disable-next-line:no-any
-(self as any).__filename = '/base/tfjs/tfjs-tfdf/wasm/';
-// TFDF is Closure-compiled, and expects a global JSZIP variable to exist,
-// rather than passed in as a module.
-// tslint:disable-next-line:no-any
-(window as any).JSZip = jszip;
+
+import {Atan, KernelConfig} from '@tensorflow/tfjs-core';
+
+import {createUnaryKernelConfig} from './unary_kernel';
+
+export const atanConfig: KernelConfig = createUnaryKernelConfig(Atan);

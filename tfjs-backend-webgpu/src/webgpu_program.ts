@@ -124,10 +124,11 @@ export function getMainHeaderString(...params: string[]): string {
   return snippet;
 }
 
-export function getStartHeaderString(useGlobalIndex: boolean): string {
+export function getStartHeaderString(
+    useGlobalIndex: boolean, program: WebGPUProgram): string {
   let snippet: string;
   snippet = `
-     ${getWorkgroupSizeString()}
+     ${getWorkgroupSizeString(program)}
       fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
                 @builtin(global_invocation_id) GlobalId : vec3<u32>,
                 @builtin(local_invocation_index) LocalIndex: u32,
@@ -144,9 +145,10 @@ export function getStartHeaderString(useGlobalIndex: boolean): string {
   return snippet;
 }
 
-export function getWorkgroupSizeString(): string {
+export function getWorkgroupSizeString(program: WebGPUProgram): string {
   return `
-  @compute @workgroup_size(workgroupSizeX, workgroupSizeY, workgroupSizeZ)
+  @compute @workgroup_size(${program.workgroupSize[0]}, ${
+      program.workgroupSize[1]}, ${program.workgroupSize[2]})
 `;
 }
 
@@ -157,9 +159,6 @@ function makeShader(
   const flatWorkgroupSize = program.workgroupSize[0] *
       program.workgroupSize[1] * program.workgroupSize[2];
   prefixSnippets.push(`
-      const workgroupSizeX = ${program.workgroupSize[0]}u;
-      const workgroupSizeY = ${program.workgroupSize[1]}u;
-      const workgroupSizeZ = ${program.workgroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> localIndex: u32;
@@ -174,7 +173,7 @@ function makeShader(
           `  return i32(globalId.x);` :
           `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
                 workgroupId.y * numWorkgroups.x + workgroupId.x) * ${
-              flatWorkgroupSize} +
+              flatWorkgroupSize}u +
                 localIndex);
         `}
       }
@@ -198,7 +197,7 @@ function makeShader(
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
-      getStartHeaderString(useGlobalIndex),
+      getStartHeaderString(useGlobalIndex, program),
     ].join('\n');
   }
 
@@ -258,7 +257,7 @@ function makeShader(
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet + isInfSnippet, prefixSnippets.join('\n'),
+    commonSnippet, prefixSnippets.join('\n') + isInfSnippet,
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
@@ -280,7 +279,7 @@ function makeShader(
   sources.push(inputSnippet);
   sources.push(program.getUserCode());
   const useGlobalIndex = isFlatDispatchLayout(program);
-  sources.push(getStartHeaderString(useGlobalIndex));
+  sources.push(getStartHeaderString(useGlobalIndex, program));
   const source = sources.join('\n');
   return source;
 }
@@ -366,7 +365,8 @@ const commonSnippet = `
     return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
   fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+    let floatToUint: vec4<u32> = bitcast<vec4<u32>>(val);
+    return (floatToUint & vec4<u32>(0x7fffffffu)) > vec4<u32>(0x7f800000u);
   }
 `;
 

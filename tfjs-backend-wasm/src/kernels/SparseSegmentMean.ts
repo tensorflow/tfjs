@@ -32,5 +32,5 @@ export const sparseSegmentMeanConfig: KernelConfig = {
   kernelName: SparseSegmentMean,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sparseSegmentMean as {} as KernelFunc
+  kernelFunc: sparseSegmentMean as unknown as KernelFunc
 };

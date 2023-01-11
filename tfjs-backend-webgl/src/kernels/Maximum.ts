@@ -45,5 +45,5 @@ export const maximum = binaryKernelFunc({
 export const maximumConfig: KernelConfig = {
   kernelName: Maximum,
   backendName: 'webgl',
-  kernelFunc: maximum as {} as KernelFunc
+  kernelFunc: maximum as unknown as KernelFunc
 };

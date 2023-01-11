@@ -26,7 +26,7 @@ export const cropAndResizeConfig: KernelConfig = {
     const {image, boxes, boxInd} = args.inputs as CropAndResizeInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {cropSize, method, extrapolationValue} =
-        args.attrs as {} as CropAndResizeAttrs;
+        args.attrs as unknown as CropAndResizeAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', image.dtype),

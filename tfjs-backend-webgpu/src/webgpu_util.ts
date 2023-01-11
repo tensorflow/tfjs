@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType} from '@tensorflow/tfjs-core';
+import {DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -154,23 +154,26 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
-export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
-  if (dtype === 'float32') {
-    return new Float32Array(data);
-  } else if (dtype === 'int32') {
-    return new Int32Array(data);
-  } else if (dtype === 'bool' || dtype === 'string') {
-    return Uint8Array.from(new Int32Array(data));
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
           //@ts-ignore
           (typeof WorkerGlobalScope !== 'undefined')) &&
       !!navigator.gpu;
+}
+
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors ` +
+              'in the WebGPU backend.');
+    }
+  });
 }
 
 export enum MatMulProgramType {

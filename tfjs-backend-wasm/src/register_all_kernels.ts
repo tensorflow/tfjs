@@ -21,11 +21,16 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
+import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -58,6 +63,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
@@ -88,6 +94,7 @@ import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {rangeConfig} from './kernels/Range';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -121,6 +128,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
@@ -132,11 +140,16 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   allConfig,
   anyConfig,
   argMaxConfig,
+  asinConfig,
+  asinhConfig,
+  atanConfig,
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -169,6 +182,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  isNaNConfig,
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
@@ -199,6 +213,7 @@ const kernelConfigs: KernelConfig[] = [
   prodConfig,
   rangeConfig,
   realDivConfig,
+  reciprocalConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
@@ -232,6 +247,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,

@@ -58,4 +58,4 @@ function moments_(
   return {mean: xMean, variance};
 }
 
-export const moments = op({moments_});
+export const moments = /* @__PURE__ */ op({moments_});

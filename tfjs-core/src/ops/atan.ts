@@ -41,6 +41,6 @@ function atan_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: AtanInputs = {x: $x};
 
-  return ENGINE.runKernel(Atan, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Atan, inputs as unknown as NamedTensorMap);
 }
-export const atan = op({atan_});
+export const atan = /* @__PURE__ */ op({atan_});

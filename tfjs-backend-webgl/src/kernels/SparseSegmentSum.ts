@@ -50,5 +50,5 @@ export function sparseSegmentSum(
 export const sparseSegmentSumConfig: KernelConfig = {
   kernelName: SparseSegmentSum,
   backendName: 'webgl',
-  kernelFunc: sparseSegmentSum as {} as KernelFunc,
+  kernelFunc: sparseSegmentSum as unknown as KernelFunc,
 };

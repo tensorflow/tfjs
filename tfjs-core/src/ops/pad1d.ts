@@ -32,4 +32,4 @@ function pad1d_(
   return pad(x, [paddings], constantValue);
 }
 
-export const pad1d = op({pad1d_});
+export const pad1d = /* @__PURE__ */ op({pad1d_});

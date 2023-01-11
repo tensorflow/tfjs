@@ -21,7 +21,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-const ELU_DER = `return (b >= 1.0) ? a : a * (b + 1.0);`;
+const ELU_DER = `return (b >= 0.0) ? a : a * (b + 1.0);`;
 const ELU_DER_PACKED = `
   vec4 bGTEZero = vec4(greaterThanEqual(b, vec4(0.)));
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
@@ -41,5 +41,5 @@ export const eluGrad =
 export const eluGradConfig: KernelConfig = {
   kernelName: EluGrad,
   backendName: 'webgl',
-  kernelFunc: eluGrad as {} as KernelFunc
+  kernelFunc: eluGrad as unknown as KernelFunc
 };
