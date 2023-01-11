@@ -462,6 +462,26 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Asin",
+    srcs = ["kernels/Asin.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asinh",
+    srcs = ["kernels/Asinh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "AvgPool",
     srcs = ["kernels/AvgPool.cc"],
     hdrs = ["kernels/AvgPool.h"],

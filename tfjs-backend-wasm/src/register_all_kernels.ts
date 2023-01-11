@@ -28,6 +28,8 @@ import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
@@ -145,6 +147,8 @@ const kernelConfigs: KernelConfig[] = [
   allConfig,
   anyConfig,
   argMaxConfig,
+  asinConfig,
+  asinhConfig,
   atanConfig,
   avgPoolConfig,
   batchMatMulConfig,
