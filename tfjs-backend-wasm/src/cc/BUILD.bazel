@@ -293,6 +293,8 @@ tfjs_cc_library(
     name = "all_kernels",
     deps = [
         ":Abs",
+        ":Acos",
+        ":Acosh",
         ":Add",
         ":AddN",
         ":All",
@@ -376,6 +378,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Abs",
     srcs = ["kernels/Abs.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acos",
+    srcs = ["kernels/Acos.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acosh",
+    srcs = ["kernels/Acosh.cc"],
     deps = [
         ":backend",
         ":unary",
