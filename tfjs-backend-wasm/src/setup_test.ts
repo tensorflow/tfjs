@@ -405,6 +405,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'atan '},
   {include: 'acos '},
   {include: 'acosh '},
+  {include: 'asin '},
+  {include: 'asinh '},
 ];
 
 const customInclude = (testName: string) => {
