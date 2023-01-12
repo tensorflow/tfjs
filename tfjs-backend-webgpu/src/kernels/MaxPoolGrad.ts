@@ -50,7 +50,7 @@ export function maxPoolGrad(args: {
   const maxPoolPositions = backend.runWebGPUProgram(
       maxPoolPositionsProgram, [x], 'int32', uniformData);
 
-  const avgPoolBackpropProgram = new MaxPool2DBackpropProgram(convInfo);
+  const maxPoolBackpropProgram = new MaxPool2DBackpropProgram(convInfo);
   uniformData = [
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
       type: 'int32',
@@ -67,7 +67,7 @@ export function maxPoolGrad(args: {
     {type: 'int32', data: [convInfo.outWidth]}
   ];
   const result = backend.runWebGPUProgram(
-      avgPoolBackpropProgram, [dy, maxPoolPositions], x.dtype, uniformData);
+      maxPoolBackpropProgram, [dy, maxPoolPositions], x.dtype, uniformData);
   backend.disposeData(maxPoolPositions.dataId);
 
   return result;
