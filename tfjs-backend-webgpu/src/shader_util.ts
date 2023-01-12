@@ -18,12 +18,13 @@
 // Generates WGSL that computes strides.
 export function symbolicallyComputeStrides(
     indicesArr: number[], variableName: string): string[] {
-  if (Math.max(...indicesArr) > 3) {
-    throw new Error('Cannot symbolically compute strides for rank > 4 tensor.');
+  if (Math.max(...indicesArr) > 5) {
+    throw new Error('Cannot symbolically compute strides for rank > 6 tensor.');
   }
 
   const numCoords = indicesArr.length;
-  const shape = indicesArr.map(d => `${variableName}[${d}]`);
+  const indicesStr = 'xyzwuv';
+  const shape = indicesArr.map(d => `${variableName}.${indicesStr[d]}`);
   const strides = new Array(numCoords - 1);
   strides[numCoords - 2] = shape[numCoords - 1];
   for (let i = numCoords - 3; i >= 0; --i) {
