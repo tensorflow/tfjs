@@ -28,10 +28,12 @@ namespace wasm {
 
 namespace {
 
-template <typename T>
+template <bool reset_out_buf = true, typename T>
 inline void Bincount1D(const int32_t* x_buf, int32_t x_len, int32_t size,
                        const T* weight_buf, bool binary_output, T* out_buf) {
-  std::fill(out_buf, out_buf + size, 0);
+  if (reset_out_buf) {
+    std::fill(out_buf, out_buf + size, 0);
+  }
   for (int32_t i = 0; i < x_len; ++i) {
     int32_t value = x_buf[i];
     if (value < 0) {
@@ -56,10 +58,12 @@ template <typename T>
 inline void Bincount2D(const int32_t* x_buf, int32_t x_shape_0,
                        int32_t x_shape_1, int32_t size, const T* weight_buf,
                        bool binary_output, T* out_buf) {
+  std::fill(out_buf, out_buf + (x_shape_0 * size), 0);
   for (int32_t i = 0; i < x_shape_0; ++i) {
-    Bincount1D(x_buf + i * x_shape_1, x_shape_1, size,
-               weight_buf != nullptr ? weight_buf + i * x_shape_1 : nullptr,
-               binary_output, out_buf + i * size);
+    Bincount1D</*reset_out_buf=*/false>(
+        x_buf + i * x_shape_1, x_shape_1, size,
+        weight_buf != nullptr ? weight_buf + i * x_shape_1 : nullptr,
+        binary_output, out_buf + i * size);
   }
 }
 
