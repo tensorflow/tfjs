@@ -72,9 +72,10 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 // REQUIRES:
-// - Tensor `x` must have dtype int32
-// - Tensor `x` must be 1D or 2D
+// - Tensor `x` must have dtype int32 (checked in tfjs-core)
+// - Tensor `x` must be 1D or 2D (checked in tfjs-core)
 // - If has_weights is true, tensor `weights` must have the same shape as `x`
+// (checked in tfjs-core)
 // - Tensor `out` must have shape [x.shape[0], size] or [size]
 // - Tensor `out` must have the same dtype as weights
 void DenseBincount(const int32_t x_id, const int32_t* x_shape_ptr,

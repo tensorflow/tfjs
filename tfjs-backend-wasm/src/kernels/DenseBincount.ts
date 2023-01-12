@@ -47,21 +47,8 @@ function denseBincount(args: {
   const {backend, inputs, attrs} = args;
   const {x, weights} = inputs;
   const {size, binaryOutput} = attrs;
-  if (x.dtype !== 'int32') {
-    throw new Error('DenseBincount: Tensor x must dtype int32');
-  }
 
-  if (x.shape.length !== 1 && x.shape.length !== 2) {
-    throw new Error('DenseBincount: Tensor x must be 1D or 2D');
-  }
   const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
-  if (hasWeights &&
-      (x.shape.length !== weights.shape.length ||
-       x.shape.some((v, i) => v !== weights.shape[i]))) {
-    throw new Error(
-        'DenseBincount: Tensor weights must be empty or have the same shape as tensor x');
-  }
-
   const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
   const out = backend.makeOutput(outShape, weights.dtype);
 
