@@ -45,6 +45,7 @@ import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {eluConfig} from './kernels/Elu';
@@ -164,6 +165,7 @@ const kernelConfigs: KernelConfig[] = [
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   eluConfig,

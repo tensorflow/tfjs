@@ -634,6 +634,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "DenseBincount",
+    srcs = ["kernels/DenseBincount.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "DepthToSpace",
     srcs = ["kernels/DepthToSpace.cc"],
     deps = [
