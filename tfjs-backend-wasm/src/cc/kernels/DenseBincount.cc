@@ -23,8 +23,7 @@
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 
 namespace {
 
@@ -137,5 +136,4 @@ void DenseBincount(const int32_t x_id, const int32_t* x_shape_ptr,
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
