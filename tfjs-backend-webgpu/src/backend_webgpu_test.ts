@@ -442,7 +442,6 @@ describeWebGPU('parallel compilation', () => {
     const c0 = tf.add(a0, b0);
     const data = await c0.data();
     expectArraysClose(data, [2, 2, 2]);
-    tf.dispose([a0, b0, c0]);
 
     await parallelCompilationCommon(webGPUBackend);
   });
@@ -454,7 +453,6 @@ describeWebGPU('parallel compilation', () => {
     const c0 = tf.add(a0, b0);
     const data = await c0.data();
     expectArraysClose(data, [2, 2, 2]);
-    tf.dispose([a0, b0, c0]);
 
     await parallelCompilationCommon(webGPUBackend);
     await parallelCompilationCommon(webGPUBackend);
@@ -467,14 +465,13 @@ describeWebGPU('parallel compilation', () => {
     // Parallel compile but not call await (tf.backend() as
     // WebGPUBackend).checkCompileCompletionAsync().
     tf.env().set('ENGINE_COMPILE_ONLY', true);
-    const c1 = tf.add(a1, b1);
+    tf.add(a1, b1);
 
     // Actual inference.
     tf.env().set('ENGINE_COMPILE_ONLY', false);
     expect(() => tf.add(a1, b1))
         .toThrowError(
             'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
-    tf.dispose([a1, b1, c1]);
   });
 
   it('read data is invalid if parallel compilation is true', async () => {
@@ -487,7 +484,6 @@ describeWebGPU('parallel compilation', () => {
     await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
     // Read data is invalid.
     expectArraysClose((await c1.data()).length, 0);
-    tf.dispose([a1, b1, c1]);
   });
 
   it('checkCompileCompletionAsync is nop if parallel compilation is false',
@@ -499,7 +495,6 @@ describeWebGPU('parallel compilation', () => {
        const c1 = tf.add(a1, b1);
        await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
        expectArraysClose(await c1.data(), [2, 2, 2]);
-       tf.dispose([a1, b1, c1]);
      });
 });
 
