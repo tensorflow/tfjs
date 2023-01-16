@@ -28,10 +28,10 @@ export function broadcastArgs(args: {
   const {s0, s1} = inputs;
 
   if (backend.shouldExecuteOnCPU([s0, s1])) {
-    const s0BufferInfo = backend.tensorMap.get(s0.dataId);
-    const s1BufferInfo = backend.tensorMap.get(s1.dataId);
-    const s0Vals = s0BufferInfo.values as TypedArray;
-    const s1Vals = s1BufferInfo.values as TypedArray;
+    const s0TensorInfo = backend.tensorMap.get(s0.dataId);
+    const s1TensorInfo = backend.tensorMap.get(s1.dataId);
+    const s0Vals = s0TensorInfo.values as TypedArray;
+    const s1Vals = s1TensorInfo.values as TypedArray;
     const broadcastShape = backend_util.assertAndGetBroadcastShape(
         Array.from(s0Vals), Array.from(s1Vals));
     return backend.makeTensorInfo(
