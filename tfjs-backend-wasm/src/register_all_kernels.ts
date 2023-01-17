@@ -47,6 +47,7 @@ import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
@@ -166,6 +167,7 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
   eluConfig,
   equalConfig,
   expConfig,
