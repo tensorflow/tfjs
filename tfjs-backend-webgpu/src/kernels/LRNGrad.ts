@@ -29,9 +29,8 @@ export function lrnGrad(
 
   const program = new LRNGradProgram(x.shape);
   const uniformData = [
-    {type: 'int32', data: [x.shape[3]]}, {type: 'int32', data: [depthRadius]},
-    {type: 'float32', data: [bias]}, {type: 'float32', data: [alpha]},
-    {type: 'float32', data: [beta]}
+    {type: 'int32', data: [depthRadius]}, {type: 'float32', data: [bias]},
+    {type: 'float32', data: [alpha]}, {type: 'float32', data: [beta]}
   ];
   const res =
       backend.runWebGPUProgram(program, [x, y, dy], x.dtype, uniformData);
