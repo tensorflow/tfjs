@@ -24,8 +24,7 @@ export class LRNGradProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['inputImage', 'outputImage', 'dy'];
-  uniforms =
-      'depth : i32, depthRadius : i32, bias : f32, alpha : f32, beta : f32,';
+  uniforms = 'depthRadius : i32, bias : f32, alpha : f32, beta : f32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -46,34 +45,30 @@ export class LRNGradProgram implements WebGPUProgram {
         let r = coords[1];
         let c = coords[2];
 
+        let MIN_DEPTH_BEGIN = 0;
+        let MAX_DEPTH_END = uniforms.outShape[3];
         var result = 0.0;
-        for (var d = 0; d < uniforms.depth; d++) {
-          let depthBegin = max(0, d - uniforms.depthRadius);
-          let depthEnd = min(uniforms.depth, d + uniforms.depthRadius + 1);
-
-          let MIN_DEPTH_BEGIN = 0;
-          let MAX_DEPTH_END = uniforms.depth;
+        for (var d = MIN_DEPTH_BEGIN; d < MAX_DEPTH_END; d++) {
+          let depthBegin = max(MIN_DEPTH_BEGIN, d - uniforms.depthRadius);
+          let depthEnd = min(MAX_DEPTH_END, d + uniforms.depthRadius + 1);
 
           var norm = 0.0;
           for (var k = MIN_DEPTH_BEGIN; k < MAX_DEPTH_END; k++) {
-            if (k < depthBegin){
+            if (k < depthBegin) {
               continue;
-            }
-            else if (k >= depthBegin && k < depthEnd) {
+            } else if (k >= depthBegin && k < depthEnd) {
               norm += getInputImage(b, r, c, k) * getInputImage(b, r, c, k);
-            }
-            else {
+            } else {
               break;
             }
           }
 
           norm = uniforms.alpha * norm + uniforms.bias;
 
-          for(var k = MIN_DEPTH_BEGIN; k < MAX_DEPTH_END; k++){
-            if (k < depthBegin){
+          for (var k = MIN_DEPTH_BEGIN; k < MAX_DEPTH_END; k++) {
+            if (k < depthBegin) {
               continue;
-            }
-            else if (k >= depthBegin && k < depthEnd){
+            } else if (k >= depthBegin && k < depthEnd) {
               var dyi = -2.0 * uniforms.alpha * uniforms.beta
                 * getInputImage(b, r, c, k) * getOutputImage(b, r, c, d) / norm;
               if (k == d) {
@@ -83,8 +78,7 @@ export class LRNGradProgram implements WebGPUProgram {
                 dyi *= getDy(b, r, c, d);
                 result += dyi;
               }
-            }
-            else {
+            } else {
               break;
             }
           }
