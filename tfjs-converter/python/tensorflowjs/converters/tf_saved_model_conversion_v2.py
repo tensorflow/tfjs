@@ -206,12 +206,6 @@ def optimize_graph(graph, signature_def,
 
   return optimized_graph
 
-  # extract_weights(
-  #     optimized_graph, output_graph, tf_version,
-  #     signature_def, quantization_dtype_map, weight_shard_size_bytes,
-  #     initializer_graph_def, initializer_signature_def,
-  #     resource_ids_maps=resource_ids_maps, metadata=metadata)
-
 def extract_const_nodes(nodes):
   """Takes a list of nodes and extract the weights. Return weight manifest
   object.
@@ -266,19 +260,6 @@ def extract_weights(graph_def, initializer_graph_def=None):
 
   return [global_manifest + function_manifests + initializer_manifests]
 
-"""   write_artifacts(MessageToDict(graph_def),
-                  [global_manifest +
-                   function_manifests +
-                   initializer_manifests],
-                  output_graph,
-                  tf_version, signature_def,
-                  quantization_dtype_map=quantization_dtype_map,
-                  weight_shard_size_bytes=weight_shard_size_bytes,
-                  initializer_graph_def=initializer_graph_def,
-                  initializer_signature_def=initializer_signature_def,
-                  resource_ids_maps=resource_ids_maps,
-                  metadata=metadata)
- """
 def write_artifacts(topology,
                     weights,
                     output_graph,
