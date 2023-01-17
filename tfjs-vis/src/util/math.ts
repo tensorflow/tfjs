@@ -187,10 +187,12 @@ export async function confusionMatrix(
   const predictionsInt = predictions.cast('int32');
 
   if (numClasses == null) {
-    numClasses = tidy(() => {
-      const max = maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
-      return max.dataSync()[0] + 1;
+    const maximumTensor = tidy(() => {
+      return maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
     });
+    const maximumArray = await maximumTensor.data();
+    numClasses = maximumArray[0] + 1;
+    maximumTensor.dispose();
   }
 
   let weightsPromise: Promise<null|TypedArray> = Promise.resolve(null);
@@ -286,9 +288,12 @@ export async function perClassAccuracy(
       'labels and predictions must be the same length');
 
   if (numClasses == null) {
-    numClasses = tidy(() => {
-      return maximum(labels.max(), predictions.max()).dataSync()[0] + 1;
+    const maximumTensor = tidy(() => {
+      return maximum(labels.max(), predictions.max());
     });
+    const maximumArray = await maximumTensor.data();
+    numClasses = maximumArray[0] + 1;
+    maximumTensor.dispose();
   }
 
   return Promise.all([labels.data(), predictions.data()])
