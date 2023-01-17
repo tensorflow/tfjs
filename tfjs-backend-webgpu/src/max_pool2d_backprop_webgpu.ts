@@ -39,7 +39,7 @@ export class MaxPool2DBackpropProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
-    this.shaderKey = `max_pool2d_backprop`;
+    this.shaderKey = 'maxPool2DBackprop';
   }
 
   getUserCode(): string {
