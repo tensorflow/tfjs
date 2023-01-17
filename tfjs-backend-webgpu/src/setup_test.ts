@@ -246,7 +246,6 @@ const TEST_FILTERS: TestFilter[] = [
       'conv3dTranspose ',
       'maxPool3d ',
       'maxPool3dBackprop ',
-      'maxPoolBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
