@@ -36,10 +36,10 @@ yarn bazel test //tfjs-converter/python/...
 
 Alternatively, run `yarn run-python-tests` to run the above command.
 
-To debug a specific test case, use the `--test-filter` option. For example,
+To debug a specific test case, use the `--test_filter` option. For example,
 
 ```bash
-yarn bazel test //tfjs-converter/python/tensorflowjs/converters:tf_saved_model_conversion_v2_test --test_filter=ConvertTest.test_convert_saved_model_above_2gb
+yarn bazel test //tfjs-converter/python/tensorflowjs/converters:tf_saved_model_conversion_v2_test --test_filter=ConvertTest.test_convert_saved_model_v1
 ```
 
 Interactive debugging with breakpoints is supported by `debugpy` in VSCode.
