@@ -36,6 +36,7 @@ import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -94,6 +95,7 @@ import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {lrnConfig} from './kernels/LRN';
+import {lrnGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -183,6 +185,7 @@ const kernelConfigs: KernelConfig[] = [
   batchMatMulConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -241,6 +244,7 @@ const kernelConfigs: KernelConfig[] = [
   logicalNotConfig,
   logicalOrConfig,
   lrnConfig,
+  lrnGradConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,

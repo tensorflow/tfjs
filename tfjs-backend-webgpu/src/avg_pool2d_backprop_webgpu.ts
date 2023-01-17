@@ -26,7 +26,7 @@ export class AvgPool2DBackpropProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['dy'];
   uniforms =
-      `stride : vec2<i32>, pads : vec2<i32>, dilation : vec2<i32>, filterDims : vec2<i32>,
+      `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, filterDims : vec2<i32>,
        outHeight : i32, outWidth : i32, avgMultiplier : f32,`;
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
@@ -57,16 +57,16 @@ export class AvgPool2DBackpropProgram implements WebGPUProgram {
         // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(xR, xC, d).
         // ? = to be determined. : = across all values in that axis.
         var dotProd = 0.0;
-        for (var wR = 0; wR < uniforms.filterDims[0]; wR = wR + uniforms.dilation[0]) {
-          let dyR = f32(dyRCorner + wR) / f32(uniforms.stride[0]);
+        for (var wR = 0; wR < uniforms.filterDims[0]; wR = wR + uniforms.dilations[0]) {
+          let dyR = f32(dyRCorner + wR) / f32(uniforms.strides[0]);
 
           if (dyR < 0.0 || dyR >= f32(uniforms.outHeight) || fract(dyR) > 0.0) {
             continue;
           }
           let idyR = i32(dyR);
 
-          for (var wC = 0; wC < uniforms.filterDims[1]; wC = wC + uniforms.dilation[1]) {
-            let dyC = f32(dyCCorner + wC) / f32(uniforms.stride[1]);
+          for (var wC = 0; wC < uniforms.filterDims[1]; wC = wC + uniforms.dilations[1]) {
+            let dyC = f32(dyCCorner + wC) / f32(uniforms.strides[1]);
 
             if (dyC < 0.0 || dyC >= f32(uniforms.outWidth) || fract(dyC) > 0.0) {
               continue;

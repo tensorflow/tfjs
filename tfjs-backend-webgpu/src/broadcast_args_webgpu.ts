@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,47 +15,55 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
-export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
-  outputShape: number[];
+export class BroadcastArgsProgram implements WebGPUProgram {
+  outputShape: number[] = [];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
-  uniforms = `strides : vec2<i32>,`;
-  workgroupSize: [number, number, number] = [256, 1, 1];
+  variableNames = ['s0', 's1'];
+  uniforms = 's0Size : i32, s1Size : i32, ';
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
-  constructor(convInfo: backend_util.Conv2DInfo) {
-    this.outputShape = convInfo.outShape;
+  constructor(shape: number) {
+    this.outputShape = [shape];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize);
 
-    this.shaderKey = 'poolWithFilterSizeEqualsOne';
+    this.shaderKey = 'broadcastArgs';
   }
 
   getUserCode(): string {
     const userCode = `
-      ${main('index')} {
-        if (index < uniforms.size) {
-          let coords = getCoordsFromIndex(index);
-          let batch = coords[0];
-          let d = coords[3];
-
-          let xRCCorner = coords.yz * uniforms.strides;
-          let xRCorner = xRCCorner.x;
-          let xCCorner = xRCCorner.y;
-
-          let value = getX(batch, xRCorner, xCCorner, d);
-          setOutputAtIndex(index, value);
-        }
+  ${main('index')} {
+    if (index < uniforms.size) {
+      var s0 = 1.0;
+      var s1 = 1.0;
+      let indexS0 = index - uniforms.size + uniforms.s0Size;
+      let indexS1 = index - uniforms.size + uniforms.s1Size;
+      if (indexS0 >= 0) {
+        s0 = getS0(indexS0);
       }
-    `;
+      if (indexS1 >= 0) {
+        s1 = getS1(indexS1);
+      }
+
+      if (s0 == 1.0) {
+        setOutputAtIndex(index, s1);
+      } else if (s1 == 1.0) {
+        setOutputAtIndex(index, s0);
+      } else if (s0 != s1) {
+        setOutputAtIndex(index, uniforms.NAN);
+      } else {
+        setOutputAtIndex(index, s0);
+      }
+    }
+  }
+  `;
     return userCode;
   }
 }
