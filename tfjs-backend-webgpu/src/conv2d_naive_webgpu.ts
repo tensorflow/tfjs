@@ -28,7 +28,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms =
-      'filterDims: vec2<i32>, pad: vec2<i32>, stride: vec2<i32>, dilation: vec2<i32>,';
+      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>,';
   workgroupSize: [number, number, number] = [4, 4, 8];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -100,8 +100,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
          var acc : f32 = 0.0;
          for (var row = 0; row < uniforms.filterDims[0]; row = row + 1) {
            for (var col = 0; col < uniforms.filterDims[1]; col = col + 1) {
-             let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0];
-             let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1];
+             let xRow = outRow * uniforms.strides[0] + uniforms.dilations[0] * row - uniforms.pads[0];
+             let xCol = outCol * uniforms.strides[1] + uniforms.dilations[1] * col - uniforms.pads[1];
              for (var xChannel = 0; xChannel < ${
         this.isChannelsLast ? `uniforms.xShape[3];` :
                               `uniforms.xShape[1];`} xChannel = xChannel + 1) {
