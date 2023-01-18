@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages } from './release-util';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages, ALL_PACKAGES, WEBSITE_RELEASE_UNIT, getPackages } from './release-util';
 import semverCompare from 'semver/functions/compare';
 import * as child_process from 'child_process';
 
@@ -34,6 +34,9 @@ import {BAZEL_PACKAGES} from './bazel_packages';
 const TMP_DIR = '/tmp/tfjs-publish';
 const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873';
 const NPM_REGISTRY = 'https://registry.npmjs.org/';
+
+// This script can not publish the tfjs website
+const PUBLISHABLE_RELEASE_UNITS = RELEASE_UNITS.filter(r => r !== WEBSITE_RELEASE_UNIT);
 
 async function retry<T>(f: () => T, tries = 3, sleep=5_000): Promise<T> {
   let lastError;
@@ -84,6 +87,12 @@ parser.addArgument(['--auto', '--guess-version'], {
   action: 'storeTrue',
   help: 'Automatically publish local packages that have newer versions than'
       + ' the packages in the registry',
+});
+
+parser.addArgument(['packages'], {
+  type: 'string',
+  nargs: '*',
+  help: 'Packages to publish. Leave empty to select interactively',
 });
 
 function delay(ms: number): Promise<void> {
@@ -194,22 +203,22 @@ async function main() {
   let releaseUnits: ReleaseUnit[];
   if (args.release_this_branch) {
     console.log('Releasing current branch');
-    releaseUnits = RELEASE_UNITS;
+    releaseUnits = PUBLISHABLE_RELEASE_UNITS;
   } else {
-    RELEASE_UNITS.forEach(printReleaseUnit);
+    PUBLISHABLE_RELEASE_UNITS.forEach(printReleaseUnit);
     console.log();
 
     const releaseUnitStr =
       await question('Which release unit (leave empty for 0): ');
     const releaseUnitInt = Number(releaseUnitStr);
-    if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
+    if (releaseUnitInt < 0 || releaseUnitInt >= PUBLISHABLE_RELEASE_UNITS.length) {
       console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
       process.exit(1);
     }
     console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
     console.log();
 
-    const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+    const releaseUnit = PUBLISHABLE_RELEASE_UNITS[releaseUnitInt];
     const {name, } = releaseUnit;
 
     let releaseBranch: string;
@@ -255,9 +264,28 @@ async function main() {
       }
   }
 
+  // Get the list of packages to build and publish
   let packages: string[];
-  if (args.auto) {
-    packages = await filterPackages(packageSelected);
+  if (args.packages.length > 0) {
+    const errorMessages: string[] = [];
+    // Filter from the set of all packages to make sure they end up
+    // in topological order.
+    const allPackages = getPackages(PUBLISHABLE_RELEASE_UNITS);
+    const toPublish = new Set(args.packages);
+    packages = allPackages.filter(pkg => {
+      if (!toPublish.has(pkg)) {
+        errorMessages.push(`Package ${pkg} is not a tfjs package.`);
+        return false;
+      }
+      return true;
+    })
+
+    if (errorMessages.length > 0) {
+      throw new Error(errorMessages.join('\n') +
+        `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
+    }
+  } else if (args.auto) {
+    packages = await filterPackages(packageSelected, PUBLISHABLE_RELEASE_UNITS);
     console.log(`Publishing ${packages}`);
   } else {
     packages = await selectPackages({
@@ -292,8 +320,12 @@ async function main() {
   const bazelTargets = packages.filter(pkg => BAZEL_PACKAGES.has(pkg))
     .map(name => `//${name}:${name}_pkg`);
   // Use child_process.spawnSync to show bazel build progress.
-  child_process.spawnSync('yarn', ['bazel', 'build', ...bazelTargets],
-                          {stdio:'inherit'});
+  const result = child_process.spawnSync('yarn',
+                                         ['bazel', 'build', ...bazelTargets],
+                                         {stdio:'inherit'});
+  if (result.status !== 0) {
+    throw new Error(`Bazel process failed with exit code ${result.status}`);
+  }
 
   // Build and publish all packages to a local Verdaccio repo for staging.
   console.log(

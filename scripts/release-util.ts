@@ -206,6 +206,8 @@ export const RELEASE_UNITS: ReleaseUnit[] = [
   WEBSITE_RELEASE_UNIT,
 ];
 
+export const ALL_PACKAGES: Set<string> = new Set(getPackages(RELEASE_UNITS));
+
 export const TMP_DIR = '/tmp/tfjs-release';
 
 export async function question(questionStr: string): Promise<string> {
@@ -508,6 +510,9 @@ export function getNightlyVersion(version: string): string {
   return `${version}-dev.${date}`;
 }
 
+/**
+ * Filter a list with an async filter function
+ */
 async function filterAsync<T>(
   array: T[],
   condition: (t: T) => Promise<boolean>): Promise<T[]> {
@@ -516,12 +521,21 @@ async function filterAsync<T>(
   return array.filter((_val, index) => results[index]);
 }
 
-export async function filterPackages(filter: (pkg: string) => Promise<boolean>,
-                                     releaseUnits = RELEASE_UNITS) {
-  const packages = releaseUnits.map(releaseUnit => releaseUnit.phases)
+/**
+ * Get the packages contained in the given release units.
+ */
+export function getPackages(releaseUnits: ReleaseUnit[]) {
+  return releaseUnits.map(releaseUnit => releaseUnit.phases)
     .flat().map(phase => phase.packages)
     .flat();
-  return filterAsync(packages, filter);
+}
+
+/**
+ * Filter packages in release units according to an async filter.
+ */
+export async function filterPackages(filter: (pkg: string) => Promise<boolean>,
+                                     releaseUnits = RELEASE_UNITS) {
+  return filterAsync(getPackages(releaseUnits), filter);
 }
 
 export async function selectPackages({
