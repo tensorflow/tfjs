@@ -129,10 +129,24 @@ async function main() {
         await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm -- -- --otp=${
-          otp}`);
+      let dashes = '-- --';
+      if (pkg === 'tfjs-backend-webgpu') {
+        // Special case for webgpu, which has an additional call to `yarn`
+        // in publish-npm.
+        dashes = '-- -- --';
+      }
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes}`
+        + ` --otp=${otp}`);
     } else {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+      if (pkg.startsWith('tfjs-node')) {
+        // Special case for tfjs-node* because it must publish the node addon
+        // as well.
+        $('YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm'
+          + ` --otp=${otp}`);
+      } else {
+        $('YARN_REGISTRY="https://registry.npmjs.org/" npm publish'
+          + ` --otp=${otp}`);
+      }
     }
     console.log(`Yay! Published ${pkg} to npm.`);
 

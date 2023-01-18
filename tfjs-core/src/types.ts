@@ -164,3 +164,35 @@ export interface PixelData {
   height: number;
   data: Uint8Array;
 }
+
+/**
+ * Type for representing all permutations and combinations of 'RGBA' channels.
+ */
+export type WebGLChannels = 'A'|'B'|'G'|'R'|'AB'|'AG'|'AR'|'BA'|'BG'|'BR'|'GA'|
+    'GB'|'GR'|'RA'|'RB'|'RG'|'ABG'|'ABR'|'AGB'|'AGR'|'ARB'|'ARG'|'BAG'|'BAR'|
+    'BGA'|'BGR'|'BRA'|'BRG'|'GAB'|'GAR'|'GBA'|'GBR'|'GRA'|'GRB'|'RAB'|'RAG'|
+    'RBA'|'RBG'|'RGA'|'RGB'|'ABGR'|'ABRG'|'AGBR'|'AGRB'|'ARBG'|'ARGB'|'BAGR'|
+    'BARG'|'BGAR'|'BGRA'|'BRAG'|'BRGA'|'GABR'|'GARB'|'GBAR'|'GBRA'|'GRAB'|
+    'GRBA'|'RABG'|'RAGB'|'RBAG'|'RBGA'|'RGAB'|'RGBA';
+
+/** Type for representing a texture data to create a tensor. */
+export interface WebGLData {
+  texture: WebGLTexture;
+  height: number;
+  width: number;
+  channels: WebGLChannels;
+}
+
+/**
+ * Type for representing a buffer data to create a tensor. Buffer usage should
+ * at least support GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC. When
+ * zeroCopy is false or undefined (default), this GPUBuffer will be copied to
+ * the tensor's resource buffer. When zeroCopy is true, tensor will use this
+ * GPUBuffer as tensor's resource buffer, user should not destroy this GPUBuffer
+ * until all access is done. If not specified at creating a tensor, tensor type
+ * is float32.
+ */
+export interface WebGPUData {
+  buffer: GPUBuffer;
+  zeroCopy?: boolean;
+}

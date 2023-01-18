@@ -40,7 +40,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'onesLike');
 
   const inputs: OnesLikeInputs = {x: $x};
-  return ENGINE.runKernel(OnesLike, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(OnesLike, inputs as unknown as NamedTensorMap);
 }
 
-export const onesLike = op({onesLike_});
+export const onesLike = /* @__PURE__ */ op({onesLike_});

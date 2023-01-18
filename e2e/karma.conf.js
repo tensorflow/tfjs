@@ -20,7 +20,6 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   bundlerOptions: {
     sourceMap: true,
-    acornOptions: {ecmaVersion: 8},
     transforms: [
       require('karma-typescript-es6-transform')({
         presets: [
@@ -76,7 +75,23 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    // Serve wasm files
+    {
+      pattern: 'node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/*.wasm',
+      watched: true,
+      included: false,
+      served: true,
+    },
   ],
+  basePath: '',
+  proxies: {
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-threaded-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm',
+  },
   exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
@@ -154,18 +169,18 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
         os_version: '11.0',
         real_mobile: true
       },
-      bs_android_9: {
+      bs_android_10: {
         base: 'BrowserStack',
-        device: 'Google Pixel 3 XL',
+        device: 'Google Pixel 4 XL',
         os: 'android',
-        os_version: '9.0',
+        os_version: '10.0',
         real_mobile: true
       },
       win_10_chrome: {

@@ -91,7 +91,7 @@ export class InputSpec {
  * `tf.SymbolicTensor` is a placeholder for a Tensor without any concrete value.
  *
  * They are most often encountered when building a graph of `Layer`s for a
- * a `tf.LayersModel` and the input data's shape, but not values are known.
+ * `tf.LayersModel` and the input data's shape, but not values are known.
  *
  * @doc {heading: 'Models', 'subheading': 'Classes'}
  */
@@ -876,9 +876,9 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   /**
-   * Builds or executes a `Layer's logic.
+   * Builds or executes a `Layer`'s logic.
    *
-   * When called with `tf.Tensor`(s), execute the `Layer`s computation and
+   * When called with `tf.Tensor`(s), execute the `Layer`'s computation and
    * return Tensor(s). For example:
    *
    * ```js
@@ -928,7 +928,7 @@ export abstract class Layer extends serialization.Serializable {
    * // dense layer.
    * console.log(JSON.stringify(output2.shape));
    *
-   * // The input and output and be used to construct a model that consists
+   * // The input and output can be used to construct a model that consists
    * // of the flatten and dense layers.
    * const model = tf.model({inputs: input, outputs: output2});
    * ```
@@ -1329,7 +1329,7 @@ export abstract class Layer extends serialization.Serializable {
   /**
    * Add losses to the layer.
    *
-   * The loss may potentionally be conditional on some inputs tensors,
+   * The loss may potentially be conditional on some inputs tensors,
    * for instance activity losses are conditional on the layer's inputs.
    *
    * @doc {heading: 'Models', 'subheading': 'Classes'}
@@ -1474,7 +1474,7 @@ export abstract class Layer extends serialization.Serializable {
    * information, nor the layer class name.  These are handled
    * by 'Container' (one layer of abstraction above).
    *
-   * Porting Note: The TS dictionary follows TS naming standrds for
+   * Porting Note: The TS dictionary follows TS naming standards for
    * keys, and uses tfjs-layers type-safe Enums.  Serialization methods
    * should use a helper function to convert to the pythonic storage
    * standard. (see serialization_utils.convertTsToPythonic)
@@ -1514,11 +1514,11 @@ export abstract class Layer extends serialization.Serializable {
   /**
    * Attempt to dispose layer's weights.
    *
-   * This method decrease the reference count of the Layer object by 1.
+   * This method decreases the reference count of the Layer object by 1.
    *
    * A Layer is reference-counted. Its reference count is incremented by 1
    * the first item its `apply()` method is called and when it becomes a part
-   * of a new `Node` (through calling the `apply()`) method on a
+   * of a new `Node` (through calling the `apply()` method on a
    * `tf.SymbolicTensor`).
    *
    * If the reference count of a Layer becomes 0, all the weights will be

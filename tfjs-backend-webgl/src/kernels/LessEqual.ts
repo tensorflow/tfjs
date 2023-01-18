@@ -35,5 +35,5 @@ export const lessEqual = binaryKernelFunc({
 export const lessEqualConfig: KernelConfig = {
   kernelName: LessEqual,
   backendName: 'webgl',
-  kernelFunc: lessEqual as {} as KernelFunc
+  kernelFunc: lessEqual as unknown as KernelFunc
 };

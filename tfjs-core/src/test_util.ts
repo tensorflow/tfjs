@@ -93,6 +93,9 @@ function expectArraysPredicate(
           `Expected: ${expectedFlat}.`);
     }
   }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export interface DoneFn {
@@ -102,6 +105,9 @@ export interface DoneFn {
 
 export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
   fn().then(() => done.fail(), () => done());
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
+  }
 }
 
 export function expectArraysEqual(actual: TensorLike, expected: TensorLike) {
@@ -124,6 +130,9 @@ export function expectNumbersClose(a: number, e: number, epsilon?: number) {
   }
   if (!areClose(a, e, epsilon)) {
     throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
+  }
+  if (typeof expect !== 'undefined') {
+    expect().nothing();
   }
 }
 
@@ -180,4 +189,36 @@ export function encodeStrings(a: RecursiveArray<{}>):
     }
   }
   return a as RecursiveArray<Uint8Array>;
+}
+
+/** Creates an HTMLVideoElement with autoplay-friendly default settings. */
+export function createVideoElement(source: HTMLSourceElement):
+    Promise<HTMLVideoElement> {
+  const video = document.createElement('video');
+  if ('playsInline' in video) {
+    // tslint:disable-next-line:no-any
+    (video as any).playsInline = true;
+  }
+  video.muted = true;
+  video.loop = true;
+  video.style.position = 'fixed';
+  video.style.left = '0px';
+  video.style.top = '0px';
+
+  video.preload = 'auto';
+  video.appendChild(source);
+  return new Promise(resolve => {
+    video.addEventListener('loadeddata', _ => resolve(video));
+    video.load();
+  });
+}
+
+export async function play(video: HTMLVideoElement) {
+  await video.play();
+  if ('requestVideoFrameCallback' in video) {
+    await new Promise(resolve => {
+      // tslint:disable-next-line:no-any
+      (video as any).requestVideoFrameCallback(resolve);
+    });
+  }
 }

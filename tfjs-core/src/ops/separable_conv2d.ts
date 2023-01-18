@@ -136,4 +136,4 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-export const separableConv2d = op({separableConv2d_});
+export const separableConv2d = /* @__PURE__ */ op({separableConv2d_});

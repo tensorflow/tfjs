@@ -483,4 +483,36 @@ describeWithFlags('conv3d', ALL_ENVS, () => {
 
     expect(() => tf.conv3d(x, w, stride, pad, dataFormat)).toThrowError();
   });
+
+  it('throws when stride is less than or equal to 0', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 2, 1, inputDepth];
+    const pad = 'valid';
+    const fSize = 1;
+    const stride = 0;
+    const dataFormat = 'NDHWC';
+
+    const x = tf.tensor4d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor5d([2], [fSize, fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv3d(x, w, stride, pad, dataFormat)).toThrowError();
+  });
+
+  it('throws when dilation is less than or equal to 0', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 2, 1, inputDepth];
+    const pad = 'valid';
+    const fSize = 1;
+    const stride = 0;
+    const dataFormat = 'NDHWC';
+    const dilation: [number, number, number] = [1, 1, 0];
+
+    const x = tf.tensor4d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor5d([2], [fSize, fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv3d(x, w, stride, pad, dataFormat, dilation))
+        .toThrowError();
+  });
 });

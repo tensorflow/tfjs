@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
+
 const contexts: {[key: string]: WebGLRenderingContext} = {};
 
 const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
@@ -90,10 +92,15 @@ function getWebGLRenderingContext(
     ev.preventDefault();
     delete contexts[webGLVersion];
   }, false);
+
+  if (env().getBool('SOFTWARE_WEBGL_ENABLED')) {
+    WEBGL_ATTRIBUTES.failIfMajorPerformanceCaveat = false;
+  }
+
   if (webGLVersion === 1) {
     return (canvas.getContext('webgl', WEBGL_ATTRIBUTES) ||
-            canvas.getContext('experimental-webgl', WEBGL_ATTRIBUTES)) as
-        WebGLRenderingContext;
+      (canvas as HTMLCanvasElement)
+        .getContext('experimental-webgl', WEBGL_ATTRIBUTES));
   }
   return canvas.getContext('webgl2', WEBGL_ATTRIBUTES) as WebGLRenderingContext;
 }

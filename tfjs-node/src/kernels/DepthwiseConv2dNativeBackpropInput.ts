@@ -27,7 +27,7 @@ export const depthwiseConv2dNativeBackpropInputConfig: KernelConfig = {
         args.inputs as DepthwiseConv2dNativeBackpropInputInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, dilations, pad, dimRoundingMode, inputShape} =
-        args.attrs as {} as DepthwiseConv2dNativeBackpropInputAttrs;
+        args.attrs as unknown as DepthwiseConv2dNativeBackpropInputAttrs;
 
     const convInfo = backend_util.computeConv2DInfo(
         inputShape, filter.shape as [number, number, number, number], strides,

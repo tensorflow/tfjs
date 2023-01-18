@@ -45,5 +45,5 @@ export function complex(args: {inputs: ComplexInputs, backend: MathBackendCPU}):
 export const complexConfig: KernelConfig = {
   kernelName: Complex,
   backendName: 'cpu',
-  kernelFunc: complex as {} as KernelFunc
+  kernelFunc: complex as unknown as KernelFunc
 };

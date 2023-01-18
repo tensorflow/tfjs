@@ -89,7 +89,7 @@ import {op} from './operation';
  *
  * - Does not support >2 input tensors.
  * - Does not support duplicate axes for any given input tensor. E.g., equation
- *   'ii->' is not suppoted.
+ *   'ii->' is not supported.
  * - The `...` notation is not supported.
  *
  * @param equation a string describing the contraction, in the same format as
@@ -105,7 +105,8 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'einsum'));
   const attrs: EinsumAttrs = {equation};
   return ENGINE.runKernel(
-      Einsum, $tensors as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Einsum, $tensors as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const einsum = op({einsum_});
+export const einsum = /* @__PURE__ */ op({einsum_});

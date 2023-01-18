@@ -15,46 +15,36 @@
  * =============================================================================
  */
 
-require('firebase/firestore');
-require('firebase/auth');
+const { initializeApp, deleteApp, applicationDefault, cert } = require('firebase-admin/app');
+const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
 
-const firebase = require('firebase/app');
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_KEY,
-  authDomain: 'learnjs-174218.firebaseapp.com',
-  databaseURL: 'https://learnjs-174218.firebaseio.com',
-  projectId: 'learnjs-174218',
-  storageBucket: 'learnjs-174218.appspot.com',
-  messagingSenderId: '834911136599',
-  appId: '1:834911136599:web:4b65685455bdf916a1ec12'
-};
-
+let app;
 /**
  * Initializes Firebase, signs in with secret credentials, and accesses the
  * Firestore collection of results.
  *
  * @param firebaseConfig A configuration with Firebase credentials
  */
-async function runFirestore(firebaseConfig) {
+async function runFirestore() {
   try {
-    firebase.initializeApp(firebaseConfig);
-    await firebase.auth().signInAnonymously();
-    console.log('\nSuccesfuly signed into Firebase with anonymous account.');
+    app = initializeApp({
+      credential: applicationDefault()
+    });
+    const db = getFirestore();
 
-    // Reference to the "BenchmarkResults" collection on firestore that contains
-    // the benchmark results.
-    return firebase.firestore().collection('BenchmarkResults');
+    console.log('\nSuccesfuly signed into Firebase.');
+    return db.collection('BenchmarkResults');
   } catch (err) {
-    console.log(`\nError code: ${err.code}`);
-    throw new Error(`Error message: ${err.message}`);
+    console.warn(`Failed to connect to firebase database: ${err.message}`);
+    throw err;
   }
 }
 
 /**
  * Deletes the Firebase instance, which allows the Node.js process to finish.
  */
-function endFirebaseInstance() {
-  firebase.app().delete();
+async function endFirebaseInstance() {
+  await deleteApp(app);
   console.log('Exited Firebase instance.');
 }
 
@@ -72,8 +62,8 @@ function endFirebaseInstance() {
 async function addResultToFirestore(db, resultId, result) {
   try {
     const firestoreMap =
-        formatForFirestore(result, serializeTensors, getReadableDate);
-    await db.add({result: firestoreMap}).then((ref) => {
+      formatForFirestore(result, makeCompatableWithFirestore, getReadableDate);
+    await db.add({ result: firestoreMap }).then((ref) => {
       console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
     });
   } catch (err) {
@@ -88,7 +78,8 @@ async function addResultToFirestore(db, resultId, result) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-    result, makeCompatable = serializeTensors, getDate = getReadableDate) {
+  result, makeCompatable = makeCompatableWithFirestore,
+  getDate = getReadableDate) {
   let firestoreMap = {};
   firestoreMap.benchmarkInfo = makeCompatable(result);
   firestoreMap.date = getDate();
@@ -97,9 +88,41 @@ function formatForFirestore(
 }
 
 /**
- *Benchmark results contain tensors that are represented as nested arrays.
- *Nested arrays are not supported on Firestore, so they are serialized
- *before they are stored.
+ * This function makes the result object returned from benchmark app aligned
+ * with target firestore collection's schema.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
+function makeCompatableWithFirestore(result) {
+  addGpuInfo(result);
+  serializeTensors(result);
+  return result;
+}
+
+/**
+ * Append GPU info to device name.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
+function addGpuInfo(result) {
+  const gpuInfo = result.gpuInfo;
+  delete result.gpuInfo;
+  if (gpuInfo == null || gpuInfo === 'MISS') {
+    return;
+  }
+
+  if (result.deviceInfo.device == null) {
+    result.deviceInfo.device = `(GPU: ${gpuInfo})`;
+  } else {
+    result.deviceInfo.device = `${result.deviceInfo.device} (GPU: ${gpuInfo})`;
+  }
+  return result;
+}
+
+/**
+ * Benchmark results contain tensors that are represented as nested arrays.
+ * Nested arrays are not supported on Firestore, so they are serialized
+ * before they are stored.
  *
  * @param result Individual result in a list of fulfilled promises
  */
@@ -124,9 +147,10 @@ function getReadableDate() {
 }
 
 exports.addResultToFirestore = addResultToFirestore;
+exports.makeCompatableWithFirestore = makeCompatableWithFirestore;
+exports.addGpuInfo = addGpuInfo;
 exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
 exports.runFirestore = runFirestore;
-exports.firebaseConfig = firebaseConfig;
 exports.endFirebaseInstance = endFirebaseInstance;

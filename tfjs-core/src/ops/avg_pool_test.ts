@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {identityPoolTest} from './identity_pool_test';
 
 describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', async () => {
@@ -91,6 +92,17 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(await result.data(), [2.5, 3, 3.5, 4]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=1 p=valid', async () => {
+    // Feed forward.
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const fSize = 2;
+    const strides = 1;
+    const result = tf.avgPool(a, fSize, strides, 'valid');
+
+    expect(result.shape).toEqual([1, 1, 3]);
+    expectArraysClose(await result.data(), [5.5, 6.5, 7.5]);
   });
 
   it('x=[3,3,1] f=[3,3] s=1 p=explicit', async () => {
@@ -260,4 +272,6 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const result = tf.avgPool(a, 1, 1, 0);
     expectArraysClose(await result.data(), [0]);
   });
+
+  identityPoolTest(tf.avgPool);
 });

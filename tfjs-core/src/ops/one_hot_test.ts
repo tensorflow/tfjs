@@ -100,6 +100,14 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     expect(res.dtype).toEqual(expectedType);
   });
 
+  it('check specified output dtype', () => {
+    const expectedType = 'float32';
+    const indices = tf.tensor1d([0, 1], 'int32');
+    const res = tf.oneHot(indices, 2, 1, 0, 'float32');
+
+    expect(res.dtype).toEqual(expectedType);
+  });
+
   it('oneHot accepts a tensor-like object', async () => {
     const res = tf.oneHot([0, 1], 2);
     expect(res.shape).toEqual([2, 2]);

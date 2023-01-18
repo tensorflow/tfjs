@@ -141,6 +141,14 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     expect(res[1]).toBeCloseTo(max);
   });
 
+  it('clip min = max', async () => {
+    const min = 2;
+    const max = 2;
+    const tensor = tf.tensor([1, 2, 3, 4, 5], [5], 'float32');
+    const result = tf.clipByValue(tensor, min, max);
+    expectArraysClose(await result.data(), [2, 2, 2, 2, 2]);
+  });
+
   it('throws for string tensor', () => {
     expect(() => tf.clipByValue('q', 0, 1))
         .toThrowError(/Argument 'x' passed to 'clipByValue' must be numeric/);

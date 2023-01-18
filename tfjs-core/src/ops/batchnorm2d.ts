@@ -77,4 +77,4 @@ function batchNorm2d_(
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
-export const batchNorm2d = op({batchNorm2d_});
+export const batchNorm2d = /* @__PURE__ */ op({batchNorm2d_});

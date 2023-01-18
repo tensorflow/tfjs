@@ -79,4 +79,4 @@ function eye_(
   }
 }
 
-export const eye = op({eye_});
+export const eye = /* @__PURE__ */ op({eye_});

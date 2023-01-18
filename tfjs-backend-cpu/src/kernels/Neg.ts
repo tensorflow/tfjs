@@ -24,7 +24,7 @@ import {multiplyImpl} from './Multiply';
 export function negImpl(xVals: TypedArray, xShape: number[], xDtype: DataType):
     [TypedArray, number[]] {
   const minusOne =
-      util.createScalarValue(-1 as {} as 'float32', xDtype) as TypedArray;
+      util.createScalarValue(-1 as unknown as 'float32', xDtype) as TypedArray;
   return multiplyImpl([], xShape, minusOne, xVals, xDtype);
 }
 
@@ -44,5 +44,5 @@ export function neg(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
 export const negConfig: KernelConfig = {
   kernelName: Neg,
   backendName: 'cpu',
-  kernelFunc: neg as {} as KernelFunc
+  kernelFunc: neg as unknown as KernelFunc
 };

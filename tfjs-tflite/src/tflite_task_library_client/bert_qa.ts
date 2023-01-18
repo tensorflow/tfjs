@@ -45,7 +45,7 @@ export interface Pos {
  * src/types for more info.
  */
 export class BertQuestionAnswerer extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryBertQuestionAnswerer) {
+  constructor(protected override instance: TaskLibraryBertQuestionAnswerer) {
     super(instance);
   }
 

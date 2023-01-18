@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class StridedSliceProgram implements WebGPUProgram {
@@ -27,14 +27,14 @@ export class StridedSliceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
 
     const dtype = getCoordsDataType(this.outputShape.length);
@@ -62,7 +62,7 @@ export class StridedSliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-       ${getMainHeaderAndGlobalIndexString()}
+       ${main('index')} {
          if (index < uniforms.size) {
            let coords = getCoordsFromIndex(index);
            setOutputAtIndex(index, getX(${newCoords}));

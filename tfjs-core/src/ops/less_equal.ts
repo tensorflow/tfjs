@@ -50,7 +50,7 @@ function lessEqual_<T extends Tensor>(
 
   const inputs: LessEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(LessEqual, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(LessEqual, inputs as unknown as NamedTensorMap);
 }
 
-export const lessEqual = op({lessEqual_});
+export const lessEqual = /* @__PURE__ */ op({lessEqual_});

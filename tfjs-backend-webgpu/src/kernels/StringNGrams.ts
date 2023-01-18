@@ -50,5 +50,5 @@ export function stringNGrams(args: {
 export const stringNGramsConfig: KernelConfig = {
   kernelName: StringNGrams,
   backendName: 'webgpu',
-  kernelFunc: stringNGrams as {} as KernelFunc,
+  kernelFunc: stringNGrams as unknown as KernelFunc,
 };

@@ -21,8 +21,10 @@ import os
 import shutil
 import tempfile
 import unittest
+import numpy as np
 
 import tensorflow.compat.v2 as tf
+from tensorflow_decision_forests.keras import GradientBoostedTreesModel
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -35,6 +37,7 @@ import tensorflow_hub as hub
 from tensorflowjs import version
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from tensorflowjs.converters.common import ASSETS_DIRECTORY_NAME
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
@@ -120,6 +123,31 @@ class ConvertTest(tf.test.TestCase):
             assets_collection=None)
 
       builder.save()
+
+  def _create_saved_model_v2_with_hashtable(self):
+    """Create a TensorFlow SavedModel V2 with hash table for testing."""
+
+    class Table(tf.Module):
+        def __init__(self):
+            super(Table, self).__init__()
+            keys = tf.constant(['a', 'b'])
+            vals= tf.constant([0, 1])
+            init = tf.lookup.KeyValueTensorInitializer(keys, vals)
+            self.table = tf.lookup.StaticHashTable(init, -1)
+
+        def initializeTable(self):
+            @tf.function
+            def lookup(input):
+                return self.table.lookup(input)
+
+            return lookup
+
+    model = Table()
+    concrete_fn = model.initializeTable().get_concrete_function(
+      input=tf.TensorSpec([None], tf.string))
+
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir, signatures={"serving_default": concrete_fn})
 
   def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
@@ -221,6 +249,22 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
 
+  def _create_saved_model_with_tfdf(self):
+    """Test a basic TFDF model."""
+    P = 5
+    NUM_EXAMPLES = 10
+    NUM_FEATURES = 4
+
+    x_train = np.random.uniform(size=(NUM_EXAMPLES, NUM_FEATURES))
+    y_train = np.random.uniform(size=NUM_EXAMPLES) > 0.5
+    w_train = y_train * (P - 1) + 1  # 1 or p depending on the class.
+
+    model = GradientBoostedTreesModel()
+    model.fit(x=x_train, y=y_train, sample_weight=w_train)
+
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    model.save(save_dir)
+
   def _create_unsupported_saved_model(self):
     root = tracking.AutoTrackable()
     root.w = variables.Variable(tf.random.uniform([2, 2]))
@@ -259,6 +303,35 @@ class ConvertTest(tf.test.TestCase):
 
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
+
+  def _create_saved_model_with_structured_outputs(self):
+    def create_input(name):
+      return tf.keras.layers.Input(name=name, shape=(1,), dtype=tf.float32)
+
+    input1 = create_input("input1")
+    input3 = create_input("input3")
+    input2 = create_input("input2")
+
+    output1 = tf.keras.layers.Dense(1, name='a')
+    output1 = output1(tf.keras.layers.concatenate([input1, input3], axis=1))
+    output2 = tf.keras.layers.Dense(1, name='b')(input2)
+    output3 = tf.keras.layers.Multiply(name='c')([output1, output2])
+
+    inputs = {
+        "input1": input1,
+        "input3": input3,
+        "input2": input2
+    }
+
+    outputs = {
+        "a": output1,
+        "c": output3,
+        "b": output2
+    }
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
 
   def _create_hub_module(self):
     # Module function that doubles its input.
@@ -387,6 +460,97 @@ class ConvertTest(tf.test.TestCase):
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def test_convert_saved_model_v2_with_hashtable(self):
+    self._create_saved_model_v2_with_hashtable()
+
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        input_dir,
+        output_dir
+    )
+
+    expected_signature = {
+      'inputs': {
+        'input': {
+          'name': 'input:0',
+          'dtype': 'DT_STRING',
+          'tensorShape': {'dim': [{'size': '-1'}]}
+        },
+        'unknown:0': {
+          'name': 'unknown:0',
+          'dtype': 'DT_RESOURCE',
+          'tensorShape': {},
+          'resourceId': None
+        }
+    },
+      'outputs': {
+        'output_0': {
+          'name': 'Identity:0',
+          'dtype': 'DT_INT32',
+          'tensorShape': {'dim': [{'size': '-1'}]}
+        }
+      }
+    }
+
+    expected_initializer_signature = {
+      'outputs': {
+        'Identity:0': {
+          'name': 'Identity:0',
+          'dtype': 'DT_RESOURCE',
+          'tensorShape': {},
+          'resourceId': None
+        }
+      }
+    }
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+
+    # Check resource ids match which indicates the initializer output is mapped
+    # to the inference input.
+    signature_resource_id = model_json['signature']['inputs']['unknown:0']['resourceId']
+    initializer_resource_id = model_json['initializerSignature']['outputs']['Identity:0']['resourceId']
+    self.assertTrue(signature_resource_id)
+    self.assertEqual(signature_resource_id, initializer_resource_id)
+
+    # Update expected signatures with resourceId since it is a runtime value.
+    expected_signature['inputs']['unknown:0']['resourceId'] = signature_resource_id
+    expected_initializer_signature['outputs']['Identity:0']['resourceId'] = signature_resource_id
+    self.assertEqual(model_json['signature'], expected_signature)
+    self.assertEqual(model_json['initializerSignature'], expected_initializer_signature)
+
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    model_ops = [node['op'] for node in model_json['modelTopology']['node']]
+    self.assertIn('LookupTableFindV2', model_ops)
+
+    self.assertTrue(model_json['modelInitializer'])
+    initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
+    self.assertIn('HashTableV2', initializer_ops)
+    self.assertIn('LookupTableImportV2', initializer_ops)
+
+    weights_manifest = model_json['weightsManifest'][0]
+    self.assertEqual(weights_manifest['paths'], ['group1-shard1of1.bin'])
+    self.assertEqual(weights_manifest['weights'][0],
+                     {'name': 'unknown_0', 'shape': [], 'dtype': 'int32'})
+    # Only check weights and dtype since name may vary between TF versions.
+    self.assertEqual(weights_manifest['weights'][1]['shape'], [2])
+    self.assertEqual(weights_manifest['weights'][1]['dtype'], 'string')
+    self.assertEqual(weights_manifest['weights'][2]['shape'], [2])
+    self.assertEqual(weights_manifest['weights'][2]['dtype'], 'int32')
+
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
@@ -791,6 +955,31 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_saved_model_with_tfdf(self):
+    self._create_saved_model_with_tfdf()
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        tfjs_path, tfjs_path, skip_op_check=True
+    )
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+
+    # Check TFDF ops are present.
+    model_ops = [node['op'] for node in model_json['modelTopology']['node']]
+    self.assertIn('SimpleMLInferenceOpWithHandle', model_ops)
+
+    initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
+    self.assertIn('SimpleMLCreateModelResource', initializer_ops)
+    self.assertIn('SimpleMLLoadModelFromPathWithHandle', initializer_ops)
+
+    # Check assets containing TFDF files were copied over.
+    self.assertTrue(
+        os.path.exists(
+            os.path.join(tfjs_path, ASSETS_DIRECTORY_NAME + '.zip')))
+
   def test_convert_saved_model_sharded(self):
     self._create_saved_model()
     model_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -884,6 +1073,41 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_structured_outputs_true(self):
+    self._create_saved_model_with_structured_outputs()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        use_structured_outputs_names=True)
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    self.assertEqual(["a", "b", "c"],
+                     model_json['userDefinedMetadata']['structuredOutputKeys'])
+
+  def test_convert_saved_model_structured_outputs_false(self):
+    self._create_saved_model_with_structured_outputs()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertIs(model_json.get('userDefinedMetadata'), None)
 
   def test_convert_hub_module_v1(self):
     self._create_hub_module()

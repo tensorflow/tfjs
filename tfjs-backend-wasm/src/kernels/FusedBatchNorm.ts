@@ -60,5 +60,5 @@ export const fusedBatchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedBatchNorm as {} as KernelFunc
+  kernelFunc: fusedBatchNorm as unknown as KernelFunc
 };

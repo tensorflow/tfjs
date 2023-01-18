@@ -64,5 +64,5 @@ export const floorDiv = binaryKernelFunc(
 export const floorDivConfig: KernelConfig = {
   kernelName: FloorDiv,
   backendName: 'webgl',
-  kernelFunc: floorDiv as {} as KernelFunc
+  kernelFunc: floorDiv as unknown as KernelFunc
 };

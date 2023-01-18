@@ -16,12 +16,13 @@
  */
 
 import {KernelConfig, LessEqual} from '@tensorflow/tfjs-core';
+
+import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {lessEqualImplCPU as cpuLessEqual} from '../kernel_utils/shared';
-import {BinaryOpType} from '../binary_op_util';
 
 export const lessEqual = binaryKernelFunc({
-  opSnippet: BinaryOpType.LESS_EQUAL,
+  opType: BinaryOpType.LESS_EQUAL,
   dtype: 'bool',
   cpuKernelImpl: cpuLessEqual
 });

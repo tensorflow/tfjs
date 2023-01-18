@@ -27,7 +27,8 @@ export const conv2DGradConfig: GradConfig = {
   inputsToSave: ['x', 'filter'],
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x4D, $filter] = saved as [Tensor4D, Tensor4D];
-    const {dilations, strides, pad, dataFormat} = attrs as {} as Conv2DAttrs;
+    const {dilations, strides, pad, dataFormat} =
+        attrs as unknown as Conv2DAttrs;
 
     util.assert(
         conv_util.tupleValuesAreOne(dilations),

@@ -81,4 +81,4 @@ function movingAverage_<T extends Tensor>(
   return add($v, update);
 }
 
-export const movingAverage = op({movingAverage_});
+export const movingAverage = /* @__PURE__ */ op({movingAverage_});

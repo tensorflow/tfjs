@@ -70,7 +70,7 @@ type KernelMapping = {
 
 function getKernelMappingForFile(source: SourceFile) {
   const switchStatement = getSwitchStatement(source);
-  if (switchStatement === null) {
+  if (switchStatement == null) {
     throw new Error('No switch statment found in executor');
   }
   const caseClauses = switchStatement.getClauses();
@@ -98,16 +98,16 @@ function getKernelMappingForFile(source: SourceFile) {
           const callExprs =
               clausePart.getDescendantsOfKind(SyntaxKind.CallExpression);
           const tfOpsCallExprs =
-              callExprs.filter(expr => expr.getText().match(/tfOps/));
+              callExprs.filter(expr => expr.getText().match(/ops/));
           const tfSymbols: Set<string> = new Set();
           for (const tfOpsCall of tfOpsCallExprs) {
             const tfOpsCallStr = tfOpsCall.getText();
-            const functionCallMatcher = /(tfOps\.([\w\.]*)\()/g;
+            const functionCallMatcher = /(ops\.([\w\.]*)\()/g;
             const matches = tfOpsCallStr.match(functionCallMatcher);
             if (matches != null && matches.length > 0) {
               for (const match of matches) {
                 // extract the method name (and any namespaces used to call it)
-                const symbolMatcher = /(tfOps\.([\w\.]*)\()/;
+                const symbolMatcher = /(ops\.([\w\.]*)\()/;
                 const symbol = match.match(symbolMatcher)[2];
                 tfSymbols.add(symbol);
               }
@@ -138,7 +138,7 @@ function getKernelMapping() {
 }
 
 async function run(outputFilePath: string) {
-  const EXECUTORS_PATH = 'src/operations/executors/*_executor.ts';
+  const EXECUTORS_PATH = 'tfjs-converter/src/operations/executors/*_executor.ts';
   project.addSourceFilesAtPaths(EXECUTORS_PATH);
 
   const kernelMapping = getKernelMapping();

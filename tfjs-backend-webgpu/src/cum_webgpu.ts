@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export enum CumOpType {
@@ -29,7 +29,7 @@ export class CumProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number];
+  workgroupSize: [number, number, number];
   // pow(i32, i32) is not supported, use pow(f32, f32) instead.
   uniforms = 'index : f32,';
   size = true;
@@ -39,12 +39,11 @@ export class CumProgram implements WebGPUProgram {
 
   constructor(
       op: CumOpType, shape: number[], exclusive: boolean, reverse: boolean) {
-    const workGroupSizeX = 128;
-    this.workGroupSize = [workGroupSizeX, 1, 1];
+    this.workgroupSize = [128, 1, 1];
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.exclusive = exclusive;
     this.reverse = reverse;
     this.op = op;
@@ -70,7 +69,7 @@ export class CumProgram implements WebGPUProgram {
       idxString = (this.reverse ? 'end + pow2' : 'end - pow2');
     }
     return `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
        if (index < uniforms.size) {
          var coords = getCoordsFromIndex(index);
 

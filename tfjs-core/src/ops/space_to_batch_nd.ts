@@ -108,8 +108,8 @@ function spaceToBatchND_<T extends Tensor>(
   const attrs: SpaceToBatchNDAttrs = {blockShape, paddings};
 
   return ENGINE.runKernel(
-      SpaceToBatchND, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      SpaceToBatchND, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const spaceToBatchND = op({spaceToBatchND_});
+export const spaceToBatchND = /* @__PURE__ */ op({spaceToBatchND_});

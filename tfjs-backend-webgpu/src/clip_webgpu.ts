@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ClipProgram implements WebGPUProgram {
@@ -25,7 +25,7 @@ export class ClipProgram implements WebGPUProgram {
   uniforms = 'minVal : f32, maxVal : f32,';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   minVal: number;
   maxVal: number;
   size = true;
@@ -34,14 +34,14 @@ export class ClipProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = 'clip';
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
           if (isnan(value)) {

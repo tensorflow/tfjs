@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig_ts_library",
+  "extends": "../tsconfig_base.json",
   "include": [
     "src/"
   ],

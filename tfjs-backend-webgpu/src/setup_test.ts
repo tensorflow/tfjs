@@ -26,58 +26,17 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
-  // skip test cases include gradients webgpu
-  {
-    include: 'gradients webgpu',
-    excludes: ['webgpu '],
-  },
-
   // skip specific test cases for supported kernels
   {
     startsWith: 'abs ',
     excludes: [
       'complex64',  // Kernel 'ComplexAbs' not registered.
-      'gradient',   // Step kernel not yet implemented.
     ]
   },
   {
-    startsWith: 'avgPool ',
+    startsWith: 'conv3d ',
     excludes: [
       'gradient',  // Not yet implemented.
-      //'avgPool3d',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'batchToSpaceND ',
-    excludes: [
-      'tensor3d', 'tensor4d', 'gradient',
-      'accepts a tensor-like object',  // tensor6d not yet implemented
-    ]
-  },
-  {
-    startsWith: 'concat ',
-    excludes: [
-      'concat a large number of tensors',  // The number of storage buffers
-                                           // exceeds the maximum per-stage
-                                           // limit.
-    ]
-  },
-  {
-    startsWith: 'conv2d ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'cumprod ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'prod ',
-    excludes: [
-      'gradient',  // gradient function not found.
     ]
   },
   {
@@ -87,45 +46,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'einsum ',
+    startsWith: 'dilation2d ',
     excludes: [
-      '4d tensors',               // rank 5 is not yet supported.
-      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
-    ]
-  },
-  {
-    startsWith: 'elu ',
-    excludes: [
-      'selu',        // Not yet implemented.
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
+      'gradient'  // gradient function not found.
     ]
   },
   {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
-    ]
-  },
-  {
-    startsWith: 'fused conv2d ',
-    excludes: [
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented
-      'backProp',  // Conv2DBackpropFilter not yet
-                   // implemented
-    ]
-  },
-  {
-    startsWith: 'fused depthwiseConv2D ',
-    excludes: [
-      'gradient',  // DepthwiseConv2dNativeBackpropInput
-    ]
-  },
-  {
-    startsWith: 'fused matmul ',
-    excludes: [
-      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -136,56 +65,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'matmul',
-    excludes: [
-      'has zero in its shape',           // Test times out.
-      'valueAndGradients',               // backend.sum() not yet implemented.
-      'upcasts when dtypes dont match',  // GLSL compilation failed
-    ]
-  },
-  {
-    startsWith: 'maxPool ',
-    excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
-      'maxPool3d',         // Not yet implemented.
-      'maxPoolWithArgmax'  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'max ',
-    excludes: [
-      'AdamaxOptimizer',    // gradient function not found.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
-  },
-  {
-    startsWith: 'mean ',
-    excludes: [
-      'meanSquaredError',
-    ]
-  },
-  {
-    startsWith: 'min ',
-    excludes: [
-      'stft',  // FFT' not registered.
-    ]
-  },
-  {
-    startsWith: 'mul ',
-    excludes: [
-      'broadcast',  // Various: Actual != Expected, compile fails, etc.
-    ]
-  },
-  {
     startsWith: 'nonMaxSuppression ',
     excludes: [
       'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'pool ',
-    excludes: [
-      'poolBackprop',  // maxPoolBackprop not yet implemented.
     ]
   },
   {
@@ -195,82 +77,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'range ',
+    startsWith: 'resizeBilinear ',
     excludes: [
-      'bincount',           // Not yet implemented.
-      'denseBincount',      // Not yet implemented.
-      'oneHot',             // Not yet implemented.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
+      'gradients',  // Not yet implemented
     ]
   },
   {
-    startsWith: 'relu ',
+    startsWith: 'resizeNearestNeighbor ',
     excludes: [
-      'valueAndGradients',  // gradient function not found.
-      'propagates NaNs',    // Arrays differ.
-      'derivative',         // gradient function not found.
-      'gradient'            // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'slice ',
-    excludes: [
-      'slice5d',             // Rank 5 is not yet implemented.
-      'slice6d',             // Rank 6 is not yet implemented.
-      'strided slice with',  // Rank 6 is not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'softmax ',
-    excludes: [
-      'MEAN',
-      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
-    ]
-  },
-  {
-    startsWith: 'spaceToBatchND ',
-    excludes: [
-      'tensor4d',
-      'accepts a tensor-like object',
-    ]
-  },
-  {
-    startsWith: 'sparseToDense ',
-    excludes: [
-      // TODO: Fix 0-sized buffer binding on WebGPU
-      '0-sized',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'square ',
-    excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'squaredDifference ',
-    excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'stridedSlice ',
-    excludes: [
-      'strided slice with several new axes',  // Rank 6 is not yet implemented.
-      'strided slice with new axes and',      // Rank 6 is not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'tensor ',
-    excludes: [
-      'bool tensor'  // Expected object not to have properties.
-    ]
-  },
-  {
-    startsWith: 'transpose ',
-    excludes: [
-      'oneHot',  // Not yet implemented.
-      'fused',   // Not yet implemented.
+      'gradients',  // Not yet implemented
     ]
   },
 
@@ -279,80 +94,16 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'acos ',
-      'acosh ',
-      'all webgpu ',
-      'any webgpu ',
-      'asin ',
-      'asinh ',
-      'atan2 ',
-      'atanh ',
-      'avgPool3d ',
-      'avgPool3dBackprop ',
-      'bincount ',
-      'broadcastArgs ',
-      'concat3d ',
-      'conv2dTranspose ',
-      'conv2DBackpropFilter ',
-      'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
-      'conv1d gradients',  // Conv2DBackpropFilter
-      'conv3d ',
-      'conv3dTranspose ',
-      'decodeWeights ',
-      'denseBincount ',
-      'diag ',
-      'dilation2d ',
-      'encodeWeights ',
-      'erf ',
-      'FFT ',
-      'IRFFT ',
-      'isFinite ',
-      'isInf ',
-      'isNaN ',
-      'linspace ',
-      'localResponseNormalization ',
-      'log1p ',
-      'logSigmoid ',
-      'logicalOr ',
-      'logicalXor ',
-      'lowerBound',
-      'maxPool3d ',
-      'maxPool3dBackprop ',
-      'maxPoolBackprop ',
-      'maxPoolWithArgmax ',
-      'mod ',
-      'multinomial ',
-      'oneHot ',
-      'confusionMatrix ',  // oneHot
-      'poolBackprop ',
-      'reciprocal ',
-      'reverse1d ',
-      'reverse2d ',
-      'reverse3d ',
-      'reverse4d ',
-      'reverse webgpu',
-      'RFFT ',
-      'round webgpu',
+      'avgPool3d ',           'avgPool3dBackprop ',
+      'conv3dTranspose ',     'maxPool3d ',
+      'maxPool3dBackprop ',   'raggedGather ',
+      'raggedRange ',         'raggedTensorToTensor ',
       'method otsu',  // round
-      'searchSorted',
-      'selu ',
-      'sign webgpu',
-      'stft ',
-      'softplus ',
-      'sigmoidCrossEntropy ',
-      'sparseFillEmptyRows ',
-      'sparseReshape ',
-      'sparseSegmentMean ',
-      'sparseSegmentSum ',
-      'step kernel',
-      'gradients: relu6',  // Step
-      'stringSplit ',
-      'stringToHashBucketFast ',
-      'tan webgpu',
-      'unique ',
-      'unsortedSegmentSum ',
-      'upperBound',
-      'valueAndGradients ',
+      'sparseFillEmptyRows ', 'sparseReshape ',
+      'sparseSegmentMean ',   'sparseSegmentSum ',
+      'stringSplit ',         'stringToHashBucketFast ',
+      'tensorScatterUpdate ', 'unique ',
+      'unsortedSegmentSum ',  'valueAndGradients ',
     ]
   },
 ];

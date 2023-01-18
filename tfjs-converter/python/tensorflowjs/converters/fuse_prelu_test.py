@@ -21,6 +21,10 @@ import tempfile
 import tensorflow.compat.v2 as tf
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
+from tensorflow.python.eager import def_function
+from tensorflow.python.framework import constant_op
+from tensorflow.python.ops import variables
+from tensorflow.python.training.tracking import tracking
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import fuse_prelu
@@ -234,5 +238,27 @@ class FusePreluTest(tf.test.TestCase):
     self.assertNotEqual(conv2d_op, None)
     self.assertEqual(conv2d_op.attr['fused_ops'].list.s, [b'BiasAdd', b'Prelu'])
     self.assertEqual(conv2d_op.attr['num_args'].i, 2)
+
+  def testNonPreluPattern(self):
+    """Test a basic model with functions to make sure functions are inlined."""
+    input_data = constant_op.constant(1., shape=[1])
+    root = tracking.AutoTrackable()
+    root.v1 = variables.Variable(3.)
+    root.v2 = variables.Variable(2.)
+
+    root.f = def_function.function(lambda x: tf.nn.relu(root.v1) + root.v2 * 2.0)
+    to_save = root.f.get_concrete_function(input_data)
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        root.f.get_concrete_function(input_data))
+    graph_def = graph.as_graph_def()
+    graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
+    const_op = None
+    for node in graph_def.node:
+      self.assertNotEqual("Prelu", node.op)
+      if node.op == 'Const':
+        const_op = node
+    self.assertNotEqual(const_op, None)
+    self.assertEqual(const_op.attr['value'].tensor.float_val, [2.0])
+
 if __name__ == '__main__':
   tf.test.main()

@@ -17,7 +17,7 @@ using an already hosted model (e.g. MobileNet), skip this step.
 2. [JavaScript API](./src/executor/tf_model.ts), for loading and running
 inference.
 
-## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model) or [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model) to a web-friendly format
+## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
 
 __0. Please make sure that you run in a Docker container or a virtual environment.__
 
@@ -54,10 +54,13 @@ Install the library with interactive CLI:
 
 __2. Run the converter script provided by the pip package:__
 
-There are two way to trigger the model conversion:
+There are three way to trigger the model conversion, explain below:
 
-- The conversion wizard: `tensorflowjs_wizard`
-- Regular conversion script: `tensorflowjs_converter`
+- The conversion wizard: `tensorflowjs_wizard` ([go to section](#conversion-wizard-tensorflowjswizard))
+- Regular conversion script: `tensorflowjs_converter` ([go to section](#regular-conversion-script-tensorflowjsconverter))
+- Calling a converter function in Python (Flax/JAX) ([go to section](#calling-a-converter-function-in-python))
+
+## Conversion wizard: `tensorflowjs_wizard`
 
 To start the conversion wizard:
 ```bash
@@ -81,7 +84,7 @@ tensorflowjs_wizard --dryrun
 To convert a batch of models or integrate the conversion process into your own
 script, you should use the tensorflowjs_converter script.
 
-## Conversion flags
+## Regular conversion script: `tensorflowjs_converter`
 
 The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
 __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
@@ -141,6 +144,8 @@ Note that the input path used above is a subfolder that has a Unix epoch
 time (1542211770) and is generated automatically by tensorflow when it
 saved a tf.keras model in the SavedModel format.
 
+### Conversion Flags
+
 |Positional Arguments | Description |
 |---|---|
 |`input_path`  | Full path of the saved model directory or TensorFlow Hub module handle or path.|
@@ -162,6 +167,7 @@ saved a tf.keras model in the SavedModel format.
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 |<nobr>`--control_flow_v2`</nobr>| Only applicable to TF 2.x Saved Model. This flag improve performance on models with control flow ops, default to False.|
 |<nobr>`--metadata`</nobr>| Comma separated list of metadata json file paths, indexed by name. Prefer absolute path. Example: 'metadata1:/metadata1.json,metadata2:/metadata2.json'.|
+|<nobr>`--use_structured_outputs_names`</nobr>| Changes output of graph model to match the structured_outputs format instead of list format. Defaults to `False`.|
 
 __Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
 
@@ -269,6 +275,53 @@ following location:
   ...
   https://storage.cloud.google.com/tfjs-models/savedmodel/mobilenet_v1_1.0_224/group1-shard5of5
 ```
+
+## Calling a Converter Function in Python (Flax/JAX)
+
+You can also convert your model to web format in Python by calling one of the
+conversion functions. This is currently the only way to convert a Flax or JAX
+model, since no standard serialization format exists to store a Module (only the
+checkpoints).
+
+Here we provide an example of how to convert a Flax function using the
+conversion function `tfjs.jax_conversion.convert_jax()`.
+
+```py
+import numpy as np
+from flax import linen as nn
+from jax import random
+import jax.numpy as jnp
+from tensorflowjs.converters import jax_conversion
+
+module = nn.Dense(features=4)
+inputs = jnp.ones((3, 4))
+params = module.init(random.PRNKey(0), inputs)['params']
+
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((3, 4), np.float32)],
+  model_dir=tfjs_model_dir)
+```
+
+Note that when using dynamic shapes, an additional argument `polymorphic_shapes`
+should be provided specifying values for the dynamic ("polymorphic")
+dimensions). So in order to convert the same model as before, but now with a
+dynamic first dimension, one should call `convert_jax` as follows:
+
+```py
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((None, 4), np.float32)],
+  polymorphic_shapes=["(b, 4)"],
+  model_dir=tfjs_model_dir)
+```
+
+See
+[here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
+for more details on the exact syntax for this argument.
+
 
 ## Step 2: Loading and running in the browser
 
@@ -454,7 +507,7 @@ Then, we clone the project and install dependencies with:
 
 ```bash
 git clone https://github.com/tensorflow/tfjs.git
-cd tfjs/tfjs-converter
+cd tfjs
 yarn # Installs dependencies.
 ```
 
@@ -470,6 +523,7 @@ Before submitting a pull request, make sure the code passes all the tests and is
 clean of lint errors:
 
 ```bash
+cd tfjs-converter
 yarn test
 yarn lint
 ```
@@ -486,4 +540,10 @@ To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
 yarn test --single-run
+```
+
+To run all the python tests
+
+```bash
+yarn run-python-tests
 ```

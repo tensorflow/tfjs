@@ -45,5 +45,5 @@ export const exp = unaryKernelFunc({
 export const expConfig: KernelConfig = {
   kernelName: Exp,
   backendName: 'webgl',
-  kernelFunc: exp as {} as KernelFunc
+  kernelFunc: exp as unknown as KernelFunc
 };

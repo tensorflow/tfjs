@@ -77,8 +77,8 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  ResizeBilinear, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  ResizeBilinear, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -86,4 +86,4 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const resizeBilinear = op({resizeBilinear_});
+export const resizeBilinear = /* @__PURE__ */ op({resizeBilinear_});

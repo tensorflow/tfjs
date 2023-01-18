@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -167,41 +167,6 @@ export function assertNonNull(a: TensorLike): void {
       () => `The input to the tensor constructor must be a non-null value.`);
 }
 
-// NOTE: We explicitly type out what T extends instead of any so that
-// util.flatten on a nested array of number doesn't try to infer T as a
-// number[][], causing us to explicitly type util.flatten<number>().
-/**
- *  Flattens an arbitrarily nested array.
- *
- * ```js
- * const a = [[1, 2], [3, 4], [5, [6, [7]]]];
- * const flat = tf.util.flatten(a);
- * console.log(flat);
- * ```
- *
- *  @param arr The nested array to flatten.
- *  @param result The destination array which holds the elements.
- *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
- *      to false.
- *
- * @doc {heading: 'Util', namespace: 'util'}
- */
-export function
-flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
-    arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr as T);
-  }
-  return result;
-}
-
 /**
  * Returns the size (number of elements) of the tensor given its shape.
  *
@@ -274,14 +239,14 @@ export function sizeToSquarishShape(size: number): [number, number] {
 }
 
 /**
- * Creates a new array with randomized indicies to a given quantity.
+ * Creates a new array with randomized indices to a given quantity.
  *
  * ```js
  * const randomTen = tf.util.createShuffledIndices(10);
  * console.log(randomTen);
  * ```
  *
- * @param number Quantity of how many shuffled indicies to create.
+ * @param number Quantity of how many shuffled indices to create.
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
@@ -303,7 +268,9 @@ export function rightPad(a: string, size: number): string {
 
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
-    maxCounter?: number): Promise<void> {
+    maxCounter?: number,
+    scheduleFn?: (functionRef: Function, delay: number) =>
+        void): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -321,7 +288,14 @@ export function repeatedTry(
         reject();
         return;
       }
-      setTimeout(tryFn, nextBackoff);
+
+      if (scheduleFn != null) {
+        scheduleFn(tryFn, nextBackoff);
+      } else {
+        // google3 does not allow assigning another variable to setTimeout.
+        // Don't refactor this so scheduleFn has a default value of setTimeout.
+        setTimeout(tryFn, nextBackoff);
+      }
     };
 
     tryFn();
@@ -504,12 +478,6 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}):
-  a is Float32Array|Int32Array|Uint8Array|Uint8ClampedArray {
-  return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
-}
-
 export function bytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32') {
     return 4;
@@ -524,9 +492,9 @@ export function bytesPerElement(dtype: DataType): number {
 
 /**
  * Returns the approximate number of bytes allocated in the string array - 2
- * bytes per character. Computing the exact bytes for a native string in JS is
- * not possible since it depends on the encoding of the html page that serves
- * the website.
+ * bytes per character. Computing the exact bytes for a native string in JS
+ * is not possible since it depends on the encoding of the html page that
+ * serves the website.
  */
 export function bytesFromStringArray(arr: Uint8Array[]): number {
   if (arr == null) {
@@ -550,15 +518,15 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike): DataType {
+export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array
-             || values instanceof Uint8Array
-             || values instanceof Uint8ClampedArray) {
+  } else if (
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';
@@ -638,6 +606,23 @@ export function toNestedArray(
   return createNestedArray(0, shape, a, isComplex);
 }
 
+export function convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+
 export function makeOnesTypedArray<D extends DataType>(
     size: number, dtype: D): DataTypeMap[D] {
   const array = makeZerosTypedArray(size, dtype);
@@ -712,8 +697,8 @@ export function locToIndex(
 }
 
 /**
- * Computes the location (multidimensional index) in a tensor/multidimentional
- * array for a given flat index.
+ * Computes the location (multidimensional index) in a
+ * tensor/multidimentional array for a given flat index.
  *
  * @param index Index in flat array.
  * @param rank Rank of tensor.
@@ -744,8 +729,8 @@ export function isPromise(object: any): object is Promise<unknown> {
   //  We chose to not use 'obj instanceOf Promise' for two reasons:
   //  1. It only reliably works for es6 Promise, not other Promise
   //  implementations.
-  //  2. It doesn't work with framework that uses zone.js. zone.js monkey patch
-  //  the async calls, so it is possible the obj (patched) is comparing to a
-  //  pre-patched Promise.
+  //  2. It doesn't work with framework that uses zone.js. zone.js monkey
+  //  patch the async calls, so it is possible the obj (patched) is
+  //  comparing to a pre-patched Promise.
   return object && object.then && typeof object.then === 'function';
 }

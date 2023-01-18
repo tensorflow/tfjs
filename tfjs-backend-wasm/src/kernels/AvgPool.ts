@@ -91,5 +91,5 @@ export const avgPoolConfig: KernelConfig = {
   kernelName: AvgPool,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: avgPool as {} as KernelFunc
+  kernelFunc: avgPool as unknown as KernelFunc
 };

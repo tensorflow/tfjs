@@ -107,16 +107,6 @@ function fromPixels_(
         ` or {data: Uint32Array, width: number, height: number}, ` +
         `but was ${(pixels as {}).constructor.name}`);
   }
-  if (isVideo) {
-    const HAVE_CURRENT_DATA_READY_STATE = 2;
-    if (isVideo &&
-        (pixels as HTMLVideoElement).readyState <
-            HAVE_CURRENT_DATA_READY_STATE) {
-      throw new Error(
-          'The video element has not loaded data yet. Please wait for ' +
-          '`loadeddata` event on the <video> element.');
-    }
-  }
   // If the current backend has 'FromPixels' registered, it has a more
   // efficient way of handling pixel uploads, so we call that.
   const kernel = getKernel(FromPixels, ENGINE.backendName);
@@ -124,8 +114,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return ENGINE.runKernel(
-        FromPixels, inputs as {} as NamedTensorMap,
-        attrs as {} as NamedAttrMap);
+        FromPixels, inputs as unknown as NamedTensorMap,
+        attrs as unknown as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?
@@ -157,7 +147,7 @@ function fromPixels_(
       } else {
         fromPixels2DContext =
             document.createElement('canvas').getContext(
-                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
+                '2d', {willReadFrequently: true});
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -381,4 +371,4 @@ export async function toPixels(
   return bytes;
 }
 
-export const fromPixels = op({fromPixels_});
+export const fromPixels = /* @__PURE__ */ op({fromPixels_});

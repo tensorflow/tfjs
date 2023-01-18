@@ -25,7 +25,7 @@ export const padV2Config: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as PadV2Inputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {paddings, constantValue} = args.attrs as {} as PadV2Attrs;
+    const {paddings, constantValue} = args.attrs as unknown as PadV2Attrs;
 
     // Bind tensor values
     const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');

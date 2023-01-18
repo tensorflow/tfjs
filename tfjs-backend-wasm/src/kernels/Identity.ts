@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {Identity, IdentityInputs, KernelConfig, KernelFunc, tensor} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -23,6 +23,11 @@ import {BackendWasm} from '../backend_wasm';
 export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
     TensorInfo {
   const {inputs: {x}, backend} = args;
+
+  if (x.dtype === 'string') {
+    return tensor(backend.readSync(x.dataId), x.shape, x.dtype);
+  }
+
   const out = backend.makeOutput(x.shape, x.dtype);
   const inVals = backend.typedArrayFromHeap(x);
   const outVals = backend.typedArrayFromHeap(out);
@@ -33,5 +38,5 @@ export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
   backendName: 'wasm',
-  kernelFunc: identity as {} as KernelFunc,
+  kernelFunc: identity as unknown as KernelFunc,
 };

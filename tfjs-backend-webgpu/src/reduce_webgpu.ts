@@ -16,7 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ReduceProgram implements WebGPUProgram {
@@ -24,16 +24,16 @@ export class ReduceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
   uniforms = 'reduceSize : i32,';
-  reduceType: 'max'|'mean'|'min'|'prod'|'sum';
+  reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
-      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
+      reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum') {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
@@ -52,6 +52,7 @@ export class ReduceProgram implements WebGPUProgram {
   getUserCode(): string {
     let reduceOp = ``;
     let initValue = '0.0';
+    const workgroupSizeX = this.workgroupSize[0];
     if (this.reduceType === 'min' || this.reduceType === 'max') {
       reduceOp = `
          if (isnan(candidate)) {
@@ -65,6 +66,12 @@ export class ReduceProgram implements WebGPUProgram {
     } else if (this.reduceType === 'prod') {
       reduceOp = ' bestValue = bestValue * candidate; ';
       initValue = '1.0';
+    } else if (this.reduceType === 'all') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ';
+      initValue = '1.0';
+    } else if (this.reduceType === 'any') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ';
+      initValue = '0.0';
     }
 
     const outputSnippet = this.reduceType === 'mean' ?
@@ -73,7 +80,7 @@ export class ReduceProgram implements WebGPUProgram {
         `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+         var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
        `;
 
     const userCode = `
@@ -90,21 +97,21 @@ export class ReduceProgram implements WebGPUProgram {
             'outputCoords[0]'} * uniforms.reduceSize;
           return offset;
        }
-       ${getMainHeaderAndGlobalIndexString()}
-         let outputIndex = index / i32(workGroupSizeX);
+       ${main('index')} {
+         let outputIndex = index / ${workgroupSizeX};
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
+         let WorkPerThread = DIV_CEIL(u32(Length), ${workgroupSizeX}u);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workGroupSizeX)) {
+             k = k + ${workgroupSizeX}) {
            let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
          workgroupBarrier();
 
-         var reduceSize = min(u32(Length), workGroupSizeX);
+         var reduceSize = min(u32(Length), ${workgroupSizeX}u);
          for (var currentSize = reduceSize / 2u; reduceSize > 1u;
              currentSize = reduceSize / 2u) {
            let interval = DIV_CEIL(reduceSize, 2u);

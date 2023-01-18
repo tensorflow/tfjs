@@ -20,48 +20,48 @@ import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorf
 import {symbolicallyComputeStrides} from './shader_util';
 
 export interface WebGPUProgram {
-  // The unique key to distinguish different shader source code.
-  shaderKey: string;
-  outputShape: number[];
+  // Whether to use atomic built-in functions.
+  atomic?: boolean;
+  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
+  dispatch: [number, number, number];
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
-  dispatch: [number, number, number];
+  isFromPixels?: boolean;
+  isVec4?: boolean;
+  outputShape: number[];
+  // The unique key to distinguish different shader source code.
+  shaderKey: string;
+  // Whether to use output size for bounds checking.
+  size?: boolean;
+  uniforms?: string;
   variableNames: string[];
   // Describe each variable's type and must have one-one mapping with
   // variableNames. If not set, all variables type will be either f32 or
   // vec4<f32> based on isVec4 member.
   variableTypes?: string[];
-  uniforms?: string;
+  // workgroupSize.x * workgroupSize.y * workgroupSize.z = the number of threads
+  // in a thread group. Individual dimensions determines thread layout within
+  // the group.
+  workgroupSize: [number, number, number];
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
   workPerThread?: number;
-  // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
-  // in a thread group. Individual dimensions determines thread layout within
-  // the group.
-  workGroupSize: [number, number, number];
-  isVec4?: boolean;
-  // Whether to use output size for bounds checking.
-  size?: boolean;
-  // Whether to use atomic built-in functions.
-  atomic?: boolean;
   getUserCode: () => string;
 }
 
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram,
-     pipelineLayout: GPUPipelineLayout, inputsData: InputInfo[],
-     output: TensorInfo, isFromPixel = false): GPUComputePipeline => {
+    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
+     output: TensorInfo): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
-      const source = makeShader(inputsData, outputData, program, isFromPixel);
+      const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        layout: pipelineLayout,
-        compute: {module, entryPoint: 'main'},
-        label: program.constructor.name
+        compute: {module, entryPoint: '_start'},
+        label: program.constructor.name,
+        layout: 'auto'
       });
 
       return pipeline;
@@ -103,132 +103,126 @@ export function getCoordsXYZ(index: number): string {
   }
 }
 
-export function getMainHeaderAndGlobalIndexString(): string {
+export function getMainHeaderString(): string;
+export function getMainHeaderString(index: string): string;
+export function getMainHeaderString(...params: string[]): string {
+  let snippet: string;
+  switch (params.length) {
+    case 0:
+      snippet = `
+        fn main()
+      `;
+      break;
+    case 1:
+      snippet = `
+        fn main(${params[0]} : i32)
+      `;
+      break;
+    default:
+      throw Error('Unreachable');
+  }
+  return snippet;
+}
+
+export function getStartHeaderString(
+    useGlobalIndex: boolean, program: WebGPUProgram): string {
+  let snippet: string;
+  snippet = `
+     ${getWorkgroupSizeString(program)}
+      fn _start(@builtin(local_invocation_id) LocalId : vec3<u32>,
+                @builtin(global_invocation_id) GlobalId : vec3<u32>,
+                @builtin(local_invocation_index) LocalIndex: u32,
+                @builtin(workgroup_id) WorkgroupId : vec3<u32>,
+                @builtin(num_workgroups) NumWorkgroups : vec3<u32>) {
+        localId = LocalId;
+        localIndex = LocalIndex;
+        globalId = GlobalId;
+        numWorkgroups = NumWorkgroups;
+        workgroupId = WorkgroupId;
+        ${useGlobalIndex ? `main(getGlobalIndex());` : `main();`};
+      }
+    `;
+  return snippet;
+}
+
+export function getWorkgroupSizeString(program: WebGPUProgram): string {
   return `
-    ${getMainHeaderString()}
-      let index = getGlobalIndex();
+  @compute @workgroup_size(${program.workgroupSize[0]}, ${
+      program.workgroupSize[1]}, ${program.workgroupSize[2]})
 `;
 }
 
-export function getMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
-          @builtin(global_invocation_id) GlobalId : vec3<u32>,
-          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
-    localId = LocalId;
-    globalId = GlobalId;
-    numWorkgroups = NumWorkgroups;
-`;
-}
-
-export function getWorkGroupSizeString(): string {
-  return `
-  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
-`;
-}
-
-export function makeShader(
+function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
-    program: WebGPUProgram, isFromPixel = false): string {
+    program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
+  const flatWorkgroupSize = program.workgroupSize[0] *
+      program.workgroupSize[1] * program.workgroupSize[2];
   prefixSnippets.push(`
-      let workGroupSizeX = ${program.workGroupSize[0]}u;
-      let workGroupSizeY = ${program.workGroupSize[1]}u;
-      let workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
+      var<private> localIndex: u32;
       var<private> globalId: vec3<u32>;
       var<private> numWorkgroups: vec3<u32>;
+      var<private> workgroupId: vec3<u32>;
 
       // Only used when the y/z dimension of workgroup size is 1.
       fn getGlobalIndex() -> i32 {
         ${
       isFlatDispatch(program) ?
           `  return i32(globalId.x);` :
-          `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-                   localId.y * workGroupSizeX + localId.x;
-               let workGroupID = (globalId - localId)/vec3<u32>(
-                   workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-               return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-                   workGroupID.y * numWorkgroups.x + workGroupID.x) *
-                   (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-                   localInvocationIndex);
+          `  return i32((workgroupId.z * numWorkgroups.x * numWorkgroups.y +
+                workgroupId.y * numWorkgroups.x + workgroupId.x) * ${
+              flatWorkgroupSize}u +
+                localIndex);
         `}
       }
     `);
 
-  if (isFromPixel === true) {
+  if (program.isFromPixels) {
     prefixSnippets.push(`
         struct Uniform {
           size            : i32,
           numChannels     : i32,
           outShapeStrides : vec2<i32>,
-          dispatchSize    : vec3<u32>,
         };
 
-        @group(0) @binding(0) var<storage, write> result: array<${
+        @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
+    const useGlobalIndex = isFlatDispatchLayout(program);
     return [
       commonSnippet,
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
+      getStartHeaderString(useGlobalIndex, program),
     ].join('\n');
   }
 
-  let preMemberIsStruct = false;
-  let currentMemberIsStruct = false;
-  let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
+  let uniformDeclaration = 'struct Uniforms { NAN : f32, INFINITY : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
-    if (perDataType === 'vec5' || perDataType === 'vec6') {
-      currentMemberIsStruct = true;
-    }
-    if (preMemberIsStruct || currentMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
-  currentMemberIsStruct =
-      outputDataType === 'vec5' || outputDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
-  currentMemberIsStruct =
-      stridesDataType === 'vec5' || stridesDataType === 'vec6';
-  if (preMemberIsStruct || currentMemberIsStruct) {
-    uniformDeclaration += `@align(16) `;
-  }
-  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
          outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
-    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
-    if (preMemberIsStruct) {
-      uniformDeclaration += `@align(16) `;
-    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
+  uniformDeclaration = insertAlignment(uniformDeclaration);
 
   prefixSnippets.push(uniformDeclaration);
 
@@ -239,7 +233,7 @@ export function makeShader(
     `);
   } else {
     prefixSnippets.push(`
-      @group(0) @binding(0) var<storage, write> result: array<${
+      @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }
@@ -259,11 +253,11 @@ export function makeShader(
       `);
   }
 
-  const [coordsSnippet, dispatchLayoutRank] =
+  const coordsSnippet =
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet, prefixSnippets.join('\n'),
+    commonSnippet, prefixSnippets.join('\n') + isInfSnippet,
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
@@ -271,37 +265,47 @@ export function makeShader(
     sources.push(
         setOutputSnippet(outputData.shape, outputData.dtype, program.isVec4));
   }
-  if (dispatchLayoutRank === outputData.shape.length) {
-    // Input snippet is only meaningful when the output isn't getting
-    // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet =
-        inputInfo
-            .map(
-                (x, i) => getInputSnippet(
-                    x, outputData.shape,
-                    program.variableTypes ?
-                        (program.variableTypes[i] === 'vec4<f32>') :
-                        program.isVec4,
-                    program.dispatchLayout.x.length ===
-                        outputData.shape.length))
-            .join('\n');
-    sources.push(inputSnippet);
-  }
 
+  const inputSnippet =
+      inputInfo
+          .map(
+              (x, i) => getInputSnippet(
+                  x, outputData.shape,
+                  program.variableTypes ?
+                      (program.variableTypes[i] === 'vec4<f32>') :
+                      program.isVec4,
+                  program.dispatchLayout.x.length === outputData.shape.length))
+          .join('\n');
+  sources.push(inputSnippet);
   sources.push(program.getUserCode());
+  const useGlobalIndex = isFlatDispatchLayout(program);
+  sources.push(getStartHeaderString(useGlobalIndex, program));
   const source = sources.join('\n');
   return source;
 }
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[] = [],
-    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
+    output: TensorInfo): string {
+  let key = program.shaderKey;
+  if (program.isFromPixels) {
+    return key;
+  }
+
+  const types = inputsData.map(d => d.dtype).concat(output.dtype);
+  const broadcastDims =
+      inputsData.map(d => backend_util.getBroadcastDims(d.shape, output.shape));
+  const inputShapesEqualsOutShape =
+      inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
+  const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
-  const key = program.shaderKey + '_' +
-      (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+
+  key += '_' + (program.workgroupSize ? program.workgroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;
+
   return key;
 }
 
@@ -344,8 +348,8 @@ const commonSnippet = `
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
       res = res - 1;
     }
     return res;
@@ -361,14 +365,21 @@ const commonSnippet = `
     return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
   fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
+    let floatToUint: vec4<u32> = bitcast<vec4<u32>>(val);
+    return (floatToUint & vec4<u32>(0x7fffffffu)) > vec4<u32>(0x7f800000u);
+  }
+`;
+
+const isInfSnippet = `
+  fn isinf(val: f32) -> bool {
+    return abs(val) == uniforms.INFINITY;
   }
 `;
 
 type InputInfo = {
   dtype: DataType; shape: number[]; name: string;
 };
-type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
+export type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
 
 /**
  * Derives logical coordinates from a flat index. Performs integer division
@@ -622,11 +633,17 @@ function getInputSnippet(
  */
 function getOutputCoordsSnippet(
     outShape: number[],
-    dispatchLayout: {x: number[], y?: number[], z?: number[]}):
-    [string, number] {
+    dispatchLayout: {x: number[], y?: number[], z?: number[]}): string {
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
+  const rank = x.length + y.length + z.length;
+  // getOutputCoords is only meaningful when the output rank is same with
+  // dispatch layout rank.
+  if (rank !== outRank) {
+    return '';
+  }
+
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
     const snippet = `fn getOutputCoords() -> ${dtype}{
@@ -634,13 +651,11 @@ function getOutputCoordsSnippet(
     return getCoordsFromIndex(globalIndex);
   }
   `;
-    return [snippet, outRank];
+    return snippet;
   }
 
   let gatherDimensionsStr = '';
   const dims = [x, y, z];
-
-  let rank = 0;
 
   for (let i = 0; i < dims.length; i++) {
     const arr = dims[i];
@@ -648,8 +663,6 @@ function getOutputCoordsSnippet(
     if (arr.length === 0) {
       continue;
     }
-
-    rank += arr.length;
 
     if (arr.length === 1) {
       gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
@@ -685,7 +698,7 @@ function getOutputCoordsSnippet(
     snippet += `return ${dtype}(${dimensions.join(',')}); }`;
   }
 
-  return [snippet, rank];
+  return snippet;
 }
 
 function getOutputIndexFromCoordsSnippet(outRank: number) {
@@ -755,7 +768,7 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
   return program.dispatch[1] === 1 && program.dispatch[2] === 1;
 }
 
-function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
+export function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
   if (type === 'float32') {
     return isVec4 ? 'vec4<f32>' : 'f32';
@@ -824,4 +837,30 @@ function setOutputSnippet(
   }
 
   return snippet;
+}
+
+function insertAlignment(uniformShader: string) {
+  // insert alignment when current pattern is vec5 or vec6
+  const curInsertRe = /(\w+)\s*:\s*vec(5|6)/g;
+  uniformShader = uniformShader.replace(curInsertRe, (match) => {
+    return '@align(16) ' + match;
+  });
+
+  // insert alignment when previous pattern is vec5 or vec6
+  const preInsertRe = /vec(5|6)\s*,\s*(\w+)/g;
+  uniformShader = uniformShader.replace(preInsertRe, (_, p1, p2) => {
+    return `vec${p1}, @align(16) ${p2}`;
+  });
+  return uniformShader;
+}
+function isFlatDispatchLayout(program: WebGPUProgram): boolean {
+  if (program.dispatchLayout.hasOwnProperty('y') &&
+      program.dispatchLayout.y.length !== 0) {
+    return false;
+  }
+  if (program.dispatchLayout.hasOwnProperty('z') &&
+      program.dispatchLayout.z.length !== 0) {
+    return false;
+  }
+  return true;
 }

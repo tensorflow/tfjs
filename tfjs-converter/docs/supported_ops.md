@@ -146,6 +146,7 @@
 |OneHot|oneHot|
 |Ones|ones|
 |OnesLike|onesLike|
+|RandomStandardNormal|RandomStandardNormal|
 |RandomUniform|RandomUniform|
 |Range|range|
 |TruncatedNormal|truncatedNormal|

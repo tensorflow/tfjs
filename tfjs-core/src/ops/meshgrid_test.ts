@@ -114,8 +114,8 @@ describeWithFlags('scalars', ALL_ENVS, () => {
 
 describeWithFlags('invalid arguments', ALL_ENVS, () => {
   it('Should throw an Error', () => {
-    expect(() => tf.meshgrid((() => {}) as {} as Tensor)).toThrow();
-    expect(() => tf.meshgrid([1], (() => {}) as {} as Tensor)).toThrow();
+    expect(() => tf.meshgrid((() => {}) as unknown as Tensor)).toThrow();
+    expect(() => tf.meshgrid([1], (() => {}) as unknown as Tensor)).toThrow();
     expect(() => tf.meshgrid([1], [2], {indexing: 'foobar'})).toThrow();
   });
 });

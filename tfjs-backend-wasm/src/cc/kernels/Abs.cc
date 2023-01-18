@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 #include <xnnpack.h>
+#include <stdlib.h>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"

@@ -40,6 +40,6 @@ function cosh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'cosh', 'float32');
   const inputs: CoshInputs = {x: $x};
 
-  return ENGINE.runKernel(Cosh, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Cosh, inputs as unknown as NamedTensorMap);
 }
-export const cosh = op({cosh_});
+export const cosh = /* @__PURE__ */ op({cosh_});

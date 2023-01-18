@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class CropAndResizeProgram implements WebGPUProgram {
@@ -25,7 +25,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
   uniforms = 'extrapolationValue : f32,';
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   methodId: number;
   cropHeightBiggerThan1: boolean;
   cropWidthBiggerThan1: boolean;
@@ -38,7 +38,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], channnel];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.methodId = method === 'bilinear' ? 1 : 0;
     this.cropHeightBiggerThan1 = this.outputShape[1] > 1;
@@ -78,7 +78,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+    ${main('index')} {
       if (index < uniforms.size) {
         let coords = getCoordsFromIndex(index);
         let height_ratio = f32(${heightRatio});

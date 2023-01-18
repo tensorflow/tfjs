@@ -27,7 +27,7 @@ import {op} from './operation';
 /**
  * Computes scaled exponential linear element-wise.
  *
- * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
+ * `x < 0 ? scale * alpha * (exp(x) - 1) : scale * x`
  *
  * ```js
  * const x = tf.tensor1d([-1, 2, -3, 4]);
@@ -43,7 +43,7 @@ function selu_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: SeluInputs = {x: $x};
 
-  return ENGINE.runKernel(Selu, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Selu, inputs as unknown as NamedTensorMap);
 }
 
-export const selu = op({selu_});
+export const selu = /* @__PURE__ */ op({selu_});

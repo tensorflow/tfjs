@@ -108,5 +108,5 @@ export function avgPool3DGrad(args: {
 export const avgPool3DGradConfig: KernelConfig = {
   kernelName: AvgPool3DGrad,
   backendName: 'cpu',
-  kernelFunc: avgPool3DGrad as {} as KernelFunc
+  kernelFunc: avgPool3DGrad as unknown as KernelFunc
 };

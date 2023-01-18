@@ -22,7 +22,6 @@ const {expectArraysEqual, expectArraysClose} = test_util;
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
-import * as webgpu_util from './webgpu_util';
 
 describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   let cpuForwardFlagSaved: boolean;
@@ -122,7 +121,7 @@ describeWebGPU('backend webgpu', () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
     const backend = tf.backend() as WebGPUBackend;
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     bufferManager.dispose();
 
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -163,7 +162,7 @@ describeWebGPU('backend webgpu', () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
     const backend = tf.backend() as WebGPUBackend;
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     bufferManager.dispose();
 
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -215,84 +214,6 @@ describeWebGPU('backend webgpu', () => {
     // Now that data has been downloaded to the CPU, dataSync should work.
     expect(() => c.dataSync()).not.toThrow();
   });
-
-  it('should reuse textures when fromPixels have same input size', async () => {
-    const useImport = tf.env().getBool('WEBGPU_USE_IMPORT');
-    tf.env().set('WEBGPU_USE_IMPORT', false);
-    const backend = tf.backend() as WebGPUBackend;
-    const textureManager = backend.getTextureManager();
-    textureManager.dispose();
-
-    {
-      const video = document.createElement('video');
-      video.autoplay = true;
-      const source = document.createElement('source');
-      source.src =
-          // tslint:disable-next-line:max-line-length
-          'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrQYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1NSByMjkwMSA3ZDBmZjIyIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxOCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTMgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTI4LjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAwZYiEAD//8m+P5OXfBeLGOfKE3xkODvFZuBflHv/+VwJIta6cbpIo4ABLoKBaYTkTAAAC7m1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAPoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAIYdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAPoAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAACgAAAAWgAAAAAAJGVkdHMAAAAcZWxzdAAAAAAAAAABAAAD6AAAAAAAAQAAAAABkG1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAQAAAAEAAVcQAAAAAAC1oZGxyAAAAAAAAAAB2aWRlAAAAAAAAAAAAAAAAVmlkZW9IYW5kbGVyAAAAATttaW5mAAAAFHZtaGQAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAD7c3RibAAAAJdzdHNkAAAAAAAAAAEAAACHYXZjMQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAACgAFoASAAAAEgAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABj//wAAADFhdmNDAWQACv/hABhnZAAKrNlCjfkhAAADAAEAAAMAAg8SJZYBAAZo6+JLIsAAAAAYc3R0cwAAAAAAAAABAAAAAQAAQAAAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAEAAAABAAAAFHN0c3oAAAAAAAAC5QAAAAEAAAAUc3RjbwAAAAAAAAABAAAAMAAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguMTIuMTAw';
-      source.type = 'video/mp4';
-      video.appendChild(source);
-      document.body.appendChild(video);
-
-      // On mobile safari the ready state is ready immediately.
-      if (video.readyState < 2) {
-        await new Promise(resolve => {
-          video.addEventListener('loadeddata', () => resolve(video));
-        });
-      }
-      const res = await tf.browser.fromPixelsAsync(video);
-      expect(res.shape).toEqual([90, 160, 3]);
-      const data = await res.data();
-      expect(data.length).toEqual(90 * 160 * 3);
-      const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-      const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-      expect(freeTexturesAfterFromPixel).toEqual(1);
-      expect(usedTexturesAfterFromPixel).toEqual(0);
-      document.body.removeChild(video);
-    }
-
-    {
-      const img = new Image(10, 10);
-      img.src = 'data:image/gif;base64' +
-          ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-
-      await new Promise(resolve => {
-        img.onload = () => resolve(img);
-      });
-
-      const resImage = await tf.browser.fromPixelsAsync(img);
-      expect(resImage.shape).toEqual([10, 10, 3]);
-
-      const dataImage = await resImage.data();
-      expect(dataImage[0]).toEqual(0);
-      expect(dataImage.length).toEqual(10 * 10 * 3);
-      const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-      const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-      expect(freeTexturesAfterFromPixel).toEqual(2);
-      expect(usedTexturesAfterFromPixel).toEqual(0);
-    }
-
-    {
-      const img = new Image(10, 10);
-      img.src =
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABfSURBVChTY/gPBu8NLd/KqLxT1oZw4QAqDZSDoPeWDj9WrYUIAgG6NBAhm4FFGoIgxuCUBiKgMfikv1bW4pQGav334wdUGshBk/6SVQAUh0p/mzIDTQ6oFSGNHfz/DwAwi8mNzTi6rwAAAABJRU5ErkJggg==';
-      await new Promise(resolve => {
-        img.onload = () => resolve(img);
-      });
-      const resImage = await tf.browser.fromPixelsAsync(img);
-      expect(resImage.shape).toEqual([10, 10, 3]);
-
-      const dataImage = await resImage.data();
-      expect(dataImage[0]).toEqual(255);
-      expect(dataImage.length).toEqual(10 * 10 * 3);
-      const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-      const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-      expect(freeTexturesAfterFromPixel).toEqual(2);
-      expect(usedTexturesAfterFromPixel).toEqual(0);
-    }
-
-    tf.env().set('WEBGPU_USE_IMPORT', useImport);
-  });
 });
 
 describeWebGPU('backendWebGPU', () => {
@@ -314,12 +235,12 @@ describeWebGPU('backendWebGPU', () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     const t = tf.tensor1d([1, 2, 3], 'float32');
 
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
 
-    backend.getBuffer(t.dataId);
+    backend.uploadToGPU(t.dataId);
     expect(bufferManager.getNumUsedBuffers())
         .toBe(
             2);  // One is the storage buffer, the other is the staging buffer.
@@ -352,8 +273,8 @@ describeWebGPU('keeping data on gpu ', () => {
           `Expected: float32`);
     }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
@@ -372,8 +293,8 @@ describeWebGPU('keeping data on gpu ', () => {
           `Expected: float32`);
     }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
@@ -407,7 +328,7 @@ describeWebGPU('keeping data on gpu ', () => {
     const result = tf.tidy(() => {
       const a = tf.tensor(data, [1, 3, 4]);
       const b = tf.add(a, 0);
-      return b.dataToGPU() as {} as tf.Tensor;
+      return b.dataToGPU() as unknown as tf.Tensor;
     });
 
     const endTensor = tf.memory().numTensors;
@@ -416,10 +337,10 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endTensor).toEqual(startTensor + 1);
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
 
-    const res = result as {} as GPUData;
+    const res = result as unknown as GPUData;
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+        resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
   });
 
@@ -443,4 +364,208 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endTensor).toEqual(startTensor + 1);
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
   });
+});
+
+function createStagingGPUBufferFromData(
+    device: GPUDevice, data: number[], dtype: tf.DataType) {
+  const bytesPerElement = 4;
+  const sizeInBytes = data.length * bytesPerElement;
+
+  const gpuWriteBuffer = device.createBuffer({
+    mappedAtCreation: true,
+    size: sizeInBytes,
+    usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
+  });
+  const arrayBuffer = gpuWriteBuffer.getMappedRange();
+  if (dtype === 'float32') {
+    new Float32Array(arrayBuffer).set(data);
+  } else if (dtype === 'int32') {
+    new Int32Array(arrayBuffer).set(data);
+  } else {
+    throw new Error(
+        `Creating tensor from GPUBuffer only supports` +
+        `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
+  }
+  gpuWriteBuffer.unmap();
+  return gpuWriteBuffer;
+}
+
+function createGPUBufferFromData(
+    device: GPUDevice, data: number[], dtype: tf.DataType,
+    bufferUsage = GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE |
+        GPUBufferUsage.COPY_SRC) {
+  const bytesPerElement = 4;
+  const sizeInBytes = data.length * bytesPerElement;
+
+  const gpuWriteBuffer = createStagingGPUBufferFromData(device, data, dtype);
+  const gpuReadBuffer = device.createBuffer(
+      {mappedAtCreation: false, size: sizeInBytes, usage: bufferUsage});
+
+  const copyEncoder = device.createCommandEncoder();
+  copyEncoder.copyBufferToBuffer(
+      gpuWriteBuffer, 0, gpuReadBuffer, 0, sizeInBytes);
+  const copyCommands = copyEncoder.finish();
+  device.queue.submit([copyCommands]);
+  gpuWriteBuffer.destroy();
+  return gpuReadBuffer;
+}
+
+async function testCreateTensorFromGPUBuffer(
+    dtype: tf.DataType, useDefaultShapeAndType = false, zeroCopy = false) {
+  const webGPUBackend = tf.backend() as WebGPUBackend;
+  const device = webGPUBackend.device;
+  const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+  const bData = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
+  const expected = [2, 4, 6, 8, 6, 8, 10, 12, 10, 12, 14, 16, 14, 16, 18, 20];
+  const aBuffer = createGPUBufferFromData(device, aData, dtype);
+  const shape: number[] = [aData.length];
+  const startNumBytes = tf.memory().numBytes;
+  const startNumTensors = tf.memory().numTensors;
+  const webGPUData = {buffer: aBuffer, zeroCopy};
+  const a = useDefaultShapeAndType ? tf.tensor(webGPUData) :
+                                     tf.tensor(webGPUData, shape, dtype);
+  if (zeroCopy !== true) {
+    aBuffer.destroy();
+  }
+  const b = tf.tensor(bData, shape, dtype);
+  const result = tf.add(a, b);
+  tf.test_util.expectArraysClose(await result.data(), expected);
+  a.dispose();
+  b.dispose();
+  result.dispose();
+  const endNumBytes = tf.memory().numBytes;
+  const endNumTensors = tf.memory().numTensors;
+  expect(endNumBytes - startNumBytes).toEqual(0);
+  expect(endNumTensors - startNumTensors).toEqual(0);
+  if (zeroCopy === true) {
+    aBuffer.destroy();
+  }
+}
+
+function createTensorFromGPUTest(zeroCopy = false) {
+  it('use default shape and data type(float32)', async () => {
+    await testCreateTensorFromGPUBuffer('float32', true, zeroCopy);
+  });
+
+  it('work for float32', async () => {
+    await testCreateTensorFromGPUBuffer('float32', false, zeroCopy);
+  });
+
+  it('work for int32', async () => {
+    await testCreateTensorFromGPUBuffer('int32', false, zeroCopy);
+  });
+
+  it('work for read', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = createGPUBufferFromData(device, aData, dtype);
+    const shape: number[] = [aData.length];
+    const a = tf.tensor({buffer: aBuffer, zeroCopy}, shape, dtype);
+    if (zeroCopy !== true) {
+      aBuffer.destroy();
+    }
+    await a.data();
+    if (zeroCopy === true) {
+      aBuffer.destroy();
+    }
+  });
+
+  it('two tensors share the same GPUBuffer', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = createGPUBufferFromData(device, aData, dtype);
+    const startNumBytes = tf.memory().numBytes;
+    const startNumTensors = tf.memory().numTensors;
+    const shape: number[] = [aData.length];
+    const webGPUData = {buffer: aBuffer, zeroCopy};
+    const a = tf.tensor(webGPUData, shape, dtype);
+    const b = tf.tensor(webGPUData, shape, dtype);
+    if (zeroCopy !== true) {
+      aBuffer.destroy();
+    }
+    const result = tf.add(a, b);
+    const expected =
+        [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32];
+    tf.test_util.expectArraysClose(await result.data(), expected);
+    a.dispose();
+    b.dispose();
+    result.dispose();
+    const endNumBytes = tf.memory().numBytes;
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumBytes - startNumBytes).toEqual(0);
+    expect(endNumTensors - startNumTensors).toEqual(0);
+    if (zeroCopy === true) {
+      aBuffer.destroy();
+    }
+  });
+
+  it('GPUBuffer size is bigger than tensor size', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = createGPUBufferFromData(device, aData, dtype);
+    const startNumBytes = tf.memory().numBytes;
+    const startNumTensors = tf.memory().numTensors;
+    // GPUBuffer.size is bigger than shape size
+    const shape: number[] = [aData.length - 1];
+    const webGPUData = {buffer: aBuffer, zeroCopy};
+    const a = tf.tensor(webGPUData, shape, dtype);
+    const b = tf.tensor(webGPUData, shape, dtype);
+    if (zeroCopy !== true) {
+      aBuffer.destroy();
+    }
+    const result = tf.add(a, b);
+    const expected = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+    tf.test_util.expectArraysClose(await result.data(), expected);
+    a.dispose();
+    b.dispose();
+    result.dispose();
+    const endNumBytes = tf.memory().numBytes;
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumBytes - startNumBytes).toEqual(0);
+    expect(endNumTensors - startNumTensors).toEqual(0);
+    if (zeroCopy === true) {
+      aBuffer.destroy();
+    }
+  });
+
+  it('throw when GPUBuffer size is smaller than tensor size', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    const aBuffer = createGPUBufferFromData(device, aData, dtype);
+    // Throw when GPUBuffer.size is smaller than shape size
+    const shape: number[] = [aData.length + 1];
+    const a = () => tf.tensor({buffer: aBuffer}, shape, dtype);
+    expect(a).toThrowError();
+    aBuffer.destroy();
+  });
+
+  it('throw when GPUBuffer usage is not correct', async () => {
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const device = webGPUBackend.device;
+    const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const dtype = 'float32';
+    // Create a GPUBuffer without GPUBufferUsage.STORAGE.
+    const aBuffer = createStagingGPUBufferFromData(device, aData, dtype);
+    // Throw when GPUBuffer usage is not correct.
+    const shape: number[] = [aData.length];
+    const a = () => tf.tensor({buffer: aBuffer, zeroCopy}, shape, dtype);
+    expect(a).toThrowError();
+    aBuffer.destroy();
+  });
+}
+
+describeWebGPU('create tensor from GPUBuffer', () => {
+  createTensorFromGPUTest();
+});
+
+describeWebGPU('create tensor from GPUBuffer with zero copy', () => {
+  createTensorFromGPUTest(true);
 });

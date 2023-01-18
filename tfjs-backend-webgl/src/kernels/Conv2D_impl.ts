@@ -343,7 +343,8 @@ export function conv2dWithIm2Row({
   if (hasLeakyreluAlpha) {
     const $leakyreluAlpha = backend.makeTensorInfo(
         [], 'float32',
-        util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+        util.createScalarValue(leakyreluAlpha as unknown as 'float32',
+                               'float32'));
     inputs.push($leakyreluAlpha);
     intermediates.push($leakyreluAlpha);
   }

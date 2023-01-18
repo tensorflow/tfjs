@@ -62,6 +62,7 @@ tfjs_web_test(
         "bs_chrome_mac",
         "win_10_chrome",
     ],
+    local_browser = "chrome_autoplay",
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-data/src:tfjs-data_test_bundle",
@@ -131,5 +132,13 @@ pkg_npm(
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-data_browser_test",
+        ":tfjs-data_test",
     ],
 )

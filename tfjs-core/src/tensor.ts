@@ -19,6 +19,7 @@
 /// <reference types="@webgpu/types/dist" />
 
 import {getGlobal} from './global_util';
+import {TensorInfo, DataId} from './tensor_info';
 import {tensorToString} from './tensor_format';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
@@ -238,16 +239,6 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
   deprecationWarningFn = fn;
 }
 
-/**
- * We wrap data id since we use weak map to avoid memory leaks.
- * Since we have our own memory management, we have a reference counter
- * mapping a tensor to its data, so there is always a pointer (even if that
- * data is otherwise garbage collectable).
- * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
- * Global_Objects/WeakMap
- */
-export type DataId = object;  // object instead of {} to force non-primitive.
-
 // Declare this namespace to make Tensor class augmentation work in google3.
 export declare namespace Tensor {}
 /**
@@ -264,7 +255,7 @@ export declare namespace Tensor {}
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-export class Tensor<R extends Rank = Rank> {
+export class Tensor<R extends Rank = Rank> implements TensorInfo {
   /** Unique id of this tensor. */
   readonly id: number;
   /**
@@ -379,7 +370,7 @@ export class Tensor<R extends Rank = Rank> {
    * This means that the texture will use the RGBA channels to store value.
    *
    * For WebGPU backend, the data will be stored on a buffer. There is no
-   * parameter, so can not use an user defined size to create the buffer.
+   * parameter, so can not use a user-defined size to create the buffer.
    *
    * @param options:
    *     For WebGL,
@@ -603,7 +594,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     trackerFn().incRef(this, null /* backend */);
   }
 
-  dispose(): void {
+  override dispose(): void {
     trackerFn().disposeVariable(this);
     this.isDisposedInternal = true;
   }

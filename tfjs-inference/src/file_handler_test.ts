@@ -100,7 +100,8 @@ describe('File Handler', () => {
         weightsManifest,
         signature: {},
         userDefinedMetadata: {},
-        modelInitializer: {}
+        modelInitializer: {},
+        initializerSignature: {}
       };
 
       // Write model.json file.
@@ -124,6 +125,8 @@ describe('File Handler', () => {
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.signature).toEqual({});
       expect(modelArtifacts.userDefinedMetadata).toEqual({});
+      expect(modelArtifacts.modelInitializer).toEqual({});
+      expect(modelArtifacts.initializerSignature).toEqual({});
       expect(modelArtifacts.weightSpecs).toEqual([
         {
           name: 'dense/kernel',

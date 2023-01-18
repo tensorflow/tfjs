@@ -49,7 +49,8 @@ function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
   const attrs: LeakyReluAttrs = {alpha};
 
   return ENGINE.runKernel(
-      LeakyRelu, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      LeakyRelu, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const leakyRelu = op({leakyRelu_});
+export const leakyRelu = /* @__PURE__ */ op({leakyRelu_});

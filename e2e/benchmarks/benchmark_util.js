@@ -109,8 +109,8 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         generatedRaw.dispose();
       } else {
         throw new Error(
-            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
-            `at model.inputs[${inputDefIndex}] is not supported.`);
+          `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+          `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
@@ -162,8 +162,8 @@ function getPredictFnForModel(model, input) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-        'Predict function was not found. Please provide a tf.GraphModel or ' +
-        'tf.LayersModel');
+      'Predict function was not found. Please provide a tf.GraphModel or ' +
+      'tf.LayersModel');
   }
   return predict;
 }
@@ -175,6 +175,8 @@ function getPredictFnForModel(model, input) {
  * about the model's inference time:
  * - `times`: an array of inference time for each inference
  * - `averageTime`: the average time of all inferences
+ * - `averageTimeExclFirst`: the average time of all inferences except the
+ *    first.
  * - `minTime`: the minimum time of all inferences
  * - `maxTime`: the maximum time of all inferences
  *
@@ -211,6 +213,8 @@ async function timeModelInference(model, input, numRuns = 1) {
  * time:
  * - `times`: an array of inference time for each inference
  * - `averageTime`: the average time of all inferences
+ * - `averageTimeExclFirst`: the average time of all inferences except the
+ *    first.
  * - `minTime`: the minimum time of all inferences
  * - `maxTime`: the maximum time of all inferences
  *
@@ -237,8 +241,8 @@ async function timeModelInference(model, input, numRuns = 1) {
 async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   const times = [];
@@ -254,11 +258,15 @@ async function timeInference(predict, numRuns = 1) {
   }
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+  const averageTimeExclFirst = times.length > 1 ?
+    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+    'NA';
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
   const timeInfo = {
     times,
     averageTime,
+    averageTimeExclFirst,
     minTime,
     maxTime
 
@@ -352,9 +360,9 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param numProfiles The number of rounds for profiling the inference process.
  */
 async function profileModelInference(
-    model, input, isTflite = false, numProfiles = 1) {
+  model, input, isTflite = false, numProfiles = 1) {
   const predict = isTflite ? () => tfliteModel.predict(input) :
-                             getPredictFnForModel(model, input);
+    getPredictFnForModel(model, input);
   return profileInference(predict, isTflite, numProfiles);
 }
 
@@ -392,8 +400,8 @@ async function profileModelInference(
 async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   let kernelInfo = {};
@@ -431,7 +439,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
     kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
-      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+    kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -451,13 +459,13 @@ function aggregateKernelTime(kernels) {
       aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
     } else {
       aggregatedKernelTime[kernel.name] =
-          oldAggregatedKernelTime + kernel.kernelTimeMs;
+        oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-      .map(([name, timeMs]) => ({name, timeMs}))
-      .sort((a, b) => b.timeMs - a.timeMs);
+    .map(([name, timeMs]) => ({ name, timeMs }))
+    .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -509,10 +517,10 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  */
 async function setEnvFlags(flagConfig) {
   if (flagConfig == null) {
-    return;
+    return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
-        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
   }
 
   // Check the validation of flags and values.
@@ -523,9 +531,8 @@ async function setEnvFlags(flagConfig) {
     }
     if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
       throw new Error(
-          `${flag} value is expected to be in the range [${
-              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-          ' is found.');
+        `${flag} value is expected to be in the range [${TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+        ' is found.');
     }
   }
 
@@ -536,11 +543,11 @@ async function setEnvFlags(flagConfig) {
   // TODO: The following backend rebuild logics can be implemented in `setHook`
   // when registering these flags.
   if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
-    await resetBackend('wasm');
+    return await resetBackend('wasm');
   }
 
   if ('WEBGL_VERSION' in flagConfig) {
-    await resetBackend('webgl');
+    return await resetBackend('webgl');
   }
 }
 
@@ -564,6 +571,36 @@ async function resetBackend(backendName) {
   }
 
   if (currentBackend === backendName) {
-    await tf.setBackend(backendName);
+    const isSuccessful = await tf.setBackend(backendName);
+    if (!isSuccessful) {
+      showMsg(`Failed to set backend ${backendName}.`);
+      return false;
+    }
   }
+
+  return true;
+}
+
+/**
+ * Get the renderer info from the WebGL backend.
+ */
+async function getRendererInfo() {
+  const curBackendName = tf.getBackend();
+  let webglRenderer;
+  try {
+    let webglBackend = tf.findBackend('webgl');
+    if (webglBackend == null) {
+      if (!(await tf.setBackend('webgl'))) {
+        throw new Error('Failed to initialize WebGL backend.');
+      }
+      webglBackend = tf.backend();
+    }
+    const gl = webglBackend.gpgpu.gl;
+    const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    webglRenderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+  } catch (e) {
+    webglRenderer = 'NA';
+  }
+  await tf.setBackend(curBackendName);
+  return webglRenderer;
 }

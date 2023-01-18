@@ -17,9 +17,11 @@
 
 const browserstackConfig = {
   hostname: 'bs-local.com',
-  reporters: ['dots'],
   port: 9876,
 };
+
+// Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
+const CHROME = TEMPLATE_headless ? 'ChromeHeadless' : 'Chrome';
 
 const CUSTOM_LAUNCHERS = {
   // For browserstack configs see:
@@ -45,40 +47,70 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra'
   },
-  bs_ios_11: {
+  bs_ios_12: {
     base: 'BrowserStack',
-    device: 'iPhone X',
+    device: 'iPhone XS',
     os: 'ios',
-    os_version: '11.0',
+    os_version: '12.3',
     real_mobile: true
   },
-  bs_android_9: {
+  bs_android_10: {
     base: 'BrowserStack',
-    device: 'Google Pixel 3 XL',
+    device: 'Google Pixel 4 XL',
     os: 'android',
-    os_version: '9.0',
+    os_version: '10.0',
     real_mobile: true
   },
   win_10_chrome: {
     base: 'BrowserStack',
     browser: 'chrome',
-    browser_version: '101.0',
+    browser_version: '104.0',
     os: 'Windows',
     os_version: '10'
   },
   chrome_with_swift_shader: {
-    base: 'Chrome',
+    base: CHROME,
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+  },
+  chrome_autoplay: {
+    base: CHROME,
+    flags: [
+      '--autoplay-policy=no-user-gesture-required',
+      '--no-sandbox',
+    ],
+  },
+  chrome_webgpu_linux: {
+    base: 'ChromeCanary',
+    flags: [
+      // See https://bugs.chromium.org/p/chromium/issues/detail?id=765284
+      '--enable-features=Vulkan,UseSkiaRenderer',
+      '--use-vulkan=native',
+      '--enable-unsafe-webgpu',
+      '--disable-vulkan-fallback-to-gl-for-testing',
+      '--disable-vulkan-surface',
+      '--disable-features=VaapiVideoDecoder',
+      '--ignore-gpu-blocklist',
+      '--use-angle=vulkan',
+    ]
   },
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-begin',
       '--enable-unsafe-webgpu',
-      '--disable-dawn-features=disallow_unsafe_apis'
+      '--flag-switches-end',
+      '--no-sandbox',
     ]
   },
-  chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+  chrome_debugging: {
+    base: 'Chrome',
+    flags: ['--remote-debugging-port=9333'],
+  },
+  chrome_no_sandbox: {
+    base: CHROME,
+    flags: ['--no-sandbox'],
+  }
 };
 
 module.exports = function(config) {
@@ -91,6 +123,9 @@ module.exports = function(config) {
       throw new Error(`Missing launcher for ${browser}`);
     }
     extraConfig.browsers = [browser];
+  } else {
+    // Use no sandbox by default. This has better support on MacOS.
+    extraConfig.browsers = ['chrome_no_sandbox'];
   }
   if (browserLauncher?.base === 'BrowserStack') {
     const username = process.env.BROWSERSTACK_USERNAME;
@@ -120,6 +155,16 @@ module.exports = function(config) {
   }
 
   config.set({
+    reporters: [
+      'kjhtml',
+      'jasmine-order',
+    ],
+    frameworks: ['jasmine'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+      require('karma-jasmine-order-reporter'),
+    ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
@@ -128,6 +173,12 @@ module.exports = function(config) {
     browserSocketTimeout: 1.2e5,
     ...extraConfig,
     customLaunchers: CUSTOM_LAUNCHERS,
-    client: {args: TEMPLATE_args},
+    client: {
+      args: TEMPLATE_args,
+      jasmine: {
+        random: TEMPLATE_jasmine_random,
+        seed: "TEMPLATE_jasmine_seed",
+      },
+    },
   });
 }

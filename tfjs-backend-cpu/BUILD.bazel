@@ -85,3 +85,10 @@ pkg_npm(
         ":copy_src_to_dist",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-cpu_test",
+    ],
+)

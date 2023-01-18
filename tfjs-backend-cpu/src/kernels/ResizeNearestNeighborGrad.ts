@@ -130,5 +130,5 @@ export function resizeNearestNeighborGrad(args: {
 export const resizeNearestNeighborGradConfig: KernelConfig = {
   kernelName: ResizeNearestNeighborGrad,
   backendName: 'cpu',
-  kernelFunc: resizeNearestNeighborGrad as {} as KernelFunc
+  kernelFunc: resizeNearestNeighborGrad as unknown as KernelFunc
 };

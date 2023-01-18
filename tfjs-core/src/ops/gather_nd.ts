@@ -26,7 +26,7 @@ import {op} from './operation';
  * Gather slices from input tensor into a Tensor with shape specified by
  * `indices`.
  *
- * `indices` is an K-dimensional integer tensor, best thought of as a
+ * `indices` is a K-dimensional integer tensor, best thought of as a
  * (K-1)-dimensional tensor of indices into input, where each element defines a
  * slice of input:
  * output[\\(i_0, ..., i_{K-2}\\)] = input[indices[\\(i_0, ..., i_{K-2}\\)]]
@@ -66,7 +66,7 @@ function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
 
   const inputs: GatherNdInputs = {params: $x, indices: $indices};
 
-  return ENGINE.runKernel(GatherNd, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(GatherNd, inputs as unknown as NamedTensorMap);
 }
 
-export const gatherND = op({gatherND_});
+export const gatherND = /* @__PURE__ */ op({gatherND_});

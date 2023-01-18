@@ -33,5 +33,5 @@ export function cumsum(
 export const cumsumConfig: KernelConfig = {
   kernelName: Cumsum,
   backendName: 'webgpu',
-  kernelFunc: cumsum as {} as KernelFunc
+  kernelFunc: cumsum as unknown as KernelFunc
 };

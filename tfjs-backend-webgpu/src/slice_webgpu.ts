@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SliceProgram implements WebGPUProgram {
@@ -27,7 +27,7 @@ export class SliceProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
   size = true;
 
@@ -36,7 +36,7 @@ export class SliceProgram implements WebGPUProgram {
     this.rank = destSize.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
 
     this.start = start;
@@ -54,13 +54,13 @@ export class SliceProgram implements WebGPUProgram {
       });
     } else {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = uniforms.start[${i}] + coords.${
-            coords[i]};`;
+        return `sourceLoc.${coords[i]} = uniforms.start.${
+            getCoordsXYZ(i)} + coords.${coords[i]};`;
       });
     }
 
     const userCode = `
-      ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
           let coords = getCoordsFromIndex(index);

@@ -407,6 +407,13 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expect(() => tf.concat3d([x1, x2], axis)).toThrowError();
   });
 
+  it('concat throws when invalid non-axis shapes and zero size, axis=1', () => {
+    const axis = 1;
+    const x1 = tf.tensor3d([1, 11, 111], [1, 1, 3]);
+    const x2 = tf.tensor3d([], [1, 0, 4]);
+    expect(() => tf.concat3d([x1, x2], axis)).toThrowError();
+  });
+
   it('concat throws when invalid non-axis shapes, axis=2', () => {
     const axis = 2;
     const x1 = tf.tensor3d([1, 11, 2, 22], [1, 2, 2]);

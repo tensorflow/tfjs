@@ -24,7 +24,7 @@ import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
+import {GPGPUContext, GPGPUContextProgram, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
 import {Texture} from './tex_util';
 import {createFragmentShader} from './webgl_util';
@@ -117,7 +117,7 @@ describeWithFlags(
 describeWithFlags(
     'GPGPUContext setOutputMatrixWriteRegion', DOWNLOAD_FLOAT_ENVS, () => {
       let gpgpu: GPGPUContext;
-      let program: WebGLProgram;
+      let program: GPGPUContextProgram;
       let output: WebGLTexture;
 
       beforeEach(() => {

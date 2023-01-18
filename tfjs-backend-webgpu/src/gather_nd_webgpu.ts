@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class GatherNDProgram implements WebGPUProgram {
@@ -25,14 +25,14 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   sliceDim: number;
   constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.shaderKey = `gathernd_${sliceDim}`;
     this.sliceDim = sliceDim;
     this.uniforms = `sliceDim : i32, strides : ${getCoordsDataType(sliceDim)},`;
@@ -46,7 +46,7 @@ export class GatherNDProgram implements WebGPUProgram {
       strideString = 'uniforms.strides';
     }
     const userCode = `
-        ${getMainHeaderAndGlobalIndexString()}
+      ${main('index')} {
         if (index < uniforms.size) {
           let coords = getCoordsFromIndex(index);
           var flattenIndex = 0;

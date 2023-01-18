@@ -295,7 +295,7 @@ export class BatchNormalization extends Layer {
     this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const axis = this.axis >= 0 ? this.axis : (this.axis + inputShape.length);
     const dim = inputShape[axis];
@@ -326,7 +326,7 @@ export class BatchNormalization extends Layer {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const training = kwargs['training'] == null ? false : kwargs['training'];
       const input = getExactlyOneTensor(inputs);
@@ -398,7 +398,7 @@ export class BatchNormalization extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       axis: this.axis,
       momentum: this.momentum,
@@ -424,8 +424,8 @@ serialization.registerClass(BatchNormalization);
 
 export interface LayerNormalizationLayerArgs extends LayerArgs {
   /**
-   * The axis or axes that should be normalized (typically, the feature axis.)
-   * Defaults to -1 (the last axis.)
+   * The axis or axes that should be normalized (typically, the feature axis).
+   * Defaults to -1 (the last axis).
    */
   axis?: number|number[];
 
@@ -523,7 +523,7 @@ export class LayerNormalization extends Layer {
     this.supportsMasking = true;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const nDims = inputShape.length;
 
@@ -568,7 +568,7 @@ export class LayerNormalization extends Layer {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = getExactlyOneTensor(inputs);
     const inputShape = input.shape;
     const nDims = inputShape.length;
@@ -623,7 +623,7 @@ export class LayerNormalization extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       axis: this.axis,
       epsilon: this.epsilon,
