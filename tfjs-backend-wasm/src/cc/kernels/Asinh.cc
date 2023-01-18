@@ -28,8 +28,8 @@
 namespace {
 
 template <typename T>
-inline T atan_impl(T n) {
-  return static_cast<T>(std::atanf(static_cast<float>(n)));
+inline T asinh_impl(T n) {
+  return static_cast<T>(std::asinhf(static_cast<float>(n)));
 }
 
 }  // namespace
@@ -42,16 +42,13 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Atan(const int x_id, const DType dtype, const int out_id) {
+void Asinh(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, atan_impl<float>);
-      break;
-    case DType::int32:
-      unary_i32(x_id, out_id, atan_impl<int>);
+      unary_f32(x_id, out_id, asinh_impl<float>);
       break;
     default:
-      util::warn("Atan for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Asinh for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }

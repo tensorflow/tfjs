@@ -21,11 +21,15 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
@@ -43,6 +47,7 @@ import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
@@ -136,11 +141,15 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   allConfig,
   anyConfig,
   argMaxConfig,
+  asinConfig,
+  asinhConfig,
   atanConfig,
   avgPoolConfig,
   batchMatMulConfig,
@@ -158,6 +167,7 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
   eluConfig,
   equalConfig,
   expConfig,

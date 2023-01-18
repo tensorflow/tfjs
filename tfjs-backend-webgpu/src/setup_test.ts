@@ -26,12 +26,6 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
-  // skip test cases include gradients webgpu
-  {
-    include: 'gradients webgpu',
-    excludes: ['webgpu '],
-  },
-
   // skip specific test cases for supported kernels
   {
     startsWith: 'abs ',
@@ -40,33 +34,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'atan2 ',
+    startsWith: 'conv3d ',
     excludes: [
       'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'batchToSpaceND ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'conv2dTranspose ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'cumprod ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'prod ',
-    excludes: [
-      'gradient',  // gradient function not found.
     ]
   },
   {
@@ -82,31 +52,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'elu ',
-    excludes: [
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
-    ]
-  },
-  {
-    startsWith: 'fused conv2d ',
-    excludes: [
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented
-      'backProp',  // Conv2DBackpropFilter not yet
-                   // implemented
-    ]
-  },
-  {
-    startsWith: 'fused matmul ',
-    excludes: [
-      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -117,61 +65,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'localResponseNormalization ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'matmul',
-    excludes: [
-      'has zero in its shape',  // Test times out.
-      'valueAndGradients',      // backend.sum() not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'maxPool ',
-    excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
-      'maxPool3d',         // Not yet implemented.
-      'maxPoolWithArgmax'  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'max ',
-    excludes: [
-      'AdamaxOptimizer',    // gradient function not found.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
-  },
-  {
-    startsWith: 'mean ',
-    excludes: [
-      'meanSquaredError',
-    ]
-  },
-  {
-    startsWith: 'mul ',
-    excludes: [
-      'broadcast',  // Various: Actual != Expected, compile fails, etc.
-    ]
-  },
-  {
     startsWith: 'nonMaxSuppression ',
     excludes: [
       'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'pool ',
-    excludes: [
-      'poolBackprop',  // maxPoolBackprop not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'poolBackprop ',
-    excludes: [
-      'max',  // maxPoolBackprop not yet implemented.
     ]
   },
   {
@@ -181,56 +77,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'range ',
+    startsWith: 'resizeBilinear ',
     excludes: [
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
+      'gradients',  // Not yet implemented
     ]
   },
   {
-    startsWith: 'relu ',
+    startsWith: 'resizeNearestNeighbor ',
     excludes: [
-      'valueAndGradients',  // gradient function not found.
-      'propagates NaNs',    // Arrays differ.
-      'derivative',         // gradient function not found.
-      'gradient'            // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'softmax ',
-    excludes: [
-      'MEAN',
-      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
-    ]
-  },
-  {
-    startsWith: 'spaceToBatchND ',
-    excludes: [
-      'tensor4d',
-      'accepts a tensor-like object',
-    ]
-  },
-  {
-    startsWith: 'square ',
-    excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'squaredDifference ',
-    excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'tensor ',
-    excludes: [
-      'bool tensor'  // Expected object not to have properties.
-    ]
-  },
-  {
-    startsWith: 'transpose ',
-    excludes: [
-      'fused',  // Not yet implemented.
+      'gradients',  // Not yet implemented
     ]
   },
 
@@ -239,31 +94,16 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       // Not implemented kernel list.
-      'avgPool3d ',
-      'avgPool3dBackprop ',
-      'broadcastArgs ',
-      'conv2DBackpropFilter ',
-      'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
-      'conv1d gradients',  // Conv2DBackpropFilter
-      'conv3d ',
-      'conv3dTranspose ',
-      'maxPool3d ',
-      'maxPool3dBackprop ',
-      'maxPoolBackprop ',
-      'maxPoolWithArgmax ',
-      'raggedGather ',
-      'raggedRange ',
-      'raggedTensorToTensor ',
+      'avgPool3d ',           'avgPool3dBackprop ',
+      'conv3dTranspose ',     'maxPool3d ',
+      'maxPool3dBackprop ',   'raggedGather ',
+      'raggedRange ',         'raggedTensorToTensor ',
       'method otsu',  // round
-      'sparseFillEmptyRows ',
-      'sparseReshape ',
-      'sparseSegmentMean ',
-      'sparseSegmentSum ',
-      'stringSplit ',
-      'stringToHashBucketFast ',
-      'unique ',
-      'unsortedSegmentSum ',
-      'valueAndGradients ',
+      'sparseFillEmptyRows ', 'sparseReshape ',
+      'sparseSegmentMean ',   'sparseSegmentSum ',
+      'stringSplit ',         'stringToHashBucketFast ',
+      'tensorScatterUpdate ', 'unique ',
+      'unsortedSegmentSum ',  'valueAndGradients ',
     ]
   },
 ];

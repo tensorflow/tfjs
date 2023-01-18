@@ -19,39 +19,49 @@
 #include <emscripten.h>
 #endif
 
+#include <algorithm>
 #include <cmath>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/unary.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace tfjs {
+namespace wasm {
 
 namespace {
 
 template <typename T>
-inline T atan_impl(T n) {
-  return static_cast<T>(std::atanf(static_cast<float>(n)));
+inline void DiagImpl(const T* x_buf, int32_t x_size, T* out_buf) {
+  std::fill(out_buf, out_buf + x_size * x_size, 0);
+  for (int32_t i = 0; i < x_size; ++i) {
+    out_buf[x_size * i + i] = x_buf[i];
+  }
 }
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Atan(const int x_id, const DType dtype, const int out_id) {
+void Diag(const int32_t x_id, const DType dtype, const int32_t x_size,
+          const int32_t out_id) {
+  const TensorInfo& x_info = backend::get_tensor_info(x_id);
+  TensorInfo& out_info = backend::get_tensor_info_out(out_id);
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, atan_impl<float>);
+      DiagImpl(x_info.f32(), x_size, out_info.f32_write());
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, atan_impl<int>);
+      DiagImpl(x_info.i32(), x_size, out_info.i32_write());
+      break;
+    case DType::boolean:
+      DiagImpl(x_info.b(), x_size, out_info.b_write());
       break;
     default:
-      util::warn("Atan for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Diag for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }

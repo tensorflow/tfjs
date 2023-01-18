@@ -403,6 +403,11 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'reciprocal'},
   {include: 'isNaN'},
   {include: 'atan '},
+  {include: 'acos '},
+  {include: 'acosh '},
+  {include: 'asin '},
+  {include: 'asinh '},
+  {include: 'diag '},
 ];
 
 const customInclude = (testName: string) => {

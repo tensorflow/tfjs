@@ -293,6 +293,8 @@ tfjs_cc_library(
     name = "all_kernels",
     deps = [
         ":Abs",
+        ":Acos",
+        ":Acosh",
         ":Add",
         ":AddN",
         ":All",
@@ -384,6 +386,26 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Acos",
+    srcs = ["kernels/Acos.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acosh",
+    srcs = ["kernels/Acosh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Add",
     srcs = ["kernels/Add.cc"],
     deps = [
@@ -432,6 +454,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Atan",
     srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asin",
+    srcs = ["kernels/Asin.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asinh",
+    srcs = ["kernels/Asinh.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -616,6 +658,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Diag",
+    srcs = ["kernels/Diag.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
