@@ -662,6 +662,15 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "Diag",
+    srcs = ["kernels/Diag.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "RealDiv",
     srcs = ["kernels/RealDiv.cc"],
     deps = [

@@ -22,7 +22,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class Conv2DDerInputProgram implements WebGPUProgram {
   variableNames = ['dy', 'W'];
   uniforms =
-      'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>,';
+      'filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>,';
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -60,7 +60,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
         // ? = to be determined. : = across all values in that axis.
         var dotProd = 0.0;
         for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
-          let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.stride.x);
+          let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.strides.x);
           let wRPerm = uniforms.filterDims.x - 1 - wR;
           if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0 ||
               wRPerm < 0) {
@@ -69,7 +69,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
           let idyR = i32(dyR);
 
           for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
-            let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
+            let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.strides.y);
             let wCPerm = uniforms.filterDims.y - 1 - wC;
             if (dyC < 0.0 || dyC >= f32(uniforms.outBackprop[2]) ||
                 fract(dyC) > 0.0 || wCPerm < 0) {
@@ -101,7 +101,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
 export class Conv2DDerFilterProgram implements WebGPUProgram {
   variableNames = ['x', 'dy'];
   uniforms =
-      'pad : vec2<i32>, stride : vec2<i32>, batchSize : i32, outHeight : i32, outWidth : i32, inHeight : i32, inWidth : i32,';
+      'pads : vec2<i32>, strides : vec2<i32>, batchSize : i32, outHeight : i32, outWidth : i32, inHeight : i32, inWidth : i32,';
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -134,13 +134,13 @@ export class Conv2DDerFilterProgram implements WebGPUProgram {
         var dotProd = 0.0;
         for (var b = 0; b < uniforms.batchSize; b = b + 1) {
           for (var yR = 0; yR < uniforms.outHeight; yR = yR + 1) {
-            let xR = wR + yR * uniforms.stride[0] - uniforms.pad[0];
+            let xR = wR + yR * uniforms.strides[0] - uniforms.pads[0];
             if (xR < 0 || xR >= uniforms.inHeight) {
               continue;
             }
 
             for (var yC = 0; yC < uniforms.outWidth; yC = yC + 1) {
-              let xC = wC + yC * uniforms.stride[1] - uniforms.pad[1];
+              let xC = wC + yC * uniforms.strides[1] - uniforms.pads[1];
 
               if (xC < 0 || xC >= uniforms.inWidth) {
                 continue;
