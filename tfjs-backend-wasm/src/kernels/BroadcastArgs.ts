@@ -25,7 +25,6 @@ export function broadcastArgs(args: {
   const {inputs, backend} = args;
   const {s0, s1} = inputs;
 
-
   const s0Vals = backend.typedArrayFromHeap(s0);
   const s1Vals = backend.typedArrayFromHeap(s1);
 
