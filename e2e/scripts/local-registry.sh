@@ -31,13 +31,12 @@ function startLocalRegistry {
   npx npm-cli-login -u user -p password -e user@example.com -r $custom_registry_url
 
   # Set registry to local registry
-  #npm set registry "$custom_registry_url"
-  #yarn config set registry "$custom_registry_url"
+  npm set registry "$custom_registry_url"
+  yarn config set registry "$custom_registry_url"
 }
 
 function stopLocalRegistry {
   # Restore the original NPM and Yarn registry URLs and stop Verdaccio
-  echo 'stopping local registry'
-  #npm set registry "$original_npm_registry_url"
-  #yarn config set registry "$original_yarn_registry_url"
+  npm set registry "$original_npm_registry_url"
+  yarn config set registry "$original_yarn_registry_url"
 }
