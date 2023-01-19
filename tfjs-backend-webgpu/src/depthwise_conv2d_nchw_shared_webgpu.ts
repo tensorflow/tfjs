@@ -27,7 +27,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, inDims : vec2<i32>,`;
+  uniforms = `pads : vec2<i32>, inDims : vec2<i32>,`;
   workgroupSize: [number, number, number] = [16, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -68,12 +68,9 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
     const tileAWidth = this.workgroupSize[0] + this.filterWidth - 1;
 
     const userCode = `
-      ${
-        activationFnSnippet(
-            this.activation, this.hasPreluActivation, false, 4)}
+      ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
 
-      var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${
-        tileAHeight}>;
+      var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHeight}>;
       var<workgroup> mm_Bsub : array<array<f32, ${this.filterWidth}>, ${
         this.filterHeight}>;
       fn readX(batch : i32, channel : i32, row : i32, col : i32) -> f32 {
@@ -88,7 +85,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
       ${main()} {
         let coords = getOutputCoords();
         let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.zw) - uniforms.pad;
+        let xRCCorner = vec2<i32>(coords.zw) - uniforms.pads;
         let channelMul = uniforms.wShape[3];
         let d1 = coords[1] / channelMul;
         let q = coords[1] % channelMul;

@@ -49,8 +49,8 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
 
       let WRow = col / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
       let WCol = col / uniforms.outBackprop[3] % uniforms.filterDims[1];
-      let xR = f32(outRow - uniforms.pads[0] + WRow) / f32(uniforms.stride[0]);
-      let xC = f32(outCol - uniforms.pads[1] + WCol) / f32(uniforms.stride[1]);
+      let xR = f32(outRow - uniforms.pads[0] + WRow) / f32(uniforms.strides[0]);
+      let xC = f32(outCol - uniforms.pads[1] + WCol) / f32(uniforms.strides[1]);
       if (xR < 0.0 || xR >= f32(uniforms.outBackprop[1]) || fract(xR) > 0.0) {
         return ${typeSnippet(innerElementSize)}(0.0);
       }
@@ -119,7 +119,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   variableTypes: string[];
   uniforms =
-      'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
+      'filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
   workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   isVec4?: boolean;

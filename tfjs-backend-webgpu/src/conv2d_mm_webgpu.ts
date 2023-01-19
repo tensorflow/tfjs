@@ -87,8 +87,8 @@ function conv2dCommonSnippet(
 
       let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
       let WCol = ${col} / inChannels % uniforms.filterDims[1];
-      let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
-      let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+      let xRow = outRow * uniforms.strides[0] + uniforms.dilations[0] * WRow - uniforms.pads[0];
+      let xCol = outCol * uniforms.strides[1] + uniforms.dilations[1] * WCol - uniforms.pads[1];
       let xCh = ${col} % inChannels;
       var resData = ${typeSnippet(innerElementSizeX)}(0.0);
       // The bounds checking is always needed since we use it to pad zero for
@@ -161,7 +161,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   variableTypes: string[];
   uniforms =
-      `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
+      `filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   addBias: boolean;
