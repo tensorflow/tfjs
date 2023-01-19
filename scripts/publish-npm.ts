@@ -264,9 +264,14 @@ async function main() {
       }
   }
 
-  // Get the list of packages to build and publish
+  // Get the list of packages to build and publish.
+  // There are three ways packages can be selected.
+  // 1. By passing them as CLI arguments in `packages`.
+  // 2. Automatically based on the versions on npm.
+  // 3. Interactively on the command line.
   let packages: string[];
   if (args.packages.length > 0) {
+    // Get packages to publish from args
     const errorMessages: string[] = [];
     // Filter from the set of all packages to make sure they end up
     // in topological order.
@@ -285,9 +290,11 @@ async function main() {
         `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
     }
   } else if (args.auto) {
+    // Automatically select packages based on npm versions
     packages = await filterPackages(packageSelected, PUBLISHABLE_RELEASE_UNITS);
     console.log(`Publishing ${packages}`);
   } else {
+    // Select packages interactively
     packages = await selectPackages({
       message: 'Select packages to publish',
       releaseUnits,
@@ -311,8 +318,8 @@ async function main() {
     });
   }
 
-  // Yarn in the top-level and in the directory.
-  child_process.execSync('yarn');
+  // Yarn in the top-level to download Bazel
+  $('yarn');
   console.log();
 
   // Pre-build all the bazel packages in a single bazel command for better
@@ -336,6 +343,8 @@ async function main() {
       await publish(pkg, VERDACCIO_REGISTRY);
     }
   } finally {
+    // Make sure to kill the verdaccio server before exiting even if publish
+    // throws an error. Otherwise, it blocks the port for the next run.
     verdaccio.kill();
   }
 
@@ -351,6 +360,8 @@ async function main() {
 
     const toPublish = [...packages];
     while (toPublish.length > 0) {
+      // Using a while loop instead of .map since a stale OTP will require
+      // a retry.
       let pkg = toPublish[0];
       if (args.no_otp) {
         await publish(pkg, args.registry, '', false);
