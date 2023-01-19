@@ -27,7 +27,7 @@ export class Dilation2DProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'w'];
   uniforms =
-      'filterDims: vec2<i32>, pad: vec2<i32>, stride: vec2<i32>, dilation: vec2<i32>';
+      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>';
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
@@ -48,17 +48,17 @@ export class Dilation2DProgram implements WebGPUProgram {
            let coords = getOutputCoords();
            let batch = coords.x;
            let d1 = coords.w;
-           let outTopLeftCorner = coords.yz * uniforms.stride - uniforms.pad;
+           let outTopLeftCorner = coords.yz * uniforms.strides - uniforms.pads;
            let hBeg = outTopLeftCorner.x;
            let wBeg = outTopLeftCorner.y;
 
            var curVal = neg_infinity;
            for (var h = 0; h < uniforms.filterDims[0]; h = h + 1) {
-             let hIn = hBeg + h * uniforms.dilation[0];
+             let hIn = hBeg + h * uniforms.dilations[0];
 
              if (hIn >= 0 && hIn < uniforms.xShape[1]) {
                for (var w = 0; w < uniforms.filterDims[1]; w = w + 1) {
-                 let wIn = wBeg + w * uniforms.dilation[1];
+                 let wIn = wBeg + w * uniforms.dilations[1];
 
                  if (wIn >= 0 && wIn < uniforms.xShape[2]) {
                    let val = getX(batch, hIn, wIn, d1) + getW(h, w, d1);
