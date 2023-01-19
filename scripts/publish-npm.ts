@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages, ALL_PACKAGES, WEBSITE_RELEASE_UNIT, getPackages } from './release-util';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, checkPublishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages, ALL_PACKAGES, WEBSITE_RELEASE_UNIT, getPackages } from './release-util';
 import semverCompare from 'semver/functions/compare';
 import * as child_process from 'child_process';
 
@@ -122,10 +122,7 @@ async function publish(pkg: string, registry: string, otp?: string,
     // Use a try block so cwd can be restored in 'finally' if an error occurs.
     shell.cd(pkg);
 
-    const res = publishable('./package.json');
-    if (res instanceof Error) {
-      throw res;
-    }
+    checkPublishable('./package.json');
 
     if (build && !BAZEL_PACKAGES.has(pkg)) {
       console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));

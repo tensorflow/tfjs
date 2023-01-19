@@ -226,7 +226,7 @@ export async function question(questionStr: string): Promise<string> {
 
 /**
  * A wrapper around shell.exec for readability.
- * @param cmd The bash commaond to execute.
+ * @param cmd The bash command to execute.
  * @returns stdout returned by the executed bash script.
  */
 export function $(cmd: string, env: Record<string, string> = {}) {
@@ -239,6 +239,11 @@ export function $(cmd: string, env: Record<string, string> = {}) {
   return result.stdout.trim();
 }
 
+/**
+ * An async wrapper around shell.exec for readability.
+ * @param cmd The bash command to execute.
+ * @returns stdout returned by the executed bash script.
+ */
 export function $async(cmd: string,
 		       env: Record<string, string> = {}): Promise<string> {
   env = {...shell.env, ...env};
@@ -524,7 +529,7 @@ async function filterAsync<T>(
 /**
  * Get the packages contained in the given release units.
  */
-export function getPackages(releaseUnits: ReleaseUnit[]) {
+export function getPackages(releaseUnits: ReleaseUnit[]): string[] {
   return releaseUnits.map(releaseUnit => releaseUnit.phases)
     .flat().map(phase => phase.packages)
     .flat();
@@ -553,9 +558,9 @@ export async function selectPackages({
   const choices = await Promise.all<SeparatorInstance | Promise<Choice>>(
     releaseUnits
       .map(releaseUnit => [
-        new inquirer.Separator(
+        new inquirer.Separator( // Separate release units with a line
           chalk.underline(releaseUnit.name)),
-        ...releaseUnit.phases
+        ...releaseUnit.phases // Display the packages of a release unit.
           .map(phase => phase.packages
                .map(async pkg => {
                  const [name, checked] = await Promise.all([
@@ -566,8 +571,6 @@ export async function selectPackages({
       ]).flat() // (Separator | Promise<Choice>)[] for all release units
   );
 
-  // TODO(mattsoulanille): Upgrade @types/inquirer and remove this cast
-  // after the TS4 upgrade.
   const choice = await inquirer.prompt({
     name: 'packages',
     type: 'checkbox',
@@ -591,7 +594,6 @@ export function getLocalVersion(pkg: string) {
 
 export async function getNpmVersion(pkg: string, registry?: string,
                                     tag = 'latest') {
-  // TODO: This might be slow without async promise.all
   const env: Record<string, string> = {};
   if (registry) {
     env['NPM_CONFIG_REGISTRY'] = registry;
@@ -608,7 +610,7 @@ export function getTagFromVersion(version: string): string {
 
 export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
   const map = new Map<I, Promise<O>>();
-  return async (i:I) => {
+  return async (i: I) => {
     if (!map.has(i)) {
       map.set(i, f(i));
     }
@@ -618,6 +620,8 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
 
 export function runVerdaccio() {
   // Remove the verdaccio package store.
+  // TODO(mattsoulanille): Move the verdaccio storage and config file here
+  // once the nightly verdaccio tests are handled by this script.
   rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
   // Start verdaccio.
   const serverProcess = shell.exec(
@@ -639,8 +643,10 @@ export function runVerdaccio() {
   return serverProcess;
 }
 
-export function publishable(packageJsonPath: string): true | Error {
-  // Check the package.json for 'link:' and 'file:' dependencies.
+/**
+ * Check a package.json path for `link://` and `file://` dependencies.
+ */
+export function checkPublishable(packageJsonPath: string): void {
   const packageJson = JSON.parse(
     fs.readFileSync(packageJsonPath)
       .toString('utf8')) as {
@@ -650,21 +656,20 @@ export function publishable(packageJsonPath: string): true | Error {
       };
 
   if (!packageJson.name) {
-    return new Error(`${packageJsonPath} has no name.`);
+    throw new Error(`${packageJsonPath} has no name.`);
   }
   const pkg = packageJson.name;
   if (packageJson.private) {
-    return new Error(`${pkg} is private.`);
+    throw new Error(`${pkg} is private.`);
   }
 
   if (packageJson.dependencies) {
     for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
       const start = depVersion.slice(0,5);
       if (start === 'link:' || start === 'file:') {
-        return new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+        throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
                         + 'Refusing to publish.');
       }
     }
   }
-  return true;
 }
