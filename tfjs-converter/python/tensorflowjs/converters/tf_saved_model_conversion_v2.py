@@ -127,33 +127,15 @@ def _run_grappler(config, graph_def, graph, signature_def):
   return tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
-def optimize_graph(graph, signature_def, output_graph,
-                   tf_version, quantization_dtype_map=None,
+def optimize_graph(graph, signature_def,
                    skip_op_check=False, strip_debug_ops=False,
-                   weight_shard_size_bytes=1024 * 1024 * 4,
-                   experiments=False,
-                   initializer_graph=None,
-                   resource_ids_maps=None,
-                   metadata=None):
+                   experiments=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
     graph: The frozen graph to optimize.
-    signature_def: the SignatureDef of the inference graph.
-    output_graph: The location of the output graph.
-    tf_version: Tensorflow version of the input graph.
-    quantization_dtype_map: A mapping from dtype
-      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
-      supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
-    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
-      The size of each weight file will be <= this value.
-    initializer_graph: The frozen graph for initializers.
-    resource_ids_maps: Tuple of two dictionaries, one
-      mapping inference input names to resource id, and the other
-      mapping initializer output names to resource id.
-    metadata: User defined metadata map.
   """
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
@@ -222,18 +204,7 @@ def optimize_graph(graph, signature_def, output_graph,
     raise ValueError('Unsupported Ops in the model after optimization\n' +
                      ', '.join(unsupported))
 
-  initializer_graph_def = None
-  initializer_signature_def = None
-  if initializer_graph:
-    initializer_graph_def = initializer_graph.as_graph_def()
-    if hasattr(initializer_graph, 'outputs'):
-      initializer_signature_def = _build_signature_def(initializer_graph, [], initializer_graph.outputs)
-
-  extract_weights(
-      optimized_graph, output_graph, tf_version,
-      signature_def, quantization_dtype_map, weight_shard_size_bytes,
-      initializer_graph_def, initializer_signature_def,
-      resource_ids_maps=resource_ids_maps, metadata=metadata)
+  return optimized_graph
 
 def extract_const_nodes(nodes):
   """Takes a list of nodes and extract the weights. Return weight manifest
@@ -265,35 +236,13 @@ def extract_const_nodes(nodes):
 
   return const_manifest
 
-def extract_weights(graph_def,
-                    output_graph,
-                    tf_version,
-                    signature_def,
-                    quantization_dtype_map=None,
-                    weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None,
-                    initializer_signature_def=None,
-                    resource_ids_maps=None,
-                    metadata=None):
+def extract_weights(graph_def, initializer_graph_def=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
     graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
       the model topology.
-    tf_version: Tensorflow version of the input graph.
-    signature_def: the SignatureDef of the inference graph.
-    quantization_dtype_map: A mapping from dtype
-      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
-      compression. Only np.uint8 and np.uint16 are supported.
-      supports wildcard substitution.
-    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
-      The size of each weight file will be <= this value.
     initializer_graph_def: tf.GraphDef proto object for initializer graph.
-    initializer_signature_def: the SignatureDef of the initializer graph.
-    resource_ids_maps: Tuple of two dictionaries, one
-      mapping inference input names to resource id, and the other
-      mapping initializer output names to resource id.
-    metadata: User defined metadata map.
   """
   global_manifest = extract_const_nodes(graph_def.node)
 
@@ -309,20 +258,7 @@ def extract_weights(graph_def,
   if initializer_graph_def:
     initializer_manifests = extract_const_nodes(initializer_graph_def.node)
 
-  print('Writing weight file ' + output_graph + '...')
-
-  write_artifacts(MessageToDict(graph_def),
-                  [global_manifest +
-                   function_manifests +
-                   initializer_manifests],
-                  output_graph,
-                  tf_version, signature_def,
-                  quantization_dtype_map=quantization_dtype_map,
-                  weight_shard_size_bytes=weight_shard_size_bytes,
-                  initializer_graph_def=initializer_graph_def,
-                  initializer_signature_def=initializer_signature_def,
-                  resource_ids_maps=resource_ids_maps,
-                  metadata=metadata)
+  return [global_manifest + function_manifests + initializer_manifests]
 
 def write_artifacts(topology,
                     weights,
@@ -618,13 +554,19 @@ def convert_tf_frozen_model(frozen_model_path,
   signature = _build_signature_def(
       graph, [], output_node_names.split(','))
 
-  optimize_graph(graph, signature,
+  optimized_graph = optimize_graph(graph, signature,
+                                   skip_op_check=skip_op_check,
+                                   strip_debug_ops=strip_debug_ops,
+                                   experiments=experiments)
+
+  weights = extract_weights(optimized_graph)
+
+  write_artifacts(MessageToDict(optimized_graph),
+                 weights,
                  output_graph, tf.__version__,
+                 signature,
                  quantization_dtype_map=quantization_dtype_map,
-                 skip_op_check=skip_op_check,
-                 strip_debug_ops=strip_debug_ops,
                  weight_shard_size_bytes=weight_shard_size_bytes,
-                 experiments=experiments,
                  metadata=metadata)
 
 def _load_model(saved_model_dir, saved_model_tags):
@@ -906,16 +848,30 @@ def _convert_tf_saved_model(output_dir,
       if _is_assets_required(model_ops):
         _copy_assets(saved_model_dir, output_dir)
 
-  optimize_graph(frozen_graph, signature,
-                 output_graph, tf_version,
-                 quantization_dtype_map=quantization_dtype_map,
-                 skip_op_check=skip_op_check,
-                 strip_debug_ops=strip_debug_ops,
-                 weight_shard_size_bytes=weight_shard_size_bytes,
-                 experiments=experiments,
-                 initializer_graph=frozen_initializer_graph,
-                 resource_ids_maps=resource_ids_maps,
-                 metadata=metadata)
+  optimized_graph = optimize_graph(frozen_graph, signature,
+                                   skip_op_check=skip_op_check,
+                                   strip_debug_ops=strip_debug_ops,
+                                   experiments=experiments)
+
+  initializer_graph_def = None
+  initializer_signature_def = None
+  if frozen_initializer_graph:
+    initializer_graph_def = frozen_initializer_graph.as_graph_def()
+    if hasattr(frozen_initializer_graph, 'outputs'):
+      initializer_signature_def = _build_signature_def(frozen_initializer_graph, [], frozen_initializer_graph.outputs)
+
+  weights = extract_weights(optimized_graph, initializer_graph_def)
+
+  write_artifacts(MessageToDict(optimized_graph),
+      weights,
+      output_graph,
+      tf_version, signature,
+      quantization_dtype_map=quantization_dtype_map,
+      weight_shard_size_bytes=weight_shard_size_bytes,
+      initializer_graph_def=initializer_graph_def,
+      initializer_signature_def=initializer_signature_def,
+      resource_ids_maps=resource_ids_maps,
+      metadata=metadata)
 
 def define_transform_graph_func():
   """Check if the TransformGraph is available to be imported, this package is
@@ -1139,13 +1095,17 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     signature = _build_signature_def(frozen_graph,
                                      inputs.values(), outputs.values())
 
-    optimize_graph(frozen_graph, signature,
-                   output_graph, tf.__version__,
+    optimized_graph = optimize_graph(frozen_graph, signature,
+                                     skip_op_check=skip_op_check,
+                                     strip_debug_ops=strip_debug_ops,
+                                     experiments=experiments)
+
+    weights = extract_weights(optimized_graph)
+
+    write_artifacts(MessageToDict(optimized_graph), weights,
+                   output_graph, tf.__version__, signature,
                    quantization_dtype_map=quantization_dtype_map,
-                   skip_op_check=skip_op_check,
-                   strip_debug_ops=strip_debug_ops,
                    weight_shard_size_bytes=weight_shard_size_bytes,
-                   experiments=experiments,
                    metadata=metadata)
   finally:
     # Clean up the temp files.
