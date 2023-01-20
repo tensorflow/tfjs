@@ -202,7 +202,7 @@ export class BackendWasm extends KernelBackend {
       values?: backend_util.BackendValues): TensorInfo {
     let dataId: {};
     if (memoryOffset == null) {
-      dataId = this.write(values ?? null /* values */, shape, dtype);
+      dataId = this.write(values ?? null, shape, dtype);
     } else {
       const id = this.dataIdNextNumber++;
       dataId = {id};
