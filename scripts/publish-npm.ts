@@ -83,7 +83,7 @@ parser.addArgument(['--dry'], {
       + 'the registry.',
 });
 
-parser.addArgument(['--auto', '--guess-version'], {
+parser.addArgument(['--auto-publish-local-newer'], {
   action: 'storeTrue',
   help: 'Automatically publish local packages that have newer versions than'
       + ' the packages in the registry',
@@ -177,15 +177,15 @@ async function publish(pkg: string, registry: string, otp?: string,
       await retry(() =>
           run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`));
     } else {
-      if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
-        // Special case for tfjs-node(-gpu), which must upload the node addon
-        // to GCP as well. Only do this when publishing to NPM.
-        $('yarn build-and-upload-addon publish');
-      }
-
       // Publish the package to the registry.
       await retry(() =>
           run(`${login}npm --registry '${registry}' publish ${otpFlag}`));
+
+      // Special case for tfjs-node(-gpu), which must upload the node addon
+      // to GCP as well. Only do this when publishing to NPM.
+      if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
+        $('yarn build-and-upload-addon publish');
+      }
     }
     console.log(`Published ${pkg} to ${registry}.`);
 

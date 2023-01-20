@@ -245,7 +245,7 @@ export function $(cmd: string, env: Record<string, string> = {}) {
  * @returns stdout returned by the executed bash script.
  */
 export function $async(cmd: string,
-		       env: Record<string, string> = {}): Promise<string> {
+                       env: Record<string, string> = {}): Promise<string> {
   env = {...shell.env, ...env};
   return new Promise((resolve, reject) => {
     shell.exec(cmd, {silent: true, env}, (code, stdout, stderr) => {
@@ -490,7 +490,7 @@ export function getPatchUpdateVersion(version: string): string {
 /**
  * Get the next minor update version for the given version.
  *
- * i.e. given a.b.c, return a.b+1.0
+ * e.g. given 1.2.3, return 1.3.0
  */
 export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
