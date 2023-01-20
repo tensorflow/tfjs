@@ -278,6 +278,6 @@ ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 /** Experimental flag, whether enter compile only phase. */
 ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
 
-ENV.registerFlag('PACK_SCATTER', () => false);
+ENV.registerFlag('PACK_SCATTER', () => true);
 
-ENV.registerFlag('IMP_BRANCH', () => false);
+ENV.registerFlag('IMP_BRANCH', () => true);
