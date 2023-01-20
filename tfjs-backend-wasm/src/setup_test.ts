@@ -66,8 +66,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'avgPool',
     excludes: [
-      'gradient',   // Not yet implemented.
-      'avgPool3d',  // Not yet implemented.
+      'gradient',  // Not yet implemented.
     ]
   },
   {

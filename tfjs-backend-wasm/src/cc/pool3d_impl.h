@@ -2,12 +2,10 @@
 #include <emscripten.h>
 #endif
 
-#include <cmath>
 #include <cstddef>
 #include <functional>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs::wasm {
 
@@ -17,13 +15,22 @@ inline int AddUntilNonNegative(int v, int d) {
   if (v >= 0) {
     return v;
   }
-  return (v % d) + v;
+  return (v % d + v) % d;
 }
 
 }  // namespace
 
-struct Pool3DInfo {
-  int stride_batch;
+struct NDHWCPool3DInfo {
+  int batch_size;
+  int in_depth;
+  int in_height;
+  int in_width;
+  int in_channels;
+  int out_depth;
+  int out_height;
+  int out_width;
+  int out_channels;
+
   int stride_depth;
   int stride_height;
   int stride_width;
@@ -36,16 +43,27 @@ struct Pool3DInfo {
   int pad_front;
   int pad_top;
   int pad_left;
-  int in_channels;
-  int in_depth;
-  int in_height;
-  int out_depth;
+
+  inline int in_offset(int b, int d, int h, int w, int c) const {
+    return c +
+           (w + (h + (d + b * in_depth) * in_height) * in_width) * in_channels;
+  }
+  inline int out_offset(int b, int d, int h, int w, int c) const {
+    return c + (w + (h + (d + b * out_depth) * out_height) * out_width) *
+                   out_channels;
+  }
+  inline int in_size() const {
+    return batch_size * in_depth * in_height * in_width * in_channels;
+  }
+  inline int out_size() const {
+    return batch_size * out_depth * out_height * out_width * out_channels;
+  }
 };
-template <typename OUT, typename IN, typename T>
-inline void Pool3DImpl(
-    const Pool3DInfo& info, const std::function<T(void)>& filter_init,
-    const std::function<void(const T&, const IN&)>& filter_apply,
-    const std::function<OUT(const T&)>& filter_aggregate) {
+template <typename OUT, typename IN, typename FI, typename FAP, typename FAG>
+inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
+                            const NDHWCPool3DInfo& info, const FI& filter_init,
+                            const FAP& filter_apply,
+                            const FAG& filter_aggregate) {
   for (int batch = 0; batch < info.batch_size; ++batch) {
     for (int channel = 0; channel < info.in_channels; ++channel) {
       for (int y_depth = 0; y_depth < info.out_depth; ++y_depth) {
@@ -53,7 +71,7 @@ inline void Pool3DImpl(
         int x_depth_min =
             AddUntilNonNegative(x_depth_corner, info.dilation_depth);
         int x_depth_max = std::min(
-            info.in_depth, info.effective_filter_depth + info.x_depth_corner);
+            info.in_depth, info.effective_filter_depth + x_depth_corner);
 
         for (int y_row = 0; y_row < info.out_height; ++y_row) {
           int x_row_corner = y_row * info.stride_height - info.pad_top;
@@ -62,14 +80,14 @@ inline void Pool3DImpl(
           int x_row_max = std::min(info.in_height,
                                    info.effective_filter_height + x_row_corner);
           for (int y_col = 0; y_col < info.out_width; ++y_col) {
-            int x_col_corner = y_col * info.info.stride_width - info.pad_left;
+            int x_col_corner = y_col * info.stride_width - info.pad_left;
             int x_col_min =
                 AddUntilNonNegative(x_col_corner, info.dilation_width);
             int x_col_max = std::min(
                 info.in_width, info.effective_filter_width + x_col_corner);
 
             // Apply the filter
-            T filter_data = filter_init();
+            auto filter_data = filter_init();
             for (int x_depth = x_depth_min; x_depth < x_depth_max;
                  x_depth += info.dilation_depth) {
               for (int x_row = x_row_min; x_row < x_row_max;
@@ -77,19 +95,13 @@ inline void Pool3DImpl(
                 for (int x_col = x_col_min; x_col < x_col_max;
                      x_col += info.dilation_width) {
                   int x_offset =
-                      (((batch * info.in_depth + x_depth) * info.in_height +
-                        x_row) *
-                           info.in_width +
-                       x_col) *
-                          info.in_channels +
-                      channel;
+                      info.in_offset(batch, x_depth, x_row, x_col, channel);
                   filter_apply(filter_data, x_buf[x_offset]);
                 }
               }
             }
             int out_offset =
-
-            +channel;
+                info.out_offset(batch, y_depth, y_row, y_col, channel);
             out_buf[out_offset] = filter_aggregate(filter_data);
           }
         }
