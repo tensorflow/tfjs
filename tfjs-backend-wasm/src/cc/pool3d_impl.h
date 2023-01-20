@@ -59,7 +59,7 @@ struct NDHWCPool3DInfo {
     return batch_size * out_depth * out_height * out_width * out_channels;
   }
 };
-template <typename OUT, typename IN, typename FI, typename FAP, typename FAG>
+template <typename IN, typename OUT, typename FI, typename FAP, typename FAG>
 inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
                             const NDHWCPool3DInfo& info, const FI& filter_init,
                             const FAP& filter_apply,
