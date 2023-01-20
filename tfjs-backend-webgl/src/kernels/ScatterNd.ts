@@ -48,7 +48,7 @@ export function scatterNd(args: {
   const defaultValue = backend.makeTensorInfo(
       [], 'float32', new Float32Array([0]));  // scalar(0)
   let program;
-  if (env().getBool('WEBGL_PACK') && env().getBool('PACK_SCATTER')) {
+  if (env().getBool('WEBGL_PACK')) {
     program = new ScatterPackedProgram(
         numUpdates, sliceRank, flattenIndices.shape.length,
         flattenX.shape.length, strides, flattenShape);
