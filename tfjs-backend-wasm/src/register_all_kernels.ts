@@ -78,6 +78,7 @@ import {logicalXorConfig} from './kernels/LogicalXor';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
@@ -200,6 +201,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPool3DConfig,
   meanConfig,
   minConfig,
   minimumConfig,
