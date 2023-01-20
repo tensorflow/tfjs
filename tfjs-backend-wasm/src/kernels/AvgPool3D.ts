@@ -68,7 +68,7 @@ export function avgPool3D(args: {
 
   const convInfo = backend_util.computePool3DInfo(
       x.shape as [number, number, number, number, number], filterSize, strides,
-      1 /* dilations */, pad, dimRoundingMode, dataFormat);
+      /*dilations=*/1, pad, dimRoundingMode, dataFormat);
   const out = backend.makeOutput(convInfo.outShape, x.dtype);
 
   wasmAvgPool3D(
