@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
