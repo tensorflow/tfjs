@@ -58,44 +58,6 @@ export class ScatterPackedProgram implements GPGPUProgram {
     const strideString = sliceDim > 1 ? 'strides[j]' : 'strides';
     const strideString2 = sliceDim > 1 ? 'strides[j + 1]' : 'strides';
 
-    let branch;
-    if (env().getBool('IMP_BRANCH')) {
-      branch = `
-      vec4 status = 1. - vec4(bvec4(flattenedIndex[0] - coords[0],
-                                    flattenedIndex[1] - coords[0],
-                                    flattenedIndex[0] - coords[0] - 1,
-                                    flattenedIndex[1] - coords[0] - 1));
-      if (dot(status, vec4(1.)) > 0.) {
-      vec4 updVals = ${updatesSnippet};
-      found += status.xxzz + status.yyww;
-      sum += updVals.xyxy * status.xxzz + updVals.zwzw * status.yyww;
-      }
-      `;
-    } else {
-      branch = `
-      if (flattenedIndex[0] == coords[0] || flattenedIndex[1] == coords[0] ||
-          flattenedIndex[0] == coords[0] + 1 || flattenedIndex[1] == coords[0] + 1) {
-            vec4 updVals = ${updatesSnippet};
-            if (flattenedIndex[0] == coords[0]) {
-              sum.xy += updVals.xy;
-              found.xy = vec2(1.);
-            }
-            if (flattenedIndex[1] == coords[0]) {
-              sum.xy += updVals.zw;
-              found.xy = vec2(1.);
-            }
-            if (flattenedIndex[0] == coords[0] + 1) {
-              sum.zw += updVals.xy;
-              found.zw = vec2(1.);
-            }
-            if (flattenedIndex[1] == coords[0] + 1) {
-              sum.zw += updVals.zw;
-              found.zw = vec2(1.);
-            }
-      }
-      `;
-    }
-
     this.userCode = `
         ${stridesType} strides = ${stridesType}(${strides});
 
@@ -112,7 +74,26 @@ export class ScatterPackedProgram implements GPGPUProgram {
                 flattenedIndex += index.yw * ${strideString2};
               }
             }
-            ${branch}
+            if (flattenedIndex[0] == coords[0] || flattenedIndex[1] == coords[0] ||
+                flattenedIndex[0] == coords[0] + 1 || flattenedIndex[1] == coords[0] + 1) {
+              vec4 updVals = ${updatesSnippet};
+              if (flattenedIndex[0] == coords[0]) {
+                sum.xy += updVals.xy;
+                found.xy = vec2(1.);
+              }
+              if (flattenedIndex[1] == coords[0]) {
+                sum.xy += updVals.zw;
+                found.xy = vec2(1.);
+              }
+              if (flattenedIndex[0] == coords[0] + 1) {
+                sum.zw += updVals.xy;
+                found.zw = vec2(1.);
+              }
+              if (flattenedIndex[1] == coords[0] + 1) {
+                sum.zw += updVals.zw;
+                found.zw = vec2(1.);
+              }
+            }
           }
           setOutput(mix(${defaultValueSnippet}, sum, vec4(bvec4(found))));
         }
