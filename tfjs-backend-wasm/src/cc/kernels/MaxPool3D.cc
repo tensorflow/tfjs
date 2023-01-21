@@ -75,7 +75,7 @@ void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
       /*filter_init=*/
       []() -> float { return std::numeric_limits<float>::min(); },
       /*filter_apply=*/
-      [](float& data, const float& val) { data = std::max(data, val); },
+      [](float& data, int, const float& val) { data = std::max(data, val); },
       /*filter_aggregate=*/
       [](const float& data) { return data; });
 }

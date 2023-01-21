@@ -340,6 +340,7 @@ tfjs_cc_library(
         ":Max",
         ":MaxPool",
         ":MaxPool3D",
+        ":MaxPool3DGrad",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -979,6 +980,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "MaxPool3D",
     srcs = ["kernels/MaxPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPool3DGrad",
+    srcs = ["kernels/MaxPool3DGrad.cc"],
     deps = [
         ":backend",
         ":pool3d_impl",

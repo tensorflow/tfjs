@@ -94,7 +94,7 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
                      x_col += info.dilation_width) {
                   int x_offset =
                       info.in_offset(batch, x_depth, x_row, x_col, channel);
-                  filter_apply(filter_data, x_buf[x_offset]);
+                  filter_apply(filter_data, x_offset, x_buf[x_offset]);
                 }
               }
             }
@@ -122,6 +122,8 @@ inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
             int dy_row_corner = dx_row - info.pad_top;
             int dy_col_corner = dx_col - info.pad_left;
 
+            int dx_offset =
+                info.in_offset(batch, dx_depth, dx_row, dx_col, channel);
             DX dot_prod = 0;
             for (int w_depth = 0; w_depth < info.effective_filter_depth;
                  w_depth += info.dilation_depth) {
@@ -145,15 +147,14 @@ inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
                     continue;
                   }
 
-                  DY pixel = dy_buf[info.out_offset(batch, dy_depth, dy_row,
-                                                    dy_col, channel)];
-                  dot_prod += pixel * pixel_mask(dy_depth, dy_row, dy_col,
-                                                 w_depth, w_row, w_col);
+                  int dy_offset =
+                      info.out_offset(batch, dy_depth, dy_row, dy_col, channel);
+                  DY pixel = dy_buf[dy_offset];
+                  dot_prod += pixel * pixel_mask(dy_offset, dx_offset);
                 }
               }
             }
-            dx_buf[info.in_offset(batch, dx_depth, dx_row, dx_col, channel)] =
-                dot_prod;
+            dx_buf[dx_offset] = dot_prod;
           }
         }
       }

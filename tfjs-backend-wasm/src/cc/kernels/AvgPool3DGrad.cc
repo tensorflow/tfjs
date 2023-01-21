@@ -48,38 +48,36 @@ void AvgPool3DGrad(int dy_id, int dx_id, int batch_size, int channel_size,
   const TensorInfo& dy_info = backend::get_tensor_info(dy_id);
   TensorInfo& dx_info = backend::get_tensor_info_out(dx_id);
 
-  pad_front = effective_filter_depth - 1 - pad_front;
-  pad_top = effective_filter_height - 1 - pad_top;
-  pad_left = effective_filter_width - 1 - pad_left;
-  NDHWCPool3DInfo pool3d_info{
-      .batch_size = batch_size,
-      .channel_size = channel_size,
-      .in_depth = in_depth,
-      .in_height = in_height,
-      .in_width = in_width,
-      .out_depth = out_depth,
-      .out_height = out_height,
-      .out_width = out_width,
-      .stride_depth = stride_depth,
-      .stride_height = stride_height,
-      .stride_width = stride_width,
-      .dilation_depth = dilation_depth,
-      .dilation_height = dilation_height,
-      .dilation_width = dilation_width,
-      .effective_filter_depth = effective_filter_depth,
-      .effective_filter_height = effective_filter_height,
-      .effective_filter_width = effective_filter_width,
-      .pad_front = pad_front,
-      .pad_top = pad_top,
-      .pad_left = pad_left,
-  };
   NDHWCPool3DGradImpl(
-      dy_info.f32(), dx_info.f32_write(), pool3d_info,
+      dy_info.f32(), dx_info.f32_write(),
+      NDHWCPool3DInfo{
+          .batch_size = batch_size,
+          .channel_size = channel_size,
+          .in_depth = in_depth,
+          .in_height = in_height,
+          .in_width = in_width,
+          .out_depth = out_depth,
+          .out_height = out_height,
+          .out_width = out_width,
+          .stride_depth = stride_depth,
+          .stride_height = stride_height,
+          .stride_width = stride_width,
+          .dilation_depth = dilation_depth,
+          .dilation_height = dilation_height,
+          .dilation_width = dilation_width,
+          .effective_filter_depth = effective_filter_depth,
+          .effective_filter_height = effective_filter_height,
+          .effective_filter_width = effective_filter_width,
+          .pad_front = effective_filter_depth - 1 - pad_front,
+          .pad_top = effective_filter_height - 1 - pad_top,
+          .pad_left = effective_filter_width - 1 - pad_left,
+      },
       /*pixel_mask=*/
       [avg_multiplier = 1.0f / (static_cast<float>(filter_depth) *
                                 static_cast<float>(filter_height) *
-                                static_cast<float>(filter_width))](
-          int, int, int, int, int, int) { return avg_multiplier; });
+                                static_cast<float>(filter_width))](int, int) {
+        return avg_multiplier;
+      });
 }
 
 }  // extern "C"
