@@ -64,7 +64,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'depthToSpace'},
   {
-    include: 'avgPool',
+    include: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
     ]
@@ -406,6 +406,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'avgPool3d '},
+  {include: 'avgPool3dBackprop '},
 ];
 
 const customInclude = (testName: string) => {

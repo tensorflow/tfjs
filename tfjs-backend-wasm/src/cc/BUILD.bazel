@@ -308,6 +308,7 @@ tfjs_cc_library(
         ":Atan",
         ":AvgPool",
         ":AvgPool3D",
+        ":AvgPool3DGrad",
         ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
@@ -500,6 +501,15 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "AvgPool3D",
+    srcs = ["kernels/AvgPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3DGrad",
     srcs = ["kernels/AvgPool3D.cc"],
     deps = [
         ":backend",
