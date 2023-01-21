@@ -45,7 +45,7 @@ void MaxPool3DGrad(int x_id, int dy_id, int dx_id, int batch_size,
                    int dilation_depth, int dilation_height, int dilation_width,
                    int effective_filter_depth, int effective_filter_height,
                    int effective_filter_width, int pad_front, int pad_top,
-                   int pad_left, int filter_depth) {
+                   int pad_left) {
   const TensorInfo& x_info = backend::get_tensor_info(x_id);
   const TensorInfo& dy_info = backend::get_tensor_info(dy_id);
   TensorInfo& dx_info = backend::get_tensor_info_out(dx_id);
