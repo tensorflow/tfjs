@@ -22,14 +22,15 @@ inline int AddUntilNonNegative(int v, int d) {
 
 struct NDHWCPool3DInfo {
   int batch_size;
+  // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+  // channels should always equal to out channels.
+  int channel_size;
   int in_depth;
   int in_height;
   int in_width;
-  int in_channels;
   int out_depth;
   int out_height;
   int out_width;
-  int out_channels;
 
   int stride_depth;
   int stride_height;
@@ -46,17 +47,17 @@ struct NDHWCPool3DInfo {
 
   inline int in_offset(int b, int d, int h, int w, int c) const {
     return c +
-           (w + (h + (d + b * in_depth) * in_height) * in_width) * in_channels;
+           (w + (h + (d + b * in_depth) * in_height) * in_width) * channel_size;
   }
   inline int out_offset(int b, int d, int h, int w, int c) const {
     return c + (w + (h + (d + b * out_depth) * out_height) * out_width) *
-                   out_channels;
+                   channel_size;
   }
   inline int in_size() const {
-    return batch_size * in_depth * in_height * in_width * in_channels;
+    return batch_size * in_depth * in_height * in_width * channel_size;
   }
   inline int out_size() const {
-    return batch_size * out_depth * out_height * out_width * out_channels;
+    return batch_size * out_depth * out_height * out_width * channel_size;
   }
 };
 template <typename IN, typename OUT, typename FI, typename FAP, typename FAG>
@@ -65,7 +66,7 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
                             const FAP& filter_apply,
                             const FAG& filter_aggregate) {
   for (int batch = 0; batch < info.batch_size; ++batch) {
-    for (int channel = 0; channel < info.in_channels; ++channel) {
+    for (int channel = 0; channel < info.channel_size; ++channel) {
       for (int y_depth = 0; y_depth < info.out_depth; ++y_depth) {
         int x_depth_corner = y_depth * info.stride_depth - info.pad_front;
         int x_depth_min =

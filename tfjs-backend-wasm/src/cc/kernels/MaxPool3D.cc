@@ -37,11 +37,11 @@ EMSCRIPTEN_KEEPALIVE
 // REQUIRES:
 // - Tensor `x` and `out` must have dtype float32 (checked in tfjs-core)
 // - Tensor `x` and `out` must have data format 'NDHWC' (checked in tfjs-core)
-void MaxPool3D(int x_id, int out_id, int batch_size, int in_depth,
-               int in_height, int in_width, int in_channels, int out_depth,
-               int out_height, int out_width, int out_channels,
-               int stride_depth, int stride_height, int stride_width,
-               int dilation_depth, int dilation_height, int dilation_width,
+void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
+               int in_depth, int in_height, int in_width, int out_depth,
+               int out_height, int out_width, int stride_depth,
+               int stride_height, int stride_width, int dilation_depth,
+               int dilation_height, int dilation_width,
                int effective_filter_depth, int effective_filter_height,
                int effective_filter_width, int pad_front, int pad_top,
                int pad_left) {
@@ -52,14 +52,13 @@ void MaxPool3D(int x_id, int out_id, int batch_size, int in_depth,
       x_info.f32(), out_info.f32_write(),
       NDHWCPool3DInfo{
           .batch_size = batch_size,
+          .channel_size = channel_size,
           .in_depth = in_depth,
           .in_height = in_height,
           .in_width = in_width,
-          .in_channels = in_channels,
           .out_depth = out_depth,
           .out_height = out_height,
           .out_width = out_width,
-          .out_channels = out_channels,
           .stride_depth = stride_depth,
           .stride_height = stride_height,
           .stride_width = stride_width,

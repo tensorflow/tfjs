@@ -20,28 +20,26 @@ import {backend_util, KernelConfig, KernelFunc, MaxPool3D, MaxPool3DAttrs, MaxPo
 import {BackendWasm} from '../backend_wasm';
 
 let wasmMaxPool3D: (
-    xId: number, outId: number, batchSize: number, inDepth: number,
-    inHeight: number, inWidth: number, inChannels: number, outDepth: number,
-    outHeight: number, outWidth: number, outChannels: number,
-    strideDepth: number, strideHeight: number, strideWidth: number,
-    dilationDepth: number, dilationHeight: number, dilationWidth: number,
-    effectiveFilterDepth: number, effectiveFilterHeight: number,
-    effectiveFilterWidth: number, padFront: number, padTop: number,
-    padLeft: number) => void;
+    xId: number, outId: number, batchSize: number, channelSize: number,
+    inDepth: number, inHeight: number, inWidth: number, outDepth: number,
+    outHeight: number, outWidth: number, strideDepth: number,
+    strideHeight: number, strideWidth: number, dilationDepth: number,
+    dilationHeight: number, dilationWidth: number, effectiveFilterDepth: number,
+    effectiveFilterHeight: number, effectiveFilterWidth: number,
+    padFront: number, padTop: number, padLeft: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmMaxPool3D = backend.wasm.cwrap('MaxPool3D', null, [
     'number',  // xId
     'number',  // outId
     'number',  // batchSize
+    'number',  // channelSize
     'number',  // inDepth
     'number',  // inHeight
     'number',  // inWidth
-    'number',  // inChannels
     'number',  // outDepth
     'number',  // outHeight
     'number',  // outWidth
-    'number',  // outChannels
     'number',  // strideDepth
     'number',  // strideHeight
     'number',  // strideWidth
@@ -75,14 +73,15 @@ export function maxPool3D(args: {
       backend.dataIdMap.get(x.dataId).id,
       backend.dataIdMap.get(out.dataId).id,
       convInfo.batchSize,
+      // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+      // channels should always equal to out channels.
+      /*channelSize=*/convInfo.inChannels,
       convInfo.inDepth,
       convInfo.inHeight,
       convInfo.inWidth,
-      convInfo.inChannels,
       convInfo.outDepth,
       convInfo.outHeight,
       convInfo.outWidth,
-      convInfo.outChannels,
       convInfo.strideDepth,
       convInfo.strideHeight,
       convInfo.strideWidth,
