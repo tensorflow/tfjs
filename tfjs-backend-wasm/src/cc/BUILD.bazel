@@ -246,11 +246,6 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "pool2d_impl",
-    hdrs = ["pool2d_impl.h"],
-)
-
-tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
 )
@@ -511,7 +506,7 @@ tfjs_cc_library(
     srcs = ["kernels/AvgPoolGrad.cc"],
     deps = [
         ":backend",
-        ":pool2d_impl",
+        ":pool3d_impl",
     ],
 )
 
@@ -980,6 +975,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPoolGrad",
+    srcs = ["kernels/MaxPoolGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 

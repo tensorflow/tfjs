@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/pool2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/pool3d_impl.h"
 
 namespace tfjs::wasm {
 
@@ -44,27 +44,35 @@ void AvgPoolGrad(int dy_id, int dx_id, int batch_size, int channel_size,
   const TensorInfo& dy_info = backend::get_tensor_info(dy_id);
   TensorInfo& dx_info = backend::get_tensor_info_out(dx_id);
 
-  Pool2DGradImpl(dy_info.f32(), dx_info.f32_write(),
-                 Pool2DInfo{
-                     .batch_size = batch_size,
-                     .channel_size = channel_size,
-                     .in_height = in_height,
-                     .in_width = in_width,
-                     .out_height = out_height,
-                     .out_width = out_width,
-                     .stride_height = stride_height,
-                     .stride_width = stride_width,
-                     .dilation_height = dilation_height,
-                     .dilation_width = dilation_width,
-                     .effective_filter_height = effective_filter_height,
-                     .effective_filter_width = effective_filter_width,
-                     .pad_top = pad_top,
-                     .pad_left = pad_left,
-                 },
-                 /*pixel_mask=*/
-                 [avg_multiplier = 1.0f / (static_cast<float>(filter_height) *
-                                           static_cast<float>(filter_width))](
-                     int, int) { return avg_multiplier; });
+  NDHWCPool3DGradImpl(
+      dy_info.f32(), dx_info.f32_write(),
+      NDHWCPool3DInfo{
+          .batch_size = batch_size,
+          .channel_size = channel_size,
+          .in_depth = 1,
+          .in_height = in_height,
+          .in_width = in_width,
+          .out_depth = 1,
+          .out_height = out_height,
+          .out_width = out_width,
+          .stride_depth = 1,
+          .stride_height = stride_height,
+          .stride_width = stride_width,
+          .dilation_depth = 1,
+          .dilation_height = dilation_height,
+          .dilation_width = dilation_width,
+          .effective_filter_depth = 1,
+          .effective_filter_height = effective_filter_height,
+          .effective_filter_width = effective_filter_width,
+          .pad_front = 0,
+          .pad_top = pad_top,
+          .pad_left = pad_left,
+      },
+      /*pixel_mask=*/
+      [avg_multiplier = 1.0f / (static_cast<float>(filter_height) *
+                                static_cast<float>(filter_width))](int, int) {
+        return avg_multiplier;
+      });
 }
 
 }  // extern "C"

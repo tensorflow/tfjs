@@ -118,9 +118,12 @@ inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
         for (int dx_row = 0; dx_row < info.in_height; ++dx_row) {
           for (int dx_col = 0; dx_col < info.in_width; ++dx_col) {
             // Sharder code begins
-            int dy_depth_corner = dx_depth - info.pad_front;
-            int dy_row_corner = dx_row - info.pad_top;
-            int dy_col_corner = dx_col - info.pad_left;
+            int dy_depth_corner =
+                dx_depth - (info.effective_filter_depth - 1 - info.pad_front);
+            int dy_row_corner =
+                dx_row - (info.effective_filter_height - 1 - info.pad_top);
+            int dy_col_corner =
+                dx_col - (info.effective_filter_width - 1 - info.pad_left);
 
             int dx_offset =
                 info.in_offset(batch, dx_depth, dx_row, dx_col, channel);
