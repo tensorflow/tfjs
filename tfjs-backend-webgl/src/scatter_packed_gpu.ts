@@ -94,7 +94,7 @@ export class ScatterPackedProgram implements GPGPUProgram {
               }
             }
           }
-          setOutput(mix(${defaultValueSnippet}, sum, vec4(bvec4(found))));
+          setOutput(mix(${defaultValueSnippet}, sum, found));
         }
       `;
   }
