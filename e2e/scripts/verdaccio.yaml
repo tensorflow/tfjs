@@ -33,7 +33,3 @@ packages:
 # Log settings.
 logs:
   - {type: stdout, format: pretty, level: http}
-
-listen:
-  - 0.0.0.0:4873
-  - "[::1]:4873"
