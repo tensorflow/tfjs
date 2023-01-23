@@ -286,7 +286,7 @@ async function main() {
       throw new Error(errorMessages.join('\n') +
         `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
     }
-  } else if (args.auto) {
+  } else if (args.auto_publish_local_newer) {
     // Automatically select packages based on npm versions
     packages = await filterPackages(packageSelected, PUBLISHABLE_RELEASE_UNITS);
     console.log(`Publishing ${packages}`);
