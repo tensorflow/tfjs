@@ -248,9 +248,6 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
-    deps = [
-        ":backend",
-    ],
 )
 
 tfjs_cc_library(

@@ -20,6 +20,7 @@
 #endif
 
 #include <algorithm>
+#include <utility>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/pool3d_impl.h"

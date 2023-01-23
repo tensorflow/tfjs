@@ -3,9 +3,6 @@
 #endif
 
 #include <cstddef>
-#include <functional>
-
-#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs::wasm {
 
