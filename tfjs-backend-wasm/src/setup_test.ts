@@ -63,12 +63,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'depthToSpace'},
-  {
-    include: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
+  {include: 'avgPool '},
   {
     include: 'relu',
     excludes: [
