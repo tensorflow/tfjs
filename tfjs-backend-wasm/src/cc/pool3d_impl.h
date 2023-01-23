@@ -29,7 +29,7 @@ inline int AddUntilNonNegative(int v, int d) {
   if (v >= 0) {
     return v;
   }
-  return (v % d + v) % d;
+  return (v % d + d) % d;
 }
 
 }  // namespace
