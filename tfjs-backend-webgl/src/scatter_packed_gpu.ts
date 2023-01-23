@@ -79,16 +79,14 @@ export class ScatterPackedProgram implements GPGPUProgram {
               if (flattenedIndex[0] == coords[0]) {
                 sum.xy += updVals.xy;
                 found.xy = vec2(1.);
+              } else if (flattenedIndex[0] == coords[0] + 1) {
+                sum.zw += updVals.xy;
+                found.zw = vec2(1.);
               }
               if (flattenedIndex[1] == coords[0]) {
                 sum.xy += updVals.zw;
                 found.xy = vec2(1.);
-              }
-              if (flattenedIndex[0] == coords[0] + 1) {
-                sum.zw += updVals.xy;
-                found.zw = vec2(1.);
-              }
-              if (flattenedIndex[1] == coords[0] + 1) {
+              } else if (flattenedIndex[1] == coords[0] + 1) {
                 sum.zw += updVals.zw;
                 found.zw = vec2(1.);
               }
