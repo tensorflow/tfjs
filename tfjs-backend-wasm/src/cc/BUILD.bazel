@@ -300,6 +300,7 @@ tfjs_cc_library(
         ":All",
         ":Any",
         ":ArgMax",
+        ":ArgMin",
         ":Atan",
         ":AvgPool",
         ":BatchMatMul",
@@ -445,6 +446,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "ArgMax",
     srcs = ["kernels/ArgMax.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ArgMin",
+    srcs = ["kernels/ArgMin.cc"],
     deps = [
         ":backend",
         ":util",

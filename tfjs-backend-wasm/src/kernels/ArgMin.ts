@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ArgMax, ArgMaxAttrs, ArgMaxInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
+import {ArgMin, ArgMinAttrs, ArgMinInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -27,7 +27,7 @@ let wasmFunc: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFunc = backend.wasm.cwrap(ArgMax, null /* void */, [
+  wasmFunc = backend.wasm.cwrap(ArgMin, null /* void */, [
     'number',  // x_id
     'number',  // dtype
     'number',  // outer_size
@@ -36,11 +36,11 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function argMax(
-    args: {inputs: ArgMaxInputs, backend: BackendWasm, attrs: ArgMaxAttrs}) {
+function argMin(
+    args: {inputs: ArgMinInputs, backend: BackendWasm, attrs: ArgMinAttrs}) {
   const {backend, inputs, attrs} = args;
-  const {axis} = attrs as unknown as ArgMaxAttrs;
-  const {x} = inputs as unknown as ArgMaxInputs;
+  const {axis} = attrs as unknown as ArgMinAttrs;
+  const {x} = inputs as unknown as ArgMinInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   let inputId = xId;
   let input = x;
@@ -73,9 +73,9 @@ function argMax(
   return out;
 }
 
-export const argMaxConfig: KernelConfig = {
-  kernelName: ArgMax,
+export const argMinConfig: KernelConfig = {
+  kernelName: ArgMin,
   backendName: 'wasm',
-  kernelFunc: argMax as unknown as KernelFunc,
+  kernelFunc: argMin as unknown as KernelFunc,
   setupFunc: setup
 };

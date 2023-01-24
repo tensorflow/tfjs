@@ -28,6 +28,7 @@ import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
@@ -150,6 +151,7 @@ const kernelConfigs: KernelConfig[] = [
   allConfig,
   anyConfig,
   argMaxConfig,
+  argMinConfig,
   asinConfig,
   asinhConfig,
   atanConfig,

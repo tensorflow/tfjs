@@ -250,7 +250,8 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
-  {include: 'argmax', excludes: ['gradient']},
+  {include: 'argmax '},
+  {include: 'argmin '},
   {include: 'exp '},
   {
     include: 'elu',
