@@ -34,6 +34,7 @@ import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -45,6 +46,7 @@ import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {diagConfig} from './kernels/Diag';
@@ -155,6 +157,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -166,6 +169,7 @@ const kernelConfigs: KernelConfig[] = [
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,

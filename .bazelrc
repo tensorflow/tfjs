@@ -8,7 +8,7 @@ build --symlink_prefix=dist/
 
 # These compile flags are active no matter which build mode we are in
 # (dbg vs opt). For flags specific to build mode, see cc_toolchain_config.bzl.
-build --cxxopt="-std=c++11"
+build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
@@ -69,6 +69,9 @@ build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
+# Make python debugging refer to the real files instead of symlinks
+run --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+
 # Platform specific DISPLAY environment variable for webgl and headless setting
 # for browser tests.
 test:linux --test_env=DISPLAY
@@ -76,8 +79,11 @@ test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true --//:headless=false
 
 # Enable debugging tests with --config=debug
-run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
-test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+
+test:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+run:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
 
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with
