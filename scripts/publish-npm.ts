@@ -25,12 +25,35 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
-import * as fs from 'fs';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, checkPublishable, runVerdaccio, ReleaseUnit, getVersion, getTagFromVersion, filterPackages, ALL_PACKAGES, WEBSITE_RELEASE_UNIT, getPackages } from './release-util';
+import semverCompare from 'semver/functions/compare';
+import * as child_process from 'child_process';
 
 import {BAZEL_PACKAGES} from './bazel_packages';
 
 const TMP_DIR = '/tmp/tfjs-publish';
+const VERDACCIO_REGISTRY = 'http://localhost:4873';
+const NPM_REGISTRY = 'https://registry.npmjs.org/';
+
+// This script can not publish the tfjs website
+const PUBLISHABLE_RELEASE_UNITS = RELEASE_UNITS.filter(r => r !== WEBSITE_RELEASE_UNIT);
+
+async function retry<T>(f: () => T, tries = 3, sleep=5_000): Promise<T> {
+  let lastError;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return f();
+    } catch (e) {
+      lastError = e;
+      console.warn(e);
+      if (i + 1 < tries) {
+        // Only delay if the loop will run again.
+        await delay(sleep);
+      }
+    }
+  }
+  throw lastError;
+}
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -38,95 +61,111 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocal rather than the http protocol when cloning repos.'
 });
 
-async function main() {
-  const args = parser.parseArgs();
+parser.addArgument('--registry', {
+  type: 'string',
+  defaultValue: NPM_REGISTRY,
+  help: 'Which registry to install packages from and publish to.',
+});
 
-  RELEASE_UNITS.forEach(printReleaseUnit);
-  console.log();
+parser.addArgument('--no-otp', {
+  action: 'storeTrue',
+  help: 'Do not use an OTP when publishing to the registry.',
+});
 
-  const releaseUnitStr =
-      await question('Which release unit (leave empty for 0): ');
-  const releaseUnitInt = +releaseUnitStr;
-  if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
-    console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
-    process.exit(1);
+parser.addArgument(['--release-this-branch', '--release-current-branch'], {
+  action: 'storeTrue',
+  help: 'Release the current branch instead of checking out a new one.',
+});
+
+parser.addArgument(['--dry'], {
+  action: 'storeTrue',
+  help: 'Dry run. Stage all packages in verdaccio but do not publish them to '
+      + 'the registry.',
+});
+
+parser.addArgument(['--auto-publish-local-newer'], {
+  action: 'storeTrue',
+  help: 'Automatically publish local packages that have newer versions than'
+      + ' the packages in the registry',
+});
+
+parser.addArgument(['packages'], {
+  type: 'string',
+  nargs: '*',
+  help: 'Packages to publish. Leave empty to select interactively',
+});
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function publish(pkg: string, registry: string, otp?: string,
+                       build = true) {
+  const registryEnv = {
+    YARN_REGISTRY: registry,
+    NPM_CONFIG_REGISTRY: registry,
+    NPM_REGISTRY: registry, // For npx npm-cli-login
+  };
+
+  function run(command: string) {
+    return $(command, registryEnv);
   }
-  console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
-  console.log();
 
-  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
-  const {name, phases} = releaseUnit;
-
-  phases.forEach((_, i) => printPhase(phases, i));
-  console.log();
-
-  const phaseStr = await question('Which phase (leave empty for 0): ');
-  const phaseInt = +phaseStr;
-  if (phaseInt < 0 || phaseInt >= phases.length) {
-    console.log(chalk.red(`Invalid phase: ${phaseStr}`));
-    process.exit(1);
+  function yarn(args: string) {
+    return run(`yarn --registry '${registry}' ${args}`);
   }
-  console.log(chalk.blue(`Using phase ${phaseInt}`));
-  console.log();
 
-  let releaseBranch: string;
-  if (releaseUnit === ALPHA_RELEASE_UNIT) {
-    // Alpha release unit is published with the tfjs release unit.
-    releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
-  } else {
-    releaseBranch = await getReleaseBranch(name);
-  }
-  console.log();
-
-  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
-  shell.cd(TMP_DIR);
-
-  // Yarn in the top-level and in the directory.
-  $('yarn');
-  console.log();
-
-  const packages = phases[phaseInt].packages;
-
-  for (let i = 0; i < packages.length; i++) {
-    const pkg = packages[i];
+  const startDir = process.cwd();
+  try {
+    // Use a try block so cwd can be restored in 'finally' if an error occurs.
     shell.cd(pkg);
 
-    // Check the package.json for 'link:' and 'file:' dependencies.
-    const packageJson = JSON.parse(fs.readFileSync('package.json')
-        .toString('utf8')) as {dependencies: Record<string, string>};
-    if (packageJson.dependencies) {
-      for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
-        const start = depVersion.slice(0,5);
-        if (start === 'link:' || start === 'file:') {
-          throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
-                          + 'Refusing to publish.');
-        }
+    checkPublishable('./package.json');
+
+    if (build && !BAZEL_PACKAGES.has(pkg)) {
+      console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
+      console.log(chalk.magenta('~~~ Installing packages ~~~'));
+      // Without a delay, this sometimes has issues downloading dependencies.
+      await delay(5_000);
+
+      // tfjs-node-gpu needs to get some files from tfjs-node.
+      if (pkg === 'tfjs-node-gpu') {
+        yarn('prep-gpu');
+      }
+
+      // Yarn above the other checks to make sure yarn doesn't change the lock
+      // file.
+      await retry(() =>
+          console.log(run(`yarn --registry '${registry}'`)));
+      console.log(chalk.magenta('~~~ Build npm ~~~'));
+
+      if (pkg === 'tfjs-react-native') {
+        yarn('build-npm');
+      } else {
+        yarn('build-npm for-publish');
       }
     }
 
-    console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
-    console.log(chalk.magenta('~~~ Installing packages ~~~'));
-    // tfjs-node-gpu needs to get some files from tfjs-node.
-    if (pkg === 'tfjs-node-gpu') {
-      $('yarn prep-gpu');
+    // Used for nightly dev releases.
+    const version = getVersion('package.json');
+    const tag = getTagFromVersion(version);
+
+    let otpFlag = '';
+    if (otp) {
+      otpFlag = `--otp=${otp} `;
     }
 
-    // Yarn above the other checks to make sure yarn doesn't change the lock
-    // file.
-    $('yarn');
+    console.log(
+      chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
+        + `${tag} ~~~`));
 
-    console.log(chalk.magenta('~~~ Build npm ~~~'));
-
-    if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
-      $('yarn build-npm');
-    } else {
-      $('yarn build-npm for-publish');
+    let login = '';
+    if (registry === VERDACCIO_REGISTRY) {
+      // If publishing to verdaccio, we must log in before every command.
+      login = 'npx npm-cli-login -u user -p password -e user@example.com && ';
     }
-
-    console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
-
-    const otp =
-        await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
       let dashes = '-- --';
@@ -135,25 +174,214 @@ async function main() {
         // in publish-npm.
         dashes = '-- -- --';
       }
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ${dashes}`
-        + ` --otp=${otp}`);
+      await retry(() =>
+          run(`${login}yarn --registry '${registry}' publish-npm ${dashes} ${otpFlag} --tag=${tag} --force`));
     } else {
-      if (pkg.startsWith('tfjs-node')) {
-        // Special case for tfjs-node* because it must publish the node addon
-        // as well.
-        $('YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm'
-          + ` --otp=${otp}`);
-      } else {
-        $('YARN_REGISTRY="https://registry.npmjs.org/" npm publish'
-          + ` --otp=${otp}`);
+      // Publish the package to the registry.
+      await retry(() =>
+          run(`${login}npm --registry '${registry}' publish ${otpFlag}`));
+
+      // Special case for tfjs-node(-gpu), which must upload the node addon
+      // to GCP as well. Only do this when publishing to NPM.
+      if (registry === NPM_REGISTRY && pkg.startsWith('tfjs-node')) {
+        $('yarn build-and-upload-addon publish');
       }
     }
-    console.log(`Yay! Published ${pkg} to npm.`);
+    console.log(`Published ${pkg} to ${registry}.`);
 
-    shell.cd('..');
+  } finally {
+    shell.cd(startDir);
+  }
+}
+
+async function main() {
+  const args = parser.parseArgs();
+
+  let releaseUnits: ReleaseUnit[];
+  if (args.release_this_branch) {
+    console.log('Releasing current branch');
+    releaseUnits = PUBLISHABLE_RELEASE_UNITS;
+  } else {
+    PUBLISHABLE_RELEASE_UNITS.forEach(printReleaseUnit);
     console.log();
+
+    const releaseUnitStr =
+      await question('Which release unit (leave empty for 0): ');
+    const releaseUnitInt = Number(releaseUnitStr);
+    if (releaseUnitInt < 0 || releaseUnitInt >= PUBLISHABLE_RELEASE_UNITS.length) {
+      console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
+      process.exit(1);
+    }
+    console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
+    console.log();
+
+    const releaseUnit = PUBLISHABLE_RELEASE_UNITS[releaseUnitInt];
+    const {name, } = releaseUnit;
+
+    let releaseBranch: string;
+    if (releaseUnit === ALPHA_RELEASE_UNIT) {
+      // Alpha release unit is published with the tfjs release unit.
+      releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
+    } else {
+      releaseBranch = await getReleaseBranch(name);
+    }
+    console.log();
+
+    releaseUnits = [releaseUnit];
+    checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
+    shell.cd(TMP_DIR);
   }
 
+  const getNpmVersionMemoized = memoize((pkg: string) => {
+    const version = getLocalVersion(pkg);
+    const tag = getTagFromVersion(version);
+    return getNpmVersion(pkg, args.registry, tag);
+  });
+
+  async function getVersions(pkg: string) {
+    const localVersion = getLocalVersion(pkg);
+    const npmVersion = await getNpmVersionMemoized(pkg);
+    let localIsNewer = true;
+    if (npmVersion !== '') {
+      // Unpublished tags return '' for their version.
+      localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+    }
+    return {localVersion, npmVersion, localIsNewer};
+  }
+
+  async function packageSelected(pkg: string) {
+      // Automatically select local packages with version numbers greater than
+      // npm.
+      try {
+        const {localVersion, localIsNewer} = await getVersions(pkg);
+        return localVersion !== '0.0.0' && localIsNewer;
+      } catch (e) {
+        console.warn(e);
+        return false;
+      }
+  }
+
+  // Get the list of packages to build and publish.
+  // There are three ways packages can be selected.
+  // 1. By passing them as CLI arguments in `packages`.
+  // 2. Automatically based on the versions on npm.
+  // 3. Interactively on the command line.
+  let packages: string[];
+  if (args.packages.length > 0) {
+    // Get packages to publish from args
+    const errorMessages: string[] = [];
+    // Filter from the set of all packages to make sure they end up
+    // in topological order.
+    const allPackages = getPackages(PUBLISHABLE_RELEASE_UNITS);
+    const toPublish = new Set(args.packages);
+    packages = allPackages.filter(pkg => {
+      if (!toPublish.has(pkg)) {
+        errorMessages.push(`Package ${pkg} is not a tfjs package.`);
+        return false;
+      }
+      return true;
+    })
+
+    if (errorMessages.length > 0) {
+      throw new Error(errorMessages.join('\n') +
+        `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
+    }
+  } else if (args.auto_publish_local_newer) {
+    // Automatically select packages based on npm versions
+    packages = await filterPackages(packageSelected, PUBLISHABLE_RELEASE_UNITS);
+    console.log(`Publishing ${packages}`);
+  } else {
+    // Select packages interactively
+    packages = await selectPackages({
+      message: 'Select packages to publish',
+      releaseUnits,
+      selected: packageSelected,
+      async modifyName(pkg) {
+        // Add the local and remote versions to the printed name.
+        try {
+          const {localVersion, npmVersion, localIsNewer} = await getVersions(pkg);
+          const pkgWithVersion =
+            `${pkg.padEnd(20)} (${npmVersion ?? 'unpublished'} → ${localVersion})`;
+          if (localIsNewer) {
+            return chalk.bold(pkgWithVersion);
+          } else {
+            return pkgWithVersion;
+          }
+        } catch (e) {
+          console.warn(e);
+          return pkg;
+        }
+      }
+    });
+  }
+
+  // Yarn in the top-level to download Bazel
+  $('yarn');
+  console.log();
+
+  // Pre-build all the bazel packages in a single bazel command for better
+  // efficiency.
+  const bazelTargets = packages.filter(pkg => BAZEL_PACKAGES.has(pkg))
+    .map(name => `//${name}:${name}_pkg`);
+  // Use child_process.spawnSync to show bazel build progress.
+  const result = child_process.spawnSync('yarn',
+                                         ['bazel', 'build', ...bazelTargets],
+                                         {stdio:'inherit'});
+  if (result.status !== 0) {
+    throw new Error(`Bazel process failed with exit code ${result.status}`);
+  }
+
+  // Build and publish all packages to a local Verdaccio repo for staging.
+  console.log(
+    chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
+  const verdaccio = runVerdaccio();
+  try {
+    for (const pkg of packages) {
+      await publish(pkg, VERDACCIO_REGISTRY);
+    }
+  } finally {
+    // Make sure to kill the verdaccio server before exiting even if publish
+    // throws an error. Otherwise, it blocks the port for the next run.
+    verdaccio.kill();
+  }
+
+  if (args.dry) {
+    console.log('Not publishing packages due to \'--dry\'');
+  } else {
+    // Publish all built packages to the selected registry
+    let otp = '';
+    if (!args.no_otp) {
+      otp = await question(`Enter one-time password from your authenticator: `);
+    }
+    console.log(`Publishing packages to ${args.registry}`);
+
+    const toPublish = [...packages];
+    while (toPublish.length > 0) {
+      // Using a while loop instead of .map since a stale OTP will require
+      // a retry.
+      let pkg = toPublish[0];
+      if (args.no_otp) {
+        await publish(pkg, args.registry, '', false);
+        toPublish.shift(); // Remove the published package from 'toPublish'.
+        continue;
+      }
+
+      try {
+        await publish(pkg, args.registry, otp, false)
+        toPublish.shift(); // Remove the published package from 'toPublish'.
+      } catch (err) {
+        if ((err as Error).message.includes('code EOTP')) {
+          // Try again with a new otp
+          otp = await question(`OTP ${otp} failed. Enter a new one-time `
+                               + `password from your authenticator: `);
+          continue; // Don't shift the package since it failed to publish.
+        }
+        throw err;
+      }
+    }
+
+    console.log(`Published packages to ${args.registry}`);
+  }
   process.exit(0);
 }
 

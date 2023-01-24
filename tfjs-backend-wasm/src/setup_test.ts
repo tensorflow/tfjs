@@ -406,6 +406,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'broadcastArgs '},
 ];
 
 const customInclude = (testName: string) => {
