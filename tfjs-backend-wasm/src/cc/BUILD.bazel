@@ -246,6 +246,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "pool3d_impl",
+    hdrs = ["pool3d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -302,6 +307,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":Atan",
         ":AvgPool",
+        ":AvgPool3D",
         ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
@@ -332,6 +338,7 @@ tfjs_cc_library(
         ":LessEqual",
         ":Max",
         ":MaxPool",
+        ":MaxPool3D",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -488,6 +495,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3D",
+    srcs = ["kernels/AvgPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
@@ -947,6 +963,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":MaxPool",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPool3D",
+    srcs = ["kernels/MaxPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
