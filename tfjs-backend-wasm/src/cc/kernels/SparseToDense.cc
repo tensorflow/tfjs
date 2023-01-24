@@ -58,8 +58,7 @@ void SparseToDense(const size_t sparse_indices_id,
   auto& sparse_indices_info = backend::get_tensor_info(sparse_indices_id);
   auto& sparse_values_info = backend::get_tensor_info(sparse_values_id);
   auto& default_value_info = backend::get_tensor_info(default_value_id);
-  const std::vector<size_t>& strides =
-      std::vector<size_t>(strides_ptr, strides_ptr + slice_rank);
+  const std::vector<size_t> strides(strides_ptr, strides_ptr + slice_rank);
   const int* sparse_indices_buf = sparse_indices_info.i32();
   auto& out_info = backend::get_tensor_info_out(out_id);
 
