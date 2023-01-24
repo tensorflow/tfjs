@@ -405,6 +405,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'broadcastArgs '},
   {include: 'avgPool3d '},
   {include: 'avgPool3dBackprop '},
 ];
