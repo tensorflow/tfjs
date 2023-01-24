@@ -253,11 +253,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {
-    include: 'elu',
+    include: 'elu ',
     excludes: [
-      'derivative',  // Not yet implemented.
-      'gradient',    // Not yet implemented.
-      'selu'         // Not yet implemented.
+      'selu'  // Not yet implemented.
     ]
   },
   {include: 'unstack'},

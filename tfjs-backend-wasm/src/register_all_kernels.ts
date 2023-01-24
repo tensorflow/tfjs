@@ -51,6 +51,7 @@ import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {diagConfig} from './kernels/Diag';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad'
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
@@ -173,6 +174,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   diagConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   expConfig,
   expandDimsConfig,
