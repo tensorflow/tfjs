@@ -72,7 +72,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         if (r < texShape[0]) {
           int c = imod(flatIndex, texShape[1]);
           vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
-          vec4 values = ${glsl.texture2D}(A, uv);
+          vec4 values = texture(A, uv);
           ${mainLoop}
         }
         ${glsl.output} = vec4(${output}, 0., 0., 0.);

@@ -46,7 +46,7 @@ export function getGlslDifferences(): GLSL {
     attribute = 'in';
     varyingVs = 'out';
     varyingFs = 'in';
-    texture2D = 'texture';
+    texture2D = 'texelFetch';
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
 
@@ -126,6 +126,7 @@ export function getGlslDifferences(): GLSL {
         return ivec4(floor(value + vec4(0.5)));
       }
     `;
+    throw new Error('WebGL 1.0 is not supported!');
   }
 
   return {

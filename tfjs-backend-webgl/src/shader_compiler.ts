@@ -273,7 +273,7 @@ function getOutputSamplingSnippet(
 function getFloatTextureSampleSnippet(glsl: GLSL): string {
   return `
     float sampleTexture(sampler2D textureSampler, vec2 uv) {
-      return ${glsl.texture2D}(textureSampler, uv).r;
+      return texture(textureSampler, uv).r; // texture2D
     }
   `;
 }
@@ -364,11 +364,25 @@ vec2 uvFromFlat(int texNumR, int texNumC, int index) {
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
+
+ivec2 coordsFromFlat(int texNumR, int texNumC, int index) {
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
+  return ivec2(texC, texR);
+}
+
 vec2 packedUVfrom1D(int texNumR, int texNumC, int index) {
   int texelIndex = index / 2;
   int texR = texelIndex / texNumC;
   int texC = texelIndex - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
+
+ivec2 packedCoordsfrom1D(int texNumR, int texNumC, int index) {
+  int texelIndex = index / 2;
+  int texR = texelIndex / texNumC;
+  int texC = texelIndex - texR * texNumC;
+  return ivec2(texC, texR);
 }
 `;
 
@@ -380,6 +394,14 @@ vec2 packedUVfrom2D(int texelsInLogicalRow, int texNumR,
   int texC = texelIndex - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
+
+ivec2 packedCoordsfrom2D(int texelsInLogicalRow, int texNumR,
+  int texNumC, int row, int col) {
+  int texelIndex = (row / 2) * texelsInLogicalRow + (col / 2);
+  int texR = texelIndex / texNumC;
+  int texC = texelIndex - texR * texNumC;
+  return ivec2(texC, texR);
+}
 `;
 
 const SAMPLE_3D_SNIPPET = `
@@ -390,6 +412,15 @@ vec2 packedUVfrom3D(int texNumR, int texNumC,
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
+
+ivec2 packedCoordsfrom3D(int texNumR, int texNumC,
+    int texelsInBatch, int texelsInLogicalRow, int b,
+    int row, int col) {
+  int index = b * texelsInBatch + (row / 2) * texelsInLogicalRow + (col / 2);
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
+  return ivec2(texC, texR);
 }
 `;
 
@@ -892,10 +923,9 @@ function getFlatOffsetUniformName(texName: string): string {
 function getPackedSamplerScalar(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
-  const glsl = getGlslDifferences();
   return `
     vec4 ${funcName}() {
-      return ${glsl.texture2D}(${texName}, halfCR);
+      return texture(${texName}, halfCR); // texture2D
     }
   `;
 }
@@ -947,9 +977,9 @@ function getPackedSampler1D(
     vec4 ${funcName}(int index) {
       ivec2 packedTexShape = ivec2(ceil(float(${
         texName}TexShape[0]) / 2.0), ceil(float(${texName}TexShape[1]) / 2.0));
-      vec2 uv = packedUVfrom1D(
+      ivec2 coords = packedCoordsfrom1D(
         packedTexShape[0], packedTexShape[1], index);
-      return ${glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
   }
@@ -957,9 +987,9 @@ function getPackedSampler1D(
       [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
   return `
     vec4 ${funcName}(int index) {
-      vec2 uv = packedUVfrom1D(
+      ivec2 coords = packedCoordsfrom1D(
         ${packedTexShape[0]}, ${packedTexShape[1]}, index);
-      return ${glsl.texture2D}(${texName}, uv);
+        return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
 }
@@ -1052,25 +1082,18 @@ function getPackedSampler2D(
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const texShape = inputInfo.shapeInfo.texShape;
 
-  const texNumR = texShape[0];
-  const texNumC = texShape[1];
   const glsl = getGlslDifferences();
   if (texShape != null && util.arraysEqual(shape, texShape)) {
     if (enableShapeUniforms) {
       return `
       vec4 ${funcName}(int row, int col) {
-        vec2 uv = (vec2(col, row) + halfCR) / vec2(${texName}TexShape[1], ${
-          texName}TexShape[0]);
-
-        return ${glsl.texture2D}(${texName}, uv);
+        return ${glsl.texture2D}(${texName}, ivec2(col, row), 0);
       }
     `;
     }
     return `
       vec4 ${funcName}(int row, int col) {
-        vec2 uv = (vec2(col, row) + halfCR) / vec2(${texNumC}.0, ${texNumR}.0);
-
-        return ${glsl.texture2D}(${texName}, uv);
+        return ${glsl.texture2D}(${texName}, ivec2(col, row), 0);
       }
     `;
   }
@@ -1081,8 +1104,8 @@ function getPackedSampler2D(
       ivec2 packedTexShape = ivec2(ceil(float(${
         texName}TexShape[0]) / 2.0), ceil(float(${texName}TexShape[1]) / 2.0));
       int valuesPerRow = int(ceil(float(${texName}Shape[1]) / 2.0));
-      vec2 uv = packedUVfrom2D(valuesPerRow, packedTexShape[0], packedTexShape[1], row, col);
-      return ${glsl.texture2D}(${texName}, uv);
+      ivec2 coords = packedCoordsfrom2D(valuesPerRow, packedTexShape[0], packedTexShape[1], row, col);
+      return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
   }
@@ -1092,9 +1115,9 @@ function getPackedSampler2D(
 
   return `
     vec4 ${funcName}(int row, int col) {
-      vec2 uv = packedUVfrom2D(${valuesPerRow}, ${packedTexShape[0]}, ${
+      ivec2 coords = packedCoordsfrom2D(${valuesPerRow}, ${packedTexShape[0]}, ${
       packedTexShape[1]}, row, col);
-      return ${glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
 }
@@ -1246,9 +1269,9 @@ function getPackedSampler3D(
       int valuesPerRow = int(ceil(float(${texName}Shape[2]) / 2.0));
       int texelsInBatch = valuesPerRow * int(ceil(float(${
         texName}Shape[1]) / 2.0));
-      vec2 uv = packedUVfrom3D(
+      ivec2 coords = packedCoordsfrom3D(
         packedTexShape[0], packedTexShape[1], texelsInBatch, valuesPerRow, b, row, col);
-      return ${glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
   }
@@ -1261,9 +1284,9 @@ function getPackedSampler3D(
 
   return `
     vec4 ${funcName}(int b, int row, int col) {
-      vec2 uv = packedUVfrom3D(
+      ivec2 coords = packedCoordsfrom3D(
         ${texNumR}, ${texNumC}, ${texelsInBatch}, ${valuesPerRow}, b, row, col);
-      return ${glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
 }
@@ -1394,8 +1417,7 @@ function getPackedSamplerND(
         texName}TexShape[0]) / 2.0), ceil(float(${texName}TexShape[1]) / 2.0));
       int texR = index / packedTexShape[1];
       int texC = index - texR * packedTexShape[1];
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(packedTexShape[1], packedTexShape[0]); return ${
-        glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, ivec2(texC, texR), 0);uv
     }
   `;
   }
@@ -1404,7 +1426,6 @@ function getPackedSamplerND(
   const texShape = inputInfo.shapeInfo.texShape;
   const packedTexShape =
       [Math.ceil(texShape[0] / 2), Math.ceil(texShape[1] / 2)];
-  const texNumR = packedTexShape[0];
   const texNumC = packedTexShape[1];
 
   const valuesPerRow = Math.ceil(shape[rank - 1] / 2);
@@ -1421,8 +1442,7 @@ function getPackedSamplerND(
       int index = ${index};
       int texR = index / ${texNumC};
       int texC = index - texR * ${texNumC};
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${texNumC}, ${texNumR});
-      return ${glsl.texture2D}(${texName}, uv);
+      return ${glsl.texture2D}(${texName}, ivec2(texC, texR), 0);
     }
   `;
 }
