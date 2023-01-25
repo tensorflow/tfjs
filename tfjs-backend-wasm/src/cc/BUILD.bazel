@@ -511,7 +511,7 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "AvgPool3DGrad",
-    srcs = ["kernels/AvgPool3D.cc"],
+    srcs = ["kernels/AvgPool3DGrad.cc"],
     deps = [
         ":backend",
         ":pool3d_impl",
