@@ -40,22 +40,20 @@ void scatter(const int* indices_ptr, const T* updates_ptr,
       indices_ptr++;
     }
 
-    out_buf_ptr += flattened_index * slice_size;
+    T* out = out_buf_ptr + flattened_index * slice_size;
 
     for (size_t k = 0; k < slice_size; ++k) {
       if (sum_dupe_indices) {
-        *out_buf_ptr += *updates_ptr;
+        *out += *updates_ptr;
       } else {
-        *out_buf_ptr = *updates_ptr;
+        *out = *updates_ptr;
       }
 
-      out_buf_ptr++;
+      out++;
       if (!update_as_scalar) {
         updates_ptr++;
       }
     }
-
-    out_buf_ptr -= (flattened_index * slice_size + slice_size);
   }
 }
 
