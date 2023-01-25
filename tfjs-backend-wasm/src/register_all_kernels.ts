@@ -32,8 +32,10 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -77,6 +79,7 @@ import {logicalXorConfig} from './kernels/LogicalXor';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
@@ -154,8 +157,10 @@ const kernelConfigs: KernelConfig[] = [
   asinhConfig,
   atanConfig,
   avgPoolConfig,
+  avgPool3DConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -199,6 +204,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPool3DConfig,
   meanConfig,
   minConfig,
   minimumConfig,

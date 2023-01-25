@@ -66,8 +66,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'avgPool',
     excludes: [
-      'gradient',   // Not yet implemented.
-      'avgPool3d',  // Not yet implemented.
+      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -85,11 +84,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maxPool',
     excludes: [
       'maxPoolBackprop',    // Not yet implemented.
-      'maxPool3d',          // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
       'ignores NaNs',       // Actual != expected.
       'maxPoolWithArgmax'   // Not yet implemented.
-
     ]
   },
   {include: 'cropAndResize'},
@@ -409,6 +406,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'broadcastArgs '},
   {include: 'searchSorted '},
   {include: 'upperBound '},
   {include: 'lowerBound '},
