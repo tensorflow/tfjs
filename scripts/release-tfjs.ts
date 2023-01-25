@@ -112,7 +112,7 @@ async function main() {
 
   let incrementVersion: ((version: string) => string) | undefined;
   if (args.guess_version === 'nightly') {
-    incrementVersion = getNightlyVersion;
+    incrementVersion = v => getNightlyVersion(getMinorUpdateVersion(v));
   }
 
   if (args.use_local_changes) {

@@ -21,15 +21,21 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -41,8 +47,10 @@ import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {diagConfig} from './kernels/Diag';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
@@ -71,6 +79,7 @@ import {logicalXorConfig} from './kernels/LogicalXor';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
@@ -136,15 +145,21 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
   addNConfig,
   allConfig,
   anyConfig,
   argMaxConfig,
+  asinConfig,
+  asinhConfig,
   atanConfig,
   avgPoolConfig,
+  avgPool3DConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -156,8 +171,10 @@ const kernelConfigs: KernelConfig[] = [
   cropAndResizeConfig,
   cumprodConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  diagConfig,
   eluConfig,
   equalConfig,
   expConfig,
@@ -186,6 +203,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  maxPool3DConfig,
   meanConfig,
   minConfig,
   minimumConfig,

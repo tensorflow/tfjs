@@ -246,6 +246,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "pool3d_impl",
+    hdrs = ["pool3d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -293,6 +298,8 @@ tfjs_cc_library(
     name = "all_kernels",
     deps = [
         ":Abs",
+        ":Acos",
+        ":Acosh",
         ":Add",
         ":AddN",
         ":All",
@@ -300,6 +307,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":Atan",
         ":AvgPool",
+        ":AvgPool3D",
         ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
@@ -330,6 +338,7 @@ tfjs_cc_library(
         ":LessEqual",
         ":Max",
         ":MaxPool",
+        ":MaxPool3D",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -376,6 +385,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Abs",
     srcs = ["kernels/Abs.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acos",
+    srcs = ["kernels/Acos.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Acosh",
+    srcs = ["kernels/Acosh.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -440,12 +469,41 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Asin",
+    srcs = ["kernels/Asin.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Asinh",
+    srcs = ["kernels/Asinh.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "AvgPool",
     srcs = ["kernels/AvgPool.cc"],
     hdrs = ["kernels/AvgPool.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3D",
+    srcs = ["kernels/AvgPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
@@ -592,6 +650,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "DenseBincount",
+    srcs = ["kernels/DenseBincount.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "DepthToSpace",
     srcs = ["kernels/DepthToSpace.cc"],
     deps = [
@@ -616,6 +683,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Diag",
+    srcs = ["kernels/Diag.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
@@ -887,6 +963,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":MaxPool",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPool3D",
+    srcs = ["kernels/MaxPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 

@@ -39,7 +39,7 @@ TEST(_FUSED_MATMUL, xnn_operator_lifetime) {
   size_t* b_shape_ptr = b_shape.data();
 
   size_t out_id = 5;
-  float out_values[2] = {0, 0};
+  float out_values[4] = {};
 
   tfjs::wasm::register_tensor(a0_id, size, a_values);
   tfjs::wasm::register_tensor(a1_id, size, a_values);
