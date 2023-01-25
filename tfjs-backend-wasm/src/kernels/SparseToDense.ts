@@ -80,5 +80,5 @@ export const sparseToDenseConfig: KernelConfig = {
   kernelName: SparseToDense,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sparseToDense as {} as KernelFunc
+  kernelFunc: sparseToDense as unknown as KernelFunc
 };
