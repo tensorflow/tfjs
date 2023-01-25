@@ -363,6 +363,7 @@ tfjs_cc_library(
         ":RotateWithOffset",
         ":Round",
         ":ScatterNd",
+        ":SearchSorted",
         ":SelectV2",
         ":Sigmoid",
         ":Sin",
@@ -1192,6 +1193,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SearchSorted",
+    srcs = ["kernels/SearchSorted.cc"],
     deps = [
         ":backend",
         ":util",
