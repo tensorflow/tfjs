@@ -76,7 +76,7 @@ void AvgPool3D(int x_id, int out_id, int batch_size, int channel_size,
                     return {0.0, 0};
                   },
                   /*filter_apply=*/
-                  [](std::pair<float, int>& data, const float& val) {
+                  [](std::pair<float, int>& data, int, const float& val) {
                     data.first += val;
                     ++data.second;
                   },
