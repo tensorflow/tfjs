@@ -18,19 +18,21 @@
 import {backend_util, Dilation2D, Dilation2DAttrs, Dilation2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 let wasmDilation2D: (
-    xId: number, filterId: number, outId: number, batch: number, depth: number,
-    inHeight: number, inWidth: number, outHeight: number, outWidth: number,
-    strideHeight: number, strideWidth: number, dilationHeight: number,
-    dilationWidth: number, filterHeight: number, filterWidth: number,
-    padTop: number, padLeft: number) => void;
+    xId: number, filterId: number, outId: number, dtype: number, batch: number,
+    depth: number, inHeight: number, inWidth: number, outHeight: number,
+    outWidth: number, strideHeight: number, strideWidth: number,
+    dilationHeight: number, dilationWidth: number, filterHeight: number,
+    filterWidth: number, padTop: number, padLeft: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmDilation2D = backend.wasm.cwrap(Dilation2D, null, [
     'number',  // xId
     'number',  // filterId
     'number',  // outId
+    'number',  // dtype
     'number',  // batch
     'number',  // depth
     'number',  // inHeight
@@ -57,6 +59,12 @@ export function dilation2D(args: {
   const {x, filter} = inputs;
   const {strides, pad, dilations} = attrs;
 
+  if (x.dtype !== filter.dtype) {
+    throw new Error(
+        `Dilation2D error: x must have the same dtype as filter. Got ${
+            x.dtype} and ${filter.dtype}`);
+  }
+
   const dilationInfo = backend_util.computeDilation2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number], strides, pad,
@@ -68,6 +76,7 @@ export function dilation2D(args: {
       backend.dataIdMap.get(x.dataId).id,
       backend.dataIdMap.get(filter.dataId).id,
       backend.dataIdMap.get(out.dataId).id,
+      CppDType[x.dtype],
       dilationInfo.batchSize,
       /*depth=*/dilationInfo.inChannels,
       dilationInfo.inHeight,

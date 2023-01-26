@@ -59,10 +59,7 @@ void Dilation2D(int x_id, int filter_id, int out_id, DType dtype, int batch,
       .pad_top = pad_top,
       .pad_left = pad_left,
   };
-  std::fill(out_info.f32_write(),
-            out_info.f32_write() + batch * depth * out_height * out_width,
-            100.0);
-  return;
+
   switch (dtype) {
     case DType::float32:
       Dilation2DImpl(x_info.f32(), filter_info.f32(), out_info.f32_write(),
