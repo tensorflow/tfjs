@@ -41,7 +41,6 @@ export abstract class BaseRandomLayer extends Layer {
     super(args);
     this.rngType = args.rngType;
 
-
     if (this.rng_types.hasOwnProperty(this.rngType)) {
       this.randomGenerator = this.rng_types[this.rngType]
     } else {
