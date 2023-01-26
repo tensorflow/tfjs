@@ -246,6 +246,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "pool3d_impl",
+    hdrs = ["pool3d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -303,6 +308,8 @@ tfjs_cc_library(
         ":ArgMin",
         ":Atan",
         ":AvgPool",
+        ":AvgPool3D",
+        ":AvgPool3DGrad",
         ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
@@ -333,6 +340,8 @@ tfjs_cc_library(
         ":LessEqual",
         ":Max",
         ":MaxPool",
+        ":MaxPool3D",
+        ":MaxPool3DGrad",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -357,6 +366,7 @@ tfjs_cc_library(
         ":RotateWithOffset",
         ":Round",
         ":ScatterNd",
+        ":SearchSorted",
         ":SelectV2",
         ":Sigmoid",
         ":Sin",
@@ -498,6 +508,24 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3D",
+    srcs = ["kernels/AvgPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3DGrad",
+    srcs = ["kernels/AvgPool3DGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
@@ -961,6 +989,24 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "MaxPool3D",
+    srcs = ["kernels/MaxPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPool3DGrad",
+    srcs = ["kernels/MaxPool3DGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
     name = "Min",
     srcs = ["kernels/Min.cc"],
     deps = [
@@ -1177,6 +1223,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SearchSorted",
+    srcs = ["kernels/SearchSorted.cc"],
     deps = [
         ":backend",
         ":util",

@@ -11,54 +11,6 @@
     "backend": ["webgl"]
   },
   "browsers": {
-    "Windows_11_1": {
-      "base": "BrowserStack",
-      "browser": "chrome",
-      "browser_version": "103.0",
-      "os": "Windows",
-      "os_version": "11",
-      "device": null
-    },
-    "Windows_11_2": {
-      "base": "BrowserStack",
-      "browser": "edge",
-      "browser_version": "103.0",
-      "os": "Windows",
-      "os_version": "11",
-      "device": null
-    },
-    "Windows_11_3": {
-      "base": "BrowserStack",
-      "browser": "firefox",
-      "browser_version": "103.0",
-      "os": "Windows",
-      "os_version": "11",
-      "device": null
-    },
-    "Windows_7_1": {
-      "base": "BrowserStack",
-      "browser": "firefox",
-      "browser_version": "103.0",
-      "os": "Windows",
-      "os_version": "7",
-      "device": null
-    },
-    "OS_X_Monterey_1": {
-      "base": "BrowserStack",
-      "browser": "safari",
-      "browser_version": "15.3",
-      "os": "OS X",
-      "os_version": "Monterey",
-      "device": null
-    },
-    "OS_X_Monterey_2": {
-      "base": "BrowserStack",
-      "os": "OS X",
-      "os_version": "Monterey",
-      "browser": "chrome",
-      "device": null,
-      "browser_version": "103.0"
-    },
     "iPhone_13_Pro_Max_1": {
       "base": "BrowserStack",
       "os": "ios",
