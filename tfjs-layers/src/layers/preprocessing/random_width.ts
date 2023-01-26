@@ -8,13 +8,13 @@
  * =============================================================================
  */
 
-import { image, Rank, serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
+import { image, Rank, serialization, Tensor, cast, stack, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor } from '../../utils/types_utils';
 import * as K from '../../backend/tfjs_backend';
 import { Kwargs } from 'tfjs-layers/src/types';
 import { ValueError } from 'tfjs-layers/src/errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from 'tfjs-layers/src/engine/base_random_layer';
-import { getExactlyOneShape } from '../../utils/types_utils';  //, getExactlyOneTensor
+import * as tf from "@tensorflow/tfjs"
 
 // export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
@@ -22,6 +22,7 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    interpolation?: InterpolationType; // default = 'bilinear';
    seed?: number;// default = false;
    autoVectorize?:boolean;
+   rngType: string;
 }
 
 /**
@@ -61,10 +62,10 @@ export class RandomWidth extends BaseRandomLayer {
 
     this.factor = args.factor;
 
-    if (Array.isArray(this.factor) && this.factor.length === 2) {
+    if (Array.isArray(this.factor) && this.factor.length === 2) { // should these values also be >= 0, only seeing bounds for single value vs array?
       this.widthLower = this.factor[0];
       this.widthUpper = this.factor[1];
-    } else if (!Array.isArray(this.factor) && this.factor > 0){
+    } else if (!Array.isArray(this.factor) && this.factor > 0){ //do these values need to be positive or can they equal 0?
       this.widthLower = -this.factor;
       this.widthUpper = this.factor;
     } else {
@@ -81,7 +82,7 @@ export class RandomWidth extends BaseRandomLayer {
       `)
     }
 
-    if (this.widthLower < -1.0 || this.widthUpper < -1.0) {
+    if (this.widthLower < -1.0 || this.widthUpper < -1.0) { // does this logic conflict with line 68 & 65?
       throw new ValueError(
         `factor must have values larger than -1.
         Got: ${this.factor}`
@@ -143,17 +144,28 @@ export class RandomWidth extends BaseRandomLayer {
     return tidy(() => {
       if (kwargs.training) {
         // Inputs width-adjusted with random ops.
-        const inputShape = getExactlyOneShape(inputs.shape);
-        const height = inputShape[0];
-        const width = inputShape[1];
-        const numChannels = inputShape[2];
+        const input = getExactlyOneTensor(inputs);
+        const inputShape = input.shape;
+        const imgHeight = inputShape.length - 3;
+        const imgWidth = inputShape.length - 2;
 
-      //   width_factor = self._random_generator.random_uniform(
-      //     shape=[],
-      //     minval=(1.0 + self.width_lower),
-      //     maxval=(1.0 + self.width_upper),
-      // )
 
+        const widthFactor = super.randomGenerator(inputShape,
+          (1.0 + this.widthLower), (1.0 + this.widthUpper)
+        );
+        const adjustedWidth = cast(widthFactor * imgWidth, 'int32');
+        // const adjustedSize [imgHeight, adjustedWidth]; //This must be Tensor
+        const adjustedSize = tf.tensor([imgHeight, adjustedWidth],[2],'int32');
+        // const adjustedSize = tf.tensor([4, 7]); // this works,
+        // but accepts only an array of 8-bit unsigned integers
+
+        if (this.interpolation === 'bilinear') {
+          return image.resizeBilinear(inputs, adjustedSize)
+
+        } else if (this.interpolation === 'nearest') {
+          return image.resizeNearestNeighbor(
+              inputs, adjustedSize, !this.cropToAspectRatio);
+        }
 
       } else {
         return inputs;
