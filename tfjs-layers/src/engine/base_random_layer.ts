@@ -25,9 +25,9 @@ export type RNGTypes = {
 
 export abstract class BaseRandomLayer extends Layer {
   // A layer handle the random number creation and savemodel behavior.
-  // private readonly seed?: number;
+  /** @nocollapse */
   static className = 'RandomWidth';
-  private randomGenerator: Function;
+  randomGenerator: Function;
   private readonly rngType: string;
 
   private readonly rng_types: RNGTypes = {
