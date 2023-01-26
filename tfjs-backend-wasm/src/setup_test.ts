@@ -407,6 +407,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'searchSorted '},
   {include: 'avgPool3d '},
   {include: 'avgPool3dBackprop '},
+  {include: 'upperBound '},
+  {include: 'lowerBound '},
 ];
 
 const customInclude = (testName: string) => {
