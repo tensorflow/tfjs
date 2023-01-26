@@ -8,19 +8,20 @@
  * =============================================================================
  */
 
-import { serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
+import { image, Rank, serialization, Tensor, mul, add, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor } from '../../utils/types_utils';
 import * as K from '../../backend/tfjs_backend';
 import { Kwargs } from 'tfjs-layers/src/types';
 import { ValueError } from 'tfjs-layers/src/errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from 'tfjs-layers/src/engine/base_random_layer';
+import { getExactlyOneShape } from '../../utils/types_utils';  //, getExactlyOneTensor
 
 // export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    factor: number | [number, number];
    interpolation?: InterpolationType; // default = 'bilinear';
    seed?: number;// default = false;
-   auto_vectorize?:boolean;
+   autoVectorize?:boolean;
 }
 
 /**
@@ -40,8 +41,6 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
  *
  */
 
-// export class RandomWidth extends BaseImageAugmentationLayer {
-
 const INTERPOLATION_KEYS = ['bilinear', 'nearest'] as const;
 const INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
 type InterpolationType = typeof INTERPOLATION_KEYS[number];
@@ -52,25 +51,26 @@ export class RandomWidth extends BaseRandomLayer {
   private readonly factor: number | [number, number];
   private readonly interpolation?: InterpolationType;  // defualt = 'bilinear
   private readonly seed?: number; // default null
-  private readonly auto_vectorize?: boolean; // default false
+  private readonly autoVectorize?: boolean; // default false
   private widthLower: number;
   private widthUpper: number;
+  private interpolationMethod: Function;
 
   constructor(args: RandomWidthArgs) {
     super(args);
 
     this.factor = args.factor;
 
-    if (Array.isArray(this.factor) && this.factor.length == 2) {
+    if (Array.isArray(this.factor) && this.factor.length === 2) {
       this.widthLower = this.factor[0];
       this.widthUpper = this.factor[1];
-    } else if (!Array.isArray(this.factor)){
+    } else if (!Array.isArray(this.factor) && this.factor > 0){
       this.widthLower = -this.factor;
       this.widthUpper = this.factor;
     } else {
       throw new ValueError(`
       Invalid factor parameter: ${this.factor}.
-      Must be array of size 2 or number`);
+      Must be positive number or tuple of 2 numbers`);
     }
 
     if (this.widthUpper < this.widthLower) {
@@ -101,18 +101,25 @@ export class RandomWidth extends BaseRandomLayer {
       this.interpolation = 'bilinear';
     }
 
-   if(args.seed) {
-       this.seed = args.seed;
-   } else {
-       this.seed = null;
-   }
+    if (this.interpolation === 'bilinear') {
+      this.interpolationMethod = image.resizeBilinear;
+    } else if (this.interpolation === 'nearest') {
+      this.interpolationMethod = image.resizeNearestNeighbor;
+    } else {
+      throw new Error(`Interpolation is ${this.interpolation} but only
+      ${[...INTERPOLATION_METHODS]} are supported`);
+    }
+    if(args.seed) {
+      this.seed = args.seed;
+    } else {
+      this.seed = null;
+    }
 
-   if(args.auto_vectorize) {
-    this.auto_vectorize = args.auto_vectorize;
-   } else {
-    this.auto_vectorize = false;
-}
-
+    if(args.autoVectorize) {
+      this.autoVectorize = args.autoVectorize;
+    } else {
+      this.autoVectorize = false;
+    }
   }
 
   override getConfig(): serialization.ConfigDict {
@@ -127,7 +134,45 @@ export class RandomWidth extends BaseRandomLayer {
     return config;
   }
 
+//// New Code: vvvv
+
+  override call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>,
+    kwargs: Kwargs): Tensor[]|Tensor {
+
+
+    return tidy(() => {
+      if (kwargs.training) {
+        // Inputs width-adjusted with random ops.
+        const inputShape = getExactlyOneShape(inputs.shape);
+        const height = inputShape[0];
+        const width = inputShape[1];
+        const numChannels = inputShape[2];
+
+      //   width_factor = self._random_generator.random_uniform(
+      //     shape=[],
+      //     minval=(1.0 + self.width_lower),
+      //     maxval=(1.0 + self.width_upper),
+      // )
+
+
+      } else {
+        return inputs;
+      }
+
+    });
+  }
+
+
+
 }
+
+
+
+  // override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  //   inputShape = getExactlyOneShape(inputShape);
+  //   const numChannels = inputShape[2];
+  //   return [this.height, this.width, numChannels];
+  // }
 
 serialization.registerClass(RandomWidth);
 
