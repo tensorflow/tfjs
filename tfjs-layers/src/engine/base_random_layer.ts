@@ -15,8 +15,8 @@ import { ValueError } from '../errors';
 
 export declare interface BaseRandomLayerArgs extends LayerArgs {
   seed?: number;
-  force_generator: boolean;
-  rng_type: string
+  forceGenerator: boolean;
+  rngType: string
 }
 
 export type RNGTypes = {
@@ -27,8 +27,8 @@ export abstract class BaseRandomLayer extends Layer {
   // A layer handle the random number creation and savemodel behavior.
   // private readonly seed?: number;
   static className = 'RandomWidth';
-  private random_generator: Function;
-  private readonly rng_type: string;
+  private randomGenerator: Function;
+  private readonly rngType: string;
 
   private readonly rng_types: RNGTypes = {
     gamma: randomGamma,
@@ -39,16 +39,15 @@ export abstract class BaseRandomLayer extends Layer {
 
   constructor(args: BaseRandomLayerArgs) {
     super(args);
-    this.rng_type = args.rng_type;
+    this.rngType = args.rngType;
 
 
-    if (this.rng_types.hasOwnProperty(this.rng_type)) {
-      this.random_generator = this.rng_types[this.rng_type]
+    if (this.rng_types.hasOwnProperty(this.rngType)) {
+      this.randomGenerator = this.rng_types[this.rngType]
     } else {
       throw new ValueError (
-        `Invalid rng_type provided.
-        Received rng_type=${this.rng_type}`);
+        `Invalid rngType provided.
+        Received rngType=${this.rngType}`);
     }
   }
-
 }
