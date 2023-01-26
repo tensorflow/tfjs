@@ -408,6 +408,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'denseBincount '},
   {include: 'broadcastArgs '},
   {include: 'searchSorted '},
+  {include: 'dilation2d ', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {
