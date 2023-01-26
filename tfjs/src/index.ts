@@ -30,8 +30,8 @@ import * as data from '@tensorflow/tfjs-data';
 export {data};
 
 // Import and register backends.
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+export * from '@tensorflow/tfjs-backend-cpu';
+export * from '@tensorflow/tfjs-backend-webgl';
 
 // Import versions of all sub-packages.
 import {version_core} from '@tensorflow/tfjs-core';

@@ -1,6 +1,4 @@
-/**
- * @license
- * Copyright 2023 Google LLC.
+/* Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,8 +10,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * =============================================================================
- */
+ * ===========================================================================*/
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -111,13 +108,67 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
                      x_col += info.dilation_width) {
                   int x_offset =
                       info.in_offset(batch, x_depth, x_row, x_col, channel);
-                  filter_apply(filter_data, x_buf[x_offset]);
+                  filter_apply(filter_data, x_offset, x_buf[x_offset]);
                 }
               }
             }
             int out_offset =
                 info.out_offset(batch, y_depth, y_row, y_col, channel);
             out_buf[out_offset] = filter_aggregate(filter_data);
+          }
+        }
+      }
+    }
+  }
+}
+
+template <typename DY, typename DX, typename FM>
+inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
+                                const NDHWCPool3DInfo& info,
+                                const FM& pixel_mask) {
+  for (int batch = 0; batch < info.batch_size; ++batch) {
+    for (int channel = 0; channel < info.channel_size; ++channel) {
+      for (int dx_depth = 0; dx_depth < info.in_depth; ++dx_depth) {
+        for (int dx_row = 0; dx_row < info.in_height; ++dx_row) {
+          for (int dx_col = 0; dx_col < info.in_width; ++dx_col) {
+            // Sharder code begins
+            int dy_depth_corner = dx_depth - info.pad_front;
+            int dy_row_corner = dx_row - info.pad_top;
+            int dy_col_corner = dx_col - info.pad_left;
+
+            int dx_offset =
+                info.in_offset(batch, dx_depth, dx_row, dx_col, channel);
+            DX dot_prod = 0;
+            for (int w_depth = 0; w_depth < info.effective_filter_depth;
+                 w_depth += info.dilation_depth) {
+              int dy_depth = (dy_depth_corner + w_depth) / info.stride_depth;
+              if (int rem = (dy_depth_corner + w_depth) % info.stride_depth;
+                  dy_depth < 0 || dy_depth >= info.out_depth || rem != 0) {
+                continue;
+              }
+              for (int w_row = 0; w_row < info.effective_filter_height;
+                   w_row += info.dilation_height) {
+                int dy_row = (dy_row_corner + w_row) / info.stride_height;
+                if (int rem = (dy_row_corner + w_row) % info.stride_height;
+                    dy_row < 0 || dy_row >= info.out_height || rem != 0) {
+                  continue;
+                }
+                for (int w_col = 0; w_col < info.effective_filter_width;
+                     w_col += info.dilation_width) {
+                  int dy_col = (dy_col_corner + w_col) / info.stride_width;
+                  if (int rem = (dy_col_corner + w_col) % info.stride_width;
+                      dy_col < 0 || dy_col >= info.out_width || rem != 0) {
+                    continue;
+                  }
+
+                  int dy_offset =
+                      info.out_offset(batch, dy_depth, dy_row, dy_col, channel);
+                  DY pixel = dy_buf[dy_offset];
+                  dot_prod += pixel * pixel_mask(dy_offset, dx_offset);
+                }
+              }
+            }
+            dx_buf[dx_offset] = dot_prod;
           }
         }
       }
