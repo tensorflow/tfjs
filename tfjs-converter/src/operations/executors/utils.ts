@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {clone, Tensor, util} from '@tensorflow/tfjs-core';
+import {clone, DataTypeMap, NumericDataType, Tensor, util} from '@tensorflow/tfjs-core';
+// TODO(mattSoulanille): Export isPromise and other utils.
+import {isPromise} from '@tensorflow/tfjs-core/dist/util_base';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -46,6 +48,55 @@ export function getParamValue(
     const tensor = getTensor(
         node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
+    return inputParam.type === 'number' ?
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
+  }
+  const attrParam = node.attrParams[paramName];
+  return attrParam && attrParam.value;
+}
+
+export function getParamValueMaybeAsync(
+    paramName: string, node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext, resourceManager?: ResourceManager): ValueType
+    | Promise<ValueType> {
+  const inputParam = node.inputParams[paramName];
+  if (inputParam && inputParam.inputIndexStart !== undefined) {
+    const start = inputParam.inputIndexStart;
+    const end = inputParam.inputIndexEnd === 0 ?
+        undefined :
+        (inputParam.inputIndexEnd === undefined ? start + 1 :
+                                                  inputParam.inputIndexEnd);
+    if (inputParam.type === 'tensor') {
+      return getTensor(
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
+          resourceManager);
+    }
+    if (inputParam.type === 'tensors') {
+      const inputs = node.inputNames.slice(start, end);
+
+      return inputs.map(
+          name => getTensor(name, tensorMap, context, resourceManager));
+    }
+    const tensor = getTensor(
+        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
+
+    let data: DataTypeMap[NumericDataType]
+      | Promise<DataTypeMap[NumericDataType]>;
+    try {
+      data = tensor.dataSync();
+    } catch (e) {
+      // TODO(mattSoulanille): Throw a specific error type from WebGPU and
+      // check the type here.
+      data = tensor.data();
+    }
+    if (isPromise(data)) {
+      return data.then(d => {
+        return inputParam.type === 'number' ?
+          d[0] :
+          util.toNestedArray(tensor.shape, d);
+      })
+    }
     return inputParam.type === 'number' ?
         data[0] :
         util.toNestedArray(tensor.shape, data);

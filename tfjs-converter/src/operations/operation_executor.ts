@@ -97,8 +97,7 @@ export function executeOp(
           case 'string':
             return tidy(() => string.executeOp(node, tensorMap, context));
           case 'transformation':
-            return tidy(
-                () => transformation.executeOp(node, tensorMap, context));
+            return transformation.executeOp(node, tensorMap, context);
           case 'hash_table':
             return hashTable.executeOp(
                 node, tensorMap, context, resourceManager);

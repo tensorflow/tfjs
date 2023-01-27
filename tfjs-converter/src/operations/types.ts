@@ -86,6 +86,12 @@ export interface InternalOpAsyncExecutor {
    resourceManager?: ResourceManager, ops?: typeof tfOps): Promise<Tensor[]>;
 }
 
+export interface InternalOpMaybeAsyncExecutor {
+  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+   resourceManager?: ResourceManager, ops?: typeof tfOps): Tensor[]
+    | Promise<Tensor[]>;
+}
+
 export declare interface OpMapper {
   tfOpName: string;
   category?: Category;

@@ -18,16 +18,19 @@
 import {Tensor, Tensor4D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
+import { isPromise } from '@tensorflow/tfjs-core/dist/util_base';
+import {ResourceManager} from '../../executor/resource_manager';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
+import {InternalOpMaybeAsyncExecutor, Node} from '../types';
 
-import {getParamValue} from './utils';
+import { getParamValue, getParamValueMaybeAsync } from './utils';
 
-export const executeOp: InternalOpExecutor =
+export const executeOp: InternalOpMaybeAsyncExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+     context: ExecutionContext, _resourceManager: ResourceManager,
+     ops = tfOps): Tensor[] | Promise<Tensor[]> => {
       switch (node.op) {
         case 'Cast': {
           return [ops.cast(
@@ -47,11 +50,15 @@ export const executeOp: InternalOpExecutor =
           return [ops.squeeze(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
         }
-
         case 'Reshape': {
-          return [ops.reshape(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('shape', node, tensorMap, context) as number[])];
+          const shape = getParamValueMaybeAsync('shape', node, tensorMap,
+                                                context) as number[] | Promise<number[]>;
+          const x = getParamValue('x', node, tensorMap, context) as Tensor;
+
+          if (isPromise(shape)) {
+            return shape.then(shape => [ops.reshape(x, shape)]);
+          }
+          return [ops.reshape(x, shape)];
         }
         case 'MirrorPad': {
           return [ops.mirrorPad(
