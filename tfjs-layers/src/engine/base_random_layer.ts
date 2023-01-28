@@ -14,8 +14,6 @@ import { randomStandardNormal, randomUniform } from '@tensorflow/tfjs-core'
 import { ValueError } from '../errors';
 
 export declare interface BaseRandomLayerArgs extends LayerArgs {
-  seed?: number;
-  forceGenerator: boolean;
   rngType: string
 }
 
@@ -28,7 +26,7 @@ export abstract class BaseRandomLayer extends Layer {
   /** @nocollapse */
   static className = 'RandomWidth';
   randomGenerator: Function;
-  private readonly rngType: string;
+  private rngType: string;
 
   private readonly rng_types: RNGTypes = {
     gamma: randomGamma,
@@ -39,7 +37,10 @@ export abstract class BaseRandomLayer extends Layer {
 
   constructor(args: BaseRandomLayerArgs) {
     super(args);
-    this.rngType = args.rngType;
+  }
+
+  setRNGType = (rngType: string) => {
+    this.rngType = rngType;
 
     if (this.rng_types.hasOwnProperty(this.rngType)) {
       this.randomGenerator = this.rng_types[this.rngType]
@@ -48,5 +49,6 @@ export abstract class BaseRandomLayer extends Layer {
         `Invalid rngType provided.
         Received rngType=${this.rngType}`);
     }
+    return this.randomGenerator;
   }
 }
