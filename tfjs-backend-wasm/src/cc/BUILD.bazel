@@ -719,11 +719,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Elu",
     srcs = ["kernels/Elu.cc"],
-    hdrs = ["kernels/Elu.h"],
     deps = [
         ":backend",
         ":elu_impl",
-        ":unary",
     ],
 )
 
