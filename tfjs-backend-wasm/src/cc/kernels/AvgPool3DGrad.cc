@@ -20,7 +20,6 @@
 #endif
 
 #include <algorithm>
-#include <limits>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/pool3d_impl.h"
@@ -35,21 +34,22 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 // REQUIRES:
-// - Tensor `x` and `out` must have dtype float32 (checked in tfjs-core)
-// - Tensor `x` and `out` must have data format 'NDHWC' (checked in tfjs-core)
-void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
-               int in_depth, int in_height, int in_width, int out_depth,
-               int out_height, int out_width, int stride_depth,
-               int stride_height, int stride_width, int dilation_depth,
-               int dilation_height, int dilation_width,
-               int effective_filter_depth, int effective_filter_height,
-               int effective_filter_width, int pad_front, int pad_top,
-               int pad_left) {
-  const TensorInfo& x_info = backend::get_tensor_info(x_id);
-  TensorInfo& out_info = backend::get_tensor_info_out(out_id);
+// - Tensor `dx` and `dy` must have dtype float32 (checked in tfjs-core)
+// - Tensor `dx` and `dy` must have data format 'NDHWC' (checked in tfjs-core)
+void AvgPool3DGrad(int dy_id, int dx_id, int batch_size, int channel_size,
+                   int in_depth, int in_height, int in_width, int out_depth,
+                   int out_height, int out_width, int stride_depth,
+                   int stride_height, int stride_width, int dilation_depth,
+                   int dilation_height, int dilation_width,
+                   int effective_filter_depth, int effective_filter_height,
+                   int effective_filter_width, int pad_front, int pad_top,
+                   int pad_left, int filter_depth, int filter_height,
+                   int filter_width) {
+  const TensorInfo& dy_info = backend::get_tensor_info(dy_id);
+  TensorInfo& dx_info = backend::get_tensor_info_out(dx_id);
 
-  NDHWCPool3DImpl(
-      x_info.f32(), out_info.f32_write(),
+  NDHWCPool3DGradImpl(
+      dy_info.f32(), dx_info.f32_write(),
       NDHWCPool3DInfo{
           .batch_size = batch_size,
           .channel_size = channel_size,
@@ -68,16 +68,16 @@ void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
           .effective_filter_depth = effective_filter_depth,
           .effective_filter_height = effective_filter_height,
           .effective_filter_width = effective_filter_width,
-          .pad_front = pad_front,
-          .pad_top = pad_top,
-          .pad_left = pad_left,
+          .pad_front = effective_filter_depth - 1 - pad_front,
+          .pad_top = effective_filter_height - 1 - pad_top,
+          .pad_left = effective_filter_width - 1 - pad_left,
       },
-      /*filter_init=*/
-      []() -> float { return std::numeric_limits<float>::min(); },
-      /*filter_apply=*/
-      [](float& data, int, const float& val) { data = std::max(data, val); },
-      /*filter_aggregate=*/
-      [](const float& data) { return data; });
+      /*pixel_mask=*/
+      [avg_multiplier = 1.0f / (static_cast<float>(filter_depth) *
+                                static_cast<float>(filter_height) *
+                                static_cast<float>(filter_width))](int, int) {
+        return avg_multiplier;
+      });
 }
 
 }  // extern "C"

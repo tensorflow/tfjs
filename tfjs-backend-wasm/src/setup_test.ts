@@ -64,7 +64,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'depthToSpace'},
   {
-    include: 'avgPool',
+    include: 'avgPool ',
     excludes: [
       'gradient',  // Not yet implemented.
     ]
@@ -83,10 +83,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',    // Not yet implemented.
-      'maxPool3dBackprop',  // Not yet implemented.
-      'ignores NaNs',       // Actual != expected.
-      'maxPoolWithArgmax'   // Not yet implemented.
+      'maxPoolBackprop',   // Not yet implemented.
+      'ignores NaNs',      // Actual != expected.
+      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
@@ -250,11 +249,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {
-    include: 'elu',
+    include: 'elu ',
     excludes: [
-      'derivative',  // Not yet implemented.
-      'gradient',    // Not yet implemented.
-      'selu'         // Not yet implemented.
+      'selu'  // Not yet implemented.
     ]
   },
   {include: 'unstack'},
@@ -408,6 +405,11 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'diag '},
   {include: 'denseBincount '},
   {include: 'broadcastArgs '},
+  {include: 'searchSorted '},
+  {include: 'avgPool3d '},
+  {include: 'avgPool3dBackprop '},
+  {include: 'upperBound '},
+  {include: 'lowerBound '},
 ];
 
 const customInclude = (testName: string) => {
