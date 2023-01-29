@@ -26,7 +26,7 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms =
-      `stride : vec2<i32>, pad : vec2<i32>, dilation : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
+      `strides : vec2<i32>, pads : vec2<i32>, dilations : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workgroupSize for
   // different output shapes.
   workgroupSize: [number, number, number] = [128, 1, 1];
@@ -88,7 +88,7 @@ export class Pool2DProgram implements WebGPUProgram {
         let coords = getCoordsFromIndex(index);
           let batch = coords[0];
           let d = coords[3];
-          let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
+          let xRCCorner = vec2<i32>(coords.yz) * uniforms.strides - uniforms.pads;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 
@@ -101,14 +101,14 @@ export class Pool2DProgram implements WebGPUProgram {
                 this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};`}
 
           var count = 0.0;
-          for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + uniforms.dilation.x) {
+          for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + uniforms.dilations.x) {
             let xR = xRCorner + wR;
 
             if (xR < 0 || xR >= uniforms.convDims.x) {
               continue;
             }
 
-            for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + uniforms.dilation.y) {
+            for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + uniforms.dilations.y) {
               let xC = xCCorner + wC;
               if (xC < 0 || xC >= uniforms.convDims.y) {
                 continue;

@@ -21,7 +21,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms =
-      `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
+      `pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
        inChannels : i32,`;
   outputShape: number[];
   shaderKey: string;
@@ -56,13 +56,13 @@ export class Im2ColProgram implements WebGPUProgram {
         let batch = coords[0];
         let row = ${row};
         let col = ${col};
-        let offsetY = (row / uniforms.outWidth) * uniforms.stride[0] - uniforms.pad[0];
-        let xRow = offsetY + uniforms.dilation[0] * (col / uniforms.itemsPerBlockRow);
+        let offsetY = (row / uniforms.outWidth) * uniforms.strides[0] - uniforms.pads[0];
+        let xRow = offsetY + uniforms.dilations[0] * (col / uniforms.itemsPerBlockRow);
         var value = 0.0;
         if(xRow < uniforms.xShape[${rowDim}] && xRow >= 0) {
-          let offsetX = (row % uniforms.outWidth) * uniforms.stride[1] -
-              uniforms.pad[1];
-          let xCol = offsetX + uniforms.dilation[1] * ((col %
+          let offsetX = (row % uniforms.outWidth) * uniforms.strides[1] -
+              uniforms.pads[1];
+          let xCol = offsetX + uniforms.dilations[1] * ((col %
               uniforms.itemsPerBlockRow) / uniforms.inChannels);
           let ch = col % uniforms.inChannels;
           if(xCol < uniforms.xShape[${colDim}] && xCol >= 0) {

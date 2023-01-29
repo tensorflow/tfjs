@@ -25,7 +25,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = `stride : vec2<i32>,`;
+  uniforms = `strides : vec2<i32>,`;
   workgroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 
@@ -47,7 +47,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
           let batch = coords[0];
           let d = coords[3];
 
-          let xRCCorner = coords.yz * uniforms.stride;
+          let xRCCorner = coords.yz * uniforms.strides;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 

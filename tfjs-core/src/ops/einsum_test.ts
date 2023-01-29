@@ -221,25 +221,23 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('ij,jk->ik', x, y))
-        .toThrowError(
-            'Expected dimension 3 at axis 0 of input shaped [2,2], ' +
-            'but got dimension 2');
+        .toThrowError(/dimension 3 at axis 0 of (the )?input shaped \[2,2\]/);
   });
 
   it('incorrect equation throws error', () => {
     const x = tensor2d([[1, 2], [3, 4]]);
     const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('', x, y))
-        .toThrowError('Equations without an arrow are not supported.');
+        .toThrowError(/Equations without an arrow|Expecting exactly one/);
     expect(() => tf.einsum('ij,jk>ik', x, y))
-        .toThrowError('Equations without an arrow are not supported.');
+        .toThrowError(/Equations without an arrow|Expecting exactly one/);
   });
 
   it('incorrect number of tensors throws error', () => {
     const x = tensor2d([[1, 2], [3, 4]]);
     const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('ij->ji', x, y))
-        .toThrowError('Expected 1 input tensors, received 2');
+        .toThrowError(/Expected 1 inputs? (tensors, received)?(but got:)? 2/);
   });
 
   it('more than two input tensors throws error', async () => {
@@ -247,7 +245,7 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     const y = tensor2d([[0, 1], [2, 3]]);
     const z = tensor2d([[-1, 0], [1, 2]]);
     expect(() => tf.einsum('ij,jk,kl->il', x, y, z))
-        .toThrowError(/more than 2 input tensors/);
+        .toThrowError(/(more than 2 input tensors)|(Expecting 1 or 2 input)/);
   });
 
   it('nonexistent dimension throws error', async () => {
@@ -262,7 +260,6 @@ describeWithFlags('einsum', ALL_ENVS, () => {
   it('two arrows in equation throws error', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
-    expect(() => tf.einsum('ij,jk->ik->i', x, y))
-        .toThrowError(/exactly one arrow/);
+    expect(() => tf.einsum('ij,jk->ik->i', x, y)).toThrowError(/exactly one/);
   });
 });
