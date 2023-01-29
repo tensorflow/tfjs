@@ -391,6 +391,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
   {include: 'stringNGrams'},
   {include: 'stringSplit'},
   {include: 'stringToHashBucketFast'},
