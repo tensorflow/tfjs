@@ -27,28 +27,25 @@
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
+namespace tfjs::wasm {
+
 namespace {
+
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<size_t> OperatorCacheKey;
+typedef std::tuple<size_t> EluOperatorCacheKey;
 
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
-std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+std::map<EluOperatorCacheKey, xnn_operator_t> operator_cache;
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
-
-void elu(const float* x_buf, const size_t x_size, const size_t out_id) {
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  float* out_buf = out_info.f32_write();
-
+void EluImpl(const float* x_buf, size_t x_size, float* out_buf) {
   xnn_operator_t elu_op = nullptr;
 
   const size_t channels = 1;
-  OperatorCacheKey cache_key = {channels};
+  EluOperatorCacheKey cache_key = {channels};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
@@ -88,5 +85,4 @@ void elu(const float* x_buf, const size_t x_size, const size_t out_id) {
   xnn_run_operator(elu_op, tfjs::backend::threadpool);
 }
 
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
