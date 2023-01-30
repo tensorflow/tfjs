@@ -65,6 +65,14 @@ describeWithFlags('atanh', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [NaN, Math.atanh(0), NaN]);
   });
 
+  it('propagates 1.0 and -1.0', async () => {
+    const a = tf.tensor1d([0.5, 1.0, 0, -1.0]);
+    const res = tf.atanh(a);
+    expectArraysClose(
+        await res.data(),
+        [Math.atanh(0.5), Infinity, Math.atanh(0), -Infinity]);
+  });
+
   it('gradients: Scalar', async () => {
     const a = tf.scalar(0.5);
     const dy = tf.scalar(8);
