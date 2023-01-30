@@ -15,10 +15,7 @@
  * =============================================================================
  */
 
-import {clone, DataTypeMap, NumericDataType, Tensor, util} from '@tensorflow/tfjs-core';
-// TODO(mattSoulanille): Export isPromise and other utils.
-import {isPromise} from '@tensorflow/tfjs-core/dist/util_base';
-
+import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {ResourceManager} from '../../executor/resource_manager';
@@ -56,7 +53,12 @@ export function getParamValue(
   return attrParam && attrParam.value;
 }
 
-export function getParamValueMaybeAsync(
+/**
+ * Get a parameter value. Returns a promise if the value must be read from a
+ * tensor (such as in tf.reshape when the shape is a tensor value, which must
+ * be read back to the CPU in order to create the output tensor shape).
+ */
+export function getParamValueOrPromise(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext, resourceManager?: ResourceManager): ValueType
     | Promise<ValueType> {
@@ -81,25 +83,12 @@ export function getParamValueMaybeAsync(
     const tensor = getTensor(
         node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
 
-    let data: DataTypeMap[NumericDataType]
-      | Promise<DataTypeMap[NumericDataType]>;
-    try {
-      data = tensor.dataSync();
-    } catch (e) {
-      // TODO(mattSoulanille): Throw a specific error type from WebGPU and
-      // check the type here.
-      data = tensor.data();
-    }
-    if (isPromise(data)) {
-      return data.then(d => {
-        return inputParam.type === 'number' ?
-          d[0] :
-          util.toNestedArray(tensor.shape, d);
-      })
-    }
-    return inputParam.type === 'number' ?
-        data[0] :
-        util.toNestedArray(tensor.shape, data);
+    const data = tensor.data();
+    return data.then(d => {
+      return inputParam.type === 'number' ?
+        d[0] :
+        util.toNestedArray(tensor.shape, d);
+    });
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
