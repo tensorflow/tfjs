@@ -54,6 +54,7 @@ import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {diagConfig} from './kernels/Diag';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
@@ -124,6 +125,7 @@ import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
 import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
 import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -182,6 +184,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   diagConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   expConfig,
   expandDimsConfig,
@@ -252,6 +255,7 @@ const kernelConfigs: KernelConfig[] = [
   sparseReshapeConfig,
   sparseSegmentMeanConfig,
   sparseSegmentSumConfig,
+  sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,

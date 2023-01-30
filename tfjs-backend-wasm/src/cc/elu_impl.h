@@ -17,12 +17,10 @@
 
 #include <cstddef>
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 
-void elu(const float* x_buf, const size_t x_size, const size_t out_id);
+void EluImpl(const float* x_buf, size_t x_size, float* out_buf);
 
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
 
 #endif  // ELU_IMPL_H_

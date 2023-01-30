@@ -250,11 +250,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'argmin '},
   {include: 'exp '},
   {
-    include: 'elu',
+    include: 'elu ',
     excludes: [
-      'derivative',  // Not yet implemented.
-      'gradient',    // Not yet implemented.
-      'selu'         // Not yet implemented.
+      'selu'  // Not yet implemented.
     ]
   },
   {include: 'unstack'},
@@ -394,6 +392,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
   {include: 'stringNGrams'},
   {include: 'stringSplit'},
   {include: 'stringToHashBucketFast'},
@@ -410,6 +409,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'searchSorted '},
   {include: 'avgPool3d '},
   {include: 'avgPool3dBackprop '},
+  {include: 'upperBound '},
+  {include: 'lowerBound '},
 ];
 
 const customInclude = (testName: string) => {
