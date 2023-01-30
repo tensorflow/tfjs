@@ -343,6 +343,7 @@ tfjs_cc_library(
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":Log1p",
         ":Max",
         ":MaxPool",
         ":MaxPool3D",
@@ -881,6 +882,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Log1p",
+    srcs = ["kernels/Log1p.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )

@@ -410,6 +410,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'avgPool3dBackprop '},
   {include: 'upperBound '},
   {include: 'lowerBound '},
+  {include: 'log1p '},
 ];
 
 const customInclude = (testName: string) => {
