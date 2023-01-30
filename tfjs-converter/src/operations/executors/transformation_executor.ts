@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor4D} from '@tensorflow/tfjs-core';
+import { Tensor, Tensor4D, tidy } from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 import { isPromise } from '@tensorflow/tfjs-core/dist/util_base';
@@ -25,7 +25,7 @@ import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpMaybeAsyncExecutor, Node} from '../types';
 
-import { getParamValue, getParamValueMaybeAsync } from './utils';
+import { getParamValue, getParamValueOrPromise } from './utils';
 
 export const executeOp: InternalOpMaybeAsyncExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
@@ -33,88 +33,98 @@ export const executeOp: InternalOpMaybeAsyncExecutor =
      ops = tfOps): Tensor[] | Promise<Tensor[]> => {
       switch (node.op) {
         case 'Cast': {
-          return [ops.cast(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('dtype', node, tensorMap, context) as 'int32' |
-                  'float32' | 'bool')];
+          return tidy(() => [ops.cast(
+            getParamValue('x', node, tensorMap, context) as Tensor,
+            getParamValue('dtype', node, tensorMap, context) as 'int32' |
+              'float32' | 'bool')]);
         }
         case 'ExpandDims': {
-          const axis =
+          return tidy(() => {
+            const axis =
               getParamValue('axis', node, tensorMap, context) as number;
-          return [ops.expandDims(
+            return [ops.expandDims(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
+          });
         }
         case 'Squeeze': {
-          const axis =
+          return tidy(() => {
+            const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
-          return [ops.squeeze(
+            return [ops.squeeze(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
+          });
         }
         case 'Reshape': {
-          const shape = getParamValueMaybeAsync('shape', node, tensorMap,
+          const shape = getParamValueOrPromise('shape', node, tensorMap,
                                                 context) as number[] | Promise<number[]>;
           const x = getParamValue('x', node, tensorMap, context) as Tensor;
 
           if (isPromise(shape)) {
-            return shape.then(shape => [ops.reshape(x, shape)]);
+            return shape.then(shape => tidy(() => [ops.reshape(x, shape)]));
           }
-          return [ops.reshape(x, shape)];
+          return tidy(() => [ops.reshape(x, shape)]);
         }
         case 'MirrorPad': {
-          return [ops.mirrorPad(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('padding', node, tensorMap, context) as
-                  Array<[number, number]>,
-              getParamValue('mode', node, tensorMap, context) as 'reflect' |
-                  'symmetric')];
+          return tidy(() => [ops.mirrorPad(
+            getParamValue('x', node, tensorMap, context) as Tensor,
+            getParamValue('padding', node, tensorMap, context) as
+            Array<[number, number]>,
+            getParamValue('mode', node, tensorMap, context) as 'reflect' |
+              'symmetric')]);
         }
         case 'PadV2':
         case 'Pad': {
-          return [ops.pad(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('padding', node, tensorMap, context) as
-                  Array<[number, number]>,
-              getParamValue('constantValue', node, tensorMap, context) as
-                  number)];
+          return tidy(() => [ops.pad(
+            getParamValue('x', node, tensorMap, context) as Tensor,
+            getParamValue('padding', node, tensorMap, context) as
+            Array<[number, number]>,
+            getParamValue('constantValue', node, tensorMap, context) as
+            number)]);
         }
         case 'SpaceToBatchND': {
-          const blockShape =
+          return tidy(() => {
+            const blockShape =
               getParamValue('blockShape', node, tensorMap, context) as number[];
-          const paddings =
+            const paddings =
               getParamValue('paddings', node, tensorMap, context) as number[][];
-          return [ops.spaceToBatchND(
+            return [ops.spaceToBatchND(
               getParamValue('x', node, tensorMap, context) as Tensor,
               blockShape, paddings)];
+          });
         }
         case 'BatchToSpaceND': {
-          const blockShape =
+          return tidy(() => {
+            const blockShape =
               getParamValue('blockShape', node, tensorMap, context) as number[];
-          const crops =
+            const crops =
               getParamValue('crops', node, tensorMap, context) as number[][];
-          return [ops.batchToSpaceND(
+            return [ops.batchToSpaceND(
               getParamValue('x', node, tensorMap, context) as Tensor,
               blockShape, crops)];
+          });
         }
         case 'DepthToSpace': {
-          const blockSize =
+          return tidy(() => {
+            const blockSize =
               getParamValue('blockSize', node, tensorMap, context) as number;
-          const dataFormat =
+            const dataFormat =
               (getParamValue('dataFormat', node, tensorMap, context) as
                string).toUpperCase() as 'NHWC' |
               'NCHW';
-          return [ops.depthToSpace(
+            return [ops.depthToSpace(
               getParamValue('x', node, tensorMap, context) as Tensor4D,
               blockSize, dataFormat)];
+          });
         }
         case 'BroadcastTo': {
-          return [ops.broadcastTo(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('shape', node, tensorMap, context) as number[])];
+          return tidy(() => [ops.broadcastTo(
+            getParamValue('x', node, tensorMap, context) as Tensor,
+            getParamValue('shape', node, tensorMap, context) as number[])]);
         }
         case 'BroadcastArgs': {
-          return [ops.broadcastArgs(
-              getParamValue('s0', node, tensorMap, context) as Tensor,
-              getParamValue('s1', node, tensorMap, context) as Tensor)];
+          return tidy(() => [ops.broadcastArgs(
+            getParamValue('s0', node, tensorMap, context) as Tensor,
+            getParamValue('s1', node, tensorMap, context) as Tensor)]);
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
