@@ -27,7 +27,6 @@ export class FromPixelsPackedProgram implements GPGPUProgram {
 
   constructor(outputShape: number[]) {
     const glsl = getGlslDifferences();
-    const [height, width, ] = outputShape;
     this.outputShape = outputShape;
     this.userCode = `
       void main() {
@@ -43,9 +42,7 @@ export class FromPixelsPackedProgram implements GPGPUProgram {
             texC = coords[1] + row;
             depth = coords[2] + col;
 
-            vec2 uv = (vec2(texC, texR) + halfCR) /
-                       vec2(${width}.0, ${height}.0);
-            vec4 values = ${glsl.texture2D}(A, uv);
+            vec4 values = ${glsl.texture2D}(A, ivec2(texC, texR), 0);
             float value;
             if (depth == 0) {
               value = values.r;
