@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import { Tensor, Tensor4D, tidy } from '@tensorflow/tfjs-core';
+import {Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-import { isPromise } from '@tensorflow/tfjs-core/dist/util_base';
+// tslint:disable-next-line: no-imports-from-dist
+import {isPromise} from '@tensorflow/tfjs-core/dist/util_base';
 import {ResourceManager} from '../../executor/resource_manager';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpMaybeAsyncExecutor, Node} from '../types';
 
-import { getParamValue, getParamValueOrPromise } from './utils';
+import {getParamValue, getParamValueOrPromise} from './utils';
 
 export const executeOp: InternalOpMaybeAsyncExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
@@ -56,7 +57,7 @@ export const executeOp: InternalOpMaybeAsyncExecutor =
         }
         case 'Reshape': {
           const shape = getParamValueOrPromise('shape', node, tensorMap,
-                                                context) as number[] | Promise<number[]>;
+                            context) as number[] | Promise<number[]>;
           const x = getParamValue('x', node, tensorMap, context) as Tensor;
 
           if (isPromise(shape)) {
