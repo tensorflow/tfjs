@@ -171,12 +171,59 @@ steps:
       - build-tfjs-node
       - lint-tfjs-node
       - ensure-cpu-gpu-packages-align-tfjs-node
-  - name: gcr.io/learnjs-174218/release
+  - id: test-custom-bundles-e2e
+    name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
-    id: test-e2e
     args:
       - test-ci
+    waitFor:
+      - yarn-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-webpack-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e/webpack_test
+    entrypoint: bash
+    args:
+      - '-eEuo'
+      - pipefail
+      - '-c'
+      - |-
+        yarn
+        yarn build
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-win-10-chrome-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=win_10_chrome --tags
+        "#SMOKE,#REGRESSION"
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
       - NIGHTLY=$_NIGHTLY
@@ -184,6 +231,198 @@ steps:
       - BROWSERSTACK_KEY
     waitFor:
       - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-script-tag-bundles-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack
+        --browsers=bs_chrome_mac --testBundle tf.min.js
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-ios-12-webgl-1-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=bs_ios_12 --tags '#SMOKE,#REGRESSION'
+        --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD":
+        false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-safari-mac-webgl-1-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=bs_safari_mac --tags
+        '#SMOKE,#REGRESSION' --testEnv webgl --flags '{"WEBGL_VERSION": 1,
+        "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-firefox-mac-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=bs_firefox_mac --tags
+        "#SMOKE,#REGRESSION"
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-chrome-mac-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=bs_chrome_mac --tags
+        "#SMOKE,#REGRESSION"
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-android-10-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn run-browserstack --browsers=bs_android_10 --tags
+        "#SMOKE,#REGRESSION"
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - id: test-core-cpu-script-tag-bundles-e2e
+    name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: node
+    args:
+      - ../scripts/run_flaky.js
+      - >-
+        yarn karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js
+        --browserstack --browsers=bs_chrome_mac
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - test-custom-bundles-e2e
       - yarn-common
       - yarn-link-package-build
       - yarn-tfjs

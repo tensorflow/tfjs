@@ -15,15 +15,130 @@ steps:
   args: ['build-deps-ci']
   env: ['NIGHTLY=$_NIGHTLY']
 
-# Test.
-- name: 'gcr.io/learnjs-174218/release'
+# Test custom bundles
+- id: 'test-custom-bundles'
+  name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'yarn'
-  id: 'test'
   args: ['test-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Test webpack
+- id: 'test-webpack'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e/webpack_test'
+  entrypoint: 'bash'
+  args:
+    - '-eEuo'
+    - 'pipefail'
+    - '-c'
+    - |-
+      yarn
+      yarn build
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Windows 10 chrome
+- id: 'test-win-10-chrome'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn run-browserstack --browsers=win_10_chrome --tags "#SMOKE,#REGRESSION"'
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn', 'build-deps']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Script tag bundles
+- id: 'test-script-tag-bundles'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# iOS 12 WebGL 1
+- id: 'test-ios-12-webgl-1'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - "yarn run-browserstack --browsers=bs_ios_12 --tags '#SMOKE,#REGRESSION' --testEnv webgl --flags '{\"WEBGL_VERSION\": 1, \"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'"
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Mac WebGL 1
+- id: 'test-safari-mac-webgl-1'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - "yarn run-browserstack --browsers=bs_safari_mac --tags '#SMOKE,#REGRESSION' --testEnv webgl --flags '{\"WEBGL_VERSION\": 1, \"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'"
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Mac Firefox
+- id: 'test-firefox-mac'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn run-browserstack --browsers=bs_firefox_mac --tags "#SMOKE,#REGRESSION"'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Mac Chrome
+- id: 'test-chrome-mac'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn run-browserstack --browsers=bs_chrome_mac --tags "#SMOKE,#REGRESSION"'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Android 10
+- id: 'test-android-10'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn run-browserstack --browsers=bs_android_10 --tags "#SMOKE,#REGRESSION"'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
+
+# Core + CPU script tag bundle tests
+- id: 'test-core-cpu-script-tag-bundles'
+  name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'node'
+  # nightlyOnly: true
+  args:
+    - '../scripts/run_flaky.js'
+    - 'yarn karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js --browserstack --browsers=bs_chrome_mac'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps', 'test-custom-bundles']
 
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
