@@ -419,6 +419,15 @@ export class MathBackendWebGL extends KernelBackend {
     return dTypeVals;
   }
 
+  override readCached(dataId: DataId): BackendValues | undefined {
+    const texData = this.texData.get(dataId);
+    const {values} = texData;
+    if (values != null) {
+      return this.convertAndCacheOnCPU(dataId);
+    }
+    return undefined;
+  }
+
   /**
    * Read tensor to a new texture that is densely packed for ease of use.
    * @param dataId The source tensor.
