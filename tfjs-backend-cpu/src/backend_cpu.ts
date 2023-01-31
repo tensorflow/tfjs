@@ -142,6 +142,7 @@ export class MathBackendCPU extends KernelBackend {
     return util.convertBackendValuesAndArrayBuffer(
         this.data.get(dataId).values, dtype);
   }
+  override readCached = this.readSync;
 
   bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
       TensorBuffer<R, D> {
