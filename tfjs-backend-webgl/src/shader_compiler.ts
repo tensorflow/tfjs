@@ -923,9 +923,10 @@ function getFlatOffsetUniformName(texName: string): string {
 function getPackedSamplerScalar(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const glsl = getGlslDifferences();
   return `
     vec4 ${funcName}() {
-      return texture(${texName}, halfCR); // texture2D
+      return ${glsl.texture2D}(${texName}, ivec2(0, 0), 0); // texture2D
     }
   `;
 }
