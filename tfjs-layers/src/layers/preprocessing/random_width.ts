@@ -11,8 +11,8 @@
 import { image, Rank, serialization, Tensor, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor, getExactlyOneShape } from '../../utils/types_utils';
 import {Shape} from '../../keras_format/common';
-import { Kwargs } from 'tfjs-layers/src/types';
-import { ValueError } from 'tfjs-layers/src/errors';
+import { Kwargs } from '../../types';
+import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from 'tfjs-layers/src/engine/base_random_layer';
 
 // export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
