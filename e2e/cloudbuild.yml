@@ -67,7 +67,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - "yarn run-browserstack --browsers=bs_ios_12 --tags '#SMOKE,#REGRESSION' --testEnv webgl --flags '{\"WEBGL_VERSION\": 1, \"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'"
@@ -80,7 +80,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - "yarn run-browserstack --browsers=bs_safari_mac --tags '#SMOKE,#REGRESSION' --testEnv webgl --flags '{\"WEBGL_VERSION\": 1, \"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'"
@@ -93,7 +93,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - 'yarn run-browserstack --browsers=bs_firefox_mac --tags "#SMOKE,#REGRESSION"'
@@ -106,7 +106,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - 'yarn run-browserstack --browsers=bs_chrome_mac --tags "#SMOKE,#REGRESSION"'
@@ -119,7 +119,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - 'yarn run-browserstack --browsers=bs_android_10 --tags "#SMOKE,#REGRESSION"'
@@ -132,7 +132,7 @@ steps:
   name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'node'
-  # nightlyOnly: true
+  nightlyOnly: true
   args:
     - '../scripts/run_flaky.js'
     - 'yarn karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js --browserstack --browsers=bs_chrome_mac'
