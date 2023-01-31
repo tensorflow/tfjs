@@ -407,6 +407,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'diag '},
   {include: 'denseBincount '},
   {include: 'broadcastArgs '},
+  {include: 'dataCached'},
 ];
 
 const customInclude = (testName: string) => {
