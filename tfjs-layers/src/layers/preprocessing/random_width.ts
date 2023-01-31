@@ -21,7 +21,7 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    interpolation?: InterpolationType; // default = 'bilinear';
    seed?: number;// default = false;
    autoVectorize?:boolean;
-   rngType: string;
+  //  rngType: string;
 }
 
 /**
@@ -57,6 +57,7 @@ export class RandomWidth extends BaseRandomLayer {
   private widthUpper: number;
   private imgHeight: number;
   private adjustedWidth: number;
+  private widthFactor: number;
 
   constructor(args: RandomWidthArgs) {
     super(args);
@@ -140,10 +141,12 @@ export class RandomWidth extends BaseRandomLayer {
 
         const randomUniform = super.setRNGType('uniform');
 
-        const widthFactor = randomUniform(inputShape,
-          (1.0 + this.widthLower), (1.0 + this.widthUpper)
-        );
-        this.adjustedWidth = widthFactor * imgWidth
+        if (this.seed !== null) {
+          this.widthFactor = randomUniform(inputShape,
+            (1.0 + this.widthLower), (1.0 + this.widthUpper)
+          );
+        }
+        this.adjustedWidth = this.widthFactor * imgWidth
 
         if (this.interpolation === 'bilinear') {
           return image.resizeBilinear(inputs, [this.imgHeight, this.adjustedWidth])

@@ -20,6 +20,10 @@
   cast,
   stack,
   tidy,
+  tensor,
+  zeros,
+  range,
+  reshape,
 } from "@tensorflow/tfjs-core";
 import { getExactlyOneTensor } from "../../utils/types_utils";
 import * as K from "../../backend/tfjs_backend";
@@ -114,11 +118,51 @@ describeMathCPUAndGPU("RandomWidth Layer", () => {
     expect("asdf").toEqual("asdf");
   });
 
+// py tests:
+// py test: ("random_width_4_by_6", (0.4, 0.6)),
+// const factor = [0.4, 0.6];
+// py test: ("random_width_3_by_2", (-0.3, 0.2)),
+// const factor = [-0.3, 0.2];
+// py test: ("random_width_3", 0.3),
+// const factor = 0.3;
+
   it("Check interpolation method 'nearest'", () => {
     // test interpolation methods "nearest"
-    // TODO
+    // TODO - ???
+    const rangeTensor = range(0, 16);
+    const inputTensor = reshape(rangeTensor, [4,4,1]);
+    // [[ 0,  1,  2,  3],
+    //  [ 4,  5,  6,  7],
+    //  [ 8,  9, 10, 11],
+    //  [12, 13, 14, 15]]
+
+    const interpolation = 'nearest';
+    const seed = 42;
+    // py test: ("random_width_4_by_6", (0.4, 0.6)),
+    const factor = [0.4, 0.6];
+    const randomWidthLayer = new RandomWidth({factor, interpolation, seed});
+    const layerOutputTensor = randomWidthLayer.apply(inputTensor) as Tensor;
+    const expectedArr = [[0, 3], [12, 15]];
 
     expect("asdf").toEqual("asdf");
+  });
+
+
+  // Made per "py" test_valid_random_width(self):
+  it("Check output image width", () => {
+    // need (maxval - minval) * rnd + minval = 0.6
+    const mock_factor = 0.6
+    // Creating tensor with shape (12,8,5,3) with random values: 0 <= val < 1
+    // 12 * 8 * 5 * 3 = 1440
+    let randomValues = Array.from({length: 1440}, () => Math.random());
+    let inputTensor =reshape(randomValues, [12,8,5,3]);
+    // How to set  training : true ???
+    const randomWidthLayer = new
+          RandomWidth({factor:0.4,rngType:'uniform'});
+    const layerOutputTensor = randomWidthLayer.apply(inputTensor) as Tensor;
+    // expected output tensor shape is (12,8,3,3)
+    // expect(layerOutputTensor.shape[2]).toEqual(3);
+    expect(layerOutputTensor.shape).toEqual([12,8,3,3]);
   });
 
   it("Check interpolation method 'gaussian'", () => {
@@ -128,7 +172,7 @@ describeMathCPUAndGPU("RandomWidth Layer", () => {
     expect("asdf").toEqual("asdf");
   });
 
-  it("Check interpolation method 'unimplemented'", () => {
+  it("Check interpolation method 'unimplemented'", () => {..
     // test incorrect input for interpolation method ("unimplemented")
     const factor = 0.5;
     const interpolation = "unimplemented";
