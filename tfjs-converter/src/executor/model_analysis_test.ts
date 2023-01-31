@@ -133,4 +133,63 @@ describe('getExecutionInfo', () => {
     expect(executionInfo.usedNodes).toContain('output');
     expect(executionInfo.usedNodes.size).toBe(4);
   });
+
+  it('detects async reshape', () => {
+    const weightMap = {};
+    const graphDef: IGraphDef = {
+      node: [
+        {name: 'input', op: 'Placeholder'},
+        {name: 'input2', op: 'Placeholder'},
+        {name: 'input3', op: 'Placeholder'},
+        {name: 'add', op: 'Add', input: ['input', 'input2']},
+        {name: 'reshape', op: 'Reshape', input: ['input3', 'add']},
+        {name: 'output', op: 'Square', input: ['reshape']},
+      ],
+      versions: {producer: 1.0, minConsumer: 3}
+    };
+    const graph = OperationMapper.Instance.transformGraph(graphDef);
+
+    // input --> output
+    const inputs: NamedTensorMap = {
+      'input': scalar(0),
+      'input2': scalar(1),
+      'input3': scalar(5),
+    };
+    const outputs = [graph.nodes['output']];
+    const executionInfo = getExecutionSubgraph(inputs, outputs, weightMap);
+    expect(executionInfo.inputs).toBe(inputs);
+    expect(executionInfo.outputs).toBe(outputs);
+    expect(executionInfo.dynamicNode).toBe(graph.nodes['reshape']);
+    expect(executionInfo.missingInputs).toEqual([]);
+    expect(executionInfo.syncInputs).toEqual(['output']);
+  });
+
+  it('does not mark sync reshape as async', () => {
+    const weightMap = {};
+    const graphDef: IGraphDef = {
+      node: [
+        {name: 'input', op: 'Placeholder'},
+        {name: 'constant', op: 'Const'},
+        {name: 'input3', op: 'Placeholder'},
+        {name: 'reshape', op: 'Reshape', input: ['input3', 'constant']},
+        {name: 'output', op: 'Square', input: ['reshape']},
+      ],
+      versions: {producer: 1.0, minConsumer: 3}
+    };
+    const graph = OperationMapper.Instance.transformGraph(graphDef);
+
+    // input --> output
+    const inputs: NamedTensorMap = {
+      'input': scalar(0),
+      'constant': scalar(1),
+      'input3': scalar(5),
+    };
+    const outputs = [graph.nodes['output']];
+    const executionInfo = getExecutionSubgraph(inputs, outputs, weightMap);
+    expect(executionInfo.inputs).toBe(inputs);
+    expect(executionInfo.outputs).toBe(outputs);
+    expect(executionInfo.dynamicNode).toBeFalsy();
+    expect(executionInfo.missingInputs).toEqual([]);
+    expect(executionInfo.syncInputs).toBeFalsy();
+  });
 });
