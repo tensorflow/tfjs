@@ -1225,6 +1225,11 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
   }
+  readCached(dataId: DataId): BackendValues | undefined {
+    // Route the read to the correct backend.
+    const info = this.state.tensorInfo.get(dataId);
+    return info.backend.readCached(dataId);
+  }
 
   readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData {
     // Route the read to the correct backend.

@@ -16,6 +16,8 @@
  */
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {tensor1d} from '../ops/tensor1d';
+import {expectArraysEqual} from '../test_util';
 import {EPSILON_FLOAT16, EPSILON_FLOAT32} from './backend';
 
 describeWithFlags('epsilon', ALL_ENVS, () => {
@@ -28,5 +30,12 @@ describeWithFlags('epsilon', ALL_ENVS, () => {
 
   it('abs(epsilon) > 0', async () => {
     expect(await tf.abs(tf.backend().epsilon()).array()).toBeGreaterThan(0);
+  });
+});
+
+describeWithFlags('dataCached', ALL_ENVS, () => {
+  it('get data cached on CPU', () => {
+    const cachedTensor = tensor1d([1, 2, 3, 4]);
+    expectArraysEqual(cachedTensor.dataCached(), [1, 2, 3, 4]);
   });
 });
