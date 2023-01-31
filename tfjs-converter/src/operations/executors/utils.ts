@@ -55,8 +55,9 @@ export function getParamValue(
 
 /**
  * Get a parameter value. Returns a promise if the value must be read from a
- * tensor (such as in tf.reshape when the shape is a tensor value, which must
- * be read back to the CPU in order to create the output tensor shape).
+ * tensor and is not already cached on CPU (such as in tf.reshape when the
+ * shape is a tensor value, which must be read back to the CPU in order to
+ * create the output tensor shape).
  */
 export function getParamValueOrPromise(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
@@ -83,11 +84,19 @@ export function getParamValueOrPromise(
     const tensor = getTensor(
         node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
 
-    const data = tensor.data();
-    return data.then(d => {
+    const data = tensor.dataCached();
+    if (data != null) {
+      // Return cached data synchronously
       return inputParam.type === 'number' ?
-        d[0] :
-        util.toNestedArray(tensor.shape, d);
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
+    }
+    // Load uncached data asynchronously
+    const dataPromise = tensor.data();
+    return dataPromise.then(data => {
+      return inputParam.type === 'number' ?
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
     });
   }
   const attrParam = node.attrParams[paramName];
