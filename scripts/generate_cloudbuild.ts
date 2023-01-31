@@ -253,10 +253,6 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
     yaml.load(fs.readFileSync(path.join(
       __dirname, 'cloudbuild_general_config.yml'), 'utf8')) as CloudbuildYaml;
 
-  // Filter steps that only run in nightly tests.
-  // const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
-  // const customSteps = baseCloudbuild.steps.filter(nightlyFilter);
-
   // Steps that are waited for by non-bazel packages.
   const waitedForByPackages = baseCloudbuild.steps
     .filter(step => step.waitedForByPackages)
