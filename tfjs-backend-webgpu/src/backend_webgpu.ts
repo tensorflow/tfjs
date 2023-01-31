@@ -395,19 +395,21 @@ export class WebGPUBackend extends KernelBackend {
 
   // TODO: Remove once this is fixed:
   // https://github.com/tensorflow/tfjs/issues/1595
-  override readSync(dataId: object): BackendValues {
-    const tensorData = this.tensorMap.get(dataId);
-    const {values} = tensorData;
-
+  override readSync(dataId: DataId): BackendValues {
+    const values = this.readCached(dataId);
     if (values == null) {
       throw new Error(
           'WebGPU readSync is only available for CPU-resident tensors.');
     }
-
     return values;
   }
 
-  override async read(dataId: object): Promise<BackendValues> {
+  override readCached(dataId: DataId) {
+    const tensorData = this.tensorMap.get(dataId);
+    return tensorData.values;
+  }
+
+  override async read(dataId: DataId): Promise<BackendValues> {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
