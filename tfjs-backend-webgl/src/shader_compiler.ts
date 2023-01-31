@@ -1087,13 +1087,13 @@ function getPackedSampler2D(
     if (enableShapeUniforms) {
       return `
       vec4 ${funcName}(int row, int col) {
-        return ${glsl.texture2D}(${texName}, ivec2(col, row), 0);
+        return ${glsl.texture2D}(${texName}, ivec2(col, row) / 2, 0);
       }
     `;
     }
     return `
       vec4 ${funcName}(int row, int col) {
-        return ${glsl.texture2D}(${texName}, ivec2(col, row), 0);
+        return ${glsl.texture2D}(${texName}, ivec2(col, row) / 2, 0);
       }
     `;
   }
@@ -1115,8 +1115,8 @@ function getPackedSampler2D(
 
   return `
     vec4 ${funcName}(int row, int col) {
-      ivec2 coords = packedCoordsfrom2D(${valuesPerRow}, ${packedTexShape[0]}, ${
-      packedTexShape[1]}, row, col);
+      ivec2 coords = packedCoordsfrom2D(${valuesPerRow}, ${
+      packedTexShape[0]}, ${packedTexShape[1]}, row, col);
       return ${glsl.texture2D}(${texName}, coords, 0);
     }
   `;
