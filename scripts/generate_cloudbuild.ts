@@ -165,8 +165,9 @@ interface CloudbuildStep {
 }
 
 const CUSTOM_PROPS = new Set(['nightlyOnly', 'waitedForByPackages']);
-interface CustomCloudbuildStep extends CloudbuildStep {
+export interface CustomCloudbuildStep extends CloudbuildStep {
   nightlyOnly?: boolean; // Only run during nightly tests
+  // TODO: Remove this.
   waitedForByPackages?: boolean; // Other non-bazel pacakges `waitFor` this step
 }
 
@@ -188,6 +189,22 @@ export interface CloudbuildYaml {
   secrets: CloudbuildSecret[],
 }
 
+// Remove a step from the build graph, preserving transitive 'waitFor'
+export function removeStep(steps: CustomCloudbuildStep[], step: CustomCloudbuildStep) {
+  // Steps that wait for this step must have their waitFor field updated
+  if (steps.indexOf(step) < 0) {
+    return;
+  }
+  const waitedForBy = steps.filter(s => s.waitFor?.includes(step.id));
+  for (const dependentStep of waitedForBy) {
+    // Instead of waiting for the step to be removed, wait for everything it
+    // would have waited for.
+    const waitForSet = new Set([...dependentStep.waitFor, ...step.waitFor]);
+    waitForSet.delete(step.id);
+    dependentStep.waitFor = [...waitForSet];
+  }
+  steps.splice(steps.indexOf(step), 1);
+}
 
 /**
  * Construct a cloudbuild.yml file that does the following:
@@ -237,15 +254,13 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
       __dirname, 'cloudbuild_general_config.yml'), 'utf8')) as CloudbuildYaml;
 
   // Filter steps that only run in nightly tests.
-  const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
-  const customSteps = baseCloudbuild.steps.filter(nightlyFilter);
+  // const nightlyFilter = (step: CustomCloudbuildStep) => nightly || !step.nightlyOnly;
+  // const customSteps = baseCloudbuild.steps.filter(nightlyFilter);
 
   // Steps that are waited for by non-bazel packages.
-  const waitedForByPackages = customSteps
+  const waitedForByPackages = baseCloudbuild.steps
     .filter(step => step.waitedForByPackages)
     .map(step => step.id);
-
-  const steps = customSteps.map(removeCustomProps);
 
   // Load all the cloudbuild files for the packages
   // that need to be built or tested.
@@ -318,11 +333,21 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
   }
 
   // Arrange steps in dependency order
+  const steps: CustomCloudbuildStep[] = [...baseCloudbuild.steps];
   for (const packageName of DEPENDENCY_ORDER) {
     const packageSteps = packageCloudbuildSteps.get(packageName);
     if (packageSteps) {
       for (const step of packageSteps) {
         steps.push(step);
+      }
+    }
+  }
+
+  // Remove steps marked as nightlyOnly
+  if (!nightly) {
+    for (const step of steps) {
+      if (step.nightlyOnly) {
+        removeStep(steps, step);
       }
     }
   }
@@ -344,7 +369,7 @@ export function generateCloudbuild(packages: Iterable<string>, nightly = false, 
     delete baseCloudbuild.secrets;
   }
 
-  baseCloudbuild.steps = steps;
+  baseCloudbuild.steps = steps.map(removeCustomProps);
   return baseCloudbuild;
 }
 

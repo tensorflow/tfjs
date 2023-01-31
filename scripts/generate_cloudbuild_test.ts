@@ -13,7 +13,7 @@
 // limitations under the License.
 // =============================================================================
 
-import { generateCloudbuild, CloudbuildYaml} from './generate_cloudbuild';
+import { generateCloudbuild, CloudbuildYaml, removeStep, CustomCloudbuildStep } from './generate_cloudbuild';
 //const generateCloudbuild = require('./generate_cloudbuild').generateCloudbuild;
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
@@ -63,5 +63,41 @@ describe('generateCloudbuild', () => {
     for (let step of cloudbuild.steps) {
       expect(Object.keys(step)).not.toContain('nightlyOnly');
     }
+  });
+});
+
+describe('removeStep', () => {
+  it('updates waitFor', () => {
+    const toRemove: CustomCloudbuildStep = {
+      id: 'step2',
+      name: 'some_docker_image',
+      waitFor: ['step1'],
+    }
+    const steps: CustomCloudbuildStep[] = [
+      {
+        id: 'step1',
+        name: 'some_docker_image',
+      },
+      toRemove,
+      {
+        id: 'step3',
+        name: 'some_docker_image',
+        waitFor: ['step2'],
+      }
+    ];
+
+    removeStep(steps, toRemove);
+
+    expect(steps).toEqual([
+      {
+        id: 'step1',
+        name: 'some_docker_image',
+      },
+      {
+        id: 'step3',
+        name: 'some_docker_image',
+        waitFor: ['step1'],
+      }
+    ]);
   });
 });
