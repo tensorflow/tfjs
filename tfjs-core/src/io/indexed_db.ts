@@ -167,8 +167,7 @@ export class BrowserIndexedDB implements IOHandler {
             putInfoRequest =
               infoStore.put({modelPath: this.modelPath, modelArtifactsInfo});
           } catch (error) {
-            reject(error);
-            return;
+            return reject(error);
           }
           let modelTx: IDBTransaction;
           putInfoRequest.onsuccess = () => {
@@ -184,8 +183,7 @@ export class BrowserIndexedDB implements IOHandler {
               });
             } catch (error) {
               // Sometimes, the serialized value is too large to store.
-              reject(error);
-              return;
+              return reject(error);
             }
             putModelRequest.onsuccess = () => resolve({modelArtifactsInfo});
             putModelRequest.onerror = error => {
