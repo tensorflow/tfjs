@@ -163,10 +163,6 @@ export function isControlFlow(node: Node) {
 }
 
 export function isDynamicShape(node: Node) {
-  if (node.op === 'Reshape') {
-    // Reshape returns a dynamic shape iff its shape input is not a Const.
-    return node.inputs[1].op !== 'Const';
-  }
   return DYNAMIC_SHAPE_OPS.indexOf(node.op) >= 0;
 }
 
