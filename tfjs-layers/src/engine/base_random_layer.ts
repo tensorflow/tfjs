@@ -39,7 +39,7 @@ export abstract class BaseRandomLayer extends Layer {
     super(args);
   }
 
-  setRNGType = (rngType: string) => {
+  public setRNGType = (rngType: string) => {
     this.rngType = rngType;
 
     if (this.rng_types.hasOwnProperty(this.rngType)) {
