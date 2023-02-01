@@ -13,7 +13,7 @@ import { getExactlyOneTensor, getExactlyOneShape } from '../../utils/types_utils
 import {Shape} from '../../keras_format/common';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
-import { BaseRandomLayerArgs, BaseRandomLayer } from 'tfjs-layers/src/engine/base_random_layer';
+import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
 
 // export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
@@ -21,7 +21,6 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    interpolation?: InterpolationType; // default = 'bilinear';
    seed?: number;// default = false;
    autoVectorize?:boolean;
-  //  rngType: string;
 }
 
 /**
@@ -139,13 +138,19 @@ export class RandomWidth extends BaseRandomLayer {
         this.imgHeight = inputShape.length - 3;
         const imgWidth = inputShape.length - 2;
 
-        const randomUniform = super.setRNGType('uniform');
+        const randomUniform = this.setRNGType('uniform');
 
         if (this.seed !== null) {
+          this.widthFactor = randomUniform(inputShape,
+            (1.0 + this.widthLower), (1.0 + this.widthUpper),
+            'float32', this.seed
+          );
+        } else {
           this.widthFactor = randomUniform(inputShape,
             (1.0 + this.widthLower), (1.0 + this.widthUpper)
           );
         }
+
         this.adjustedWidth = this.widthFactor * imgWidth
 
         if (this.interpolation === 'bilinear') {
@@ -166,4 +171,3 @@ export class RandomWidth extends BaseRandomLayer {
 }
 
 serialization.registerClass(RandomWidth);
-
