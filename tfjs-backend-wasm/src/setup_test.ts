@@ -411,7 +411,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'upperBound '},
   {include: 'lowerBound '},
   {include: 'dilation2d ', excludes: ['gradient']},
-  {include: 'localResponseNormalization ', excludes: ['gradient']},
+  {include: 'localResponseNormalization '},
 ];
 
 const customInclude = (testName: string) => {

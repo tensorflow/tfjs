@@ -26,9 +26,9 @@ namespace tfjs::wasm {
 namespace {
 
 template <typename T>
-inline void LRNImpl(const T* x_buf, T* out_buf, int x_size, int channels,
+inline void LRNImpl(const T* x_buf, T* out_buf, int size, int channels,
                     int depth_radius, float bias, float alpha, float beta) {
-  for (int offset = 0; offset < x_size; ++offset) {
+  for (int offset = 0; offset < size; ++offset) {
     int current_channel = offset % channels;
     int begin_sum_offset =
         offset - current_channel + std::max(0, current_channel - depth_radius);
