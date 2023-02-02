@@ -78,6 +78,8 @@ function predictFunction(input) {
   return model => model.predict(input);
 }
 
+let tfliteWorker;
+
 const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
@@ -91,12 +93,17 @@ const benchmarks = {
         enableProfiling = false, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
           modelArchitecture}_224/classification/5/metadata/1`;
-      return tflite.loadTFLiteModel(url, {enableProfiling});
+      await tfliteModel.load(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
+      const inputData = input.dataSync();
       if (typeof isTflite === 'function' && isTflite()) {
-        return () => tfliteModel.predict(input);
+        return async () => {
+          // Do copy for 'inputData' in each predict as its buffer
+          // will be detached after transferring to worker.
+          return await tfliteModel.predict(inputData.slice(0));
+        };
       } else {
         return predictFunction(input);
       }
@@ -115,9 +122,9 @@ const benchmarks = {
       return predictFunction(input);
     },
   },
-  // Currently, for mibilnet_v2, only the architectures with alpha=100 has
+  // Currently, for mobilenet_v2, only the architectures with alpha=100 has
   // tflite model. Since users could tune the alpha for 'mobilenet_v2' tfjs
-  // models, while we could only provides mibilnet_v2_lite with alpha=100 on the
+  // models, while we could only provides mobilnet_v2_lite with alpha=100 on the
   // tflite backend, so mibilnet_v2_lite is separated from mibilnet_v2 and fixes
   // alpha=100; othwise it would confuse users.
   'MobileNetV2Lite': {
@@ -128,12 +135,17 @@ const benchmarks = {
     loadTflite: async (enableProfiling = false) => {
       const url =
           'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
-      return tflite.loadTFLiteModel(url, {enableProfiling});
+      await tfliteModel.load(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
+      const inputData = input.dataSync();
       if (typeof isTflite === 'function' && isTflite()) {
-        return () => tfliteModel.predict(input);
+        return async () => {
+          // Do copy for 'inputData' in each predict as its buffer
+          // will be detached after transferring to worker.
+          return await tfliteModel.predict(inputData.slice(0));
+        };
       } else {
         return predictFunction(input);
       }
@@ -504,25 +516,35 @@ const benchmarks = {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     loadTflite: async (enableProfiling = false) => {
-      return tflite.loadTFLiteModel(state.modelUrl, {enableProfiling});
+      await tfliteModel.load(state.modelUrl, {enableProfiling});
     },
     predictFunc: () => {
       return async (model, customInput) => {
-        let inferenceInput;
+        let inferenceInput, inferenceOutput;
         try {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
           if (typeof isTflite === 'function' && isTflite()) {
-            return await tfliteModel.predict(inferenceInput);
+            const inputDataArray = [];
+            if (inferenceInput instanceof Array) {
+              for (let tensor of inferenceInput) {
+                const inputData = tensor.dataSync();
+                inputDataArray.push(inputData.slice(0));
+              }
+            } else {
+              const inputData = inferenceInput.dataSync();
+              inputDataArray.push(inputData.slice(0));
+            }
+            inferenceOutput = await tfliteModel.predict(inputDataArray);
           } else {
             const predict = getPredictFnForModel(model, inferenceInput);
-            const inferenceOutput = await predict();
-            return inferenceOutput;
+            inferenceOutput = await predict();
           }
+          return inferenceOutput;
         } finally {
           // dispose input tensors
-          if (!customInput) {
+          if (!customInput && inferenceInput) {
             tf.dispose(inferenceInput);
           }
         }
@@ -644,4 +666,56 @@ async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
   const state = {};
   return loadModelByUrlWithState(modelUrl, loadOptions, state);
+}
+
+// We move all operations of tflite backend in a worker thread
+// to prepare for WebNN external delegate integration. As WebNN
+// spec restricts its sync API in worker thread,
+// https://webmachinelearning.github.io/webnn/
+const tfliteModel = {
+  'load': async (url, options) => {
+    await handleTfliteWorker(
+      { actionType: 'load', url, options });
+  },
+  'getInputs': async () => {
+    return await handleTfliteWorker({ actionType: 'getInputs' });
+  },
+  'getProfilingResults': async () => {
+    return await handleTfliteWorker(
+      { actionType: 'getProfilingResults' });
+  },
+  'predict': async (inputData) => {
+    return await handleTfliteWorker({ actionType: 'predict', inputData });
+  }
+}
+
+async function handleTfliteWorker(message) {
+  if (!tfliteWorker) {
+    tfliteWorker = new Worker('tflite_worker.js');
+  }
+
+  if (message.actionType == 'predict') {
+    const inputData = message.inputData;
+    if (inputData[0].length !== undefined) {
+      // Multiple inputs
+      tfliteWorker.postMessage(message,
+          inputData.map(input => { return input.buffer; }));
+    } else {
+      // Single input
+      tfliteWorker.postMessage(message, [inputData.buffer]);
+    }
+  } else {
+    tfliteWorker.postMessage(message);
+  }
+
+  const result = await new Promise(resolve => {
+    tfliteWorker.onmessage = event => {
+      resolve(event.data);
+    };
+  });
+  if (result.error) {
+    throw new Error(result.error);
+  } else {
+    return result;
+  }
 }

@@ -61,9 +61,6 @@ async function loadTFJS(localBuild) {
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
-    // Load tfjs-tflite from jsdelivr because it correctly sets the
-    // "cross-origin-resource-policy" header.
-    'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@latest/dist/tf-tflite.js',
     '../model_config.js',
     '../benchmark_util.js',
     './util.js',
