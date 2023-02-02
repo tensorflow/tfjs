@@ -207,6 +207,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "dilation2d_impl",
+    hdrs = ["dilation2d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "elu_impl",
     srcs = ["elu_impl.cc"],
     hdrs = ["elu_impl.h"],
@@ -327,6 +332,7 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Dilation2D",
         ":Elu",
         ":Equal",
         ":Exp",
@@ -693,6 +699,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":conv2d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Dilation2D",
+    srcs = ["kernels/Dilation2D.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
     ],
 )
 

@@ -411,6 +411,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'upperBound '},
   {include: 'lowerBound '},
   {include: 'dataCached'},
+  {include: 'dilation2d ', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {
