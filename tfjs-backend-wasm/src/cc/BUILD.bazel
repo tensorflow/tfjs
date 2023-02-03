@@ -348,6 +348,8 @@ tfjs_cc_library(
         ":Greater",
         ":GreaterEqual",
         ":IsNan",
+        ":LRN",
+        ":LRNGrad",
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
@@ -889,6 +891,22 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LRN",
+    srcs = ["kernels/LRN.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LRNGrad",
+    srcs = ["kernels/LRNGrad.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
