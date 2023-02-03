@@ -19,12 +19,12 @@ import {KernelConfig, KernelFunc, LRNGrad, LRNGradAttrs, LRNGradInputs, TensorIn
 
 import {BackendWasm} from '../backend_wasm';
 
-let wasmLRN: (
+let wasmLRNGrad: (
     xId: number, yId: number, dyId: number, dxId: number, channels: number,
     depthRadius: number, bias: number, alpha: number, beta: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmLRN = backend.wasm.cwrap(LRNGrad, null, [
+  wasmLRNGrad = backend.wasm.cwrap(LRNGrad, null, [
     'number',  // xId
     'number',  // yId
     'number',  // dyId
@@ -53,7 +53,7 @@ export function lrnGrad(args: {
 
   const dx = backend.makeOutput(x.shape, x.dtype);
 
-  wasmLRN(
+  wasmLRNGrad(
       backend.dataIdMap.get(x.dataId).id,
       backend.dataIdMap.get(y.dataId).id,
       backend.dataIdMap.get(dy.dataId).id,
