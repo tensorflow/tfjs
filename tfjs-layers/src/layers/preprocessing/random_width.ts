@@ -39,8 +39,6 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
  *
  */
 
-// const INTERPOLATION_TODO = ["bicubic", "area", "lanczos3", "lanczos5",
-//                             "gaussian", "mitchellcubic"]  as const;
 const INTERPOLATION_KEYS = ['bilinear', 'nearest'] as const;
 export const INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
 type InterpolationType = typeof INTERPOLATION_KEYS[number];
