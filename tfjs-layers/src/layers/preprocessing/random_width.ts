@@ -61,7 +61,6 @@ export class RandomWidth extends BaseRandomLayer {
 
   constructor(args: RandomWidthArgs) {
     super(args);
-    console.log("INSIDE CONSTRUCTOR OF RANDOM_WIDTH")
     this.factor = args.factor;
 
     if (Array.isArray(this.factor) && this.factor.length === 2) {
@@ -98,7 +97,6 @@ export class RandomWidth extends BaseRandomLayer {
     }
 
     if (args.interpolation) {
-      console.log('Interpolation!!: ', args.interpolation)
       if (INTERPOLATION_METHODS.has(args.interpolation)) {
         this.interpolation = args.interpolation;
       } else {
@@ -134,12 +132,10 @@ export class RandomWidth extends BaseRandomLayer {
 
 
     return tidy(() => {
-      // console.log("Inside Call method - tidy")
         const input = getExactlyOneTensor(inputs);
         const inputShape = input.shape;
         this.imgHeight = inputShape[inputShape.length - 3];
         const imgWidth = inputShape[inputShape.length - 2];
-        // console.log('Input SSSSSSSShape: ', this.imgHeight,imgWidth)
 
         const randomUniform = this.setRNGType('uniform');
 
@@ -154,24 +150,17 @@ export class RandomWidth extends BaseRandomLayer {
           );
         }
         this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth
-        // round adjustedWidth to whole number
         this.adjustedWidth = Math.round(this.adjustedWidth)
-        // console.log('Adjusted Width After Rounding: ', this.adjustedWidth)
         const size: [number, number] = [this.imgHeight, this.adjustedWidth]
-        // console.log('!!!=',this.imgHeight, this.adjustedWidth,size)
-        console.log('Interpolation: ', this.interpolation)
         if (this.interpolation === 'bilinear') {
           return image.resizeBilinear(inputs, size)
         } else if (this.interpolation === 'nearest') {
           const output = image.resizeNearestNeighbor(inputs, size);
-          console.log('Output: ', output)
           return output;
         } else {
-          console.log("THROWING ERROR!!")
           throw new Error(`Interpolation is ${this.interpolation}
           but only ${[...INTERPOLATION_METHODS]} are supported`);
         }
-
     });
   }
 }
