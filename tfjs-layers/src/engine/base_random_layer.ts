@@ -13,9 +13,7 @@ import { randomGamma, randomNormal} from '@tensorflow/tfjs-core';
 import { randomStandardNormal, randomUniform } from '@tensorflow/tfjs-core'
 import { ValueError } from '../errors';
 
-export declare interface BaseRandomLayerArgs extends LayerArgs {
-  rngType: string
-}
+export declare interface BaseRandomLayerArgs extends LayerArgs {};
 
 export type RNGTypes = {
   [key: string]: Function;
