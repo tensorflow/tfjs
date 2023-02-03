@@ -253,6 +253,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -289,9 +292,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "shape",
+    hdrs = ["shape.h"],
+)
+
+tfjs_cc_library(
     name = "util",
     srcs = ["util.cc"],
     hdrs = ["util.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
