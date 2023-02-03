@@ -17,9 +17,14 @@
  */
 
 import chalk from 'chalk';
+import * as fs from 'fs';
+import * as inquirer from 'inquirer';
+import { Separator } from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
+import rimraf from 'rimraf';
+import * as path from 'path';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -201,15 +206,22 @@ export const RELEASE_UNITS: ReleaseUnit[] = [
   WEBSITE_RELEASE_UNIT,
 ];
 
+export const ALL_PACKAGES: Set<string> = new Set(getPackages(RELEASE_UNITS));
+
 export const TMP_DIR = '/tmp/tfjs-release';
 
-const rl =
-    readline.createInterface({input: process.stdin, output: process.stdout});
-
 export async function question(questionStr: string): Promise<string> {
+  const rl =
+    readline.createInterface({ input: process.stdin, output: process.stdout });
+
   console.log(chalk.bold(questionStr));
   return new Promise<string>(
-      resolve => rl.question('> ', response => resolve(response)));
+    resolve => {
+      rl.question('> ', response => {
+        resolve(response);
+        rl.close();
+      });
+    });
 }
 
 /**
@@ -217,12 +229,35 @@ export async function question(questionStr: string): Promise<string> {
  * @param cmd The bash command to execute.
  * @returns stdout returned by the executed bash script.
  */
-export function $(cmd: string) {
-  const result = shell.exec(cmd, {silent: true});
+export function $(cmd: string, env: Record<string, string> = {}) {
+  env = {...process.env, ...env};
+
+  const result = shell.exec(cmd, {silent: true, env});
   if (result.code > 0) {
     throw new Error(`$ ${cmd}\n ${result.stderr}`);
   }
   return result.stdout.trim();
+}
+
+/**
+ * An async wrapper around shell.exec for readability.
+ * @param cmd The bash command to execute.
+ * @returns stdout returned by the executed bash script.
+ */
+export function $async(cmd: string,
+                       env: Record<string, string> = {}): Promise<string> {
+  env = {...shell.env, ...env};
+  return new Promise((resolve, reject) => {
+    shell.exec(cmd, {silent: true, env}, (code, stdout, stderr) => {
+      if (code > 0) {
+        console.log('$', cmd);
+        console.log(stdout);
+        console.log(stderr);
+        reject(stderr);
+      }
+      resolve(stdout.trim());
+    })
+  });
 }
 
 export function printReleaseUnit(releaseUnit: ReleaseUnit, id: number) {
@@ -451,17 +486,190 @@ export function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
-// Computes the default updated version (does a minor version update).
+
+/**
+ * Get the next minor update version for the given version.
+ *
+ * e.g. given 1.2.3, return 1.3.0
+ */
 export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
-  return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
+  return [versionSplit[0], + versionSplit[1] + 1, '0'].join('.');
 }
 
-// Computes the next nightly version.
+/**
+ * Create the nightly version string by appending `dev-{current date}` to the
+ * given version.
+ *
+ * Versioning format is from semver: https://semver.org/spec/v2.0.0.html
+ * This version should be published with the 'next' tag and should increment the
+ * current 'latest' tfjs version.
+ * We approximate TypeScript's versioning practice as seen on their npm page
+ * https://www.npmjs.com/package/typescript?activeTab=versions
+ */
 export function getNightlyVersion(version: string): string {
   // Format date to YYYYMMDD.
   const date =
       new Date().toISOString().split('T')[0].replace(new RegExp('-', 'g'), '');
   return `${version}-dev.${date}`;
+}
+
+/**
+ * Filter a list with an async filter function
+ */
+async function filterAsync<T>(
+  array: T[],
+  condition: (t: T) => Promise<boolean>): Promise<T[]> {
+
+  const results = await Promise.all(array.map(condition));
+  return array.filter((_val, index) => results[index]);
+}
+
+/**
+ * Get the packages contained in the given release units.
+ */
+export function getPackages(releaseUnits: ReleaseUnit[]): string[] {
+  return releaseUnits.map(releaseUnit => releaseUnit.phases)
+    .flat().map(phase => phase.packages)
+    .flat();
+}
+
+/**
+ * Filter packages in release units according to an async filter.
+ */
+export async function filterPackages(filter: (pkg: string) => Promise<boolean>,
+                                     releaseUnits = RELEASE_UNITS) {
+  return filterAsync(getPackages(releaseUnits), filter);
+}
+
+export async function selectPackages({
+  message = "Select packages",
+  selected = async (_pkg: string) => false,
+  modifyName = async (name: string) => name,
+  releaseUnits = RELEASE_UNITS}) {
+
+  type SeparatorInstance = InstanceType<typeof Separator>;
+  type Choice = {name: string, checked: boolean};
+
+  // Using Array.map instead of for loops for better performance from
+  // Promise.all. Otherwise, it can take ~10 seconds to show the packages
+  // if modifyName or selected take a long time.
+  const choices = await Promise.all<SeparatorInstance | Promise<Choice>>(
+    releaseUnits
+      .map(releaseUnit => [
+        new inquirer.Separator( // Separate release units with a line
+          chalk.underline(releaseUnit.name)),
+        ...releaseUnit.phases // Display the packages of a release unit.
+          .map(phase => phase.packages
+               .map(async pkg => {
+                 const [name, checked] = await Promise.all([
+                   modifyName(pkg), selected(pkg)]);
+                 return {name, value: pkg, checked};
+               }) // Promise<Choice>[] from one phase's packages
+              ).flat() // Promise<Choice>[] from one release unit
+      ]).flat() // (Separator | Promise<Choice>)[] for all release units
+  );
+
+  const choice = await inquirer.prompt({
+    name: 'packages',
+    type: 'checkbox',
+    message,
+    pageSize: 30,
+    choices,
+    loop: false,
+  } as {name: 'packages'});
+
+  return choice['packages'] as string[];
+}
+
+export function getVersion(packageJsonPath: string) {
+  return JSON.parse(fs.readFileSync(packageJsonPath)
+                    .toString('utf8')).version as string;
+}
+
+export function getLocalVersion(pkg: string) {
+  return getVersion(path.join(pkg, 'package.json'));
+}
+
+export async function getNpmVersion(pkg: string, registry?: string,
+                                    tag = 'latest') {
+  const env: Record<string, string> = {};
+  if (registry) {
+    env['NPM_CONFIG_REGISTRY'] = registry;
+  }
+  return $async(`npm view @tensorflow/${pkg} dist-tags.${tag}`, env);
+}
+
+export function getTagFromVersion(version: string): string {
+  if (version.includes('dev')) {
+    return 'nightly';
+  }
+  return 'latest';
+}
+
+export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
+  const map = new Map<I, Promise<O>>();
+  return async (i: I) => {
+    if (!map.has(i)) {
+      map.set(i, f(i));
+    }
+    return map.get(i)!;
+  }
+}
+
+export function runVerdaccio() {
+  // Remove the verdaccio package store.
+  // TODO(mattsoulanille): Move the verdaccio storage and config file here
+  // once the nightly verdaccio tests are handled by this script.
+  rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
+  // Start verdaccio.
+  const serverProcess = shell.exec(
+      'yarn verdaccio --config=e2e/scripts/verdaccio.yaml',
+      {
+        async: true,
+        silent: true,
+        cwd: path.join(__dirname, '../'),
+      },
+      (code, stdout, stderr) => {
+        if (code !== 0) {
+          console.log(`Verdaccio stopped with exit code ${code}`);
+          console.log(stdout);
+          console.log(stderr);
+        }
+      }
+  );
+  process.on('exit', () => {serverProcess.kill();});
+  return serverProcess;
+}
+
+/**
+ * Check a package.json path for `link://` and `file://` dependencies.
+ */
+export function checkPublishable(packageJsonPath: string): void {
+  const packageJson = JSON.parse(
+    fs.readFileSync(packageJsonPath)
+      .toString('utf8')) as {
+        name?: string,
+        private?: boolean,
+        dependencies?: Record<string, string>,
+      };
+
+  if (!packageJson.name) {
+    throw new Error(`${packageJsonPath} has no name.`);
+  }
+  const pkg = packageJson.name;
+  if (packageJson.private) {
+    throw new Error(`${pkg} is private.`);
+  }
+
+  if (packageJson.dependencies) {
+    for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+      const start = depVersion.slice(0,5);
+      if (start === 'link:' || start === 'file:') {
+        throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                        + 'Refusing to publish.');
+      }
+    }
+  }
 }

@@ -20,37 +20,21 @@
 #include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/scatter_impl.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 template <typename T>
-void scatter(const int* indices_ptr, const T* updates_ptr,
-             const size_t slice_rank, const size_t num_updates,
-             const size_t slice_size, const std::vector<size_t>& strides_ptr,
-             const size_t output_size, const size_t dtype_size,
-             T* out_buf_ptr) {
-  // Initialize output to 0.
-  memset(out_buf_ptr, 0, output_size * dtype_size);
-
-  for (size_t i = 0; i < num_updates; ++i) {
-    size_t flattened_index = 0;
-    for (size_t j = 0; j < slice_rank; ++j) {
-      flattened_index += *indices_ptr * strides_ptr[j];
-
-      indices_ptr++;
-    }
-
-    out_buf_ptr += flattened_index * slice_size;
-
-    for (size_t k = 0; k < slice_size; ++k) {
-      *out_buf_ptr += *updates_ptr;
-
-      out_buf_ptr++;
-      updates_ptr++;
-    }
-
-    out_buf_ptr -= (flattened_index * slice_size + slice_size);
-  }
+void scatter_nd(const int* indices_ptr, const T* updates_ptr,
+                const size_t slice_rank, const size_t num_updates,
+                const size_t slice_size, const std::vector<size_t>& strides_ptr,
+                const size_t output_size, T* out_buf_ptr) {
+  T default_value{};
+  bool sum_dupe_indices = true;
+  bool update_as_scalar = false;
+  tfjs::wasm::scatter(indices_ptr, updates_ptr, slice_rank, num_updates,
+                      slice_size, strides_ptr, output_size, default_value,
+                      sum_dupe_indices, update_as_scalar, out_buf_ptr);
 }
 
 }  // namespace
@@ -76,19 +60,18 @@ void ScatterNd(const size_t indices_id, const size_t updates_id,
 
   switch (dtype) {
     case DType::float32:
-      scatter<float>(indices_buf, updates_info.f32(), slice_rank, num_updates,
-                     slice_size, strides, output_size, sizeof(float),
-                     out_info.f32_write());
+      scatter_nd<float>(indices_buf, updates_info.f32(), slice_rank,
+                        num_updates, slice_size, strides, output_size,
+                        out_info.f32_write());
       break;
     case DType::int32:
-      scatter<int32_t>(indices_buf, updates_info.i32(), slice_rank, num_updates,
-                       slice_size, strides, output_size, sizeof(int32_t),
-                       out_info.i32_write());
+      scatter_nd<int32_t>(indices_buf, updates_info.i32(), slice_rank,
+                          num_updates, slice_size, strides, output_size,
+                          out_info.i32_write());
       break;
     case DType::boolean:
-      scatter<bool>(indices_buf, updates_info.b(), slice_rank, num_updates,
-                    slice_size, strides, output_size, sizeof(bool),
-                    out_info.b_write());
+      scatter_nd<bool>(indices_buf, updates_info.b(), slice_rank, num_updates,
+                       slice_size, strides, output_size, out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d",

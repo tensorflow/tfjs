@@ -207,6 +207,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "dilation2d_impl",
+    hdrs = ["dilation2d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "elu_impl",
     srcs = ["elu_impl.cc"],
     hdrs = ["elu_impl.h"],
@@ -246,6 +251,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "pool3d_impl",
+    hdrs = ["pool3d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -253,6 +263,12 @@ tfjs_cc_library(
         ":backend",
         ":util",
     ],
+)
+
+tfjs_cc_library(
+    name = "scatter_impl",
+    srcs = ["scatter_impl.cc"],
+    hdrs = ["scatter_impl.h"],
 )
 
 tfjs_cc_library(
@@ -302,6 +318,8 @@ tfjs_cc_library(
         ":ArgMax",
         ":Atan",
         ":AvgPool",
+        ":AvgPool3D",
+        ":AvgPool3DGrad",
         ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
@@ -314,6 +332,7 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Dilation2D",
         ":Elu",
         ":Equal",
         ":Exp",
@@ -332,6 +351,8 @@ tfjs_cc_library(
         ":LessEqual",
         ":Max",
         ":MaxPool",
+        ":MaxPool3D",
+        ":MaxPool3DGrad",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -356,6 +377,7 @@ tfjs_cc_library(
         ":RotateWithOffset",
         ":Round",
         ":ScatterNd",
+        ":SearchSorted",
         ":SelectV2",
         ":Sigmoid",
         ":Sin",
@@ -363,6 +385,7 @@ tfjs_cc_library(
         ":SparseFillEmptyRows",
         ":SparseReshape",
         ":SparseSegmentReduction",
+        ":SparseToDense",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -488,6 +511,24 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3D",
+    srcs = ["kernels/AvgPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPool3DGrad",
+    srcs = ["kernels/AvgPool3DGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
@@ -634,6 +675,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "DenseBincount",
+    srcs = ["kernels/DenseBincount.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "DepthToSpace",
     srcs = ["kernels/DepthToSpace.cc"],
     deps = [
@@ -652,12 +702,31 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "Dilation2D",
+    srcs = ["kernels/Dilation2D.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
     tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Diag",
+    srcs = ["kernels/Diag.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
@@ -673,11 +742,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Elu",
     srcs = ["kernels/Elu.cc"],
-    hdrs = ["kernels/Elu.h"],
     deps = [
         ":backend",
         ":elu_impl",
-        ":unary",
     ],
 )
 
@@ -933,6 +1000,24 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "MaxPool3D",
+    srcs = ["kernels/MaxPool3D.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPool3DGrad",
+    srcs = ["kernels/MaxPool3DGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
     name = "Min",
     srcs = ["kernels/Min.cc"],
     deps = [
@@ -1151,6 +1236,16 @@ tfjs_cc_library(
     srcs = ["kernels/ScatterNd.cc"],
     deps = [
         ":backend",
+        ":scatter_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SearchSorted",
+    srcs = ["kernels/SearchSorted.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
@@ -1236,6 +1331,16 @@ tfjs_cc_library(
     srcs = ["kernels/SparseSegmentReduction.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseToDense",
+    srcs = ["kernels/SparseToDense.cc"],
+    deps = [
+        ":backend",
+        ":scatter_impl",
         ":util",
     ],
 )

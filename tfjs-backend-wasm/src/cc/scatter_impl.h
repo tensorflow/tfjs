@@ -1,4 +1,4 @@
-/* Copyright 2021 Google LLC. All Rights Reserved.
+/* Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,21 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_ELU_H_
-#define KERNELS_ELU_H_
+#ifndef SCATTER_IMPL_H_
+#define SCATTER_IMPL_H_
 
 #include <cstddef>
-
-#include "tfjs-backend-wasm/src/cc/backend.h"
+#include <vector>
 
 namespace tfjs {
 namespace wasm {
-extern "C" {
 
-void Elu(const size_t x_id, const DType dtyle, const size_t out_id);
-}
+template <typename T>
+void scatter(const int* indices_ptr, const T* updates_ptr,
+             const size_t slice_rank, const size_t num_updates,
+             const size_t slice_size, const std::vector<size_t>& strides_ptr,
+             const size_t output_size, const T default_value,
+             const bool sum_dupe_indices, const bool update_as_scalar,
+             T* out_buf_ptr);
 
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_ELU_H_
+#endif  // SCATTER_IMPL_H_

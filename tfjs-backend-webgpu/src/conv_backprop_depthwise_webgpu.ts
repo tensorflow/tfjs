@@ -26,7 +26,7 @@ export class DepthwiseConv2DDerFilterProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'dy'];
   uniforms =
-      `stride : vec2<i32>, pad : vec2<i32>, filterDims : vec2<i32>, outHeight : i32,
+      `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>, outHeight : i32,
       outWidth : i32, inHeight : i32, inWidth : i32, batchSize : i32, channelMul : i32,`;
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
@@ -56,14 +56,14 @@ export class DepthwiseConv2DDerFilterProgram implements WebGPUProgram {
         var dotProd = 0.0;
         for (var b = 0; b < uniforms.batchSize; b++) {
           for (var yR = 0; yR < uniforms.outHeight; yR++) {
-            let xR = wR + yR * uniforms.stride[0] - uniforms.pad[0];
+            let xR = wR + yR * uniforms.strides[0] - uniforms.pads[0];
 
             if (xR < 0 || xR >= uniforms.inHeight) {
               continue;
             }
 
             for (var yC = 0; yC < uniforms.outWidth; yC++) {
-              let xC = wC + yC * uniforms.stride[1] - uniforms.pad[1];
+              let xC = wC + yC * uniforms.strides[1] - uniforms.pads[1];
 
               if (xC < 0 || xC >= uniforms.inWidth) {
                 continue;
@@ -89,7 +89,7 @@ export class DepthwiseConv2DDerInputProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['dy', 'W'];
-  uniforms = `stride : vec2<i32>, pad : vec2<i32>, filterDims : vec2<i32>,
+  uniforms = `strides : vec2<i32>, pads : vec2<i32>, filterDims : vec2<i32>,
        outHeight : i32, outWidth : i32, channelMul : i32,`;
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
@@ -112,13 +112,13 @@ export class DepthwiseConv2DDerInputProgram implements WebGPUProgram {
         let coords = getCoordsFromIndex(index);
         let batch = coords[0];
         let d1 = coords[3];
-        let dyCorner = coords.yz - uniforms.pad;
+        let dyCorner = coords.yz - uniforms.pads;
         let dyRCorner = dyCorner.x;
         let dyCCorner = dyCorner.y;
 
         var dotProd = 0.0;
         for (var wR = 0; wR < uniforms.filterDims[0]; wR++) {
-          let dyR = f32(dyRCorner + wR) / f32(uniforms.stride[0]);
+          let dyR = f32(dyRCorner + wR) / f32(uniforms.strides[0]);
 
           if (dyR < 0.0 || dyR >= f32(uniforms.outHeight) || fract(dyR) > 0.0) {
             continue;
@@ -128,7 +128,7 @@ export class DepthwiseConv2DDerInputProgram implements WebGPUProgram {
           let wRPerm = uniforms.filterDims[0] - 1 - wR;
 
           for (var wC = 0; wC < uniforms.filterDims[1]; wC++) {
-            let dyC = f32(dyCCorner + wC) / f32(uniforms.stride[1]);
+            let dyC = f32(dyCCorner + wC) / f32(uniforms.strides[1]);
 
             if (dyC < 0.0 || dyC >= f32(uniforms.outWidth) || fract(dyC) > 0.0) {
               continue;

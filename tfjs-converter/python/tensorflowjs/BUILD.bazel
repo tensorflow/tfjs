@@ -111,6 +111,12 @@ py_library(
 )
 
 py_library(
+    name = "expect_debugpy_installed",
+    # debugpy is used for interactive debugging with vscode
+    deps = [requirement("debugpy")],
+)
+
+py_library(
     name = "quantization",
     srcs = ["quantization.py"],
     srcs_version = "PY3",
