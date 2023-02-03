@@ -12,61 +12,71 @@
  * Unit Tests for random width layer.
  */
 
- import { Tensor,reshape } from "@tensorflow/tfjs-core";
-// import { getExactlyOneTensor } from "../../utils/types_utils";
-// import * as K from "../../backend/tfjs_backend";
-// import { Kwargs } from "tfjs-layers/src/types";
-// import { ValueError } from "tfjs-layers/src/errors";
-// import {
-//   BaseRandomLayerArgs,
-//   BaseRandomLayer,
-// } from "tfjs-layers/src/engine/base_random_layer";
-// import * as tf from "@tensorflow/tfjs";
-import {
-  describeMathCPUAndGPU,
-  // expectTensorsClose,
-} from "../../utils/test_utils";
+import { Tensor, reshape, range, image, Rank, zeros, randomUniform } from "@tensorflow/tfjs-core";
+import { describeMathCPUAndGPU, expectTensorsClose } from "../../utils/test_utils";
 
-import {
-  RandomWidth,
-  RandomWidthArgs,
-  INTERPOLATION_METHODS,
-} from "./random_width";
+import { RandomWidth, RandomWidthArgs } from "./random_width";
 
 describeMathCPUAndGPU("RandomWidth Layer", () => {
-  it("Check if output shape matches specifications'", () => {
-    // random width and check output shape
+  it("Returns correct, randomly scaled width of Rank 3 Tensor", () => {
+    const rangeTensor = range(0, 16);
+    const inputTensor = reshape(rangeTensor, [4,4,1]);
+    const factor = 0.4;
+    const interpolation = 'nearest';
+    const seed = 42;
+    const randomWidthLayer = new RandomWidth({factor, interpolation, seed});
+    const layerOutputTensor = randomWidthLayer.apply(inputTensor) as Tensor;
 
-    expect("asdf").toEqual("asdf");
+    expect(layerOutputTensor.shape).toEqual([4,5,1]);
   });
 
-
-  // Made per "py" test_valid_random_width(self):
-  it("Check output image width", () => {
-    // need (maxval - minval) * rnd + minval = 0.6
-    // const mock_factor = 0.6
-    // Creating tensor with shape (12,8,5,3) with random values: 0 <= val < 1
-    // 12 * 8 * 5 * 3 = 1440
-    let randomValues = Array.from({length: 1440}, () => Math.random());
-    let inputTensor =reshape(randomValues, [12,8,5,3]);
-    const randomWidthLayer = new
-          RandomWidth({factor:0.4,rngType:'uniform'});
+  it("Returns correct, randomly scaled width of Rank 4 Tensor", () => {
+    const rangeTensor = range(0, 16);
+    const inputTensor = reshape(rangeTensor, [1,4,4,1]);
+    const factor = 0.4;
+    const interpolation = 'nearest';
+    const seed = 42;
+    const randomWidthLayer = new RandomWidth({factor, interpolation, seed});
     const layerOutputTensor = randomWidthLayer.apply(inputTensor) as Tensor;
-console.log('Layer Output Tensor Shape: ', layerOutputTensor.shape)
-    expect(layerOutputTensor.shape).toEqual([12,8,3,3]);
+
+    expect(layerOutputTensor.shape).toEqual([1,4,5,1]);
+  });
+  
+  it('Returns a tensor of the correct dtype and compares class results to standard ops', () => {
+    // perform same random width resizing operations, check tensors dtypes and content
+    const inputTensor: Tensor<Rank.R3> =
+    zeros([4, 4, 1]);
+    const factor = 0.4;
+    const interpolation = 'nearest';
+    const seed = 42;
+    const randomWidthLayer = new RandomWidth({factor, interpolation, seed});
+    const layerOutputTensor = randomWidthLayer.apply(inputTensor) as Tensor;
+    const widthFactor = randomUniform([1], 1 + -factor, 1 + factor, 'float32', seed)
+    const adjustedWidth = Math.round(widthFactor.dataSync()[0] * 4);
+    const size: [number, number] = [4, adjustedWidth]
+    const expectedOutputTensor = image.resizeNearestNeighbor(inputTensor, size);
+    expect(layerOutputTensor.dtype).toBe(inputTensor.dtype)
+    expectTensorsClose(layerOutputTensor, expectedOutputTensor)
   });
 
   it("Check interpolation method 'unimplemented'", () => {
-    // test incorrect input for interpolation method ("unimplemented")
     const factor = 0.5;
-    const interpolation = "unimplemented";
+    const interpolation = 'unimplemented';
     const seed = 42;
-    const incorrectArgs = { factor, interpolation, seed };
-    const expectedError = `Interpolation is ${interpolation} but only ${[
-      ...INTERPOLATION_METHODS,
-    ]} are supported`;
-    expect(
-      () => new RandomWidth(incorrectArgs as RandomWidthArgs)
-    ).toThrowError(expectedError);
+    const incorrectArgs = {factor, interpolation, seed }
+    const expectedError = `Invalid interpolation parameter: ${
+    interpolation} is not implemented`;
+    expect(() => new RandomWidth(incorrectArgs as RandomWidthArgs))
+      .toThrowError(expectedError)
+  });
+
+  it('Config holds correct name', () => {
+    // layer name property set properly
+    const factor = 0.4;
+    const interpolation = 'nearest';
+    const seed = 42;  
+    const randomWidthLayer = new RandomWidth({factor, interpolation, seed, name: 'RandomWidth'});
+    const config = randomWidthLayer.getConfig();
+    expect(config.name).toEqual('RandomWidth');
   });
 });
