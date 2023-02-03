@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 CodeSmith LLC
+ * Copyright 2023 CodeSmith LLC
  *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file or at
@@ -66,15 +66,13 @@ export class RandomWidth extends BaseRandomLayer {
       this.widthLower = -this.factor;
       this.widthUpper = this.factor;
     } else {
-      throw new ValueError(`
-      Invalid factor parameter: ${this.factor}.
-      Must be positive number or tuple of 2 numbers`);
+      throw new ValueError(
+        `Invalid factor: ${this.factor}. Must be positive number or tuple of 2 numbers`
+      );
     }
-
     if (this.widthLower < -1.0 || this.widthUpper < -1.0) {
       throw new ValueError(
-        `factor must have values larger than -1.
-        Got: ${this.factor}`
+        `factor must have values larger than -1. Got: ${this.factor}`
       );
     }
 
