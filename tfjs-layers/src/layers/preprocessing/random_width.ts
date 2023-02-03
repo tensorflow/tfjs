@@ -14,6 +14,7 @@ import {Shape} from '../../keras_format/common';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
+// import {UniformRandom} from '../../../../tfjs-core/src/ops/rand_util';
 
 // export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
@@ -56,10 +57,11 @@ export class RandomWidth extends BaseRandomLayer {
   private widthUpper: number;
   private imgHeight: number;
   private adjustedWidth: number;
-  private widthFactor: number;
+  private widthFactor: Tensor<Rank.R3>|Tensor<Rank.R4>;
 
   constructor(args: RandomWidthArgs) {
     super(args);
+    console.log("INSIDE CONSTRUCTOR OF RANDOM_WIDTH")
     this.factor = args.factor;
 
     if (Array.isArray(this.factor) && this.factor.length === 2) {
@@ -74,10 +76,7 @@ export class RandomWidth extends BaseRandomLayer {
       Must be positive number or tuple of 2 numbers`);
     }
 
-// if was no error, then widthLower and widthUpper have values
     if (this.widthLower < -1.0 || this.widthUpper < -1.0) {
-      // does this logic conflict with line 68 & 65?
-      // line numbers were changed
       throw new ValueError(
         `factor must have values larger than -1.
         Got: ${this.factor}`
@@ -92,18 +91,22 @@ export class RandomWidth extends BaseRandomLayer {
       `)
     }
 
-    if (args.interpolation) {
-      if (INTERPOLATION_METHODS.has(args.interpolation)) {
-        this.interpolation = args.interpolation;
-      } else {
-        this.interpolation = 'bilinear';
-      }
-    }
-
     if(args.seed) {
       this.seed = args.seed;
     } else {
       this.seed = null;
+    }
+
+    if (args.interpolation) {
+      console.log('Interpolation!!: ', args.interpolation)
+      if (INTERPOLATION_METHODS.has(args.interpolation)) {
+        this.interpolation = args.interpolation;
+      } else {
+        throw new ValueError(`Invalid interpolation parameter: ${
+            args.interpolation} is not implemented`);
+      }
+    } else {
+      this.interpolation = 'bilinear';
     }
   }
 
@@ -131,41 +134,44 @@ export class RandomWidth extends BaseRandomLayer {
 
 
     return tidy(() => {
-      if (kwargs.training) {
-        // Inputs width-adjusted with random ops.
+      // console.log("Inside Call method - tidy")
         const input = getExactlyOneTensor(inputs);
         const inputShape = input.shape;
-        this.imgHeight = inputShape.length - 3;
-        const imgWidth = inputShape.length - 2;
+        this.imgHeight = inputShape[inputShape.length - 3];
+        const imgWidth = inputShape[inputShape.length - 2];
+        // console.log('Input SSSSSSSShape: ', this.imgHeight,imgWidth)
 
         const randomUniform = this.setRNGType('uniform');
 
         if (this.seed !== null) {
-          this.widthFactor = randomUniform(inputShape,
+          this.widthFactor = randomUniform([1],
             (1.0 + this.widthLower), (1.0 + this.widthUpper),
             'float32', this.seed
           );
         } else {
-          this.widthFactor = randomUniform(inputShape,
+          this.widthFactor = randomUniform([1],
             (1.0 + this.widthLower), (1.0 + this.widthUpper)
           );
         }
-
-        this.adjustedWidth = this.widthFactor * imgWidth
-
+        this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth
+        // round adjustedWidth to whole number
+        this.adjustedWidth = Math.round(this.adjustedWidth)
+        // console.log('Adjusted Width After Rounding: ', this.adjustedWidth)
+        const size: [number, number] = [this.imgHeight, this.adjustedWidth]
+        // console.log('!!!=',this.imgHeight, this.adjustedWidth,size)
+        console.log('Interpolation: ', this.interpolation)
         if (this.interpolation === 'bilinear') {
-          return image.resizeBilinear(inputs, [this.imgHeight, this.adjustedWidth])
-
+          return image.resizeBilinear(inputs, size)
         } else if (this.interpolation === 'nearest') {
-          return image.resizeNearestNeighbor(inputs, [this.imgHeight, this.adjustedWidth]);
+          const output = image.resizeNearestNeighbor(inputs, size);
+          console.log('Output: ', output)
+          return output;
         } else {
+          console.log("THROWING ERROR!!")
           throw new Error(`Interpolation is ${this.interpolation}
           but only ${[...INTERPOLATION_METHODS]} are supported`);
         }
 
-      } else {
-        return inputs;
-      }
     });
   }
 }
