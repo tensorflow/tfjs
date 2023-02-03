@@ -16,7 +16,6 @@
  */
 
 import {FloorDiv, KernelConfig} from '@tensorflow/tfjs-core';
-import  '@tensorflow/tfjs-backend-cpu';
 
 import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
