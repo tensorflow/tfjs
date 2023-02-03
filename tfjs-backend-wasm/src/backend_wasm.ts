@@ -132,6 +132,8 @@ export class BackendWasm extends KernelBackend {
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
+  override readCached = this.readSync;
+
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.

@@ -186,6 +186,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
+  readCached(dataId: DataId): BackendValues | undefined;
   readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
@@ -351,13 +352,7 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
     const data = trackerFn().read(this.dataId);
     if (this.dtype === 'string') {
       const bytes = await data as Uint8Array[];
-      try {
-        return bytes.map(b => util.decodeString(b)) as DataTypeMap[D];
-      } catch {
-        throw new Error(
-            'Failed to decode the string bytes into utf-8. ' +
-            'To get the original bytes, call tensor.bytes().');
-      }
+      return this.decodeStringTensor(bytes) as DataTypeMap[D];
     }
     return data as Promise<DataTypeMap[D]>;
   }
@@ -413,16 +408,39 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
     this.throwIfDisposed();
     const data = trackerFn().readSync(this.dataId);
     if (this.dtype === 'string') {
-      try {
-        return (data as Uint8Array[]).map(b => util.decodeString(b)) as
-            DataTypeMap[D];
-      } catch {
-        throw new Error(
-            'Failed to decode the string bytes into utf-8. ' +
-            'To get the original bytes, call tensor.bytes().');
-      }
+      return this.decodeStringTensor(data as Uint8Array[]) as DataTypeMap[D];
     }
     return data as DataTypeMap[D];
+  }
+
+  /**
+   * Synchronously returns the values from the `tf.Tensor` if they cached on.
+   * the CPU. This does not block the UI thread but returns undefined if the
+   * values are not available on the CPU.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
+  dataCached<D extends DataType = NumericDataType>(): DataTypeMap[D]
+    | undefined {
+    this.throwIfDisposed();
+    const data = trackerFn().readCached(this.dataId);
+    if (data == null) {
+      return undefined; // Data was not cached
+    }
+    if (this.dtype === 'string') {
+      return this.decodeStringTensor(data as Uint8Array[]) as DataTypeMap[D];
+    }
+    return data as DataTypeMap[D];
+  }
+
+  private decodeStringTensor(data: Uint8Array[]) {
+    try {
+      return data.map(b => util.decodeString(b));
+    } catch {
+      throw new Error(
+        'Failed to decode the string bytes into utf-8. ' +
+          'To get the original bytes, call tensor.bytes().');
+    }
   }
 
   /** Returns the underlying bytes of the tensor's data. */

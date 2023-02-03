@@ -410,6 +410,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'avgPool3dBackprop '},
   {include: 'upperBound '},
   {include: 'lowerBound '},
+  {include: 'dataCached'},
   {include: 'dilation2d ', excludes: ['gradient']},
 ];
 

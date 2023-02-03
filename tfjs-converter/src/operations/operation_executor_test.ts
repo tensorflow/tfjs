@@ -75,14 +75,22 @@ describe('OperationExecutor', () => {
         });
     [arithmetic, basic_math, convolution, creation, evaluation, graph, image,
      logical, matrices, normalization, reduction, slice_join, sparse, spectral,
-     string, transformation]
+     string]
         .forEach(category => {
           it('should call tidy around executor', () => {
             const tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
 
             node.category = category.CATEGORY;
-            executeOp(node, {}, context, undefined, tidySpy as typeof tfc.tidy);
-            expect(tidySpy).toHaveBeenCalled();
+
+            try {
+              executeOp(node, {}, context, undefined,
+                        tidySpy as typeof tfc.tidy);
+            } finally {
+              // Put this expect in a finally block to make sure that its error
+              // appears. Otherwise, it throws a confusing 'node type const
+              // is not supported' error.
+              expect(tidySpy).toHaveBeenCalled();
+            }
           });
         });
 

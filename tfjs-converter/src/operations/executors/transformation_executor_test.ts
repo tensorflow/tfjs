@@ -55,7 +55,7 @@ describe('transformation', () => {
       it('should call tfOps.cast', () => {
         node.op = 'Cast';
         node.attrParams.dtype = createDtypeAttr('float32');
-        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        executeOp(node, {input1}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.cast).toHaveBeenCalledWith(input1[0], 'float32');
       });
@@ -65,7 +65,7 @@ describe('transformation', () => {
         node.op = 'ExpandDims';
         node.attrParams.axis = createNumberAttr(1);
         spyOps.expandDims.and.returnValue({});
-        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        executeOp(node, {input1}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.expandDims).toHaveBeenCalledWith(input1[0], 1);
       });
@@ -78,7 +78,7 @@ describe('transformation', () => {
         node.inputNames = ['input1', 'input3'];
         const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
         spyOps.mirrorPad.and.returnValue({});
-        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input3}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.mirrorPad)
             .toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 'reflect');
@@ -92,7 +92,7 @@ describe('transformation', () => {
         node.inputNames = ['input1', 'input3'];
         const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
         spyOps.pad.and.returnValue({});
-        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input3}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
       });
@@ -105,7 +105,7 @@ describe('transformation', () => {
         node.inputNames = ['input1', 'input3'];
         const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
         spyOps.pad.and.returnValue({});
-        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input3}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
       });
@@ -116,7 +116,7 @@ describe('transformation', () => {
         node.inputParams.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
 
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
@@ -126,7 +126,7 @@ describe('transformation', () => {
         node.op = 'Squeeze';
         node.attrParams.axis = createNumberAttr(1);
         spyOps.squeeze.and.returnValue({});
-        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        executeOp(node, {input1}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.squeeze).toHaveBeenCalledWith(input1[0], 1);
       });
@@ -140,7 +140,7 @@ describe('transformation', () => {
         const input2 = [tfOps.tensor1d([1, 1, 2, 2])];
         const input3 = [tfOps.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
         spyOps.spaceToBatchND.and.returnValue({});
-        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2, input3}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.spaceToBatchND)
             .toHaveBeenCalledWith(
@@ -156,7 +156,7 @@ describe('transformation', () => {
         const input2 = [tfOps.tensor1d([1, 1, 2, 2])];
         const input3 = [tfOps.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
         spyOps.batchToSpaceND.and.returnValue({});
-        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2, input3}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.batchToSpaceND)
             .toHaveBeenCalledWith(
@@ -170,7 +170,7 @@ describe('transformation', () => {
         node.attrParams.dataFormat = createStrAttr('nhwc');
         node.inputNames = ['input1'];
         spyOps.depthToSpace.and.returnValue({});
-        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        executeOp(node, {input1}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
       });
@@ -181,7 +181,7 @@ describe('transformation', () => {
         node.inputParams.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
 
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
@@ -195,7 +195,7 @@ describe('transformation', () => {
         const input1 = [tfOps.tensor1d([1, 1])];
         const input2 = [tfOps.tensor1d([1, 1])];
         spyOps.broadcastArgs.and.returnValue({});
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2}, context, null, spyOpsAsTfOps);
 
         expect(spyOps.broadcastArgs).toHaveBeenCalledWith(input1[0], input2[0]);
       });

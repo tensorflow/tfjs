@@ -16,7 +16,6 @@
  */
 
 import {clone, Tensor, util} from '@tensorflow/tfjs-core';
-
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {ResourceManager} from '../../executor/resource_manager';
@@ -49,6 +48,56 @@ export function getParamValue(
     return inputParam.type === 'number' ?
         data[0] :
         util.toNestedArray(tensor.shape, data);
+  }
+  const attrParam = node.attrParams[paramName];
+  return attrParam && attrParam.value;
+}
+
+/**
+ * Get a parameter value. Returns a promise if the value must be read from a
+ * tensor and is not already cached on CPU (such as in tf.reshape when the
+ * shape is a tensor value, which must be read back to the CPU in order to
+ * create the output tensor shape).
+ */
+export function getParamValueOrPromise(
+    paramName: string, node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext, resourceManager?: ResourceManager): ValueType
+    | Promise<ValueType> {
+  const inputParam = node.inputParams[paramName];
+  if (inputParam && inputParam.inputIndexStart !== undefined) {
+    const start = inputParam.inputIndexStart;
+    const end = inputParam.inputIndexEnd === 0 ?
+        undefined :
+        (inputParam.inputIndexEnd === undefined ? start + 1 :
+                                                  inputParam.inputIndexEnd);
+    if (inputParam.type === 'tensor') {
+      return getTensor(
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
+          resourceManager);
+    }
+    if (inputParam.type === 'tensors') {
+      const inputs = node.inputNames.slice(start, end);
+
+      return inputs.map(
+          name => getTensor(name, tensorMap, context, resourceManager));
+    }
+    const tensor = getTensor(
+        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
+
+    const data = tensor.dataCached();
+    if (data != null) {
+      // Return cached data synchronously
+      return inputParam.type === 'number' ?
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
+    }
+    // Load uncached data asynchronously
+    const dataPromise = tensor.data();
+    return dataPromise.then(data => {
+      return inputParam.type === 'number' ?
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
+    });
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;

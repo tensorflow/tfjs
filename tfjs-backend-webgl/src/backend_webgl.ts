@@ -419,6 +419,13 @@ export class MathBackendWebGL extends KernelBackend {
     return dTypeVals;
   }
 
+  // TODO(mattSoulanille): This implementation will synchronously read the
+  // texture from the GPU if it's not available on the CPU. This is to avoid
+  // breaking any models that may be using ops that require synchronous data
+  // access (such as `tf.reshape` with a tensor shape). In TFJS 5.x, we should
+  // change this so it only returns a value if it's already cached on CPU.
+  override readCached = this.readSync;
+
   /**
    * Read tensor to a new texture that is densely packed for ease of use.
    * @param dataId The source tensor.

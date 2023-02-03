@@ -116,6 +116,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   readSync(dataId: object): BackendValues {
     return notYetImplemented('readSync');
   }
+  readCached(dataId: object): BackendValues | undefined {
+    return notYetImplemented('readCached');
+  }
   readToGPU(dataId: object, options?: DataToGPUOptions): GPUData {
     return notYetImplemented('readToGPU');
   }
