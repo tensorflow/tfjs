@@ -10,10 +10,10 @@
 
 import { LayerArgs, Layer } from './topology';
 import { randomGamma, randomNormal} from '@tensorflow/tfjs-core';
-import { randomStandardNormal, randomUniform } from '@tensorflow/tfjs-core'
+import { randomStandardNormal, randomUniform } from '@tensorflow/tfjs-core';
 import { ValueError } from '../errors';
 
-export declare interface BaseRandomLayerArgs extends LayerArgs {};
+export declare interface BaseRandomLayerArgs extends LayerArgs {}
 
 export type RNGTypes = {
   [key: string]: Function;
@@ -26,7 +26,7 @@ export abstract class BaseRandomLayer extends Layer {
   randomGenerator: Function;
   private rngType: string;
 
-  private readonly rng_types: RNGTypes = {
+  private readonly rngTypes: RNGTypes = {
     gamma: randomGamma,
     normal: randomNormal,
     standardNormal: randomStandardNormal,
@@ -40,8 +40,8 @@ export abstract class BaseRandomLayer extends Layer {
   public setRNGType = (rngType: string) => {
     this.rngType = rngType;
 
-    if (this.rng_types.hasOwnProperty(this.rngType)) {
-      this.randomGenerator = this.rng_types[this.rngType]
+    if (this.rngTypes.hasOwnProperty(this.rngType)) {
+      this.randomGenerator = this.rngTypes[this.rngType];
     } else {
       throw new ValueError (
         `Invalid rngType provided.

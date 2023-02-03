@@ -14,9 +14,7 @@ import {Shape} from '../../keras_format/common';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
-// import {UniformRandom} from '../../../../tfjs-core/src/ops/rand_util';
 
-// export declare interface RandomWidthArgs extends BaseImageAugmentationLayerArgs {
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    factor: number | [number, number];
    interpolation?: InterpolationType; // default = 'bilinear';
@@ -29,13 +27,13 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
  *
  * This layer randomly adjusts the width of a batch of images of a
  * batch of images by a random factor.
-
+ *
  * The input should be a 3D (unbatched) or
  * 4D (batched) tensor in the `"channels_last"` image data format. Input pixel
  * values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and of interger
  * or floating point dtype. By default, the layer will output floats.
  *
- *tf methods implemented in tfjs: 'bilinear', 'nearest',
+ * tf methods implemented in tfjs: 'bilinear', 'nearest',
  * tf methods unimplemented in tfjs: 'bicubic', 'area', 'lanczos3', 'lanczos5',
  *                                   'gaussian', 'mitchellcubic'
  *
@@ -79,7 +77,7 @@ export class RandomWidth extends BaseRandomLayer {
       throw new ValueError(
         `factor must have values larger than -1.
         Got: ${this.factor}`
-      )
+      );
     }
 
     if (this.widthUpper < this.widthLower) {
@@ -87,7 +85,7 @@ export class RandomWidth extends BaseRandomLayer {
         `factor cannot have upper bound less than lower bound.
         Got upper bound: ${this.widthUpper}.
         Got lower bound: ${this.widthLower}
-      `)
+      `);
     }
 
     if(args.seed) {
@@ -126,10 +124,8 @@ export class RandomWidth extends BaseRandomLayer {
     return [this.imgHeight, this.adjustedWidth, numChannels];
   }
 
-
   override call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>,
     kwargs: Kwargs): Tensor[]|Tensor {
-
 
     return tidy(() => {
         const input = getExactlyOneTensor(inputs);
@@ -149,11 +145,11 @@ export class RandomWidth extends BaseRandomLayer {
             (1.0 + this.widthLower), (1.0 + this.widthUpper)
           );
         }
-        this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth
-        this.adjustedWidth = Math.round(this.adjustedWidth)
-        const size: [number, number] = [this.imgHeight, this.adjustedWidth]
+        this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
+        this.adjustedWidth = Math.round(this.adjustedWidth);
+        const size: [number, number] = [this.imgHeight, this.adjustedWidth];
         if (this.interpolation === 'bilinear') {
-          return image.resizeBilinear(inputs, size)
+          return image.resizeBilinear(inputs, size);
         } else if (this.interpolation === 'nearest') {
           const output = image.resizeNearestNeighbor(inputs, size);
           return output;
