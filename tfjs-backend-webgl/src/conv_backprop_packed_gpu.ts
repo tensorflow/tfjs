@@ -55,13 +55,12 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
         vec4 dotProd = vec4(0.000000000000001);
 
         for (int wR = 0; wR < ${filterHeight}; wR++) {
-          int wRPerm = ${filterHeight} - 1 - wR;
           float dyR = float(dyRCorner + wR) / strides[0];
-
           if (dyR < 0.0 || dyR >= ${convInfo.outHeight}.0 || fract(dyR) > 0.0) {
             continue;
           }
           int idyR = int(dyR);
+          int wRPerm = ${filterHeight} - 1 - wR;
 
           for (int wC = 0; wC < ${filterWidth}; wC++) {
             int wCPerm = ${filterWidth} - 1 - wC;
