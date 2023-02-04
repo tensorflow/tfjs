@@ -10,7 +10,6 @@
 
 import {InputLayer, InputLayerArgs} from './engine/input_layer';
 import {Layer, LayerArgs} from './engine/topology';
-// import {BaseRandomLayer, BaseRandomLayerArgs} from './engine/base_random_layer';
 import {input} from './exports';
 import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs, Conv3DTranspose} from './layers/convolutional';
@@ -1864,8 +1863,8 @@ export function categoryEncoding(args: CategoryEncodingArgs) {
   *   and lower bound. For instance, `factor=(0.2, 0.3)` results in an output 
   *   with width changed by a random amount in the range `[20%, 30%]`.
   *   `factor=(-0.2, 0.3)` results in an output with width changed by a random 
-  *   amount in the range `[-20%, +30%]`. `factor=0.2` results in an output with 
-  *   width changed by a random amount in the range `[-20%, +20%]`.
+  *   amount in the range `[-20%, +30%]`. `factor=0.2` results in an output  
+  *   with width changed by a random amount in the range `[-20%, +20%]`.
   * interpolation: 
   *   String, the interpolation method.
   *   Defaults to `bilinear`. 
