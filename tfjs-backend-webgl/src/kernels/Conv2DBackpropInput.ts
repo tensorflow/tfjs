@@ -36,7 +36,6 @@ export function conv2DBackpropInput(args: {
       1 /* dilations */, pad, dimRoundingMode, false, $dataFormat);
 
   if (env().getBool('WEBGL_PACK') && $dataFormat === 'channelsLast') {
-    console.log('tested');
     const customValues = [
       [convInfo.strideHeight, convInfo.strideWidth],
     ];
