@@ -31,7 +31,7 @@ function setup(backend: BackendWasm): void {
       [
         'number',   // imagesId
         'number',   // dyId
-        'number',   // dyId
+        'number',   // dxId
         'array',    // imagesShape
         'array',    // dyShape
         'boolean',  // alignCorners
