@@ -29,11 +29,11 @@ function setup(backend: BackendWasm): void {
   wasmResizeNearestNeighborGrad = backend.wasm.cwrap(
       ResizeNearestNeighborGrad, null /*void*/,
       [
-        'number',   // imagesId,
-        'number',   // dyId,
-        'number',   // dyId,
-        'array',    // imagesShape,
-        'array',    // dyShape,
+        'number',   // imagesId
+        'number',   // dyId
+        'number',   // dyId
+        'array',    // imagesShape
+        'array',    // dyShape
         'boolean',  // alignCorners
       ]);
 }
