@@ -353,6 +353,7 @@ tfjs_cc_library(
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":LinSpace",
         ":Log1p",
         ":Max",
         ":MaxPool",
@@ -939,6 +940,14 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LinSpace",
+    srcs = ["kernels/LinSpace.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
