@@ -89,12 +89,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'cropAndResize'},
-  {
-    include: 'resizeBilinear',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
+  {include: 'resizeBilinear'},
   {include: 'resizeNearestNeighbor'},
   {
     include: 'matmul ',

@@ -1197,6 +1197,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "ResizeBilinearGrad",
+    srcs = ["kernels/ResizeBilinearGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "ResizeNearestNeighbor",
     srcs = ["kernels/ResizeNearestNeighbor.cc"],
     hdrs = ["kernels/ResizeNearestNeighbor.h"],
