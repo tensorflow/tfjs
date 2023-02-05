@@ -37,7 +37,6 @@ class Shape {
   // Returns the size of the tensor with this shape.
   inline T size() const {
     T size = 1;
-#pragma unroll
     for (size_t i = 0; i < N; ++i) {
       size *= data_[i];
     }
@@ -47,7 +46,6 @@ class Shape {
   // Returns the flat offset of a N-D tensor given the indices.
   inline T offset(const std::array<T, N>& indices) const {
     T offset = 0;
-#pragma unroll
     for (size_t i = 0; i < N - 1; ++i) {
       offset += indices[i];
       offset *= data_[i + 1];
