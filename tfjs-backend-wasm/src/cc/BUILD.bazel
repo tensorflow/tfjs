@@ -384,6 +384,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ResizeNearestNeighbor",
+        ":ResizeNearestNeighborGrad",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
@@ -1202,6 +1203,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighborGrad",
+    srcs = ["kernels/ResizeNearestNeighborGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 

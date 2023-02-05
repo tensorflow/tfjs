@@ -95,12 +95,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented.
     ]
   },
-  {
-    include: 'resizeNearestNeighbor',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
+  {include: 'resizeNearestNeighbor'},
   {
     include: 'matmul ',
     excludes: [
