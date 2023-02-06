@@ -349,6 +349,8 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IsFinite",
+        ":IsInf",
         ":IsNan",
         ":LRN",
         ":LRNGrad",
@@ -1537,6 +1539,22 @@ tfjs_cc_library(
     srcs = ["kernels/IsNan.cc"],
     deps = [
         ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsFinite",
+    srcs = ["kernels/IsFinite.cc"],
+    deps = [
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsInf",
+    srcs = ["kernels/IsInf.cc"],
+    deps = [
         ":unary",
     ],
 )
