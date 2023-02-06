@@ -344,6 +344,8 @@ tfjs_cc_library(
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Dilation2D",
+        ":Dilation2DBackpropFilter",
+        ":Dilation2DBackpropInput",
         ":Elu",
         ":Equal",
         ":Exp",
@@ -357,9 +359,12 @@ tfjs_cc_library(
         ":Greater",
         ":GreaterEqual",
         ":IsNan",
+        ":LRN",
+        ":LRNGrad",
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":Log1p",
         ":Max",
         ":MaxPool",
         ":MaxPool3D",
@@ -724,6 +729,26 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "Dilation2DBackpropFilter",
+    srcs = ["kernels/Dilation2DBackpropFilter.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Dilation2DBackpropInput",
+    srcs = ["kernels/Dilation2DBackpropInput.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
@@ -883,6 +908,22 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "LRN",
+    srcs = ["kernels/LRN.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LRNGrad",
+    srcs = ["kernels/LRNGrad.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "LeakyRelu",
     srcs = ["kernels/LeakyRelu.cc"],
     hdrs = ["kernels/LeakyRelu.h"],
@@ -909,6 +950,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Log1p",
+    srcs = ["kernels/Log1p.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )
