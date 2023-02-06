@@ -87,12 +87,12 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
 
               vec2 dyValue = mod(float(idyC), 2.) == 0. ?
                 dySample.xy : dySample.zw;
-              dotProd.xy += vec2(dot(dyValue, wValue.xy),
+              result.xy += vec2(dot(dyValue, wValue.xy),
                 dot(dyValue, wValue.zw)) * idyCVal;
 
               dyValue = mod(float(idyC2), 2.) == 0. ?
                 dySample2.xy : dySample2.zw;
-              dotProd.zw += vec2(dot(dyValue, wValue.xy),
+              result.zw += vec2(dot(dyValue, wValue.xy),
                 dot(dyValue, wValue.zw)) * idyCVal2;
             }
           }
