@@ -28,6 +28,7 @@ import {Rescaling, RescalingArgs} from './layers/preprocessing/image_preprocessi
 import {CenterCrop, CenterCropArgs} from './layers/preprocessing/center_crop';
 import {CategoryEncoding, CategoryEncodingArgs} from './layers/preprocessing/category_encoding';
 import {Resizing, ResizingArgs} from './layers/preprocessing/image_resizing';
+import {RandomWidth, RandomWidthArgs} from './layers/preprocessing/random_width';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -1765,7 +1766,7 @@ export function rescaling(args?: RescalingArgs) {
 export function centerCrop(args?: CenterCropArgs) {
    return new CenterCrop(args);
   }
-  
+
 /**
  * A preprocessing layer which resizes images.
  * This layer resizes an image input to a target height and width. The input
@@ -1838,3 +1839,51 @@ export function resizing(args?: ResizingArgs) {
 export function categoryEncoding(args: CategoryEncodingArgs) {
   return new CategoryEncoding(args);
 }
+
+ /**
+  * A preprocessing layer which randomly varies image width during training.
+  *
+  * This layer will randomly adjusts the width of a batch of images of a batch
+  * of images by a random factor.
+  *
+  * The input should be a 3D (unbatched) or 4D (batched) tensor in
+  * the `"channels_last"` image data format. Input pixel values can be of any
+  * range (e.g. `[0., 1.)` or `[0, 255]`) and of integer or floating point
+  * dtype. By default, the layer will output floats. By default, this layer is
+  * inactive during inference. For an overview and full list of preprocessing
+  * layers, see the preprocessing [guide]
+  * (https://www.tensorflow.org/guide/keras/preprocessing_layers).
+  *
+  * Arguments:
+  *
+  * factor:
+  *   A positive float (fraction of original width), or a tuple of size 2
+  *   representing lower and upper bound for resizing vertically.
+  *   When represented as a single float, this value is used for both the upper
+  *   and lower bound. For instance, `factor=(0.2, 0.3)` results in an output
+  *   with width changed by a random amount in the range `[20%, 30%]`.
+  *   `factor=(-0.2, 0.3)` results in an output with width changed by a random
+  *   amount in the range `[-20%, +30%]`. `factor=0.2` results in an output
+  *   with width changed by a random amount in the range `[-20%, +20%]`.
+  * interpolation:
+  *   String, the interpolation method.
+  *   Defaults to `bilinear`.
+  *   Supports `"bilinear"`, `"nearest"`.
+  *   The tf methods `"bicubic"`, `"area"`, `"lanczos3"`, `"lanczos5"`,
+  *   `"gaussian"`, `"mitchellcubic"` are unimplemented in tfjs.
+  * seed:
+  *   Integer. Used to create a random seed.
+  *
+  * Input shape:
+  *     3D (unbatched) or 4D (batched) tensor with shape:
+  *     `(..., height, width, channels)`, in `"channels_last"` format.
+  * Output shape:
+  *     3D (unbatched) or 4D (batched) tensor with shape:
+  *     `(..., height, random_width, channels)`.
+  *
+  *
+  * @doc {heading: 'Layers', subheading: 'RandomWidth', namespace: 'layers'}
+  */
+  export function randomWidth(args: RandomWidthArgs) {
+    return new RandomWidth(args);
+  }
