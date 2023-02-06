@@ -51,9 +51,7 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
         int dyRCorner = dyCorner.x;
         int dyCCorner = dyCorner.y;
 
-        //intialize dotProd with a small epsilon seems to reduce GPU accuracy loss.
-        vec4 dotProd = vec4(0.000000000000001);
-
+        vec4 result = vec4(0.);
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           float dyR = float(dyRCorner + wR) / strides[0];
           if (dyR < 0.0 || dyR >= ${convInfo.outHeight}.0 || fract(dyR) > 0.0) {
@@ -99,7 +97,6 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
             }
           }
         }
-        vec4 result = dotProd - vec4(0.000000000000001);
         setOutput(result);
       }
     `;
