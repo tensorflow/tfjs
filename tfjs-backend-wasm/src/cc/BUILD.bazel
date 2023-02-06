@@ -317,6 +317,8 @@ tfjs_cc_library(
         ":Any",
         ":ArgMax",
         ":Atan",
+        ":Atan2",
+        ":Atanh",
         ":AvgPool",
         ":AvgPool3D",
         ":AvgPool3DGrad",
@@ -482,6 +484,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Atan",
     srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atan2",
+    srcs = ["kernels/Atan2.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atanh",
+    srcs = ["kernels/Atanh.cc"],
     deps = [
         ":backend",
         ":unary",

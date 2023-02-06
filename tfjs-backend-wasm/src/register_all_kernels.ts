@@ -31,6 +31,8 @@ import {argMaxConfig} from './kernels/ArgMax';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
+import {atan2Config} from './kernels/Atan2';
+import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
@@ -166,6 +168,8 @@ const kernelConfigs: KernelConfig[] = [
   asinConfig,
   asinhConfig,
   atanConfig,
+  atan2Config,
+  atanhConfig,
   avgPoolConfig,
   avgPool3DConfig,
   avgPool3DGradConfig,

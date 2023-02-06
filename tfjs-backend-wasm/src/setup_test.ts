@@ -413,6 +413,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'dilation2d '},
   {include: 'localResponseNormalization '},
   {include: 'log1p '},
+  {include: 'atan2 '},
+  {include: 'atanh '},
 ];
 
 const customInclude = (testName: string) => {
