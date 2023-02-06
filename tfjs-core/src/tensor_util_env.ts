@@ -18,7 +18,7 @@
 import {ENGINE} from './engine';
 import {env} from './environment';
 import {Tensor} from './tensor';
-import {DataType, TensorLike, WebGLData, WebGPUData} from './types';
+import {DataType, getGPUDataType, GPUDataType, TensorLike, WebGLData, WebGPUData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
 import {bytesPerElement} from './util_base';
 
@@ -29,14 +29,18 @@ export function inferShape(
   if (isTypedArray(val)) {
     return dtype === 'string' ? [] : [val.length];
   }
-  const isObject = typeof val === 'object';
-  if (isObject) {
-    if ('texture' in val) {
-      const usedChannels = val.channels || 'RGBA';
-      return [val.height, val.width * usedChannels.length];
-    } else if ('buffer' in val && !(val.buffer instanceof ArrayBuffer)) {
-      return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
-    }
+
+  const gpuDataType = getGPUDataType(val);
+  if (gpuDataType === GPUDataType.WebGL) {
+    const usedChannels = (val as WebGLData).channels || 'RGBA';
+    return [
+      (val as WebGLData).height, (val as WebGLData).width * usedChannels.length
+    ];
+  } else if (gpuDataType === GPUDataType.WebGPU) {
+    return [
+      (val as WebGPUData).buffer.size /
+      (dtype == null ? 4 : bytesPerElement(dtype))
+    ];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.

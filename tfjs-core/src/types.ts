@@ -196,3 +196,26 @@ export interface WebGPUData {
   buffer: GPUBuffer;
   zeroCopy?: boolean;
 }
+
+export enum GPUDataType {
+  Unknown = 0,
+  WebGL = 1,
+  WebGPU = 2,
+}
+
+export function getGPUDataType(values: TensorLike|WebGLData|
+                               WebGPUData): GPUDataType {
+  if (typeof values !== 'object') {
+    // Unknown data type.
+    return GPUDataType.Unknown;
+  }
+  if ('texture' in values) {
+    return GPUDataType.WebGL;
+  } else if (
+      'buffer' in values && !(values.buffer instanceof ArrayBuffer) &&
+      !(values.buffer instanceof SharedArrayBuffer)) {
+    return GPUDataType.WebGPU;
+  } else {
+    return GPUDataType.Unknown;
+  }
+}
