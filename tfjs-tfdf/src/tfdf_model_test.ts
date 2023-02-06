@@ -20,13 +20,19 @@ import * as tf from '@tensorflow/tfjs-core';
 import {loadTFDFModel, TFDFModel} from './tfdf_model';
 
 describe('TFDFModel ', () => {
-  let model: TFDFModel;
+
+  let model_adult: TFDFModel;
+  let model_sst: TFDFModel;
+
   beforeEach(async () => {
-    model = await loadTFDFModel(
+    model_adult = await loadTFDFModel(
         'https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json');
+
+    model_sst = await loadTFDFModel(
+          'file:///usr/local/google/home/gbm/project/tfjs/tf_js_model/model.json');
   });
 
-  it('predict', async () => {
+  it('predict_adult', async () => {
     const inputs = {
       'age': tf.tensor1d([39, 40, 40, 35], 'int32'),
       'workclass': tf.tensor1d(
@@ -56,7 +62,7 @@ describe('TFDFModel ', () => {
           ['United-States', '', 'United-States', 'United-States'], 'string')
     };
 
-    const densePredictions = await model.executeAsync(inputs) as tf.Tensor;
+    const densePredictions = await model_adult.executeAsync(inputs) as tf.Tensor;
 
     tf.test_util.expectArraysEqual(densePredictions.shape, [4, 1]);
     tf.test_util.expectArraysClose(await densePredictions.data(), [[
@@ -65,5 +71,51 @@ describe('TFDFModel ', () => {
                                      0.818461537361145,
                                      0.4974619150161743,
                                    ]]);
+  });
+
+  it('predict_sst', async () => {
+    const inputs = {
+      'sentence': tf.tensor2d([['a', 'valueless', 'kiddie', 'paean', 'to', 'pro', 'basketball',
+      'underwritten', 'by', 'the', 'nba', '.'],
+     ['featuring', 'a', 'dangerously', 'seductive', 'performance', 'from',
+      'the', 'great', 'daniel', 'auteuil', ',', '``', 'sade', "''",
+      'covers', 'the', 'same', 'period', 'as', 'kaufmann', "'s", '``',
+      'quills', "''", 'with', 'more', 'unsettlingly', 'realistic',
+      'results', '.']                                                         ,
+     ['i', 'am', 'sorry', 'that', 'i', 'was', 'unable', 'to', 'get',
+      'the', 'full', 'brunt', 'of', 'the', 'comedy', '.']             ,
+     ['the', 'inspirational', 'screenplay', 'by', 'mike', 'rich',
+      'covers', 'a', 'lot', 'of', 'ground', ',', 'perhaps', 'too',
+      'much', ',', 'but', 'ties', 'things', 'together', ',', 'neatly',
+      ',', 'by', 'the', 'end', '.']                                      ,
+     ['from', 'the', 'opening', 'scenes', ',', 'it', "'s", 'clear',
+      'that', 'all', 'about', 'the', 'benjamins', 'is', 'a', 'totally',
+      'formulaic', 'movie', '.']                                            ,
+     ['exquisitely', 'nuanced', 'in', 'mood', 'tics', 'and', 'dialogue',
+      ',', 'this', 'chamber', 'drama', 'is', 'superbly', 'acted', 'by',
+      'the', 'deeply', 'appealing', 'veteran', 'bouquet', 'and', 'the',
+      'chilling', 'but', 'quite', 'human', 'berling', '.']               ,
+     ['slick', 'piece', 'of', 'cross-promotion', '.'],
+     ['one', 'of', 'the', 'more', 'intelligent', 'children', "'s",
+      'movies', 'to', 'hit', 'theaters', 'this', 'year', '.']     ,
+     ['but', 'it', 'could', 'have', 'been', 'worse', '.'],
+     ['the', 'movie', "'s", 'relatively', 'simple', 'plot', 'and',
+      'uncomplicated', 'morality', 'play', 'well', 'with', 'the',
+      'affable', 'cast', '.']], 'string'),
+    };
+
+    const densePredictions = await model_sst.executeAsync(inputs) as tf.Tensor;
+
+    tf.test_util.expectArraysEqual(densePredictions.shape, [10, 1]);
+    tf.test_util.expectArraysClose(await densePredictions.data(), [[0.5386623 ],
+    [0.64523983],
+    [0.45326024],
+    [0.43459246],
+    [0.52655387],
+    [0.64283407],
+    [0.5427809 ],
+    [0.54747176],
+    [0.35419527],
+    [0.577703  ]]);
   });
 });
