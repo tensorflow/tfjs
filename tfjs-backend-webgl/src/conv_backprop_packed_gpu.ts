@@ -82,14 +82,20 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
             }
 
             for (int d2 = 0; d2 < ${convInfo.outChannels}; d2 += 2) {
-              vec4 dySample = getDy(batch, idyR, idyC, d2);
-              vec2 dyValue = mod(float(idyC), 2.) == 0. ? dySample.xy : dySample.zw;
               vec4 wValue = getW(wRPerm, wCPerm, d1, d2);
-              dotProd.xy += vec2(dot(dyValue, wValue.xy), dot(dyValue, wValue.zw)) * idyCVal;
+              vec4 dySample = getDy(batch, idyR, idyC, d2);
+              vec4 dySample2 = (idyC / 2 == idyC2 / 2) ?
+                dySample : getDy(batch, idyR, idyC2, d2);
 
-              dySample = getDy(batch, idyR, idyC2, d2);
-              dyValue = mod(float(idyC2), 2.) == 0. ? dySample.xy : dySample.zw;
-              dotProd.zw += vec2(dot(dyValue, wValue.xy), dot(dyValue, wValue.zw)) * idyCVal2;
+              vec2 dyValue = mod(float(idyC), 2.) == 0. ?
+                dySample.xy : dySample.zw;
+              dotProd.xy += vec2(dot(dyValue, wValue.xy),
+                dot(dyValue, wValue.zw)) * idyCVal;
+
+              dyValue = mod(float(idyC2), 2.) == 0. ?
+                dySample2.xy : dySample2.zw;
+              dotProd.zw += vec2(dot(dyValue, wValue.xy),
+                dot(dyValue, wValue.zw)) * idyCVal2;
             }
           }
         }
