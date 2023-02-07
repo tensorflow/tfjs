@@ -238,12 +238,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
-  {
-    include: 'elu ',
-    excludes: [
-      'selu'  // Not yet implemented.
-    ]
-  },
+  {include: 'elu '},
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -403,6 +398,13 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'dilation2d '},
   {include: 'localResponseNormalization '},
   {include: 'log1p '},
+  {include: 'atan2 '},
+  {include: 'atanh '},
+  {include: 'isInf '},
+  {include: 'isFinite '},
+  {include: 'sign '},
+  {include: 'selu '},
+  {include: 'softplus '},
 ];
 
 const customInclude = (testName: string) => {
