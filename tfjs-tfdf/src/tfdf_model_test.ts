@@ -101,14 +101,14 @@ describe('TFDFModel ', () => {
      ['but', 'it', 'could', 'have', 'been', 'worse', '.'],
      ['the', 'movie', "'s", 'relatively', 'simple', 'plot', 'and',
       'uncomplicated', 'morality', 'play', 'well', 'with', 'the',
-      'affable', 'cast', '.']], 'string'),
+      'affable', 'cast', '.']]),
     };
 
     const densePredictions = await model_sst.executeAsync(inputs) as tf.Tensor;
 
     tf.test_util.expectArraysEqual(densePredictions.shape, [10, 1]);
     tf.test_util.expectArraysClose(await densePredictions.data(), [[0.5386623 ],
-    [0.64523983],
+    [0.64523983+50],
     [0.45326024],
     [0.43459246],
     [0.52655387],
