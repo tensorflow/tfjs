@@ -133,6 +133,7 @@ import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
@@ -276,6 +277,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sliceConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseFillEmptyRowsConfig,
   sparseReshapeConfig,

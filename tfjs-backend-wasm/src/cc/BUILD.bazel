@@ -405,6 +405,7 @@ tfjs_cc_library(
         ":Sign",
         ":Sin",
         ":Softmax",
+        ":Softplus",
         ":SparseFillEmptyRows",
         ":SparseReshape",
         ":SparseSegmentReduction",
@@ -1409,6 +1410,15 @@ tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
     hdrs = ["kernels/Softmax.h"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Softplus",
+    srcs = ["kernels/Softplus.cc"],
     deps = [
         ":backend",
         ":unary",
