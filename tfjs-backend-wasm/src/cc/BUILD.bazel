@@ -253,6 +253,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -289,9 +292,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "shape",
+    hdrs = ["shape.h"],
+)
+
+tfjs_cc_library(
     name = "util",
     srcs = ["util.cc"],
     hdrs = ["util.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -378,6 +389,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ResizeNearestNeighbor",
+        ":ResizeNearestNeighborGrad",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
@@ -1236,12 +1248,30 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "ResizeBilinearGrad",
+    srcs = ["kernels/ResizeBilinearGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "ResizeNearestNeighbor",
     srcs = ["kernels/ResizeNearestNeighbor.cc"],
     hdrs = ["kernels/ResizeNearestNeighbor.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighborGrad",
+    srcs = ["kernels/ResizeNearestNeighborGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 
