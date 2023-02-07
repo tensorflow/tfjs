@@ -248,12 +248,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
-  {
-    include: 'elu ',
-    excludes: [
-      'selu'  // Not yet implemented.
-    ]
-  },
+  {include: 'elu '},
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -418,6 +413,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'isInf '},
   {include: 'isFinite '},
   {include: 'sign '},
+  {include: 'selu '},
 ];
 
 const customInclude = (testName: string) => {

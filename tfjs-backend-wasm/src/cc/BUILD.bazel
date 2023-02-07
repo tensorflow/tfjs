@@ -388,6 +388,7 @@ tfjs_cc_library(
         ":ScatterNd",
         ":SearchSorted",
         ":SelectV2",
+        ":Selu",
         ":Sigmoid",
         ":Sign",
         ":Sin",
@@ -1332,6 +1333,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Selu",
+    srcs = ["kernels/Selu.cc"],
+    deps = [
+        ":backend",
+        ":unary",
     ],
 )
 
