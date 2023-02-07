@@ -389,6 +389,7 @@ tfjs_cc_library(
         ":SearchSorted",
         ":SelectV2",
         ":Sigmoid",
+        ":Sign",
         ":Sin",
         ":Softmax",
         ":SparseFillEmptyRows",
@@ -1342,6 +1343,15 @@ tfjs_cc_library(
         ":backend",
         ":sigmoid_impl",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sign",
+    srcs = ["kernels/Sign.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 

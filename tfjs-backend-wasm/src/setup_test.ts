@@ -417,6 +417,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'atanh '},
   {include: 'isInf '},
   {include: 'isFinite '},
+  {include: 'sign '},
 ];
 
 const customInclude = (testName: string) => {
