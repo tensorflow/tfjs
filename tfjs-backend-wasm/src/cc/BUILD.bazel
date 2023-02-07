@@ -153,6 +153,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "bincount_impl",
+    hdrs = ["bincount_impl.h"],
+)
+
+tfjs_cc_library(
     name = "check_macros",
     srcs = ["check_macros.h"],
     deps = [
@@ -343,6 +348,7 @@ tfjs_cc_library(
         ":CropAndResize",
         ":Cumprod",
         ":Cumsum",
+        ":DenseBincount",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Dilation2D",
@@ -723,6 +729,7 @@ tfjs_cc_library(
     srcs = ["kernels/DenseBincount.cc"],
     deps = [
         ":backend",
+        ":bincount_impl",
         ":util",
     ],
 )
