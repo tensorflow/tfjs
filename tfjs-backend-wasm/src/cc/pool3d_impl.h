@@ -17,6 +17,7 @@
 #endif
 
 #include <cstddef>
+#include "tfjs-backend-wasm/src/cc/shape.h"
 
 namespace tfjs::wasm {
 
@@ -56,20 +57,23 @@ struct NDHWCPool3DInfo {
   int pad_top;
   int pad_left;
 
+  inline Shape<int, 5> in_shape() const {
+    return Shape<int, 5>(
+        {batch_size, in_depth, in_height, in_width, channel_size});
+  }
+  inline Shape<int, 5> out_shape() const {
+    return Shape<int, 5>(
+        {batch_size, out_depth, out_height, out_width, channel_size});
+  }
+
   inline int in_offset(int b, int d, int h, int w, int c) const {
-    return c +
-           (w + (h + (d + b * in_depth) * in_height) * in_width) * channel_size;
+    return in_shape().offset({b, d, h, w, c});
   }
   inline int out_offset(int b, int d, int h, int w, int c) const {
-    return c + (w + (h + (d + b * out_depth) * out_height) * out_width) *
-                   channel_size;
+    return out_shape().offset({b, d, h, w, c});
   }
-  inline int in_size() const {
-    return batch_size * in_depth * in_height * in_width * channel_size;
-  }
-  inline int out_size() const {
-    return batch_size * out_depth * out_height * out_width * channel_size;
-  }
+  inline int int_size() const { return in_shape().size(); }
+  inline int out_size() const { return out_shape().size(); }
 };
 template <typename IN, typename OUT, typename FI, typename FAP, typename FAG>
 inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
