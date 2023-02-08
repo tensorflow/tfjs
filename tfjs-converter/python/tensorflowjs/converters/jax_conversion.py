@@ -60,7 +60,8 @@ def convert_jax(
     *,
     input_signatures: Sequence[Tuple[Sequence[Union[int, None]], DType]],
     model_dir: str,
-    polymorphic_shapes: Optional[Sequence[Union[str, PolyShape]]] = None):
+    polymorphic_shapes: Optional[Sequence[Union[str, PolyShape]]] = None,
+    **tfjs_converter_params):
   """Converts a JAX function `jax_apply_fn` and model parameters to a TensorflowJS model.
 
   Example usage for a Flax Module:
@@ -146,4 +147,5 @@ def convert_jax(
         saved_model_dir,
         signatures=signatures,
         options=saved_model_options)
-    saved_model_conversion.convert_tf_saved_model(saved_model_dir, model_dir)
+    saved_model_conversion.convert_tf_saved_model(saved_model_dir, model_dir,
+                                                  **tfjs_converter_params)

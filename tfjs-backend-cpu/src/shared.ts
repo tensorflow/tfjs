@@ -26,6 +26,7 @@ export {equalImpl} from './kernels/Equal';
 export {expImpl} from './kernels/Exp';
 export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
+export {floorDivImpl} from './kernels/FloorDiv';
 export {gatherNdImpl} from './kernels/GatherNd_Impl';
 export {gatherV2Impl} from './kernels/GatherV2_impl';
 export {greaterImpl} from './kernels/Greater';

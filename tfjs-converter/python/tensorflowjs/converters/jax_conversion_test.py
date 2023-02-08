@@ -20,7 +20,8 @@ from jax import random
 import jax.numpy as jnp
 import tensorflow as tf
 from tensorflowjs.converters import jax_conversion
-
+import os
+import json
 
 class FlaxModule(nn.Module):
   """A simple Flax Module containing a few Dense layers and ReLUs."""
@@ -67,6 +68,21 @@ class JaxConversionTest(tf.test.TestCase):
         {'w': 0.5},
         input_signatures=[tf.TensorSpec((2, 3), tf.float32)],
         model_dir=self.get_temp_dir())
+
+  def test_convert_quantize(self):
+    apply_fn = lambda params, x: jnp.sum(x) * params['w']
+    model_dir = self.get_temp_dir()
+    jax_conversion.convert_jax(
+        apply_fn,
+        {'w': 0.5},
+        input_signatures=[tf.TensorSpec((2, 3), tf.float32)],
+        model_dir=model_dir,
+        quantization_dtype_map = {'float16': '*'})
+
+    with open(os.path.join(model_dir, 'model.json'), 'rt') as model:
+      model_json = json.load(model)
+      quantization = model_json['weightsManifest'][0]['weights'][1]['quantization']
+      self.assertEqual(quantization['dtype'], 'float16')
 
   def test_convert_poly(self):
     apply_fn = lambda params, x: jnp.sum(x) * params['w']

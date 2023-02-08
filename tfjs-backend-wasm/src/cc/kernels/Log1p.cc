@@ -25,34 +25,29 @@
 namespace {
 
 template <typename T>
-inline T acos_impl(T n) {
-  return static_cast<T>(std::acosf(static_cast<float>(n)));
+inline T Log1pImpl(T n) {
+  return static_cast<T>(std::logf(static_cast<float>(n) + 1.0));
 }
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Acos(const int x_id, const DType dtype, const int out_id) {
+void Log1p(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, acos_impl<float>);
-      break;
-    case DType::int32:
-      unary_i32(x_id, out_id, acos_impl<int>);
+      unary_f32(x_id, out_id, Log1pImpl<float>);
       break;
     default:
-      util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Log1p for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
