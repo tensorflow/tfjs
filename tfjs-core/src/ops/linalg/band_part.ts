@@ -102,9 +102,8 @@ function bandPart_<T extends Tensor>(
         () => `bandPart(): numLower's dtype must be an int32.`);
     // If numUpper is a Scalar, checking `numLower <= M` could hurt performance,
     // but minimum(numLower, M) could avoid unexpected results.
-    $numLower = where(less(numLower, 0), M, minimum(numLower, M) as Scalar);
+    $numLower = where(less(numLower, 0), M, minimum(numLower, M)) as Scalar;
   }
-
 
   if (typeof numUpper === 'number') {
     assert(
@@ -121,7 +120,7 @@ function bandPart_<T extends Tensor>(
     assert(
         numUpper.dtype === 'int32',
         () => `bandPart(): numUpper's dtype must be an int32.`);
-    $numUpper = where(less(numUpper, 0), N, minimum(numUpper, N) as Scalar);
+    $numUpper = where(less(numUpper, 0), N, minimum(numUpper, N)) as Scalar;
   }
 
   const i = reshape(range(0, M, 1, 'int32'), [-1, 1]);

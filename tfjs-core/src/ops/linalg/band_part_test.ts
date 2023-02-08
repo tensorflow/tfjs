@@ -179,8 +179,7 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
     }
   });
 
-
-  fit('works for tensor numLower and tensor numUpper', async () => {
+  it('works for tensor numLower and tensor numUpper', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg
