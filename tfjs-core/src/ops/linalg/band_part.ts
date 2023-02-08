@@ -100,7 +100,7 @@ function bandPart_<T extends Tensor>(
     assert(
         numLower.dtype === 'int32',
         () => `bandPart(): numLower's dtype must be an int32.`);
-    // If numUpper is a Scalar, checking `numLower <= M` could hurt performance,
+    // If numLower is a Scalar, checking `numLower <= M` could hurt performance,
     // but minimum(numLower, M) could avoid unexpected results.
     $numLower = where(less(numLower, 0), M, minimum(numLower, M)) as Scalar;
   }
