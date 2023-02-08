@@ -31,6 +31,8 @@ import {argMaxConfig} from './kernels/ArgMax';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
+import {atan2Config} from './kernels/Atan2';
+import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
@@ -53,6 +55,8 @@ import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
+import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
+import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -70,15 +74,20 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {logicalXorConfig} from './kernels/LogicalXor';
+import {lrnConfig} from './kernels/LRN';
+import {lrnGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -108,7 +117,9 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
@@ -116,10 +127,13 @@ import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
@@ -161,6 +175,8 @@ const kernelConfigs: KernelConfig[] = [
   asinConfig,
   asinhConfig,
   atanConfig,
+  atan2Config,
+  atanhConfig,
   avgPoolConfig,
   avgPool3DConfig,
   avgPool3DGradConfig,
@@ -183,6 +199,8 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -200,15 +218,20 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  isFiniteConfig,
+  isInfConfig,
   isNaNConfig,
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  log1pConfig,
   logConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
   logicalXorConfig,
+  lrnConfig,
+  lrnGradConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -238,7 +261,9 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
@@ -246,10 +271,13 @@ const kernelConfigs: KernelConfig[] = [
   scatterNdConfig,
   searchSortedConfig,
   selectConfig,
+  seluConfig,
   sigmoidConfig,
+  signConfig,
   sinConfig,
   sliceConfig,
   softmaxConfig,
+  softplusConfig,
   spaceToBatchNDConfig,
   sparseFillEmptyRowsConfig,
   sparseReshapeConfig,

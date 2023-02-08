@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,8 @@
  * =============================================================================
  */
 
-import {FloorDiv, KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Selu} from '@tensorflow/tfjs-core';
 
-import {BinaryOpType} from '../binary_op_util';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {floorDivImplCPU} from '../kernel_utils/shared';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-export const floorDiv =
-    binaryKernelFunc({opType: BinaryOpType.INT_DIV,
-                      cpuKernelImpl: floorDivImplCPU, dtype: 'int32'});
-
-export const floorDivConfig: KernelConfig = {
-  kernelName: FloorDiv,
-  backendName: 'webgpu',
-  kernelFunc: floorDiv
-};
+export const seluConfig: KernelConfig = createUnaryKernelConfig(Selu);
