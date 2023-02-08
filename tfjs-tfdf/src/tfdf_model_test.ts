@@ -29,7 +29,7 @@ describe('TFDFModel ', () => {
       'https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json');
 
     modelSst = await loadTFDFModel(
-      'file:///usr/local/google/home/gbm/project/tfjs/tf_js_model/model.json');
+      'https://storage.googleapis.com/tfjs-testing/tf_df_gbt_sst/model.json');
   });
 
   it('predict_adult', async () => {
@@ -109,7 +109,7 @@ describe('TFDFModel ', () => {
 
     tf.test_util.expectArraysEqual(densePredictions.shape, [10, 1]);
     tf.test_util.expectArraysClose(await densePredictions.data(), [[0.5386623],
-      [0.64523983 + 50],
+      [0.64523983],
     [0.45326024],
     [0.43459246],
     [0.52655387],
