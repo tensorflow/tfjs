@@ -12,15 +12,14 @@
  * Unit Tests for random width layer.
  */
 
-import { Tensor, reshape, range, image, Rank, zeros, randomUniform, tensor } from '@tensorflow/tfjs-core';
+import { Tensor, range, image, Rank, zeros, randomUniform, tensor } from '@tensorflow/tfjs-core';
 import { describeMathCPUAndGPU, expectTensorsClose } from '../../utils/test_utils';
 
 import { RandomWidth, RandomWidthArgs } from './random_width';
 
 describeMathCPUAndGPU('RandomWidth Layer', () => {
   it('Returns correct, randomly scaled width of Rank 3 Tensor', () => {
-    const rangeTensor = range(0, 16);
-    const inputTensor = reshape(rangeTensor, [4,4,1]);
+    const inputTensor = range(0, 16).reshape([4, 4, 1]);
     const factor = 0.4;
     const interpolation = 'nearest';
     const seed = 42;
@@ -31,8 +30,7 @@ describeMathCPUAndGPU('RandomWidth Layer', () => {
   });
 
   it('Returns correct, randomly scaled width of Rank 4 Tensor', () => {
-    const rangeTensor = range(0, 16);
-    const inputTensor = reshape(rangeTensor, [1,4,4,1]);
+    const inputTensor = range(0, 16).reshape([1,4,4,1])
     const factor = 0.4;
     const interpolation = 'nearest';
     const seed = 42;
@@ -64,8 +62,7 @@ describeMathCPUAndGPU('RandomWidth Layer', () => {
 
   it('Returns correctly scaled tensor; not batched', () => {
     // randomly resize width and check output content
-    const rangeTensor = range(0, 16);
-    const inputTensor = reshape(rangeTensor, [4, 4, 1]);
+    const inputTensor = range(0, 16).reshape([4, 4, 1]);
     const factor = 0.4;
     const interpolation = 'nearest';
     const seed = 42;
