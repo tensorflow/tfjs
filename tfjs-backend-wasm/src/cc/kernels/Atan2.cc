@@ -19,40 +19,45 @@
 #include <cmath>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace tfjs::wasm {
 
 namespace {
 
 template <typename T>
-inline T acos_impl(T n) {
-  return static_cast<T>(std::acosf(static_cast<float>(n)));
+inline T Atan2Impl(T a, T b) {
+  return static_cast<T>(
+      std::atan2f(static_cast<float>(a), static_cast<float>(b)));
 }
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Acos(const int x_id, const DType dtype, const int out_id) {
+
+void Atan2(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
+           const int b_id, const size_t* b_shape_ptr, const int b_shape_len,
+           const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, acos_impl<float>);
+      binary_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, Atan2Impl<float>);
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, acos_impl<int>);
+      binary_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, Atan2Impl<int32_t>);
       break;
     default:
-      util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Atan2 for tensor id %d failed. Unsupported dtype %d", a_id,
                  dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
