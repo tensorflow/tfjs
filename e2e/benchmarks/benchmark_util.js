@@ -614,6 +614,7 @@ async function extTimeInference(predict, numWarmups = 30, numRuns = 50) {
     const query = tf.backend().startTimer();
     const res = predict();
     tf.backend().endTimer(query);
+    times.push(await tf.backend().getQueryTime(query));
     await downloadValuesFromTensorContainer(res);
     tf.dispose(res);
   }
