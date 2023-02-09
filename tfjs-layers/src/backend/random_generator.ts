@@ -48,8 +48,4 @@ export class RandomGenerator {
     }
     return null;
   }
-
-  reset() {
-    this.currentSeed = this.seed;
-  }
 }
