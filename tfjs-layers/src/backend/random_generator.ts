@@ -8,6 +8,13 @@
  * =============================================================================
  */
 
+/**
+ * Keeps track of seed and handles pseudorandomness
+ * Store random distribution functions as attributes
+ * Instance created in BaseRandomLayer class
+ * Utilized for random preprocessing layers
+ */
+
 import { randomGamma, randomNormal} from '@tensorflow/tfjs-core';
 import { randomStandardNormal, randomUniform } from '@tensorflow/tfjs-core';
 
@@ -21,11 +28,11 @@ export class RandomGenerator {
   static className = 'RandomGenerator';
   protected currentSeed: number;
   private readonly seed: number;
-  randomGamma: randomGammaType; 
+  randomGamma: randomGammaType;
   randomNormal: randomNormalType;
   randomStandardNormal: randomStandardNormalType;
   randomUniform: randomUniformType;
-  
+
   constructor(seed: number) {
     this.seed = seed;
     this.currentSeed = seed;
@@ -37,13 +44,12 @@ export class RandomGenerator {
 
   next(): number | null {
     if (typeof this.seed === 'number'){
-      return this.currentSeed++;
+      return ++this.currentSeed;
     }
     return null;
   }
 
   reset() {
-    // Not sure if reset is even necessary
     this.currentSeed = this.seed;
   }
 }
