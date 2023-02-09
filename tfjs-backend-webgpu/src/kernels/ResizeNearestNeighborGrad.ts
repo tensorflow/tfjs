@@ -29,8 +29,7 @@ export function resizeNearestNeighborGrad(args: {
   const {images, dy} = inputs;
   const {alignCorners} = attrs;
 
-  const [, xHeight, xWidth, ] =
-      images.shape as [number, number, number, number];
+  const [, xHeight, xWidth] = images.shape as [number, number, number, number];
   const [, yHeight, yWidth] = dy.shape as [number, number, number, number];
 
   const effectiveXSize: [number, number] = [
@@ -61,9 +60,7 @@ export function resizeNearestNeighborGrad(args: {
     {type: 'int32', data: effectiveYSize},
     {type: 'float32', data: [invHeightScale]},
     {type: 'float32', data: [invWidthScale]},
-    {type: 'int32', data: [winHeight]}, {type: 'int32', data: [winWidth]},
-    {type: 'int32', data: [yHeight]}, {type: 'int32', data: [yWidth]},
-    {type: 'int32', data: [xHeight]}, {type: 'int32', data: [xWidth]}
+    {type: 'int32', data: [winHeight]}, {type: 'int32', data: [winWidth]}
   ];
   return backend.runWebGPUProgram(program, [dy], dy.dtype, uniformData);
 }

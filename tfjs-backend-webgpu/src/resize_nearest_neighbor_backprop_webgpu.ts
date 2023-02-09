@@ -26,7 +26,7 @@ export class ResizeNearestNeigborBackpropProgram implements WebGPUProgram {
   variableNames = ['dy'];
   uniforms =
       `effectiveXSize : vec2<i32>, effectiveYSize : vec2<i32>, invHeightScale : f32, invWidthScale : f32,
-       winHeight : i32, winWidth : i32, yHeight : i32, yWidth : i32, xHeight : i32, xWidth : i32,`;
+       winHeight : i32, winWidth : i32,`;
   workgroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   size = true;
@@ -67,7 +67,7 @@ export class ResizeNearestNeigborBackpropProgram implements WebGPUProgram {
             let dyR = startDyR + dyROffset;
 
             // Guard against the window exceeding the bounds of dy
-            if (dyR < 0 || dyR >= uniforms.yHeight) {
+            if (dyR < 0 || dyR >= uniforms.dyShape[1]) {
               continue;
             }
 
@@ -75,7 +75,7 @@ export class ResizeNearestNeigborBackpropProgram implements WebGPUProgram {
               let dyC = startDyC + dyCOffset;
 
               // Guard against the window exceeding the bounds of dy
-              if (dyC < 0 || dyC >= uniforms.yWidth) {
+              if (dyC < 0 || dyC >= uniforms.dyShape[2]) {
                 continue;
               }
 
@@ -86,13 +86,13 @@ export class ResizeNearestNeigborBackpropProgram implements WebGPUProgram {
                   (f32(dyC) / f32(uniforms.effectiveYSize[1]));
 
               let sourceNearestRow =
-                  i32(min(f32(uniforms.xHeight - 1),
+                  i32(min(f32(uniforms.outShape[1] - 1),
                   ${
         this.alignCorners ? 'floor(sourceFracRow + 0.5)' :
                             'floor(sourceFracRow)'}));
 
               let sourceNearestCol =
-                  i32(min(f32(uniforms.xWidth - 1),
+                  i32(min(f32(uniforms.outShape[2] - 1),
                   ${
         this.alignCorners ? 'floor(sourceFracCol + 0.5)' :
                             'floor(sourceFracCol)'}));
