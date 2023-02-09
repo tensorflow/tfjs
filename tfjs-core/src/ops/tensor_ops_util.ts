@@ -17,7 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
-import {getGPUDataType, GPUDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from '../types';
+import {isWebGLData, isWebGPUData, TensorLike, TypedArray, WebGLData, WebGPUData} from '../types';
 import {DataType} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, flatten, inferDtype, isTypedArray, sizeFromShape, toTypedArray} from '../util';
 
@@ -33,7 +33,7 @@ export function makeTensor(
         `Please use tf.complex(real, imag).`);
   }
 
-  if (getGPUDataType(values) !== GPUDataType.Unknown) {
+  if (isWebGPUData(values) || isWebGLData(values)) {
     if (dtype !== 'float32' && dtype !== 'int32') {
       throw new Error(
           `Creating tensor from GPU data only supports ` +
