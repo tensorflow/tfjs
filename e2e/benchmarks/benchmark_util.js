@@ -604,3 +604,33 @@ async function getRendererInfo() {
   await tf.setBackend(curBackendName);
   return webglRenderer;
 }
+
+async function extTimeInference(predict, numWarmups = 30, numRuns = 50) {
+  for (let i = 0; i < numWarmups; i++) {
+    await downloadValuesFromTensorContainer(await predict());
+  }
+  const times = [];
+  for (let i = 0; i < numRuns; i++) {
+    const query = tf.backend().startTimer();
+    const res = predict();
+    tf.backend().endTimer(query);
+    await downloadValuesFromTensorContainer(res);
+    tf.dispose(res);
+  }
+
+  const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+  const averageTimeExclFirst = times.length > 1 ?
+    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+    'NA';
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  const timeInfo = {
+    times,
+    averageTime,
+    averageTimeExclFirst,
+    minTime,
+    maxTime
+
+  };
+  return timeInfo;
+}
