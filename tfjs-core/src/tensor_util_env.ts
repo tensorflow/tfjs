@@ -30,7 +30,6 @@ export function inferShape(
     return dtype === 'string' ? [] : [val.length];
   }
 
-  const gpuDataType = getGPUDataType(val);
   if (isWebGLData(val)) {
     const usedChannels = val.channels || 'RGBA';
     return [val.height, val.width * usedChannels.length];
