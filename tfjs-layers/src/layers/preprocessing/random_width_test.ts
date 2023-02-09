@@ -30,7 +30,7 @@ describeMathCPUAndGPU('RandomWidth Layer', () => {
   });
 
   it('Returns correct, randomly scaled width of Rank 4 Tensor', () => {
-    const inputTensor = range(0, 16).reshape([1,4,4,1])
+    const inputTensor = range(0, 16).reshape([1,4,4,1]);
     const factor = 0.4;
     const interpolation = 'nearest';
     const seed = 42;
