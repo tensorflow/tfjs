@@ -10,7 +10,7 @@
 
 import { image, Rank, serialization, Tensor, tidy } from '@tensorflow/tfjs-core';
 import { getExactlyOneTensor, getExactlyOneShape } from '../../utils/types_utils';
-import {Shape} from '../../keras_format/common';
+import { Shape } from '../../keras_format/common';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
@@ -57,7 +57,9 @@ export class RandomWidth extends BaseRandomLayer {
 
   constructor(args: RandomWidthArgs) {
     super(args);
-    this.factor = args.factor;
+    const {factor, interpolation = 'bilinear', seed} = args;
+
+    this.factor = factor;
 
     if (Array.isArray(this.factor) && this.factor.length === 2) {
       this.widthLower = this.factor[0];
@@ -84,14 +86,14 @@ export class RandomWidth extends BaseRandomLayer {
       `);
     }
 
-    this.seed = args.seed;
-    
-    if (args.interpolation) {
-      if (INTERPOLATION_METHODS.has(args.interpolation)) {
-        this.interpolation = args.interpolation;
+    this.seed = seed;
+
+    if (interpolation) {
+      if (INTERPOLATION_METHODS.has(interpolation)) {
+        this.interpolation = interpolation;
       } else {
         throw new ValueError(`Invalid interpolation parameter: ${
-            args.interpolation} is not implemented`);
+            interpolation} is not implemented`);
       }
     } else {
       this.interpolation = 'bilinear';
@@ -125,19 +127,19 @@ export class RandomWidth extends BaseRandomLayer {
         const inputShape = input.shape;
         this.imgHeight = inputShape.at(-3);
         const imgWidth = inputShape.at(-2);
-               
+
         this.widthFactor = this.randomGenerator.randomUniform([1],
           (1.0 + this.widthLower), (1.0 + this.widthUpper),
           'float32', this.seed
         );
-        
+
         this.seed = this.randomGenerator.next();
 
         this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
         this.adjustedWidth = Math.round(this.adjustedWidth);
-        // const size = [this.imgHeight, this.adjustedWidth] as const;
+
         const size:[number, number] = [this.imgHeight, this.adjustedWidth];
-        
+
         switch (true) {
           case this.interpolation === 'bilinear':
             return image.resizeBilinear(inputs, size);
