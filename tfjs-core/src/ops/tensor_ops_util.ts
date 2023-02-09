@@ -40,7 +40,7 @@ export function makeTensor(
           `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
     }
     return ENGINE.backend.createTensorFromGPUData(
-        values as WebGLData | WebGPUData, shape || inferredShape, dtype);
+        values, shape || inferredShape, dtype);
   }
 
   if (!isTypedArray(values) && !Array.isArray(values) &&
