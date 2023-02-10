@@ -17,42 +17,40 @@
 #endif
 
 #include <cmath>
+#include <limits>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
-namespace {
-
-template <typename T>
-inline T acos_impl(T n) {
-  return static_cast<T>(std::acosf(static_cast<float>(n)));
-}
-
-}  // namespace
-
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Acos(const int x_id, const DType dtype, const int out_id) {
+
+void Sign(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, acos_impl<float>);
+      unary_f32(x_id, out_id, [](float n) -> float {
+        static constexpr float kEps = std::numeric_limits<float>::epsilon();
+        if (std::isnan(n)) return 0;
+        if (n < kEps && n > -kEps) return 0;
+        return n > 0 ? 1 : -1;
+      });
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, acos_impl<int>);
+      unary_i32(x_id, out_id, [](int32_t n) {
+        if (n == 0) return 0;
+        return n > 0 ? 1 : -1;
+      });
       break;
     default:
-      util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Sign for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm

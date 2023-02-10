@@ -18,41 +18,43 @@
 
 #include <cmath>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 
 template <typename T>
-inline T acos_impl(T n) {
-  return static_cast<T>(std::acosf(static_cast<float>(n)));
+inline T SeluImpl(T n) {
+  static constexpr float kScaleAlpha = 1.7580993408473768599402175208123;
+  static constexpr float kScale = 1.0507009873554804934193349852946;
+
+  if (n > 0) return kScale * n;
+  return kScaleAlpha * (std::expf(static_cast<float>(n)) - 1.0);
 }
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Acos(const int x_id, const DType dtype, const int out_id) {
+
+void Selu(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, acos_impl<float>);
+      unary_f32(x_id, out_id, SeluImpl<float>);
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, acos_impl<int>);
+      unary_i32(x_id, out_id, SeluImpl<int32_t>);
       break;
     default:
-      util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Selu for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm

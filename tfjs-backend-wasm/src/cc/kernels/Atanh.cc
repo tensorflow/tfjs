@@ -25,34 +25,33 @@
 namespace {
 
 template <typename T>
-inline T acos_impl(T n) {
-  return static_cast<T>(std::acosf(static_cast<float>(n)));
+inline T AtanhImpl(T n) {
+  return static_cast<T>(std::atanhf(static_cast<float>(n)));
 }
 
 }  // namespace
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Acos(const int x_id, const DType dtype, const int out_id) {
+
+void Atanh(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary_f32(x_id, out_id, acos_impl<float>);
+      unary_f32(x_id, out_id, AtanhImpl<float>);
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, acos_impl<int>);
+      unary_i32(x_id, out_id, AtanhImpl<int32_t>);
       break;
     default:
-      util::warn("Acos for tensor id %d failed. Unsupported dtype %d", x_id,
+      util::warn("Atanh for tensor id %d failed. Unsupported dtype %d", x_id,
                  dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm
