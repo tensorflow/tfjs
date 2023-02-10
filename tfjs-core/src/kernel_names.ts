@@ -489,6 +489,11 @@ export interface LRNGradAttrs {
   beta: number;
 }
 
+export const MatrixBandPart = 'MatrixBandPart';
+export type MatrixBandPartInputs =
+    Pick<NamedTensorInfoMap, 'input'|'numLower'|'numUpper'>;
+export interface MatrixBandPartAttrs {}
+
 export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxAttrs {
