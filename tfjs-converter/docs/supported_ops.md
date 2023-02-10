@@ -248,6 +248,7 @@
 |Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
+|MatrixBandPart|MatrixBandPart|
 |Not mapped|dot|
 |Not mapped|norm|
 |Not mapped|outerProduct|
