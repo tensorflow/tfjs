@@ -51,6 +51,7 @@ const CHECK_NAN_SNIPPET_VEC4 = `
   `;
 
 const ADD = 'return a + b;';
+const ATAN2 = 'var resultTemp = atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -107,6 +108,8 @@ const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
 const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
 const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
   vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
+const MAX = 'var resultTemp = max(a, b);';
+const MIN = 'var resultTemp = min(a, b);';
 const MOD = `
   let isNaN = b == 0.;
   var resultTemp = a % b;
@@ -178,13 +181,9 @@ const PRELU_VEC4 = `
 const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 const SUB = 'return a - b;';
 
-const ATAN2 = 'var resultTemp = atan2(a, b);';
-const MAX = 'var resultTemp = max(a, b);';
-const MIN = 'var resultTemp = min(a, b);';
-
 export function getBinaryOpString(
     type: BinaryOpType, useVec4?: boolean): string {
-  // NaN-sensitive ops
+  // Ops with NaN check
   do {
     let doOpSnippet: string;
     switch (type) {
@@ -209,20 +208,18 @@ export function getBinaryOpString(
       default:
         continue;
     }
-    const checkNaNSnippet =
-        useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
     return `
       let isNaN = false;
       let valueForNaN = uniforms.NAN;
       {
         ${doOpSnippet}
-        ${checkNaNSnippet}
+        ${useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET}
         return resultTemp;
       }
     `;
   } while (false);
 
-  // NaN-insensitive ops
+  // Ops without NaN check
   switch (type) {
     case BinaryOpType.ADD:
       return ADD;
