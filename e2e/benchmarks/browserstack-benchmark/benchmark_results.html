@@ -86,11 +86,15 @@ limitations under the License.
       }
 
       structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_execute']
-        = benchmarkReocrd?.value?.cpuInfo?.cpu?.averageTimeExclFirst;
+        = benchmarkReocrd?.value?.cpuTime?.cpu?.averageTimeExclFirst;
       structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_sync']
-        = benchmarkReocrd?.value?.cpuInfo?.sync?.averageTimeExclFirst;
+        = benchmarkReocrd?.value?.cpuTime?.sync?.averageTimeExclFirst;
       structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_download']
-        = benchmarkReocrd?.value?.cpuInfo?.download?.averageTimeExclFirst;
+        = benchmarkReocrd?.value?.cpuTime?.download?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_fence_exe']
+        = benchmarkReocrd?.value?.cpuFenceTime?.cpu?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_fence_sync']
+        = benchmarkReocrd?.value?.cpuFenceTime?.sync?.averageTimeExclFirst;
       structuredBenchmarkResults[tableName][benchmarkTargetName]['gpu_execute']
         = benchmarkReocrd?.value?.gpuTime?.gpu?.averageTimeExclFirst;
       structuredBenchmarkResults[tableName][benchmarkTargetName]['gpu_download']

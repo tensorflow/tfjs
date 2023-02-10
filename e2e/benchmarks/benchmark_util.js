@@ -658,3 +658,26 @@ async function timeCpuInference(predict, numWarmups = 50, numRuns = 50) {
           download: summarizeTimes(downloadtimes)
         };
 }
+
+async function timeCpuInferenceFence(predict, numWarmups = 50, numRuns = 50) {
+  const isCusSetTime = tf.env().get('USE_SETTIMEOUTCUSTOM');
+  tf.env().set('USE_SETTIMEOUTCUSTOM', true);
+  for (let i = 0; i < numWarmups; i++) {
+    await downloadValuesFromTensorContainer(await predict());
+  }
+  const cputimes = [];
+  const synctimes = [];
+  for (let i = 0; i < numRuns; i++) {
+    const start = performance.now();
+    const res = predict();
+    const rp = performance.now();
+    await tf.backend().gpgpu.createAndWaitForFence();
+    const end = performance.now();
+    cputimes.push(rp - start);
+    synctimes.push(end - rp);
+    tf.dispose(res);
+  }
+  tf.env().set('USE_SETTIMEOUTCUSTOM', isCusSetTime);
+  return {cpu: summarizeTimes(cputimes),
+          sync: summarizeTimes(synctimes)};
+}
