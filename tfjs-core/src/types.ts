@@ -196,3 +196,17 @@ export interface WebGPUData {
   buffer: GPUBuffer;
   zeroCopy?: boolean;
 }
+
+export function isWebGLData(values: unknown): values is WebGLData {
+  return values != null 
+      && typeof values === 'object' 
+      && 'texture' in values
+      && values.texture instanceof WebGLTexture;
+}
+export function isWebGPUData(values: unknown): values is WebGPUData {
+  return typeof GPUBuffer !== 'undefined'
+      && values != null
+      && typeof values === 'object'
+      && 'buffer' in values 
+      && values.buffer instanceof GPUBuffer;
+}
