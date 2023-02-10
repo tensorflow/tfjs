@@ -256,22 +256,7 @@ async function timeInference(predict, numRuns = 1) {
     tf.dispose(res);
     times.push(elapsedTime);
   }
-
-  const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
-  const averageTimeExclFirst = times.length > 1 ?
-    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
-    'NA';
-  const minTime = Math.min(...times);
-  const maxTime = Math.max(...times);
-  const timeInfo = {
-    times,
-    averageTime,
-    averageTimeExclFirst,
-    minTime,
-    maxTime
-
-  };
-  return timeInfo;
+  return summarizeTimes(times);
 }
 
 /**
@@ -605,20 +590,7 @@ async function getRendererInfo() {
   return webglRenderer;
 }
 
-async function extTimeInference(predict, numWarmups = 30, numRuns = 50) {
-  for (let i = 0; i < numWarmups; i++) {
-    await downloadValuesFromTensorContainer(await predict());
-  }
-  const times = [];
-  for (let i = 0; i < numRuns; i++) {
-    const query = tf.backend().startTimer();
-    const res = predict();
-    tf.backend().endTimer(query);
-    times.push(await tf.backend().getQueryTime(query));
-    await downloadValuesFromTensorContainer(res);
-    tf.dispose(res);
-  }
-
+function summarizeTimes(times) {
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
   const averageTimeExclFirst = times.length > 1 ?
     times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
@@ -631,7 +603,58 @@ async function extTimeInference(predict, numWarmups = 30, numRuns = 50) {
     averageTimeExclFirst,
     minTime,
     maxTime
-
   };
   return timeInfo;
+}
+
+async function timeGpuInference(predict, numWarmups = 50, numRuns = 50) {
+  for (let i = 0; i < numWarmups; i++) {
+    await downloadValuesFromTensorContainer(await predict());
+  }
+  const gputimes = [];
+  const synctimes = [];
+  for (let i = 0; i < numRuns; i++) {
+    let query = tf.backend().startTimer();
+    const res = predict();
+    tf.backend().endTimer(query);
+    gputimes.push(await tf.backend().getQueryTime(query));
+
+    query = tf.backend().startTimer();
+    await downloadValuesFromTensorContainer(res);
+    tf.backend().endTimer(query);
+    synctimes.push(await tf.backend().getQueryTime(query));
+
+    tf.dispose(res);
+  }
+  return {gpu: summarizeTimes(gputimes),
+          sync: summarizeTimes(synctimes)};
+}
+
+async function timeCpuInference(predict, numWarmups = 50, numRuns = 50) {
+  for (let i = 0; i < numWarmups; i++) {
+    await downloadValuesFromTensorContainer(await predict());
+  }
+  const cputimes = [];
+  const synctimes = [];
+  const downloadtimes = [];
+  tf.env().set('WEBGL_READ_FROM_VALUES', true);
+  for (let i = 0; i < numRuns; i++) {
+    const start = performance.now();
+    const res = predict();
+    const rp = performance.now();
+    await downloadValuesFromTensorContainer(res);
+    const end = performance.now();
+    tf.env().set('WEBGL_READ_FROM_VALUES', false);
+    await downloadValuesFromTensorContainer(res);
+    const endReadAgain = performance.now();
+    tf.env().set('WEBGL_READ_FROM_VALUES', true);
+    cputimes.push(rp - start);
+    synctimes.push(end - rp);
+    downloadtimes.push(endReadAgain - end);
+    tf.dispose(res);
+  }
+  return {cpu: summarizeTimes(cputimes),
+          sync: summarizeTimes(synctimes),
+          download: summarizeTimes(downloadtimes)
+        };
 }

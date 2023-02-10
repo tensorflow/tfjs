@@ -288,7 +288,7 @@ export class MathBackendWebGL extends KernelBackend {
       this.disposeIntermediateTensorInfo(res);
       return data;
     }
-    if (values != null) {
+    if (values != null && env().get('WEBGL_READ_FROM_VALUES')) {
       return this.convertAndCacheOnCPU(dataId);
     }
     if (dtype === 'string') {
@@ -1198,6 +1198,13 @@ export class MathBackendWebGL extends KernelBackend {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
     }
     return texData.values as TypedArray;
+  }
+
+  convertOnCPU(dataId: DataId, float32Values?: Float32Array):
+      TypedArray {
+    const texData = this.texData.get(dataId);
+    const {dtype} = texData;
+    return float32ToTypedArray(float32Values, dtype as 'float32');
   }
 
   private acquireTexture(

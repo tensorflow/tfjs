@@ -81,12 +81,20 @@ limitations under the License.
       if (structuredBenchmarkResults[tableName] == null) {
         structuredBenchmarkResults[tableName] = {};
       }
-      if (structuredBenchmarkResults[tableName][deviceName] == null) {
-        structuredBenchmarkResults[tableName][deviceName] = {};
+      if (structuredBenchmarkResults[tableName][benchmarkTargetName] == null) {
+        structuredBenchmarkResults[tableName][benchmarkTargetName] = {};
       }
 
-      structuredBenchmarkResults[tableName][deviceName][benchmarkTargetName]
-        = benchmarkReocrd?.value?.timeInfo?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_execute']
+        = benchmarkReocrd?.value?.cpuInfo?.cpu?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_sync']
+        = benchmarkReocrd?.value?.cpuInfo?.sync?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['cpu_download']
+        = benchmarkReocrd?.value?.cpuInfo?.download?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['gpu_execute']
+        = benchmarkReocrd?.value?.gpuTime?.gpu?.averageTimeExclFirst;
+      structuredBenchmarkResults[tableName][benchmarkTargetName]['gpu_download']
+        = benchmarkReocrd?.value?.gpuTime?.sync?.averageTimeExclFirst;
     }
     return structuredBenchmarkResults;
   }
@@ -149,10 +157,11 @@ limitations under the License.
     }
   }
 
+  let structuredBenchmarkResults;
   function onPageLoad() {
     // benchmarkResults is supposed to be loaded from benchmark_results.js.
     if (benchmarkResults != null) {
-      const structuredBenchmarkResults = parseBenchmarkResults(benchmarkResults);
+      structuredBenchmarkResults = parseBenchmarkResults(benchmarkResults);
       renderStructuredBenchmarkResults(structuredBenchmarkResults);
     }
   }
