@@ -125,8 +125,8 @@ export class RandomWidth extends BaseRandomLayer {
     return tidy(() => {
         const input = getExactlyOneTensor(inputs);
         const inputShape = input.shape;
-        this.imgHeight = inputShape.at(-3);
-        const imgWidth = inputShape.at(-2);
+        this.imgHeight = inputShape[inputShape.length - 3];
+        const imgWidth = inputShape[inputShape.length - 2];
 
         this.widthFactor = this.randomGenerator.randomUniform([1],
           (1.0 + this.widthLower), (1.0 + this.widthUpper),
