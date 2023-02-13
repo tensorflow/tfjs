@@ -72,7 +72,7 @@ ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 ENV.registerFlag('IS_TEST', () => false);
 
 /** Whether to check computation result for errors. */
-ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
+ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => ENV.getBool('DEBUG'));
 
 /** Whether the backend needs to wrap input to imageBitmap. */
 ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
