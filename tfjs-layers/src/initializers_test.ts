@@ -831,4 +831,21 @@ describeMathCPUAndWebGL2('Orthogonal Initializer', () => {
     expect((model.predict(randomNormal([1, 128, 128, 1])) as Tensor).shape)
         .toEqual([1, 128, 128, 1]);
   });
+
+  it('with configured seed', () => {
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'Orthogonal',
+      config: {seed: 666013}
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply([7, 2], 'float32');
+    const actual = actualInitializer.apply([7, 2], 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
 });
