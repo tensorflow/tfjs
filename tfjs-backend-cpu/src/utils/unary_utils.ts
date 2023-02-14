@@ -33,7 +33,8 @@ import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
  */
 export function unaryKernelFunc<I extends number | string = number,
   O extends number | string = number>(
-  name: string, op: SimpleUnaryOperation<I, O>, dtype?: DataTypeFor<O>): KernelFunc {
+  name: string, op: SimpleUnaryOperation<I, O>,
+  dtype?: DataTypeFor<O>): KernelFunc {
 
   const impl = createSimpleUnaryImpl<I, O>(op);
 
@@ -51,14 +52,16 @@ export function unaryKernelFunc<I extends number | string = number,
  */
 export function unaryKernelFuncFromImpl<I extends number | string = number,
   O extends number | string = number>(
-    name: string, unaryImpl: SimpleUnaryImpl<I, O>, dtype?: DataTypeFor<O>): KernelFunc {
+  name: string, unaryImpl: SimpleUnaryImpl<I, O>,
+  dtype?: DataTypeFor<O>): KernelFunc {
+
   return ({inputs, attrs, backend}) => {
     const {x} = inputs as UnaryInputs;
     assertNotComplex(x, name);
 
     const cpuBackend = backend as MathBackendCPU;
-    let values = cpuBackend.data.get(x.dataId).values;
-    let decoded: {[index: number]: I, length: number}//DataTypeMap[keyof DataTypeMap];
+    const values = cpuBackend.data.get(x.dataId).values;
+    let decoded: ArrayLike<I>;
     if (values instanceof Array) {
       if (x.dtype !== 'string') {
         throw new Error(`Tensor ${x} data contains an array of values but its `

@@ -29,7 +29,7 @@ export function createSimpleUnaryImpl<I extends number | string = number,
     const newValues =
         util.getArrayFromDType(dtype, values.length);
     for (let i = 0; i < values.length; ++i) {
-      newValues[i] = op(values[i] as I, attrs);
+      newValues[i] = op(values[i], attrs);
     }
     return newValues;
   };

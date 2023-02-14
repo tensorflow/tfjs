@@ -23,4 +23,4 @@ export type SimpleUnaryOperation<I extends number | string = number,
 export type SimpleUnaryImpl<I extends number | string = number | string,
   O extends number | string = number | string> =
   (values: ArrayLike<I>, dtype: DataTypeFor<O>,
-   attrs?: NamedAttrMap) => DataTypeMap[DataTypeFor<O>]
+   attrs?: NamedAttrMap) => DataTypeMap[DataTypeFor<O>];

@@ -34,7 +34,8 @@ export function staticRegexReplace(args: {
   const $x = backend.readSync(x.dataId) as Uint8Array[];
 
   const stringInput = backend_util.fromUint8ToStringArray($x);
-  const output = staticRegexReplaceImplCPU(stringInput, 'string', attrs as unknown as NamedAttrMap);
+  const output = staticRegexReplaceImplCPU(stringInput, 'string',
+                                           attrs as unknown as NamedAttrMap);
 
   return backend.makeTensorInfo(x.shape, 'string', output);
 }
@@ -43,4 +44,4 @@ export const staticRegexReplaceConfig: KernelConfig = {
   kernelName: StaticRegexReplace,
   backendName: 'webgl',
   kernelFunc: staticRegexReplace as unknown as KernelFunc,
-}
+};
