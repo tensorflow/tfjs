@@ -19,10 +19,11 @@ import {KernelConfig, StaticRegexReplace, StaticRegexReplaceAttrs} from '@tensor
 import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
-const staticRegexReplaceImpl = createSimpleUnaryImpl<string, string>((x: string, attrs) => {
-    const {pattern, replaceGlobal, rewrite} = attrs as unknown as StaticRegexReplaceAttrs;
+export const staticRegexReplaceImpl = createSimpleUnaryImpl<string,
+  string>((x: string, attrs) => {
+    const {pattern, replaceGlobal, rewrite} =
+      attrs as unknown as StaticRegexReplaceAttrs;
     // TODO(mattSoulanille): Don't create a regex each time.
-    debugger;
     return x.replace(new RegExp(pattern, replaceGlobal ? 'g' : ''), rewrite);
 });
 
