@@ -56,6 +56,12 @@ export interface SingleValueMap {
 /** @docalias 'float32'|'int32'|'bool'|'complex64'|'string' */
 export type DataType = keyof DataTypeMap;
 export type NumericDataType = 'float32'|'int32'|'bool'|'complex64';
+
+export type DataTypeFor<T extends number | string | boolean> =
+  T extends number | boolean ? NumericDataType :
+  T extends string ? 'string' :
+  never;
+
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 /** Tensor data used in tensor creation and user-facing API. */
 export type DataValues = DataTypeMap[DataType];

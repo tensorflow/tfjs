@@ -17,6 +17,7 @@
 
 import {DataType, NamedAttrMap, TypedArray} from '@tensorflow/tfjs-core';
 
-export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
+export type SimpleUnaryOperation<I extends number | string = number,
+    O extends number | string = number> = (x: I, attrs?: NamedAttrMap) => O;
 export type SimpleUnaryImpl =
     (values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray;
