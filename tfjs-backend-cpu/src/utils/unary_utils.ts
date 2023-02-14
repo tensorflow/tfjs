@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, KernelFunc, TypedArray, UnaryInputs, util, DataTypeMap, DataTypeFor} from '@tensorflow/tfjs-core';
+import {backend_util, DataTypeFor, KernelFunc, UnaryInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+import {createSimpleUnaryImpl} from './unary_impl';
 
 import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
@@ -33,31 +34,10 @@ import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 export function unaryKernelFunc<I extends number | string = number,
   O extends number | string = number>(
   name: string, op: SimpleUnaryOperation<I, O>, dtype?: DataTypeFor<O>): KernelFunc {
-  return ({inputs, attrs, backend}) => {
-    const {x} = inputs as UnaryInputs;
-    assertNotComplex(x, name);
 
-    const cpuBackend = backend as MathBackendCPU;
-    let values = cpuBackend.data.get(x.dataId).values;
-    let decoded: DataTypeMap[keyof DataTypeMap];
-    if (values instanceof Array) {
-      if (x.dtype !== 'string') {
-        throw new Error(`Tensor ${x} data contains an array of values but its `
-          + `dtype is ${x.dtype} instead of 'string'`);
-      }
-      decoded = backend_util.fromUint8ToStringArray(values);
-    } else {
-      decoded = values;
-    }
+  const impl = createSimpleUnaryImpl<I, O>(op);
 
-    const xSize = util.sizeFromShape(x.shape);
-    const $dtype = dtype || x.dtype;
-    const newValues = util.getArrayFromDType($dtype, xSize);
-    for (let i = 0; i < xSize; ++i) {
-      newValues[i] = op(decoded[i] as I, attrs);
-    }
-    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
-  };
+  return unaryKernelFuncFromImpl<I, O>(name, impl, dtype);
 }
 
 /**
@@ -69,19 +49,29 @@ export function unaryKernelFunc<I extends number | string = number,
  *     result has the same dtype as the input. This is mainly used in certain
  *     kernels that return bool type, such as isFinite, isInf, etc.
  */
-export function unaryKernelFuncFromImpl(
-    name: string, unaryImpl: SimpleUnaryImpl, dtype?: DataType): KernelFunc {
+export function unaryKernelFuncFromImpl<I extends number | string = number,
+  O extends number | string = number>(
+    name: string, unaryImpl: SimpleUnaryImpl<I, O>, dtype?: DataTypeFor<O>): KernelFunc {
   return ({inputs, attrs, backend}) => {
     const {x} = inputs as UnaryInputs;
     assertNotComplex(x, name);
-    if (x.dtype === 'string' || dtype === 'string') {
-      throw new Error('unaryKernelFunc does not support string input/output');
-    }
 
     const cpuBackend = backend as MathBackendCPU;
-    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const $dtype = dtype || x.dtype;
-    const newValues = unaryImpl(values, $dtype, attrs);
+    let values = cpuBackend.data.get(x.dataId).values;
+    let decoded: {[index: number]: I, length: number}//DataTypeMap[keyof DataTypeMap];
+    if (values instanceof Array) {
+      if (x.dtype !== 'string') {
+        throw new Error(`Tensor ${x} data contains an array of values but its `
+          + `dtype is ${x.dtype} instead of 'string'`);
+      }
+      decoded = backend_util.fromUint8ToStringArray(values) as unknown as
+        ArrayLike<I>;
+    } else {
+      decoded = values as unknown as ArrayLike<I>;
+    }
+
+    const $dtype = dtype || x.dtype as DataTypeFor<O>;
+    const newValues = unaryImpl(decoded, $dtype, attrs);
     return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
   };
 }
