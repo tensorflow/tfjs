@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { DataTypeFor, DataTypeMap, NamedAttrMap } from '@tensorflow/tfjs-core';
+import {DataTypeFor, DataTypeMap, NamedAttrMap} from '@tensorflow/tfjs-core';
 
 export type SimpleUnaryOperation<I extends number | string = number,
     O extends number | string = number> = (x: I, attrs?: NamedAttrMap) => O;

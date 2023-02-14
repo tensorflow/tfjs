@@ -23,6 +23,25 @@ import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import {op} from '../operation';
 
+/**
+ * Replace the match of a `pattern` in `input` with `rewrite`.
+ *
+ * ```js
+ * const result = tf.string.staticRegexReplace(
+ *     ['format       this   spacing      better'], ' +', ' ');
+ * result.print(); // ['format this spacing better']
+ * ```
+ * @param input: A Tensor of type string. The text to be processed.
+ * @param pattern: A string. The regular expression to match the input.
+ * @param rewrite: A string. The rewrite to be applied to the matched
+ *     expression.
+ * @param replaceGlobal: An optional bool. Defaults to True. If True, the
+ *     replacement is global, otherwise the replacement is done only on the
+ *     first match.
+ * @return A Tensor of type string.
+ *
+ * @doc {heading: 'Operations', subheading: 'String'}
+ */
 function staticRegexReplace_(
   input: Tensor | TensorLike, pattern: string, rewrite: string,
   replaceGlobal=true): Tensor {

@@ -20,8 +20,7 @@ import { DataTypeFor } from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 describeWithFlags('staticRegexReplace', ALL_ENVS, () => {
-
-  it('replaces the first instance of a regex pattern', async () => {
+  it('replaces the first instance of a string', async () => {
     const result = tf.string.staticRegexReplace(
       ['this', 'is', 'a', 'test test'], 'test', 'result', false);
 
@@ -29,11 +28,19 @@ describeWithFlags('staticRegexReplace', ALL_ENVS, () => {
       .toEqual(['this', 'is', 'a', 'result test']);
   });
 
-  it('replaces a regex pattern globally', async () => {
+  it('replaces a string globally by default', async () => {
     const result = tf.string.staticRegexReplace(
-      ['this', 'is', 'a', 'test test'], 'test', 'result', true);
+      ['this', 'is', 'a', 'test test'], 'test', 'result');
 
     expect(await result.data<DataTypeFor<string>>())
       .toEqual(['this', 'is', 'a', 'result result']);
+  });
+
+  it('matches using regex', async () => {
+    const result = tf.string.staticRegexReplace(
+      ['This     will  have normal    whitespace'], ' +', ' ');
+
+    expect(await result.data<DataTypeFor<string>>())
+      .toEqual(['This will have normal whitespace']);
   });
 });
