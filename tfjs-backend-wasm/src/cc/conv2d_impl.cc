@@ -283,7 +283,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
     sigmoid(out_buf, out_info.size, out_id);
   }
   if (activation == FusableActivation::ELU) {
-    elu(out_buf, out_info.size, out_id);
+    EluImpl(out_buf, out_info.size, out_buf);
   }
 }
 

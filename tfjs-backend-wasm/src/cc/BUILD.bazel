@@ -207,6 +207,11 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "dilation2d_impl",
+    hdrs = ["dilation2d_impl.h"],
+)
+
+tfjs_cc_library(
     name = "elu_impl",
     srcs = ["elu_impl.cc"],
     hdrs = ["elu_impl.h"],
@@ -248,6 +253,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -258,6 +266,12 @@ tfjs_cc_library(
         ":backend",
         ":util",
     ],
+)
+
+tfjs_cc_library(
+    name = "scatter_impl",
+    srcs = ["scatter_impl.cc"],
+    hdrs = ["scatter_impl.h"],
 )
 
 tfjs_cc_library(
@@ -278,9 +292,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "shape",
+    hdrs = ["shape.h"],
+)
+
+tfjs_cc_library(
     name = "util",
     srcs = ["util.cc"],
     hdrs = ["util.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -306,6 +328,8 @@ tfjs_cc_library(
         ":Any",
         ":ArgMax",
         ":Atan",
+        ":Atan2",
+        ":Atanh",
         ":AvgPool",
         ":AvgPool3D",
         ":AvgPool3DGrad",
@@ -321,6 +345,9 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Dilation2D",
+        ":Dilation2DBackpropFilter",
+        ":Dilation2DBackpropInput",
         ":Elu",
         ":Equal",
         ":Exp",
@@ -333,10 +360,15 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IsFinite",
+        ":IsInf",
         ":IsNan",
+        ":LRN",
+        ":LRNGrad",
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":Log1p",
         ":Max",
         ":MaxPool",
         ":MaxPool3D",
@@ -361,18 +393,23 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ResizeNearestNeighbor",
+        ":ResizeNearestNeighborGrad",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
         ":ScatterNd",
         ":SearchSorted",
         ":SelectV2",
+        ":Selu",
         ":Sigmoid",
+        ":Sign",
         ":Sin",
         ":Softmax",
+        ":Softplus",
         ":SparseFillEmptyRows",
         ":SparseReshape",
         ":SparseSegmentReduction",
+        ":SparseToDense",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -464,6 +501,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Atan",
     srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atan2",
+    srcs = ["kernels/Atan2.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atanh",
+    srcs = ["kernels/Atanh.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -689,6 +746,36 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "Dilation2D",
+    srcs = ["kernels/Dilation2D.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Dilation2DBackpropFilter",
+    srcs = ["kernels/Dilation2DBackpropFilter.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Dilation2DBackpropInput",
+    srcs = ["kernels/Dilation2DBackpropInput.cc"],
+    deps = [
+        ":backend",
+        ":dilation2d_impl",
+        ":util",
+    ],
+)
+
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
@@ -719,11 +806,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Elu",
     srcs = ["kernels/Elu.cc"],
-    hdrs = ["kernels/Elu.h"],
     deps = [
         ":backend",
         ":elu_impl",
-        ":unary",
     ],
 )
 
@@ -850,6 +935,22 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "LRN",
+    srcs = ["kernels/LRN.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LRNGrad",
+    srcs = ["kernels/LRNGrad.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "LeakyRelu",
     srcs = ["kernels/LeakyRelu.cc"],
     hdrs = ["kernels/LeakyRelu.h"],
@@ -876,6 +977,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Log1p",
+    srcs = ["kernels/Log1p.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )
@@ -1164,12 +1275,30 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "ResizeBilinearGrad",
+    srcs = ["kernels/ResizeBilinearGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "ResizeNearestNeighbor",
     srcs = ["kernels/ResizeNearestNeighbor.cc"],
     hdrs = ["kernels/ResizeNearestNeighbor.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighborGrad",
+    srcs = ["kernels/ResizeNearestNeighborGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 
@@ -1215,6 +1344,7 @@ tfjs_cc_library(
     srcs = ["kernels/ScatterNd.cc"],
     deps = [
         ":backend",
+        ":scatter_impl",
         ":util",
     ],
 )
@@ -1238,6 +1368,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Selu",
+    srcs = ["kernels/Selu.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "Sigmoid",
     srcs = ["kernels/Sigmoid.cc"],
     hdrs = ["kernels/Sigmoid.h"],
@@ -1245,6 +1384,15 @@ tfjs_cc_library(
         ":backend",
         ":sigmoid_impl",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sign",
+    srcs = ["kernels/Sign.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 
@@ -1262,6 +1410,15 @@ tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
     hdrs = ["kernels/Softmax.h"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Softplus",
+    srcs = ["kernels/Softplus.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -1309,6 +1466,16 @@ tfjs_cc_library(
     srcs = ["kernels/SparseSegmentReduction.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseToDense",
+    srcs = ["kernels/SparseToDense.cc"],
+    deps = [
+        ":backend",
+        ":scatter_impl",
         ":util",
     ],
 )
@@ -1432,6 +1599,22 @@ tfjs_cc_library(
     srcs = ["kernels/IsNan.cc"],
     deps = [
         ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsFinite",
+    srcs = ["kernels/IsFinite.cc"],
+    deps = [
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsInf",
+    srcs = ["kernels/IsInf.cc"],
+    deps = [
         ":unary",
     ],
 )

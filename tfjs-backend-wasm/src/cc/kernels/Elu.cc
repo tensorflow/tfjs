@@ -16,33 +16,25 @@
 #include <emscripten.h>
 #endif
 
-#include <xnnpack.h>
-
-#include <cmath>
-#include <cstddef>
-#include <map>
-#include <tuple>
-
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/elu_impl.h"
-#include "tfjs-backend-wasm/src/cc/kernels/Elu.h"
-#include "tfjs-backend-wasm/src/cc/util.h"
 
-namespace tfjs {
-namespace wasm {
+namespace tfjs::wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Elu(const size_t x_id, const DType dtype, const size_t out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
 
-  tfjs::wasm::elu(x_buf, x_info.size, out_id);
+// REQUIRES
+// - Tensor `x` and `out` must have dtype float32 (checked in tfjs-core)
+void Elu(const int x_id, DType, const int out_id) {
+  const TensorInfo& x_info = backend::get_tensor_info(x_id);
+  TensorInfo& out_info = backend::get_tensor_info_out(out_id);
+
+  tfjs::wasm::EluImpl(x_info.f32(), x_info.size, out_info.f32_write());
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm

@@ -32,7 +32,7 @@ pip install virtualenv
 
 TMP_VENV_DIR="$(mktemp -u).venv"
 virtualenv -p "python" "${TMP_VENV_DIR}"
-source "${TMP_VENV_DIR}/bin/activate"
+source "${TMP_VENV_DIR}/local/bin/activate"
 
 # There is one argument (requirements_file), please update this constant when
 # you adding more arguments.

@@ -89,18 +89,8 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'cropAndResize'},
-  {
-    include: 'resizeBilinear',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
-  {
-    include: 'resizeNearestNeighbor',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
+  {include: 'resizeBilinear'},
+  {include: 'resizeNearestNeighbor'},
   {
     include: 'matmul ',
     excludes: [
@@ -248,14 +238,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
-  {
-    include: 'elu',
-    excludes: [
-      'derivative',  // Not yet implemented.
-      'gradient',    // Not yet implemented.
-      'selu'         // Not yet implemented.
-    ]
-  },
+  {include: 'elu '},
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -393,6 +376,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
   {include: 'stringNGrams'},
   {include: 'stringSplit'},
   {include: 'stringToHashBucketFast'},
@@ -411,6 +395,16 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'avgPool3dBackprop '},
   {include: 'upperBound '},
   {include: 'lowerBound '},
+  {include: 'dilation2d '},
+  {include: 'localResponseNormalization '},
+  {include: 'log1p '},
+  {include: 'atan2 '},
+  {include: 'atanh '},
+  {include: 'isInf '},
+  {include: 'isFinite '},
+  {include: 'sign '},
+  {include: 'selu '},
+  {include: 'softplus '},
 ];
 
 const customInclude = (testName: string) => {

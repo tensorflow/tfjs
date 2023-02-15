@@ -44,6 +44,9 @@
       ],
       "@tensorflow/tfjs-core/dist/*": [
         "./tfjs-core/src/*",
+      ],
+      "@tensorflow/tfjs-backend-cpu/dist/*": [
+        "./tfjs-backend-cpu/src/*",
       ]
     }
   }

@@ -49,6 +49,30 @@ describe('string', () => {
   });
 
   describe('executeOp', () => {
+    describe('StaticRegexReplace', () => {
+      it('should call tfOps.string.staticRegexReplace', async () => {
+        node.op = 'StaticRegexReplace';
+        node.inputParams = {
+          input: createTensorAttr(0),
+        };
+        node.attrParams = {
+          pattern: createStrAttr('foo'),
+          rewrite: createStrAttr('bar'),
+          replaceGlobal: createBoolAttr(true),
+        };
+        node.inputNames = ['input'];
+
+        const input = [tfOps.tensor1d(['a', 'b', 'foo', 'd'])];
+        const result = executeOp(node, {input}, context,
+                                 spyOpsAsTfOps) as Tensor[];
+
+        expect(spyOps.string.staticRegexReplace)
+            .toHaveBeenCalledWith(input[0], 'foo', 'bar', true);
+
+        test_util.expectArraysEqual(
+            await result[0].data(), ['a', 'b', 'bar', 'd']);
+      });
+    });
     describe('StringNGrams', () => {
       it('should call tfOps.string.stringNGrams', async () => {
         node.op = 'StringNGrams';

@@ -67,6 +67,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -158,6 +159,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {staticRegexReplaceConfig} from './kernels/StaticRegexReplace';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
@@ -229,6 +231,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dConfig,
   eluConfig,
   eluGradConfig,
+  einsumConfig,
   equalConfig,
   erfConfig,
   expConfig,
@@ -314,6 +317,7 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
   subConfig,

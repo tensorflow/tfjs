@@ -322,6 +322,20 @@ See
 [here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
 for more details on the exact syntax for this argument.
 
+When converting JAX models, you can also pass any [options that
+`convert_tf_saved_model`
+uses](https://github.com/tensorflow/tfjs/blob/master/tfjs-converter/python/tensorflowjs/converters/tf_saved_model_conversion_v2.py#L951-L974).
+For example, to quantize a model's weights, pass the `quantization_dtype_map`
+option listing the weights that should be quantized.
+
+```py
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((3, 4), np.float32)],
+  model_dir=tfjs_model_dir,
+  quantization_dtype_map={'float16': '*'})
+```
 
 ## Step 2: Loading and running in the browser
 

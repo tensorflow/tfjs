@@ -149,9 +149,8 @@ const IGNORE_LIST: string[] = [
   'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
-  // Node kernel for einsum is yet to be implemented.
-  // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum',
+  'einsum test-tensorflow {} 2d matrix calculate trace: duplicate axes not implemented yet',
+  'einsum test-tensorflow {} nonexistent dimension throws error',
   'raggedGather',
   'raggedRange',
   'raggedTensorToTensor',
