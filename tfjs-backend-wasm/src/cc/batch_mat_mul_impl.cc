@@ -309,7 +309,7 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
   } else if (activation == FusableActivation::SIGMOID) {
     sigmoid(out_buf, out_info.size, out_id);
   } else if (activation == FusableActivation::ELU) {
-    elu(out_buf, out_info.size, out_id);
+    EluImpl(out_buf, out_info.size, out_buf);
   }
 }
 }  // namespace wasm

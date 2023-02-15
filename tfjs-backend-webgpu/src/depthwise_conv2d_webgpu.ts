@@ -27,8 +27,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
-      filterWidth : i32, stride : vec2<i32>, dilation : vec2<i32>,`;
+  uniforms = `pads : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
+      filterWidth : i32, strides : vec2<i32>, dilations : vec2<i32>,`;
   // This is an experimental value.
   workgroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -66,16 +66,14 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
                                               'getX(batch, d1, xR, xC);';
 
     const userCode = `
-      ${
-        activationFnSnippet(
-            this.activation, this.hasPreluActivation, false, 4)}
+      ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
 
       ${main('index')} {
         if (index < uniforms.size) {
           let coords = getOutputCoords();
           let batch = coords[0];
           let xRCCorner = vec2<i32>(coords.${
-        this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.stride - uniforms.pad;
+        this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.strides - uniforms.pads;
           let d2 = coords[${this.isChannelsLast ? 3 : 1}];
           let channelMul = uniforms.wShape[3];
           let d1 = d2 / channelMul;
@@ -84,9 +82,9 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           let inputRowStart = xRCCorner.x;
           let inputColStart = xRCCorner.y;
           let inputRowEnd = inputRowStart + uniforms.filterHeight *
-              uniforms.dilation[0];
+              uniforms.dilations[0];
           let inputColEnd = inputColStart + uniforms.filterWidth *
-              uniforms.dilation[1];
+              uniforms.dilations[1];
 
           // Convolve x(?, ?, d1)|x(d1, ?, ?) with w(:, :, d1, q) to get
           // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
@@ -99,10 +97,10 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
             inputRowEnd < uniforms.inDims[0] &&
                 inputColEnd < uniforms.inDims[1]) {
               for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
-                let xR = inputRowStart + wR * uniforms.dilation[0];
+                let xR = inputRowStart + wR * uniforms.dilations[0];
 
                 for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
-                  let xC = inputColStart + wC * uniforms.dilation[1];
+                  let xC = inputColStart + wC * uniforms.dilations[1];
 
                   let xVal = ${getXSnippet};
                   let wVal = getW(wR, wC, d1, q);
@@ -111,14 +109,14 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
               }
             } else {
               for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
-                let xR = inputRowStart + wR * uniforms.dilation[0];
+                let xR = inputRowStart + wR * uniforms.dilations[0];
 
                 if (xR < 0 || xR >= uniforms.inDims[0]) {
                   continue;
                 }
 
                 for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
-                  let xC = inputColStart + wC * uniforms.dilation[1];
+                  let xC = inputColStart + wC * uniforms.dilations[1];
 
                   if (xC < 0 || xC >= uniforms.inDims[1]) {
                     continue;

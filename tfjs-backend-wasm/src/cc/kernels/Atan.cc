@@ -1,6 +1,4 @@
-/**
- * @license
- * Copyright 2023 Google LLC.
+/* Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,8 +10,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * =============================================================================
- */
+ * ===========================================================================*/
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -28,8 +25,8 @@
 namespace {
 
 template <typename T>
-inline float atan_impl(T n) {
-  return std::atanf(static_cast<float>(n));
+inline T atan_impl(T n) {
+  return static_cast<T>(std::atanf(static_cast<float>(n)));
 }
 
 }  // namespace
@@ -48,7 +45,7 @@ void Atan(const int x_id, const DType dtype, const int out_id) {
       unary_f32(x_id, out_id, atan_impl<float>);
       break;
     case DType::int32:
-      unary_i32_with_f32_out(x_id, out_id, atan_impl<int>);
+      unary_i32(x_id, out_id, atan_impl<int>);
       break;
     default:
       util::warn("Atan for tensor id %d failed. Unsupported dtype %d", x_id,

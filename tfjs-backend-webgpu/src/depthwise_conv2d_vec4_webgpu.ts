@@ -26,7 +26,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
+  uniforms = 'pads : vec2<i32>, inDims : vec2<i32>,';
   workgroupSize: [number, number, number] = [4, 4, 4];
   workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
@@ -87,7 +87,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * ${this.workPerThread};
         let d1 = i32(globalId.x) * 4;
-        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(${strideHeight}, ${strideWidth}) - uniforms.pad;
+        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(${strideHeight}, ${
+        strideWidth}) - uniforms.pads;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
@@ -107,7 +108,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
             for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
               let wValue = getW(wR, wC, d1, 0);
               for (var i = 0; i < ${this.workPerThread}; i++) {
-                dotProd[i] = fma(xVals[i * ${strideWidth} + wC], wValue, dotProd[i]);
+                dotProd[i] = fma(xVals[i * ${
+        strideWidth} + wC], wValue, dotProd[i]);
               }
             }
           }

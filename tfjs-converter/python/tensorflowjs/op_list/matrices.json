@@ -225,5 +225,26 @@
         "type": "dtype"
       }
     ]
+  },
+  {
+    "tfOpName": "MatrixBandPart",
+    "category": "matrices",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "a",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "numLower",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "numUpper",
+        "type": "tensor"
+      }
+    ]
   }
 ]
