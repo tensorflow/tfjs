@@ -229,7 +229,7 @@ limitations under the License.
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg(`Runing on expectedBackend}`);
+          await showMsg(`Runing on ${expectedBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -749,7 +749,7 @@ limitations under the License.
       return true;
     }
     /**
-     * Load model and record the time.
+     * Loads the model and record the time.
      * @return {boolean} Whether the model ran successfully.
      */
     async function runBenchmark() {
@@ -816,8 +816,7 @@ limitations under the License.
         localBuild = urlState.get('localBuild').split(',');
       }
       // loadTFJS is defined in loader.js
-      // This loads the tensorflow.js library 
-      // and appends it to the document.body object
+      // This loads the tensorflow.js dependencies and appends them to the HTML document.body object
       await loadTFJS(localBuild);
 
       if (urlState && urlState.has('backend'))
@@ -826,8 +825,7 @@ limitations under the License.
       // tf.setBackend sets the backend for the tensorflow.js library
       await tf.setBackend(state.backend);
       
-      // This section maps out the gui for the benchmarking tool
-      // This outlines the different sections of the gui (e.g. Benchmark, Environment, etc.)
+      // This section maps out the gui for the benchmarking tool (e.g. Benchmark, Environment, etc.)
       const modelFolder = gui.addFolder('Benchmark');
       let modelUrlController = null;
       modelController = modelFolder.add(state, 'benchmark', Object.keys(benchmarks));
@@ -987,6 +985,8 @@ limitations under the License.
           state.isModelLoaded = false;
           state.isModelChanged = true;
         } else {
+          // Show the "Test correctness" button and re-populate models dropdown when changed from
+          // tflite to non-tflite backend.
           // Add the "Test correctness" button.
           if (correctnessButton == null) {
             correctnessButton = gui.add(state, 'testCorrectness');
