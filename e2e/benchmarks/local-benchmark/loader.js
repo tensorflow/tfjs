@@ -15,7 +15,20 @@
  * =============================================================================
  */
 
-// Promise is used to guarantee scripts are loaded in order.
+/**
+ * Loader.js loads the TFJS dependencies needed to run the benchmark.
+ * loadTFJS is called from index.html on the onload() command. 
+ */
+
+
+
+/**
+ * loadScript loads scripts dynamically by creating a script element 
+ * and appends the scripts to the body of the document
+ * 
+ * @param {string} url
+ * @returns {Promise}
+ */
 function loadScript(url) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -29,10 +42,20 @@ function loadScript(url) {
   })
 }
 
+/**
+ * processUrls is called from loadTFJS(localBuild)
+ * processUrls is used to replace the urls in the urls array with local urls 
+ * if the localBuild array includes the package name
+ * 
+ * @param {string array} localBuild
+ * @param {string array} urls
+ */
 function processUrls(urls, localBuild) {
   for (let i = 0; i < urls.length; i++) {
     let name =
         urls[i].split('/')[0].replace('tfjs-', '').replace('backend-', '');
+        // if you want to load a local version of tfjs-backend-wasm, you would add 'wasm' to the localBuild array
+        // this is how you load files from your development environment
     if (localBuild.includes(name)) {
       urls[i] = `../../../dist/bin/${urls[i]}`;
     } else {
@@ -42,6 +65,13 @@ function processUrls(urls, localBuild) {
   }
 }
 
+/**
+ * loadTFJS is called from index.html in a <script> tag on the onload() command.
+ * loadTFJS calls processUrls(urls, localBuild) and then loadScript(url)
+ * loadTFJS returns a Promise
+ * @param {string array} localBuild 
+ * @returns {Promise}
+ */
 async function loadTFJS(localBuild) {
   let urls = [
     'tfjs-core/dist/tf-core.js',

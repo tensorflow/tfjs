@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================-->
 
 <html>
-
 <head>
   <title>TensorFlow.js Model Benchmark</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -22,7 +21,7 @@ limitations under the License.
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
   <script src="loader.js"></script>
   <link rel="shortcut icon"
-        href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
+        href="https://codelabs.developers.google.com/static/codelabs/tensorflowjs-object-detection/img/1aee0ede85885520.png"> 
 </head>
 
 <body>
@@ -96,7 +95,15 @@ limitations under the License.
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
+    
+    /**
+     * getURLState is used to get the key/value pairs from the url and update the global variables
+     * @param {string} url -- the url to get the state from
+     * @return {URLSearchParams} -- the URLSearchParams object
+     */
     function getURLState(url) {
+      //URLSearchParams is a built-in object that can parse query strings
+      //https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
       if (keys.length === 0)
@@ -222,7 +229,7 @@ limitations under the License.
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg(`Runing on ${expectedBackend}`);
+          await showMsg(`Runing on expectedBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -332,6 +339,10 @@ limitations under the License.
       envDiv.innerHTML += `<br>{<br>  GPU info: \n  ${gpuHardwareInfo}<br>}<br>`;
     }
 
+    /*
+    * Show the environment flags.
+    * Note: this function is async because it calls tf.time() to get the timing
+    **/
     async function showEnvironment() {
       await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
       const sortedFeatures = Object.keys(tf.env().features).sort().map(
@@ -737,7 +748,10 @@ limitations under the License.
       }
       return true;
     }
-
+    /**
+     * Load model and record the time.
+     * @return {boolean} Whether the model ran successfully.
+     */
     async function runBenchmark() {
       if (!tf.engine().backendNames().includes(state.backend) && !isTflite()) {
         return;
@@ -792,19 +806,28 @@ limitations under the License.
     async function onPageLoad() {
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
-
+      
+      // getURLState uses URLSearchParams (built-in function) to parse the url
+      // the url contains the information for how the benchmark should be configured
+      // urlState is a Map object that contains the key-value pairs of the url
       urlState = getURLState(location.search);
       let localBuild = [];
       if (urlState && urlState.has('localBuild')) {
         localBuild = urlState.get('localBuild').split(',');
       }
-
+      // loadTFJS is defined in loader.js
+      // This loads the tensorflow.js library 
+      // and appends it to the document.body object
       await loadTFJS(localBuild);
 
       if (urlState && urlState.has('backend'))
         state.backend = urlState.get('backend');
+      // tf.setBackend is defined in tfjs-core/src/engine.ts
+      // tf.setBackend sets the backend for the tensorflow.js library
       await tf.setBackend(state.backend);
-
+      
+      // This section maps out the gui for the benchmarking tool
+      // This outlines the different sections of the gui (e.g. Benchmark, Environment, etc.)
       const modelFolder = gui.addFolder('Benchmark');
       let modelUrlController = null;
       modelController = modelFolder.add(state, 'benchmark', Object.keys(benchmarks));
@@ -964,8 +987,7 @@ limitations under the License.
           state.isModelLoaded = false;
           state.isModelChanged = true;
         } else {
-          // Show the "Test correctness" button and re-populate models dropdown when changed from
-          // tflite to non-tflite backend.
+          // Add the "Test correctness" button.
           if (correctnessButton == null) {
             correctnessButton = gui.add(state, 'testCorrectness');
             const allBenchmarks = Object.keys(benchmarks);
