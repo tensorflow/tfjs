@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor2D} from '@tensorflow/tfjs-core';
+import {Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -26,8 +26,8 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'BatchMatMul':
         case 'BatchMatMulV2':
@@ -88,6 +88,12 @@ export const executeOp: InternalOpExecutor =
             preluActivationWeights: preluArg,
             leakyreluAlpha
           })];
+
+        case 'MatrixBandPart':
+          return [ops.linalg.bandPart(
+              getParamValue('a', node, tensorMap, context) as Tensor2D,
+              getParamValue('numLower', node, tensorMap, context) as Scalar,
+              getParamValue('numUpper', node, tensorMap, context) as Scalar)];
 
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

@@ -241,5 +241,33 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
+    describe('IsInf', () => {
+      it('should call tfOps.isInf', () => {
+        node.op = 'IsInf';
+
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.isInf).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'IsInf';
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
+    describe('IsFinite', () => {
+      it('should call tfOps.isFinite', () => {
+        node.op = 'IsFinite';
+
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.isFinite).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'IsFinite';
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
   });
 });
