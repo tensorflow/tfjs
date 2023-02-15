@@ -325,11 +325,13 @@ const sparse = {
 import {stringNGrams} from './string/string_n_grams';
 import {stringSplit} from './string/string_split';
 import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
+import {staticRegexReplace} from './string/static_regex_replace';
 // tslint:disable-next-line:variable-name
 const string = {
   stringNGrams,
   stringSplit,
-  stringToHashBucketFast
+  stringToHashBucketFast,
+  staticRegexReplace,
 };
 
 // Second level exports.
