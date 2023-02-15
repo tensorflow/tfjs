@@ -412,17 +412,7 @@ export function squeezeShape(shape: number[], axis?: number[]):
 
 export function getTypedArrayFromDType<D extends NumericDataType>(
     dtype: D, size: number): DataTypeMap[D] {
-  let values = null;
-  if (dtype == null || dtype === 'float32') {
-    values = new Float32Array(size);
-  } else if (dtype === 'int32') {
-    values = new Int32Array(size);
-  } else if (dtype === 'bool') {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  return values as DataTypeMap[D];
+  return getArrayFromDType<D>(dtype, size);
 }
 
 export function getArrayFromDType<D extends DataType>(
@@ -435,7 +425,7 @@ export function getArrayFromDType<D extends DataType>(
   } else if (dtype === 'bool') {
     values = new Uint8Array(size);
   } else if (dtype === 'string') {
-    values = new Array<'string'>(size);
+    values = new Array<string>(size);
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
