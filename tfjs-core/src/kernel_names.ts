@@ -852,6 +852,14 @@ export type SquaredDifferenceInputs = BinaryInputs;
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const StaticRegexReplace = 'StaticRegexReplace';
+export type StaticRegexReplaceInputs = UnaryInputs;
+export interface StaticRegexReplaceAttrs {
+  pattern: string;
+  rewrite: string;
+  replaceGlobal: boolean;
+}
+
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface StridedSliceAttrs {
