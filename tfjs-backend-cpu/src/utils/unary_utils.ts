@@ -62,10 +62,9 @@ export function unaryKernelFuncFromImpl<I extends number | string = number,
     const cpuBackend = backend as MathBackendCPU;
     const values = cpuBackend.data.get(x.dataId).values;
     let decoded: ArrayLike<I>;
-    if (values instanceof Array) {
-      if (x.dtype !== 'string') {
-        throw new Error(`Tensor ${x} data contains an array of values but its `
-          + `dtype is ${x.dtype} instead of 'string'`);
+    if (x.dtype === 'string') {
+      if (!(values instanceof Array)) {
+        throw new Error('String tensor\'s value was not an instance of Array');
       }
       decoded = backend_util.fromUint8ToStringArray(values) as unknown as
         ArrayLike<I>;
