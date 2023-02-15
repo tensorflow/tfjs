@@ -159,6 +159,7 @@ const IGNORE_LIST: string[] = [
   'sparseReshape',
   'sparseSegmentMean',
   'sparseSegmentSum',
+  'staticRegexReplace',
   'stringNGrams',
   'stringSplit',
   'stringToHashBucketFast',
