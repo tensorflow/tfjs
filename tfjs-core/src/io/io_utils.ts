@@ -396,10 +396,64 @@ export function getModelJSONForModelArtifacts(
   if (artifacts.modelInitializer != null) {
     result.modelInitializer = artifacts.modelInitializer;
   }
+  if (artifacts.initializerSignature != null) {
+    result.initializerSignature = artifacts.initializerSignature;
+  }
   if (artifacts.trainingConfig != null) {
     result.trainingConfig = artifacts.trainingConfig;
   }
   return result;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file and weights.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param weightSpecs The list of WeightsManifestEntry for the model. Must be
+ *     passed if the modelJSON has a weightsManifest.
+ * @param weightData An ArrayBuffer of weight data for the model corresponding
+ *     to the weights in weightSpecs. Must be passed if the modelJSON has a
+ *     weightsManifest.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export function getModelArtifactsForJSONSync(
+    modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
+    weightData?: ArrayBuffer): ModelArtifacts {
+
+  const modelArtifacts: ModelArtifacts = {
+    modelTopology: modelJSON.modelTopology,
+    format: modelJSON.format,
+    generatedBy: modelJSON.generatedBy,
+    convertedBy: modelJSON.convertedBy
+  };
+
+  if (modelJSON.trainingConfig != null) {
+    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+  }
+  if (modelJSON.weightsManifest != null) {
+    if (!weightSpecs) {
+      throw new Error('modelJSON has weightsManifest but weightSpecs is null');
+    }
+    if (!weightData) {
+      throw new Error('modelJSON has weightsManifest but weightData is null');
+    }
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+  if (modelJSON.signature != null) {
+    modelArtifacts.signature = modelJSON.signature;
+  }
+  if (modelJSON.userDefinedMetadata != null) {
+    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+  }
+  if (modelJSON.modelInitializer != null) {
+    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+  if (modelJSON.initializerSignature != null) {
+    modelArtifacts.initializerSignature = modelJSON.initializerSignature;
+  }
+
+  return modelArtifacts;
 }
 
 /**
@@ -416,33 +470,14 @@ export async function getModelArtifactsForJSON(
     loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
       /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
     ]>): Promise<ModelArtifacts> {
-  const modelArtifacts: ModelArtifacts = {
-    modelTopology: modelJSON.modelTopology,
-    format: modelJSON.format,
-    generatedBy: modelJSON.generatedBy,
-    convertedBy: modelJSON.convertedBy
-  };
+  let weightSpecs: WeightsManifestEntry[] | undefined;
+  let weightData: ArrayBuffer | undefined;
 
-  if (modelJSON.trainingConfig != null) {
-    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-  }
   if (modelJSON.weightsManifest != null) {
-    const [weightSpecs, weightData] =
-        await loadWeights(modelJSON.weightsManifest);
-    modelArtifacts.weightSpecs = weightSpecs;
-    modelArtifacts.weightData = weightData;
-  }
-  if (modelJSON.signature != null) {
-    modelArtifacts.signature = modelJSON.signature;
-  }
-  if (modelJSON.userDefinedMetadata != null) {
-    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
-  }
-  if (modelJSON.modelInitializer != null) {
-    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+    [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);
   }
 
-  return modelArtifacts;
+  return getModelArtifactsForJSONSync(modelJSON, weightSpecs, weightData);
 }
 
 /**
@@ -469,6 +504,22 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         0 :
         modelArtifacts.weightData.byteLength,
   };
+}
+
+/**
+ * Concatenate the weights stored in a WeightsManifestConfig into a list of
+ * WeightsManifestEntry
+ *
+ * @param weightsManifest The WeightsManifestConfig to extract weights from.
+ * @returns A list of WeightsManifestEntry of the weights in the weightsManifest
+ */
+export function getWeightSpecs(weightsManifest: WeightsManifestConfig):
+    WeightsManifestEntry[] {
+  const weightSpecs: WeightsManifestEntry[] = [];
+  for (const entry of weightsManifest) {
+    weightSpecs.push(...entry.weights);
+  }
+  return weightSpecs;
 }
 
 /**

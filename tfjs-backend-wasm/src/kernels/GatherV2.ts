@@ -118,5 +118,5 @@ export const gatherV2Config: KernelConfig = {
   kernelName: GatherV2,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: gatherV2 as {} as KernelFunc
+  kernelFunc: gatherV2 as unknown as KernelFunc
 };

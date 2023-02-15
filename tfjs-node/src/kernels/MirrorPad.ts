@@ -24,7 +24,7 @@ export const mirrorPadConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x} = inputs as MirrorPadInputs;
-    const {paddings, mode} = attrs as {} as MirrorPadAttrs;
+    const {paddings, mode} = attrs as unknown as MirrorPadAttrs;
 
     const nodeBackend = backend as NodeJSKernelBackend;
 

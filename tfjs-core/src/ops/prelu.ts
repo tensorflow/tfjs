@@ -45,7 +45,7 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
   const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
 
   const inputs: PreluInputs = {x: $x, alpha: $alpha};
-  return ENGINE.runKernel(Prelu, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Prelu, inputs as unknown as NamedTensorMap);
 }
 
-export const prelu = op({prelu_});
+export const prelu = /* @__PURE__ */ op({prelu_});

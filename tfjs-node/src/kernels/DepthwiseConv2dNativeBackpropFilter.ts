@@ -26,7 +26,7 @@ export const depthwiseConv2dNativeBackpropFilterConfig: KernelConfig = {
     const {x, dy} = args.inputs as DepthwiseConv2dNativeBackpropFilterInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {strides, dilations, pad, dimRoundingMode, filterShape} =
-        args.attrs as {} as DepthwiseConv2dNativeBackpropFilterAttrs;
+        args.attrs as unknown as DepthwiseConv2dNativeBackpropFilterAttrs;
 
     const convInfo = backend_util.computeConv2DInfo(
         x.shape as [number, number, number, number], filterShape, strides,

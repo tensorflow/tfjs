@@ -27,7 +27,8 @@ export const cumsumGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const {axis, exclusive, reverse}: CumsumAttrs = attrs as {} as CumsumAttrs;
+    const {axis, exclusive, reverse}: CumsumAttrs =
+        attrs as unknown as CumsumAttrs;
 
     return {
       x: () => {

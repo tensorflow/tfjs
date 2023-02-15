@@ -35,4 +35,4 @@ function reverse1d_(x: Tensor1D|TensorLike): Tensor1D {
   return reverse($x, 0);
 }
 
-export const reverse1d = op({reverse1d_});
+export const reverse1d = /* @__PURE__ */ op({reverse1d_});

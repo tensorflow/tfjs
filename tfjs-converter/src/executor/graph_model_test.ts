@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, scalar} from '@tensorflow/tfjs-core';
+import {io, scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
@@ -23,6 +23,7 @@ import {RecursiveSpy, spyOnAllFunctions} from '../operations/executors/spy_ops';
 import {GraphNode} from '../operations/types';
 
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
+import {HASH_TABLE_MODEL_V2} from './test_data/hash_table_v2_model_loader';
 import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
 
 const HOST = 'http://example.org';
@@ -120,6 +121,20 @@ const SIMPLE_HTTP_MODEL_LOADER = {
       generatedBy: '1.15',
       convertedBy: '1.3.1',
       userDefinedMetadata: {signature: SIGNATURE}
+    };
+  }
+};
+
+const NO_INPUT_SIGNATURE_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1',
+      userDefinedMetadata: {signature: {outputs: SIGNATURE.outputs}}
     };
   }
 };
@@ -230,7 +245,7 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
         use_node_name_sharing: {b: false},
         key_dtype: {type: tensorflow.DataType.DT_STRING},
         container: {s: ''},
-        shared_name: {s: 'tablename'}
+        shared_name: {s: 'dGFibGVuYW1l' /* base64 'tablename' */}
       }
     },
     {
@@ -277,7 +292,7 @@ const HASH_TABLE_MODEL: tensorflow.IGraphDef = {
         use_node_name_sharing: {b: false},
         key_dtype: {type: tensorflow.DataType.DT_STRING},
         container: {s: ''},
-        shared_name: {s: 'tablename'}
+        shared_name: {s: 'dGFibGVuYW1l' /* base64 'tablename' */}
       }
     },
     {
@@ -299,7 +314,7 @@ const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
     values: {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
   }
 };
-const HASHTABLE_HTTP_MODEL_LOADER = {
+const HASHTABLE_V1_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
       modelTopology: HASH_TABLE_MODEL,
@@ -311,6 +326,12 @@ const HASHTABLE_HTTP_MODEL_LOADER = {
       userDefinedMetadata: {signature: HASH_TABLE_SIGNATURE},
       modelInitializer: INITIALIZER_GRAPHDEF
     };
+  }
+};
+
+const HASHTABLE_V2_MODEL_LOADER = {
+  load: async () => {
+    return HASH_TABLE_MODEL_V2;
   }
 };
 
@@ -425,6 +446,13 @@ describe('loadGraphModel', () => {
 });
 
 describe('loadGraphModelSync', () => {
+  function checkModel(model: GraphModel<unknown>) {
+    expect(model).toBeDefined();
+    const bias = model.weights['Const'][0];
+    expect(bias.dtype).toBe('int32');
+    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+  }
+
   it('Pass a custom io handler', () => {
     const customLoader: tfc.io.IOHandlerSync = {
       load: () => {
@@ -436,10 +464,71 @@ describe('loadGraphModelSync', () => {
       }
     };
     const model = loadGraphModelSync(customLoader);
-    expect(model).toBeDefined();
-    const bias = model.weights['Const'][0];
-    expect(bias.dtype).toBe('int32');
-    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+    checkModel(model);
+  });
+
+  it('Pass the model artifacts directly', () => {
+    const modelArtifacts: tfc.io.ModelArtifacts = {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: new Int32Array([5]).buffer,
+    };
+    const model = loadGraphModelSync(modelArtifacts);
+    checkModel(model);
+  });
+
+  it('Pass the model JSON and weights', () => {
+    const modelJson: tfc.io.ModelJSON = {
+      modelTopology: SIMPLE_MODEL,
+      weightsManifest: [{paths: [], weights: weightsManifest}],
+    };
+    const weights = new Int32Array([5]).buffer;
+    const model = loadGraphModelSync([modelJson, weights]);
+    checkModel(model);
+  });
+
+  it('Throws an error if ModelJSON is passed without weights', () => {
+    const modelJson: tfc.io.ModelJSON = {
+      modelTopology: SIMPLE_MODEL,
+      weightsManifest: [{paths: [], weights: weightsManifest}],
+    };
+    expect(() => {
+      return loadGraphModelSync(
+          [modelJson] as unknown as [io.ModelJSON, ArrayBuffer]);
+    })
+        .toThrowMatching(
+            err => err.message.includes('weights must be the second element'));
+  });
+
+  it('Throws an error if modelJSON is missing \'modelTopology\'', () => {
+    const badInput = {
+      weightsManifest: [{paths: [] as string[], weights: weightsManifest}],
+    };
+    const weights = new Int32Array([5]).buffer;
+    expect(() => {
+      return loadGraphModelSync([badInput as io.ModelJSON, weights]);
+    })
+        .toThrowMatching(
+            err => err.message.includes('missing \'modelTopology\''));
+  });
+
+  it('Throws an error if modelJSON is missing \'weightsManifest\'', () => {
+    const badInput = {
+      modelTopology: SIMPLE_MODEL,
+    };
+    const weights = new Int32Array([5]).buffer;
+    expect(() => {
+      return loadGraphModelSync([badInput as io.ModelJSON, weights]);
+    })
+        .toThrowMatching(
+            err => err.message.includes('missing \'weightsManifest\''));
+  });
+
+  it('Throws an error if modelSource is an unknown format', () => {
+    const badInput = {foo: 'bar'};
+    expect(() => {
+      return loadGraphModelSync(badInput as io.ModelArtifacts);
+    }).toThrowMatching(err => err.message.includes('Unknown model format'));
   });
 
   it('Expect an error when moderUrl is null', () => {
@@ -701,6 +790,36 @@ describe('Model', () => {
     });
   });
 
+  describe('no signature input model', () => {
+    beforeEach(() => {
+      spyIo.getLoadHandlers.and.returnValue([NO_INPUT_SIGNATURE_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(NO_INPUT_SIGNATURE_MODEL_LOADER);
+    });
+
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('predict', () => {
+      it('should generate default output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({'Input': input});
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+    });
+
+    describe('execute', () => {
+      it('should generate default output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute(input);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+    });
+  });
+
   describe('structured outputs model', () => {
     beforeEach(() => {
       spyIo.getLoadHandlers.and.returnValue([STRUCTURED_OUTPUTS_MODEL_LOADER]);
@@ -916,10 +1035,10 @@ describe('Model', () => {
     });
   });
 
-  describe('Hashtable model', () => {
+  describe('Hashtable V1 model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_HTTP_MODEL_LOADER]);
-      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_V1_HTTP_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_V1_HTTP_MODEL_LOADER);
     });
     it('should be successful if call executeAsync', async () => {
       await model.load();
@@ -927,6 +1046,43 @@ describe('Model', () => {
       const defaultValues = tfc.tensor1d([0]);
       const res = await model.executeAsync({keys, defaultValues});
       expect(res).not.toBeNull();
+    });
+  });
+
+  describe('Hashtable V2 model', () => {
+    beforeEach(() => {
+      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_V2_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_V2_MODEL_LOADER);
+    });
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('execute', () => {
+      it('should be successful if call executeAsync', async () => {
+        await model.load();
+        const res = await model.executeAsync(
+                        {'input': tfc.tensor1d(['a', 'b', 'c'])}) as Tensor;
+        expect(Array.from(res.dataSync())).toEqual([0, 1, -1]);
+      });
+    });
+
+    describe('dispose', () => {
+      it('should dispose the weights', async () => {
+        const startTensors = tfc.memory().numTensors;
+
+        await model.load();
+
+        const input = tfc.tensor1d(['a', 'b', 'c']);
+        const output = await model.executeAsync({input}) as Tensor;
+        input.dispose();
+        output.dispose();
+
+        model.dispose();
+
+        expect(tfc.memory().numTensors).toEqual(startTensors);
+      });
     });
   });
 });

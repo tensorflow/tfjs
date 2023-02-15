@@ -32,7 +32,7 @@ export function eluGrad(args: {inputs: EluGradInputs, backend: MathBackendCPU}):
   const dyValues = backend.data.get(dy.dataId).values as TypedArray;
   for (let i = 0; i < values.length; ++i) {
     const v = values[i];
-    if (v >= 1) {
+    if (v >= 0) {
       resultValues[i] = dyValues[i];
     } else {
       resultValues[i] = dyValues[i] * (v + 1);
@@ -45,5 +45,5 @@ export function eluGrad(args: {inputs: EluGradInputs, backend: MathBackendCPU}):
 export const eluGradConfig: KernelConfig = {
   kernelName: EluGrad,
   backendName: 'cpu',
-  kernelFunc: eluGrad as {} as KernelFunc
+  kernelFunc: eluGrad as unknown as KernelFunc
 };

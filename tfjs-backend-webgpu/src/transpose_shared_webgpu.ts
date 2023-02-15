@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
+import {util} from '@tensorflow/tfjs-core';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class TransposeSharedProgram implements WebGPUProgram {
@@ -25,7 +26,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   // Note that the maximum number of workgroup invocations by webgpu is 256.
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workgroupSize: [number, number, number] = [16, 16, 1];
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -35,30 +36,32 @@ export class TransposeSharedProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [0], y: [1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workgroupSize, [1, 1, 1]);
 
     this.shaderKey = 'transposeShared';
   }
 
   getUserCode(): string {
+    util.assert(
+        this.workgroupSize[0] === this.workgroupSize[1],
+        () => `Must be a square tile, current tile shape is ${
+            this.workgroupSize[0]} x ${this.workgroupSize[1]}`);
+    const tileSize = this.workgroupSize[0];
     const userCode = `
-      const TILE_DIM = ${this.workGroupSize[0]};
-      var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
-        this.workGroupSize[0]}>;
-      ${getWorkGroupSizeString()}
-      fn _start(@builtin(local_invocation_id) localId : vec3<u32>,
-                @builtin(workgroup_id) workgroupId : vec3<u32>) {
-        var x = i32(workgroupId.x) * TILE_DIM + i32(localId.x);
-        var y = i32(workgroupId.y) * TILE_DIM + i32(localId.y);
+      var<workgroup> tile : array<array<f32, ${this.workgroupSize[0] + 1}>, ${
+        this.workgroupSize[0]}>;
+      ${main()} {
+        var x = i32(workgroupId.x) * ${tileSize} + i32(localId.x);
+        var y = i32(workgroupId.y) * ${tileSize} + i32(localId.y);
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
-          tile[localId.y][localId.x] = A[y * width + x];
+          tile[localId.y][localId.x] = f32(A[y * width + x]);
         }
         workgroupBarrier();
 
-        x = i32(workgroupId.y) * TILE_DIM + i32(localId.x);
-        y = i32(workgroupId.x) * TILE_DIM + i32(localId.y);
+        x = i32(workgroupId.y) * ${tileSize} + i32(localId.x);
+        y = i32(workgroupId.x) * ${tileSize} + i32(localId.y);
         if (x < height && y < width) {
           setOutputAtIndex((y * height + x), tile[localId.x]
             [localId.y]);

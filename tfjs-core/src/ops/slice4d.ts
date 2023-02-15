@@ -37,4 +37,4 @@ function slice4d_(
           `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
-export const slice4d = op({slice4d_});
+export const slice4d = /* @__PURE__ */ op({slice4d_});

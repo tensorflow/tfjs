@@ -294,8 +294,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
           let res: Tensor4D|Tensor3D =
               // tslint:disable-next-line: no-unnecessary-type-assertion
               ENGINE.runKernel(
-                  FusedConv2D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap);
+                  FusedConv2D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap);
 
           save([filter, x4D, res]);
 
@@ -312,8 +312,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     const customOpWithBias = customGrad(
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
           let res: Tensor4D|Tensor3D = ENGINE.runKernel(
-              FusedConv2D, inputs as {} as NamedTensorMap,
-              attrs as {} as NamedAttrMap);
+              FusedConv2D, inputs as unknown as NamedTensorMap,
+              attrs as unknown as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 
@@ -329,4 +329,4 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     return customOpWithBias(x4D, $filter, $bias) as T;
   }
 }
-export const conv2d = op({fusedConv2d_});
+export const conv2d = /* @__PURE__ */ op({fusedConv2d_});

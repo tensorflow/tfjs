@@ -31,6 +31,7 @@ TEST_ENTRYPOINTS = [
     "setup_test.ts",
     "worker_test.ts",
     "worker_node_test.ts",
+    "platforms/platform_node_test.ts",
     "ops/from_pixels_worker_test.ts",
 ]
 
@@ -76,6 +77,7 @@ ts_library(
         "@npm//@types/jasmine",
         "@npm//@types/long",
         "@npm//@types/node",
+        "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
         "@npm//@webgpu/types",
         "@npm//jasmine",
@@ -185,6 +187,26 @@ jasmine_node_test(
 )
 
 ts_library(
+    name = "platform_node_test_lib",
+    srcs = [
+        "platforms/platform_node_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "@npm//@types/node",
+    ],
+)
+
+jasmine_node_test(
+    name = "platform_node_test",
+    deps = [
+        ":platform_node_test_lib",
+    ],
+)
+
+ts_library(
     name = "worker_test_lib",
     srcs = [
         "worker_test.ts",
@@ -206,7 +228,7 @@ tfjs_web_test(
         # absolute paths in iOS, which is required for loading the worker.
         # https://www.browserstack.com/question/39573
         # "bs_ios_12",
-        "bs_android_9",
+        "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [
@@ -232,6 +254,7 @@ ts_library(
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "@npm//@types/offscreencanvas",
     ],
 )
 
@@ -245,7 +268,7 @@ tfjs_web_test(
         # absolute paths in iOS, which is required for loading the worker.
         # https://www.browserstack.com/question/39573
         # "bs_ios_12",
-        "bs_android_9",
+        "bs_android_10",
         "win_10_chrome",
     ],
     static_files = [

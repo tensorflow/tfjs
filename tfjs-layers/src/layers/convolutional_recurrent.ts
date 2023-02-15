@@ -114,9 +114,9 @@ declare interface ConvRNN2DLayerArgs extends BaseRNNLayerArgs,
  */
 class ConvRNN2D extends RNN {
   /** @nocollapse */
-  static className = 'ConvRNN2D';
+  static override className = 'ConvRNN2D';
 
-  readonly cell: ConvRNN2DCell;
+  declare readonly cell: ConvRNN2DCell;
 
   constructor(args: ConvRNN2DLayerArgs) {
     if (args.unroll) {
@@ -134,7 +134,7 @@ class ConvRNN2D extends RNN {
     this.inputSpec = [new InputSpec({ndim: 5})];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tfc.tidy(() => {
       if (this.cell.dropoutMask != null) {
         tfc.dispose(this.cell.dropoutMask);
@@ -163,7 +163,7 @@ class ConvRNN2D extends RNN {
     });
   }
 
-  computeOutputShape(inputShape: Shape): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape): Shape|Shape[] {
     let outShape: Shape = this.computeSingleOutputShape(inputShape);
 
     if (!this.returnSequences) {
@@ -178,7 +178,7 @@ class ConvRNN2D extends RNN {
     return outShape;
   }
 
-  getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
+  override getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
     return tfc.tidy(() => {
       const {stateSize} = this.cell;
 
@@ -198,7 +198,7 @@ class ConvRNN2D extends RNN {
     });
   }
 
-  resetStates(states?: Tensor|Tensor[], training = false): void {
+  override resetStates(states?: Tensor|Tensor[], training = false): void {
     tfc.tidy(() => {
       if (!this.stateful) {
         throw new AttributeError(
@@ -315,7 +315,7 @@ export declare interface ConvLSTM2DCellArgs extends
 
 export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
   /** @nocollapse */
-  static className = 'ConvLSTM2DCell';
+  static override className = 'ConvLSTM2DCell';
 
   readonly filters: number;
   readonly kernelSize: number[];
@@ -356,7 +356,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
         rate => assertPositiveInteger(rate, 'dilationRate'));
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
 
     const channelAxis =
@@ -418,7 +418,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
     this.built = true;
   }
 
-  call(inputs: tfc.Tensor[], kwargs: Kwargs): tfc.Tensor[] {
+  override call(inputs: tfc.Tensor[], kwargs: Kwargs): tfc.Tensor[] {
     return tfc.tidy(() => {
       if (inputs.length !== 3) {
         throw new ValueError(
@@ -516,7 +516,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
     });
   }
 
-  getConfig(): tfc.serialization.ConfigDict {
+  override getConfig(): tfc.serialization.ConfigDict {
     const {'units': _, ...baseConfig} = super.getConfig();
 
     const config: tfc.serialization.ConfigDict = {
@@ -561,7 +561,7 @@ export declare interface ConvLSTM2DArgs extends
 
 export class ConvLSTM2D extends ConvRNN2D {
   /** @nocollapse */
-  static className = 'ConvLSTM2D';
+  static override className = 'ConvLSTM2D';
 
   constructor(args: ConvLSTM2DArgs) {
     const cell = new ConvLSTM2DCell(args);
@@ -570,7 +570,7 @@ export class ConvLSTM2D extends ConvRNN2D {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends tfc.serialization.Serializable>(
+  static override fromConfig<T extends tfc.serialization.Serializable>(
       cls: tfc.serialization.SerializableConstructor<T>,
       config: tfc.serialization.ConfigDict): T {
     return new cls(config);

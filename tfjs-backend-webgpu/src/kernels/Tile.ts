@@ -51,5 +51,5 @@ export function tile(
 export const tileConfig: KernelConfig = {
   kernelName: Tile,
   backendName: 'webgpu',
-  kernelFunc: tile as {} as KernelFunc,
+  kernelFunc: tile as unknown as KernelFunc,
 };

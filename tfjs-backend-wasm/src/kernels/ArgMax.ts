@@ -39,8 +39,8 @@ function setup(backend: BackendWasm) {
 function argmax(
     args: {inputs: ArgMaxInputs, backend: BackendWasm, attrs: ArgMaxAttrs}) {
   const {backend, inputs, attrs} = args;
-  const {axis} = attrs as {} as ArgMaxAttrs;
-  const {x} = inputs as {} as ArgMaxInputs;
+  const {axis} = attrs as unknown as ArgMaxAttrs;
+  const {x} = inputs as unknown as ArgMaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   let inputId = xId;
   let input = x;
@@ -76,6 +76,6 @@ function argmax(
 export const argMaxConfig: KernelConfig = {
   kernelName: ArgMax,
   backendName: 'wasm',
-  kernelFunc: argmax as {} as KernelFunc,
+  kernelFunc: argmax as unknown as KernelFunc,
   setupFunc: setup
 };

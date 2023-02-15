@@ -171,27 +171,18 @@ limitations under the License.
       }
     }
 
-    async function printTensors(tensorsMap) {
-      if (!tensorsMap) {
-        return;
-      }
-      const keysOfTensors = Object.keys(tensorsMap);
-      for (let i = 0; i < keysOfTensors.length; i++) {
-        console.warn(keysOfTensors[i]);
-        for (let j = 0; j < tensorsMap[keysOfTensors[i]].length; j++) {
-          console.warn(await (tensorsMap[keysOfTensors[i]][j]).data());
+    async function predictAndGetData(predict, model, inferenceInput, enableDump) {
+      const prediction = await predict(model, inferenceInput);
+      let intermediateData = {};
+      if (enableDump) {
+        const graphModel = getGraphModel(model);
+        if (graphModel) {
+          intermediateData = await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
+          graphModel.disposeIntermediateTensors();
         }
       }
-    }
-
-    async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
-      const prediction = await predict(model, inferenceInput);
-      if (debug) {
-        await printTensors(model.getIntermediateTensors());
-        model.disposeIntermediateTensors();
-      }
       const predictionData = await getPredictionData(prediction);
-      return predictionData;
+      return {data: predictionData, intermediateData};
     }
 
     const state = {
@@ -215,21 +206,23 @@ limitations under the License.
           envDiv.innerHTML = '';
           showVersions();
           await showEnvironment();
+          await showGpuInfo();
         }
 
-        let match, predictionData, referenceData;
+        let match, actualData, expectedData;
         await cleanUpTable();
 
         // load model and run inference
         try {
-          tf.setBackend('cpu');
+          const expectedBackend = 'cpu';
+          tf.setBackend(expectedBackend);
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg('Runing on cpu');
+          await showMsg(`Runing on ${expectedBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -242,8 +235,9 @@ limitations under the License.
             console.warn(e.message);
           }
 
-          const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          const enableDump = keepIntermediateTensors & (benchmarks[state.benchmark].supportDump !== false);
+          const expectedResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
+          expectedData = expectedResult['data'];
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -256,8 +250,18 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          const actualResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
+          actualData = actualResult['data'];
+          if (enableDump) {
+            const actualIntermediateObject = actualResult['intermediateData'];
+            const expectedIntermediateObject = expectedResult['intermediateData'];
 
+            const dumpLevel = urlState.has('dumpLevel') ? Number(urlState.get('dumpLevel')) : 0;
+            const dumpLength = urlState.has('dumpLength') ? Number(urlState.get('dumpLength')) : 1;
+            const dumpPrefix = state.benchmark + '_'+ state.architecture + '_' + state.inputType + '_' + state.inputSize;
+            const dumpInput = {[state.backend] : actualIntermediateObject, [expectedBackend] : expectedIntermediateObject};
+            await dump(model, dumpInput, dumpPrefix, dumpLevel, dumpLength);
+          }
           if (state.backend === 'webgl' || state.backend === 'webgpu') {
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
           }
@@ -269,7 +273,7 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          expectObjectsClose(predictionData, referenceData);
+          expectObjectsClose(actualData, expectedData);
           match = true;
         } catch (e) {
           match = false;
@@ -321,6 +325,11 @@ limitations under the License.
         layers: tf.version_layers,
         converter: tf.version_converter
       }, null, 2);
+    }
+
+    async function showGpuInfo() {
+      const gpuHardwareInfo = await getRendererInfo();
+      envDiv.innerHTML += `<br>{<br>  GPU info: \n  ${gpuHardwareInfo}<br>}<br>`;
     }
 
     async function showEnvironment() {
@@ -735,10 +744,14 @@ limitations under the License.
       }
       await tf.ready();
       if (state.isFlagChanged) {
-        await setEnvFlags(state.flags);
+        const canProceed = await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
         showVersions();
         await showEnvironment();
+        await showGpuInfo();
+        if (!canProceed) {
+          return;
+        }
       }
       await cleanUpTable();
       await setupKernelTable();
@@ -975,6 +988,7 @@ limitations under the License.
       tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       showVersions();
       await showEnvironment();
+      await showGpuInfo();
       updateGUIFromURLState();
     }
 

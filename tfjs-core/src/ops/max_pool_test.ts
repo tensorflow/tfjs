@@ -18,14 +18,15 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import { identityPoolTest } from './identity_pool_test';
 
 describeWithFlags('maxPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', async () => {
-    const x = tf.tensor3d([0], [1, 1, 1]);
+    const x = tf.tensor3d([123], [1, 1, 1]);
 
     const result = tf.maxPool(x, 1, 1, 0);
 
-    expectArraysClose(await result.data(), [0]);
+    expectArraysClose(await result.data(), [123]);
   });
 
   it('x=[3,3,1] f=[2,2] s=1, p=0', async () => {
@@ -208,6 +209,8 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const result = tf.maxPool(x, 1, 1, 0);
     expectArraysClose(await result.data(), [0]);
   });
+
+  identityPoolTest(tf.maxPool);
 });
 
 describeWithFlags('maxPoolBackprop', ALL_ENVS, () => {

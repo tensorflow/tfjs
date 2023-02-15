@@ -26,7 +26,7 @@ export const nonMaxSuppressionV3Config: KernelConfig = {
     const {boxes, scores} = args.inputs as NonMaxSuppressionV3Inputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {maxOutputSize, iouThreshold, scoreThreshold} =
-        args.attrs as {} as NonMaxSuppressionV3Attrs;
+        args.attrs as unknown as NonMaxSuppressionV3Attrs;
 
     const opAttrs = [createTensorsTypeOpAttr('T', boxes.dtype)];
 

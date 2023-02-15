@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {TensorInfo} from '../kernel_registry';
+import { TensorInfo } from '../tensor_info';
 import {Tensor} from '../tensor';
 import {assert} from '../util';
 

@@ -2836,7 +2836,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
       this.batchesToTrain = epochsToTrain;
     }
 
-    async onBatchEnd(batch: number, logs?: Logs) {
+    override async onBatchEnd(batch: number, logs?: Logs) {
       if (batch === this.batchesToTrain - 1) {
         this.model.stopTraining = true;
       }

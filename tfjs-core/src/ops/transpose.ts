@@ -80,11 +80,11 @@ function transpose_<T extends Tensor>(
       let $real = real($x);
       let $imag = imag($x);
       $real = ENGINE.runKernel(
-          Transpose, {x: $real} as {} as NamedTensorMap,
-          attrs as {} as NamedAttrMap);
+          Transpose, {x: $real} as unknown as NamedTensorMap,
+          attrs as unknown as NamedAttrMap);
       $imag = ENGINE.runKernel(
-          Transpose, {x: $imag} as {} as NamedTensorMap,
-          attrs as {} as NamedAttrMap);
+          Transpose, {x: $imag} as unknown as NamedTensorMap,
+          attrs as unknown as NamedAttrMap);
       if (conjugate) {
         $imag = neg($imag);
       }
@@ -93,7 +93,8 @@ function transpose_<T extends Tensor>(
   }
 
   return ENGINE.runKernel(
-      Transpose, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Transpose, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const transpose = op({transpose_});
+export const transpose = /* @__PURE__ */ op({transpose_});

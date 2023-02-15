@@ -62,8 +62,8 @@ function min_<T extends Tensor>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             Min, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as T;
+             Min, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as T;
 }
 
-export const min = op({min_});
+export const min = /* @__PURE__ */ op({min_});

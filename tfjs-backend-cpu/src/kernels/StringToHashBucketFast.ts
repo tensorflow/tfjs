@@ -46,5 +46,5 @@ export function stringToHashBucketFast(args: {
 export const stringToHashBucketFastConfig: KernelConfig = {
   kernelName: StringToHashBucketFast,
   backendName: 'cpu',
-  kernelFunc: stringToHashBucketFast as {} as KernelFunc,
+  kernelFunc: stringToHashBucketFast as unknown as KernelFunc,
 };

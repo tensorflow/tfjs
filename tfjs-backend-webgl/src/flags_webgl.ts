@@ -268,3 +268,12 @@ ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
  * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
 ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
+
+/**
+ * Whether to use the customized isnan. It's only useful for webgl2 since webgl1
+ * doesn't have the builtin isnan.
+ */
+ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);

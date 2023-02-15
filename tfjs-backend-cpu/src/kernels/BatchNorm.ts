@@ -90,5 +90,5 @@ export function batchNorm(args: {
 export const batchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'cpu',
-  kernelFunc: batchNorm as {} as KernelFunc,
+  kernelFunc: batchNorm as unknown as KernelFunc,
 };

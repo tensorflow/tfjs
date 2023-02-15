@@ -52,7 +52,8 @@ function matMul_<T extends Tensor>(
   const attrs: BatchMatMulAttrs = {transposeA, transposeB};
 
   return ENGINE.runKernel(
-      BatchMatMul, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      BatchMatMul, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const matMul = op({matMul_});
+export const matMul = /* @__PURE__ */ op({matMul_});

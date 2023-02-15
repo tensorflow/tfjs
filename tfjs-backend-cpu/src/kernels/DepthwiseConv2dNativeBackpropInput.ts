@@ -106,5 +106,5 @@ export function depthwiseConv2dNativeBackpropInput(args: {
 export const depthwiseConv2dNativeBackpropInputConfig: KernelConfig = {
   kernelName: DepthwiseConv2dNativeBackpropInput,
   backendName: 'cpu',
-  kernelFunc: depthwiseConv2dNativeBackpropInput as {} as KernelFunc
+  kernelFunc: depthwiseConv2dNativeBackpropInput as unknown as KernelFunc
 };

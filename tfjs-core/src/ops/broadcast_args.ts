@@ -56,7 +56,7 @@ function broadcastArgs_<R extends Rank>(
   }
 
   const inputs: BroadcastArgsInputs = { s0: shape1Input, s1: shape2Input };
-  return ENGINE.runKernel(BroadcastArgs, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(BroadcastArgs, inputs as unknown as NamedTensorMap);
 }
 
-export const broadcastArgs = op({ broadcastArgs_ });
+export const broadcastArgs = /* @__PURE__ */ op({ broadcastArgs_ });

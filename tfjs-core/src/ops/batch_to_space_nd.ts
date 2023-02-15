@@ -100,8 +100,8 @@ function batchToSpaceND_<T extends Tensor>(
   const attrs: BatchToSpaceNDAttrs = {blockShape, crops};
 
   return ENGINE.runKernel(
-      BatchToSpaceND, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      BatchToSpaceND, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const batchToSpaceND = op({batchToSpaceND_});
+export const batchToSpaceND = /* @__PURE__ */ op({batchToSpaceND_});

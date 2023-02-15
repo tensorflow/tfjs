@@ -25,7 +25,7 @@ import {FromPixelsProgram} from '../from_pixels_webgpu';
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
   backendName: 'webgpu',
-  kernelFunc: fromPixels as {} as KernelFunc,
+  kernelFunc: fromPixels as unknown as KernelFunc,
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
@@ -64,8 +64,10 @@ export function fromPixels(args: {
       [pixels.width, pixels.height];
   const outputShape = [height, width, numChannels];
 
+  // Disable importExternalTexture temporarily as it has problem in spec and
+  // browser impl
   const importVideo =
-      env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
+      false && env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo: TextureInfo;
@@ -95,7 +97,7 @@ export function fromPixels(args: {
           willReadFrequently = newWillReadFrequently;
           fromPixels2DContext =
               document.createElement('canvas').getContext(
-                  '2d', {willReadFrequently}) as CanvasRenderingContext2D;
+                  '2d', {willReadFrequently});
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;

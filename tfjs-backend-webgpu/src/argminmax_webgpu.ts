@@ -24,7 +24,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
   uniforms = 'infinityValue : f32,';
   inputShape: number[];
@@ -53,7 +53,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         util.sizeFromShape(outputShape) > 1000) {
       this.type = 'plain';
       this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize);
+          this.dispatchLayout, this.outputShape, this.workgroupSize);
     } else {
       this.type = 'shared';
       // A work group only outputs a data, so we transfer [1, 1, 1] to compute
@@ -67,6 +67,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    const workgroupSizeX = this.workgroupSize[0];
     const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
@@ -91,8 +92,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     if (this.type === 'shared') {
       const sharedMemorySnippet = `
-      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
-      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestIndices : array<i32, ${workgroupSizeX}>;
+      var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
     `;
       const userCode = `
       fn DIV_CEIL(a : u32, b : u32) -> u32 {
@@ -102,14 +103,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       ${sharedMemorySnippet}
 
       ${main('index')} {
-        let outputIndex = index / i32(workGroupSizeX);
+        let outputIndex = index / ${workgroupSizeX};
         let reduceLength = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
         let outputCoords = getCoordsFromIndex(outputIndex);
         for (var k = i32(localId.x); k < reduceLength && outputIndex < uniforms.size;
-            k = k + i32(workGroupSizeX)) {
+            k = k + ${workgroupSizeX}) {
           let candidate = getX(${splitOutputCoords()} k);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
@@ -120,7 +121,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[localId.x] = bestIndex;
         workgroupBarrier();
 
-        var reduceSize = min(u32(reduceLength), workGroupSizeX);
+        var reduceSize = min(u32(reduceLength), ${workgroupSizeX}u);
         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);

@@ -27,15 +27,16 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
-      filterWidth : i32, stride : vec2<i32>, dilation : vec2<i32>,`;
+  uniforms = `pads : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
+      filterWidth : i32, strides : vec2<i32>, dilations : vec2<i32>,`;
   // This is an experimental value.
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
   isChannelsLast: boolean;
+  size = true;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -43,7 +44,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
 
     if (addBias) {
@@ -67,67 +68,67 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, false, 4)}
 
-      ${main()} {
-        let coords = getOutputCoords();
-        let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.${
-        this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.stride - uniforms.pad;
-        let d2 = coords[${this.isChannelsLast ? 3 : 1}];
-        let channelMul = uniforms.wShape[3];
-        let d1 = d2 / channelMul;
-        let q = d2 % channelMul;
+      ${main('index')} {
+        if (index < uniforms.size) {
+          let coords = getOutputCoords();
+          let batch = coords[0];
+          let xRCCorner = vec2<i32>(coords.${
+        this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.strides - uniforms.pads;
+          let d2 = coords[${this.isChannelsLast ? 3 : 1}];
+          let channelMul = uniforms.wShape[3];
+          let d1 = d2 / channelMul;
+          let q = d2 % channelMul;
 
-        let inputRowStart = xRCCorner.x;
-        let inputColStart = xRCCorner.y;
-        let inputRowEnd = inputRowStart + uniforms.filterHeight *
-            uniforms.dilation[0];
-        let inputColEnd = inputColStart + uniforms.filterWidth *
-            uniforms.dilation[1];
+          let inputRowStart = xRCCorner.x;
+          let inputColStart = xRCCorner.y;
+          let inputRowEnd = inputRowStart + uniforms.filterHeight *
+              uniforms.dilations[0];
+          let inputColEnd = inputColStart + uniforms.filterWidth *
+              uniforms.dilations[1];
 
-        // Convolve x(?, ?, d1)|x(d1, ?, ?) with w(:, :, d1, q) to get
-        // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
-        // values in that axis. x(?, ?, d1) and y(yR, yC, d2) is for NHWC.
-        // x(d1, ?, ?) and y(d2, yR, yC) is for NCHW.
-        var value = 0.0;
+          // Convolve x(?, ?, d1)|x(d1, ?, ?) with w(:, :, d1, q) to get
+          // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
+          // values in that axis. x(?, ?, d1) and y(yR, yC, d2) is for NHWC.
+          // x(d1, ?, ?) and y(d2, yR, yC) is for NCHW.
+          var value = 0.0;
 
-        // Extract if checking out of for loop for performance.
-        if (inputRowStart >= 0 && inputColStart >= 0 &&
-          inputRowEnd < uniforms.inDims[0] &&
-              inputColEnd < uniforms.inDims[1]) {
-            for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
-              let xR = inputRowStart + wR * uniforms.dilation[0];
+          // Extract if checking out of for loop for performance.
+          if (inputRowStart >= 0 && inputColStart >= 0 &&
+            inputRowEnd < uniforms.inDims[0] &&
+                inputColEnd < uniforms.inDims[1]) {
+              for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
+                let xR = inputRowStart + wR * uniforms.dilations[0];
 
-              for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
-                let xC = inputColStart + wC * uniforms.dilation[1];
+                for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
+                  let xC = inputColStart + wC * uniforms.dilations[1];
 
-                let xVal = ${getXSnippet};
-                let wVal = getW(wR, wC, d1, q);
-                value = value + xVal * wVal;
+                  let xVal = ${getXSnippet};
+                  let wVal = getW(wR, wC, d1, q);
+                  value = value + xVal * wVal;
+                }
               }
-            }
-          } else {
-            for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
-              let xR = inputRowStart + wR * uniforms.dilation[0];
+            } else {
+              for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
+                let xR = inputRowStart + wR * uniforms.dilations[0];
 
-              if (xR < 0 || xR >= uniforms.inDims[0]) {
-                continue;
-              }
-
-              for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
-                let xC = inputColStart + wC * uniforms.dilation[1];
-
-                if (xC < 0 || xC >= uniforms.inDims[1]) {
+                if (xR < 0 || xR >= uniforms.inDims[0]) {
                   continue;
                 }
 
-                let xVal = ${getXSnippet};
-                let wVal = getW(wR, wC, d1, q);
-                value = value + xVal * wVal;
+                for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
+                  let xC = inputColStart + wC * uniforms.dilations[1];
+
+                  if (xC < 0 || xC >= uniforms.inDims[1]) {
+                    continue;
+                  }
+
+                  let xVal = ${getXSnippet};
+                  let wVal = getW(wR, wC, d1, q);
+                  value = value + xVal * wVal;
+                }
               }
             }
-          }
-          ${biasActivationSnippet(this.addBias, this.activation)}
-        if (coordsInBounds4D(coords, uniforms.outShape)) {
+            ${biasActivationSnippet(this.addBias, this.activation)}
           setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }

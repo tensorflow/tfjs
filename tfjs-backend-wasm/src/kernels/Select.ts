@@ -57,6 +57,6 @@ function select(args: {inputs: SelectInputs, backend: BackendWasm}) {
 export const selectConfig: KernelConfig = {
   kernelName: Select,
   backendName: 'wasm',
-  kernelFunc: select as {} as KernelFunc,
+  kernelFunc: select as unknown as KernelFunc,
   setupFunc: setup
 };

@@ -90,8 +90,6 @@ export function batchMatMulImpl({
   const intermediates: TensorInfo[] = [a3d, b3d];
 
   const batchDim = Math.max(batchDimA, batchDimB);
-  const batchAEqualOne = batchDimA === 1;
-  const batchBEqualOne = batchDimB === 1;
 
   const inputs: TensorInfo[] = [a3d, b3d];
   const dimensions = [
@@ -105,30 +103,35 @@ export function batchMatMulImpl({
       [batchDim, outerShapeA, outerShapeB];
   let matmulProgramType = env().get('WEBGPU_MATMUL_PROGRAM_TYPE') as number;
   if (matmulProgramType < 0) {
-    if (outerShapeA * outerShapeB <= 128) {
-      matmulProgramType = MatMulProgramType.MatMulReduceProgram;
-    } else if (
-        // These boundaries are based on bodypix-ResNet50-image-0.5.
-        // TODO: Relax or tight these boundaries when we have a complete matmul
-        // test coverage.
-        batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 &&
-        innerShapeB >= 2000) {
-      matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
-    } else if (
-        // When the output size is absolutely small or relatively small, we may
-        // use MatMulSmallOutputSizeProgram to get better performance.
-        // Absolutely small size means that the output size is smaller than [16,
-        // 512]. Relatively small size means that one demension size of the
-        // output is smaller than 16, and the output size is also more than or
-        // equal two times smaller than each of the two input sizes. For
-        // example, if input sizes are [12, 2048] and [2048, 1024], the output
-        // size is [12, 1024], which is relatively small compared to input
-        // sizes.
-        (outerShapeA <= 16 &&
-         (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
-        (outerShapeB <= 16 &&
-         (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA))) {
-      matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+    // Usually increasing workgroups is a good way to gain more performance for
+    // few workgroups by tiling 32x32 (default matmul algorithm). Currently,
+    // there are three ways to increase workgroups. 1) MatMulReduceProgram,
+    // which is used only when the output size is very small (128 for now). 2)
+    // MatMulSplitKProgram, increasing workgroups by spliting K. 3)
+    // MatMulSmallOutputSizeProgram, increasing workgroups by small tile size.
+    // For different devices, the minimum optimal workgroups may be different.
+    // So here we set a |thresholdToIncreaseWorkgroups| to indicate whether we
+    // need to increase workgroups. And the literal number is an empirical
+    // value.
+    const thresholdFlagValue =
+        env().getNumber('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+    const thresholdToIncreaseWorkgroups = thresholdFlagValue > 0 ?
+        thresholdFlagValue :
+        backend.thresholdToIncreaseWorkgroups;
+    const workgroupsBy32x32 =
+        batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
+    const hasFewWorkgroups =
+        workgroupsBy32x32 <= thresholdToIncreaseWorkgroups ||
+        (outerShapeA <= 8 &&
+         workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2);
+    if (hasFewWorkgroups) {
+      if (batchDim * outerShapeA * outerShapeB <= 128) {
+        matmulProgramType = MatMulProgramType.MatMulReduceProgram;
+      } else if (batchDim === 1 && innerShapeB >= 2000) {
+        matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
+      } else {
+        matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+      }
     } else {
       matmulProgramType = MatMulProgramType.MatMulPackedProgram;
     }
@@ -137,8 +140,8 @@ export function batchMatMulImpl({
   switch (matmulProgramType) {
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
-          outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
-          bias, activation, preluActivationWeights);
+          outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights);
       break;
     case MatMulProgramType.MatMulSplitKProgram: {
       // The output buffer must be initailzed to zero before using since we
@@ -146,8 +149,7 @@ export function batchMatMulImpl({
       out = fill(
           {backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
       program = new MatMulSplitKProgram(
-          outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB);
+          outputShape, innerShapeB, transposeA, transposeB);
       if (bias || activation) {
         out =
             backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
@@ -184,9 +186,12 @@ export function batchMatMulImpl({
           activation, preluActivationWeights);
       break;
     case MatMulProgramType.MatMulPackedProgram:
+      // Experiments show that sequential access is more friendly for Intel
+      // GPUs.
+      const sequentialAccessByThreads = backend.adapterInfo.isIntel();
       program = new MatMulPackedProgram(
-          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          transposeB, bias, activation, preluActivationWeights);
+          a3dShape, outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights, sequentialAccessByThreads);
       break;
     default:
       throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);

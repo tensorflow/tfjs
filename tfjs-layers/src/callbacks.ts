@@ -20,7 +20,7 @@ export abstract class Callback extends BaseCallback {
   /** Instance of `keras.models.Model`. Reference of the model being trained. */
   model: LayersModel = null;
 
-  setModel(model: Container): void {
+  override setModel(model: Container): void {
     if (!(model instanceof LayersModel)) {
       throw new Error('model must be a LayersModel, not some other Container');
     }
@@ -154,7 +154,7 @@ export class EarlyStopping extends Callback {
     }
   }
 
-  async onTrainBegin(logs?: Logs) {
+  override async onTrainBegin(logs?: Logs) {
     this.wait = 0;
     this.stoppedEpoch = 0;
     if (this.baseline != null) {
@@ -164,7 +164,7 @@ export class EarlyStopping extends Callback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: Logs) {
+  override async onEpochEnd(epoch: number, logs?: Logs) {
     await resolveScalarsInLogs(logs);
     const current = this.getMonitorValue(logs);
     if (current == null) {
@@ -185,7 +185,7 @@ export class EarlyStopping extends Callback {
     }
   }
 
-  async onTrainEnd(logs?: Logs) {
+  override async onTrainEnd(logs?: Logs) {
     if (this.stoppedEpoch > 0 && this.verbose) {
       console.log(`Epoch ${this.stoppedEpoch}: early stopping.`);
     }

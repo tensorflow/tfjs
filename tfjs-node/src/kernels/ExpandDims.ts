@@ -25,7 +25,7 @@ export const expandDimsConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {input} = args.inputs as ExpandDimsInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {dim} = args.attrs as {} as ExpandDimsAttrs;
+    const {dim} = args.attrs as unknown as ExpandDimsAttrs;
 
     const dimTensor = scalar(dim, 'int32');
 

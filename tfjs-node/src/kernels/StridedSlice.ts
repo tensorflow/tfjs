@@ -26,9 +26,9 @@ export const stridedSliceConfig: KernelConfig = {
     const {x} = args.inputs as StridedSliceInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask} =
-        args.attrs as {} as StridedSliceAttrs;
+        args.attrs as unknown as StridedSliceAttrs;
 
-    const attrs = args.attrs as {} as StridedSliceAttrs;
+    const attrs = args.attrs as unknown as StridedSliceAttrs;
     // make a copy because it may be modified in-place further down.
     const begin = attrs.begin.slice();
     const end = attrs.end.slice();

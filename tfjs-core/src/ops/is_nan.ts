@@ -40,6 +40,6 @@ function isNaN_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'isNaN');
   const inputs: IsNanInputs = {x: $x};
 
-  return ENGINE.runKernel(IsNan, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(IsNan, inputs as unknown as NamedTensorMap);
 }
-export const isNaN = op({isNaN_});
+export const isNaN = /* @__PURE__ */ op({isNaN_});

@@ -99,8 +99,8 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
   // const inputs: LogSoftmaxInputs = {logits: $logits};
   // const attrs: LogSoftmaxAttrs = {axis};
   // return ENGINE.runKernel(
-  //            LogSoftmax, inputs as {} as NamedTensorMap,
-  //            attrs as {} as NamedAttrMap);
+  //            LogSoftmax, inputs as unknown as NamedTensorMap,
+  //            attrs as unknown as NamedAttrMap);
 }
 
-export const logSoftmax = op({logSoftmax_});
+export const logSoftmax = /* @__PURE__ */ op({logSoftmax_});

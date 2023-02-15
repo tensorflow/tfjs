@@ -22,25 +22,27 @@ import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
-export function makeMatMulReduceSource(): string {
+export function makeMatMulReduceSource(workgroupSizeX: number): string {
   return `
-    var<workgroup> sumValues : array<f32, workGroupSizeX>;
+    var<workgroup> sumValues : array<f32, ${workgroupSizeX}>;
     ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
+      let batchA = batch % uniforms.aShape[0];
+      let batchB = batch % uniforms.bShape[0];
       let row = coords[1];
       let col = coords[2];
       var sum = 0.0;
       let Length = uniforms.dimInner;
-      for (var k = i32(localId.x); k < Length; k = k + i32(workGroupSizeX)) {
-        let dataA = mm_readA(batch, row, k);
-        let dataB = mm_readB(batch, k, col);
+      for (var k = i32(localId.x); k < Length; k = k + ${workgroupSizeX}) {
+        let dataA = mm_readA(batchA, row, k);
+        let dataB = mm_readB(batchB, k, col);
         sum = sum + dataA * dataB;
       }
       sumValues[localId.x] = sum;
       workgroupBarrier();
 
-      for(var currentSize = workGroupSizeX / 2u; currentSize > 1u;
+      for(var currentSize = ${workgroupSizeX / 2}u; currentSize > 1u;
           currentSize = currentSize / 2u) {
         if (localId.x < currentSize)
         {
@@ -64,24 +66,22 @@ export class MatMulReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workgroupSize: [number, number, number] = [256, 1, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
 
   constructor(
-      outputShape: [number, number, number], batchAEqualOne: boolean,
-      batchBEqualOne: boolean, transposeA = false, transposeB = false,
-      bias: TensorInfo = null, activation: backend_util.Activation = null,
+      outputShape: [number, number, number], transposeA = false,
+      transposeB = false, bias: TensorInfo = null,
+      activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [], y: [1, 2], z: [0]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -98,10 +98,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey = `matMulReduce_${this.activation}_${transposeA}_${
-        transposeB}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
+    this.shaderKey =
+        `matMulReduce_${this.activation}_${transposeA}_${transposeB}`;
   }
 
   getUserCode(): string {
@@ -109,9 +107,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
       ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
       ${
         matMulReadWriteFnSource(
-            this.addBias, this.activation, this.batchAEqualOne,
-            this.batchBEqualOne, this.transposeA, this.transposeB)}
-      ${makeMatMulReduceSource()}
+            this.addBias, this.activation, this.transposeA, this.transposeB)}
+      ${makeMatMulReduceSource(this.workgroupSize[0])}
     `;
     return userCode;
   }

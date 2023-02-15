@@ -49,5 +49,5 @@ export function dilation2D(args: {
 export const dilation2DConfig: KernelConfig = {
   kernelName: Dilation2D,
   backendName: 'webgl',
-  kernelFunc: dilation2D as {} as KernelFunc,
+  kernelFunc: dilation2D as unknown as KernelFunc,
 };

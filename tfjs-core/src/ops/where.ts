@@ -68,7 +68,7 @@ function where_<T extends Tensor>(
     t: $broadcastedA,
     e: $broadcastedB
   };
-  return ENGINE.runKernel(Select, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Select, inputs as unknown as NamedTensorMap);
 }
 
-export const where = op({where_});
+export const where = /* @__PURE__ */ op({where_});

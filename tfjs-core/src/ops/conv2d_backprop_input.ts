@@ -99,8 +99,8 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Conv2DBackpropInput, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  Conv2DBackpropInput, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -108,4 +108,4 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2DBackpropInput = op({conv2DBackpropInput_});
+export const conv2DBackpropInput = /* @__PURE__ */ op({conv2DBackpropInput_});

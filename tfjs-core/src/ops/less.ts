@@ -49,7 +49,7 @@ function less_<T extends Tensor>(
 
   const inputs: LessInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Less, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Less, inputs as unknown as NamedTensorMap);
 }
 
-export const less = op({less_});
+export const less = /* @__PURE__ */ op({less_});

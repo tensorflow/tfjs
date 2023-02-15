@@ -75,5 +75,5 @@ export const nonMaxSuppressionV4Config: KernelConfig = {
   kernelName: NonMaxSuppressionV4,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: nonMaxSuppressionV4 as {} as KernelFunc,
+  kernelFunc: nonMaxSuppressionV4 as unknown as KernelFunc,
 };

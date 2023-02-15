@@ -48,5 +48,5 @@ export function expandDims(args: {
 export const expandDimsConfig: KernelConfig = {
   kernelName: ExpandDims,
   backendName: 'webgl',
-  kernelFunc: expandDims as {} as KernelFunc,
+  kernelFunc: expandDims as unknown as KernelFunc,
 };

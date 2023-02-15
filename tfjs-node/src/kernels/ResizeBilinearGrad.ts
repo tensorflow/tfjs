@@ -25,7 +25,7 @@ export const resizeBilinearGradConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {images, dy} = args.inputs as ResizeBilinearGradInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alignCorners} = args.attrs as {} as ResizeBilinearGradAttrs;
+    const {alignCorners} = args.attrs as unknown as ResizeBilinearGradAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype), {

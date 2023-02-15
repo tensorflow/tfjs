@@ -55,5 +55,5 @@ export function reshape(args: {
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'webgl',
-  kernelFunc: reshape as {} as KernelFunc
+  kernelFunc: reshape as unknown as KernelFunc
 };

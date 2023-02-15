@@ -114,8 +114,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return ENGINE.runKernel(
-        FromPixels, inputs as {} as NamedTensorMap,
-        attrs as {} as NamedAttrMap);
+        FromPixels, inputs as unknown as NamedTensorMap,
+        attrs as unknown as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?
@@ -147,7 +147,7 @@ function fromPixels_(
       } else {
         fromPixels2DContext =
             document.createElement('canvas').getContext(
-                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
+                '2d', {willReadFrequently: true});
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -371,4 +371,4 @@ export async function toPixels(
   return bytes;
 }
 
-export const fromPixels = op({fromPixels_});
+export const fromPixels = /* @__PURE__ */ op({fromPixels_});

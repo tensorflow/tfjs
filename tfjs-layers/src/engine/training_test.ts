@@ -1459,7 +1459,7 @@ describeMathCPUAndWebGL2('LayersModel.fit', () => {
       this.epochsToTrain = epochsToTrain;
     }
 
-    async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+    override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
       if (epoch === this.epochsToTrain - 1) {
         this.model.stopTraining = true;
       }
@@ -1486,7 +1486,7 @@ describeMathCPUAndWebGL2('LayersModel.fit', () => {
       this.batchesToTrain = batchesToTrain;
     }
 
-    async onBatchEnd(batch: number, logs?: Logs) {
+    override async onBatchEnd(batch: number, logs?: Logs) {
       if (batch === this.batchesToTrain - 1) {
         this.model.stopTraining = true;
       }

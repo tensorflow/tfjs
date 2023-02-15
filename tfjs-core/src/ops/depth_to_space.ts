@@ -98,8 +98,8 @@ function depthToSpace_(
   const attrs: DepthToSpaceAttrs = {blockSize, dataFormat};
 
   return ENGINE.runKernel(
-      DepthToSpace, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      DepthToSpace, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const depthToSpace = op({depthToSpace_});
+export const depthToSpace = /* @__PURE__ */ op({depthToSpace_});

@@ -60,7 +60,8 @@ function gather_<T extends Tensor>(
   const attrs: GatherV2Attrs = {axis, batchDims};
 
   return ENGINE.runKernel(
-      GatherV2, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      GatherV2, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const gather = op({gather_});
+export const gather = /* @__PURE__ */ op({gather_});

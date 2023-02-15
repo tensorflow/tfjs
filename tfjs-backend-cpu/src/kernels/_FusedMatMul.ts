@@ -64,5 +64,5 @@ export function _fusedMatMul(args: {
 export const _fusedMatMulConfig: KernelConfig = {
   kernelName: _FusedMatMul,
   backendName: 'cpu',
-  kernelFunc: _fusedMatMul as {} as KernelFunc,
+  kernelFunc: _fusedMatMul as unknown as KernelFunc,
 };

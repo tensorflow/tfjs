@@ -57,6 +57,6 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 
   const inputs: MultiplyInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Multiply, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Multiply, inputs as unknown as NamedTensorMap);
 }
-export const mul = op({mul_});
+export const mul = /* @__PURE__ */ op({mul_});

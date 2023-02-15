@@ -34,5 +34,5 @@ export const equal = binaryKernelFunc({
 export const equalConfig: KernelConfig = {
   kernelName: Equal,
   backendName: 'webgl',
-  kernelFunc: equal as {} as KernelFunc
+  kernelFunc: equal as unknown as KernelFunc
 };

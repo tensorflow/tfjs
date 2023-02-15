@@ -48,6 +48,8 @@ import {reshape} from './reshape';
  *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function avgPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
@@ -78,8 +80,8 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
-                AvgPool, inputs as {} as NamedTensorMap,
-                attrs as {} as NamedAttrMap) as T;
+                AvgPool, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, $x.dtype);
 
@@ -90,4 +92,4 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const avgPool = op({avgPool_});
+export const avgPool = /* @__PURE__ */ op({avgPool_});

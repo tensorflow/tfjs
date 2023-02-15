@@ -80,7 +80,8 @@ function cropAndResize(args: {
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes, cropHeight,
       cropWidth,
-      InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
+      InterpolationMethod[method as unknown as
+                          keyof typeof InterpolationMethod],
       extrapolationValue, outId);
 
   if (castedData != null) {
@@ -94,5 +95,5 @@ export const cropAndResizeConfig: KernelConfig = {
   kernelName: CropAndResize,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cropAndResize as {} as KernelFunc
+  kernelFunc: cropAndResize as unknown as KernelFunc
 };

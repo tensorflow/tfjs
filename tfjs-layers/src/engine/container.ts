@@ -471,7 +471,7 @@ export abstract class Container extends Layer {
     this._refCount = 1;  // The ref count of a container always start at 1.
   }
 
-  protected assertNotDisposed() {
+  protected override assertNotDisposed() {
     if (this._refCount === 0) {
       throw new Error(`Container '${this.name}' is already disposed.`);
     }
@@ -503,7 +503,7 @@ export abstract class Container extends Layer {
    * @throws {Error} If the layer is not built yet, or if the LayersModel has
    *   already been disposed.
    */
-  dispose(): DisposeResult {
+  override dispose(): DisposeResult {
     this.assertNotDisposed();
     const result:
         DisposeResult = {refCountAfterDispose: null, numDisposedVariables: 0};
@@ -522,11 +522,11 @@ export abstract class Container extends Layer {
     return result;
   }
 
-  get trainable() {
+  override get trainable() {
     return this.trainable_;
   }
 
-  set trainable(trainable: boolean) {
+  override set trainable(trainable: boolean) {
     this.layers.forEach(layer => {
       // tslint:disable-next-line:no-any
       ((layer as any)._trainableWeights as LayerVariable[])
@@ -535,7 +535,7 @@ export abstract class Container extends Layer {
     this.trainable_ = trainable;
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     // Porting Note: This check below is to prevent errors where the
     //   _trainableWeights inherited from the parent class (Layer) gets
     //   inadvertently used.
@@ -557,7 +557,7 @@ export abstract class Container extends Layer {
     return weights;
   }
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     const weights: LayerVariable[] = [];
     for (const layer of this.layers) {
       weights.push(...layer.nonTrainableWeights);
@@ -572,7 +572,7 @@ export abstract class Container extends Layer {
     return weights;
   }
 
-  get weights(): LayerVariable[] {
+  override get weights(): LayerVariable[] {
     return this.trainableWeights.concat(this.nonTrainableWeights);
   }
 
@@ -688,7 +688,7 @@ export abstract class Container extends Layer {
    * @return A tensor if there is a single output, or a list of tensors if there
    *   are more than one outputs.
    */
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = generic_utils.toList(inputs);
       const feedDict = new FeedDict();
@@ -708,7 +708,7 @@ export abstract class Container extends Layer {
    * @return null or a tensor (or list of tensors, one per output tensor of the
    * layer).
    */
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
       |Tensor[] {
     return tidy(() => {
       inputs = generic_utils.toList(inputs);
@@ -732,7 +732,7 @@ export abstract class Container extends Layer {
    *   (one per output tensor of the layer). Shape tuples can include null for
    *   free dimensions, instead of an integer.
    */
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     const inputShapes = types_utils.normalizeShapeList(inputShape);
     if (inputShapes.length !== this.inputLayers.length) {
       throw new ValueError(
@@ -1000,7 +1000,7 @@ export abstract class Container extends Layer {
    *
    * Used for regularizers during training.
    */
-  calculateLosses(): Scalar[] {
+  override calculateLosses(): Scalar[] {
     // Porting Node: This is an augmentation to Container.loss in PyKeras.
     //   In PyKeras, Container.loss returns symbolic tensors. Here a concrete
     //   Tensor (specifically Scalar) values are returned. This is due to the
@@ -1021,7 +1021,7 @@ export abstract class Container extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {name: this.name};
 
     // Build a map from layer unique name (self._node_key)
@@ -1136,7 +1136,7 @@ export abstract class Container extends Layer {
    * @throws ValueError: In case of improperly formatted config dict.
    */
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict,
@@ -1284,7 +1284,7 @@ export abstract class Container extends Layer {
    * Porting Note: this is the equivalent of the stateful @property of
    *   the Container class in PyKeras.
    */
-  get stateful(): boolean {
+  override get stateful(): boolean {
     // Porting Note: This check is to prevent inadvertent setting of the
     //   _stateful property of the Container instance.
     if (this._stateful) {
@@ -1307,7 +1307,7 @@ export abstract class Container extends Layer {
    * Examples of stateful layers include RNN layers whose `stateful` property
    * is set as `true`.
    */
-  resetStates() {
+  override resetStates() {
     tidy(() => {
       this.layers.forEach(layer => {
         // tslint:disable:no-any

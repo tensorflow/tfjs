@@ -25,8 +25,8 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = `stride : vec2<i32>,`;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  uniforms = `strides : vec2<i32>,`;
+  workgroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -34,7 +34,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
 
     this.shaderKey = 'poolWithFilterSizeEqualsOne';
   }
@@ -47,7 +47,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
           let batch = coords[0];
           let d = coords[3];
 
-          let xRCCorner = coords.yz * uniforms.stride;
+          let xRCCorner = coords.yz * uniforms.strides;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 

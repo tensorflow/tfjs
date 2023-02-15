@@ -51,7 +51,8 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   const attrs: UnpackAttrs = {axis};
 
   return ENGINE.runKernel(
-      Unpack, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Unpack, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const unstack = op({unstack_});
+export const unstack = /* @__PURE__ */ op({unstack_});

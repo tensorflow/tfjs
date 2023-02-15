@@ -62,7 +62,8 @@ function max_<T extends Tensor>(
   const attrs: MaxAttrs = {reductionIndices: axis, keepDims};
 
   return ENGINE.runKernel(
-      Max, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Max, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const max = op({max_});
+export const max = /* @__PURE__ */ op({max_});

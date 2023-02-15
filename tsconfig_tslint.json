@@ -18,6 +18,8 @@
       "@tensorflow/tfjs-layers/dist/*": ["tfjs-layers/src/*"],
       "@tensorflow/tfjs-data": ["tfjs-data/src/index.ts"],
       "@tensorflow/tfjs-data/dist/*": ["tfjs-data/src/*"],
+      "@tensorflow/tfjs-tfdf": ["tfjs-tfdf/src/index.ts"],
+      "@tensorflow/tfjs-tfdf/dist/*": ["tfjs-tfdf/src/*"],
       "@tensorflow/tfjs-tflite": ["tfjs-tflite/src/index.ts"],
       "@tensorflow/tfjs-tflite/dist/*": ["tfjs-tflite/src/*"],
       "@tensorflow/tfjs-backend-wasm": ["tfjs-backend-wasm/src/index.ts"],

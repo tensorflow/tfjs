@@ -64,7 +64,8 @@ function reverse_<T extends Tensor>(
   const attrs: ReverseAttrs = {dims: axis};
 
   return ENGINE.runKernel(
-      Reverse, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Reverse, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const reverse = op({reverse_});
+export const reverse = /* @__PURE__ */ op({reverse_});

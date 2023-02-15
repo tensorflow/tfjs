@@ -32,5 +32,5 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendWebGL}):
 export const imagConfig: KernelConfig = {
   kernelName: Imag,
   backendName: 'webgl',
-  kernelFunc: imag as {} as KernelFunc
+  kernelFunc: imag as unknown as KernelFunc
 };

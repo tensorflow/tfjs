@@ -17,7 +17,7 @@
 
 import {KernelConfig, KernelFunc, Pow} from '@tensorflow/tfjs-core';
 
-import {CHECK_NAN_SNIPPET} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const POW = `
@@ -44,9 +44,11 @@ const POW_PACKED = `
   result.b = isExpZero.b ? 1.0 : result.b;
   result.a = isExpZero.a ? 1.0 : result.a;
 
-  vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
+  bvec4 isNaN1 = lessThan(a, vec4(0.0));
+  bvec4 isNaN2 = lessThan(floor(b), b);
+  bvec4 isNaN = bvec4(isNaN1.x && isNaN2.x, isNaN1.y && isNaN2.y, isNaN1.z && isNaN2.z, isNaN1.w && isNaN2.w);
   ` +
-    CHECK_NAN_SNIPPET + `
+    CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 
@@ -56,5 +58,5 @@ export const pow =
 export const powConfig: KernelConfig = {
   kernelName: Pow,
   backendName: 'webgl',
-  kernelFunc: pow as {} as KernelFunc
+  kernelFunc: pow as unknown as KernelFunc
 };

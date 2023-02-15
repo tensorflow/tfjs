@@ -41,6 +41,6 @@ function isFinite_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: IsFiniteInputs = {x: $x};
 
-  return ENGINE.runKernel(IsFinite, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(IsFinite, inputs as unknown as NamedTensorMap);
 }
-export const isFinite = op({isFinite_});
+export const isFinite = /* @__PURE__ */ op({isFinite_});

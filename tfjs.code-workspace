@@ -61,6 +61,10 @@
       "path": "tfjs-react-native"
     },
     {
+      "name": "TFDecisionForests",
+      "path": "tfjs-tfdf"
+    },
+    {
       "name": "TFLite",
       "path": "tfjs-tflite"
     },

@@ -136,6 +136,7 @@ export {prelu} from './prelu';
 export {print} from './print';
 export {prod} from './prod';
 export {raggedGather} from './ragged_gather';
+export {raggedRange} from './ragged_range';
 export {raggedTensorToTensor} from './ragged_tensor_to_tensor';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
@@ -194,6 +195,7 @@ export {tensor3d} from './tensor3d';
 export {tensor4d} from './tensor4d';
 export {tensor5d} from './tensor5d';
 export {tensor6d} from './tensor6d';
+export {tensorScatterUpdate} from './tensor_scatter_update';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
@@ -323,11 +325,13 @@ const sparse = {
 import {stringNGrams} from './string/string_n_grams';
 import {stringSplit} from './string/string_split';
 import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
+import {staticRegexReplace} from './string/static_regex_replace';
 // tslint:disable-next-line:variable-name
 const string = {
   stringNGrams,
   stringSplit,
-  stringToHashBucketFast
+  stringToHashBucketFast,
+  staticRegexReplace,
 };
 
 // Second level exports.
