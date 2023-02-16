@@ -14,13 +14,18 @@ import { Shape } from '../../keras_format/common';
 import { Kwargs } from '../../types';
 import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
+import { randomUniform } from '@tensorflow/tfjs-core';
 
 export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
    factor: number | [number, number];
    interpolation?: InterpolationType; // default = 'bilinear';
-   seed?: number;// default = false;
-   autoVectorize?:boolean;
+   seed?: number; // default = null;
+   autoVectorize?: boolean;
 }
+
+const INTERPOLATION_KEYS = ['bilinear', 'nearest'] as const;
+export const INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
+type InterpolationType = typeof INTERPOLATION_KEYS[number];
 
 /**
  * Preprocessing Layer with randomly varies image during training
@@ -39,16 +44,11 @@ export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
  *
  */
 
-const INTERPOLATION_KEYS = ['bilinear', 'nearest'] as const;
-export const INTERPOLATION_METHODS = new Set(INTERPOLATION_KEYS);
-type InterpolationType = typeof INTERPOLATION_KEYS[number];
-
 export class RandomWidth extends BaseRandomLayer {
   /** @nocollapse */
   static override className = 'RandomWidth';
   private readonly factor: number | [number, number];
   private readonly interpolation?: InterpolationType;  // defualt = 'bilinear
-  private seed?: number; // default null
   private widthLower: number;
   private widthUpper: number;
   private imgHeight: number;
@@ -57,7 +57,7 @@ export class RandomWidth extends BaseRandomLayer {
 
   constructor(args: RandomWidthArgs) {
     super(args);
-    const {factor, interpolation = 'bilinear', seed} = args;
+    const {factor, interpolation = 'bilinear'} = args;
 
     this.factor = factor;
 
@@ -86,8 +86,6 @@ export class RandomWidth extends BaseRandomLayer {
       `);
     }
 
-    this.seed = seed;
-
     if (interpolation) {
       if (INTERPOLATION_METHODS.has(interpolation)) {
         this.interpolation = interpolation;
@@ -95,17 +93,13 @@ export class RandomWidth extends BaseRandomLayer {
         throw new ValueError(`Invalid interpolation parameter: ${
             interpolation} is not implemented`);
       }
-    } else {
-      this.interpolation = 'bilinear';
-    }
-
+    } 
   }
 
   override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'factor': this.factor,
       'interpolation': this.interpolation,
-      'seed': this.seed,
     };
 
     const baseConfig = super.getConfig();
@@ -123,32 +117,31 @@ export class RandomWidth extends BaseRandomLayer {
     kwargs: Kwargs): Tensor[]|Tensor {
 
     return tidy(() => {
-        const input = getExactlyOneTensor(inputs);
-        const inputShape = input.shape;
-        this.imgHeight = inputShape[inputShape.length - 3];
-        const imgWidth = inputShape[inputShape.length - 2];
+      const input = getExactlyOneTensor(inputs);
+      this.imgHeight = input.shape[input.shape.length - 3];
+      const imgWidth = input.shape[input.shape.length - 2];
 
-        this.widthFactor = this.randomGenerator.randomUniform([1],
-          (1.0 + this.widthLower), (1.0 + this.widthUpper),
-          'float32', this.seed
-        );
+      this.widthFactor = randomUniform([1],
+        (1.0 + this.widthLower), (1.0 + this.widthUpper),
+        'float32', this.randomGenerator.currentSeed
+      );
 
-        this.seed = this.randomGenerator.next();
+      this.randomGenerator.next();
 
-        this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
-        this.adjustedWidth = Math.round(this.adjustedWidth);
+      this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
+      this.adjustedWidth = Math.round(this.adjustedWidth);
 
-        const size:[number, number] = [this.imgHeight, this.adjustedWidth];
+      const size:[number, number] = [this.imgHeight, this.adjustedWidth];
 
-        switch (true) {
-          case this.interpolation === 'bilinear':
-            return image.resizeBilinear(inputs, size);
-          case this.interpolation === 'nearest':
-            return image.resizeNearestNeighbor(inputs, size);
-          default:
-            throw new Error(`Interpolation is ${this.interpolation}
-            but only ${[...INTERPOLATION_METHODS]} are supported`);
-        }
+      switch (this.interpolation) {
+        case 'bilinear':
+          return image.resizeBilinear(inputs, size);
+        case 'nearest':
+          return image.resizeNearestNeighbor(inputs, size);
+        default:
+          throw new Error(`Interpolation is ${this.interpolation}
+          but only ${[...INTERPOLATION_METHODS]} are supported`);
+      }
     });
   }
 }
