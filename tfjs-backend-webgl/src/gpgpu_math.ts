@@ -62,11 +62,11 @@ export interface GPGPUBinaryLocations {
   outShapeLocation?: WebGLUniformLocation;
   outShapeStridesLocation?: WebGLUniformLocation;
   outTexShapeLocation?: WebGLUniformLocation;
-  variableLocations?: GPGPUVariableLocations[];
+  variablesLocations?: GPGPUVariableLocations[];
 }
 
 export interface GPGPUVariableLocations {
-  variableName: string;
+  name: string;
   uniform: WebGLUniformLocation;
   offset: WebGLUniformLocation;
   shape?: WebGLUniformLocation;
@@ -128,7 +128,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       webGLProgram,
       inShapeInfos,
       outShapeInfo,
-      variableLocations: null,
+      variablesLocations: null,
       customUniformLocations: null,
       infLoc: null,
       nanLoc: null,
@@ -142,7 +142,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
 export function getUniformLocations(
     gpgpu: GPGPUContext, program: GPGPUProgram,
     webGLProgram: WebGLProgram): GPGPUBinaryLocations {
-  const variableLocations: GPGPUVariableLocations[] = [];
+  const variablesLocations: GPGPUVariableLocations[] = [];
   const customUniformLocations: WebGLUniformLocation[] = [];
   let outShapeLocation: WebGLUniformLocation;
   let outTexShapeLocation: WebGLUniformLocation;
@@ -159,20 +159,20 @@ export function getUniformLocations(
   // Add user-defined uniforms
   const shouldThrow = false;
   for (const varName of program.variableNames) {
-    const loc: GPGPUVariableLocations = {
-      variableName: varName,
+    const varLocs: GPGPUVariableLocations = {
+      name: varName,
       uniform: gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow),
       offset: gpgpu.getUniformLocation(
           webGLProgram, `offset${varName}`, shouldThrow),
     };
     if (program.enableShapeUniforms) {
-      loc.shape = gpgpu.getUniformLocation(
+      varLocs.shape = gpgpu.getUniformLocation(
           webGLProgram, `${varName}Shape`, shouldThrow);
-      loc.texShape = gpgpu.getUniformLocation(
+      varLocs.texShape = gpgpu.getUniformLocation(
           webGLProgram, `${varName}TexShape`, shouldThrow);
     }
 
-    variableLocations.push(loc);
+    variablesLocations.push(varLocs);
   }
 
   if (program.enableShapeUniforms) {
@@ -185,14 +185,14 @@ export function getUniformLocations(
   }
 
   if (program.customUniforms) {
-    program.customUniforms.forEach((d, i) => {
-      customUniformLocations[i] =
-          gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow);
-    });
+    for (const d of program.customUniforms) {
+      customUniformLocations.push(
+          gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow));
+    }
   }
 
   return {
-    variableLocations,
+    variablesLocations,
     customUniformLocations,
     infLoc,
     nanLoc,
@@ -272,7 +272,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       offset: varOffsetLoc,
       shape: varShapeLoc,
       texShape: varTexShapeLoc,
-    } = binary.variableLocations[i];
+    } = binary.variablesLocations[i];
 
     if (varShapeLoc) {
       const {uniformShape} = shader_compiler.getUniformInfoFromShape(
@@ -294,6 +294,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
           break;
       }
     }
+
     if (varTexShapeLoc) {
       gpgpu.gl.uniform2i(
           varTexShapeLoc, input.texData.texShape[0], input.texData.texShape[1]);
@@ -301,7 +302,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
 
     if (varLoc == null) {
       // The compiler inferred that this variable is not used in this shader.
-      return;
+      continue;
     }
 
     if (input.isUniform) {
@@ -315,7 +316,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
         }
         gpgpu.gl.uniform1fv(varLoc, vals);
       }
-      return;
+      continue;
     }
 
     // If the input was sliced, upload the flat offset index.
@@ -324,7 +325,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     }
 
     gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
-  }
+  };
 
   const outShapeLoc = binary.outShapeLocation;
   if (outShapeLoc) {

@@ -1278,7 +1278,7 @@ export class MathBackendWebGL extends KernelBackend {
   getUniformLocations() {
     for (const binary of Object.values(this.binaryCache)) {
       const {
-        variableLocations,
+        variablesLocations,
         customUniformLocations,
         infLoc,
         nanLoc,
@@ -1286,7 +1286,7 @@ export class MathBackendWebGL extends KernelBackend {
         outShapeStridesLocation,
         outTexShapeLocation
       } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
-      binary.variableLocations = variableLocations;
+      binary.variablesLocations = variablesLocations;
       binary.customUniformLocations = customUniformLocations;
       binary.infLoc = infLoc;
       binary.nanLoc = nanLoc;
