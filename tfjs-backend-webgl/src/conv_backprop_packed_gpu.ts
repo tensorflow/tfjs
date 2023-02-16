@@ -116,4 +116,3 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
     `;
   }
 }
-
