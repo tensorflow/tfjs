@@ -55,6 +55,7 @@ export {sparseReshapeImpl} from './kernels/SparseReshape_impl';
 export {sparseSegmentReductionImpl} from './kernels/SparseSegmentReduction_impl';
 export {sqrtImpl} from './kernels/Sqrt';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
+export {staticRegexReplaceImpl} from './kernels/StaticRegexReplace';
 export {stridedSliceImpl} from './kernels/StridedSlice_impl';
 export {stringNGramsImpl} from './kernels/StringNGrams_impl';
 export {stringSplitImpl} from './kernels/StringSplit_impl';

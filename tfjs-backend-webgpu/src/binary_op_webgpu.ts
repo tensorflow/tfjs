@@ -87,11 +87,7 @@ export class BinaryOpProgram implements WebGPUProgram {
     const dType = this.isVec4 ? 'vec4<f32>' : 'f32';
     const opFnStr = `
     fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
-      let isNaN = false;
-      let valueForNaN = uniforms.NAN;
-      {
-        ${getBinaryOpString(this.op, this.isVec4)}
-      }
+      ${getBinaryOpString(this.op, this.isVec4)}
     };
     `;
 
