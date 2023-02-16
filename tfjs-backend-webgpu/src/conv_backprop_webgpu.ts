@@ -70,99 +70,99 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
       let c = i32(globalId.y) * ${this.workPerThread};
       let d1 = i32(globalId.x) * 4;
 
-        let dyCorner = vec2<i32>(r, c) - uniforms.pads;
+      let dyCorner = vec2<i32>(r, c) - uniforms.pads;
 
-        // Convolve dy(?, ?, d2) with w(:, :, d1, d2) to compute dx(xR, xC, d1).
-        // ? = to be determined. : = across all values in that axis.
-        var dotProd: array<vec4<f32>, ${this.workPerThread}>;
-        for (var i = 0; i < ${this.workPerThread}; i++) {
-          dotProd[i] = vec4<f32>(0.0);
+      // Convolve dy(?, ?, d2) with w(:, :, d1, d2) to compute dx(xR, xC, d1).
+      // ? = to be determined. : = across all values in that axis.
+      var dotProd: array<vec4<f32>, ${this.workPerThread}>;
+      for (var i = 0; i < ${this.workPerThread}; i++) {
+        dotProd[i] = vec4<f32>(0.0);
+      }
+      for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
+        let dyR = f32(dyCorner.x + wR) / f32(uniforms.strides.x);
+        let wRPerm = uniforms.filterDims.x - 1 - wR;
+        if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) ||
+            fract(dyR) > 0.0) {
+          continue;
         }
-        for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
-          let dyR = f32(dyCorner.x + wR) / f32(uniforms.strides.x);
-          let wRPerm = uniforms.filterDims.x - 1 - wR;
-          if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0) {
+        let idyR = i32(dyR);
+
+        for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
+          let dyC = f32(dyCorner.y + wC) / f32(uniforms.strides.y);
+          let dyC2 = f32(dyCorner.y + 1 + wC) / f32(uniforms.strides.y);
+          let wCPerm = uniforms.filterDims.y - 1 - wC;
+          var bDyCVal = true;
+          var bDyCVal2 = true;
+          if (dyC < 0.0 || dyC >= f32(uniforms.outBackprop[2]) ||
+              fract(dyC) > 0.0) {
+            bDyCVal = false;
+          }
+          if (dyC2 < 0.0 || dyC2 >= f32(uniforms.outBackprop[2]) ||
+              fract(dyC2) > 0.0) {
+            bDyCVal2 = false;
+          }
+          if (bDyCVal == false &&  bDyCVal2 == false) {
             continue;
           }
-          let idyR = i32(dyR);
-
-          for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
-            let dyC = f32(dyCorner.y + wC) / f32(uniforms.strides.y);
-            let dyC2 = f32(dyCorner.y + 1 + wC) / f32(uniforms.strides.y);
-            let wCPerm = uniforms.filterDims.y - 1 - wC;
-            var bDyCVal = true;
-            var bDyCVal2 = true;
-            if (dyC < 0.0 || dyC >= f32(uniforms.outBackprop[2]) ||
-                fract(dyC) > 0.0) {
-              bDyCVal = false;
+          let idyC = i32(dyC);
+          let idyC2 = i32(dyC2);
+          if (bDyCVal && bDyCVal2) {
+            let d2Length = uniforms.outBackprop[3];
+            for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
+              let wValue0 = getW(wRPerm, wCPerm, d1, d2);
+              let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
+              let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
+              let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
+              var xValue =  getDy(batch, idyR, idyC, d2);
+              let tmpval = vec4<f32>(dot(xValue, wValue0),
+                                     dot(xValue, wValue1),
+                                     dot(xValue, wValue2),
+                                     dot(xValue, wValue3));
+              dotProd[0] = dotProd[0] + tmpval;
+              xValue = getDy(batch, idyR, idyC2, d2);
+              dotProd[1] = dotProd[1] + vec4<f32>(dot(xValue, wValue0),
+                                                  dot(xValue, wValue1),
+                                                  dot(xValue, wValue2),
+                                                  dot(xValue, wValue3));
             }
-            if (dyC2 < 0.0 || dyC2 >= f32(uniforms.outBackprop[2]) ||
-                fract(dyC2) > 0.0) {
-              bDyCVal2 = false;
+          } else if (bDyCVal) {
+            let d2Length = uniforms.outBackprop[3];
+            for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
+              let wValue0 = getW(wRPerm, wCPerm, d1, d2);
+              let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
+              let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
+              let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
+              var xValue =  getDy(batch, idyR, idyC, d2);
+              let tmpval = vec4<f32>(dot(xValue, wValue0),
+                                     dot(xValue, wValue1),
+                                     dot(xValue, wValue2),
+                                     dot(xValue, wValue3));
+              dotProd[0] = dotProd[0] + tmpval;
             }
-            if (bDyCVal == false &&  bDyCVal2 == false) {
-              continue;
-            }
-            let idyC = i32(dyC);
-            let idyC2 = i32(dyC2);
-            if (bDyCVal && bDyCVal2)
-            {
-              let d2Length = uniforms.outBackprop[3];
-              for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
-                let wValue0 = getW(wRPerm, wCPerm, d1, d2);
-                let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
-                let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
-                let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
-                var xValue =  getDy(batch, idyR, idyC, d2);
-                let tmpval = vec4<f32>(dot(xValue, wValue0),
-                                       dot(xValue, wValue1),
-                                       dot(xValue, wValue2),
-                                       dot(xValue, wValue3));
-                dotProd[0] = dotProd[0] + tmpval;
-                xValue = getDy(batch, idyR, idyC2, d2);
-                dotProd[1] = dotProd[1] + vec4<f32>(dot(xValue, wValue0),
-                                                    dot(xValue, wValue1),
-                                                    dot(xValue, wValue2),
-                                                    dot(xValue, wValue3));
-              }
-            } else if (bDyCVal) {
-              let d2Length = uniforms.outBackprop[3];
-              for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
-                let wValue0 = getW(wRPerm, wCPerm, d1, d2);
-                let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
-                let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
-                let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
-                var xValue =  getDy(batch, idyR, idyC, d2);
-                let tmpval = vec4<f32>(dot(xValue, wValue0),
-                                       dot(xValue, wValue1),
-                                       dot(xValue, wValue2),
-                                       dot(xValue, wValue3));
-                dotProd[0] = dotProd[0] + tmpval;
-              }
-            } else if (bDyCVal2) {
-              let d2Length = uniforms.outBackprop[3];
-              for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
-                let wValue0 = getW(wRPerm, wCPerm, d1, d2);
-                let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
-                let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
-                let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
-                var xValue =  getDy(batch, idyR, idyC2, d2);
-                let tmpval = vec4<f32>(dot(xValue, wValue0),
-                                       dot(xValue, wValue1),
-                                       dot(xValue, wValue2),
-                                       dot(xValue, wValue3));
-                dotProd[1] = dotProd[1] + tmpval;
-              }
+          } else if (bDyCVal2) {
+            let d2Length = uniforms.outBackprop[3];
+            for (var d2 = 0; d2 < d2Length; d2 = d2 + 4) {
+              let wValue0 = getW(wRPerm, wCPerm, d1, d2);
+              let wValue1 = getW(wRPerm, wCPerm, d1 + 1, d2);
+              let wValue2 = getW(wRPerm, wCPerm, d1 + 2, d2);
+              let wValue3 = getW(wRPerm, wCPerm, d1 + 3, d2);
+              var xValue =  getDy(batch, idyR, idyC2, d2);
+              let tmpval = vec4<f32>(dot(xValue, wValue0),
+                                     dot(xValue, wValue1),
+                                     dot(xValue, wValue2),
+                                     dot(xValue, wValue3));
+              dotProd[1] = dotProd[1] + tmpval;
             }
           }
         }
+      }
 
-        for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
-          let coords = vec4<i32>(batch, r, c + i, d1);
-          if (coordsInBounds4D(coords, uniforms.outShape)) {
-            setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], dotProd[i]);
-          }
+      for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
+        let coords = vec4<i32>(batch, r, c + i, d1);
+        if (coordsInBounds4D(coords, uniforms.outShape)) {
+          setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], dotProd[i]);
         }
+      }
     }
     `;
     return this.isVec4 ?
