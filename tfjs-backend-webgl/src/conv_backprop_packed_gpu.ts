@@ -64,36 +64,50 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
             int wCPerm = ${filterWidth} - 1 - wC;
 
             float dyC = float(dyCCorner + wC) / strides[1];
-            float idyCVal = dyC < 0.0 ? 0. :
-              dyC >= ${convInfo.outWidth}.0 ? 0. :
-              fract(dyC) > 0.0 ? 0. : 1.;
+            bool idyCVal = (dyC >= 0.0) && (dyC < ${convInfo.outWidth}.0)
+              && (fract(dyC) == 0.0);
             int idyC = int(dyC);
 
             float dyC2 = float(dyCCorner + wC + 1) / strides[1];
-            float idyCVal2 = dyC2 < 0.0 ? 0. :
-              dyC2 >= ${convInfo.outWidth}.0 ? 0. :
-              fract(dyC2) > 0.0 ? 0. : 1.;
+            bool idyCVal2 = (dyC2 >= 0.0) && (dyC2 < ${convInfo.outWidth}.0)
+              && (fract(dyC2) == 0.0);
             int idyC2 = int(dyC2);
 
-            if (idyCVal + idyCVal2 == 0.) {
-              continue;
-            }
+            if (idyCVal && idyCVal2) {
+              for (int d2 = 0; d2 < ${convInfo.outChannels}; d2 += 2) {
+                vec4 wValue = getW(wRPerm, wCPerm, d1, d2);
+                vec4 dySample = getDy(batch, idyR, idyC, d2);
+                vec4 dySample2 = (idyC / 2 == idyC2 / 2) ?
+                  dySample : getDy(batch, idyR, idyC2, d2);
 
-            for (int d2 = 0; d2 < ${convInfo.outChannels}; d2 += 2) {
-              vec4 wValue = getW(wRPerm, wCPerm, d1, d2);
-              vec4 dySample = getDy(batch, idyR, idyC, d2);
-              vec4 dySample2 = (idyC / 2 == idyC2 / 2) ?
-                dySample : getDy(batch, idyR, idyC2, d2);
+                vec2 dyValue = mod(float(idyC), 2.) == 0. ?
+                  dySample.xy : dySample.zw;
+                result.xy += vec2(dot(dyValue, wValue.xy),
+                  dot(dyValue, wValue.zw));
 
-              vec2 dyValue = mod(float(idyC), 2.) == 0. ?
-                dySample.xy : dySample.zw;
-              result.xy += vec2(dot(dyValue, wValue.xy),
-                dot(dyValue, wValue.zw)) * idyCVal;
-
-              dyValue = mod(float(idyC2), 2.) == 0. ?
-                dySample2.xy : dySample2.zw;
-              result.zw += vec2(dot(dyValue, wValue.xy),
-                dot(dyValue, wValue.zw)) * idyCVal2;
+                dyValue = mod(float(idyC2), 2.) == 0. ?
+                  dySample2.xy : dySample2.zw;
+                result.zw += vec2(dot(dyValue, wValue.xy),
+                  dot(dyValue, wValue.zw));
+              }
+            } else if (idyCVal) {
+              for (int d2 = 0; d2 < ${convInfo.outChannels}; d2 += 2) {
+                vec4 wValue = getW(wRPerm, wCPerm, d1, d2);
+                vec4 dySample = getDy(batch, idyR, idyC, d2);
+                vec2 dyValue = mod(float(idyC), 2.) == 0. ?
+                  dySample.xy : dySample.zw;
+                result.xy += vec2(dot(dyValue, wValue.xy),
+                  dot(dyValue, wValue.zw));
+              }
+            } else if (idyCVal2) {
+              for (int d2 = 0; d2 < ${convInfo.outChannels}; d2 += 2) {
+                vec4 wValue = getW(wRPerm, wCPerm, d1, d2);
+                vec4 dySample = getDy(batch, idyR, idyC2, d2);
+                vec2 dyValue = mod(float(idyC2), 2.) == 0. ?
+                  dySample.xy : dySample.zw;
+                result.zw += vec2(dot(dyValue, wValue.xy),
+                  dot(dyValue, wValue.zw));
+              }
             }
           }
         }
@@ -102,3 +116,4 @@ export class Conv2DDerInputPackedProgram implements GPGPUProgram {
     `;
   }
 }
+
