@@ -56,6 +56,12 @@ export interface SingleValueMap {
 /** @docalias 'float32'|'int32'|'bool'|'complex64'|'string' */
 export type DataType = keyof DataTypeMap;
 export type NumericDataType = 'float32'|'int32'|'bool'|'complex64';
+
+export type DataTypeFor<T extends number | string | boolean> =
+  T extends number | boolean ? NumericDataType :
+  T extends string ? 'string' :
+  never;
+
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 /** Tensor data used in tensor creation and user-facing API. */
 export type DataValues = DataTypeMap[DataType];
@@ -198,8 +204,8 @@ export interface WebGPUData {
 }
 
 export function isWebGLData(values: unknown): values is WebGLData {
-  return values != null 
-      && typeof values === 'object' 
+  return values != null
+      && typeof values === 'object'
       && 'texture' in values
       && values.texture instanceof WebGLTexture;
 }
@@ -207,6 +213,6 @@ export function isWebGPUData(values: unknown): values is WebGPUData {
   return typeof GPUBuffer !== 'undefined'
       && values != null
       && typeof values === 'object'
-      && 'buffer' in values 
+      && 'buffer' in values
       && values.buffer instanceof GPUBuffer;
 }

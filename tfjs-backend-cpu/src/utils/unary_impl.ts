@@ -15,18 +15,19 @@
  * =============================================================================
  */
 
-import {NumericDataType, util} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 
 import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
 /**
  * Template that creates implementation for unary op.
  */
-export function createSimpleUnaryImpl(op: SimpleUnaryOperation):
-    SimpleUnaryImpl {
+export function createSimpleUnaryImpl<I extends number | string = number,
+  O extends number | string = number>(op: SimpleUnaryOperation<I, O>):
+    SimpleUnaryImpl<I, O> {
   return (values, dtype, attrs) => {
     const newValues =
-        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+        util.getArrayFromDType(dtype, values.length);
     for (let i = 0; i < values.length; ++i) {
       newValues[i] = op(values[i], attrs);
     }
