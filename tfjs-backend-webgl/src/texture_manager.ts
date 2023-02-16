@@ -25,10 +25,10 @@ export class TextureManager {
   private numUsedTextures = 0;
   private numFreeTextures = 0;
   private _numBytesAllocated = 0;
-  private _numBytesFree = 0;  // How many bytes that have been allocated
-                              // are available for reuse.
-  private freeTextures: Record<string, Texture[]> = {};
-  private usedTextures: Record<string, Texture[]> = {};
+  // Number of bytes that have been allocated and available for reuse.
+  private _numBytesFree = 0;
+  private freeTextures?: Record<string, Texture[]> = {};
+  private usedTextures?: Record<string, Texture[]> = {};
   private logEnabled = false;
 
   constructor(private readonly gpgpu: GPGPUContext) {}
@@ -173,8 +173,8 @@ export class TextureManager {
         this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
-    this.freeTextures = {};
-    this.usedTextures = {};
+    this.freeTextures = null;
+    this.usedTextures = null;
     this.numUsedTextures = 0;
     this.numFreeTextures = 0;
     this._numBytesAllocated = 0;
