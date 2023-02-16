@@ -46,34 +46,31 @@ export interface GPGPUProgram {
       Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
-export interface GPGPUBinary {
+export interface GPGPUBinary extends GPGPUBinaryLocations {
   webGLProgram: GPGPUContextProgram;
   program: GPGPUProgram;
-  uniformLocations: {[name: string]: WebGLUniformLocation};
-  customUniformLocations?: WebGLUniformLocation[];
   source: string;
   fragmentShader: WebGLShader;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
-  infLoc: WebGLUniformLocation;
-  nanLoc: WebGLUniformLocation;
-  inShapesLocations?: {[name: string]: WebGLUniformLocation};
-  inTexShapesLocations?: {[name: string]: WebGLUniformLocation};
-  outShapeLocation?: WebGLUniformLocation;
-  outShapeStridesLocation?: WebGLUniformLocation;
-  outTexShapeLocation?: WebGLUniformLocation;
 }
 
 export interface GPGPUBinaryLocations {
-  uniformLocations: {[name: string]: WebGLUniformLocation};
   customUniformLocations?: WebGLUniformLocation[];
   infLoc: WebGLUniformLocation;
   nanLoc: WebGLUniformLocation;
-  inShapesLocations?: {[name: string]: WebGLUniformLocation};
-  inTexShapesLocations?: {[name: string]: WebGLUniformLocation};
   outShapeLocation?: WebGLUniformLocation;
   outShapeStridesLocation?: WebGLUniformLocation;
   outTexShapeLocation?: WebGLUniformLocation;
+  variableLocations?: GPGPUVariableLocations[];
+}
+
+export interface GPGPUVariableLocations {
+  variableName: string;
+  uniform: WebGLUniformLocation;
+  offset: WebGLUniformLocation;
+  shape?: WebGLUniformLocation;
+  texShape?: WebGLUniformLocation;
 }
 
 export interface TensorData {
@@ -131,12 +128,10 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       webGLProgram,
       inShapeInfos,
       outShapeInfo,
-      uniformLocations: null,
+      variableLocations: [],
       customUniformLocations: null,
       infLoc: null,
       nanLoc: null,
-      inShapesLocations: null,
-      inTexShapesLocations: null,
       outShapeLocation: null,
       outShapeStridesLocation: null,
       outTexShapeLocation: null
@@ -147,9 +142,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
 export function getUniformLocations(
     gpgpu: GPGPUContext, program: GPGPUProgram,
     webGLProgram: WebGLProgram): GPGPUBinaryLocations {
-  const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
-  const inShapesLocations: {[name: string]: WebGLUniformLocation} = {};
-  const inTexShapesLocations: {[name: string]: WebGLUniformLocation} = {};
+  const variableLocations: GPGPUVariableLocations[] = [];
   const customUniformLocations: WebGLUniformLocation[] = [];
   let outShapeLocation: WebGLUniformLocation;
   let outTexShapeLocation: WebGLUniformLocation;
@@ -165,18 +158,20 @@ export function getUniformLocations(
 
   // Add user-defined uniforms
   const shouldThrow = false;
-  for (let i = 0; i < program.variableNames.length; i++) {
-    const varName = program.variableNames[i];
-    uniformLocations[varName] =
-        gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
-    uniformLocations[`offset${varName}`] =
-        gpgpu.getUniformLocation(webGLProgram, `offset${varName}`, shouldThrow);
+  for (const varName of program.variableNames) {
+    let loc: GPGPUVariableLocations = {
+      variableName: varName,
+      uniform: gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow),
+      offset: gpgpu.getUniformLocation(
+          webGLProgram, `offset${varName}`, shouldThrow),
+    };
     if (program.enableShapeUniforms) {
-      inShapesLocations[`${varName}Shape`] = gpgpu.getUniformLocation(
+      loc.shape = gpgpu.getUniformLocation(
           webGLProgram, `${varName}Shape`, shouldThrow);
-      inTexShapesLocations[`${varName}TexShape`] = gpgpu.getUniformLocation(
+      loc.texShape = gpgpu.getUniformLocation(
           webGLProgram, `${varName}TexShape`, shouldThrow);
     }
+    variableLocations.push(loc);
   }
 
   if (program.enableShapeUniforms) {
@@ -196,12 +191,10 @@ export function getUniformLocations(
   }
 
   return {
-    uniformLocations,
+    variableLocations,
     customUniformLocations,
     infLoc,
     nanLoc,
-    inShapesLocations,
-    inTexShapesLocations,
     outShapeLocation,
     outShapeStridesLocation,
     outTexShapeLocation
@@ -271,12 +264,14 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
 
   // Set user-defined inputs
-  inputs.forEach((input, i) => {
-    const varName = binary.program.variableNames[i];
-    const varLoc = binary.uniformLocations[varName];
-    const varOffsetLoc = binary.uniformLocations[`offset${varName}`];
-    const varShapeLoc = binary.inShapesLocations[`${varName}Shape`];
-    const varTexShapeLoc = binary.inTexShapesLocations[`${varName}TexShape`];
+  for (let i = 0; i < inputs.length; ++i) {
+    const input = inputs[i];
+    const {
+      uniform: varLoc,
+      offset: varOffsetLoc,
+      shape: varShapeLoc,
+      texShape: varTexShapeLoc,
+    } = binary.variableLocations[i];
 
     if (varShapeLoc) {
       const {uniformShape} = shader_compiler.getUniformInfoFromShape(
@@ -328,7 +323,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     }
 
     gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
-  });
+  }
 
   const outShapeLoc = binary.outShapeLocation;
   if (outShapeLoc) {
