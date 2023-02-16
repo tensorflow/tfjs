@@ -27,11 +27,11 @@ export class TextureManager {
   private _numBytesAllocated = 0;
   private _numBytesFree = 0;  // How many bytes that have been allocated
                               // are available for reuse.
-  private freeTextures: {[shape: string]: Texture[]} = {};
+  private freeTextures: Record<string, Texture[]> = {};
+  private usedTextures: Record<string, Texture[]> = {};
   private logEnabled = false;
-  private usedTextures: {[shape: string]: Texture[]} = {};
 
-  constructor(private gpgpu: GPGPUContext) {}
+  constructor(private readonly gpgpu: GPGPUContext) {}
 
   acquireTexture(
       shapeRC: [number, number], usage: TextureUsage,
@@ -55,7 +55,7 @@ export class TextureManager {
       this.numUsedTextures++;
       this._numBytesFree -= texBytes;
       this.log();
-      const newTexture = this.freeTextures[shapeKey].shift();
+      const newTexture = this.freeTextures[shapeKey].pop();
       this.usedTextures[shapeKey].push(newTexture);
       return newTexture;
     }
@@ -123,7 +123,8 @@ export class TextureManager {
           'Cannot release a texture that was never provided by this ' +
           'texture manager');
     }
-    texList.splice(texIndex, 1);
+    texList[texIndex] = texList[texList.length - 1];
+    texList.pop();
     this.log();
   }
 
@@ -172,8 +173,8 @@ export class TextureManager {
         this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
-    this.freeTextures = null;
-    this.usedTextures = null;
+    this.freeTextures = {};
+    this.usedTextures = {};
     this.numUsedTextures = 0;
     this.numFreeTextures = 0;
     this._numBytesAllocated = 0;
