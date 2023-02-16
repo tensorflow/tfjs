@@ -128,7 +128,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       webGLProgram,
       inShapeInfos,
       outShapeInfo,
-      variableLocations: [],
+      variableLocations: null,
       customUniformLocations: null,
       infLoc: null,
       nanLoc: null,
@@ -159,7 +159,7 @@ export function getUniformLocations(
   // Add user-defined uniforms
   const shouldThrow = false;
   for (const varName of program.variableNames) {
-    let loc: GPGPUVariableLocations = {
+    const loc: GPGPUVariableLocations = {
       variableName: varName,
       uniform: gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow),
       offset: gpgpu.getUniformLocation(
@@ -171,6 +171,7 @@ export function getUniformLocations(
       loc.texShape = gpgpu.getUniformLocation(
           webGLProgram, `${varName}TexShape`, shouldThrow);
     }
+
     variableLocations.push(loc);
   }
 
@@ -370,7 +371,8 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
 
   if (binary.program.customUniforms && customUniformValues) {
-    binary.program.customUniforms.forEach((d, i) => {
+    for (let i = 0; i < binary.program.customUniforms.length; ++i) {
+      const d = binary.program.customUniforms[i];
       const customLoc = binary.customUniformLocations[i];
       const customValue = customUniformValues[i];
       if (d.type === 'float') {
@@ -392,7 +394,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       } else {
         throw Error(`uniform type ${d.type} is not supported yet.`);
       }
-    });
+    }
   }
   gpgpu.executeProgram();
 }

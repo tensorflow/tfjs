@@ -1276,7 +1276,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   getUniformLocations() {
-    for (const [, binary] of Object.entries(this.binaryCache)) {
+    for (const binary of Object.values(this.binaryCache)) {
       const {
         variableLocations,
         customUniformLocations,
