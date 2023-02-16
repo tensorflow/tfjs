@@ -386,13 +386,13 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     }));
     const modelJSON = model.toJSON(null, false);
 
-    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
+    const qrSpy = spyOn(linalg, 'qr').and.callThrough();
     const modelPrime =
         await tfl.models.modelFromJSON({modelTopology: modelJSON});
     // Make sure modelPrime builds.
     modelPrime.predict(zeros([2, 3, 4]));
     // Assert the orthogonal initializer has been called.
-    expect(gramSchmidtSpy).toHaveBeenCalled();
+    expect(qrSpy).toHaveBeenCalled();
   });
 
   it('Partial non-strict load calls weight initializers', async () => {
@@ -415,7 +415,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     expect(savedArtifacts.weightSpecs.length).toEqual(3);
     savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
 
-    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
+    const qrSpy = spyOn(linalg, 'qr').and.callThrough();
     const strict = false;
     const modelPrime =
         await tfl.loadLayersModel(io.fromMemory(savedArtifacts), {strict});
@@ -423,7 +423,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
     // Assert the orthogonal initializer has been called.
-    expect(gramSchmidtSpy).toHaveBeenCalled();
+    expect(qrSpy).toHaveBeenCalled();
   });
 
   it('loadLayersModel: non-strict load calls weight initializers', async () => {
@@ -446,7 +446,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     expect(savedArtifacts.weightSpecs.length).toEqual(3);
     savedArtifacts.weightSpecs = savedArtifacts.weightSpecs.slice(0, 1);
 
-    const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
+    const qrSpy = spyOn(linalg, 'qr').and.callThrough();
     const strict = false;
     const modelPrime =
         await tfl.loadLayersModel(io.fromMemory(savedArtifacts), {strict});
@@ -454,7 +454,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
     // Assert the orthogonal initializer has been called.
-    expect(gramSchmidtSpy).toHaveBeenCalled();
+    expect(qrSpy).toHaveBeenCalled();
   });
 
   it('Load model artifact with ndarray-format scalar objects', async () => {
