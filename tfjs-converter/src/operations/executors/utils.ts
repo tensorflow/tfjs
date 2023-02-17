@@ -64,7 +64,7 @@ export function getParamValue(
 export function getTensor(
     name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
     resourceManager?: ResourceManager): Tensor {
-  const [nodeName, index] = parseNodeName(name);
+  const [nodeName, index] = parseNodeName(name, context);
 
   if (resourceManager != null) {
     const tensor = resourceManager.getHashTableHandleByName(nodeName);
@@ -103,7 +103,7 @@ export function getTensorsForCurrentContenxt(
  */
 export function getNodeNameAndIndex(
     inputName: string, context?: ExecutionContext): [string, number, string] {
-  const [nodeName, index, outputName] = parseNodeName(inputName);
+  const [nodeName, index, outputName] = parseNodeName(inputName, context);
 
   return [
     getNodeNameWithContextId(nodeName, context && context.currentContextId),
@@ -115,7 +115,14 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
   return !!contextId ? `${name}-${contextId}` : name;
 }
 
-export function parseNodeName(name: string): [string, number, string] {
+export function parseNodeName(
+    name: string, context?: ExecutionContext): [string, number, string?] {
+  if (context != null) {
+    const cachedResult = context.parseNodeNameCache.get(name);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+  }
   const parts = name.split(':');
   if (parts.length === 1) {
     return [name, 0, undefined];
@@ -124,7 +131,11 @@ export function parseNodeName(name: string): [string, number, string] {
   const nodeName = parts[0];
   const outputName = parts.length === 3 ? parts[1] : undefined;
   const index = Number(parts[parts.length - 1]);
-  return [nodeName, index, outputName];
+  const result: [string, number, string?] = [nodeName, index, outputName];
+  if (context != null) {
+    context.parseNodeNameCache.set(name, result);
+  }
+  return result;
 }
 
 export function split(arr: number[], size: number) {

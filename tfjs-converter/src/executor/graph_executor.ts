@@ -265,7 +265,7 @@ export class GraphExecutor implements FunctionExecutor {
       }
 
       Object.keys(inputs).forEach(name => {
-        const [nodeName, index] = parseNodeName(name);
+        const [nodeName, index] = parseNodeName(name, context);
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;

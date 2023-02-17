@@ -39,6 +39,8 @@ export interface ExecutionContextInfo {
  * For model with branch logic, TensorFLow will generate Switch/Merge ops.
  */
 export class ExecutionContext {
+  public readonly parseNodeNameCache =
+      new Map<string, [string, number, string?]>();
   private rootContext = {id: 0, frameName: '', iterationId: 0};
   private contexts: ExecutionContextInfo[] = [this.rootContext];
   private lastId = 0;
