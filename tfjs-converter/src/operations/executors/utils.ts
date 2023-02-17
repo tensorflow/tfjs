@@ -34,8 +34,7 @@ export function getParamValue(
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
-          resourceManager);
+          node.inputNames[start], tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
@@ -43,8 +42,8 @@ export function getParamValue(
       return inputs.map(
           name => getTensor(name, tensorMap, context, resourceManager));
     }
-    const tensor = getTensor(
-        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
+    const tensor =
+        getTensor(node.inputNames[start], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
@@ -87,7 +86,7 @@ export function getTensor(
  * @param name Node input name
  * @param tensorsMap Tensors map keyed by the node
  */
-export function getTensorsForCurrentContenxt(
+export function getTensorsForCurrentContext(
     name: string, tensorsMap: NamedTensorsMap,
     context: ExecutionContext): Tensor[] {
   return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
@@ -117,22 +116,28 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
 
 export function parseNodeName(
     name: string, context?: ExecutionContext): [string, number, string?] {
-  if (context != null) {
+  if (name === '') {
+    return ['', 0, undefined]
+  };
+
+  const isCacheEnabled = context != null && context.parseNodeNameCache != null;
+  if (isCacheEnabled) {
     const cachedResult = context.parseNodeNameCache.get(name);
     if (cachedResult != null) {
       return cachedResult;
     }
   }
   const parts = name.split(':');
+  let result: [string, number, string?];
   if (parts.length === 1) {
-    return [name, 0, undefined];
+    result = [name, 0, undefined];
+  } else {
+    const nodeName = parts[0];
+    const outputName = parts.length === 3 ? parts[1] : undefined;
+    const index = Number(parts[parts.length - 1]);
+    result = [nodeName, index, outputName];
   }
-
-  const nodeName = parts[0];
-  const outputName = parts.length === 3 ? parts[1] : undefined;
-  const index = Number(parts[parts.length - 1]);
-  const result: [string, number, string?] = [nodeName, index, outputName];
-  if (context != null) {
+  if (isCacheEnabled) {
     context.parseNodeNameCache.set(name, result);
   }
   return result;
