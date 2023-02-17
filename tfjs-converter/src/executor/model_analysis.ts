@@ -50,12 +50,11 @@ export function getExecutionSubgraph(
   // needed to compute those outputs.
   const seen = new Set<string>();
   const inputNodeNames =
-      Object.keys(inputs).map(name => parseNodeName(name)[0]);
+      new Set(Object.keys(inputs).map((name) => parseNodeName(name)[0]));
 
-  let initNodeNames: string[] = [];
-  if (initNodes != null) {
-    initNodeNames = initNodes.map(node => parseNodeName(node.name)[0]);
-  }
+  initNodes = initNodes || [];
+  const initNodeNames =
+      new Set(initNodes.map((node) => parseNodeName(node.name)[0]));
 
   const frontier = [...outputs];
   while (frontier.length > 0) {
@@ -74,11 +73,11 @@ export function getExecutionSubgraph(
       continue;
     }
     // This node is a dead end since it's one of the user-provided inputs.
-    if (inputNodeNames.indexOf(node.name) !== -1) {
+    if (inputNodeNames.has(node.name)) {
       continue;
     }
     // This node is a dead end since it doesn't have any inputs.
-    if (initNodeNames.indexOf(node.name) !== -1) {
+    if (initNodeNames.has(node.name)) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -146,26 +145,26 @@ export function getNodesInTopologicalOrder(
   return orderedNodes;
 }
 
-const CONTROL_FLOW_OPS = [
+const CONTROL_FLOW_OPS = new Set([
   'Switch', 'Merge', 'Enter', 'Exit', 'NextIteration', 'StatelessIf',
   'StatelessWhile', 'if', 'While'
-];
-const DYNAMIC_SHAPE_OPS = [
+]);
+const DYNAMIC_SHAPE_OPS = new Set([
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
-];
-const HASH_TABLE_OPS = [
+]);
+const HASH_TABLE_OPS = new Set([
   'HashTable', 'HashTableV2', 'LookupTableImport', 'LookupTableImportV2',
   'LookupTableFind', 'LookupTableFindV2', 'LookupTableSize', 'LookupTableSizeV2'
-];
+]);
 
 export function isControlFlow(node: Node) {
-  return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
+  return CONTROL_FLOW_OPS.has(node.op);
 }
 
 export function isDynamicShape(node: Node) {
-  return DYNAMIC_SHAPE_OPS.indexOf(node.op) >= 0;
+  return DYNAMIC_SHAPE_OPS.has(node.op);
 }
 
 export function isHashTable(node: Node) {
-  return HASH_TABLE_OPS.indexOf(node.op) >= 0;
+  return HASH_TABLE_OPS.has(node.op);
 }

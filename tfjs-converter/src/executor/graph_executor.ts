@@ -286,6 +286,7 @@ export class GraphExecutor implements FunctionExecutor {
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
+    const outputNodeNameSet = new Set(outputNodeNames);
     let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     // If no outputs are specified, then use the default outputs of the model.
     if (outputNodes.length === 0) {
@@ -349,7 +350,7 @@ export class GraphExecutor implements FunctionExecutor {
           this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
         }
         this.checkTensorForDisposalWithNodeLiveUntilInfo(
-            node, tensorsMap, tensorsToKeep, outputNodeNames,
+            node, tensorsMap, tensorsToKeep, outputNodeNameSet,
             nodeLiveUntilMap.get(node));
       }
 
@@ -375,11 +376,11 @@ export class GraphExecutor implements FunctionExecutor {
   private checkTensorForDisposal(
       nodeName: string, node: Node, tensorMap: NamedTensorsMap,
       context: ExecutionContext, tensorsToKeep: Set<number>,
-      outputNames: string[],
+      outputNodeNameSet: Set<string>,
       intermediateTensorConsumerCount: {[key: string]: number}) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
-    if (isControlFlow(node) || outputNames.indexOf(nodeName) !== -1) {
+    if (isControlFlow(node) || outputNodeNameSet.has(nodeName)) {
       return;
     }
 
@@ -425,10 +426,10 @@ export class GraphExecutor implements FunctionExecutor {
 
   private checkTensorForDisposalWithNodeLiveUntilInfo(
       node: Node, tensorMap: NamedTensorsMap, tensorsToKeep: Set<number>,
-      outputNames: string[], liveUntilNodes?: Node[]) {
+      outputNodeNameSet: Set<string>, liveUntilNodes?: Node[]) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
-    if (isControlFlow(node) || outputNames.indexOf(node.name) !== -1) {
+    if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
       return;
     }
     if (liveUntilNodes == null) {
@@ -581,6 +582,7 @@ export class GraphExecutor implements FunctionExecutor {
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputNames.map(name => parseNodeName(name)[0]);
+    const outputNodeNameSet = new Set(outputNodeNames);
     let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
 
     // If no outputs are specified, then use the default outputs of the model.
@@ -611,7 +613,7 @@ export class GraphExecutor implements FunctionExecutor {
     while (stack.length > 0) {
       const promises = this.processStack(
           inputNodes, stack, context, tensorsMap, added, tensorsToKeep,
-          outputNodeNames, intermediateTensorConsumerCount, usedNodes);
+          outputNodeNameSet, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
     if (dynamicNode == null && !isFunctionExecution) {
@@ -643,7 +645,7 @@ export class GraphExecutor implements FunctionExecutor {
   private processStack(
       inputNodes: Node[], stack: NodeWithContexts[], context: ExecutionContext,
       tensorMap: NamedTensorsMap, added: {[key: string]: boolean},
-      tensorsToKeep: Set<number>, outputNames: string[],
+      tensorsToKeep: Set<number>, outputNodeNameSet: Set<string>,
       intermediateTensorConsumerCount: {[key: number]: number},
       usedNodes: Set<string>) {
     const promises: Array<Promise<Tensor[]>> = [];
@@ -677,7 +679,7 @@ export class GraphExecutor implements FunctionExecutor {
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
                 nodeName, item.node, tensorMap, context, tensorsToKeep,
-                outputNames, intermediateTensorConsumerCount);
+                outputNodeNameSet, intermediateTensorConsumerCount);
             this.processChildNodes(
                 item.node, stack, context, tensorMap, added, usedNodes);
             return t;
@@ -689,7 +691,7 @@ export class GraphExecutor implements FunctionExecutor {
           }
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
-              outputNames, intermediateTensorConsumerCount);
+              outputNodeNameSet, intermediateTensorConsumerCount);
           this.processChildNodes(
               item.node, stack, context, tensorMap, added, usedNodes);
         }
