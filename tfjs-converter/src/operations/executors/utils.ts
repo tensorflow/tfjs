@@ -34,7 +34,7 @@ export function getParamValue(
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[start], tensorMap, context, resourceManager);
+          node.inputNames.at(start), tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
@@ -42,8 +42,8 @@ export function getParamValue(
       return inputs.map(
           name => getTensor(name, tensorMap, context, resourceManager));
     }
-    const tensor =
-        getTensor(node.inputNames[start], tensorMap, context, resourceManager);
+    const tensor = getTensor(
+        node.inputNames.at(start), tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
