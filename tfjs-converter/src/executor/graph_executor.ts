@@ -42,7 +42,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _inputs: Node[];
   private _outputs: Node[];
   private _initNodes: Node[];  // Internal init nodes to start initialization.
-  private SEPERATOR = ',';
+  private SEPARATOR = ',';
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
@@ -149,8 +149,8 @@ export class GraphExecutor implements FunctionExecutor {
   private getCompilationKey(inputs: Node[], outputs: Node[]): string {
     const sortedInputs = inputs.map(node => node.name).sort();
     const sortedOutputs = outputs.map(node => node.name).sort();
-    return sortedInputs.join(this.SEPERATOR) + '--' +
-        sortedOutputs.join(this.SEPERATOR);
+    return sortedInputs.join(this.SEPARATOR) + '--' +
+        sortedOutputs.join(this.SEPARATOR);
   }
 
   /**
