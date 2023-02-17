@@ -327,36 +327,44 @@ export class GraphExecutor implements FunctionExecutor {
       return;
     }
 
-    tensorMap[nodeName].forEach(tensor => {
-      if (tensor != null) {
-        intermediateTensorConsumerCount[tensor.id] =
-            (intermediateTensorConsumerCount[tensor.id] || 0) +
-            node.children.length;
+    for (const tensor of tensorMap[nodeName]) {
+      if (tensor == null) {
+        continue;
       }
-    });
-    node.inputs.forEach(input => {
+      intermediateTensorConsumerCount[tensor.id] =
+          (intermediateTensorConsumerCount[tensor.id] || 0) +
+          node.children.length;
+    }
+
+    for (const input of node.inputs) {
       // Skip any control flow nodes, since its dependency is tricky to track
       // correctly.
-      if (input.category !== 'control') {
-        const tensors =
-            getTensorsForCurrentContext(input.name, tensorMap, context);
-        if (tensors != null) {
-          tensors.forEach(tensor => {
-            if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
-              const count = intermediateTensorConsumerCount[tensor.id];
-              if (count === 1) {
-                tensor.dispose();
-                delete intermediateTensorConsumerCount[tensor.id];
-              } else if (count != null) {
-                // only intermediate nodes has count set, inputs and weights
-                // are not.
-                intermediateTensorConsumerCount[tensor.id]--;
-              }
-            }
-          });
+      if (input.category === 'control') {
+        continue;
+      }
+
+      const tensors =
+          getTensorsForCurrentContext(input.name, tensorMap, context);
+      if (tensors == null) {
+        continue;
+      }
+
+      for (const tensor of tensors) {
+        if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
+          continue;
+        }
+
+        const count = intermediateTensorConsumerCount[tensor.id];
+        if (count === 1) {
+          tensor.dispose();
+          delete intermediateTensorConsumerCount[tensor.id];
+        } else if (count != null) {
+          // only intermediate nodes has count set, inputs and weights
+          // are not.
+          intermediateTensorConsumerCount[tensor.id]--;
         }
       }
-    });
+    }
   }
 
   /**
