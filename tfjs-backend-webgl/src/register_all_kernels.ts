@@ -166,6 +166,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {staticRegexReplaceConfig} from './kernels/StaticRegexReplace';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
@@ -337,6 +338,7 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
   stringNGramsConfig,
