@@ -309,7 +309,6 @@ export class GraphExecutor implements FunctionExecutor {
             nodeLiveUntilMap.get(node));
       }
 
-
       // dispose the context for the root executor
       if (this.parent == null) {
         context.dispose(tensorsToKeep);
