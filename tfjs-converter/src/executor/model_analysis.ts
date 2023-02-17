@@ -145,6 +145,67 @@ export function getNodesInTopologicalOrder(
   return orderedNodes;
 }
 
+/**
+ * Given the execution info, return a map from node to the disposable node list
+ * after its execution.
+ *
+ * @returns A map from node to disposable nodes after its
+ *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates all
+ *     nodes which their intermediate tensors should be disposed after `x` being
+ *     executed.
+ */
+export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
+  const nNodes = orderedNodes.length;
+  const nodeToOrder = new Map<Node, number>();
+  for (let i = 0; i < nNodes; ++i) {
+    nodeToOrder.set(orderedNodes[i], i);
+  }
+
+  // `liveUntil[i]` indicates that "all the intermediate tensors from
+  // `orderedNodes[i]` should be disposed after `orderedNodes[liveUntil[i]]`
+  // being executed."
+  const INF_LIFE = Math.floor(Number.MAX_SAFE_INTEGER / 2);
+  const liveUntil = [...Array(nNodes).keys()];
+
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const node = orderedNodes[nodeOrder];
+    // Skip any control flow nodes, since its dependency is tricky to track
+    // correctly.
+    if (isControlFlow(node)) {
+      liveUntil[nodeOrder] = INF_LIFE;
+    }
+  }
+
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const node = orderedNodes[nodeOrder];
+    for (const child of node.children) {
+      const childOrder = nodeToOrder.get(child)!;
+      // Extend the node's life to at least its child's life.
+      liveUntil[nodeOrder] =
+          Math.max(liveUntil[nodeOrder], liveUntil[childOrder]);
+    }
+  }
+
+  // liveUntilMap:
+  // - Key: A node `x`
+  // - Values: All nodes where their intermediate tensor should be disposed
+  //           after `x` being executed.
+  const liveUntilMap = new Map<Node, Node[]>();
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const nodeLiveUntil = liveUntil[nodeOrder];
+    if (nodeLiveUntil === INF_LIFE) {
+      continue;
+    }
+    const node = orderedNodes[nodeOrder];
+    const liveUntilNode = orderedNodes[nodeLiveUntil];
+    if (!liveUntilMap.has(liveUntilNode)) {
+      liveUntilMap.set(liveUntilNode, []);
+    }
+    liveUntilMap.get(liveUntilNode)!.push(node);
+  }
+  return liveUntilMap;
+}
+
 const CONTROL_FLOW_OPS = new Set([
   'Switch', 'Merge', 'Enter', 'Exit', 'NextIteration', 'StatelessIf',
   'StatelessWhile', 'if', 'While'

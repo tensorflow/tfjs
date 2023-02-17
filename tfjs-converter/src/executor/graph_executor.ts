@@ -24,7 +24,7 @@ import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
-import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
+import {getExecutionSubgraph, getNodeLiveUntilMap, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
 import {ResourceManager} from './resource_manager';
 import {FunctionExecutor} from './types';
 
@@ -156,6 +156,13 @@ export class GraphExecutor implements FunctionExecutor {
   /**
    * Compiles the inference graph and returns the minimal set of nodes that are
    * required for execution, in the correct execution order.
+   * @returns {Object} compilation The compile result.
+   * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
+   *     order.
+   * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
+   *     to disposable nodes after its execution. That is, for a node `x`,
+   *     `nodeLiveUntilMap[x]` indicates all nodes which their intermediate
+   *     tensors should be disposed after `x` being executed.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]):
       {orderedNodes: Node[], nodeLiveUntilMap: Map<Node, Node[]>} {
@@ -180,60 +187,8 @@ export class GraphExecutor implements FunctionExecutor {
 
     const orderedNodes =
         getNodesInTopologicalOrder(this.graph, this.weightMap, executionInfo);
-    const nodeLiveUntilMap = this.getNodeLiveUntilMap(orderedNodes);
+    const nodeLiveUntilMap = getNodeLiveUntilMap(orderedNodes);
     return {orderedNodes, nodeLiveUntilMap};
-  }
-
-  private getNodeLiveUntilMap(orderedNodes: Node[]) {
-    const nNodes = orderedNodes.length;
-    const nodeToOrder = new Map<Node, number>();
-    for (let i = 0; i < nNodes; ++i) {
-      nodeToOrder.set(orderedNodes[i], i);
-    }
-
-    // `liveUntil[i]` indicates that "all the intermediate tensors from
-    // `orderedNodes[i]` will be disposed after `orderedNodes[liveUntil[i]]` is
-    // executed."
-    const INF_LIFE = Math.floor(Number.MAX_SAFE_INTEGER / 2);
-    const liveUntil = [...Array(nNodes).keys()];
-
-    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-      const node = orderedNodes[nodeOrder];
-      // Skip any control flow nodes, since its dependency is tricky to track
-      // correctly.
-      if (isControlFlow(node)) {
-        liveUntil[nodeOrder] = INF_LIFE;
-      }
-    }
-
-    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-      const node = orderedNodes[nodeOrder];
-      for (const child of node.children) {
-        const childOrder = nodeToOrder.get(child)!;
-        // Extend the node's life to at least its child's life.
-        liveUntil[nodeOrder] =
-            Math.max(liveUntil[nodeOrder], liveUntil[childOrder]);
-      }
-    }
-
-    // liveUntilMap:
-    // - Key: a node `x`
-    // - Values: all nodes where their intermediate tensor will be disposed
-    // after `x` is executed.
-    const liveUntilMap = new Map<Node, Node[]>();
-    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-      const nodeLiveUntil = liveUntil[nodeOrder];
-      if (nodeLiveUntil === INF_LIFE) {
-        continue;
-      }
-      const node = orderedNodes[nodeOrder];
-      const liveUntilNode = orderedNodes[nodeLiveUntil];
-      if (!liveUntilMap.has(liveUntilNode)) {
-        liveUntilMap.set(liveUntilNode, []);
-      }
-      liveUntilMap.get(liveUntilNode)!.push(node);
-    }
-    return liveUntilMap;
   }
 
   private cloneAndKeepTensor(tensor: Tensor) {
