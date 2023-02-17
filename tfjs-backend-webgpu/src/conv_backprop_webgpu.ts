@@ -101,9 +101,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
               fract(dyC2) > 0.0) {
             bDyCVal2 = false;
           }
-          if (bDyCVal == false &&  bDyCVal2 == false) {
-            continue;
-          }
+
           let idyC = i32(dyC);
           let idyC2 = i32(dyC2);
           if (bDyCVal && bDyCVal2) {
