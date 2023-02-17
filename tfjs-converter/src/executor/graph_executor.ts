@@ -34,7 +34,7 @@ interface NodeWithContexts {
 }
 
 export class GraphExecutor implements FunctionExecutor {
-  private compiledMap = new Map<string, Node[]>();
+  private compiledMap = new Map<string, ReturnType<typeof this.compile>>();
   private parseNodeNameCache = new Map<string, [string, number, string?]>();
   private _weightMap: NamedTensorsMap = {};
   private _weightIds: number[];
@@ -157,7 +157,8 @@ export class GraphExecutor implements FunctionExecutor {
    * Compiles the inference graph and returns the minimal set of nodes that are
    * required for execution, in the correct execution order.
    */
-  private compile(inputs: NamedTensorMap, outputs: Node[]): Node[] {
+  private compile(inputs: NamedTensorMap, outputs: Node[]):
+      {orderedNodes: Node[], nodeLiveUntilMap: Map<Node, Node[]>} {
     const executionInfo =
         getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const {missingInputs, dynamicNode, syncInputs} = executionInfo;
@@ -177,8 +178,62 @@ export class GraphExecutor implements FunctionExecutor {
           `[${inNames}]. Missing the following inputs: [${missingInputs}]`);
     }
 
-    return getNodesInTopologicalOrder(
-        this.graph, this.weightMap, executionInfo);
+    const orderedNodes =
+        getNodesInTopologicalOrder(this.graph, this.weightMap, executionInfo);
+    const nodeLiveUntilMap = this.getNodeLiveUntilMap(orderedNodes);
+    return {orderedNodes, nodeLiveUntilMap};
+  }
+
+  private getNodeLiveUntilMap(orderedNodes: Node[]) {
+    const nNodes = orderedNodes.length;
+    const nodeToOrder = new Map<Node, number>();
+    for (let i = 0; i < nNodes; ++i) {
+      nodeToOrder.set(orderedNodes[i], i);
+    }
+
+    // `liveUntil[i]` indicates that "all the intermediate tensors from
+    // `orderedNodes[i]` will be disposed after `orderedNodes[liveUntil[i]]` is
+    // executed."
+    const INF_LIFE = Math.floor(Number.MAX_SAFE_INTEGER / 2);
+    const liveUntil = [...Array(nNodes).keys()];
+
+    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+      const node = orderedNodes[nodeOrder];
+      // Skip any control flow nodes, since its dependency is tricky to track
+      // correctly.
+      if (isControlFlow(node)) {
+        liveUntil[nodeOrder] = INF_LIFE;
+      }
+    }
+
+    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+      const node = orderedNodes[nodeOrder];
+      for (const child of node.children) {
+        const childOrder = nodeToOrder.get(child)!;
+        // Extend the node's life to at least its child's life.
+        liveUntil[nodeOrder] =
+            Math.max(liveUntil[nodeOrder], liveUntil[childOrder]);
+      }
+    }
+
+    // liveUntilMap:
+    // - Key: a node `x`
+    // - Values: all nodes where their intermediate tensor will be disposed
+    // after `x` is executed.
+    const liveUntilMap = new Map<Node, Node[]>();
+    for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+      const nodeLiveUntil = liveUntil[nodeOrder];
+      if (nodeLiveUntil === INF_LIFE) {
+        continue;
+      }
+      const node = orderedNodes[nodeOrder];
+      const liveUntilNode = orderedNodes[nodeLiveUntil];
+      if (!liveUntilMap.has(liveUntilNode)) {
+        liveUntilMap.set(liveUntilNode, []);
+      }
+      liveUntilMap.get(liveUntilNode)!.push(node);
+    }
+    return liveUntilMap;
   }
 
   private cloneAndKeepTensor(tensor: Tensor) {
@@ -240,10 +295,10 @@ export class GraphExecutor implements FunctionExecutor {
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
 
     // Do nothing if the compiled graph cache contains the input.
-    let orderedNodes = this.compiledMap.get(compilationKey);
-    if (orderedNodes == null) {
-      orderedNodes = this.compile(inputs, outputNodes);
-      this.compiledMap.set(compilationKey, orderedNodes);
+    let compilation = this.compiledMap.get(compilationKey);
+    if (compilation == null) {
+      compilation = this.compile(inputs, outputNodes);
+      this.compiledMap.set(compilationKey, compilation);
     }
 
     // Keep tensors if KEEP_INTERMEDIATE_TENSORS is on.
@@ -276,27 +331,28 @@ export class GraphExecutor implements FunctionExecutor {
       });
 
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
-      const intermediateTensorConsumerCount: {[key: number]: number} = {};
-      for (let i = 0; i < orderedNodes.length; i++) {
-        const node = orderedNodes[i];
-        if (!tensorsMap[node.name]) {
-          const tensors =
-              executeOp(node, tensorsMap, context, this._resourceManager) as
-              Tensor[];
-          if (util.isPromise(tensors)) {
-            throw new Error(
-                `The execution of the op '${node.op}' returned a promise. ` +
-                `Please use model.executeAsync() instead.`);
-          }
-          tensorsMap[node.name] = tensors;
-          if (this.keepIntermediateTensors) {
-            this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
-          }
-          this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep,
-              outputNodeNames, intermediateTensorConsumerCount);
+      const {orderedNodes, nodeLiveUntilMap} = compilation;
+      for (const node of orderedNodes) {
+        if (tensorsMap[node.name]) {
+          continue;
         }
+        const tensors =
+            executeOp(node, tensorsMap, context, this._resourceManager) as
+            Tensor[];
+        if (util.isPromise(tensors)) {
+          throw new Error(
+              `The execution of the op '${node.op}' returned a promise. ` +
+              `Please use model.executeAsync() instead.`);
+        }
+        tensorsMap[node.name] = tensors;
+        if (this.keepIntermediateTensors) {
+          this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
+        }
+        this.checkTensorForDisposalWithNodeLiveUntilInfo(
+            node, tensorsMap, tensorsToKeep, outputNodeNames,
+            nodeLiveUntilMap.get(node));
       }
+
 
       // dispose the context for the root executor
       if (this.parent == null) {
@@ -323,7 +379,7 @@ export class GraphExecutor implements FunctionExecutor {
       intermediateTensorConsumerCount: {[key: string]: number}) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
-    if (node.category === 'control' || outputNames.indexOf(nodeName) !== -1) {
+    if (isControlFlow(node) || outputNames.indexOf(nodeName) !== -1) {
       return;
     }
 
@@ -339,7 +395,7 @@ export class GraphExecutor implements FunctionExecutor {
     for (const input of node.inputs) {
       // Skip any control flow nodes, since its dependency is tricky to track
       // correctly.
-      if (input.category === 'control') {
+      if (isControlFlow(input)) {
         continue;
       }
 
@@ -363,6 +419,28 @@ export class GraphExecutor implements FunctionExecutor {
           // are not.
           intermediateTensorConsumerCount[tensor.id]--;
         }
+      }
+    }
+  }
+
+  private checkTensorForDisposalWithNodeLiveUntilInfo(
+      node: Node, tensorMap: NamedTensorsMap, tensorsToKeep: Set<number>,
+      outputNames: string[], liveUntilNodes?: Node[]) {
+    // Skip output nodes and any control flow nodes, since its dependency is
+    // tricky to track correctly.
+    if (isControlFlow(node) || outputNames.indexOf(node.name) !== -1) {
+      return;
+    }
+    if (liveUntilNodes == null) {
+      return;
+    }
+
+    for (const node of liveUntilNodes) {
+      for (const tensor of tensorMap[node.name]) {
+        if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
+          continue;
+        }
+        tensor.dispose();
       }
     }
   }
