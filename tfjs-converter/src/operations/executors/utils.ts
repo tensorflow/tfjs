@@ -117,8 +117,8 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
 export function parseNodeName(
     name: string, context?: ExecutionContext): [string, number, string?] {
   if (name === '') {
-    return ['', 0, undefined]
-  };
+    return ['', 0, undefined];
+  }
 
   const isCacheEnabled = context != null && context.parseNodeNameCache != null;
   if (isCacheEnabled) {
