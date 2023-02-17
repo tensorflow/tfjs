@@ -325,7 +325,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     }
 
     gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
-  };
+  }
 
   const outShapeLoc = binary.outShapeLocation;
   if (outShapeLoc) {
