@@ -156,20 +156,29 @@ export function getNodesInTopologicalOrder(
  */
 export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   const nNodes = orderedNodes.length;
-  const nodeToOrder = new Map(orderedNodes.map((node, index) => [node, index]));
+  const nodeToOrder = new Map(orderedNodes.map((node, order) => [node, order]));
 
   // `liveUntil[i]` indicates that "all the intermediate tensors from
   // `orderedNodes[i]` should be disposed after `orderedNodes[liveUntil[i]]`
   // being executed."
-  const INF_LIFE = Math.floor(Number.MAX_SAFE_INTEGER / 2);
-  const liveUntil = orderedNodes.map((node, index) => {
+  const INF_LIFE = Number.MAX_SAFE_INTEGER;
+  const liveUntil = [...Array(nNodes).keys()];
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const node = orderedNodes[nodeOrder];
+    // Skip any control flow nodes, since its dependency is tricky to track
+    // correctly.
     if (isControlFlow(node)) {
-      return INF_LIFE;
+      liveUntil[nodeOrder] = INF_LIFE;
     }
-    return node.children
-          .map(node => nodeToOrder.get(node)!)
-          .reduce((a, b) => Math.max(a, b), index);
-  });
+  }
+
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const node = orderedNodes[nodeOrder];
+    // Extend the node's life to at least its child's life.
+    liveUntil[nodeOrder] = Math.max(
+        liveUntil[nodeOrder],
+        ...node.children.map((child) => liveUntil[nodeToOrder.get(child)!]));
+  }
 
   // liveUntilMap:
   // - Key: A node `x`
