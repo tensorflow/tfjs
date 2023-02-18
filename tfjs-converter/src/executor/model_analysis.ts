@@ -176,9 +176,8 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
     const node = orderedNodes[nodeOrder];
     // Extend the node's life to at least its child's life.
-    liveUntil[nodeOrder] = Math.max(
-        liveUntil[nodeOrder],
-        ...node.children.map((child) => liveUntil[nodeToOrder.get(child)!]));
+    liveUntil[nodeOrder] = node.children.reduce((currentMax, child) => 
+        Math.max(liveUntil[nodeToOrder.get(child)!], currentMax), liveUntil[nodeOrder]);
   }
 
   // liveUntilMap:
