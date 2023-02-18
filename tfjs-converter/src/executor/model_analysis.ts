@@ -158,9 +158,10 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   const nNodes = orderedNodes.length;
   const nodeToOrder = new Map(orderedNodes.map((node, order) => [node, order]));
 
-  // `liveUntil[i]` indicates that "all the intermediate tensors from
-  // `orderedNodes[i]` should be disposed after `orderedNodes[liveUntil[i]]`
-  // being executed."
+  // `liveUntil[i]` points to the last node in the `orderedNodes` array that
+  // may depend on tensors from node `i`. It indicates that all the intermediate
+  // tensors from `orderedNodes[i]` should be disposed after
+  // `orderedNodes[liveUntil[i]]` is executed.
   const INF_LIFE = Number.MAX_SAFE_INTEGER;
   const liveUntil = [...Array(nNodes).keys()];
   for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
