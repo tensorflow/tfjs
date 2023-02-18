@@ -161,8 +161,8 @@ export class GraphExecutor implements FunctionExecutor {
    *     order.
    * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
    *     to disposable nodes after its execution. That is, for a node `x`,
-   *     `nodeLiveUntilMap[x]` indicates all nodes which their intermediate
-   *     tensors should be disposed after `x` being executed.
+   *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
+   *     tensors should be disposed after `x` is executed.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]):
       {orderedNodes: Node[], nodeLiveUntilMap: Map<Node, Node[]>} {
