@@ -188,8 +188,8 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
 
   // liveUntilMap:
   // - Key: A node `x`
-  // - Values: All nodes where their intermediate tensor should be disposed
-  //           after `x` being executed.
+  // - Values: All nodes whose intermediate tensors should be disposed
+  //           after `x` is executed.
   const liveUntilMap = new Map<Node, Node[]>();
   for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
     const nodeLiveUntil = liveUntil[nodeOrder];
