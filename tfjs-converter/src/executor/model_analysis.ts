@@ -156,10 +156,7 @@ export function getNodesInTopologicalOrder(
  */
 export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   const nNodes = orderedNodes.length;
-  const nodeToOrder = new Map<Node, number>();
-  for (let i = 0; i < nNodes; ++i) {
-    nodeToOrder.set(orderedNodes[i], i);
-  }
+  const nodeToOrder = new Map(orderedNodes.map((node, index) => [node, index]));
 
   // `liveUntil[i]` indicates that "all the intermediate tensors from
   // `orderedNodes[i]` should be disposed after `orderedNodes[liveUntil[i]]`
