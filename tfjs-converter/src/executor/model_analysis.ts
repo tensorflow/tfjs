@@ -162,26 +162,14 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   // `orderedNodes[i]` should be disposed after `orderedNodes[liveUntil[i]]`
   // being executed."
   const INF_LIFE = Math.floor(Number.MAX_SAFE_INTEGER / 2);
-  const liveUntil = [...Array(nNodes).keys()];
-
-  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const node = orderedNodes[nodeOrder];
-    // Skip any control flow nodes, since its dependency is tricky to track
-    // correctly.
+  const liveUntil = orderedNodes.map((node, index) => {
     if (isControlFlow(node)) {
-      liveUntil[nodeOrder] = INF_LIFE;
+      return INF_LIFE;
     }
-  }
-
-  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const node = orderedNodes[nodeOrder];
-    for (const child of node.children) {
-      const childOrder = nodeToOrder.get(child)!;
-      // Extend the node's life to at least its child's life.
-      liveUntil[nodeOrder] =
-          Math.max(liveUntil[nodeOrder], liveUntil[childOrder]);
-    }
-  }
+    return node.children
+          .map(node => nodeToOrder.get(node)!)
+          .reduce((a, b) => Math.max(a, b), index);
+  });
 
   // liveUntilMap:
   // - Key: A node `x`
