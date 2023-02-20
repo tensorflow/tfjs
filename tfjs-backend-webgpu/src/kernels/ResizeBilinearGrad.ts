@@ -29,7 +29,8 @@ export function resizeBilinearGrad(args: {
   const {images, dy} = inputs;
   const {alignCorners} = attrs;
 
-  const [, xHeight, xWidth, ] = images.shape as [number, number, number, number];
+  const [, xHeight, xWidth, ] =
+      images.shape as [number, number, number, number];
   const [, yHeight, yWidth] = dy.shape as [number, number, number, number];
 
   const effectiveXSize: [number, number] = [
