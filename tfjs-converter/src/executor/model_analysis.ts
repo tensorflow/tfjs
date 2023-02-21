@@ -158,27 +158,22 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   const nNodes = orderedNodes.length;
   const nodeToOrder = new Map(orderedNodes.map((node, order) => [node, order]));
 
+  const INF_LIFE = Number.MAX_SAFE_INTEGER;
+  // Make control flow nodes (and consequently their direct parents)
+  // live forever since they're tricky to track correctly.
+  const selfLifespans = orderedNodes.map(
+      (node, nodeOrder) => isControlFlow(node) ? INF_LIFE : nodeOrder);
+
   // `liveUntil[i]` points to the last node in the `orderedNodes` array that
   // may depend on tensors from node `i`. It indicates that all the intermediate
   // tensors from `orderedNodes[i]` should be disposed after
   // `orderedNodes[liveUntil[i]]` is executed.
-  const INF_LIFE = Number.MAX_SAFE_INTEGER;
-  const liveUntil = [...Array(nNodes).keys()];
-  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const node = orderedNodes[nodeOrder];
-    // Skip any control flow nodes, since its dependency is tricky to track
-    // correctly.
-    if (isControlFlow(node)) {
-      liveUntil[nodeOrder] = INF_LIFE;
-    }
-  }
-
-  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const node = orderedNodes[nodeOrder];
-    // Extend the node's life to at least its child's life.
-    liveUntil[nodeOrder] = node.children.reduce((currentMax, child) => 
-        Math.max(liveUntil[nodeToOrder.get(child)!], currentMax), liveUntil[nodeOrder]);
-  }
+  // A node lives long enough to pass on its tensors to its children.
+  // It lives until at least `max(node's position, children's positions)`.
+  const liveUntil = orderedNodes.map((node, nodeOrder) => {
+    return node.children.map(node => selfLifespans[nodeToOrder.get(node)!])
+        .reduce((a, b) => Math.max(a, b), selfLifespans[nodeOrder]);
+  });
 
   // liveUntilMap:
   // - Key: A node `x`
