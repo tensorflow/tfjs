@@ -27,8 +27,8 @@ export class TextureManager {
   private _numBytesAllocated = 0;
   // Number of bytes that have been allocated and available for reuse.
   private _numBytesFree = 0;
-  private freeTextures?: Record<string, Texture[]> = {};
-  private usedTextures?: Record<string, Texture[]> = {};
+  private freeTextures: Record<string, Texture[]> = {};
+  private usedTextures: Record<string, Texture[]> = {};
   private logEnabled = false;
 
   constructor(private readonly gpgpu: GPGPUContext) {}
@@ -118,7 +118,7 @@ export class TextureManager {
 
     const texList = this.usedTextures[shapeKey];
     const texIndex = texList && texList.indexOf(texture);
-    if (texIndex == null || texIndex < 0) {
+    if (texIndex < 0) {
       throw new Error(
           'Cannot release a texture that was never provided by this ' +
           'texture manager');
@@ -173,6 +173,7 @@ export class TextureManager {
         this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
+    // TODO: Assign non-null value (empty object) to textures after disposed.
     this.freeTextures = null;
     this.usedTextures = null;
     this.numUsedTextures = 0;
