@@ -95,7 +95,8 @@ export function now(): number {
  * If not, `tf.util.fetch` returns a platform-specific solution.
  *
  * ```js
- * const resource = await tf.util.fetch('https://unpkg.com/@tensorflow/tfjs');
+ * const resource = await
+ * tf.util.fetch('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs');
  * // handle response
  * ```
  *
@@ -163,7 +164,7 @@ flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
     result = [];
   }
   if (typeof arr === 'boolean' || typeof arr === 'number' ||
-    typeof arr === 'string' || base.isPromise(arr) || arr == null ||
+      typeof arr === 'string' || base.isPromise(arr) || arr == null ||
       isTypedArray(arr) && skipTypedArray) {
     result.push(arr as T);
   } else if (Array.isArray(arr) || isTypedArray(arr)) {
