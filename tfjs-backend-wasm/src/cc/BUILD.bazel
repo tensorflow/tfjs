@@ -253,6 +253,9 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "pool3d_impl",
     hdrs = ["pool3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -289,9 +292,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "shape",
+    hdrs = ["shape.h"],
+)
+
+tfjs_cc_library(
     name = "util",
     srcs = ["util.cc"],
     hdrs = ["util.h"],
+    deps = [
+        ":shape",
+    ],
 )
 
 tfjs_cc_library(
@@ -317,6 +328,8 @@ tfjs_cc_library(
         ":Any",
         ":ArgMax",
         ":Atan",
+        ":Atan2",
+        ":Atanh",
         ":AvgPool",
         ":AvgPool3D",
         ":AvgPool3DGrad",
@@ -347,6 +360,8 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IsFinite",
+        ":IsInf",
         ":IsNan",
         ":LRN",
         ":LRNGrad",
@@ -379,15 +394,19 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ResizeNearestNeighbor",
+        ":ResizeNearestNeighborGrad",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
         ":ScatterNd",
         ":SearchSorted",
         ":SelectV2",
+        ":Selu",
         ":Sigmoid",
+        ":Sign",
         ":Sin",
         ":Softmax",
+        ":Softplus",
         ":SparseFillEmptyRows",
         ":SparseReshape",
         ":SparseSegmentReduction",
@@ -483,6 +502,26 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Atan",
     srcs = ["kernels/Atan.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atan2",
+    srcs = ["kernels/Atan2.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Atanh",
+    srcs = ["kernels/Atanh.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -1245,12 +1284,30 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "ResizeBilinearGrad",
+    srcs = ["kernels/ResizeBilinearGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "ResizeNearestNeighbor",
     srcs = ["kernels/ResizeNearestNeighbor.cc"],
     hdrs = ["kernels/ResizeNearestNeighbor.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighborGrad",
+    srcs = ["kernels/ResizeNearestNeighborGrad.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 
@@ -1320,6 +1377,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Selu",
+    srcs = ["kernels/Selu.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "Sigmoid",
     srcs = ["kernels/Sigmoid.cc"],
     hdrs = ["kernels/Sigmoid.h"],
@@ -1327,6 +1393,15 @@ tfjs_cc_library(
         ":backend",
         ":sigmoid_impl",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sign",
+    srcs = ["kernels/Sign.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 
@@ -1344,6 +1419,15 @@ tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
     hdrs = ["kernels/Softmax.h"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Softplus",
+    srcs = ["kernels/Softplus.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -1524,6 +1608,22 @@ tfjs_cc_library(
     srcs = ["kernels/IsNan.cc"],
     deps = [
         ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsFinite",
+    srcs = ["kernels/IsFinite.cc"],
+    deps = [
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IsInf",
+    srcs = ["kernels/IsInf.cc"],
+    deps = [
         ":unary",
     ],
 )

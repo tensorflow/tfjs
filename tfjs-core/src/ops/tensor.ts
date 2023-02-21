@@ -143,6 +143,9 @@ import {makeTensor} from './tensor_ops_util';
  *   return gpuReadBuffer;
  * }
  *
+ * await tf.setBackend('webgpu').catch(
+ *     () => {throw new Error(
+ *         'Failed to use WebGPU backend. Please use Chrome Canary to run.')});
  * const dtype = 'float32';
  * const device = tf.backend().device;
  * const aData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
