@@ -118,7 +118,7 @@ export class TextureManager {
 
     const texList = this.usedTextures[shapeKey];
     const texIndex = texList && texList.indexOf(texture);
-    if (texIndex < 0) {
+    if (texIndex == null || texIndex < 0) {
       throw new Error(
           'Cannot release a texture that was never provided by this ' +
           'texture manager');
