@@ -91,3 +91,89 @@ export class MaxPool2DBackpropProgram implements WebGPUProgram {
     return userCode;
   }
 }
+
+export class MaxPool3DBackpropProgram implements WebGPUProgram {
+  outputShape: number[];
+  shaderKey: string;
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  variableNames = ['dy', 'maxPos'];
+  uniforms =
+      `strides : vec3<i32>, pads : vec3<i32>, dilations : vec3<i32>, filterDims : vec3<i32>,
+      outDepth : i32, outHeight : i32, outWidth : i32`;
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
+
+  constructor(convInfo: backend_util.Conv3DInfo) {
+    this.outputShape = convInfo.inShape;
+
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
+
+    this.shaderKey = 'maxPool3DBackprop';
+  }
+
+  getUserCode(): string {
+    const userCode = `
+      ${main('index')} {
+      if (index < uniforms.size) {
+        let coords = getCoordsFromIndex(index);
+        let batch = coords.x;
+        let ch = coords.u;
+
+        let dyCorner = vec3<i32>(coords.y, coords.z, coords.w) - uniforms.pads;
+        let dyDCorner = dyCorner.x;
+        let dyRCorner = dyCorner.y;
+        let dyCCorner = dyCorner.z;
+
+        // Convolve dy(?, ?, ?, ch) with pos mask(:, :, :, d) to get
+        // dx(xD, xR, xC, ch).
+        // ? = to be determined. : = across all values in that axis.
+        var dotProd = 0.0;
+        let lastIndex = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.filterDims[2] - 1;
+
+        for (var wD = 0; wD < uniforms.filterDims[0]; wD += uniforms.dilations[0]) {
+          let dyD = f32(dyDCorner + wD) / f32(uniforms.strides[0]);
+
+          if (dyD < 0.0 || dyD >= f32(uniforms.outDepth) || fract(dyD) > 0.0) {
+            continue;
+          }
+          let idyD = i32(dyD);
+
+          for (var wR = 0; wR < uniforms.filterDims[1]; wR += uniforms.dilations[1]) {
+            let dyR = f32(dyRCorner + wR) / f32(uniforms.strides[1]);
+
+            if (dyR < 0.0 || dyR >= f32(uniforms.outHeight) || fract(dyR) > 0.0) {
+              continue;
+            }
+            let idyR = i32(dyR);
+
+            for (var wC = 0; wC < uniforms.filterDims[2]; wC++) {
+              let dyC = f32(dyCCorner + wC) / f32(uniforms.strides[2]);
+
+              if (dyC < 0.0 || dyC >= f32(uniforms.outWidth) || fract(dyC) > 0.0) {
+                continue;
+              }
+              let idyC = i32(dyC);
+
+              let dyValue = getDy(batch, idyD, idyR, idyC, ch);
+              let maxPosValue = lastIndex - i32(getMaxPos(batch, idyD, idyR, idyC, ch));
+
+              // Get the current value, check it against the value from the
+              // position matrix.
+              let curPosValue = wD * uniforms.filterDims[1] * uniforms.filterDims[2] + wR * uniforms.filterDims[2] + wC;
+              let mask = select(0.0, 1.0, maxPosValue == curPosValue);
+              dotProd += dyValue * mask;
+            }
+          }
+        }
+
+        setOutputAtIndex(index, dotProd);
+      }
+    }
+    `;
+    return userCode;
+  }
+}
