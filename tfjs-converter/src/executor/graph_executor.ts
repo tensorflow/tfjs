@@ -19,7 +19,7 @@ import {DataType, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorfl
 
 import {ISignatureDef} from '../data/compiled_api';
 import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
-import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
+import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContext, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -34,7 +34,8 @@ interface NodeWithContexts {
 }
 
 export class GraphExecutor implements FunctionExecutor {
-  private compiledMap: Map<string, Node[]> = new Map();
+  private compiledMap = new Map<string, Node[]>();
+  private parseNodeNameCache = new Map<string, [string, number, string?]>();
   private _weightMap: NamedTensorsMap = {};
   private _weightIds: number[];
   private _signature: ISignatureDef;
@@ -258,14 +259,14 @@ export class GraphExecutor implements FunctionExecutor {
     return tidy(() => {
       const context = new ExecutionContext(
           this.weightMap, tensorArrayMap, tensorListMap,
-          this.functionExecutorMap);
+          this.functionExecutorMap, this.parseNodeNameCache);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
       if (this.keepIntermediateTensors) {
         this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
       }
 
       Object.keys(inputs).forEach(name => {
-        const [nodeName, index] = parseNodeName(name);
+        const [nodeName, index] = parseNodeName(name, context);
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
@@ -338,7 +339,7 @@ export class GraphExecutor implements FunctionExecutor {
       // correctly.
       if (input.category !== 'control') {
         const tensors =
-            getTensorsForCurrentContenxt(input.name, tensorMap, context);
+            getTensorsForCurrentContext(input.name, tensorMap, context);
         if (tensors != null) {
           tensors.forEach(tensor => {
             if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
@@ -428,8 +429,8 @@ export class GraphExecutor implements FunctionExecutor {
     }
 
     const context = new ExecutionContext(
-        this.weightMap, tensorArrayMap, tensorListMap,
-        this.functionExecutorMap);
+        this.weightMap, tensorArrayMap, tensorListMap, this.functionExecutorMap,
+        this.parseNodeNameCache);
 
     if (this.keepIntermediateTensors) {
       this.clonedTensorsMap = this.cloneTensorMap(this.weightMap);
