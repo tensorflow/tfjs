@@ -32,9 +32,10 @@ export function getParamValue(
         undefined :
         (inputParam.inputIndexEnd === undefined ? start + 1 :
                                                   inputParam.inputIndexEnd);
+    const shiftedStart = start < 0 ? node.inputNames.length + start : start;
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames.at(start), tensorMap, context, resourceManager);
+          node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
@@ -43,7 +44,7 @@ export function getParamValue(
           name => getTensor(name, tensorMap, context, resourceManager));
     }
     const tensor = getTensor(
-        node.inputNames.at(start), tensorMap, context, resourceManager);
+        node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
