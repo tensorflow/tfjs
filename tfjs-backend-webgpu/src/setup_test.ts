@@ -76,28 +76,31 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented
     ]
   },
-  {
-    startsWith: 'resizeBilinear ',
-    excludes: [
-      'gradients',  // Not yet implemented
-    ]
-  },
 
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
-      // Not implemented kernel list.
-      'avgPool3d ',           'avgPool3dBackprop ',
-      'conv3dTranspose ',     'maxPool3d ',
-      'maxPool3dBackprop ',   'raggedGather ',
-      'raggedRange ',         'raggedTensorToTensor ',
+      'avgPool3d ',
+      'avgPool3dBackprop ',
+      'conv3dTranspose ',
+      'maxPool3d ',
+      'maxPool3dBackprop ',
+      'raggedGather ',
+      'raggedRange ',
+      'raggedTensorToTensor ',
       'method otsu',  // round
-      'sparseFillEmptyRows ', 'sparseReshape ',
-      'sparseSegmentMean ',   'sparseSegmentSum ',
-      'stringSplit ',         'stringToHashBucketFast ',
-      'tensorScatterUpdate ', 'unique ',
-      'unsortedSegmentSum ',  'valueAndGradients ',
+      'sparseFillEmptyRows ',
+      'sparseReshape ',
+      'sparseSegmentMean ',
+      'sparseSegmentSum ',
+      'staticRegexReplace ',
+      'stringSplit ',
+      'stringToHashBucketFast ',
+      'tensorScatterUpdate ',
+      'unique ',
+      'unsortedSegmentSum ',
+      'valueAndGradients ',
     ]
   },
 ];
