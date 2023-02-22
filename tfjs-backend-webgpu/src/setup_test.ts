@@ -81,11 +81,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: ' webgpu ',
     excludes: [
-      'avgPool3d ',
       'avgPool3dBackprop ',
       'conv3dTranspose ',
-      'maxPool3d ',
-      'maxPool3dBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
