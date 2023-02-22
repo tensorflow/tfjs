@@ -76,12 +76,6 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented
     ]
   },
-  {
-    startsWith: 'resizeBilinear ',
-    excludes: [
-      'gradients',  // Not yet implemented
-    ]
-  },
 
   // exclude unsupported kernels and to be fixed cases
   {
