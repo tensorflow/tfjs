@@ -133,7 +133,7 @@ describe('renderHistogram', () => {
     const statsEls = document.querySelectorAll('table tbody td');
     expect(statsEls.length).toBe(6);
     expect(statsEls[0].textContent).toEqual('8');
-    expect(statsEls[1].textContent).toEqual('-100');
+    expect(statsEls[1].textContent).toEqual('−100'); // Note the long dash '−'
     expect(statsEls[2].textContent).toEqual('200');
     expect(statsEls[3].textContent).toEqual('2 (25%)');
     expect(statsEls[4].textContent).toEqual('3 (37.5%)');
@@ -176,7 +176,7 @@ describe('renderHistogram', () => {
     const statsEls = document.querySelectorAll('table tbody td');
     expect(statsEls.length).toBe(5);
     expect(statsEls[0].textContent).toEqual('200');
-    expect(statsEls[1].textContent).toEqual('-30');
+    expect(statsEls[1].textContent).toEqual('−30'); // Note the long dash '−'
     expect(statsEls[2].textContent).toEqual('140');
     expect(statsEls[3].textContent).toEqual('2 (1%)');
     expect(statsEls[4].textContent).toEqual('5 (2.5%)');
