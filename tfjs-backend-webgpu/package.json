@@ -31,12 +31,12 @@
     "jasmine": "link:../node_modules/jasmine",
     "jasmine-core": "link:../node_modules/jasmine-core",
     "karma": "~6.4.0",
-    "karma-browserstack-launcher": "link:../node_modules/karma-browserstack-launcher",
-    "karma-chrome-launcher": "link:../node_modules/karma-chrome-launcher",
+    "karma-browserstack-launcher": "~1.6.0",
+    "karma-chrome-launcher": "~3.1.1",
     "karma-commonjs": "^1.0.0",
     "karma-jasmine": "~5.1.0",
     "karma-typescript": "~5.5.3",
-    "karma-jasmine-html-reporter": "link:../node_modules/karma-jasmine-html-reporter",
+    "karma-jasmine-html-reporter": "^2.0.0",
     "karma-typescript-es6-transform": "^5.0.2"
   },
   "dependencies": {
