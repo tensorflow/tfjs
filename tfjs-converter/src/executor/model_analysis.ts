@@ -50,12 +50,11 @@ export function getExecutionSubgraph(
   // needed to compute those outputs.
   const seen = new Set<string>();
   const inputNodeNames =
-      Object.keys(inputs).map(name => parseNodeName(name)[0]);
+      new Set(Object.keys(inputs).map((name) => parseNodeName(name)[0]));
 
-  let initNodeNames: string[] = [];
-  if (initNodes != null) {
-    initNodeNames = initNodes.map(node => parseNodeName(node.name)[0]);
-  }
+  initNodes = initNodes || [];
+  const initNodeNames =
+      new Set(initNodes.map((node) => parseNodeName(node.name)[0]));
 
   const frontier = [...outputs];
   while (frontier.length > 0) {
@@ -74,11 +73,11 @@ export function getExecutionSubgraph(
       continue;
     }
     // This node is a dead end since it's one of the user-provided inputs.
-    if (inputNodeNames.indexOf(node.name) !== -1) {
+    if (inputNodeNames.has(node.name)) {
       continue;
     }
     // This node is a dead end since it doesn't have any inputs.
-    if (initNodeNames.indexOf(node.name) !== -1) {
+    if (initNodeNames.has(node.name)) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -146,26 +145,76 @@ export function getNodesInTopologicalOrder(
   return orderedNodes;
 }
 
-const CONTROL_FLOW_OPS = [
+/**
+ * Given the execution info, return a map from node to the disposable node list
+ * after its execution.
+ *
+ * @returns A map from node to disposable nodes after its
+ *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates all
+ *     nodes which their intermediate tensors should be disposed after `x` being
+ *     executed.
+ */
+export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
+  const nNodes = orderedNodes.length;
+  const nodeToOrder = new Map(orderedNodes.map((node, order) => [node, order]));
+
+  const INF_LIFE = Number.MAX_SAFE_INTEGER;
+  // Make control flow nodes (and consequently their direct parents)
+  // live forever since they're tricky to track correctly.
+  const selfLifespans = orderedNodes.map(
+      (node, nodeOrder) => isControlFlow(node) ? INF_LIFE : nodeOrder);
+
+  // `liveUntil[i]` points to the last node in the `orderedNodes` array that
+  // may depend on tensors from node `i`. It indicates that all the intermediate
+  // tensors from `orderedNodes[i]` should be disposed after
+  // `orderedNodes[liveUntil[i]]` is executed.
+  // A node lives long enough to pass on its tensors to its children.
+  // It lives until at least `max(node's position, children's positions)`.
+  const liveUntil = orderedNodes.map((node, nodeOrder) => {
+    return node.children.map(node => selfLifespans[nodeToOrder.get(node)!])
+        .reduce((a, b) => Math.max(a, b), selfLifespans[nodeOrder]);
+  });
+
+  // liveUntilMap:
+  // - Key: A node `x`
+  // - Values: All nodes whose intermediate tensors should be disposed
+  //           after `x` is executed.
+  const liveUntilMap = new Map<Node, Node[]>();
+  for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
+    const nodeLiveUntil = liveUntil[nodeOrder];
+    if (nodeLiveUntil === INF_LIFE) {
+      continue;
+    }
+    const node = orderedNodes[nodeOrder];
+    const liveUntilNode = orderedNodes[nodeLiveUntil];
+    if (!liveUntilMap.has(liveUntilNode)) {
+      liveUntilMap.set(liveUntilNode, []);
+    }
+    liveUntilMap.get(liveUntilNode)!.push(node);
+  }
+  return liveUntilMap;
+}
+
+const CONTROL_FLOW_OPS = new Set([
   'Switch', 'Merge', 'Enter', 'Exit', 'NextIteration', 'StatelessIf',
   'StatelessWhile', 'if', 'While'
-];
-const DYNAMIC_SHAPE_OPS = [
+]);
+const DYNAMIC_SHAPE_OPS = new Set([
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
-];
-const HASH_TABLE_OPS = [
+]);
+const HASH_TABLE_OPS = new Set([
   'HashTable', 'HashTableV2', 'LookupTableImport', 'LookupTableImportV2',
   'LookupTableFind', 'LookupTableFindV2', 'LookupTableSize', 'LookupTableSizeV2'
-];
+]);
 
 export function isControlFlow(node: Node) {
-  return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
+  return CONTROL_FLOW_OPS.has(node.op);
 }
 
 export function isDynamicShape(node: Node) {
-  return DYNAMIC_SHAPE_OPS.indexOf(node.op) >= 0;
+  return DYNAMIC_SHAPE_OPS.has(node.op);
 }
 
 export function isHashTable(node: Node) {
-  return HASH_TABLE_OPS.indexOf(node.op) >= 0;
+  return HASH_TABLE_OPS.has(node.op);
 }
