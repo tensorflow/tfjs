@@ -16,14 +16,14 @@
 
 export class RandomSeed {
   static className = 'RandomSeed';
-  currentSeed: number;
-  constructor(readonly seed: number | undefined) { 
-    this.currentSeed = seed; 
+  seed: number | undefined;
+  constructor(seed: number | undefined) { 
+    this.seed = seed; 
   }
   next(): number | undefined { 
-    if (this.currentSeed === undefined) {
+    if (this.seed === undefined) {
       return undefined;
     }
-    return this.currentSeed++; 
+    return this.seed++; 
   }
 }
