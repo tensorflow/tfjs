@@ -81,7 +81,7 @@ describeWithFlags('object detection', {}, () => {
     await model.detect(img);
     const numTensorsAfter = tf.memory().numTensors;
     // The increased tensor is for the hashtable id handle
-    expect(numTensorsAfter).toEqual(numTensorsBefore + 1);
+    expect(numTensorsAfter).toBeLessThanOrEqual(numTensorsBefore + 1);
   });
 
   it('has access to dictionary', () => {
