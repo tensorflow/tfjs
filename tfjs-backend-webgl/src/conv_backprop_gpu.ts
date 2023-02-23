@@ -59,16 +59,13 @@ export class Conv2DDerFilterProgram implements GPGPUProgram {
                 continue;
               }
 
-              if (${isChannelsLast}) {
-                float dyValue = getDy(b, yR, yC, d2);
-                float xValue = getX(b, xR, xC, d1);
-                dotProd += (xValue * dyValue);
-              } else {
-                float dyValue = getDy(b, d2, yR, yC);
-                float xValue = getX(b, d1, xR, xC);
-                dotProd += (xValue * dyValue);
-              }
-
+              ${isChannelsLast?
+             `float dyValue = getDy(b, yR, yC, d2);
+              float xValue = getX(b, xR, xC, d1);
+              dotProd += (xValue * dyValue);` :
+             `float dyValue = getDy(b, d2, yR, yC);
+              float xValue = getX(b, d1, xR, xC);
+              dotProd += (xValue * dyValue);`}
             }
           }
         }

@@ -23,7 +23,7 @@ const karmaTypescriptConfig = {
   bundlerOptions: {
     sourceMap: true,  // Process any non es5 code through
                       // karma-typescript-es6-transform (babel)
-    acornOptions: {ecmaVersion: 8},
+    acornOptions: {ecmaVersion: 11},
     transforms: [
       require('karma-typescript-es6-transform')({
         presets: [
@@ -108,7 +108,7 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Big Sur'
       },
       bs_ios_12: {
         base: 'BrowserStack',
