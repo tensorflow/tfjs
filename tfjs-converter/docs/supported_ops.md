@@ -67,8 +67,8 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
-|Not mapped|isFinite|
-|Not mapped|isInf|
+|IsFinite|isFinite|
+|IsInf|isInf|
 |IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
@@ -248,6 +248,7 @@
 |Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
+|MatrixBandPart|MatrixBandPart|
 |Not mapped|dot|
 |Not mapped|norm|
 |Not mapped|outerProduct|
