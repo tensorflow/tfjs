@@ -123,10 +123,8 @@ export class RandomWidth extends BaseRandomLayer {
 
       this.widthFactor = randomUniform([1],
         (1.0 + this.widthLower), (1.0 + this.widthUpper),
-        'float32', this.randomGenerator.currentSeed
+        'float32', this.randomGenerator.next()
       );
-
-      this.randomGenerator.next();
 
       this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
       this.adjustedWidth = Math.round(this.adjustedWidth);

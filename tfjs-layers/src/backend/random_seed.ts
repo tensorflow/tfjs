@@ -17,10 +17,13 @@
 export class RandomSeed {
   static className = 'RandomSeed';
   currentSeed: number;
-  constructor(readonly seed: number) { 
+  constructor(readonly seed: number | undefined) { 
     this.currentSeed = seed; 
   }
-  next() { 
-    ++this.currentSeed; 
+  next(): number | undefined { 
+    if (this.currentSeed === undefined) {
+      return undefined;
+    }
+    return this.currentSeed++; 
   }
 }

@@ -21,17 +21,15 @@ export abstract class BaseRandomLayer extends Layer {
   /** @nocollapse */
   static className = 'BaseRandomLayer';
   protected randomGenerator: RandomSeed;
-  private seed?: number;
 
   constructor(args: BaseRandomLayerArgs) {
     super(args);
-    this.seed = args.seed;
-    this.randomGenerator = new RandomSeed(this.seed);
+    this.randomGenerator = new RandomSeed(args.seed);
   }
 
   override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
-      'seed': this.seed
+      'seed': this.randomGenerator.seed
     };
 
     const baseConfig = super.getConfig();
