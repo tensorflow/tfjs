@@ -599,7 +599,7 @@ export function flatten(args?: FlattenLayerArgs) {
  *  const model = tf.sequential();
  *  model.add(tf.layers.repeatVector({n: 4, inputShape: [2]}));
  *  const x = tf.tensor2d([[10, 20]]);
- *  // Use the model to do inference on a data point the model hasn't see
+ *  // Use the model to do inference on a data point the model hasn't seen
  *  model.predict(x).print();
  *  // output shape is now [batch, 2, 4]
  * ```
