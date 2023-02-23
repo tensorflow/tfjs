@@ -12,11 +12,14 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef BINCOUNT_H_
-#define BINCOUNT_H_
+#ifndef BINCOUNT_IMPL_H_
+#define BINCOUNT_IMPL_H_
 
 #include <cstdint>
 
+#include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace tfjs::wasm {
 // REQUIRES:
 // weight_buf must have the same size as x_buf.
 template <bool reset_out_buf = true, typename T>
@@ -29,7 +32,7 @@ inline void Bincount(const int32_t* x_buf, int32_t x_len, int32_t size,
     int32_t value = x_buf[i];
     if (value < 0) {
       util::warn("DenseBincount error: input x must be non-negative.");
-      return;
+      continue;
     }
     if (value >= size) {
       continue;
@@ -44,5 +47,5 @@ inline void Bincount(const int32_t* x_buf, int32_t x_len, int32_t size,
     }
   }
 }
-
+}  // namespace tfjs::wasm
 #endif

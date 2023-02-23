@@ -155,6 +155,7 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "bincount_impl",
     hdrs = ["bincount_impl.h"],
+    deps = [":util"],
 )
 
 tfjs_cc_library(
