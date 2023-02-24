@@ -67,14 +67,14 @@ void DenseBincount(const int32_t x_id, const int32_t* x_shape_ptr,
   if (x_shape_len == 1) {
     switch (weights_dtype) {
       case DType::float32:
-        Bincount(x_buf, x_shape_ptr[0], size,
-                 weights_info ? weights_info->f32() : nullptr, binary_output,
-                 out_info.f32_write());
+        BincountImpl(x_buf, x_shape_ptr[0], size,
+                     weights_info ? weights_info->f32() : nullptr,
+                     binary_output, out_info.f32_write());
         break;
       case DType::int32:
-        Bincount(x_buf, x_shape_ptr[0], size,
-                 weights_info ? weights_info->i32() : nullptr, binary_output,
-                 out_info.i32_write());
+        BincountImpl(x_buf, x_shape_ptr[0], size,
+                     weights_info ? weights_info->i32() : nullptr,
+                     binary_output, out_info.i32_write());
         break;
       default:
         util::warn(

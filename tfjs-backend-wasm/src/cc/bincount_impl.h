@@ -23,8 +23,8 @@ namespace tfjs::wasm {
 // REQUIRES:
 // weight_buf must have the same size as x_buf.
 template <bool reset_out_buf = true, typename T>
-inline void Bincount(const int32_t* x_buf, int32_t x_len, int32_t size,
-                     const T* weight_buf, bool binary_output, T* out_buf) {
+inline void BincountImpl(const int32_t* x_buf, int32_t x_len, int32_t size,
+                         const T* weight_buf, bool binary_output, T* out_buf) {
   if (reset_out_buf) {
     std::fill(out_buf, out_buf + size, 0);
   }
