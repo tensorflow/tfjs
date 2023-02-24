@@ -62,25 +62,25 @@ export function assertAndGetBroadcastShape(
   const result: number[] = [];
   const l = Math.max(shapeA.length, shapeB.length);
 
-  for (let i = 0; i < l; i++) {
-    let a = shapeA[shapeA.length - i - 1];
+  for (let i = l - 1; i >= 0; i--) {
+    let a = shapeA[i];
     if (a == null) {
       a = 1;
     }
-    let b = shapeB[shapeB.length - i - 1];
+    let b = shapeB[i];
     if (b == null) {
       b = 1;
     }
     if (a === 1) {
-      result.unshift(b);
+      result.push(b);
     } else if (b === 1) {
-      result.unshift(a);
+      result.push(a);
     } else if (a !== b) {
       const errMsg = `Operands could not be broadcast together with shapes ` +
           `${shapeA} and ${shapeB}.`;
       throw Error(errMsg);
     } else {
-      result.unshift(a);
+      result.push(a);
     }
   }
   return result;
