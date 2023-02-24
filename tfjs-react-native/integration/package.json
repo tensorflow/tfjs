@@ -1,0 +1,42 @@
+{
+  "name": "integration",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "copy-rn": "rsync -a ../ node_modules/@tensorflow/tfjs-react-native --exclude=integration* --exclude=node_modules --delete"
+  },
+  "dependencies": {
+    "@expo/webpack-config": "^0.17.2",
+    "@react-native-async-storage/async-storage": "^1.13.0",
+    "@tensorflow-models/blazeface": "^0.0.2",
+    "@tensorflow-models/mobilenet": "^2.0.4",
+    "@tensorflow-models/posenet": "^2.2.1",
+    "@tensorflow/tfjs": "3.7.0",
+    "expo": "~47.0.12",
+    "expo-camera": "~13.1.0",
+    "expo-gl": "~12.0.1",
+    "expo-gl-cpp": "^7.0.0",
+    "expo-image-manipulator": "~11.0.0",
+    "expo-status-bar": "~1.4.2",
+    "jasmine-core": "^3.4.0",
+    "jpeg-js": "^0.4.4",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "react-native": "0.70.5",
+    "react-native-fs": "2.14.1",
+    "react-native-svg": "13.4.0",
+    "react-native-web": "~0.18.9",
+    "rn-fetch-blob": "^0.10.15"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@types/react": "~18.0.14",
+    "@types/react-native": "~0.70.6",
+    "typescript": "^4.6.3"
+  },
+  "private": true
+}

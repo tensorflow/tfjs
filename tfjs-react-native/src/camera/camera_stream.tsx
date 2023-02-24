@@ -23,7 +23,7 @@ import {
   LayoutChangeEvent,
   Platform,
 } from 'react-native';
-import { Camera } from 'expo-camera';
+import { Camera, CameraType } from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
 import { Rotation } from './types';
@@ -35,7 +35,7 @@ interface WrappedComponentProps {
 }
 
 interface Props {
-  useCustomShadersToResize: boolean;
+  useCustomShadersToResize?: boolean;
   cameraTextureWidth: number;
   cameraTextureHeight: number;
   resizeWidth: number;
@@ -193,7 +193,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       };
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
       cancelAnimationFrame(this.rafID);
       if (this.glContext) {
         GLView.destroyContextAsync(this.glContext);
@@ -326,7 +326,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           cameraLayout.height
         );
         const isFrontCamera =
-          this.camera.props.type === Camera.Constants.Type.front;
+          this.camera.props.type === CameraType.front;
         const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
@@ -345,7 +345,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     /**
      * Render the component
      */
-    render() {
+    override render() {
       const { cameraLayout } = this.state;
 
       // Before passing props into the original wrapped component we want to
