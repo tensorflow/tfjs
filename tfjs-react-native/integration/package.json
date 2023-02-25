@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "copy-rn": "rsync -a ../ node_modules/@tensorflow/tfjs-react-native --exclude=integration* --exclude=node_modules --delete"
+    "copy-rn": "rsync -a ../ node_modules/@tensorflow/tfjs-react-native --exclude=integration* --exclude=node_modules --delete",
+    "postinstall": "yarn --silent copy-rn"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.13.0",
