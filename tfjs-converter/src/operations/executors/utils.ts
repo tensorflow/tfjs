@@ -38,7 +38,7 @@ export function getParamValue(
           node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
-      const inputs = node.inputNames.slice(start, end);
+      const inputs = node.inputNames.slice(shiftedStart, end);
 
       return inputs.map(
           name => getTensor(name, tensorMap, context, resourceManager));
