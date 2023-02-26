@@ -16,6 +16,9 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
@@ -43,6 +46,7 @@ import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
 import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
+import {parseNodeName} from './executors/utils';
 import {Node, ValueType} from './types';
 
 /**
@@ -123,17 +127,43 @@ export function executeOp(
   return [].concat(value);
 }
 
-interface ParamInfo {
-  readonly id: number;
-  readonly
+interface OpInputInfo {
+  readonly _isOpInputInfo: true;
+  readonly nodeId: number;
+  readonly nodeName: string;
+  readonly inputName: string;
+  readonly index?: number;
+  readonly postProcess?: (tensor: tfc.Tensor) => ValueType;
 }
+
+
+export class OpExecutorManager {
+  readonly nodeNameToId = new Map<string, number>();
+  public ops: typeof tfOps = tfOps;
+  public tidy = tfc.tidy;
+
+  public buildOpExecutor() {}
+
+  public registerNode(nodeName: string): number {
+    const cachedId = this.nodeNameToId.get(nodeName);
+    if (cachedId == null) {
+      return cachedId;
+    }
+    const id = this.nodeNameToId.size;
+    this.nodeNameToId.set(nodeName, id);
+    return id;
+  }
+}
+
 export class OpExecutorBuilder {
   constructor(
-      private readonly manager: OpExecutorManager,
-      private readonly node: Node) {}
+      public readonly manager: OpExecutorManager, public readonly node: Node) {}
 
-  // Registers params for this node and returns the getter for the param.
-  public param(paramName: string): number|ValueType {
+  /**
+   * Registers params for this node and returns the info to get the param.
+   * Returns the value directly if the given name is an attr of the node.
+   */
+  public param(paramName: string): OpInputInfo|OpInputInfo[]|ValueType {
     const node = this.node;
 
     const inputParam = node.inputParams[paramName];
@@ -145,27 +175,39 @@ export class OpExecutorBuilder {
                                                     inputParam.inputIndexEnd);
       const shiftedStart = start < 0 ? node.inputNames.length + start : start;
       if (inputParam.type === 'tensor') {
-        return getTensor(
-            node.inputNames[shiftedStart], tensorMap, context, resourceManager);
-      }
-      if (inputParam.type === 'tensors') {
+        return this.inputInfo(node.inputNames[shiftedStart]);
+      } else if (inputParam.type === 'tensors') {
         const inputs = node.inputNames.slice(start, end);
-
-        return inputs.map(
-            name => getTensor(name, tensorMap, context, resourceManager));
+        return inputs.map((name) => this.inputInfo(name));
+      } else {
+        return {
+          ...this.inputInfo(node.inputNames[shiftedStart]),
+          postProcess: (tensor: Tensor) => {
+            const data = tensor.dataSync();
+            return inputParam.type === 'number' ?
+                data[0] :
+                tfc.util.toNestedArray(tensor.shape, data);
+          },
+        };
       }
-      const tensor = getTensor(
-          node.inputNames[shiftedStart], tensorMap, context, resourceManager);
-      const data = tensor.dataSync();
-      return inputParam.type === 'number' ?
-          data[0] :
-          tfc.util.toNestedArray(tensor.shape, data);
     }
     const attrParam = node.attrParams[paramName];
     return attrParam && attrParam.value;
   }
-}
 
-export class OpExecutorManager {
-  private readonly paramNameToId = new Map<string, number>();
+  /**
+   * Retrieve the tensor from tensorsMap based on input name.
+   * @param name Node input name
+   */
+  public inputInfo(inputName: string): OpInputInfo {
+    const [nodeName, index] = parseNodeName(inputName);
+    const nodeId = this.manager.registerNode(nodeName);
+    return {
+      _isOpInputInfo: true,
+      nodeId,
+      nodeName,
+      inputName,
+      index,
+    };
+  }
 }
