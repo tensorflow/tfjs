@@ -43,7 +43,7 @@ import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
 import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
-import {Node} from './types';
+import {Node, ValueType} from './types';
 
 /**
  * Executes the op defined by the node object.
@@ -121,4 +121,51 @@ export function executeOp(
     return value.then((data) => [].concat(data));
   }
   return [].concat(value);
+}
+
+interface ParamInfo {
+  readonly id: number;
+  readonly
+}
+export class OpExecutorBuilder {
+  constructor(
+      private readonly manager: OpExecutorManager,
+      private readonly node: Node) {}
+
+  // Registers params for this node and returns the getter for the param.
+  public param(paramName: string): number|ValueType {
+    const node = this.node;
+
+    const inputParam = node.inputParams[paramName];
+    if (inputParam && inputParam.inputIndexStart !== undefined) {
+      const start = inputParam.inputIndexStart;
+      const end = inputParam.inputIndexEnd === 0 ?
+          undefined :
+          (inputParam.inputIndexEnd === undefined ? start + 1 :
+                                                    inputParam.inputIndexEnd);
+      const shiftedStart = start < 0 ? node.inputNames.length + start : start;
+      if (inputParam.type === 'tensor') {
+        return getTensor(
+            node.inputNames[shiftedStart], tensorMap, context, resourceManager);
+      }
+      if (inputParam.type === 'tensors') {
+        const inputs = node.inputNames.slice(start, end);
+
+        return inputs.map(
+            name => getTensor(name, tensorMap, context, resourceManager));
+      }
+      const tensor = getTensor(
+          node.inputNames[shiftedStart], tensorMap, context, resourceManager);
+      const data = tensor.dataSync();
+      return inputParam.type === 'number' ?
+          data[0] :
+          tfc.util.toNestedArray(tensor.shape, data);
+    }
+    const attrParam = node.attrParams[paramName];
+    return attrParam && attrParam.value;
+  }
+}
+
+export class OpExecutorManager {
+  private readonly paramNameToId = new Map<string, number>();
 }
