@@ -252,7 +252,10 @@ export class GraphExecutor implements FunctionExecutor {
       let newCompilation: any = this.compile(inputs, outputNodes);
       const opExecutorManager = new OpExecutorManager();
       const executors = newCompilation.orderedNodes.map(
-          (node: Node) => opExecutorManager.buildOpExecutor(node));
+          (node: Node) => ({
+            exec: opExecutorManager.buildOpExecutor(node),
+            nodeId: opExecutorManager.registerNode(node.name),
+          }));
       newCompilation = {...newCompilation, opExecutorManager, executors};
 
       this.compiledMap.set(
@@ -299,16 +302,16 @@ export class GraphExecutor implements FunctionExecutor {
       const {orderedNodes, nodeLiveUntilMap, executors} = compilation;
       for (let i = 0; i < orderedNodes.length; ++i) {
         const node = orderedNodes[i];
-        if (context.tensorsMap[opExecutorManager.registerNode(node.name)]) {
+        if (context.tensorsMap[executors[i].nodeId]) {
           continue;
         }
-        const tensors = executors[i](context) as Tensor[];
+        const tensors = executors[i].exec(context) as Tensor[];
         if (util.isPromise(tensors)) {
           throw new Error(
               `The execution of the op '${node.op}' returned a promise. ` +
               `Please use model.executeAsync() instead.`);
         }
-        context.tensorsMap[opExecutorManager.registerNode(node.name)] = tensors;
+        context.tensorsMap[executors[i].nodeId] = tensors;
         if (this.keepIntermediateTensors) {
           this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
         }
