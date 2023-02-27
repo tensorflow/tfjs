@@ -15,103 +15,96 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor4D} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-
-import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
+import {InternalOpExecutor} from '../types';
+import type {OpExecutorBuilder} from '../operation_executor';
 
-import {getParamValue} from './utils';
+export function buildOpExecutor(builder: OpExecutorBuilder):
+    InternalOpExecutor {
+  const node = builder.node;
+  const ops = builder.manager.ops;
+  switch (node.op) {
+    case 'Cast': {
+      const x$ = builder.param('x');
+      const dtype$ = builder.param('dtype');
+      return (ctx: ExecutionContext) => [ops.cast(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(dtype$))];
+    }
+    case 'ExpandDims': {
+      const x$ = builder.param('x');
+      const axis$ = builder.param('axis');
+      return (ctx: ExecutionContext) => [ops.expandDims(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(axis$))];
+    }
+    case 'Squeeze': {
+      const x$ = builder.param('x');
+      const axis$ = builder.param('axis');
+      return (ctx: ExecutionContext) => [ops.squeeze(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(axis$))];
+    }
 
-export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
-      switch (node.op) {
-        case 'Cast': {
-          return [ops.cast(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('dtype', node, tensorMap, context) as 'int32' |
-                  'float32' | 'bool')];
-        }
-        case 'ExpandDims': {
-          const axis =
-              getParamValue('axis', node, tensorMap, context) as number;
-          return [ops.expandDims(
-              getParamValue('x', node, tensorMap, context) as Tensor, axis)];
-        }
-        case 'Squeeze': {
-          const axis =
-              getParamValue('axis', node, tensorMap, context) as number[];
-          return [ops.squeeze(
-              getParamValue('x', node, tensorMap, context) as Tensor, axis)];
-        }
-
-        case 'Reshape': {
-          return [ops.reshape(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('shape', node, tensorMap, context) as number[])];
-        }
-        case 'MirrorPad': {
-          return [ops.mirrorPad(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('padding', node, tensorMap, context) as
-                  Array<[number, number]>,
-              getParamValue('mode', node, tensorMap, context) as 'reflect' |
-                  'symmetric')];
-        }
-        case 'PadV2':
-        case 'Pad': {
-          return [ops.pad(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('padding', node, tensorMap, context) as
-                  Array<[number, number]>,
-              getParamValue('constantValue', node, tensorMap, context) as
-                  number)];
-        }
-        case 'SpaceToBatchND': {
-          const blockShape =
-              getParamValue('blockShape', node, tensorMap, context) as number[];
-          const paddings =
-              getParamValue('paddings', node, tensorMap, context) as number[][];
-          return [ops.spaceToBatchND(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              blockShape, paddings)];
-        }
-        case 'BatchToSpaceND': {
-          const blockShape =
-              getParamValue('blockShape', node, tensorMap, context) as number[];
-          const crops =
-              getParamValue('crops', node, tensorMap, context) as number[][];
-          return [ops.batchToSpaceND(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              blockShape, crops)];
-        }
-        case 'DepthToSpace': {
-          const blockSize =
-              getParamValue('blockSize', node, tensorMap, context) as number;
-          const dataFormat =
-              (getParamValue('dataFormat', node, tensorMap, context) as
-               string).toUpperCase() as 'NHWC' |
-              'NCHW';
-          return [ops.depthToSpace(
-              getParamValue('x', node, tensorMap, context) as Tensor4D,
-              blockSize, dataFormat)];
-        }
-        case 'BroadcastTo': {
-          return [ops.broadcastTo(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('shape', node, tensorMap, context) as number[])];
-        }
-        case 'BroadcastArgs': {
-          return [ops.broadcastArgs(
-              getParamValue('s0', node, tensorMap, context) as Tensor,
-              getParamValue('s1', node, tensorMap, context) as Tensor)];
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    };
+    case 'Reshape': {
+      const x$ = builder.param('x');
+      const shape$ = builder.param('shape');
+      return (ctx: ExecutionContext) => [ops.reshape(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(shape$))];
+    }
+    case 'MirrorPad': {
+      const x$ = builder.param('x');
+      const padding$ = builder.param('padding');
+      const mode$ = builder.param('mode');
+      return (ctx: ExecutionContext) => [ops.mirrorPad(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(padding$),
+                 ctx.getOpParamValue(mode$))];
+    }
+    case 'PadV2':
+    case 'Pad': {
+      const x$ = builder.param('x');
+      const padding$ = builder.param('padding');
+      const constantValue$ = builder.param('constantValue');
+      return (ctx: ExecutionContext) => [ops.pad(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(padding$),
+                 ctx.getOpParamValue(constantValue$))];
+    }
+    case 'SpaceToBatchND': {
+      const x$ = builder.param('x');
+      const blockShape$ = builder.param('blockShape');
+      const paddings$ = builder.param('paddings');
+      return (ctx: ExecutionContext) => [ops.spaceToBatchND(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(blockShape$),
+                 ctx.getOpParamValue(paddings$))];
+    }
+    case 'BatchToSpaceND': {
+      const x$ = builder.param('x');
+      const blockShape$ = builder.param('blockShape');
+      const crops$ = builder.param('crops');
+      return (ctx: ExecutionContext) => [ops.batchToSpaceND(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(blockShape$),
+                 ctx.getOpParamValue(crops$))];
+    }
+    case 'DepthToSpace': {
+      const x$ = builder.param('x');
+      const blockShape$ = builder.param('blockShape');
+      const dataFormat$ = builder.param('dataFormat');
+      return (ctx: ExecutionContext) => [ops.depthToSpace(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(blockShape$),
+                 ctx.getOpParamValue(dataFormat$))];
+    }
+    case 'BroadcastTo': {
+      const x$ = builder.param('x');
+      const shape$ = builder.param('shape');
+      return (ctx: ExecutionContext) => [ops.broadcastTo(
+                 ctx.getOpParamValue(x$), ctx.getOpParamValue(shape$))];
+    }
+    case 'BroadcastArgs': {
+      const s0$ = builder.param('s0');
+      const s1$ = builder.param('s1');
+      return (ctx: ExecutionContext) => [ops.broadcastTo(
+                 ctx.getOpParamValue(s0$), ctx.getOpParamValue(s1$))];
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'transformation';
