@@ -45,12 +45,6 @@ export function maxPool3d(args: {
     },
     {
       type: 'int32',
-      data: [
-        convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth
-      ]
-    },
-    {
-      type: 'int32',
       data: [convInfo.inDepth, convInfo.inHeight, convInfo.inWidth]
     },
     {

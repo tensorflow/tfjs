@@ -136,7 +136,7 @@ export class Pool3DProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms =
-      `strides : vec3<i32>, pads : vec3<i32>, dilations : vec3<i32>, convDims : vec3<i32>, filterDims : vec3<i32>,`;
+      `strides : vec3<i32>, pads : vec3<i32>, convDims : vec3<i32>, filterDims : vec3<i32>,`;
   workgroupSize: [number, number, number] = [128, 1, 1];
   poolType: 'max'|'avg';
   size = true;
@@ -211,19 +211,19 @@ export class Pool3DProgram implements WebGPUProgram {
                 this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};`}
 
           var count = 0.0;
-          for (var wD = 0; wD < uniforms.filterDims.x; wD += uniforms.dilations.x) {
+          for (var wD = 0; wD < uniforms.filterDims.x; wD++) {
             let xD = xDCorner + wD;
             if (xD < 0 || xD >= uniforms.convDims.x) {
               continue;
             }
 
-            for (var wR = 0; wR < uniforms.filterDims.y; wR += uniforms.dilations.y) {
+            for (var wR = 0; wR < uniforms.filterDims.y; wR++) {
               let xR = xRCorner + wR;
               if (xR < 0 || xR >= uniforms.convDims.y) {
                 continue;
               }
 
-              for (var wC = 0; wC < uniforms.filterDims.z; wC += uniforms.dilations.z) {
+              for (var wC = 0; wC < uniforms.filterDims.z; wC++) {
                 let xC = xCCorner + wC;
                 if (xC < 0 || xC >= uniforms.convDims.z) {
                   continue;

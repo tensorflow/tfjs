@@ -50,12 +50,6 @@ export function maxPool3DGrad(args: {
     },
     {
       type: 'int32',
-      data: [
-        convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth
-      ]
-    },
-    {
-      type: 'int32',
       data: [convInfo.inDepth, convInfo.inHeight, convInfo.inWidth]
     },
     {
@@ -81,12 +75,6 @@ export function maxPool3DGrad(args: {
         convInfo.effectiveFilterDepth - 1 - convInfo.padInfo.front,
         convInfo.effectiveFilterHeight - 1 - convInfo.padInfo.top,
         convInfo.effectiveFilterWidth - 1 - convInfo.padInfo.left
-      ]
-    },
-    {
-      type: 'int32',
-      data: [
-        convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth
       ]
     },
     {

@@ -32,7 +32,7 @@ export function avgPool3D(args: {
   const convInfo = backend_util.computePool3DInfo(
       x.shape as [number, number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode, dataFormat);
-  const maxPoolProgram = new Pool3DProgram(convInfo, 'avg');
+  const avgPoolProgram = new Pool3DProgram(convInfo, 'avg');
   const dimensions = [
     {
       type: 'int32',
@@ -42,12 +42,6 @@ export function avgPool3D(args: {
       type: 'int32',
       data:
           [convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left]
-    },
-    {
-      type: 'int32',
-      data: [
-        convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth
-      ]
     },
     {
       type: 'int32',
@@ -61,7 +55,7 @@ export function avgPool3D(args: {
       ]
     }
   ];
-  return backend.runWebGPUProgram(maxPoolProgram, [x], x.dtype, dimensions);
+  return backend.runWebGPUProgram(avgPoolProgram, [x], x.dtype, dimensions);
 }
 
 export const avgPool3DConfig: KernelConfig = {

@@ -66,7 +66,7 @@ export class MaxPool2DBackpropProgram implements WebGPUProgram {
           }
           let idyR = i32(dyR);
 
-          for (var wC = 0; wC < uniforms.filterDims[1]; wC++) {
+          for (var wC = 0; wC < uniforms.filterDims[1]; wC += uniforms.dilations[1]) {
             let dyC = f32(dyCCorner + wC) / f32(uniforms.strides[1]);
 
             if (dyC < 0.0 || dyC >= f32(uniforms.outWidth) || fract(dyC) > 0.0) {
@@ -98,8 +98,7 @@ export class MaxPool3DBackpropProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['dy', 'maxPos'];
-  uniforms =
-      `strides : vec3<i32>, pads : vec3<i32>, dilations : vec3<i32>, filterDims : vec3<i32>,
+  uniforms = `strides : vec3<i32>, pads : vec3<i32>, filterDims : vec3<i32>,
       outDepth : i32, outHeight : i32, outWidth : i32`;
   workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
@@ -134,7 +133,7 @@ export class MaxPool3DBackpropProgram implements WebGPUProgram {
         var dotProd = 0.0;
         let lastIndex = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.filterDims[2] - 1;
 
-        for (var wD = 0; wD < uniforms.filterDims[0]; wD += uniforms.dilations[0]) {
+        for (var wD = 0; wD < uniforms.filterDims[0]; wD++) {
           let dyD = f32(dyDCorner + wD) / f32(uniforms.strides[0]);
 
           if (dyD < 0.0 || dyD >= f32(uniforms.outDepth) || fract(dyD) > 0.0) {
@@ -142,7 +141,7 @@ export class MaxPool3DBackpropProgram implements WebGPUProgram {
           }
           let idyD = i32(dyD);
 
-          for (var wR = 0; wR < uniforms.filterDims[1]; wR += uniforms.dilations[1]) {
+          for (var wR = 0; wR < uniforms.filterDims[1]; wR++) {
             let dyR = f32(dyRCorner + wR) / f32(uniforms.strides[1]);
 
             if (dyR < 0.0 || dyR >= f32(uniforms.outHeight) || fract(dyR) > 0.0) {
