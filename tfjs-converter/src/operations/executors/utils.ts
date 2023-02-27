@@ -18,7 +18,7 @@
 import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
-import {ExecutionContext} from '../../executor/execution_context';
+import {ExecutionContext, OpInput} from '../../executor/execution_context';
 import {ResourceManager} from '../../executor/resource_manager';
 import {Node, ValueType} from '../types';
 
@@ -151,13 +151,14 @@ export function split(arr: number[], size: number) {
   }
   return res;
 }
+
 export function getPadding(
-    node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): ValueType {
-  let pad = getParamValue('pad', node, tensorMap, context);
+    ctx: ExecutionContext, pad$: OpInput,
+    explicitPaddings$: OpInput): ValueType {
+  let pad = ctx.getOpParamValue<ValueType>(pad$);
   if (pad === 'explicit') {
     // This is 1d array, we need to convert it to 2d array
-    pad = getParamValue('explicitPaddings', node, tensorMap, context);
+    pad = ctx.getOpParamValue(explicitPaddings$);
     const explicitPadding: [
       [number, number], [number, number], [number, number], [number, number]
     ] = [[0, 0], [0, 0], [0, 0], [0, 0]];

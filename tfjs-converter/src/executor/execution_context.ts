@@ -17,7 +17,7 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
-import type {OpInputInfo} from '../operations/operation_executor';
+import type {OpInputInfo, OpInputValue} from '../operations/operation_executor';
 import {ValueType} from '../operations/types';
 import {TensorArray} from './tensor_array';
 import {TensorList} from './tensor_list';
@@ -177,7 +177,7 @@ export class ExecutionContext {
     return this.tensorListMap[id];
   }
 
-  getOpParamValue<T>(info: OpInputInfo|OpInputInfo|ValueType): T {
+  getOpParamValue<T>(info: OpInputInfo|OpInputInfo[]|OpInputValue): T {
     return 0 as T;
   }
 

@@ -127,8 +127,10 @@ export function executeOp(
   return [].concat(value);
 }
 
-interface OpInputInfo {
-  readonly _isOpInputInfo: true;
+export type OpInput = OpInputInfo|OpInputInfo[]|OpInputValue;
+
+export interface OpInputInfo {
+  readonly _isInputInfo: true;
   readonly nodeId: number;
   readonly nodeName: string;
   readonly inputName: string;
@@ -136,6 +138,10 @@ interface OpInputInfo {
   readonly postProcess?: (tensor: tfc.Tensor) => ValueType;
 }
 
+export interface OpInputValue {
+  readonly _isValue: true;
+  readonly value?: ValueType;
+}
 
 export class OpExecutorManager {
   readonly nodeNameToId = new Map<string, number>();
@@ -163,7 +169,7 @@ export class OpExecutorBuilder {
    * Registers params for this node and returns the info to get the param.
    * Returns the value directly if the given name is an attr of the node.
    */
-  public param(paramName: string): OpInputInfo|OpInputInfo[]|ValueType {
+  public param(paramName: string): OpInputInfo|OpInputInfo[]|OpInputValue {
     const node = this.node;
 
     const inputParam = node.inputParams[paramName];
@@ -192,7 +198,7 @@ export class OpExecutorBuilder {
       }
     }
     const attrParam = node.attrParams[paramName];
-    return attrParam && attrParam.value;
+    return {_isValue: true, value: attrParam && attrParam.value};
   }
 
   /**
@@ -203,7 +209,7 @@ export class OpExecutorBuilder {
     const [nodeName, index] = parseNodeName(inputName);
     const nodeId = this.manager.registerNode(nodeName);
     return {
-      _isOpInputInfo: true,
+      _isInputInfo: true,
       nodeId,
       nodeName,
       inputName,
