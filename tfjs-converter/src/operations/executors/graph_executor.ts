@@ -35,7 +35,7 @@ export function buildOpExecutor(builder: OpExecutorBuilder):
     }
     case 'PlaceholderWithDefault': {
       const value$ = builder.inputInfo(node.name);
-      const default$ = builder.inputInfo('default');
+      const default$ = builder.param('default');
       return (ctx: ExecutionContext) =>
                  [ctx.getOpParamValue(value$) || ctx.getOpParamValue(default$)];
     }
@@ -46,35 +46,35 @@ export function buildOpExecutor(builder: OpExecutorBuilder):
     case 'Identity':
     case 'StopGradient':
     case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => [cloneTensor(ctx.getOpParamValue(x$))];
     }
     case 'IdentityN': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) =>
                  ctx.getOpParamValue<Tensor[]>(x$).map(cloneTensor);
     }
     case 'Snapshot': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => [cloneTensor(ctx.getOpParamValue(x$))];
     }
     case 'Shape': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => [ops.tensor1d(
                  ctx.getOpParamValue<Tensor>(x$).shape, 'int32')];
     }
     case 'ShapeN': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => ctx.getOpParamValue<Tensor[]>(x$).map(
                  (t) => ops.tensor1d(t.shape));
     }
     case 'Size': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => [ops.scalar(
                  ctx.getOpParamValue<Tensor>(x$).size, 'int32')];
     }
     case 'Rank': {
-      const x$ = builder.inputInfo('x');
+      const x$ = builder.param('x');
       return (ctx: ExecutionContext) => [ops.scalar(
                  ctx.getOpParamValue<Tensor>(x$).rank, 'int32')];
     }

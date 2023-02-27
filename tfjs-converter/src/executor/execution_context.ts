@@ -17,11 +17,13 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
-import type {OpInputInfo, OpInputValue} from '../operations/operation_executor';
-import {ValueType} from '../operations/types';
+
+import type {OpInput, OpInputInfo, OpInputValue} from '../operations/operation_executor';
 import {TensorArray} from './tensor_array';
 import {TensorList} from './tensor_list';
 import {FunctionExecutor} from './types';
+import {OpExecutorManager} from '../operations/operation_executor';
+import {ResourceManager} from './resource_manager';
 
 export interface ExecutionContextInfo {
   id: number;           // the unique id of the context info
@@ -40,12 +42,16 @@ export interface ExecutionContextInfo {
  * For model with branch logic, TensorFLow will generate Switch/Merge ops.
  */
 export class ExecutionContext {
+  public tensorsMap =
+      new Array<Tensor[]>(this.opExecutorManager.nodeNameToId.size + 1);
   private rootContext = {id: 0, frameName: '', iterationId: 0};
   private contexts: ExecutionContextInfo[] = [this.rootContext];
   private lastId = 0;
   private _currentContextIds: string[];
 
   constructor(
+      readonly opExecutorManager: OpExecutorManager,
+      readonly resourceManager?: ResourceManager,
       readonly weightMap: NamedTensorsMap = {},
       readonly tensorArrayMap: TensorArrayMap = {},
       readonly tensorListMap: TensorListMap = {},
@@ -177,8 +183,41 @@ export class ExecutionContext {
     return this.tensorListMap[id];
   }
 
-  getOpParamValue<T>(info: OpInputInfo|OpInputInfo[]|OpInputValue): T {
-    return 0 as T;
+  getOpParamValue<T>(opInput: OpInput): T {
+    if ((opInput as OpInputValue)._isValue) {
+      const {value} = opInput as OpInputValue;
+      return value as T;
+    }
+    if (Array.isArray(opInput)) {
+      const infoArray = opInput as OpInputInfo[];
+      return infoArray.map((info) => {
+        return this.getOpInputInfoValue(info);
+      }) as T;
+    }
+    return this.getOpInputInfoValue(opInput as OpInputInfo) as T;
+  }
+
+  private getOpInputInfoValue<T>(info: OpInputInfo): T|undefined {
+    if (this.resourceManager != null) {
+      let tensor = this.resourceManager.getHashTableHandleByName(info.nodeName);
+      if (tensor != null) {
+        let value = tensor as T;
+        if (info.postProcess != null) {
+          value = info.postProcess(tensor) as T;
+        }
+        return value;
+      }
+    }
+
+    const tensors = this.tensorsMap[info.nodeId];
+    if (tensors == null) {
+      return tensors as undefined;
+    }
+    let tensor: Tensor|T = tensors[info.index || 0];
+    if (info.postProcess) {
+      tensor = info.postProcess(tensor) as T;
+    }
+    return tensor as T;
   }
 
   dispose(keepIds: Set<number>) {

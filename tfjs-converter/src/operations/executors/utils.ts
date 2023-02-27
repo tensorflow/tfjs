@@ -18,8 +18,9 @@
 import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
-import {ExecutionContext, OpInput} from '../../executor/execution_context';
+import {ExecutionContext} from '../../executor/execution_context';
 import {ResourceManager} from '../../executor/resource_manager';
+import type {OpInput} from '../operation_executor';
 import {Node, ValueType} from '../types';
 
 export function getParamValue(

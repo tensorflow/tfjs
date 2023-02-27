@@ -186,12 +186,35 @@ export class OpExecutorManager {
 
   public registerNode(nodeName: string): number {
     const cachedId = this.nodeNameToId.get(nodeName);
-    if (cachedId == null) {
+    if (cachedId != null) {
       return cachedId;
     }
     const id = this.nodeNameToId.size;
     this.nodeNameToId.set(nodeName, id);
     return id;
+  }
+
+  public getOpInputInfoByNodeName(nodeName: string): OpInputInfo {
+    const nodeId = this.registerNode(nodeName);
+    return {
+      _isInputInfo: true,
+      nodeId,
+      nodeName,
+      inputName: nodeName,
+      index: 0,
+    };
+  }
+
+  public inputInfo(inputName: string): OpInputInfo {
+    const [nodeName, index] = parseNodeName(inputName);
+    const nodeId = this.registerNode(nodeName);
+    return {
+      _isInputInfo: true,
+      nodeId,
+      nodeName,
+      inputName,
+      index,
+    };
   }
 }
 
