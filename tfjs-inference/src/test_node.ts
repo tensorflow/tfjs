@@ -31,10 +31,11 @@ process.on('unhandledRejection', e => {
 });
 
 jasmine_util.setTestEnvs(
-    [{name: 'test-inference-api', backendName: 'cpu', flags: {}}]);
+  [{name: 'test-inference-api', backendName: 'cpu', flags: {}}]);
 
 const unitTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: [unitTests], random: false});
+runner.loadConfig({spec_files: [unitTests], random: false,
+                   jsLoader: 'require'});
 runner.execute();
