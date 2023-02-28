@@ -305,7 +305,7 @@ export class GraphExecutor implements FunctionExecutor {
           this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
         }
         this.checkTensorForDisposalWithNodeLiveUntilInfo(
-            node, tensorsMap, tensorsToKeep, outputNodeNameSet,
+            node, tensorsMap, context, tensorsToKeep, outputNodeNameSet,
             nodeLiveUntilMap.get(node));
       }
 
@@ -379,8 +379,9 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   private checkTensorForDisposalWithNodeLiveUntilInfo(
-      node: Node, tensorMap: NamedTensorsMap, tensorsToKeep: Set<number>,
-      outputNodeNameSet: Set<string>, liveUntilNodes?: Node[]) {
+      node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+      tensorsToKeep: Set<number>, outputNodeNameSet: Set<string>,
+      liveUntilNodes?: Node[]) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
     if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
@@ -390,8 +391,10 @@ export class GraphExecutor implements FunctionExecutor {
       return;
     }
 
-    for (const node of liveUntilNodes) {
-      for (const tensor of tensorMap[node.name]) {
+    for (const inputNode of liveUntilNodes) {
+      const tensors =
+          getTensorsForCurrentContext(inputNode.name, tensorMap, context);
+      for (const tensor of tensors) {
         if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
           continue;
         }
