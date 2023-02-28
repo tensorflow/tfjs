@@ -59,8 +59,8 @@ export function getReductionAxes(
 
 export function assertAndGetBroadcastShape(
     shapeA: number[], shapeB: number[]): number[] {
-  const result: number[] = [];
   const l = Math.max(shapeA.length, shapeB.length);
+  const result = new Array(l);
 
   for (let i = 0; i < l; i++) {
     let a = shapeA[shapeA.length - i - 1];
@@ -72,15 +72,15 @@ export function assertAndGetBroadcastShape(
       b = 1;
     }
     if (a === 1) {
-      result.unshift(b);
+      result[l - i - 1] = b;
     } else if (b === 1) {
-      result.unshift(a);
+      result[l - i - 1] = a;
     } else if (a !== b) {
       const errMsg = `Operands could not be broadcast together with shapes ` +
           `${shapeA} and ${shapeB}.`;
       throw Error(errMsg);
     } else {
-      result.unshift(a);
+      result[l - i - 1] = a;
     }
   }
   return result;

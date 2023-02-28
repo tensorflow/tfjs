@@ -19,7 +19,7 @@ import {MaxPoolWithArgmax, MaxPoolWithArgmaxAttrs, MaxPoolWithArgmaxInputs} from
 import {backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Pool2DProgram} from '../pool2d_webgpu';
+import {Pool2DProgram} from '../pool_webgpu';
 
 export function maxPoolWithArgmax(args: {
   inputs: MaxPoolWithArgmaxInputs,

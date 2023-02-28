@@ -491,8 +491,8 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
   }
 
   if (shape1.length !== shape2.length) {  // One of the shapes is a vector.
-    const shape1Cols = shape1.slice(-1)[0];
-    const shape2Cols = shape2.slice(-1)[0];
+    const shape1Cols = shape1[shape1.length - 1];
+    const shape2Cols = shape2[shape2.length - 1];
     if (shape1Cols === shape2Cols) {
       return true;
     }
