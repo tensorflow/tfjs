@@ -31,7 +31,7 @@ process.on('unhandledRejection', e => {
 });
 
 jasmine_util.setTestEnvs(
-  [{name: 'test-inference-api', backendName: 'cpu', flags: {}}]);
+    [{name: 'test-inference-api', backendName: 'cpu', flags: {}}]);
 
 const unitTests = 'src/**/*_test.ts';
 
