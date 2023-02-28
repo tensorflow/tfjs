@@ -170,7 +170,7 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   // `orderedNodes[liveUntil[i]]` is executed.
   // A node lives long enough to pass on its tensors to its children.
   // It lives until at least `max(node's position, children's positions)`.
-  const liveUntil = orderedNodes.map((node, nodeOrder) => {
+  const liveUntilOrders = orderedNodes.map((node, nodeOrder) => {
     return node.children.map(node => selfLifespans[nodeToOrder.get(node)!])
         .reduce((a, b) => Math.max(a, b), selfLifespans[nodeOrder]);
   });
@@ -181,12 +181,12 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   //           after `x` is executed.
   const liveUntilMap = new Map<Node, Node[]>();
   for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const nodeLiveUntil = liveUntil[nodeOrder];
-    if (nodeLiveUntil === INF_LIFE) {
+    const iveUntilOrder = liveUntilOrders[nodeOrder];
+    if (iveUntilOrder === INF_LIFE) {
       continue;
     }
     const node = orderedNodes[nodeOrder];
-    const liveUntilNode = orderedNodes[nodeLiveUntil];
+    const liveUntilNode = orderedNodes[iveUntilOrder];
     if (!liveUntilMap.has(liveUntilNode)) {
       liveUntilMap.set(liveUntilNode, []);
     }
