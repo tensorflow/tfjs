@@ -75,7 +75,7 @@ describe('File Handler', () => {
   });
 
   describe('load json model', () => {
-    it('load: two weight files', async done => {
+    it('load: two weight files', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -142,24 +142,20 @@ describe('File Handler', () => {
       tf.test_util.expectArraysClose(
           new Float32Array(modelArtifacts.weightData),
           new Float32Array([-1.1, -3.3, -3.3, -7.7]));
-
-      done();
     });
-    it('loading from nonexistent model.json path fails', async done => {
+    it('loading from nonexistent model.json path fails', async () => {
       const modelJSONPath = path.join(testDir, 'foo', 'model.json');
       const handler = new FileHandler(modelJSONPath);
 
       try {
         await handler.load();
-        done.fail('Loading from nonexistent file succeeded unexpectedly.');
+        fail('Loading from nonexistent file succeeded unexpectedly.');
       } catch (err) {
         expect(err.message).toMatch(/.*no such file or directory.*/);
       }
-
-      done();
     });
 
-    it('loading from missing weights path fails', async done => {
+    it('loading from missing weights path fails', async () => {
       const weightsManifest = [
         {
           paths: ['weights.1.bin'],
@@ -200,12 +196,11 @@ describe('File Handler', () => {
         const handler = new FileHandler(modelJSONPath);
         await handler.load();
 
-        done.fail(
+        fail(
             'Loading with missing weights file succeeded ' +
             'unexpectedly.');
       } catch (err) {
         expect(err.message).toMatch(/.*no such file or directory.*/);
-        done();
       }
     });
   });
