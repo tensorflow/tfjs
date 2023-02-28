@@ -42,7 +42,6 @@ function bincount(
   const {x, weights} = inputs;
   const {size} = attrs;
 
-
   const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
   const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
   const out = backend.makeOutput(outShape, weights.dtype);
