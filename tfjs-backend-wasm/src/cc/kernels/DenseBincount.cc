@@ -31,7 +31,7 @@ inline void Bincount2D(const int32_t* x_buf, int32_t x_shape_0,
                        bool binary_output, T* out_buf) {
   std::fill(out_buf, out_buf + (x_shape_0 * size), 0);
   for (int32_t i = 0; i < x_shape_0; ++i) {
-    Bincount</*reset_out_buf=*/false>(
+    BincountImpl</*reset_out_buf=*/false>(
         x_buf + i * x_shape_1, x_shape_1, size,
         weight_buf != nullptr ? weight_buf + i * x_shape_1 : nullptr,
         binary_output, out_buf + i * size);

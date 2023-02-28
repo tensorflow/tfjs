@@ -38,6 +38,7 @@ import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -183,6 +184,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPool3DGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
