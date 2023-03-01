@@ -152,6 +152,9 @@ export function getNodesInTopologicalOrder(
     ...orderedNodes, ...inputNodes, ...graph.weights, ...(initNodes || [])
   ].filter(isUsed);
   for (const node of allNodes) {
+    if (!nodeNameToOrder.has(node.name)) {
+      throw new Error('Topological Sort Error: node is unreachable.');
+    }
     for (const child of node.children.filter(isUsed)) {
       if (!nodeNameToOrder.has(child.name)) {
         throw new Error('Topological Sort Error: child is unreachable.');
