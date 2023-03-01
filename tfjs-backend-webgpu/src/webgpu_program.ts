@@ -175,7 +175,7 @@ function makeShader(
   const flatWorkgroupSize = program.workgroupSize[0] *
       program.workgroupSize[1] * program.workgroupSize[2];
   program.outputComponent =
-      program.outputComponent ? program.outputComponent : 1
+      program.outputComponent ? program.outputComponent : 1;
   prefixSnippets.push(`
 
       var<private> localId: vec3<u32>;
