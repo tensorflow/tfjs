@@ -165,7 +165,7 @@ export class GraphExecutor implements FunctionExecutor {
    *     tensors should be disposed after `x` is executed.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]):
-      {orderedNodes: Node[], nodeLiveUntilMap: Map<Node, Node[]>} {
+      {orderedNodes: Node[], nodeLiveUntilMap: Map<string, string[]>} {
     const executionInfo =
         getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const {missingInputs, dynamicNode, syncInputs} = executionInfo;
@@ -306,7 +306,7 @@ export class GraphExecutor implements FunctionExecutor {
         }
         this.checkTensorForDisposalWithNodeLiveUntilInfo(
             node, tensorsMap, context, tensorsToKeep, outputNodeNameSet,
-            nodeLiveUntilMap.get(node));
+            nodeLiveUntilMap.get(node.name));
       }
 
       // dispose the context for the root executor
@@ -381,7 +381,7 @@ export class GraphExecutor implements FunctionExecutor {
   private checkTensorForDisposalWithNodeLiveUntilInfo(
       node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
       tensorsToKeep: Set<number>, outputNodeNameSet: Set<string>,
-      liveUntilNodes?: Node[]) {
+      liveUntilNodes?: string[]) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
     if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
@@ -391,9 +391,9 @@ export class GraphExecutor implements FunctionExecutor {
       return;
     }
 
-    for (const inputNode of liveUntilNodes) {
+    for (const inputNodeName of liveUntilNodes) {
       const tensors =
-          getTensorsForCurrentContext(inputNode.name, tensorMap, context);
+          getTensorsForCurrentContext(inputNodeName, tensorMap, context);
       for (const tensor of tensors) {
         if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
           continue;
