@@ -25,7 +25,6 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
   outputComponent: number;
-  isVec4: boolean;
   op: BinaryOpType;
   outputShape: number[];
   shaderKey: string;
@@ -33,6 +32,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workgroupSize: [number, number, number];
   workPerThread: number;
+  variableComponents?: number[];
 
   private lastDimensionSize: number;
   private useSharedMemoryWithA: boolean;
@@ -50,7 +50,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         bShape.length <= 1 && aShape.length > 1 && bShape[0] < 128;
 
     if (this.useSharedMemoryWithA || this.useSharedMemoryWithB) {
-      this.isVec4 = false;
+      this.outputComponent = 1;
       // lastDimensionSize is used as sharedBuf array size, so can not be
       // used as uniform.
       this.lastDimensionSize =
@@ -63,14 +63,21 @@ export class BinaryOpProgram implements WebGPUProgram {
       this.workgroupSize = [256, 1, 1];
       this.workPerThread = 1;
     } else {
-      if (util.arraysEqual(aShape, bShape) &&
-          util.sizeFromShape(aShape) % 4 === 0) {
-        this.isVec4 = true;
+      const aEqualsB = util.arraysEqual(aShape, bShape);
+      if ((op === BinaryOpType.MUL || op === BinaryOpType.DIV) && !aEqualsB &&
+          aShape.length > 0 && aShape[aShape.length - 1] % 4 === 0 &&
+          (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) {
+        this.type = 'custom';
+        this.outputComponent = 4;
+        this.variableComponents = [4, 1];
+        this.workPerThread = 4;
+
+      } else if (aEqualsB && util.sizeFromShape(aShape) % 4 === 0) {
         this.outputComponent = 4;
         this.type = 'vec4';
         this.workPerThread = 4;
       } else {
-        this.isVec4 = false;
+        this.outputComponent = 1;
         this.type = 'plain';
         this.workPerThread = 1;
       }
@@ -86,10 +93,10 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode;
-    const dType = this.isVec4 ? 'vec4<f32>' : 'f32';
+    const dType = this.outputComponent === 4 ? 'vec4<f32>' : 'f32';
     const opFnStr = `
     fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
-      ${getBinaryOpString(this.op, this.isVec4)}
+      ${getBinaryOpString(this.op, this.outputComponent === 4)}
     };
     `;
 
@@ -121,6 +128,17 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         }
         `;
+    } else if (this.type === 'custom') {
+      userCode = `
+       ${main('index')} {
+         if (index < uniforms.size) {
+           let a = getAByOutputIndex(index);
+           let b = getBByOutputIndex(index * ${this.outputComponent});
+           setOutputAtIndex(index, ${
+          this.op === BinaryOpType.MUL ? 'a * b' : 'a / b'});
+         }
+       }
+       `;
     } else {
       userCode = `
        ${opFnStr}
