@@ -176,7 +176,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   tileInner: number;
   innerElementSize: number;
   isVec4?: boolean;
-  outputComponent = 1;
+  outputComponent: number;
   private sequentialAccessByThreads: boolean;
 
   constructor(

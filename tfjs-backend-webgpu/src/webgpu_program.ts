@@ -68,18 +68,18 @@ export const compileProgram =
       return pipeline;
     };
 
-export const typeSnippet = (component: number, type = 'f') => {
+export const typeSnippet = (component: number, type = 'f32') => {
   switch (component) {
     case 1:
-      return `${type}32`;
+      return `${type}`;
     case 2:
-      return `vec2<${type}32>`;
+      return `vec2<${type}>`;
     case 3:
-      return `vec3<${type}32>`;
+      return `vec3<${type}>`;
     case 4:
-      return `vec4<${type}32>`;
+      return `vec4<${type}>`;
     default:
-      throw new Error(`${component}-component is not supported.`);
+      throw new Error(`${component}-component ${type} is not supported.`);
   }
 };
 
@@ -174,6 +174,8 @@ function makeShader(
   const prefixSnippets: string[] = [];
   const flatWorkgroupSize = program.workgroupSize[0] *
       program.workgroupSize[1] * program.workgroupSize[2];
+  program.outputComponent =
+      program.outputComponent ? program.outputComponent : 1
   prefixSnippets.push(`
 
       var<private> localId: vec3<u32>;
@@ -204,7 +206,7 @@ function makeShader(
         };
 
         @group(0) @binding(0) var<storage, read_write> result: array<${
-        mapToWgslTypes(outputData.dtype, program.outputComponent)}>;
+        dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
@@ -250,15 +252,16 @@ function makeShader(
   } else {
     prefixSnippets.push(`
       @group(0) @binding(0) var<storage, read_write> result: array<${
-        mapToWgslTypes(outputData.dtype, program.outputComponent)}>;
+        dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
     `);
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
       @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
         program.variableComponents ?
-            mapToWgslTypes(inputInfo[i].dtype, program.variableComponents[i]) :
-            mapToWgslTypes(inputInfo[i].dtype, program.outputComponent)}>;
+            dataTypeToGPUType(
+                inputInfo[i].dtype, program.variableComponents[i]) :
+            dataTypeToGPUType(inputInfo[i].dtype, program.outputComponent)}>;
         `);
   });
 
@@ -279,8 +282,7 @@ function makeShader(
   ];
   if (!program.atomic) {
     sources.push(setOutputSnippet(
-        outputData.shape, outputData.dtype,
-        program.outputComponent ? program.outputComponent : 1));
+        outputData.shape, outputData.dtype, program.outputComponent));
   }
 
   const inputSnippet =
@@ -288,9 +290,8 @@ function makeShader(
           .map(
               (x, i) => getInputSnippet(
                   x, outputData.shape,
-                  program.variableComponents ?
-                      program.variableComponents[i] :
-                      program.outputComponent ? program.outputComponent : 1,
+                  program.variableComponents ? program.variableComponents[i] :
+                                               program.outputComponent,
                   program.dispatchLayout.x.length === outputData.shape.length))
           .join('\n');
   sources.push(inputSnippet);
@@ -396,8 +397,6 @@ const isInfSnippet = `
 type InputInfo = {
   dtype: DataType; shape: number[]; name: string;
 };
-export type WGSLDataType = 'f32'|'vec2<f32>'|'vec3<f32>'|'vec4<f32>'|'i32'|
-    'vec2<i32>'|'vec3<i32>'|'vec4<i32>';
 
 /**
  * Derives logical coordinates from a flat index. Performs integer division
@@ -730,33 +729,11 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
   return program.dispatch[1] === 1 && program.dispatch[2] === 1;
 }
 
-export function mapToWgslTypes(type: DataType, component = 1): WGSLDataType {
+export function dataTypeToGPUType(type: DataType, component = 1) {
   if (type === 'float32') {
-    switch (component) {
-      case 1:
-        return 'f32';
-      case 2:
-        return 'vec2<f32>';
-      case 3:
-        return 'vec3<f32>';
-      case 4:
-        return 'vec4<f32>';
-      default:
-        throw new Error(`${component}-component is not supported.`);
-    }
+    return typeSnippet(component, 'f32');
   } else if (type === 'int32' || type === 'bool') {
-    switch (component) {
-      case 1:
-        return 'i32';
-      case 2:
-        return 'vec2<i32>';
-      case 3:
-        return 'vec3<i32>';
-      case 4:
-        return 'vec4<i32>';
-      default:
-        throw new Error(`${component}-component is not supported.`);
-    }
+    return typeSnippet(component, 'i32');
   }
   throw new Error(`type ${type} is not supported.`);
 }
@@ -764,15 +741,15 @@ export function mapToWgslTypes(type: DataType, component = 1): WGSLDataType {
 function setOutputSnippet(
     outShape: number[], outBufferType: DataType, component: number): string {
   const outRank = outShape.length;
-  const wgslType = mapToWgslTypes(outBufferType, component);
+  const gpuType = dataTypeToGPUType(outBufferType, component);
   let snippet =
       `fn setOutputAtIndex(flatIndex : i32, value : ${typeSnippet(component)}) {
-      result[flatIndex] = ${wgslType}(value);
+      result[flatIndex] = ${gpuType}(value);
     }
 
     fn setOutputAtIndexI32(flatIndex : i32, value : ${
-          typeSnippet(component, 'i')}) {
-      result[flatIndex] = ${wgslType}(value);
+          typeSnippet(component, 'i32')}) {
+      result[flatIndex] = ${gpuType}(value);
     }
     `;
   if (outRank >= 2) {
@@ -788,7 +765,7 @@ function setOutputSnippet(
       }
       fn setOutputAtCoordsI32(${
         dims.map(d => `${d} : i32`).join(', ')}, value : ${
-        typeSnippet(component, 'i')}) {
+        typeSnippet(component, 'i32')}) {
         let flatIndex = getOutputIndexFromCoords(${type}(${dims.join(', ')}));
         setOutputAtIndexI32(flatIndex${
         component === 1 ? '' : ` / ${component}`}, value);

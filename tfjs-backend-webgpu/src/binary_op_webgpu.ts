@@ -24,7 +24,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
-  outputComponent = 1;
+  outputComponent: number;
   isVec4: boolean;
   op: BinaryOpType;
   outputShape: number[];

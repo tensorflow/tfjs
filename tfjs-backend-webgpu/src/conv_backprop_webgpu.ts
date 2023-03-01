@@ -32,7 +32,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   size = false;
   isVec4 = false;
   workPerThread = 1;
-  outputComponent = 1;
+  outputComponent: number;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;

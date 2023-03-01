@@ -35,8 +35,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   transposeA: boolean;
   transposeB: boolean;
   atomic = true;
-  isVec4 = false;
-  outputComponent = 1;
+  outputComponent: number;
   splitedDimInner = 128;
 
   constructor(
@@ -47,12 +46,12 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         () => 'MatMulSplitKProgram only supports batch = 1.');
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
-    this.isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
-                   !transposeA && dimInner % 4 === 0) &&
+    const isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
+                    !transposeA && dimInner % 4 === 0) &&
         this.outputShape[2] % 4 === 0;
     this.elementsPerThread = [4, 4, this.splitedDimInner];
-    this.outputComponent = this.isVec4 ? 4 : 1;
-    if (!this.isVec4) {
+    this.outputComponent = isVec4 ? 4 : 1;
+    if (!isVec4) {
       if (this.outputShape[1] < 16) {
         this.elementsPerThread[1] = 1;
       }
@@ -72,11 +71,11 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
-        this.elementsPerThread}_${this.isVec4}`;
+        this.elementsPerThread}_${this.outputComponent}`;
   }
 
   getUserCode(): string {
-    const component = this.isVec4 ? 4 : 1;
+    const component = this.outputComponent;
     const userCode = `
       ${
         matMulReadFnSource(
@@ -98,12 +97,12 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         }
       }
       ${
-        this.isVec4 ? makeMatMulPackedVec4Source(
-                          this.elementsPerThread, this.workgroupSize,
-                          this.transposeA, 32, true, this.splitedDimInner) :
-                      makeMatMulPackedSource(
-                          this.elementsPerThread, this.workgroupSize,
-                          this.transposeA, 32, true, this.splitedDimInner)}
+        component === 4 ? makeMatMulPackedVec4Source(
+                              this.elementsPerThread, this.workgroupSize,
+                              this.transposeA, 32, true, this.splitedDimInner) :
+                          makeMatMulPackedSource(
+                              this.elementsPerThread, this.workgroupSize,
+                              this.transposeA, 32, true, this.splitedDimInner)}
     `;
     return userCode;
   }

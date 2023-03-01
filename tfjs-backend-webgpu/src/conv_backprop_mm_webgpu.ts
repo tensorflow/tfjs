@@ -123,7 +123,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   isVec4?: boolean;
-  outputComponent = 1;
+  outputComponent: number;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
