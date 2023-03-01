@@ -181,12 +181,12 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<Node, Node[]> {
   //           after `x` is executed.
   const liveUntilMap = new Map<Node, Node[]>();
   for (let nodeOrder = 0; nodeOrder < nNodes; ++nodeOrder) {
-    const iveUntilOrder = liveUntilOrders[nodeOrder];
-    if (iveUntilOrder === INF_LIFE) {
+    const liveUntilOrder = liveUntilOrders[nodeOrder];
+    if (liveUntilOrder === INF_LIFE) {
       continue;
     }
     const node = orderedNodes[nodeOrder];
-    const liveUntilNode = orderedNodes[iveUntilOrder];
+    const liveUntilNode = orderedNodes[liveUntilOrder];
     if (!liveUntilMap.has(liveUntilNode)) {
       liveUntilMap.set(liveUntilNode, []);
     }
