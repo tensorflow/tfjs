@@ -157,7 +157,7 @@ export function getNodesInTopologicalOrder(
   }
 
   // Build a set for all nodes reachable by at least one predefined node.
-  // This can help us filter out redundant nodes from the return node order.
+  // This can help us filter out redundant nodes from the returned node list.
   // For example:
   // If we have four nodes with dependencies like this:
   //   a --> b --> c --> d
@@ -199,22 +199,22 @@ export function getNodesInTopologicalOrder(
     for (const node of filteredOrderedNodes) {
       for (const child of node.children.filter(willBeExecuted)) {
         if (!nodeNameToOrder.has(child.name)) {
-          throw new Error('Topological Sort Error: child is unreachable.');
+          throw new Error('TopologicalSortError: Child is unreachable.');
         }
         if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
           throw new Error(
-              'Topological Sort Error: node has greater order than its child.');
+              'TopologicalSortError: Node has greater order than its child.');
         }
       }
       if (!isPredefined(node)) {
         for (const input of node.inputs) {
           if (!nodeNameToOrder.has(input.name)) {
-            throw new Error('Topological Sort Error: input is unreachable.');
+            throw new Error('TopologicalSortError: Input is unreachable.');
           }
           if (nodeNameToOrder.get(input.name) >
               nodeNameToOrder.get(node.name)) {
             throw new Error(
-                'Topological Sort Error: node has smaller order than its input.');
+                'TopologicalSortError: Node has smaller order than its input.');
           }
         }
       }
@@ -243,16 +243,15 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]):
   // live forever since they're tricky to track correctly.
   const selfLifespans = orderedNodes.map(
       (node, nodeOrder) => isControlFlow(node) ? INF_LIFE : nodeOrder);
-  const getSelfLifeSpan =
-      (node: Node) => {
-        const selfLife = selfLifespans[nodeNameToOrder.get(node.name)!];
-        if (selfLife == null) {
-          // If nodeToOrder does not contain the node, it is unused or
-          // unreachable in graph.
-          return -1;
-        }
-        return selfLife;
-      }
+  const getSelfLifeSpan = (node: Node) => {
+    const selfLife = selfLifespans[nodeNameToOrder.get(node.name)!];
+    if (selfLife == null) {
+      // If nodeToOrder does not contain the node, it is unused or
+      // unreachable in graph.
+      return -1;
+    }
+    return selfLife;
+  };
 
   // `liveUntil[i]` points to the last node in the `orderedNodes` array that
   // may depend on tensors from node `i`. It indicates that all the
