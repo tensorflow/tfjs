@@ -284,3 +284,145 @@ export class Conv2DDerFilterProgram implements WebGPUProgram {
   `;
   }
 }
+
+export class Conv3DDerFilterProgram implements WebGPUProgram {
+  variableNames = ['x', 'dy'];
+  uniforms =
+      `pads : vec3<i32>, strides : vec3<i32>, batchSize : i32, outDepth : i32,
+       outHeight : i32, outWidth : i32, inDepth : i32, inHeight : i32, inWidth : i32,`;
+  outputShape: number[];
+  shaderKey: string;
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
+
+  constructor(convInfo: backend_util.Conv3DInfo) {
+    this.outputShape = convInfo.filterShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
+    this.shaderKey = `conv3DDerFilter`;
+  }
+
+  getUserCode(): string {
+    return `
+    ${main('index')} {
+      if(index < uniforms.size) {
+        let coords = getCoordsFromIndex(index);
+        let wF = coords.x;
+        let wR = coords.y;
+        let wC = coords.z;
+        let d1 = coords.w;
+        let d2 = coords.u;
+
+        var dotProd = 0.0;
+        for (var b = 0; b < uniforms.batchSize; b++) {
+          for (var yF = 0; yF < uniforms.outDepth; yF++) {
+            let xF = wF + yF * uniforms.strides[0] - uniforms.pads[0];
+            if (xF < 0 || xF >= uniforms.inDepth) {
+              continue;
+            }
+
+            for (var yR = 0; yR < uniforms.outHeight; yR++) {
+              let xR = wR + yR * uniforms.strides[1] - uniforms.pads[1];
+              if (xR < 0 || xR >= uniforms.inHeight) {
+                continue;
+              }
+
+              for (var yC = 0; yC < uniforms.outWidth; yC++) {
+                let xC = wC + yC * uniforms.strides[2] - uniforms.pads[2];
+                if (xC < 0 || xC >= uniforms.inWidth) {
+                  continue;
+                }
+
+                let dyValue = getDy(b, yF, yR, yC, d2);
+                let xValue = getX(b, xF, xR, xC, d1);
+                dotProd += xValue * dyValue;
+              }
+            }
+          }
+        }
+        setOutputAtIndex(index, dotProd);
+      }
+    }
+  `;
+  }
+}
+
+export class Conv3DDerInputProgram implements WebGPUProgram {
+  variableNames = ['dy', 'W'];
+  uniforms = `filterDims : vec3<i32>, pads : vec3<i32>, strides : vec3<i32>,
+      outDepth : i32, outHeight : i32, outWidth : i32, outChannels : i32,`;
+  outputShape: number[];
+  shaderKey: string;
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
+
+  constructor(convInfo: backend_util.Conv3DInfo) {
+    this.outputShape = convInfo.inShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
+    this.shaderKey = `conv3DDerInput`;
+  }
+
+  getUserCode(): string {
+    return `
+    ${main('index')} {
+      if(index < uniforms.size) {
+        let coords = getCoordsFromIndex(index);
+        let batch = coords.x;
+        let d1 = coords.u;
+
+        let dyCorner = vec3<i32>(coords.y, coords.z, coords.w) - uniforms.pads;
+        let dyFCorner = dyCorner.x;
+        let dyRCorner = dyCorner.y;
+        let dyCCorner = dyCorner.z;
+
+        var dotProd = 0.0;
+        for (var wF = 0; wF < uniforms.filterDims[0]; wF++) {
+          let dyF = f32(dyFCorner + wF) / f32(uniforms.strides[0]);
+          if (dyF < 0.0 || dyF >= f32(uniforms.outDepth) || fract(dyF) > 0.0) {
+            continue;
+          }
+          let idyF = i32(dyF);
+
+          let wFPerm = uniforms.filterDims[0] - 1 - wF;
+
+          for (var wR = 0; wR < uniforms.filterDims[1]; wR++) {
+            let dyR = f32(dyRCorner + wR) / f32(uniforms.strides[1]);
+
+            if (dyR < 0.0 || dyR >= f32(uniforms.outHeight) || fract(dyR) > 0.0) {
+              continue;
+            }
+            let idyR = i32(dyR);
+
+            let wRPerm = uniforms.filterDims[1] - 1 - wR;
+
+            for (var wC = 0; wC < uniforms.filterDims[2]; wC++) {
+              let dyC = f32(dyCCorner + wC) / f32(uniforms.strides[2]);
+
+              if (dyC < 0.0 || dyC >= f32(uniforms.outWidth) || fract(dyC) > 0.0) {
+                continue;
+              }
+              let idyC = i32(dyC);
+
+              let wCPerm = uniforms.filterDims[2] - 1 - wC;
+
+              for (var d2 = 0; d2 < uniforms.outChannels; d2++) {
+                let xValue = getDy(batch, idyF, idyR, idyC, d2);
+                let wValue = getW(wFPerm, wRPerm, wCPerm, d1, d2);
+                dotProd += xValue * wValue;
+              }
+            }
+          }
+        }
+        setOutputAtIndex(index, dotProd);
+      }
+    }
+  `;
+  }
+}
