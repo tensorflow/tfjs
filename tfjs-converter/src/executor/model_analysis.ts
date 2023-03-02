@@ -101,91 +101,137 @@ export function getExecutionSubgraph(
  * need to be executed to compute the output.
  */
 export function getNodesInTopologicalOrder(
-    graph: Graph, weightMap: NamedTensorsMap,
-    executionInfo: ExecutionInfo): Node[] {
+    graph: Graph, executionInfo: ExecutionInfo): Node[] {
   const {usedNodes, inputs} = executionInfo;
   const inputNodes = Object.keys(inputs)
                          .map(name => parseNodeName(name)[0])
                          .map(name => graph.nodes[name]);
-  const initNodes = graph.initNodes;
+  const initNodes = graph.initNodes || [];
 
   const isUsed = (node: Node|string) =>
       usedNodes.has(typeof node === 'string' ? node : node.name);
-  const frontier: Node[] = [
-    ...inputNodes,
-    ...graph.weights,
-    ...(initNodes || []),
-  ].filter(isUsed).filter((node) => {
-    // If predefined node has any inputs, skips it and waits until topological
-    // sort resolves its parents to add it to frontier.
-    return node.inputs.length === 0;
-  });
 
-  const orderedNodes: Node[] = [];
-  const processedNodeNames = new Set<string>();
-  const isProcessed = (node: Node|string) =>
-      processedNodeNames.has(typeof node === 'string' ? node : node.name);
+  function unique(nodes: Node[]): Node[] {
+    return [...new Map(nodes.map((node) => [node.name, node])).values()];
+  }
+  const predefinedNodes = unique([
+                            ...inputNodes,
+                            ...graph.weights,
+                            ...initNodes,
+                          ]).filter(isUsed);
+  const allNodes = unique([
+                     ...predefinedNodes,
+                     ...Object.values(graph.nodes),
+                   ]).filter(isUsed);
+  const nameToNode =
+      new Map<string, Node>(allNodes.map((node) => [node.name, node]));
 
-  // TODO: Improve performance of the topological sort implementation.
-  while (frontier.length > 0) {
-    const node = frontier.pop();
-    if (isProcessed(node)) {
-      continue;
-    }
-    processedNodeNames.add(node.name);
-    orderedNodes.push(node);
-    for (const child of node.children.filter(isUsed)) {
-      if (isProcessed(child)) {
-        throw new Error(
-            'Topological Sort Error: child should not be processed.');
+  const inCounts: Record<string, number> = {};
+  for (const node of allNodes) {
+    inCounts[node.name] = inCounts[node.name] || 0;
+    for (const child of node.children) {
+      // When the child is unused, set in counts to infinity so that it will
+      // never be decreased to 0 and added to the execution list.
+      if (!isUsed(child)) {
+        inCounts[child.name] = Number.MAX_SAFE_INTEGER;
       }
-      if (child.inputs.map((node) => node.name).every(isProcessed)) {
-        frontier.push(child);
+      inCounts[child.name] = (inCounts[child.name] || 0) + 1;
+    }
+  }
+
+  // Build execution order for all used nodes regardless whether they are
+  // predefined or not.
+  const frontier = Object.entries(inCounts)
+                       .filter(([, inCount]) => inCount === 0)
+                       .map(([name]) => name);
+  const orderedNodeNames = [...frontier];
+  while (frontier.length > 0) {
+    const nodeName = frontier.pop();
+    const node = nameToNode.get(nodeName)!;
+    for (const child of node.children) {
+      if (--inCounts[child.name] === 0) {
+        orderedNodeNames.push(child.name);
+        frontier.push(child.name);
       }
     }
   }
+
+  // Build a set for all nodes reachable by at least one predefined node.
+  // This can help us filter out redundant nodes from the return node order.
+  // For example:
+  // If we have four nodes with dependencies like this:
+  //   a --> b --> c --> d
+  // when node `c` is predefined (e.g. given as an input tensor), we can
+  // skip node `a` and `b` since their outputs will never be used.
+  // TODO: Filter out more nodes when >=2 nodes are predefined in a path.
+  const stack = predefinedNodes.map((node) => node.name);
+  const predefinedReachableNodeNames = new Set(stack);
+  while (stack.length > 0) {
+    const nodeName = stack.pop();
+    const node = nameToNode.get(nodeName)!;
+    for (const child of node.children) {
+      if (predefinedReachableNodeNames.has(child.name)) {
+        continue;
+      }
+      predefinedReachableNodeNames.add(child.name);
+      stack.push(child.name);
+    }
+  }
+
+  // Filter out unreachable nodes and build the ordered node list.
+  const filteredOrderedNodes =
+      orderedNodeNames.filter((name) => predefinedReachableNodeNames.has(name))
+          .map((name) => nameToNode.get(name)!);
 
   // Validates node orders
-  const nodeNameToOrder = new Map<string, number>(
-      orderedNodes.map((node, order) => [node.name, order]));
-  const allNodes = [
-    ...orderedNodes, ...inputNodes, ...graph.weights, ...(initNodes || [])
-  ].filter(isUsed);
-  for (const node of allNodes) {
-    if (!nodeNameToOrder.has(node.name)) {
-      throw new Error('Topological Sort Error: node is unreachable.');
-    }
-    for (const child of node.children.filter(isUsed)) {
-      if (!nodeNameToOrder.has(child.name)) {
-        throw new Error('Topological Sort Error: child is unreachable.');
+  if (true) {
+    const nodeNameToOrder = new Map<string, number>(
+        filteredOrderedNodes.map((node, order) => [node.name, order]));
+    const predefinedNodeNames =
+        new Set(predefinedNodes.map((node) => node.name));
+    const isPredefined = (node: Node|string) =>
+        predefinedNodeNames.has(typeof node === 'string' ? node : node.name);
+    const willBeExecutedNodeNames =
+        new Set(filteredOrderedNodes.map((node) => node.name));
+    const willBeExecuted = (node: Node|string) => willBeExecutedNodeNames.has(
+        typeof node === 'string' ? node : node.name);
+
+    for (const node of filteredOrderedNodes) {
+      for (const child of node.children.filter(willBeExecuted)) {
+        if (!nodeNameToOrder.has(child.name)) {
+          throw new Error('Topological Sort Error: child is unreachable.');
+        }
+        if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
+          throw new Error(
+              'Topological Sort Error: node has greater order than its child.');
+        }
       }
-      if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
-        throw new Error(
-            'Topological Sort Error: node has greater order than its child.');
-      }
-    }
-    for (const input of node.inputs) {
-      if (!nodeNameToOrder.has(input.name)) {
-        throw new Error('Topological Sort Error: input is unreachable.');
-      }
-      if (nodeNameToOrder.get(input.name) > nodeNameToOrder.get(node.name)) {
-        throw new Error(
-            'Topological Sort Error: node has smaller order than its input.');
+      if (!isPredefined(node)) {
+        for (const input of node.inputs) {
+          if (!nodeNameToOrder.has(input.name)) {
+            throw new Error('Topological Sort Error: input is unreachable.');
+          }
+          if (nodeNameToOrder.get(input.name) >
+              nodeNameToOrder.get(node.name)) {
+            throw new Error(
+                'Topological Sort Error: node has smaller order than its input.');
+          }
+        }
       }
     }
   }
 
-  return orderedNodes;
+  return filteredOrderedNodes;
 }
 
 /**
- * Given the execution info, return a map from node name to the disposable node
- * name list after its execution.
+ * Given the execution info, return a map from node name to the disposable
+ * node name list after its execution.
  *
  * @returns A map from node name to disposable node names after its
- *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates all
- *     nodes which their intermediate tensors should be disposed after `x` being
- *     executed.
+ *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates
+ * all nodes which their intermediate tensors should be disposed after `x`
+ * being executed.
  */
 export function getNodeLiveUntilMap(orderedNodes: Node[]):
     Map<string, string[]> {
@@ -209,8 +255,8 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]):
       }
 
   // `liveUntil[i]` points to the last node in the `orderedNodes` array that
-  // may depend on tensors from node `i`. It indicates that all the intermediate
-  // tensors from `orderedNodes[i]` should be disposed after
+  // may depend on tensors from node `i`. It indicates that all the
+  // intermediate tensors from `orderedNodes[i]` should be disposed after
   // `orderedNodes[liveUntil[i]]` is executed.
   // A node lives long enough to pass on its tensors to its children.
   // It lives until at least `max(node's position, children's positions)`.

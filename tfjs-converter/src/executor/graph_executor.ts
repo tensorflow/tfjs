@@ -185,8 +185,7 @@ export class GraphExecutor implements FunctionExecutor {
           `[${inNames}]. Missing the following inputs: [${missingInputs}]`);
     }
 
-    const orderedNodes =
-        getNodesInTopologicalOrder(this.graph, this.weightMap, executionInfo);
+    const orderedNodes = getNodesInTopologicalOrder(this.graph, executionInfo);
     const nodeLiveUntilMap = getNodeLiveUntilMap(orderedNodes);
     return {orderedNodes, nodeLiveUntilMap};
   }
