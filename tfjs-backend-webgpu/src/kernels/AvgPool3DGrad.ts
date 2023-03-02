@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,40 +15,48 @@
  * =============================================================================
  */
 
-import {AvgPoolGrad, AvgPoolGradAttrs, AvgPoolGradInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {AvgPool3DGrad, AvgPool3DGradAttrs, AvgPool3DGradInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {AvgPool2DBackpropProgram} from '../avg_pool_backprop_webgpu';
+import {AvgPool3DBackpropProgram} from '../avg_pool_backprop_webgpu';
 import {WebGPUBackend} from '../backend_webgpu';
-import {assertNotComplex} from '../webgpu_util';
 
-export function avgPoolGrad(args: {
-  inputs: AvgPoolGradInputs,
+export function avgPool3DGrad(args: {
+  inputs: AvgPool3DGradInputs,
   backend: WebGPUBackend,
-  attrs: AvgPoolGradAttrs
+  attrs: AvgPool3DGradAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {dy, input} = inputs;
   const x = input;
-  assertNotComplex([dy, input], 'avgPoolGrad');
-  const {filterSize, strides, pad} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode} = attrs;
 
-  const convInfo = backend_util.computePool2DInfo(
-      x.shape as [number, number, number, number], filterSize, strides,
-      1 /* dilations */, pad);
-  const program = new AvgPool2DBackpropProgram(convInfo);
-  const avgMultiplier = 1 / (convInfo.filterHeight * convInfo.filterWidth);
+  const convInfo = backend_util.computePool3DInfo(
+      x.shape as [number, number, number, number, number], filterSize, strides,
+      1 /* dilations */, pad, dimRoundingMode);
+  const program = new AvgPool3DBackpropProgram(convInfo);
+  const avgMultiplier =
+      1 / (convInfo.filterDepth * convInfo.filterHeight * convInfo.filterWidth);
   const uniformData = [
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
+    {
+      type: 'int32',
+      data: [convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth]
+    },
+    {
       type: 'int32',
       data: [
+        convInfo.effectiveFilterDepth - 1 - convInfo.padInfo.front,
         convInfo.effectiveFilterHeight - 1 - convInfo.padInfo.top,
         convInfo.effectiveFilterWidth - 1 - convInfo.padInfo.left
       ]
     },
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}, {
+    {
       type: 'int32',
-      data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
+      data: [
+        convInfo.effectiveFilterDepth, convInfo.effectiveFilterHeight,
+        convInfo.effectiveFilterWidth
+      ]
     },
+    {type: 'int32', data: [convInfo.outDepth]},
     {type: 'int32', data: [convInfo.outHeight]},
     {type: 'int32', data: [convInfo.outWidth]},
     {type: 'float32', data: [avgMultiplier]}
@@ -56,8 +64,8 @@ export function avgPoolGrad(args: {
   return backend.runWebGPUProgram(program, [dy], x.dtype, uniformData);
 }
 
-export const avgPoolGradConfig: KernelConfig = {
-  kernelName: AvgPoolGrad,
+export const avgPool3DGradConfig: KernelConfig = {
+  kernelName: AvgPool3DGrad,
   backendName: 'webgpu',
-  kernelFunc: avgPoolGrad as unknown as KernelFunc
+  kernelFunc: avgPool3DGrad as unknown as KernelFunc
 };
