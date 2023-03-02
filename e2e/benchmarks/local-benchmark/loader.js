@@ -26,7 +26,7 @@
  * loadScript loads scripts dynamically by creating a script element 
  * and appends the scripts to the body of the document
  * 
- * @param {string} url
+ * @param {string[]} url
  * @returns {Promise}
  */
 function loadScript(url) {
