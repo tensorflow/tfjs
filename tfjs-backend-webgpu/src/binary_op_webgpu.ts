@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpProgram implements WebGPUProgram {
@@ -55,8 +55,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       // used as uniform.
       this.lastDimensionSize =
           this.useSharedMemoryWithB ? bShape[0] : aShape[0];
-      this.shaderKey = `binary_${this.type}_${op}_${this.lastDimensionSize}_${
-          this.useSharedMemoryWithB}`;
+      this.shaderKey = `binary_${this.type}_${op}_${this.lastDimensionSize}`;
       this.type = 'shared';
       // This is an experimental value when using shared memory.
       // Note that the maximum of workgroup X dimension is 256.
@@ -64,15 +63,22 @@ export class BinaryOpProgram implements WebGPUProgram {
       this.workPerThread = 1;
     } else {
       const aEqualsB = util.arraysEqual(aShape, bShape);
-      if ((op === BinaryOpType.MUL || op === BinaryOpType.DIV) && !aEqualsB &&
-          aShape.length > 0 && aShape[aShape.length - 1] % 4 === 0 &&
-          (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) {
+      const aDivisibleBy4 =
+          aShape.length > 0 && aShape[aShape.length - 1] % 4 === 0;
+      const bDivisibleBy4 =
+          bShape.length > 0 && bShape[bShape.length - 1] % 4 === 0;
+      if ((op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
+           op === BinaryOpType.MUL || op === BinaryOpType.DIV) &&
+          !aEqualsB &&
+          ((aDivisibleBy4 &&
+            (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
+           (bDivisibleBy4 &&
+            (util.isScalarShape(aShape) || aShape[aShape.length - 1] === 1)))) {
         this.type = 'custom';
         this.outputComponent = 4;
-        this.variableComponents = [4, 1];
+        this.variableComponents = aDivisibleBy4 ? [4, 1] : [1, 4];
         this.workPerThread = 4;
-
-      } else if (aEqualsB && util.sizeFromShape(aShape) % 4 === 0) {
+      } else if (aDivisibleBy4 && bDivisibleBy4) {
         this.outputComponent = 4;
         this.type = 'vec4';
         this.workPerThread = 4;
@@ -81,7 +87,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.type = 'plain';
         this.workPerThread = 1;
       }
-      this.shaderKey = `binary_${this.type}_${op}`;
+      this.shaderKey = `binary_${this.type}_${op}_${this.variableComponents}`;
       // TODO(jiajia.qin@intel.com): Heuristically select a good work group
       // size.
       this.workgroupSize = [128, 1, 1];
@@ -93,9 +99,15 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode;
-    const dType = this.outputComponent === 4 ? 'vec4<f32>' : 'f32';
     const opFnStr = `
-    fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
+    fn binaryOperation(a : ${
+        typeSnippet(
+            this.variableComponents ? this.variableComponents[0] :
+                                      this.outputComponent)}, b : ${
+        typeSnippet(
+            this.variableComponents ? this.variableComponents[1] :
+                                      this.outputComponent)}) -> ${
+        typeSnippet(this.outputComponent)} {
       ${getBinaryOpString(this.op, this.outputComponent === 4)}
     };
     `;
@@ -128,24 +140,14 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         }
         `;
-    } else if (this.type === 'custom') {
-      userCode = `
-       ${main('index')} {
-         if (index < uniforms.size) {
-           let a = getAByOutputIndex(index);
-           let b = getBByOutputIndex(index * ${this.outputComponent});
-           setOutputAtIndex(index, ${
-          this.op === BinaryOpType.MUL ? 'a * b' : 'a / b'});
-         }
-       }
-       `;
     } else {
       userCode = `
        ${opFnStr}
        ${main('index')} {
          if (index < uniforms.size) {
-           let a = getAByOutputIndex(index);
-           let b = getBByOutputIndex(index);
+           let coords = getCoordsFromIndex(index * ${this.outputComponent});
+           let a = getAByOutputCoords(coords);
+           let b = getBByOutputCoords(coords);
            setOutputAtIndex(index, binaryOperation(a, b));
          }
        }
