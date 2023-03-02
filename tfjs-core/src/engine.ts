@@ -19,12 +19,12 @@ import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
 import {Add, Cast, Identity} from './kernel_names';
-import { getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap } from './kernel_registry';
-import { TensorInfo } from './tensor_info';
+import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap} from './kernel_registry';
 import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
+import {TensorInfo} from './tensor_info';
 import {DataId} from './tensor_info';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
@@ -180,9 +180,16 @@ export class Engine implements TensorTracker, DataMover {
   private backendInstance: KernelBackend;
   private pendingBackendInit: Promise<boolean>;
   private pendingBackendInitId = 0;
+  public onHoldTensors: Tensor[] = [];
 
   constructor(public ENV: Environment) {
     this.state = new EngineState();
+  }
+
+  public clearOnHoldTensors(): void {
+    for (const tensor of this.onHoldTensors) {
+      tensor.dispose();
+    }
   }
 
   async ready(): Promise<void> {
@@ -503,8 +510,8 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y: Tensor = ENGINE.runKernel(Identity,
-                                       {x} as unknown as NamedTensorMap);
+    const y: Tensor =
+        ENGINE.runKernel(Identity, {x} as unknown as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {
@@ -833,8 +840,8 @@ export class Engine implements TensorTracker, DataMover {
    * @deprecated
    */
   makeTensorFromDataId(
-    dataId: DataId, shape: number[], dtype: DataType,
-    backend?: KernelBackend): Tensor {
+      dataId: DataId, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const tensorInfo: TensorInfo = {dataId, shape, dtype};
     return this.makeTensorFromTensorInfo(tensorInfo, backend);

@@ -253,7 +253,7 @@ async function timeInference(predict, numRuns = 1) {
     const value = await downloadValuesFromTensorContainer(res);
     const elapsedTime = performance.now() - start;
 
-    tf.dispose(res);
+    // tf.dispose(res);
     times.push(elapsedTime);
   }
 
@@ -426,7 +426,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
       kernelInfo = await tf.profile(async () => {
         const res = await predict();
         await downloadValuesFromTensorContainer(res);
-        tf.dispose(res);
+        // tf.dispose(res);
       });
       kernelInfos.push(kernelInfo);
     }

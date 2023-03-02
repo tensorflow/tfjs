@@ -57,10 +57,9 @@ export interface SingleValueMap {
 export type DataType = keyof DataTypeMap;
 export type NumericDataType = 'float32'|'int32'|'bool'|'complex64';
 
-export type DataTypeFor<T extends number | string | boolean> =
-  T extends number | boolean ? NumericDataType :
-  T extends string ? 'string' :
-  never;
+export type DataTypeFor<T extends number|string|boolean> =
+    T extends number|boolean ? NumericDataType : T extends string ? 'string' :
+                                                                    never;
 
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 /** Tensor data used in tensor creation and user-facing API. */
@@ -78,7 +77,7 @@ export enum Rank {
   R6 = 'R6'
 }
 
-export type FlatVector = boolean[]|number[]|TypedArray;
+export type FlatVector = boolean[]|number[]|string[]|TypedArray;
 export type RegularArray<T> =
     T[]|T[][]|T[][][]|T[][][][]|T[][][][][]|T[][][][][][];
 
@@ -204,15 +203,11 @@ export interface WebGPUData {
 }
 
 export function isWebGLData(values: unknown): values is WebGLData {
-  return values != null
-      && typeof values === 'object'
-      && 'texture' in values
-      && values.texture instanceof WebGLTexture;
+  return values != null && typeof values === 'object' && 'texture' in values &&
+      values.texture instanceof WebGLTexture;
 }
 export function isWebGPUData(values: unknown): values is WebGPUData {
-  return typeof GPUBuffer !== 'undefined'
-      && values != null
-      && typeof values === 'object'
-      && 'buffer' in values
-      && values.buffer instanceof GPUBuffer;
+  return typeof GPUBuffer !== 'undefined' && values != null &&
+      typeof values === 'object' && 'buffer' in values &&
+      values.buffer instanceof GPUBuffer;
 }
