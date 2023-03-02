@@ -184,7 +184,8 @@ export function getNodesInTopologicalOrder(
           .map((name) => nameToNode.get(name)!);
 
   // Validates node orders
-  if (true) {
+  // TODO: Turn validation on/off with tf env flag.
+  {
     const nodeNameToOrder = new Map<string, number>(
         filteredOrderedNodes.map((node, order) => [node.name, order]));
     const predefinedNodeNames =
