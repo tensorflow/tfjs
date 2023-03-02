@@ -47,8 +47,8 @@ function loadScript(url) {
  * processUrls is used to replace the urls in the urls array with local urls 
  * if the localBuild array includes the package name
  * 
- * @param {string array} localBuild
- * @param {string array} urls
+ * @param {string[]} urls
+ * @param {string[]} localBuild
  */
 function processUrls(urls, localBuild) {
   for (let i = 0; i < urls.length; i++) {
@@ -69,7 +69,7 @@ function processUrls(urls, localBuild) {
  * loadTFJS is called from index.html in a <script> tag on the onload() command.
  * loadTFJS calls processUrls(urls, localBuild) and then loadScript(url)
  * loadTFJS returns a Promise
- * @param {string array} localBuild 
+ * @param {string[]} localBuild 
  * @returns {Promise}
  */
 async function loadTFJS(localBuild) {
