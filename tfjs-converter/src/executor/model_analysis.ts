@@ -133,7 +133,7 @@ export function getNodesInTopologicalOrder(
       // When the child is unused, set in counts to infinity so that it will
       // never be decreased to 0 and added to the execution list.
       if (!isUsed(child)) {
-        inCounts[child.name] = Number.MAX_SAFE_INTEGER;
+        inCounts[child.name] = Number.POSITIVE_INFINITY;
       }
       inCounts[child.name] = (inCounts[child.name] || 0) + 1;
     }
@@ -148,7 +148,7 @@ export function getNodesInTopologicalOrder(
   while (frontier.length > 0) {
     const nodeName = frontier.pop();
     const node = nameToNode.get(nodeName)!;
-    for (const child of node.children) {
+    for (const child of node.children.filter(isUsed)) {
       if (--inCounts[child.name] === 0) {
         orderedNodeNames.push(child.name);
         frontier.push(child.name);
@@ -169,7 +169,7 @@ export function getNodesInTopologicalOrder(
   while (stack.length > 0) {
     const nodeName = stack.pop();
     const node = nameToNode.get(nodeName)!;
-    for (const child of node.children) {
+    for (const child of node.children.filter(isUsed)) {
       if (predefinedReachableNodeNames.has(child.name)) {
         continue;
       }
