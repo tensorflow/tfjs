@@ -31,8 +31,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   size = true;
   variableNames = ['A', 'B'];
   workgroupSize: [number, number, number];
-  workPerThread: number;
-  variableComponents?: number[];
+  variableComponents: number[];
 
   private lastDimensionSize: number;
   private useSharedMemoryWithA: boolean;
@@ -60,16 +59,18 @@ export class BinaryOpProgram implements WebGPUProgram {
       // This is an experimental value when using shared memory.
       // Note that the maximum of workgroup X dimension is 256.
       this.workgroupSize = [256, 1, 1];
-      this.workPerThread = 1;
     } else {
-      const aEqualsB = util.arraysEqual(aShape, bShape);
       const aDivisibleBy4 =
           aShape.length > 0 && aShape[aShape.length - 1] % 4 === 0;
       const bDivisibleBy4 =
           bShape.length > 0 && bShape[bShape.length - 1] % 4 === 0;
-      if ((op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
+      if (aDivisibleBy4 && bDivisibleBy4) {
+        this.outputComponent = 4;
+        this.type = 'vec4';
+      } else if (
+          (op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
            op === BinaryOpType.MUL || op === BinaryOpType.DIV) &&
-          !aEqualsB &&
+          !util.arraysEqual(aShape, bShape) &&
           ((aDivisibleBy4 &&
             (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
            (bDivisibleBy4 &&
@@ -77,15 +78,9 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.type = 'custom';
         this.outputComponent = 4;
         this.variableComponents = aDivisibleBy4 ? [4, 1] : [1, 4];
-        this.workPerThread = 4;
-      } else if (aDivisibleBy4 && bDivisibleBy4) {
-        this.outputComponent = 4;
-        this.type = 'vec4';
-        this.workPerThread = 4;
       } else {
         this.outputComponent = 1;
         this.type = 'plain';
-        this.workPerThread = 1;
       }
       this.shaderKey = `binary_${this.type}_${op}_${this.variableComponents}`;
       // TODO(jiajia.qin@intel.com): Heuristically select a good work group
@@ -94,7 +89,7 @@ export class BinaryOpProgram implements WebGPUProgram {
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workgroupSize,
-        [this.workPerThread, 1, 1]);
+        [this.outputComponent, 1, 1]);
   }
 
   getUserCode(): string {
