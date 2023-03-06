@@ -55,7 +55,8 @@ export function conv2DBackpropInput(args: {
   ];
   let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
   // TODO: Experiment when to use Conv2DDerInputMMProgram algorithm.
-  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE')) {
+  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE') ||
+      convInfo.dataFormat !== 'channelsLast') {
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);

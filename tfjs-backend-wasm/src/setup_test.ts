@@ -405,6 +405,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sign '},
   {include: 'selu '},
   {include: 'softplus '},
+  {include: 'linspace'},
+  {include: 'bincount'},
 ];
 
 const customInclude = (testName: string) => {

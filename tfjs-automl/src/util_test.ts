@@ -21,36 +21,36 @@ import {loadDictionary} from './util';
 
 describe('load dictionary', () => {
   it('relative url to model.json', async () => {
-    spyOn(util, 'fetch').and.callFake((dictUrl: string) => {
+    spyOn(util, 'fetch').and.callFake(async (dictUrl: string) => {
       expect(dictUrl).toBe('dict.txt');
-      return {text: async () => 'first\nsecond\nthird'};
+      return {text: async () => 'first\nsecond\nthird'} as Response;
     });
     const res = await loadDictionary('model.json');
     expect(res).toEqual(['first', 'second', 'third']);
   });
 
   it('relative url to model.json with a base path', async () => {
-    spyOn(util, 'fetch').and.callFake((dictUrl: string) => {
+    spyOn(util, 'fetch').and.callFake(async (dictUrl: string) => {
       expect(dictUrl).toBe('base/path/dict.txt');
-      return {text: async () => 'first\nsecond\nthird'};
+      return {text: async () => 'first\nsecond\nthird'} as Response;
     });
     const res = await loadDictionary('base/path/model.json');
     expect(res).toEqual(['first', 'second', 'third']);
   });
 
   it('absolute url to model.json', async () => {
-    spyOn(util, 'fetch').and.callFake((dictUrl: string) => {
+    spyOn(util, 'fetch').and.callFake(async (dictUrl: string) => {
       expect(dictUrl).toBe('/dict.txt');
-      return {text: async () => 'first\nsecond\nthird\n'};
+      return {text: async () => 'first\nsecond\nthird\n'} as Response;
     });
     const res = await loadDictionary('/model.json');
     expect(res).toEqual(['first', 'second', 'third']);
   });
 
   it('absolute url to model.json with a base path', async () => {
-    spyOn(util, 'fetch').and.callFake((dictUrl: string) => {
+    spyOn(util, 'fetch').and.callFake(async (dictUrl: string) => {
       expect(dictUrl).toBe('/base/path/dict.txt');
-      return {text: async () => 'first\nsecond\nthird\n'};
+      return {text: async () => 'first\nsecond\nthird\n'} as Response;
     });
     const res = await loadDictionary('/base/path/model.json');
     expect(res).toEqual(['first', 'second', 'third']);
