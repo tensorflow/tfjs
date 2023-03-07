@@ -18,17 +18,13 @@
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
-  coverageOptions: {
-    instrumentation: false
-  },
+  coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
     transforms: [require('karma-typescript-es6-transform')({
       presets: [
         // ensure we get es5 by adding IE 11 as a target
-        ['@babel/env', {
-          'targets': { 'ie': '11' }, 'loose': true
-        }]
+        ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
       ]
     })],
     // worker_node_test in tfjs-core contains a conditional require statement
@@ -40,21 +36,15 @@ const karmaTypescriptConfig = {
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
-    {
-      pattern: './node_modules/@babel/polyfill/dist/polyfill.js'
-    },
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'src/setup_test.ts',
-    {
-      pattern: 'src/**/*.ts'
-    },
+    {pattern: 'src/**/*.ts'},
   ],
-  preprocessors: {
-    'src/**/*.ts': ['karma-typescript']
-  },
+  preprocessors: {'src/**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
 };
 
-module.exports = function (config) {
+module.exports = function(config) {
   const args = [];
   if (config.grep) {
     args.push('--grep', config.grep);
@@ -69,7 +59,7 @@ module.exports = function (config) {
 
   config.set({
     ...devConfig,
-    reporters: ['kjhtml'],
+    reporters: ['dots', 'karma-typescript'],
     plugins: [
       require('karma-chrome-launcher'),
       require('karma-typescript'),
@@ -91,11 +81,6 @@ module.exports = function (config) {
         ],
       }
     },
-    client: {
-      jasmine: {
-        random: false
-      },
-      args: args
-    }
+    client: {jasmine: {random: false}, args: args}
   })
 }
