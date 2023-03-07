@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpProgram implements WebGPUProgram {
@@ -70,7 +70,6 @@ export class BinaryOpProgram implements WebGPUProgram {
       } else if (
           (op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
            op === BinaryOpType.MUL || op === BinaryOpType.DIV) &&
-          !util.arraysEqual(aShape, bShape) &&
           ((aDivisibleBy4 &&
             (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
            (bDivisibleBy4 &&
@@ -94,15 +93,9 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode;
+    const dType = this.outputComponent === 4 ? 'vec4<f32>' : 'f32';
     const opFnStr = `
-    fn binaryOperation(a : ${
-        typeSnippet(
-            this.variableComponents ? this.variableComponents[0] :
-                                      this.outputComponent)}, b : ${
-        typeSnippet(
-            this.variableComponents ? this.variableComponents[1] :
-                                      this.outputComponent)}) -> ${
-        typeSnippet(this.outputComponent)} {
+    fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
       ${getBinaryOpString(this.op, this.outputComponent === 4)}
     };
     `;
@@ -141,8 +134,8 @@ export class BinaryOpProgram implements WebGPUProgram {
        ${main('index')} {
          if (index < uniforms.size) {
            let coords = getCoordsFromIndex(index * ${this.outputComponent});
-           let a = getAByOutputCoords(coords);
-           let b = getBByOutputCoords(coords);
+           let a = ${dType}(getAByOutputCoords(coords));
+           let b = ${dType}(getBByOutputCoords(coords));
            setOutputAtIndex(index, binaryOperation(a, b));
          }
        }
