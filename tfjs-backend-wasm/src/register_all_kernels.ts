@@ -38,6 +38,7 @@ import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -80,6 +81,7 @@ import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
@@ -182,6 +184,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPool3DGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -224,6 +227,7 @@ const kernelConfigs: KernelConfig[] = [
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   log1pConfig,
   logConfig,
   logicalAndConfig,

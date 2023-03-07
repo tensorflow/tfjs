@@ -39,7 +39,7 @@ ENV.registerFlag('WEBGPU_MATMUL_PROGRAM_TYPE', () => -1);
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */
-ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => false);
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => true);
 
 /**
  * Whether we use low power GPU. Otherwise, a high performance GPU will be

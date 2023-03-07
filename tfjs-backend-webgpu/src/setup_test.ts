@@ -34,12 +34,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'conv3d ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
@@ -76,34 +70,26 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented
     ]
   },
-  {
-    startsWith: 'resizeBilinear ',
-    excludes: [
-      'gradients',  // Not yet implemented
-    ]
-  },
-  {
-    startsWith: 'resizeNearestNeighbor ',
-    excludes: [
-      'gradients',  // Not yet implemented
-    ]
-  },
 
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
-      // Not implemented kernel list.
-      'avgPool3d ',           'avgPool3dBackprop ',
-      'conv3dTranspose ',     'maxPool3d ',
-      'maxPool3dBackprop ',   'raggedGather ',
-      'raggedRange ',         'raggedTensorToTensor ',
+      'raggedGather ',
+      'raggedRange ',
+      'raggedTensorToTensor ',
       'method otsu',  // round
-      'sparseFillEmptyRows ', 'sparseReshape ',
-      'sparseSegmentMean ',   'sparseSegmentSum ',
-      'stringSplit ',         'stringToHashBucketFast ',
-      'tensorScatterUpdate ', 'unique ',
-      'unsortedSegmentSum ',  'valueAndGradients ',
+      'sparseFillEmptyRows ',
+      'sparseReshape ',
+      'sparseSegmentMean ',
+      'sparseSegmentSum ',
+      'staticRegexReplace ',
+      'stringSplit ',
+      'stringToHashBucketFast ',
+      'tensorScatterUpdate ',
+      'unique ',
+      'unsortedSegmentSum ',
+      'valueAndGradients ',
     ]
   },
 ];
@@ -133,7 +119,7 @@ if (typeof __karma__ !== 'undefined') {
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
-// Import and run tests from webgl.
+// Import and run tests from webgpu.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('./tests');

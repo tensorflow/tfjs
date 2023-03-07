@@ -17,13 +17,22 @@
 
 import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const COS = CHECK_NAN_SNIPPET_UNARY + `
   return cos(x);
 `;
 
-export const cos = unaryKernelFunc({opSnippet: COS});
+const COS_PACKED = `
+  vec4 result = cos(x);
+  bvec4 isNaN = isnan(x);
+  ${CHECK_NAN_SNIPPET_PACKED}
+  return result;
+`;
+
+export const cos =
+    unaryKernelFunc({opSnippet: COS, packedOpSnippet: COS_PACKED});
 
 export const cosConfig: KernelConfig = {
   kernelName: Cos,

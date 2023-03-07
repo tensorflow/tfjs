@@ -54,11 +54,9 @@ export function conv2DBackpropInput(args: {
     },
   ];
   let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
-  // When filter size is small, Conv2DDerInputProgram is much faster than
-  // Conv2DDerInputMMProgram.
+  // TODO: Experiment when to use Conv2DDerInputMMProgram algorithm.
   if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE') ||
-      convInfo.filterHeight <= 2 && convInfo.filterWidth <= 2 &&
-          convInfo.outChannels <= 16 && convInfo.inChannels === 1) {
+      convInfo.dataFormat !== 'channelsLast') {
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);

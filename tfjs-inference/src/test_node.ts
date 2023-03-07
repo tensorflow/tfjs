@@ -36,5 +36,6 @@ jasmine_util.setTestEnvs(
 const unitTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: [unitTests], random: false});
+runner.loadConfig({spec_files: [unitTests], random: false,
+                   jsLoader: 'require'});
 runner.execute();

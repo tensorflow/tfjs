@@ -153,6 +153,12 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "bincount_impl",
+    hdrs = ["bincount_impl.h"],
+    deps = [":util"],
+)
+
+tfjs_cc_library(
     name = "check_macros",
     srcs = ["check_macros.h"],
     deps = [
@@ -334,6 +340,7 @@ tfjs_cc_library(
         ":AvgPool3D",
         ":AvgPool3DGrad",
         ":BatchMatMul",
+        ":Bincount",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
@@ -343,6 +350,7 @@ tfjs_cc_library(
         ":CropAndResize",
         ":Cumprod",
         ":Cumsum",
+        ":DenseBincount",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Dilation2D",
@@ -368,6 +376,7 @@ tfjs_cc_library(
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":LinSpace",
         ":Log1p",
         ":Max",
         ":MaxPool",
@@ -597,6 +606,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Bincount",
+    srcs = ["kernels/Bincount.cc"],
+    deps = [
+        ":backend",
+        ":bincount_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "_FusedMatMul",
     srcs = ["kernels/_FusedMatMul.cc"],
     hdrs = ["kernels/_FusedMatMul.h"],
@@ -723,6 +742,7 @@ tfjs_cc_library(
     srcs = ["kernels/DenseBincount.cc"],
     deps = [
         ":backend",
+        ":bincount_impl",
         ":util",
     ],
 )
@@ -978,6 +998,14 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LinSpace",
+    srcs = ["kernels/LinSpace.cc"],
+    deps = [
+        ":backend",
     ],
 )
 

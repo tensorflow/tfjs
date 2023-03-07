@@ -17,7 +17,7 @@
 
 import {AvgPoolGrad, AvgPoolGradAttrs, AvgPoolGradInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {AvgPool2DBackpropProgram} from '../avg_pool2d_backprop_webgpu';
+import {AvgPool2DBackpropProgram} from '../avg_pool_backprop_webgpu';
 import {WebGPUBackend} from '../backend_webgpu';
 import {assertNotComplex} from '../webgpu_util';
 

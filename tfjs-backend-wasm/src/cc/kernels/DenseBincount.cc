@@ -18,37 +18,12 @@
 
 #include <algorithm>
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/bincount_impl.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs::wasm {
 
 namespace {
-
-template <bool reset_out_buf = true, typename T>
-inline void Bincount1D(const int32_t* x_buf, int32_t x_len, int32_t size,
-                       const T* weight_buf, bool binary_output, T* out_buf) {
-  if (reset_out_buf) {
-    std::fill(out_buf, out_buf + size, 0);
-  }
-  for (int32_t i = 0; i < x_len; ++i) {
-    int32_t value = x_buf[i];
-    if (value < 0) {
-      util::warn("DenseBincount error: input x must be non-negative.");
-      return;
-    }
-    if (value >= size) {
-      continue;
-    }
-
-    if (binary_output) {
-      out_buf[value] = 1;
-    } else if (weight_buf == nullptr) {
-      out_buf[value] += 1;
-    } else {
-      out_buf[value] += weight_buf[i];
-    }
-  }
-}
 
 template <typename T>
 inline void Bincount2D(const int32_t* x_buf, int32_t x_shape_0,
@@ -56,7 +31,7 @@ inline void Bincount2D(const int32_t* x_buf, int32_t x_shape_0,
                        bool binary_output, T* out_buf) {
   std::fill(out_buf, out_buf + (x_shape_0 * size), 0);
   for (int32_t i = 0; i < x_shape_0; ++i) {
-    Bincount1D</*reset_out_buf=*/false>(
+    BincountImpl</*reset_out_buf=*/false>(
         x_buf + i * x_shape_1, x_shape_1, size,
         weight_buf != nullptr ? weight_buf + i * x_shape_1 : nullptr,
         binary_output, out_buf + i * size);
@@ -92,14 +67,14 @@ void DenseBincount(const int32_t x_id, const int32_t* x_shape_ptr,
   if (x_shape_len == 1) {
     switch (weights_dtype) {
       case DType::float32:
-        Bincount1D(x_buf, x_shape_ptr[0], size,
-                   weights_info ? weights_info->f32() : nullptr, binary_output,
-                   out_info.f32_write());
+        BincountImpl(x_buf, x_shape_ptr[0], size,
+                     weights_info ? weights_info->f32() : nullptr,
+                     binary_output, out_info.f32_write());
         break;
       case DType::int32:
-        Bincount1D(x_buf, x_shape_ptr[0], size,
-                   weights_info ? weights_info->i32() : nullptr, binary_output,
-                   out_info.i32_write());
+        BincountImpl(x_buf, x_shape_ptr[0], size,
+                     weights_info ? weights_info->i32() : nullptr,
+                     binary_output, out_info.i32_write());
         break;
       default:
         util::warn(
