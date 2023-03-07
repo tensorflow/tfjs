@@ -119,7 +119,7 @@ if (typeof __karma__ !== 'undefined') {
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
-// Import and run tests from webgl.
+// Import and run tests from webgpu.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('./tests');
