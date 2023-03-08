@@ -156,21 +156,44 @@ export function getNodesInTopologicalOrder(
     }
   }
 
-  // Build a set for all nodes reachable by at least one predefined node.
-  // This can help us filter out redundant nodes from the returned node list.
-  // For example:
-  // If we have four nodes with dependencies like this:
-  //   a --> b --> c --> d
-  // when node `c` is predefined (e.g. given as an input tensor), we can
-  // skip node `a` and `b` since their outputs will never be used.
+  const orderedNodes = orderedNodeNames.map((name) => nameToNode.get(name));
+  const filteredOrderedNodes =
+      filterPredefinedReachableNodes(orderedNodes, predefinedNodes);
+
+  // TODO: Turn validation on/off with tf env flag.
+  validateNodesExecutionOrder(filteredOrderedNodes, predefinedNodes);
+
+  return filteredOrderedNodes;
+}
+
+/**
+ * This is a helper function of `getNodesInTopologicalOrder`.
+ * Build a set for all nodes reachable by at least one predefined node.
+ * This can help us filter out redundant nodes from the returned node list.
+ * For example:
+ * If we have four nodes with dependencies like this:
+ *   a --> b --> c --> d
+ * when node `c` is predefined (e.g. given as an input tensor), we can
+ * skip node `a` and `b` since their outputs will never be used.
+ *
+ * @param orderedNodes Graph nodes in execution order.
+ * @param predefinedNodes Graph inputs, weights, and init nodes. Nodes in this
+ *     list must have distinct names.
+ */
+function filterPredefinedReachableNodes(
+    orderedNodes: Node[], predefinedNodes: Node[]) {
+  const nameToNode =
+      new Map<string, Node>(orderedNodes.map((node) => [node.name, node]));
+
   // TODO: Filter out more nodes when >=2 nodes are predefined in a path.
   const stack = predefinedNodes.map((node) => node.name);
   const predefinedReachableNodeNames = new Set(stack);
   while (stack.length > 0) {
     const nodeName = stack.pop();
     const node = nameToNode.get(nodeName)!;
-    for (const child of node.children.filter(isUsed)) {
-      if (predefinedReachableNodeNames.has(child.name)) {
+    for (const child of node.children) {
+      if (!nameToNode.has(child.name) ||
+          predefinedReachableNodeNames.has(child.name)) {
         continue;
       }
       predefinedReachableNodeNames.add(child.name);
@@ -179,50 +202,57 @@ export function getNodesInTopologicalOrder(
   }
 
   // Filter out unreachable nodes and build the ordered node list.
-  const filteredOrderedNodes =
-      orderedNodeNames.filter((name) => predefinedReachableNodeNames.has(name))
-          .map((name) => nameToNode.get(name)!);
+  const filteredOrderedNodes = orderedNodes.filter(
+      (node) => predefinedReachableNodeNames.has(node.name));
 
-  // Validates node orders
-  // TODO: Turn validation on/off with tf env flag.
-  {
-    const nodeNameToOrder = new Map<string, number>(
-        filteredOrderedNodes.map((node, order) => [node.name, order]));
-    const predefinedNodeNames =
-        new Set(predefinedNodes.map((node) => node.name));
-    const isPredefined = (node: Node|string) =>
-        predefinedNodeNames.has(typeof node === 'string' ? node : node.name);
-    const willBeExecutedNodeNames =
-        new Set(filteredOrderedNodes.map((node) => node.name));
-    const willBeExecuted = (node: Node|string) => willBeExecutedNodeNames.has(
-        typeof node === 'string' ? node : node.name);
+  return filteredOrderedNodes;
+}
 
-    for (const node of filteredOrderedNodes) {
-      for (const child of node.children.filter(willBeExecuted)) {
-        if (!nodeNameToOrder.has(child.name)) {
-          throw new Error('TopologicalSortError: Child is unreachable.');
-        }
-        if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
-          throw new Error(
-              'TopologicalSortError: Node has greater order than its child.');
-        }
+/**
+ * This is a helper function of `getNodesInTopologicalOrder`.
+ * Validates property: given node `a` and node `b`, Order(a) > Order(b) if `a`
+ * is a child of `b`. This function throws an error if validation fails.
+ *
+ * @param orderedNodes Graph nodes in execution order.
+ * @param predefinedNodes Graph inputs, weights, and init nodes. Nodes in this
+ *     list must have distinct names.
+ */
+function validateNodesExecutionOrder(
+    orderedNodes: Node[], predefinedNodes: Node[]) {
+  const nodeNameToOrder = new Map<string, number>(
+      orderedNodes.map((node, order) => [node.name, order]));
+  const predefinedNodeNames = new Set(predefinedNodes.map((node) => node.name));
+  const isPredefined = (node: Node|string) =>
+      predefinedNodeNames.has(typeof node === 'string' ? node : node.name);
+  const willBeExecutedNodeNames =
+      new Set(orderedNodes.map((node) => node.name));
+  const willBeExecuted = (node: Node|string) =>
+      willBeExecutedNodeNames.has(typeof node === 'string' ? node : node.name);
+
+  for (const node of orderedNodes) {
+    for (const child of node.children.filter(willBeExecuted)) {
+      if (!nodeNameToOrder.has(child.name)) {
+        throw new Error(`TopologicalSortError: Child ${child.name} of node ${
+            node.name}'s is unreachable.`);
       }
-      if (!isPredefined(node)) {
-        for (const input of node.inputs) {
-          if (!nodeNameToOrder.has(input.name)) {
-            throw new Error('TopologicalSortError: Input is unreachable.');
-          }
-          if (nodeNameToOrder.get(input.name) >
-              nodeNameToOrder.get(node.name)) {
-            throw new Error(
-                'TopologicalSortError: Node has smaller order than its input.');
-          }
+      if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
+        throw new Error(`TopologicalSortError: Node ${
+            node.name} has greater order than its child ${child.name}.`);
+      }
+    }
+    if (!isPredefined(node)) {
+      for (const input of node.inputs) {
+        if (!nodeNameToOrder.has(input.name)) {
+          throw new Error(`TopologicalSortError: Input ${input.name} of node ${
+              node.name} is unreachable.`);
+        }
+        if (nodeNameToOrder.get(input.name) > nodeNameToOrder.get(node.name)) {
+          throw new Error(`TopologicalSortError: Node ${
+              node.name} has smaller order than its input ${input.name}.`);
         }
       }
     }
   }
-
-  return filteredOrderedNodes;
 }
 
 /**
