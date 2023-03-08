@@ -50,6 +50,7 @@ export class BinaryOpProgram implements WebGPUProgram {
 
     if (this.useSharedMemoryWithA || this.useSharedMemoryWithB) {
       this.outputComponent = 1;
+      this.variableComponents = [1, 1];
       // lastDimensionSize is used as sharedBuf array size, so can not be
       // used as uniform.
       this.lastDimensionSize =
@@ -66,6 +67,7 @@ export class BinaryOpProgram implements WebGPUProgram {
           bShape.length > 0 && bShape[bShape.length - 1] % 4 === 0;
       if (aDivisibleBy4 && bDivisibleBy4) {
         this.outputComponent = 4;
+        this.variableComponents = [4, 4];
         this.type = 'vec4';
       } else if (
           (op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
@@ -79,6 +81,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.variableComponents = aDivisibleBy4 ? [4, 1] : [1, 4];
       } else {
         this.outputComponent = 1;
+        this.variableComponents = [1, 1];
         this.type = 'plain';
       }
       this.shaderKey = `binary_${this.type}_${op}_${this.variableComponents}`;
