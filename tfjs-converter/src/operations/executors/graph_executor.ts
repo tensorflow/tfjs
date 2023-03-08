@@ -16,79 +16,93 @@
  */
 
 import {Tensor} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-
-import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
 
-import {cloneTensor, getParamValue, getTensor} from './utils';
+import {cloneTensor} from './utils';
 
-export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
-      switch (node.op) {
-        case 'Const': {
-          return tensorMap[node.name];
+import type {OpExecutorBuilder} from '../operation_executor';
+import {InternalOpExecutor} from '../types';
+
+export function buildOpExecutor(builder: OpExecutorBuilder):
+    InternalOpExecutor {
+  const node = builder.node;
+  const ops = builder.manager.ops;
+
+  switch (node.op) {
+    case 'Const': {
+      const value$ = builder.inputInfo(node.name);
+      return (ctx: ExecutionContext) => [ctx.getOpParamValue(value$)];
+    }
+    case 'PlaceholderWithDefault': {
+      const value$ = builder.inputInfo(node.name);
+      const default$ = builder.param('default');
+      return (ctx: ExecutionContext) =>
+                 [ctx.getOpParamValue(value$) || ctx.getOpParamValue(default$)];
+    }
+    case 'Placeholder': {
+      const value$ = builder.inputInfo(node.name);
+      return (ctx: ExecutionContext) => [ctx.getOpParamValue(value$)];
+    }
+    case 'Identity':
+    case 'StopGradient':
+    case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => [cloneTensor(ctx.getOpParamValue(x$))];
+    }
+    case 'IdentityN': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) =>
+                 ctx.getOpParamValue<Tensor[]>(x$).map(cloneTensor);
+    }
+    case 'Snapshot': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => [cloneTensor(ctx.getOpParamValue(x$))];
+    }
+    case 'Shape': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => [ops.tensor1d(
+                 ctx.getOpParamValue<Tensor>(x$).shape, 'int32')];
+    }
+    case 'ShapeN': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => ctx.getOpParamValue<Tensor[]>(x$).map(
+                 (t) => ops.tensor1d(t.shape));
+    }
+    case 'Size': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => [ops.scalar(
+                 ctx.getOpParamValue<Tensor>(x$).size, 'int32')];
+    }
+    case 'Rank': {
+      const x$ = builder.param('x');
+      return (ctx: ExecutionContext) => [ops.scalar(
+                 ctx.getOpParamValue<Tensor>(x$).rank, 'int32')];
+    }
+    case 'NoOp':
+      return (ctx: ExecutionContext) => [ops.scalar(1)];
+    case 'Print': {
+      const x$ = builder.param('x');
+      const data$ = builder.param('data');
+      const message$ = builder.param('message');
+      const summarize$ = builder.param('summarize');
+      return (ctx: ExecutionContext) => {
+        console.warn(
+            'The graph has a tf.print() operation,' +
+            'usually used for debugging, which slows down performance.');
+        console.log(ctx.getOpParamValue(message$));
+        const data = ctx.getOpParamValue<Tensor[]>(data$);
+        const summarize = ctx.getOpParamValue<number>(summarize$);
+        for (let i = 0; i < data.length; i++) {
+          console.log(Array.prototype.slice.call(data[i].dataSync())
+                          .slice(0, summarize));
         }
-        case 'PlaceholderWithDefault':
-          const def =
-              getParamValue('default', node, tensorMap, context) as Tensor;
-          return [getTensor(node.name, tensorMap, context) || def];
-        case 'Placeholder':
-          return [getTensor(node.name, tensorMap, context)];
-        case 'Identity':
-        case 'StopGradient':
-        case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
-          const data = getParamValue('x', node, tensorMap, context) as Tensor;
-          return [cloneTensor(data)];
-        }
-        case 'IdentityN':
-          return (getParamValue('x', node, tensorMap, context) as Tensor[])
-              .map((t: Tensor) => cloneTensor(t));
-        case 'Snapshot':
-          const snapshot =
-              (getParamValue('x', node, tensorMap, context) as Tensor);
-          return [cloneTensor(snapshot)];
-        case 'Shape':
-          return [ops.tensor1d(
-              (getParamValue('x', node, tensorMap, context) as Tensor).shape,
-              'int32')];
-        case 'ShapeN':
-          return (getParamValue('x', node, tensorMap, context) as Tensor[])
-              .map((t: Tensor) => ops.tensor1d(t.shape));
-        case 'Size':
-          return [ops.scalar(
-              (getParamValue('x', node, tensorMap, context) as Tensor).size,
-              'int32')];
-        case 'Rank':
-          return [ops.scalar(
-              (getParamValue('x', node, tensorMap, context) as Tensor).rank,
-              'int32')];
-        case 'NoOp':
-          return [ops.scalar(1)];
-        case 'Print':
-          const input = getParamValue('x', node, tensorMap, context) as Tensor;
-          const data =
-              getParamValue('data', node, tensorMap, context) as Tensor[];
-          const message =
-              getParamValue('message', node, tensorMap, context) as string;
-          const summarize =
-              getParamValue('summarize', node, tensorMap, context) as number;
-          console.warn(
-              'The graph has a tf.print() operation,' +
-              'usually used for debugging, which slows down performance.');
-          console.log(message);
-          for (let i = 0; i < data.length; i++) {
-            console.log(Array.prototype.slice.call(data[i].dataSync())
-                            .slice(0, summarize));
-          }
-          return [input];
 
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    };
+        return [ctx.getOpParamValue(x$)];
+      };
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'graph';

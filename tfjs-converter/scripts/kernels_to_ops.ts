@@ -71,11 +71,12 @@ type KernelMapping = {
 function getKernelMappingForFile(source: SourceFile) {
   const switchStatement = getSwitchStatement(source);
   if (switchStatement == null) {
-    throw new Error('No switch statment found in executor');
+    return {};
+    // throw new Error('No switch statment found in executor');
   }
+  const kernelsToOp: KernelMapping = {};
   const caseClauses = switchStatement.getClauses();
 
-  const kernelsToOp: KernelMapping = {};
   let currentClauseGroup: string[] = [];
 
   // Loop through clauses until you reach one that has a block or return.
@@ -138,7 +139,8 @@ function getKernelMapping() {
 }
 
 async function run(outputFilePath: string) {
-  const EXECUTORS_PATH = 'tfjs-converter/src/operations/executors/*_executor.ts';
+  const EXECUTORS_PATH =
+      'tfjs-converter/src/operations/executors/*_executor.ts';
   project.addSourceFilesAtPaths(EXECUTORS_PATH);
 
   const kernelMapping = getKernelMapping();

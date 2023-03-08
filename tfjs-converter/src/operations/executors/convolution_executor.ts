@@ -15,28 +15,30 @@
  * =============================================================================
  */
 
-import {Rank, Tensor, Tensor3D, Tensor4D, Tensor5D} from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
+import type {OpExecutorBuilder, OpInput} from '../operation_executor';
 
-import {NamedTensorsMap} from '../../data/types';
+
 import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
+import {InternalOpExecutor} from '../types';
 
-import {getPadding, getParamValue} from './utils';
+import {getPadding} from './utils';
 
 function fusedConvAndDepthWiseParams(
-    node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) {
-  const [extraOp, activationFunc] =
-      (getParamValue('fusedOps', node, tensorMap, context) as string[]);
+    ctx: ExecutionContext, fusedOps$: OpInput, numArgs$: OpInput,
+    strides$: OpInput, pad$: OpInput, explicitPaddings$: OpInput,
+    dataFormat$: OpInput, dilations$: OpInput, args$: OpInput,
+    leakyreluAlpha$: OpInput) {
+  const [extraOp, activationFunc] = ctx.getOpParamValue<string[]>(fusedOps$);
 
   const isBiasAdd = extraOp === 'biasadd';
   const noBiasAdd = !isBiasAdd;
   const isPrelu = activationFunc === 'prelu';
   const isBatchNorm = extraOp === 'fusedbatchnorm';
 
-  const numArgs =
-      (getParamValue('numArgs', node, tensorMap, context) as number);
+  const numArgs = ctx.getOpParamValue<number>(numArgs$);
   if (isBiasAdd) {
     if (isPrelu && numArgs !== 2) {
       throw new Error(
@@ -53,268 +55,293 @@ function fusedConvAndDepthWiseParams(
     throw new Error(
         'FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported');
   }
-  const stride = getParamValue('strides', node, tensorMap, context) as number[];
-  const pad = getPadding(node, tensorMap, context);
-  const dataFormat =
-      (getParamValue('dataFormat', node, tensorMap, context) as string)
-          .toUpperCase();
-  const dilations =
-      getParamValue('dilations', node, tensorMap, context) as number[];
-  let [biasArg, preluArg] =
-      getParamValue('args', node, tensorMap, context) as Tensor[];
+  const strides = ctx.getOpParamValue<number[]>(strides$);
+  const pad = getPadding(ctx, pad$, explicitPaddings$);
+  const dataFormat = ctx.getOpParamValue<string>(dataFormat$).toUpperCase();
+  const dilations = ctx.getOpParamValue<number[]>(dilations$);
+  let [biasArg, preluArg] = ctx.getOpParamValue<Tensor[]>(args$);
   if (noBiasAdd) {
     preluArg = biasArg;
     biasArg = undefined;
   }
-  const leakyreluAlpha =
-      getParamValue('leakyreluAlpha', node, tensorMap, context) as number;
+  const leakyreluAlpha = ctx.getOpParamValue<number>(leakyreluAlpha$);
 
   return {
-    stride,
+    strides,
     pad,
     dataFormat,
     dilations,
     biasArg,
     preluArg,
     activationFunc,
-    leakyreluAlpha
+    leakyreluAlpha,
   };
 }
 
-export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
-      switch (node.op) {
-        case 'Conv1D': {
-          const stride =
-              getParamValue('stride', node, tensorMap, context) as number;
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const dataFormat =
-              (getParamValue('dataFormat', node, tensorMap, context) as string)
-                  .toUpperCase();
-          const dilation =
-              getParamValue('dilation', node, tensorMap, context) as number;
-          return [ops.conv1d(
-              getParamValue('x', node, tensorMap, context) as Tensor3D,
-              getParamValue('filter', node, tensorMap, context) as Tensor3D,
-              stride, pad as 'valid' | 'same', dataFormat as 'NWC' | 'NCW',
-              dilation)];
-        }
-        case 'Conv2D': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getPadding(node, tensorMap, context);
-          const dataFormat =
-              (getParamValue('dataFormat', node, tensorMap, context) as string)
-                  .toUpperCase();
-          const dilations =
-              getParamValue('dilations', node, tensorMap, context) as number[];
-          return [ops.conv2d(
-              getParamValue('x', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              getParamValue('filter', node, tensorMap, context) as Tensor4D,
-              [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
-        }
-        case '_FusedConv2D': {
-          const {
-            stride,
-            pad,
-            dataFormat,
-            dilations,
-            biasArg,
-            preluArg,
-            activationFunc,
-            leakyreluAlpha
-          } = fusedConvAndDepthWiseParams(node, tensorMap, context);
+export function buildOpExecutor(builder: OpExecutorBuilder):
+    InternalOpExecutor {
+  const node = builder.node;
+  const ops = builder.manager.ops;
+  switch (node.op) {
+    case 'Conv1D': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const stride$ = builder.param('stride');
+      const pad$ = builder.param('pad');
+      const dataFormat$ = builder.param('dataFormat');
+      const dilation$ = builder.param('dilation');
 
-          return [ops.fused.conv2d({
-            x: getParamValue('x', node, tensorMap, context) as Tensor3D |
-                Tensor4D,
-            filter: getParamValue('filter', node, tensorMap, context) as
-                Tensor4D,
-            strides: [stride[1], stride[2]],
-            pad: pad as 'valid' | 'same',
-            dataFormat: dataFormat as 'NHWC' | 'NCHW',
-            dilations: [dilations[1], dilations[2]],
-            bias: biasArg,
-            activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg,
-            leakyreluAlpha
-          })];
-        }
+      return (ctx: ExecutionContext) => {
+        return [ops.conv1d(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(filter$),
+            ctx.getOpParamValue(stride$), ctx.getOpParamValue(pad$),
+            ctx.getOpParamValue(dataFormat$), ctx.getOpParamValue(dilation$))];
+      };
+    }
+    case 'Conv2D': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const dataFormat$ = builder.param('dataFormat');
+      const dilations$ = builder.param('dilations');
 
-        case 'FusedDepthwiseConv2dNative': {
-          const {
-            stride,
-            pad,
-            dataFormat,
-            dilations,
-            biasArg,
-            preluArg,
-            activationFunc,
-            leakyreluAlpha,
-          } = fusedConvAndDepthWiseParams(node, tensorMap, context);
+      return (ctx: ExecutionContext) => {
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        const dilations = ctx.getOpParamValue<number[]>(dilations$);
+        return [ops.conv2d(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(filter$),
+            [strides[1], strides[2]], ctx.getOpParamValue(pad$),
+            ctx.getOpParamValue(dataFormat$), [dilations[1], dilations[2]])];
+      };
+    }
+    case '_FusedConv2D': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const fusedOps$ = builder.param('fusedOps');
+      const numArgs$ = builder.param('numArgs');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const explicitPaddings$ = builder.param('explicitPaddings');
+      const dataFormat$ = builder.param('dataFormat');
+      const dilations$ = builder.param('dilations');
+      const args$ = builder.param('args');
+      const leakyreluAlpha$ = builder.param('leakyreluAlpha');
 
-          return [ops.fused.depthwiseConv2d({
-            x: getParamValue('x', node, tensorMap, context) as Tensor3D |
-                Tensor4D,
-            filter: getParamValue('filter', node, tensorMap, context) as
-                Tensor4D,
-            strides: [stride[1], stride[2]],
-            pad: pad as 'valid' | 'same',
-            dataFormat: dataFormat as 'NHWC' | 'NCHW',
-            dilations: [dilations[1], dilations[2]],
-            bias: biasArg,
-            activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg,
-            leakyreluAlpha
-          })];
-        }
-        case 'Conv2DBackpropInput':
-        case 'Conv2dTranspose': {
-          const shape = getParamValue(
-                            'outputShape', node, tensorMap,
-                            context) as [number, number, number] |
-              [number, number, number, number];
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getPadding(node, tensorMap, context);
-          return [ops.conv2dTranspose(
-              getParamValue('x', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              getParamValue('filter', node, tensorMap, context) as Tensor4D,
-              shape, [stride[1], stride[2]], pad as 'valid' | 'same')];
-        }
-        case 'DepthwiseConv2dNative':
-        case 'DepthwiseConv2d': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getPadding(node, tensorMap, context);
-          const dilations =
-              getParamValue('dilations', node, tensorMap, context) as number[];
-          const dataFormat =
-              (getParamValue('dataFormat', node, tensorMap, context) as string)
-                  .toUpperCase();
+      return (ctx: ExecutionContext) => {
+        const argv = fusedConvAndDepthWiseParams(
+            ctx, fusedOps$, numArgs$, strides$, pad$, explicitPaddings$,
+            dataFormat$, dilations$, args$, leakyreluAlpha$);
 
-          return [ops.depthwiseConv2d(
-              getParamValue('input', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              getParamValue('filter', node, tensorMap, context) as Tensor4D,
-              [stride[1], stride[2]], pad as 'valid' | 'same',
-              dataFormat as 'NHWC' | 'NCHW', [dilations[1], dilations[2]])];
-        }
-        case 'Conv3D': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const dataFormat =
-              (getParamValue('dataFormat', node, tensorMap, context) as string)
-                  .toUpperCase();
-          const dilations =
-              getParamValue('dilations', node, tensorMap, context) as number[];
-          return [ops.conv3d(
-              getParamValue('x', node, tensorMap, context) as Tensor4D |
-                  Tensor<Rank.R5>,
-              getParamValue('filter', node, tensorMap, context) as
-                  Tensor<Rank.R5>,
-              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same',
-              dataFormat as 'NDHWC' | 'NCDHW',
-              [dilations[1], dilations[2], dilations[3]])];
-        }
-        case 'AvgPool': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const kernelSize =
-              getParamValue('kernelSize', node, tensorMap, context) as number[];
+        return [ops.fused.conv2d({
+          x: ctx.getOpParamValue(x$),
+          filter: ctx.getOpParamValue(filter$),
+          strides: [argv.strides[1], argv.strides[2]],
+          pad: argv.pad as 'valid' | 'same',
+          dataFormat: argv.dataFormat as 'NHWC' | 'NCHW',
+          dilations: [argv.dilations[1], argv.dilations[2]],
+          bias: argv.biasArg,
+          activation: argv.activationFunc as tfOps.fused.Activation,
+          preluActivationWeights: argv.preluArg,
+          leakyreluAlpha: argv.leakyreluAlpha,
+        })];
+      };
+    }
 
-          return [ops.avgPool(
-              getParamValue('x', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
-              pad as 'valid' | 'same')];
-        }
-        case 'MaxPool': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const kernelSize =
-              getParamValue('kernelSize', node, tensorMap, context) as number[];
+    case 'FusedDepthwiseConv2dNative': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const fusedOps$ = builder.param('fusedOps');
+      const numArgs$ = builder.param('numArgs');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const explicitPaddings$ = builder.param('explicitPaddings');
+      const dataFormat$ = builder.param('dataFormat');
+      const dilations$ = builder.param('dilations');
+      const args$ = builder.param('args');
+      const leakyreluAlpha$ = builder.param('leakyreluAlpha');
 
-          return [ops.maxPool(
-              getParamValue('x', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
-              pad as 'valid' | 'same')];
-        }
-        case 'MaxPoolWithArgmax': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const kernelSize =
-              getParamValue('kernelSize', node, tensorMap, context) as number[];
-          const includeBatchInIndex =
-              getParamValue('includeBatchInIndex', node, tensorMap, context) as
-              boolean;
-          const {result, indexes} = ops.maxPoolWithArgmax(
-              getParamValue('x', node, tensorMap, context) as Tensor4D,
-              [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
-              pad as 'valid' | 'same', includeBatchInIndex);
-          return [result, indexes];
-        }
-        case 'AvgPool3D': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const kernelSize =
-              getParamValue('kernelSize', node, tensorMap, context) as number[];
+      return (ctx: ExecutionContext) => {
+        const argv = fusedConvAndDepthWiseParams(
+            ctx, fusedOps$, numArgs$, strides$, pad$, explicitPaddings$,
+            dataFormat$, dilations$, args$, leakyreluAlpha$);
 
-          return [ops.avgPool3d(
-              getParamValue('x', node, tensorMap, context) as Tensor5D,
-              [kernelSize[1], kernelSize[2], kernelSize[3]],
-              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
-        }
+        return [ops.fused.depthwiseConv2d({
+          x: ctx.getOpParamValue(x$),
+          filter: ctx.getOpParamValue(filter$),
+          strides: [argv.strides[1], argv.strides[2]],
+          pad: argv.pad as 'valid' | 'same',
+          dataFormat: argv.dataFormat as 'NHWC' | 'NCHW',
+          dilations: [argv.dilations[1], argv.dilations[2]],
+          bias: argv.biasArg,
+          activation: argv.activationFunc as tfOps.fused.Activation,
+          preluActivationWeights: argv.preluArg,
+          leakyreluAlpha: argv.leakyreluAlpha,
+        })];
+      };
+    }
+    case 'Conv2DBackpropInput':
+    case 'Conv2dTranspose': {
+      const shape$ = builder.param('outputShape');
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
 
-        case 'MaxPool3D': {
-          const stride =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const kernelSize =
-              getParamValue('kernelSize', node, tensorMap, context) as number[];
 
-          return [ops.maxPool3d(
-              getParamValue('x', node, tensorMap, context) as Tensor5D,
-              [kernelSize[1], kernelSize[2], kernelSize[3]],
-              [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
-        }
+      return (ctx: ExecutionContext) => {
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        return [ops.conv2dTranspose(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(filter$),
+            ctx.getOpParamValue(shape$), [strides[1], strides[2]],
+            ctx.getOpParamValue(pad$))];
+      };
+    }
+    case 'DepthwiseConv2dNative':
+    case 'DepthwiseConv2d': {
+      const input$ = builder.param('input');
+      const filter$ = builder.param('filter');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const dilations$ = builder.param('dilations');
+      const dataFormat$ = builder.param('dataFormat');
 
-        case 'Dilation2D': {
-          const strides =
-              getParamValue('strides', node, tensorMap, context) as number[];
-          const pad = getParamValue('pad', node, tensorMap, context);
-          const dilations =
-              getParamValue('dilations', node, tensorMap, context) as number[];
+      return (ctx: ExecutionContext) => {
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        const dilations = ctx.getOpParamValue<number[]>(dilations$);
+        return [ops.depthwiseConv2d(
+            ctx.getOpParamValue(input$), ctx.getOpParamValue(filter$),
+            [strides[1], strides[2]], ctx.getOpParamValue(pad$),
+            ctx.getOpParamValue<'NHWC'|'NCHW'>(dataFormat$),
+            [dilations[1], dilations[2]])];
+      };
+    }
+    case 'Conv3D': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const dilations$ = builder.param('dilations');
+      const dataFormat$ = builder.param('dataFormat');
 
-          // strides: [1, stride_height, stride_width, 1].
-          const strideHeight = strides[1];
-          const strideWidth = strides[2];
+      return (ctx: ExecutionContext) => {
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        const dilations = ctx.getOpParamValue<number[]>(dilations$);
+        return [ops.conv3d(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(filter$),
+            [strides[1], strides[2], strides[3]], ctx.getOpParamValue(pad$),
+            ctx.getOpParamValue(dataFormat$),
+            [dilations[1], dilations[2], dilations[3]])];
+      };
+    }
+    case 'AvgPool': {
+      const x$ = builder.param('x');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const kernelSize$ = builder.param('kernelSize');
 
-          // dilations: [1, dilation_height, dilation_width, 1].
-          const dilationHeight = dilations[1];
-          const dilationWidth = dilations[2];
+      return (ctx: ExecutionContext) => {
+        const kernelSize = ctx.getOpParamValue<number[]>(kernelSize$);
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        return [ops.avgPool(
+            ctx.getOpParamValue(x$), [kernelSize[1], kernelSize[2]],
+            [strides[1], strides[2]], ctx.getOpParamValue(pad$))];
+      };
+    }
+    case 'MaxPool': {
+      const x$ = builder.param('x');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const kernelSize$ = builder.param('kernelSize');
 
-          return [ops.dilation2d(
-              getParamValue('x', node, tensorMap, context) as Tensor3D |
-                  Tensor4D,
-              getParamValue('filter', node, tensorMap, context) as Tensor3D,
-              [strideHeight, strideWidth], pad as 'valid' | 'same',
-              [dilationHeight, dilationWidth], 'NHWC' /* dataFormat */)];
-        }
+      return (ctx: ExecutionContext) => {
+        const kernelSize = ctx.getOpParamValue<number[]>(kernelSize$);
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        return [ops.maxPool(
+            ctx.getOpParamValue(x$), [kernelSize[1], kernelSize[2]],
+            [strides[1], strides[2]], ctx.getOpParamValue(pad$))];
+      };
+    }
+    case 'MaxPoolWithArgmax': {
+      const x$ = builder.param('x');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const kernelSize$ = builder.param('kernelSize');
+      const includeBatchInIndex$ = builder.param('includeBatchInIndex');
 
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    };
+
+      return (ctx: ExecutionContext) => {
+        const kernelSize = ctx.getOpParamValue<number[]>(kernelSize$);
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        const {result, indexes} = ops.maxPoolWithArgmax(
+            ctx.getOpParamValue(x$), [kernelSize[1], kernelSize[2]],
+            [strides[1], strides[2]], ctx.getOpParamValue(pad$),
+            ctx.getOpParamValue(includeBatchInIndex$));
+        return [result, indexes];
+      };
+    }
+    case 'AvgPool3D': {
+      const x$ = builder.param('x');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const kernelSize$ = builder.param('kernelSize');
+
+      return (ctx: ExecutionContext) => {
+        const kernelSize = ctx.getOpParamValue<number[]>(kernelSize$);
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        return [ops.avgPool3d(
+            ctx.getOpParamValue(x$),
+            [kernelSize[1], kernelSize[2], kernelSize[3]],
+            [strides[1], strides[2], strides[3]], ctx.getOpParamValue(pad$))];
+      };
+    }
+
+    case 'MaxPool3D': {
+      const x$ = builder.param('x');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const kernelSize$ = builder.param('kernelSize');
+
+      return (ctx: ExecutionContext) => {
+        const kernelSize = ctx.getOpParamValue<number[]>(kernelSize$);
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        return [ops.maxPool3d(
+            ctx.getOpParamValue(x$),
+            [kernelSize[1], kernelSize[2], kernelSize[3]],
+            [strides[1], strides[2], strides[3]], ctx.getOpParamValue(pad$))];
+      };
+    }
+
+    case 'Dilation2D': {
+      const x$ = builder.param('x');
+      const filter$ = builder.param('filter');
+      const strides$ = builder.param('strides');
+      const pad$ = builder.param('pad');
+      const dilations$ = builder.param('dilations');
+
+      return (ctx: ExecutionContext) => {
+        const strides = ctx.getOpParamValue<number[]>(strides$);
+        const dilations = ctx.getOpParamValue<number[]>(dilations$);
+
+        // strides: [1, stride_height, stride_width, 1].
+        const strideHeight = strides[1];
+        const strideWidth = strides[2];
+
+        // dilations: [1, dilation_height, dilation_width, 1].
+        const dilationHeight = dilations[1];
+        const dilationWidth = dilations[2];
+
+        return [ops.dilation2d(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(filter$),
+            [strideHeight, strideWidth], ctx.getOpParamValue(pad$),
+            [dilationHeight, dilationWidth],
+            /*dataFormat=*/'NHWC')];
+      };
+    }
+
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+}
 
 export const CATEGORY = 'convolution';

@@ -15,172 +15,162 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-
-import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
+import {InternalOpExecutor} from '../types';
+import type {OpExecutorBuilder} from '../operation_executor';
 
-import {getParamValue, getTensor} from './utils';
+export function buildOpExecutor(builder: OpExecutorBuilder):
+    InternalOpExecutor {
+  const node = builder.node;
+  const ops = builder.manager.ops;
 
-export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-     ops = tfOps): Tensor[] => {
-      switch (node.op) {
-        case 'Abs':
-        case 'ComplexAbs':
-          return [ops.abs(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Acos':
-          return [ops.acos(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Acosh':
-          return [ops.acosh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Asin':
-          return [ops.asin(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Asinh':
-          return [ops.asinh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Atan':
-          return [ops.atan(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Atan2':
-          return [ops.atan2(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('y', node, tensorMap, context) as Tensor)];
-        case 'Atanh':
-          return [ops.atanh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Ceil':
-          return [ops.ceil(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Complex':
-          return [ops.complex(
-              getParamValue('real', node, tensorMap, context) as Tensor,
-              getParamValue('imag', node, tensorMap, context) as Tensor)];
-        case 'Cos':
-          return [ops.cos(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Cosh':
-          return [ops.cosh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Elu':
-          return [ops.elu(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Erf':
-          return [ops.erf(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Exp':
-          return [ops.exp(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Expm1': {
-          return [ops.expm1(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Floor':
-          return [ops.floor(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Log':
-          return [ops.log(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Log1p': {
-          return [ops.log1p(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Imag':
-          return [ops.imag(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
+  function unaryOpExecutor(op: typeof ops.abs): InternalOpExecutor {
+    const x$ = builder.param('x');
+    return (ctx: ExecutionContext) => [op(ctx.getOpParamValue(x$))];
+  }
 
-        case 'Neg':
-          return [ops.neg(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Reciprocal': {
-          return [ops.reciprocal(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Real':
-          return [ops.real(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Relu':
-          return [ops.relu(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Round': {
-          return [ops.round(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Selu':
-          return [ops.selu(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Sigmoid':
-          return [ops.sigmoid(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Sin':
-          return [ops.sin(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Sign': {
-          return [ops.sign(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Sinh': {
-          return [ops.sinh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Softplus': {
-          return [ops.softplus(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Sqrt': {
-          return [ops.sqrt(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Square': {
-          return [ops.square(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Tanh': {
-          return [ops.tanh(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'Tan':
-          return [ops.tan(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'ClipByValue':
-          return [ops.clipByValue(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('clipValueMin', node, tensorMap, context) as number,
-              getParamValue('clipValueMax', node, tensorMap, context) as
-                  number)];
-        case 'Relu6':
-          return [ops.relu6(
-              getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Rsqrt':
-          return [ops.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
-        case 'Prod':
-          return [ops.prod(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('axes', node, tensorMap, context) as number[])];
-        case 'LeakyRelu':
-          return [ops.leakyRelu(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('alpha', node, tensorMap, context) as number)];
-        case 'Prelu':
-          return [ops.prelu(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('alpha', node, tensorMap, context) as Tensor)];
-        case 'IsNan':
-          return [ops.isNaN(getTensor(node.inputNames[0], tensorMap, context))];
-        case 'IsInf':
-          return [ops.isInf(getTensor(node.inputNames[0], tensorMap, context))];
-        case 'IsFinite':
-          return [ops.isFinite(
-              getTensor(node.inputNames[0], tensorMap, context))];
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
+  switch (node.op) {
+    case 'Abs':
+    case 'ComplexAbs':
+      return unaryOpExecutor(ops.abs);
+    case 'Acos':
+      return unaryOpExecutor(ops.acos);
+    case 'Acosh':
+      return unaryOpExecutor(ops.acosh);
+    case 'Asin':
+      return unaryOpExecutor(ops.asin);
+    case 'Asinh':
+      return unaryOpExecutor(ops.asinh);
+    case 'Atan':
+      return unaryOpExecutor(ops.atan);
+    case 'Atan2': {
+      const x$ = builder.param('x');
+      const y$ = builder.param('y');
+      return (ctx: ExecutionContext) => {
+        return [ops.atan2(ctx.getOpParamValue(x$), ctx.getOpParamValue(y$))];
       }
-    };
+    }
+    case 'Atanh':
+      return unaryOpExecutor(ops.atanh);
+    case 'Ceil':
+      return unaryOpExecutor(ops.ceil);
+    case 'Complex': {
+      const real$ = builder.param('real');
+      const imag$ = builder.param('imag');
+      return (ctx: ExecutionContext) => {
+        return [ops.complex(
+            ctx.getOpParamValue(real$), ctx.getOpParamValue(imag$))];
+      }
+    }
+    case 'Cos':
+      return unaryOpExecutor(ops.cos);
+    case 'Cosh':
+      return unaryOpExecutor(ops.cosh);
+    case 'Elu':
+      return unaryOpExecutor(ops.elu);
+    case 'Erf':
+      return unaryOpExecutor(ops.erf);
+    case 'Exp':
+      return unaryOpExecutor(ops.exp);
+    case 'Expm1':
+      return unaryOpExecutor(ops.expm1);
+    case 'Floor':
+      return unaryOpExecutor(ops.floor);
+    case 'Log':
+      return unaryOpExecutor(ops.log);
+    case 'Log1p':
+      return unaryOpExecutor(ops.log1p);
+    case 'Imag':
+      return unaryOpExecutor(ops.imag);
+
+    case 'Neg':
+      return unaryOpExecutor(ops.neg);
+    case 'Reciprocal':
+      return unaryOpExecutor(ops.reciprocal);
+    case 'Real':
+      return unaryOpExecutor(ops.real);
+    case 'Relu':
+      return unaryOpExecutor(ops.relu);
+    case 'Round':
+      return unaryOpExecutor(ops.round);
+    case 'Selu':
+      return unaryOpExecutor(ops.selu);
+    case 'Sigmoid':
+      return unaryOpExecutor(ops.sigmoid);
+    case 'Sin':
+      return unaryOpExecutor(ops.sin);
+    case 'Sign':
+      return unaryOpExecutor(ops.sign);
+    case 'Sinh':
+      return unaryOpExecutor(ops.sinh);
+    case 'Softplus':
+      return unaryOpExecutor(ops.softplus);
+    case 'Sqrt':
+      return unaryOpExecutor(ops.sqrt);
+    case 'Square':
+      return unaryOpExecutor(ops.square);
+    case 'Tanh':
+      return unaryOpExecutor(ops.tanh);
+    case 'Tan':
+      return unaryOpExecutor(ops.tan);
+    case 'ClipByValue': {
+      const x$ = builder.param('x');
+      const clipValueMin$ = builder.param('clipValueMin');
+      const clipValueMax$ = builder.param('clipValueMax');
+      return (ctx: ExecutionContext) => {
+        return [ops.clipByValue(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(clipValueMin$),
+            ctx.getOpParamValue(clipValueMax$))];
+      }
+    }
+    case 'Relu6':
+      return unaryOpExecutor(ops.relu6);
+    case 'Rsqrt':
+      return unaryOpExecutor(ops.rsqrt);
+    case 'Prod': {
+      const x$ = builder.param('x');
+      const axes$ = builder.param('axes');
+      return (ctx: ExecutionContext) => {
+        return [ops.prod(ctx.getOpParamValue(x$), ctx.getOpParamValue(axes$))];
+      }
+    }
+    case 'LeakyRelu': {
+      const x$ = builder.param('x');
+      const alpha$ = builder.param('alpha');
+      return (ctx: ExecutionContext) => {
+        return [ops.leakyRelu(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(alpha$))];
+      }
+    }
+    case 'Prelu': {
+      const x$ = builder.param('x');
+      const alpha$ = builder.param('alpha');
+      return (ctx: ExecutionContext) => {
+        return [ops.prelu(
+            ctx.getOpParamValue(x$), ctx.getOpParamValue(alpha$))];
+      }
+    }
+    case 'IsNan': {
+      const info = builder.inputInfo(node.inputNames[0]);
+      return (ctx: ExecutionContext) => {
+        return [ops.isNaN(ctx.getOpParamValue(info))];
+      }
+    }
+    case 'IsInf': {
+      const info = builder.inputInfo(node.inputNames[0]);
+      return (ctx: ExecutionContext) => {
+        return [ops.isInf(ctx.getOpParamValue(info))];
+      }
+    }
+    case 'IsFinite': {
+      const info = builder.inputInfo(node.inputNames[0]);
+      return (ctx: ExecutionContext) => {
+        return [ops.isFinite(ctx.getOpParamValue(info))];
+      }
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+}
 
 export const CATEGORY = 'basic_math';
