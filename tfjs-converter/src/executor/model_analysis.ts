@@ -250,7 +250,7 @@ function validateNodesExecutionOrder(
         }
         if (nodeNameToOrder.get(input.name) > nodeNameToOrder.get(node.name)) {
           throw new Error(`TopologicalSortError: Node ${
-              node.name} has smaller order than its input ${input.name}.`);
+              node.name} is scheduled to run before its input ${input.name}.`);
         }
       }
     }
