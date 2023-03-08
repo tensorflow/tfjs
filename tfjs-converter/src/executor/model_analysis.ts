@@ -168,7 +168,7 @@ export function getNodesInTopologicalOrder(
 
 /**
  * This is a helper function of `getNodesInTopologicalOrder`.
- * Build a set for all nodes reachable by at least one predefined node.
+ * Returns ordered nodes reachable by at least one predefined node.
  * This can help us filter out redundant nodes from the returned node list.
  * For example:
  * If we have four nodes with dependencies like this:
@@ -210,7 +210,7 @@ function filterPredefinedReachableNodes(
 
 /**
  * This is a helper function of `getNodesInTopologicalOrder`.
- * Validates property: given node `a` and node `b`, Order(a) > Order(b) if `a`
+ * Validates property: given nodes `a` and `b`, Order(a) > Order(b) if `a`
  * is a child of `b`. This function throws an error if validation fails.
  *
  * @param orderedNodes Graph nodes in execution order.
