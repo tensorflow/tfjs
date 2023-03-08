@@ -210,6 +210,12 @@ function filterPredefinedReachableNodes(
   return filteredOrderedNodes;
 }
 
+class NodesExecutionOrderError extends Error {
+  constructor(message: string) {
+    super(`NodesExecutionOrderError: ${message}`);
+  }
+}
+
 /**
  * This is a helper function of `getNodesInTopologicalOrder`.
  * Validates property: given nodes `a` and `b`, Order(a) > Order(b) if `a`
@@ -234,22 +240,22 @@ function validateNodesExecutionOrder(
   for (const node of orderedNodes) {
     for (const child of node.children.filter(willBeExecuted)) {
       if (!nodeNameToOrder.has(child.name)) {
-        throw new Error(`TopologicalSortError: Child ${child.name} of node ${
-            node.name} is unreachable.`);
+        throw new NodesExecutionOrderError(
+            `Child ${child.name} of node ${node.name} is unreachable.`);
       }
       if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
-        throw new Error(`TopologicalSortError: Node ${
+        throw new NodesExecutionOrderError(`Node ${
             node.name} is scheduled to run after its child ${child.name}.`);
       }
     }
     if (!isPredefined(node)) {
       for (const input of node.inputs) {
         if (!nodeNameToOrder.has(input.name)) {
-          throw new Error(`TopologicalSortError: Input ${input.name} of node ${
-              node.name} is unreachable.`);
+          throw new NodesExecutionOrderError(
+              `Input ${input.name} of node ${node.name} is unreachable.`);
         }
         if (nodeNameToOrder.get(input.name) > nodeNameToOrder.get(node.name)) {
-          throw new Error(`TopologicalSortError: Node ${
+          throw new NodesExecutionOrderError(`Node ${
               node.name} is scheduled to run before its input ${input.name}.`);
         }
       }
