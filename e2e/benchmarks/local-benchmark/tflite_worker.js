@@ -15,80 +15,64 @@
  * =============================================================================
  */
 
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core/");
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu/");
-// Load tfjs-tflite from jsdelivr because it correctly sets the
+// Load scripts from jsdelivr because it correctly sets the
 // "cross-origin-resource-policy" header.
+importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core/dist/tf-core.js');
+importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.js');
 importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.js');
+importScripts('https://cdn.jsdelivr.net/npm/comlink@latest/dist/umd/comlink.js');
 
-let tfliteModel, inputs;
+tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/');
 
-// Receive message from the main thread
-onmessage = async (message) => {
-  if (message) {
-    switch (message.data.actionType) {
-      case 'load':
-        if (tfliteModel) {
-          tfliteModel.modelRunner.cleanUp();
-        }
-        tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/');
-        let options = message.data.options;
-        // Load tflite model.
-        try {
-          tfliteModel = await tflite.loadTFLiteModel(message.data.url, options);
-          inputs = tfliteModel.inputs;
-          postMessage('OK');                
-        } catch(e) {
-          postMessage({ error: e.message });
-        }
-        break;
-      case 'getInputs':
-        postMessage(inputs);
-        break;
-      case 'getProfilingResults':
-        postMessage(tfliteModel.getProfilingResults());
-        break;
-      case 'predict':
+const tfliteWorkerAPI = {
+  async loadTFLiteModel(modelPath, options) {
+    const model = await tflite.loadTFLiteModel(modelPath, options);
+
+    const wrapped = {
+      inputs: model.inputs,
+      getProfilingResults() {
+        return model.getProfilingResults();
+      },
+      cleanUp() {
+        model.modelRunner.cleanUp();
+      },
+      async predict(inputData) {
         const inputTensorArray = [];
         let outputTensor;
-        try {
-          let inputData = message.data.inputData;
-          if (!inputData[0].length) {
-            // Single input, move it into an arrary
-            inputData = [inputData];
-          }
-          for (let i = 0; i< inputs.length; i++) {
-            const inputTensor = tf.tensor(
-                inputData[i], inputs[i].shape, inputs[i].dtype);
-            inputTensorArray.push(inputTensor);
-          }
-          outputTensor = tfliteModel.predict(inputTensorArray);
-          if (tfliteModel.outputs.length > 1) {
-            // Multiple outputs
-            let outputData = [];
-            for (let tensorName in outputTensor) {
-              outputData.push(outputTensor[tensorName].dataSync());
-            }
-          } else {
-            // Single output
-            const outputData = outputTensor.dataSync();
-          }
-          // We encourage user processing output data in worker thread
-          // rather than posting output data to main thread directly, as
-          // which would bring much overhead if the output size is huge.
-          // From this perspective, we don't post output data to main thread
-          // in this benchmark.
-          postMessage('OK');
-        } catch(e) {
-          postMessage({ error: e.message });
-        } finally {
-          // dispose input and output tensors
-          tf.dispose(inputTensorArray);
-          tf.dispose(outputTensor);
+        if (!inputData[0].length) {
+          // Single input, move it into an arrary
+          inputData = [inputData];
         }
-        break;
-      default:
-        break;
-    }
-  }
+        for (let i = 0; i< this.inputs.length; i++) {
+          const inputTensor = tf.tensor(
+              inputData[i], this.inputs[i].shape, this.inputs[i].dtype);
+          inputTensorArray.push(inputTensor);
+        }
+        outputTensor = model.predict(inputTensorArray);
+        if (model.outputs.length > 1) {
+          // Multiple outputs
+          let outputData = [];
+          for (let tensorName in outputTensor) {
+            outputData.push(outputTensor[tensorName].dataSync());
+          }
+        } else {
+          // Single output
+          const outputData = outputTensor.dataSync();
+        }
+        // dispose input and output tensors
+        tf.dispose(inputTensorArray);
+        tf.dispose(outputTensor);
+        // We encourage user processing output data in worker thread
+        // rather than posting output data to main thread directly, as
+        // which would bring much overhead if the output size is huge.
+        // From this perspective, we don't post output data to main thread
+        // in this benchmark.
+        return 'OK';
+      }
+    };
+
+    return Comlink.proxy(wrapped);
+  },
 };
+
+Comlink.expose(tfliteWorkerAPI);

@@ -78,8 +78,6 @@ function predictFunction(input) {
   return model => model.predict(input);
 }
 
-let tfliteWorker;
-
 const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
@@ -93,16 +91,18 @@ const benchmarks = {
         enableProfiling = false, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
           modelArchitecture}_224/classification/5/metadata/1`;
-      await tfliteModel.load(url, {enableProfiling});
+      return tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
       const inputData = input.dataSync();
       if (typeof isTflite === 'function' && isTflite()) {
         return async () => {
-          // Do copy for 'inputData' in each predict as its buffer
+          // Do copy from 'inputData' in each predict as its buffer
           // will be detached after transferring to worker.
-          return await tfliteModel.predict(inputData.slice(0));
+          const input = inputData.slice(0);
+          return await tfliteModel.predict(
+              Comlink.transfer(input, [input.buffer]));
         };
       } else {
         return predictFunction(input);
@@ -135,7 +135,7 @@ const benchmarks = {
     loadTflite: async (enableProfiling = false) => {
       const url =
           'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
-      await tfliteModel.load(url, {enableProfiling});
+      return tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
@@ -144,7 +144,9 @@ const benchmarks = {
         return async () => {
           // Do copy for 'inputData' in each predict as its buffer
           // will be detached after transferring to worker.
-          return await tfliteModel.predict(inputData.slice(0));
+          const input = inputData.slice(0);
+          return await tfliteModel.predict(
+              Comlink.transfer(input, [input.buffer]));
         };
       } else {
         return predictFunction(input);
@@ -516,32 +518,33 @@ const benchmarks = {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     loadTflite: async (enableProfiling = false) => {
-      await tfliteModel.load(state.modelUrl, {enableProfiling});
+      return tfliteWorkerAPI.loadTFLiteModel(state.modelUrl, {enableProfiling});
     },
     predictFunc: () => {
       return async (model, customInput) => {
-        let inferenceInput, inferenceOutput;
+        let inferenceInput;
         try {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
           if (typeof isTflite === 'function' && isTflite()) {
             const inputDataArray = [];
-            if (inferenceInput instanceof Array) {
-              for (let tensor of inferenceInput) {
-                const inputData = tensor.dataSync();
-                inputDataArray.push(inputData.slice(0));
-              }
-            } else {
-              const inputData = inferenceInput.dataSync();
+            inferenceInput = inferenceInput instanceof
+                Array ? inferenceInput : [inferenceInput];
+            for (let tensor of inferenceInput) {
+              const inputData = tensor.dataSync();
+              // Do copy from 'inputData' in each predict as its buffer
+              // will be detached after transferring to worker.
               inputDataArray.push(inputData.slice(0));
             }
-            inferenceOutput = await tfliteModel.predict(inputDataArray);
+
+            const buffer = inputDataArray.map(data => data.buffer);
+            return await tfliteModel.predict(
+                Comlink.transfer(inputDataArray, buffer));
           } else {
             const predict = getPredictFnForModel(model, inferenceInput);
-            inferenceOutput = await predict();
+            return await predict();
           }
-          return inferenceOutput;
         } finally {
           // dispose input tensors
           if (!customInput && inferenceInput) {
@@ -666,56 +669,4 @@ async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
   const state = {};
   return loadModelByUrlWithState(modelUrl, loadOptions, state);
-}
-
-// We move all operations of tflite backend in a worker thread
-// to prepare for WebNN external delegate integration. As WebNN
-// spec restricts its sync API in worker thread,
-// https://webmachinelearning.github.io/webnn/
-const tfliteModel = {
-  'load': async (url, options) => {
-    await handleTfliteWorker(
-      { actionType: 'load', url, options });
-  },
-  'getInputs': async () => {
-    return await handleTfliteWorker({ actionType: 'getInputs' });
-  },
-  'getProfilingResults': async () => {
-    return await handleTfliteWorker(
-      { actionType: 'getProfilingResults' });
-  },
-  'predict': async (inputData) => {
-    return await handleTfliteWorker({ actionType: 'predict', inputData });
-  }
-}
-
-async function handleTfliteWorker(message) {
-  if (!tfliteWorker) {
-    tfliteWorker = new Worker('tflite_worker.js');
-  }
-
-  if (message.actionType == 'predict') {
-    const inputData = message.inputData;
-    if (inputData[0].length !== undefined) {
-      // Multiple inputs
-      tfliteWorker.postMessage(message,
-          inputData.map(input => { return input.buffer; }));
-    } else {
-      // Single input
-      tfliteWorker.postMessage(message, [inputData.buffer]);
-    }
-  } else {
-    tfliteWorker.postMessage(message);
-  }
-
-  const result = await new Promise(resolve => {
-    tfliteWorker.onmessage = event => {
-      resolve(event.data);
-    };
-  });
-  if (result.error) {
-    throw new Error(result.error);
-  } else {
-    return result;
-  }
 }

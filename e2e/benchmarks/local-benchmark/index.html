@@ -307,7 +307,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, predict, chartWidth;
+    let model, tfliteModel, worker, tfliteWorkerAPI, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -442,7 +442,7 @@ limitations under the License.
       }
       let needInputShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
-      const inputs = isTflite() ? await tfliteModel.getInputs() : model.inputs;
+      const inputs = isTflite() ? await tfliteModel.inputs : model.inputs;
       if (inputs == null) {
         modelInputsElement.style.display = 'none';
       } else {
@@ -549,7 +549,7 @@ limitations under the License.
         model = await benchmark.load(inputSize, state.architecture, state.inputType);
       }
       state.inputs = [];
-      const inputs = isTflite() ? await tfliteModel.getInputs() : model.inputs;
+      const inputs = isTflite() ? await tfliteModel.inputs : model.inputs;
       if (inputs) {
         // construct the input state for the model
         for (let modelInputIndex = 0; modelInputIndex < inputs.length; modelInputIndex++) {
@@ -1002,10 +1002,17 @@ limitations under the License.
     }
 
     async function loadTfliteModel(enableProfiling = false) {
+      if (!worker) {
+        worker = new Worker('./tflite_worker.js');
+        tfliteWorkerAPI = Comlink.wrap(worker);
+      }
+      if (tfliteModel) {
+        await tfliteModel.cleanUp();
+      }
       state.shouldReloadTfliteModel = false;
       const benchmark = benchmarks[state.benchmark];
 
-      await benchmark.loadTflite(enableProfiling, state.architecture);
+      tfliteModel = await benchmark.loadTflite(enableProfiling, state.architecture);
     }
 
     function updateModelsDropdown(newValues) {

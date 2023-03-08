@@ -61,6 +61,7 @@ async function loadTFJS(localBuild) {
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
+    'https://cdn.jsdelivr.net/npm/comlink@latest/dist/umd/comlink.js',
     '../model_config.js',
     '../benchmark_util.js',
     './util.js',
