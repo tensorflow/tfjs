@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+import {GPGPUContext} from './gpgpu_context';
+import {GPGPUBinary, TensorData} from './gpgpu_math';
+
 // TODO(nsthorat): Move these to the webgl official typings.
 export interface WebGL2DisjointQueryTimerExtension {
   TIME_ELAPSED_EXT: number;
@@ -47,4 +50,12 @@ export interface WebGLContextAttributes {
 
 export interface WebGLParallelCompilationExtension {
   COMPLETION_STATUS_KHR: number;
+}
+
+export interface GLCommand {
+  gpgpu: GPGPUContext;
+  binary: GPGPUBinary;
+  inputs: TensorData[];
+  output: TensorData;
+  customUniformValues?: number[][];
 }

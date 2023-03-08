@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {DataType, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, engine, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {arraysEqual} from '@tensorflow/tfjs-core/dist/util_base';
 
 import {ISignatureDef} from '../data/compiled_api';
 import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
@@ -48,6 +49,9 @@ export class GraphExecutor implements FunctionExecutor {
   private _resourceManager: ResourceManager;
   private clonedTensorsMap: NamedTensorsMap;
   private keepIntermediateTensors = false;
+  private placeHolderInputs: NamedTensorMap;
+  private placeHolderOutputs: Tensor[];
+  private onHoldOutputs: string[];
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -231,7 +235,25 @@ export class GraphExecutor implements FunctionExecutor {
    */
   execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
     // Dispose any tensors from a prior run to avoid leaking them.
-    this.disposeIntermediateTensors();
+
+    if (this.placeHolderInputs != null &&
+        arraysEqual(outputs, this.onHoldOutputs)) {
+      return this.replay(inputs);
+    }
+
+    if (engine().backend.isRecordSupported()) {
+      engine().clearOnHoldTensors();
+      engine().backend.clearRecord();
+      console.log('Start Recording!!');
+      Object.values(inputs).forEach(
+          e => engine().backend.setupTensor(e.dataId));
+      this.placeHolderInputs = inputs;
+      this.onHoldOutputs = outputs;
+      env().set('RECORD', true);
+    }
+    if (!env().getBool('RECORD')) {
+      this.disposeIntermediateTensors();
+    }
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -267,7 +289,7 @@ export class GraphExecutor implements FunctionExecutor {
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
 
-    return tidy(() => {
+    const exe = () => {
       const context = new ExecutionContext(
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap, this.parseNodeNameCache);
@@ -304,18 +326,47 @@ export class GraphExecutor implements FunctionExecutor {
         if (this.keepIntermediateTensors) {
           this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
         }
-        this.checkTensorForDisposalWithNodeLiveUntilInfo(
-            node, tensorsMap, tensorsToKeep, outputNodeNameSet,
-            nodeLiveUntilMap.get(node));
+        if (!env().getBool('RECORD')) {
+          this.checkTensorForDisposalWithNodeLiveUntilInfo(
+              node, tensorsMap, tensorsToKeep, outputNodeNameSet,
+              nodeLiveUntilMap.get(node));
+        }
       }
 
       // dispose the context for the root executor
       if (this.parent == null) {
         context.dispose(tensorsToKeep);
       }
-
       return outputs.map(name => getTensor(name, tensorsMap, context));
-    });
+      ;
+    };
+
+    if (env().getBool('RECORD')) {
+      const outputTensors = exe();
+      env().set('RECORD', false);
+      this.placeHolderOutputs = outputTensors;
+      return outputTensors;
+    }
+    return tidy(exe);
+  }
+
+
+  public cleanOutputs() {
+    for (const output of this.placeHolderOutputs) {
+      engine().backend.cleanTensor(output.dataId);
+    }
+  }
+
+  public replay(inputs: NamedTensorMap) {
+    this.cleanOutputs();
+    for (const prop in inputs) {
+      if (this.placeHolderInputs.hasOwnProperty(prop)) {
+        engine().backend.bindInputToPlaceHolder(
+            inputs[prop].dataId, this.placeHolderInputs[prop].dataId)
+      }
+    }
+    engine().backend.replay();
+    return this.placeHolderOutputs;
   }
 
   private getFrozenTensorIds(tensorMap: NamedTensorsMap): Set<number> {

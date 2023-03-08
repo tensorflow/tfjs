@@ -153,6 +153,25 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   dispose(): void {
     return notYetImplemented('dispose');
   }
+  isRecordAvailable(): boolean {
+    return false;
+  }
+  isRecordSupported(): boolean {
+    return false;
+  }
+  replay(): void {
+    return notYetImplemented('replay');
+  }
+  clearRecord(): void {
+    return notYetImplemented('clearRecord');
+  }
+  bindInputToPlaceHolder(inId: DataId, placeholderId: DataId): void {
+    return notYetImplemented('bindInputToPlaceHolder');
+  }
+  cleanTensor(tensorId: DataId): void {
+    return notYetImplemented('cleanTensor');
+  }
+  setupTensor(tensorId: DataId): void {}
 }
 
 function notYetImplemented(kernelName: string): never {

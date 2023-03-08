@@ -20,6 +20,8 @@ import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
+import {arraysEqual} from '@tensorflow/tfjs-core/dist/util_base';
+
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -40,6 +42,7 @@ import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
+import {GLCommand} from './webgl_types';
 import * as webgl_util from './webgl_util';
 
 const whereImpl = kernel_impls.whereImpl;
@@ -140,6 +143,8 @@ export class MathBackendWebGL extends KernelBackend {
   private gpgpuCreatedLocally: boolean;
   private numMBBeforeWarning: number;
   private warnedAboutMemory = false;
+  public recordedGLCommands: GLCommand[] = [];
+  public onHoldTensors: DataId[] = [];
 
   constructor(gpuResource?: GPGPUContext|HTMLCanvasElement|OffscreenCanvas) {
     super();
@@ -170,6 +175,54 @@ export class MathBackendWebGL extends KernelBackend {
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
     this.texData = new DataStorage(this, engine());
+  }
+
+  public override bindInputToPlaceHolder(inId: DataId, placeholderId: DataId) {
+    const inData = this.texData.get(inId);
+    if (inData.texture == null) {
+      this.uploadToGPU(inId);
+    }
+    const placeholder = this.texData.get(placeholderId);
+    if (!arraysEqual(placeholder.shape, inData.shape)) {
+      throw new Error(`Input does not match target placeholder shape ${
+          inData.shape} : ${placeholder.shape}`);
+    }
+    if (placeholder.texture != null) {
+      if (arraysEqual(placeholder.texture.texShape, inData.texture.texShape)) {
+        placeholder.texture.texture = inData.texture.texture;
+      } else {
+        throw new Error(`Input does not match target placeholder texShape ${
+            inData.texture.texShape} : ${placeholder.texture.texShape}`);
+      }
+    }
+  }
+
+  public override replay() {
+    for (const command of this.recordedGLCommands) {
+      gpgpu_math.runProgram(
+          command.gpgpu, command.binary, command.inputs, command.output,
+          command.customUniformValues);
+    }
+  }
+
+  public override clearRecord() {
+    this.recordedGLCommands = [];
+    for (const datId of this.onHoldTensors) {
+      this.disposeData(datId);
+    }
+  }
+
+  public override isRecordSupported(): boolean {
+    return true;
+  }
+
+  public override cleanTensor(tensorId: DataId): void {
+    const data = this.getDataInfo(tensorId);
+    data.values = null;
+  }
+
+  public override isRecordAvailable(): boolean {
+    return this.recordedGLCommands.length > 0;
   }
 
   override numDataIds() {
@@ -650,68 +703,73 @@ export class MathBackendWebGL extends KernelBackend {
    * @oaram force Optional, remove the data regardless of refCount
    */
   override disposeData(dataId: DataId, force = false): boolean {
-    if (this.pendingDisposal.has(dataId)) {
-      return false;
-    }
+    // if (env().getBool('RECORD')) {
+    //   this.onHoldTensors.push(dataId);
+    //   return false;
+    // }
+    // if (this.pendingDisposal.has(dataId)) {
+    //   return false;
+    // }
 
-    // No-op if already disposed.
-    if (!this.texData.has(dataId)) {
-      return true;
-    }
+    // // No-op if already disposed.
+    // if (!this.texData.has(dataId)) {
+    //   return true;
+    // }
 
-    // if force flag is set, change refCount to 0, this would ensure disposal
-    // when added to the pendingDisposal queue. Memory may or may not be
-    // released, which also depends on dataRefCount, see `releaseGPU`.
-    if (force) {
-      this.texData.get(dataId).refCount = 0;
-    } else {
-      this.texData.get(dataId).refCount--;
-    }
+    // // if force flag is set, change refCount to 0, this would ensure disposal
+    // // when added to the pendingDisposal queue. Memory may or may not be
+    // // released, which also depends on dataRefCount, see `releaseGPU`.
+    // if (force) {
+    //   this.texData.get(dataId).refCount = 0;
+    // } else {
+    //   this.texData.get(dataId).refCount--;
+    // }
 
-    if (!force && this.texData.get(dataId).refCount > 0) {
-      return false;
-    }
+    // if (!force && this.texData.get(dataId).refCount > 0) {
+    //   return false;
+    // }
 
-    if (this.pendingRead.has(dataId)) {
-      this.pendingDisposal.add(dataId);
-      this.pendingDeletes++;
-      return false;
-    }
+    // if (this.pendingRead.has(dataId)) {
+    //   this.pendingDisposal.add(dataId);
+    //   this.pendingDeletes++;
+    //   return false;
+    // }
 
-    this.releaseGPUData(dataId);
-    const {complexTensorInfos} = this.texData.get(dataId);
-    if (complexTensorInfos != null) {
-      this.disposeData(complexTensorInfos.real.dataId, force);
-      this.disposeData(complexTensorInfos.imag.dataId, force);
-    }
+    // this.releaseGPUData(dataId);
+    // const {complexTensorInfos} = this.texData.get(dataId);
+    // if (complexTensorInfos != null) {
+    //   this.disposeData(complexTensorInfos.real.dataId, force);
+    //   this.disposeData(complexTensorInfos.imag.dataId, force);
+    // }
 
-    this.texData.delete(dataId);
+    // this.texData.delete(dataId);
 
     return true;
   }
 
-  private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice} =
-        this.texData.get(dataId);
-    const key = slice && slice.origDataId || dataId;
-    const refCount = this.dataRefCount.get(key);
+  // private releaseGPUData(dataId: DataId): void {
+  //   const {texture, dtype, texShape, usage, isPacked, slice} =
+  //       this.texData.get(dataId);
+  //   const key = slice && slice.origDataId || dataId;
+  //   const refCount = this.dataRefCount.get(key);
 
-    if (refCount > 1) {
-      this.dataRefCount.set(key, refCount - 1);
-    } else {
-      this.dataRefCount.delete(key);
-      if (texture != null) {
-        this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
-      }
-    }
+  //   if (refCount > 1) {
+  //     this.dataRefCount.set(key, refCount - 1);
+  //   } else {
+  //     this.dataRefCount.delete(key);
+  //     if (texture != null) {
+  //       this.numBytesInGPU -= this.computeBytes(texShape, dtype);
+  //       this.textureManager.releaseTexture(texture, texShape, usage,
+  //       isPacked);
+  //     }
+  //   }
 
-    const texData = this.texData.get(dataId);
-    texData.texture = null;
-    texData.texShape = null;
-    texData.isPacked = false;
-    texData.slice = null;
-  }
+  //   const texData = this.texData.get(dataId);
+  //   texData.texture = null;
+  //   texData.texShape = null;
+  //   texData.isPacked = false;
+  //   texData.slice = null;
+  // }
 
   getTexture(dataId: DataId): WebGLTexture {
     this.uploadToGPU(dataId);
@@ -983,6 +1041,15 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     if (!env().get('ENGINE_COMPILE_ONLY')) {
+      if (env().getBool('RECORD')) {
+        this.recordedGLCommands.push({
+          gpgpu: this.gpgpu,
+          binary,
+          inputs: inputsData,
+          output: outputData,
+          customUniformValues
+        })
+      }
       gpgpu_math.runProgram(
           this.gpgpu, binary, inputsData, outputData, customUniformValues);
     }
@@ -1091,6 +1158,10 @@ export class MathBackendWebGL extends KernelBackend {
   /** Returns the smallest representable number.  */
   override epsilon(): number {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
+  }
+
+  public override setupTensor(dataId: DataId): void {
+    this.uploadToGPU(dataId);
   }
 
   uploadToGPU(dataId: DataId): void {

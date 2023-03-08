@@ -88,3 +88,6 @@ ENV.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
 
 /** Whether to use setTimeoutCustom */
 ENV.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);
+
+/** Whether to use setTimeoutCustom */
+ENV.registerFlag('RECORD', () => false);
