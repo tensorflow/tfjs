@@ -188,6 +188,8 @@ function filterPredefinedReachableNodes(
   // TODO: Filter out more nodes when >=2 nodes are predefined in a path.
   const stack = predefinedNodes.map((node) => node.name);
   const predefinedReachableNodeNames = new Set(stack);
+  // Perform a DFS starting from the set of all predefined nodes
+  // to find the set of all nodes reachable from the predefined nodes.
   while (stack.length > 0) {
     const nodeName = stack.pop();
     const node = nameToNode.get(nodeName)!;
