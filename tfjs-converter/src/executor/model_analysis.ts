@@ -261,8 +261,8 @@ function validateNodesExecutionOrder(
  *
  * @returns A map from node name to disposable node names after its
  *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates
- * all nodes which their intermediate tensors should be disposed after `x`
- * being executed.
+ *     all nodes which their intermediate tensors should be disposed after `x`
+ *     being executed.
  */
 export function getNodeLiveUntilMap(orderedNodes: Node[]):
     Map<string, string[]> {
