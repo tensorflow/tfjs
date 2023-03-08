@@ -233,7 +233,7 @@ function validateNodesExecutionOrder(
     for (const child of node.children.filter(willBeExecuted)) {
       if (!nodeNameToOrder.has(child.name)) {
         throw new Error(`TopologicalSortError: Child ${child.name} of node ${
-            node.name}'s is unreachable.`);
+            node.name} is unreachable.`);
       }
       if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
         throw new Error(`TopologicalSortError: Node ${
