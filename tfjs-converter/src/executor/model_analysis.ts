@@ -239,7 +239,7 @@ function validateNodesExecutionOrder(
       }
       if (nodeNameToOrder.get(node.name) > nodeNameToOrder.get(child.name)) {
         throw new Error(`TopologicalSortError: Node ${
-            node.name} has greater order than its child ${child.name}.`);
+            node.name} is scheduled to run after its child ${child.name}.`);
       }
     }
     if (!isPredefined(node)) {
