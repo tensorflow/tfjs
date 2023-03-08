@@ -91,7 +91,7 @@ const benchmarks = {
         enableProfiling = false, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
           modelArchitecture}_224/classification/5/metadata/1`;
-      return tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
@@ -135,7 +135,7 @@ const benchmarks = {
     loadTflite: async (enableProfiling = false) => {
       const url =
           'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
-      return tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
@@ -518,7 +518,7 @@ const benchmarks = {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     loadTflite: async (enableProfiling = false) => {
-      return tfliteWorkerAPI.loadTFLiteModel(state.modelUrl, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(state.modelUrl, {enableProfiling});
     },
     predictFunc: () => {
       return async (model, customInput) => {
