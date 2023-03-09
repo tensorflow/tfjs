@@ -17,6 +17,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
+import {createNumberAttr} from '../operations/executors/test_helper';
 import {createTensorAttr} from '../operations/executors/test_helper';
 import {Graph, Node} from '../operations/types';
 
@@ -175,6 +176,68 @@ describe('GraphExecutor', () => {
           const result =
               executor.execute({intermediate: intermediateTensor}, ['output']);
           tfc.test_util.expectArraysClose(await result[0].data(), [3.0]);
+        });
+
+        it('should skip noop', async () => {
+          const inputNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'input',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+
+          const noopNode: Node = {
+            inputNames: ['input'],
+            inputs: [inputNode],
+            children: [],
+            name: 'noop',
+            op: 'NoOp',
+            category: 'graph',
+            inputParams: {},
+            attrParams: {}
+          };
+
+          const packNode: Node = {
+            // Even though `noop` is an input, it should be excluded during
+            // execution
+            inputNames: ['input', 'noop'],
+            inputs: [inputNode, noopNode],
+            children: [],
+            name: 'pack',
+            op: 'Pack',
+            category: 'slice_join',
+            inputParams: {
+              tensors: { // this range matches all the tensors in the input
+                'type': 'tensors',
+                'inputIndexStart': 0,
+                'inputIndexEnd': 0,
+              }
+            },
+            attrParams: {axis: createNumberAttr(0)}
+          };
+          inputNode.children.push(noopNode, packNode);
+          noopNode.children.push(packNode);
+
+          const graph: Graph = {
+            inputs: [inputNode],
+            nodes: {
+              'input': inputNode,
+              'noop': noopNode,
+              'pack': packNode,
+            },
+            outputs: [packNode],
+            placeholders: [inputNode],
+            weights: []
+          };
+
+          const executor = new GraphExecutor(graph);
+          const inputTensor = tfc.tensor1d([123, 456]);
+          const result = executor.execute({input: inputTensor}, ['pack']);
+          tfc.test_util.expectArraysClose(await result[0].data(), [123, 456]);
         });
 
         describe('strict input check', () => {
