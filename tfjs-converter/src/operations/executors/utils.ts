@@ -44,8 +44,8 @@ export function getParamValue(
       // during execution. Perhaps have different sets of children, one for
       // control dependencies and another for real dependencies.
       const inputs = node.inputs.slice(start, end);
-      const inputNames = inputs.filter(node => node.op !== 'NoOp')
-        .map(node => node.name);
+      const inputNames = node.inputNames.slice(start, end)
+        .filter((_name, index) => inputs[index]?.op !== 'NoOp');
 
       return inputNames.map(
           name => getTensor(name, tensorMap, context, resourceManager));
