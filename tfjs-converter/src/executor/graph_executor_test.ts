@@ -38,11 +38,7 @@ const SIGNATURE: tensorflow.ISignatureDef = {
     x: {name: 'input', dtype: tensorflow.DataType.DT_INT32, tensorShape: {}}
   },
   outputs: {
-    add: {
-      name: 'output',
-      dtype: tensorflow.DataType.DT_FLOAT,
-      tensorShape: {}
-    }
+    add: {name: 'output', dtype: tensorflow.DataType.DT_FLOAT, tensorShape: {}}
   }
 };
 
@@ -482,11 +478,8 @@ describe('GraphExecutor', () => {
             },
             inputParams: {
               'cond': {'type': 'tensor', 'inputIndexStart': 0},
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 1,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 1, 'inputIndexEnd': 0}
             }
           };
           inputNode.children.push(outputNode);
@@ -603,11 +596,8 @@ describe('GraphExecutor', () => {
               'body': {'value': 'bodyFunc', 'type': 'func'}
             },
             inputParams: {
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 0,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 0, 'inputIndexEnd': 0}
             }
           };
           inputNode2.children.push(outputNode);
