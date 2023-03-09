@@ -27,7 +27,7 @@ declare module '../../tensor' {
 }
 
 getGlobalTensorClass().prototype.gather = function<T extends Tensor>(
-    this: T, indices: Tensor|TensorLike, axis?: number): T {
+    this: T, indices: Tensor|TensorLike, axis?: number, batchDims?: number): T {
   this.throwIfDisposed();
-  return gather(this, indices, axis);
+  return gather(this, indices, axis, batchDims);
 };
