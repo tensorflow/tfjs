@@ -24,17 +24,6 @@
 
 namespace tfjs::wasm {
 
-namespace {
-
-inline int AddUntilNonNegative(int v, int d) {
-  if (v >= 0) {
-    return v;
-  }
-  return (v % d + d) % d;
-}
-
-}  // namespace
-
 struct NDHWCConv3DInfo {
   int batch_size;
   int in_depth;
@@ -85,6 +74,7 @@ struct NDHWCConv3DInfo {
   inline int int_size() const { return in_shape().size(); }
   inline int out_size() const { return out_shape().size(); }
 };
+
 template <typename IN, typename OUT>
 inline void NDHWCConv3DImpl(const IN* x_buf, const IN* filter_buf, OUT* out_buf,
                             const NDHWCConv3DInfo& info) {
@@ -123,6 +113,109 @@ inline void NDHWCConv3DImpl(const IN* x_buf, const IN* filter_buf, OUT* out_buf,
                 }
               }
             }
+          }
+        }
+      }
+    }
+  }
+}
+
+namespace {
+
+inline DivCeil(int a, int b) { return (a / b) + static_cast<int>(a % b != 0); }
+inline DivFloor(int a, int b) { return a / b; }
+
+}  // namespace
+
+template <typename IN, typename OUT>
+inline void NDHWCConv3DBackpropFilterV2Impl(const IN* x_buf, const OUT* dy_buf,
+                                            IN* dw_buf,
+                                            const NDHWCConv3DInfo& info) {
+  for (int wf = 0; wf < info.filter_depth; ++wf) {
+    int yf_min = std::max(0, DivCeil(info.pad_front - wf, info.stride_depth));
+    int yf_max = std::min(
+        info.out_depth,
+        DivFloor(info.in_depth + info.pad_front - wf, info.stride_depth));
+
+    for (int wr = 0; wr < info.filter_height; ++wr) {
+      int yr_min = std::max(0, DivCeil(info.pad_top - wr, info.stride_height));
+      int yr_max = std::min(
+          info.out_height,
+          DivFloor(info.in_height + info.pad_top - wr, info.stride_height));
+
+      for (int wc = 0; wc < info.filter_width; ++wc) {
+        int yc_min =
+            std::max(0, DivCeil(info.pad_left - wc, info.stride_width));
+        int yc_max =
+            std::min(info.out_width, info.in_width + info.pad_left - wc,
+                     info.stride_width);
+
+        for (int d1 = 0; d1 < info.in_channels; ++d1) {
+          for (int d2 = 0; d2 < info.out_channels; ++d2) {
+            OUT dot_prod = 0;
+            for (int b = 0; b < info.batch_size; ++b) {
+              for (int yf = yf_min; yf < yf_max; ++yf) {
+                for (int yr = yr_min; yr < yr_max; ++yr) {
+                  for (int yc = yc_min; yc < yc_max; ++yc) {
+                    int xf = wf + yf * info.stride_depth - info.pad_front;
+                    int xr = wr + yr * info.stride_height - info.pad_top;
+                    int xc = wc + yc * info.stride_width - info.pad_left;
+                    dot_prod += x_buf[info.in_offset(b, xf, xr, xc, d1)] *
+                                dy_buf[info.out_offset(b, yf, yr, yc, d2)];
+                  }
+                }
+              }
+            }
+            dw_buf[info.filter_offset(wf, wr, wc, d1, d2)] = dot_prod;
+          }
+        }
+      }
+    }
+  }
+}
+
+template <typename IN, typename OUT>
+inline void NDHWCConv3DBackpropFilterV2Impl(const IN* filter_buf,
+                                            const OUT* dy_buf, IN* dx_buf,
+                                            const NDHWCConv3DInfo& info) {
+  for (int b = 0; b < info.batch_size; ++b) {
+    for (int d1 = 0; d1 < info.in_channels; ++d1) {
+      for (int wf = 0; wf < info.filter_depth; ++wf) {
+        int yf_min =
+            std::max(0, DivCeil(info.pad_front - wf, info.stride_depth));
+        int yf_max = std::min(
+            info.out_depth,
+            DivFloor(info.in_depth + info.pad_front - wf, info.stride_depth));
+
+        for (int wr = 0; wr < info.filter_height; ++wr) {
+          int yr_min =
+              std::max(0, DivCeil(info.pad_top - wr, info.stride_height));
+          int yr_max = std::min(
+              info.out_height,
+              DivFloor(info.in_height + info.pad_top - wr, info.stride_height));
+
+          for (int wc = 0; wc < info.filter_width; ++wc) {
+            int yc_min =
+                std::max(0, DivCeil(info.pad_left - wc, info.stride_width));
+            int yc_max =
+                std::min(info.out_width, info.in_width + info.pad_left - wc,
+                         info.stride_width);
+
+            for (int d2 = 0; d2 < info.out_channels; ++d2) {
+              OUT dot_prod = 0;
+              for (int yf = yf_min; yf < yf_max; ++yf) {
+                for (int yr = yr_min; yr < yr_max; ++yr) {
+                  for (int yc = yc_min; yc < yc_max; ++yc) {
+                    int xf = wf + yf * info.stride_depth - info.pad_front;
+                    int xr = wr + yr * info.stride_height - info.pad_top;
+                    int xc = wc + yc * info.stride_width - info.pad_left;
+                    dot_prod += x_buf[info.in_offset(b, xf, xr, xc, d1)] *
+                                dy_buf[info.out_offset(b, yf, yr, yc, d2)];
+                  }
+                }
+              }
+            }
+            dw_buf[info.filter_offset(wf, wr, wc, d1, d2)] = dot_prod;
           }
         }
       }
