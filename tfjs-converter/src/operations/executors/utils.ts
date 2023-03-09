@@ -38,9 +38,16 @@ export function getParamValue(
           node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
-      const inputs = node.inputNames.slice(start, end);
+      // TODO(mattSoulanille): This filters out NoOp nodes during execution, but
+      // these should really never be in the execution graph in the first place.
+      // They're necessary for ordering the graph, but should not be visible
+      // during execution. Perhaps have different sets of children, one for
+      // control dependencies and another for real dependencies.
+      const inputs = node.inputs.slice(start, end);
+      const inputNames = inputs.filter(node => node.op !== 'NoOp')
+        .map(node => node.name);
 
-      return inputs.map(
+      return inputNames.map(
           name => getTensor(name, tensorMap, context, resourceManager));
     }
     const tensor = getTensor(
