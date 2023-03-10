@@ -22,12 +22,13 @@ import {Rank, TensorLike} from '../../types';
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     gather<T extends Tensor>(
-        this: T, indices: Tensor|TensorLike, axis?: number): T;
+        this: T, indices: Tensor|TensorLike, axis?: number,
+        batchDims?: number): T;
   }
 }
 
 getGlobalTensorClass().prototype.gather = function<T extends Tensor>(
-    this: T, indices: Tensor|TensorLike, axis?: number): T {
+    this: T, indices: Tensor|TensorLike, axis?: number, batchDims?: number): T {
   this.throwIfDisposed();
-  return gather(this, indices, axis);
+  return gather(this, indices, axis, batchDims);
 };
