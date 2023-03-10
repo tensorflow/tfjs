@@ -407,6 +407,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'softplus '},
   {include: 'linspace'},
   {include: 'bincount'},
+  {include: 'multinomial'},
 ];
 
 const customInclude = (testName: string) => {

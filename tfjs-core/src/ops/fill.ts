@@ -32,12 +32,13 @@ import {assertNonNegativeIntegerDimensions} from '../util_base';
  * @param shape An array of integers defining the output tensor shape.
  * @param value The scalar value to fill the tensor with.
  * @param dtype The type of an element in the resulting tensor. Defaults to
- * 'float'.
+ * 'float32'.
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function fill<R extends Rank>(
-    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    shape: ShapeMap[R], value: number|string,
+    dtype: DataType = 'float32'): Tensor<R> {
   assertNonNegativeIntegerDimensions(shape);
 
   const attrs: FillAttrs = {shape, value, dtype};
