@@ -16,9 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include <cstring>
 #include <random>
-#include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/shape.h"
@@ -50,14 +48,10 @@ void Multinomial(const int probabilities_id, const int batch_size,
 
   std::mt19937 gen(*reinterpret_cast<const int32_t*>(&seed));
   for (int b = 0; b < batch_size; ++b) {
-    std::vector<int64_t> weights(num_events);
-    for (int i = 0; i < num_events; ++i) {
-      // Float values have between 6 and 9 digits of precision.
-      weights[i] =
-          static_cast<int64_t>(probs_buf[probs_shape.offset({b, i})] * 1e9f);
-    }
-    std::discrete_distribution<int32_t> distribution(weights.begin(),
-                                                     weights.end());
+    const float* weights_begin = probs_buf + probs_shape.offset({b, 0});
+    const float* weights_end = weights_begin + num_events;
+    std::discrete_distribution<int32_t> distribution(weights_begin,
+                                                     weights_end);
     for (int i = 0; i < num_samples; ++i) {
       out_buf[out_shape.offset({b, i})] = distribution(gen);
     }
