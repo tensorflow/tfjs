@@ -407,7 +407,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'softplus '},
   {include: 'linspace'},
   {include: 'bincount'},
-  {include: 'conv3d ', excludes: ['gradient']},
+  {include: 'conv3d'},
 ];
 
 const customInclude = (testName: string) => {
