@@ -62,9 +62,9 @@ const tfliteWorkerAPI = {
         // dispose input and output tensors
         tf.dispose(inputTensorArray);
         tf.dispose(outputTensor);
-        // We encourage user processing output data in worker thread
+        // We encourage the user to process output data in the worker thread
         // rather than posting output data to main thread directly, as
-        // which would bring much overhead if the output size is huge.
+        // this would bring much overhead if the output size is huge.
         // From this perspective, we don't post output data to main thread
         // in this benchmark.
         return 'OK';

@@ -78,6 +78,23 @@ function predictFunction(input) {
   return model => model.predict(input);
 }
 
+// Common predict function for MobileNetV3 and MobileNetV2Lite
+function commonMobileNetPredictFunc() {
+  const input = tf.randomNormal([1, 224, 224, 3]);
+  const inputData = input.dataSync();
+  if (typeof isTflite === 'function' && isTflite()) {
+    return async () => {
+      // Do copy from 'inputData' in each predict as its buffer
+      // will be detached after transferring to worker.
+      const input = inputData.slice(0);
+      return await tfliteModel.predict(
+          Comlink.transfer(input, [input.buffer]));
+    };
+  } else {
+    return predictFunction(input);
+  }
+}
+
 const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
@@ -93,21 +110,7 @@ const benchmarks = {
           modelArchitecture}_224/classification/5/metadata/1`;
       return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
-    predictFunc: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      const inputData = input.dataSync();
-      if (typeof isTflite === 'function' && isTflite()) {
-        return async () => {
-          // Do copy from 'inputData' in each predict as its buffer
-          // will be detached after transferring to worker.
-          const input = inputData.slice(0);
-          return await tfliteModel.predict(
-              Comlink.transfer(input, [input.buffer]));
-        };
-      } else {
-        return predictFunction(input);
-      }
-    },
+    predictFunc: commonMobileNetPredictFunc,
   },
   'MobileNetV2': {
     type: 'GraphModel',
@@ -137,21 +140,7 @@ const benchmarks = {
           'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
       return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
-    predictFunc: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      const inputData = input.dataSync();
-      if (typeof isTflite === 'function' && isTflite()) {
-        return async () => {
-          // Do copy for 'inputData' in each predict as its buffer
-          // will be detached after transferring to worker.
-          const input = inputData.slice(0);
-          return await tfliteModel.predict(
-              Comlink.transfer(input, [input.buffer]));
-        };
-      } else {
-        return predictFunction(input);
-      }
-    },
+    predictFunc: commonMobileNetPredictFunc,
   },
   'HandPoseDetector': {
     type: 'GraphModel',
