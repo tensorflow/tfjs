@@ -48,7 +48,7 @@ void Multinomial(const int probabilities_id, const int batch_size,
   const float* probs_buf = prob_info.f32();
   int* out_buf = out_info.i32_write();
 
-  std::mt19937 gen(*reinterpret_cast<const int*>(&seed));
+  std::mt19937 gen(*reinterpret_cast<const int32_t*>(&seed));
   for (int b = 0; b < batch_size; ++b) {
     std::vector<int64_t> weights(num_events);
     for (int i = 0; i < num_events; ++i) {
