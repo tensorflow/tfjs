@@ -33,21 +33,25 @@ async function getPredictionData(output, needInfo = false) {
 
   if (output instanceof tf.Tensor) {
     output = [await convertTensorToData(output, needInfo)];
+    return output;
   } else if (Array.isArray(output)) {
+    const res = [];
     for (let i = 0; i < output.length; i++) {
       if (output[i] instanceof tf.Tensor) {
-        output[i] = await convertTensorToData(output[i], needInfo);
+        res.push(await convertTensorToData(output[i], needInfo));
       }
     }
+    return res;
   } else if (output != null && typeof output === 'object') {
+    const res = {};
     for (const property in output) {
       if (output[property] instanceof tf.Tensor) {
-        output[property] =
+        res[property] =
             await convertTensorToData(output[property], needInfo);
       }
     }
+    return res;
   }
-  return output;
 }
 
 function printTime(elapsed) {

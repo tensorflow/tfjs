@@ -18,9 +18,7 @@
 // Workaround for: https://github.com/bazelbuild/rules_nodejs/issues/1265
 /// <reference types="@webgpu/types/dist" />
 
-import {env} from './environment';
 import {getGlobal} from './global_util';
-import {engine} from './globals';
 import {tensorToString} from './tensor_format';
 import {DataId, TensorInfo} from './tensor_info';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
@@ -444,15 +442,15 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   dispose(): void {
-    if (env().getBool('RECORD')) {
-      engine().onHoldTensors.push(this);
-      return;
-    }
-    if (this.isDisposed) {
-      return;
-    }
-    trackerFn().disposeTensor(this);
-    this.isDisposedInternal = true;
+    // if (env().getBool('RECORD')) {
+    //   engine().onHoldTensors.push(this);
+    //   return;
+    // }
+    // if (this.isDisposed) {
+    //   return;
+    // }
+    // trackerFn().disposeTensor(this);
+    // this.isDisposedInternal = true;
   }
 
   protected isDisposedInternal = false;
