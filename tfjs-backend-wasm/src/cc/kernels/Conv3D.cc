@@ -45,7 +45,7 @@ void Conv3D(int x_id, int filter_id, int out_id, int batch_size, int in_depth,
   const TensorInfo& filter_info = backend::get_tensor_info(filter_id);
   TensorInfo& out_info = backend::get_tensor_info_out(out_id);
 
-  NDHWCConv3DImpl</*IN=*/float, /*OUT=*/float>(
+  NDHWCConv3DImpl</*IN=*/float, /*FILTER=*/float, /*OUT=*/float>(
       x_info.f32(), filter_info.f32(), out_info.f32_write(),
       NDHWCConv3DInfo{
           .batch_size = batch_size,
