@@ -160,6 +160,7 @@ import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
@@ -306,6 +307,7 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transformConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   zerosLikeConfig
 ];
