@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, engine, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {clone, DataType, engine, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 import {arraysEqual} from '@tensorflow/tfjs-core/dist/util_base';
 
 import {ISignatureDef} from '../data/compiled_api';
@@ -236,7 +236,8 @@ export class GraphExecutor implements FunctionExecutor {
   execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
     // Dispose any tensors from a prior run to avoid leaking them.
 
-    if (engine().backend.isRecordSupported() && this.placeHolderInputs != null &&
+    if (engine().backend.isRecordSupported() &&
+        this.placeHolderInputs != null &&
         arraysEqual(outputs, this.onHoldOutputs)) {
       // console.log('Replaying');
       return this.replay(inputs);
@@ -346,7 +347,13 @@ export class GraphExecutor implements FunctionExecutor {
       const outputTensors = exe();
       env().set('RECORD', false);
       this.placeHolderOutputs = outputTensors;
-      return outputTensors;
+      return outputTensors.map(tensor => {
+        const newTensor = clone(tensor);
+        if (tensor.dataId === newTensor.dataId) {
+          throw new Error('Make sure to create a new tensor when cloning!');
+        }
+        return newTensor;
+      });
     }
     return tidy(exe);
   }

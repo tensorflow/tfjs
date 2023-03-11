@@ -18,15 +18,27 @@
 import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import * as unary_op from '../unaryop_gpu';
+import {UnaryOpProgram,} from '../unaryop_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
 export function identity(
     args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
   const {inputs, backend} = args;
   const {x} = inputs;
 
-  backend.incRef(x.dataId);
+  const dataId = x.dataId;
 
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+
+  const texData = backend.texData.get(dataId);
+  const {dtype, shape, isPacked} = texData;
+  let program;
+  if (isPacked) {
+    program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
+  } else {
+    program = new UnaryOpProgram(shape, unary_op.CLONE);
+  }
+  return backend.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
 }
 
 export const identityConfig: KernelConfig = {
