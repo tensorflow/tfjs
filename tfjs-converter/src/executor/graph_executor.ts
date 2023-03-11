@@ -247,8 +247,11 @@ export class GraphExecutor implements FunctionExecutor {
       engine().clearOnHoldTensors();
       engine().backend.clearRecord();
       console.log('Start Recording!!');
-      Object.values(inputs).forEach(
-          e => engine().backend.setupTensor(e.dataId));
+      Object.values(inputs).forEach(e => {
+        if (e.dataId != null && e.shape.length > 0) {
+          engine().backend.setupTensor(e.dataId);
+        }
+      });
       this.placeHolderInputs = inputs;
       this.onHoldOutputs = outputs;
       env().set('RECORD', true);
@@ -347,13 +350,7 @@ export class GraphExecutor implements FunctionExecutor {
       const outputTensors = exe();
       env().set('RECORD', false);
       this.placeHolderOutputs = outputTensors;
-      return outputTensors.map(tensor => {
-        const newTensor = clone(tensor);
-        if (tensor.dataId === newTensor.dataId) {
-          throw new Error('Make sure to create a new tensor when cloning!');
-        }
-        return newTensor;
-      });
+      return this.cloneTensors(outputTensors);
     }
     return tidy(exe);
   }
@@ -365,6 +362,16 @@ export class GraphExecutor implements FunctionExecutor {
     }
   }
 
+  public cloneTensors(tensors: Tensor[]) {
+    return tensors.map(tensor => {
+      const newTensor = clone(tensor);
+      if (tensor.dataId === newTensor.dataId) {
+        throw new Error('Make sure to create a new tensor when cloning!');
+      }
+      return newTensor;
+    });
+  }
+
   public replay(inputs: NamedTensorMap) {
     this.cleanOutputs();
     for (const prop in inputs) {
@@ -374,7 +381,7 @@ export class GraphExecutor implements FunctionExecutor {
       }
     }
     engine().backend.replay();
-    return this.placeHolderOutputs;
+    return this.cloneTensors(this.placeHolderOutputs);
   }
 
   private getFrozenTensorIds(tensorMap: NamedTensorsMap): Set<number> {

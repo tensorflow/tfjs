@@ -47,8 +47,8 @@ async function getPredictionData(output, needInfo = false) {
           await convertTensorToData(output[property], needInfo);
       }
     }
-    return output;
   }
+  return output;
 }
 
 function printTime(elapsed) {
