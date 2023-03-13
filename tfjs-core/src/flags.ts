@@ -85,3 +85,6 @@ ENV.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);
 
 /** Whether to use setTimeoutCustom */
 ENV.registerFlag('RECORD', () => false);
+
+/** Whether to use setTimeoutCustom */
+ENV.registerFlag('IS_RECORD_SUPPORTED', () => true);
