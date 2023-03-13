@@ -63,6 +63,7 @@ import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -210,6 +211,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   expConfig,
   expandDimsConfig,
+  expm1Config,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
