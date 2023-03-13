@@ -386,6 +386,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Multinomial",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -1180,6 +1181,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Multinomial",
+    srcs = ["kernels/Multinomial.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 

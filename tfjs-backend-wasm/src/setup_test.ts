@@ -408,6 +408,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'linspace'},
   {include: 'bincount'},
   {include: 'expm1 '},
+  {include: 'multinomial'},
 ];
 
 const customInclude = (testName: string) => {
