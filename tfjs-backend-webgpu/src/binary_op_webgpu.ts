@@ -70,13 +70,11 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.variableComponents = [4, 4];
         this.type = 'vec4';
       } else if (
-          (op === BinaryOpType.SUB || op === BinaryOpType.ADD ||
-           op === BinaryOpType.MUL || op === BinaryOpType.DIV) &&
-          ((aDivisibleBy4 &&
-            (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
-           (bDivisibleBy4 &&
-            (util.isScalarShape(aShape) || aShape[aShape.length - 1] === 1)))) {
-        this.type = 'custom';
+          (aDivisibleBy4 &&
+           (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
+          (bDivisibleBy4 &&
+           (util.isScalarShape(aShape) || aShape[aShape.length - 1] === 1))) {
+        this.type = 'mix';
         this.outputComponent = 4;
         this.variableComponents = aDivisibleBy4 ? [4, 1] : [1, 4];
       } else {
