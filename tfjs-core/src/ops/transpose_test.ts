@@ -243,4 +243,21 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expect(res.shape).toEqual([4, 2]);
     expectArraysClose(await res.data(), [1, 3, 11, 33, 2, 4, 22, 44]);
   });
+
+  it('accepts complex64 input', async () => {
+    const real = tf.tensor2d([[1, 2], [3, 4]]);
+    const imag = tf.tensor2d([[-4, 5], [6, 7]]);
+
+    let res = tf.transpose(tf.complex(real, imag));
+
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose([[1, 3], [2, 4]], await tf.real(res).data());
+    expectArraysClose([[-4, 6], [5, 7]], await tf.imag(res).data());
+
+    // Test taking conjugate tranpose.
+    res = tf.transpose(tf.complex(real, imag), [1, 0], true);
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose([[1, 3], [2, 4]], await tf.real(res).data());
+    expectArraysClose([[4, -6], [-5, -7]], await tf.imag(res).data());
+  });
 });

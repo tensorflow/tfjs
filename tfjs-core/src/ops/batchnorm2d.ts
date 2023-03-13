@@ -51,7 +51,7 @@ function batchNorm2d_(
   }
   util.assert(
       $x.rank === 2,
-      () => `Error in batchNorm3D: x must be rank 3 but got rank ` +
+      () => `Error in batchNorm2D: x must be rank 2 but got rank ` +
           `${$x.rank}.`);
   util.assert(
       $mean.rank === 2 || $mean.rank === 1,
@@ -77,4 +77,4 @@ function batchNorm2d_(
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
-export const batchNorm2d = op({batchNorm2d_});
+export const batchNorm2d = /* @__PURE__ */ op({batchNorm2d_});

@@ -17,9 +17,11 @@ from tensorflowjs import version
 
 # File name for the indexing JSON file in an artifact directory.
 ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
+ASSETS_DIRECTORY_NAME = 'assets'
 
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
+ARTIFACT_MODEL_INITIALIZER = 'modelInitializer'
 ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
 
 FORMAT_KEY = 'format'
@@ -30,7 +32,10 @@ GENERATED_BY_KEY = 'generatedBy'
 CONVERTED_BY_KEY = 'convertedBy'
 
 SIGNATURE_KEY = 'signature'
+INITIALIZER_SIGNATURE_KEY = 'initializerSignature'
 USER_DEFINED_METADATA_KEY = 'userDefinedMetadata'
+STRUCTURED_OUTPUTS_KEYS_KEY = 'structuredOutputKeys'
+RESOURCE_ID_KEY = 'resourceId'
 
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'
@@ -57,8 +62,11 @@ SPLIT_WEIGHTS_BY_LAYER = 'split_weights_by_layer'
 VERSION = 'version'
 SKIP_OP_CHECK = 'skip_op_check'
 STRIP_DEBUG_OPS = 'strip_debug_ops'
+USE_STRUCTURED_OUTPUTS_NAMES = 'use_structured_outputs_names'
 WEIGHT_SHARD_SIZE_BYTES = 'weight_shard_size_bytes'
 CONTROL_FLOW_V2 = 'control_flow_v2'
+EXPERIMENTS = 'experiments'
+METADATA = 'metadata'
 
 def get_converted_by():
   """Get the convertedBy string for storage in model artifacts."""

@@ -16,7 +16,7 @@
  */
 
 import {broadcastTo} from '../../ops/broadcast_to';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, ShapeMap} from '../../types';
 
 declare module '../../tensor' {
@@ -25,8 +25,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.broadcastTo = function<R extends Rank>(shape: ShapeMap[R]):
-    Tensor<R> {
+getGlobalTensorClass().prototype.broadcastTo = function<R extends Rank>(
+    shape: ShapeMap[R]): Tensor<R> {
   this.throwIfDisposed();
   return broadcastTo(this, shape);
 };

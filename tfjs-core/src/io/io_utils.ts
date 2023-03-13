@@ -16,13 +16,12 @@
  */
 
 import {complex} from '../ops/complex';
-
-import {tensor} from '../ops/tensor_ops';
+import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -128,16 +127,14 @@ export function decodeWeights(
       if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
         if (!('min' in quantization && 'scale' in quantization)) {
           throw new Error(
-            `Weight ${spec.name} with quantization ${quantization.dtype} ` +
-            `doesn't have corresponding metadata min and scale.`
-          );
+              `Weight ${spec.name} with quantization ${quantization.dtype} ` +
+              `doesn't have corresponding metadata min and scale.`);
         }
       } else if (quantization.dtype === 'float16') {
         if (dtype !== 'float32') {
           throw new Error(
-            `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
-            `which only supports weights of type float32 not ${dtype}.`
-          );
+              `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
+              `which only supports weights of type float32 not ${dtype}.`);
         }
       } else {
         throw new Error(
@@ -166,16 +163,14 @@ export function decodeWeights(
           values = float16Decode(quantizedArray as Uint16Array);
         } else {
           throw new Error(
-            `Unsupported quantization type ${quantization.dtype} ` +
-            `for weight type float32.`
-          );
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type float32.`);
         }
       } else if (dtype === 'int32') {
         if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
           throw new Error(
-            `Unsupported quantization type ${quantization.dtype} ` +
-            `for weight type int32.`
-          );
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type int32.`);
         }
         values = new Int32Array(quantizedArray.length);
         for (let i = 0; i < quantizedArray.length; i++) {
@@ -218,6 +213,8 @@ export function decodeWeights(
         const realTensor = tensor(real, shape, 'float32');
         const imageTensor = tensor(image, shape, 'float32');
         out[name] = complex(realTensor, imageTensor);
+        realTensor.dispose();
+        imageTensor.dispose();
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
@@ -373,6 +370,117 @@ export function basename(path: string): string {
 }
 
 /**
+ * Create `ModelJSON` from `ModelArtifacts`.
+ *
+ * @param artifacts Model artifacts, describing the model and its weights.
+ * @param manifest Weight manifest, describing where the weights of the
+ *     `ModelArtifacts` are stored, and some metadata about them.
+ * @returns Object representing the `model.json` file describing the model
+ *     artifacts and weights
+ */
+export function getModelJSONForModelArtifacts(
+    artifacts: ModelArtifacts, manifest: WeightsManifestConfig): ModelJSON {
+  const result: ModelJSON = {
+    modelTopology: artifacts.modelTopology,
+    format: artifacts.format,
+    generatedBy: artifacts.generatedBy,
+    convertedBy: artifacts.convertedBy,
+    weightsManifest: manifest
+  };
+  if (artifacts.signature != null) {
+    result.signature = artifacts.signature;
+  }
+  if (artifacts.userDefinedMetadata != null) {
+    result.userDefinedMetadata = artifacts.userDefinedMetadata;
+  }
+  if (artifacts.modelInitializer != null) {
+    result.modelInitializer = artifacts.modelInitializer;
+  }
+  if (artifacts.initializerSignature != null) {
+    result.initializerSignature = artifacts.initializerSignature;
+  }
+  if (artifacts.trainingConfig != null) {
+    result.trainingConfig = artifacts.trainingConfig;
+  }
+  return result;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file and weights.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param weightSpecs The list of WeightsManifestEntry for the model. Must be
+ *     passed if the modelJSON has a weightsManifest.
+ * @param weightData An ArrayBuffer of weight data for the model corresponding
+ *     to the weights in weightSpecs. Must be passed if the modelJSON has a
+ *     weightsManifest.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export function getModelArtifactsForJSONSync(
+    modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
+    weightData?: ArrayBuffer): ModelArtifacts {
+
+  const modelArtifacts: ModelArtifacts = {
+    modelTopology: modelJSON.modelTopology,
+    format: modelJSON.format,
+    generatedBy: modelJSON.generatedBy,
+    convertedBy: modelJSON.convertedBy
+  };
+
+  if (modelJSON.trainingConfig != null) {
+    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+  }
+  if (modelJSON.weightsManifest != null) {
+    if (!weightSpecs) {
+      throw new Error('modelJSON has weightsManifest but weightSpecs is null');
+    }
+    if (!weightData) {
+      throw new Error('modelJSON has weightsManifest but weightData is null');
+    }
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+  if (modelJSON.signature != null) {
+    modelArtifacts.signature = modelJSON.signature;
+  }
+  if (modelJSON.userDefinedMetadata != null) {
+    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+  }
+  if (modelJSON.modelInitializer != null) {
+    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+  if (modelJSON.initializerSignature != null) {
+    modelArtifacts.initializerSignature = modelJSON.initializerSignature;
+  }
+
+  return modelArtifacts;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param loadWeights Function that takes the JSON file's weights manifest,
+ *     reads weights from the listed path(s), and returns a Promise of the
+ *     weight manifest entries along with the weights data.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export async function getModelArtifactsForJSON(
+    modelJSON: ModelJSON,
+    loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
+      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+    ]>): Promise<ModelArtifacts> {
+  let weightSpecs: WeightsManifestEntry[] | undefined;
+  let weightData: ArrayBuffer | undefined;
+
+  if (modelJSON.weightsManifest != null) {
+    [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);
+  }
+
+  return getModelArtifactsForJSONSync(modelJSON, weightSpecs, weightData);
+}
+
+/**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
  * @param modelArtifacts
  * @returns A ModelArtifactsInfo object.
@@ -396,6 +504,22 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         0 :
         modelArtifacts.weightData.byteLength,
   };
+}
+
+/**
+ * Concatenate the weights stored in a WeightsManifestConfig into a list of
+ * WeightsManifestEntry
+ *
+ * @param weightsManifest The WeightsManifestConfig to extract weights from.
+ * @returns A list of WeightsManifestEntry of the weights in the weightsManifest
+ */
+export function getWeightSpecs(weightsManifest: WeightsManifestConfig):
+    WeightsManifestEntry[] {
+  const weightSpecs: WeightsManifestEntry[] = [];
+  for (const entry of weightsManifest) {
+    weightSpecs.push(...entry.weights);
+  }
+  return weightSpecs;
 }
 
 /**
@@ -480,7 +604,8 @@ function computeFloat16OffsetTable(): Uint32Array {
  *          the Uint16Array of Float16 bytes to a Float32Array.
  */
 export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
-  // Algorithm is based off of http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+  // Algorithm is based off of
+  // http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
 
   // Cache lookup tables
   const mantisaTable = computeFloat16MantisaTable();
@@ -493,8 +618,8 @@ export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
     for (let index = 0; index < quantizedArray.length; index++) {
       const float16Bits = quantizedArray[index];
       const float32Bits =
-        mantisaTable[offsetTable[float16Bits >> 10] + (float16Bits & 0x3ff)] +
-        exponentTable[float16Bits >> 10];
+          mantisaTable[offsetTable[float16Bits >> 10] + (float16Bits & 0x3ff)] +
+          exponentTable[float16Bits >> 10];
       bufferUint32View[index] = float32Bits;
     }
     return new Float32Array(buffer);

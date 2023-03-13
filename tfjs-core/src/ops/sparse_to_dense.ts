@@ -16,10 +16,15 @@
  */
 
 import {ENGINE} from '../engine';
+import {SparseToDense, SparseToDenseAttrs, SparseToDenseInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import * as sparse_to_dense from '../ops/sparse_to_dense_util';
 import {Scalar, Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ScalarLike, ShapeMap, TensorLike} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
+
 import {op} from './operation';
 
 /**
@@ -54,28 +59,38 @@ import {op} from './operation';
  * @param sparseValues A 0-D or 1-D Tensor. Values
  * corresponding to each row of sparseIndices, or a scalar value to be used for
  * all sparse indices.
- * @param outputShape Shape of the dense output tensor. the type is inferred.
+ * @param outputShape Shape of the dense output tensor. The type is inferred.
  * @param defaultValue Scalar. Value to set for indices not specified in
  * sparseIndices. Defaults to zero.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function sparseToDense_<R extends Rank>(
     sparseIndices: Tensor|TensorLike, sparseValues: Tensor|TensorLike,
     outputShape: ShapeMap[R], defaultValue: Scalar|ScalarLike = 0): Tensor<R> {
+  assertNonNegativeIntegerDimensions(outputShape);
+
   const $sparseIndices =
       convertToTensor(sparseIndices, 'sparseIndices', 'sparseToDense', 'int32');
-  const $sparseValues =
-      convertToTensor(sparseValues, 'sparseValues', 'sparseToDense');
+  const $sparseValues = convertToTensor(
+      sparseValues, 'sparseValues', 'sparseToDense', 'string_or_numeric');
   const $defaultValue = convertToTensor(
       defaultValue, 'defaultValue', 'sparseToDense', $sparseValues.dtype);
 
   sparse_to_dense.validateInput(
       $sparseIndices, $sparseValues, outputShape, $defaultValue);
 
-  return ENGINE.runKernelFunc(
-      backend => backend.sparseToDense(
-          $sparseIndices, $sparseValues, outputShape, $defaultValue),
-      {$sparseIndices, $sparseValues, $defaultValue});
+  const inputs: SparseToDenseInputs = {
+    sparseIndices: $sparseIndices,
+    sparseValues: $sparseValues,
+    defaultValue: $defaultValue
+  };
+
+  const attrs: SparseToDenseAttrs = {outputShape};
+
+  return ENGINE.runKernel(
+      SparseToDense, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const sparseToDense = op({sparseToDense_});
+export const sparseToDense = /* @__PURE__ */ op({sparseToDense_});

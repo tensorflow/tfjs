@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, OneHot, OneHotAttrs, OneHotInputs, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, OneHot, OneHotAttrs, OneHotInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -24,7 +24,7 @@ let wasmOneHot: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmOneHot = backend.wasm.cwrap('OneHot', null /* void */, [
+  wasmOneHot = backend.wasm.cwrap(OneHot, null /* void */, [
     'number',  // indices_id
     'number',  // depth,
     'number',  // onValue
@@ -37,9 +37,9 @@ function oneHot(
     args: {inputs: OneHotInputs, attrs: OneHotAttrs, backend: BackendWasm}) {
   const {inputs, backend, attrs} = args;
   const {indices} = inputs;
-  const {depth, onValue, offValue} = attrs;
+  const {dtype, depth, onValue, offValue} = attrs;
 
-  const out = backend.makeOutput([...indices.shape, depth], 'int32');
+  const out = backend.makeOutput([...indices.shape, depth], dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const indicesData = backend.dataIdMap.get(indices.dataId);
@@ -50,9 +50,9 @@ function oneHot(
   return out;
 }
 
-registerKernel({
+export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: oneHot as {} as KernelFunc,
-});
+  kernelFunc: oneHot as unknown as KernelFunc,
+};

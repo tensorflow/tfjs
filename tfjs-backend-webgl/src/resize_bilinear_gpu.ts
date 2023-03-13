@@ -24,7 +24,7 @@ export class ResizeBilinearProgram implements GPGPUProgram {
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
-      newWidth: number, alignCorners: boolean) {
+      newWidth: number, alignCorners: boolean, halfPixelCenters: boolean) {
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
 
@@ -37,6 +37,15 @@ export class ResizeBilinearProgram implements GPGPUProgram {
       (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
       (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
     ];
+
+    let sourceFracIndexRC: string;
+    if (halfPixelCenters) {
+      sourceFracIndexRC =
+          `(vec2(yRC) + vec2(0.5)) * effectiveInputOverOutputRatioRC` +
+          ` - vec2(0.5)`;
+    } else {
+      sourceFracIndexRC = `vec2(yRC) * effectiveInputOverOutputRatioRC`;
+    }
 
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
@@ -51,10 +60,10 @@ export class ResizeBilinearProgram implements GPGPUProgram {
         ivec2 yRC = coords.yz;
 
         // Fractional source index.
-        vec2 sourceFracIndexRC = vec2(yRC) * effectiveInputOverOutputRatioRC;
+        vec2 sourceFracIndexRC = ${sourceFracIndexRC};
 
         // Compute the four integer indices.
-        ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
+        ivec2 sourceFloorRC = ivec2(max(sourceFracIndexRC, vec2(0.0)));
         ivec2 sourceCeilRC = ivec2(
           min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
 

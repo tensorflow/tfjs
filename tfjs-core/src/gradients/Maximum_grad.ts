@@ -17,7 +17,7 @@
 
 import {Maximum} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {greaterEqual} from '../ops/greater_equal';
 import {less} from '../ops/less';
 import {mul} from '../ops/mul';

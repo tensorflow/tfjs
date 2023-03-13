@@ -17,8 +17,9 @@
 
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
-import {buffer} from './array_ops';
+import {buffer} from './buffer';
 import {op} from './operation';
 import {UniformRandom} from './rand_util';
 
@@ -39,11 +40,13 @@ import {UniformRandom} from './rand_util';
  * @param maxval The upper bound on the range of random values to generate.
  *   Defaults to 1.
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
 function randomUniform_<R extends Rank>(
     shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
     seed?: number|string): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   const res = buffer(shape, dtype);
   const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
@@ -52,4 +55,4 @@ function randomUniform_<R extends Rank>(
   return res.toTensor();
 }
 
-export const randomUniform = op({randomUniform_});
+export const randomUniform = /* @__PURE__ */ op({randomUniform_});

@@ -1,0 +1,151 @@
+{
+  "benchmark": {
+    "model": ["MobileNetV3", "MobileNetV2", "HandPoseDetector",
+    "HandPoseLandmark", "MoveNet-SinglePose", "MoveNet-MultiPose",
+    "BlazePoseDetector", "BlazePoseLandmark", "Coco-SSD", "DeepLabV3",
+    "FaceDetection", "FaceLandmarkDetection", "ArPortraitDepth",
+    "SelfieSegmentation-General", "SelfieSegmentation-Landscape",
+    "AutoML Image", "AutoML Object", "USE - batchsize 30", "USE - batchsize 1",
+    "TextToxicity", "MobileBert", "posenet", "bodypix", "speech-commands"],
+    "numRuns": 10,
+    "backend": ["webgl"]
+  },
+  "browsers": {
+    "iPhone_13_Pro_Max_1": {
+      "base": "BrowserStack",
+      "os": "ios",
+      "os_version": "15",
+      "browser": "iphone",
+      "device": "iPhone 13 Pro Max",
+      "browser_version": null
+    },
+    "iPhone_13_1": {
+      "base": "BrowserStack",
+      "os": "ios",
+      "os_version": "15",
+      "browser": "iphone",
+      "device": "iPhone 13",
+      "browser_version": null
+    },
+    "iPhone_12_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12 Pro Max"
+    },
+    "iPhone_12_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12"
+    },
+    "iPhone_11_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 11 Pro Max"
+    },
+    "iPhone_11_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 11"
+    },
+    "iPhone_XS_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "15",
+      "device": "iPhone XS"
+    },
+    "Google_Pixel_6_Pro_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "12.0",
+      "device": "Google Pixel 6 Pro"
+    },
+    "Google_Pixel_5_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "12.0",
+      "device": "Google Pixel 5"
+    },
+    "Samsung_Galaxy_S22_Ultra_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "12.0",
+      "device": "Samsung Galaxy S22 Ultra"
+    },
+    "Samsung_Galaxy_M52_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "11.0",
+      "device": "Samsung Galaxy M52"
+    },
+    "Samsung_Galaxy_A52_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "11.0",
+      "device": "Samsung Galaxy A52"
+    },
+    "Xiaomi_Redmi_Note_11_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "11.0",
+      "device": "Xiaomi Redmi Note 11"
+    },
+    "Samsung_Galaxy_Note_20_Ultra_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Samsung Galaxy Note 20 Ultra"
+    },
+    "Samsung_Galaxy_A11_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Samsung Galaxy A11"
+    },
+    "Google_Pixel_4_XL_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Google Pixel 4 XL"
+    },
+    "Samsung_Galaxy_S10_Plus_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "9.0",
+      "device": "Samsung Galaxy S10 Plus"
+    }
+  }
+}

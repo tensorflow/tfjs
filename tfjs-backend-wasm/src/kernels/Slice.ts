@@ -15,51 +15,67 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, slice_util, util} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface SliceInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SliceAttrs extends NamedAttrMap {
-  begin: number[];
-  size: number[];
-}
+import {sliceImplCPU} from '../kernel_utils/shared';
 
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
-  const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
-  const xVals = backend.typedArrayFromHeap(x);
-  const out = backend.makeOutput(size, x.dtype);
-  const outVals = backend.typedArrayFromHeap(out);
+
+  const [begin_, size_] = slice_util.parseSliceParams(x, begin, size);
+
+  const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
+  const xVals = backend.readSync(x.dataId);
+  const out = backend.makeOutput(size_, x.dtype);
   const xStrides = util.computeStrides(x.shape);
+  const outData = backend.dataIdMap.get(out.dataId);
+
   if (isContinous) {
-    const flatOffset = slice_util.computeFlatOffset(begin, xStrides);
-    outVals.set(
-        xVals.subarray(flatOffset, flatOffset + util.sizeFromShape(size)));
+    const flatOffset = slice_util.computeFlatOffset(begin_, xStrides);
+
+    if (x.dtype === 'string') {
+      outData.stringBytes =
+          (xVals as Uint8Array[])
+              .slice(flatOffset, flatOffset + util.sizeFromShape(size_));
+    } else {
+      const outVals = backend.typedArrayFromHeap(out);
+      outVals.set(
+          (xVals as TypedArray)
+              .subarray(flatOffset, flatOffset + util.sizeFromShape(size_)));
+    }
+
     return out;
   }
+
+  if (x.dtype === 'string') {
+    const res = sliceImplCPU(xVals, begin_, size_, x.shape, x.dtype);
+    outData.stringBytes = res as Uint8Array[];
+    return out;
+  }
+
+  const outVals = backend.typedArrayFromHeap(out);
   const rank = x.shape.length;
   if (rank === 2) {
     slice2d(
-        xVals, xStrides[0], outVals, begin as [number, number],
-        size as [number, number]);
+        xVals as TypedArray, xStrides[0], outVals, begin_ as [number, number],
+        size_ as [number, number]);
   } else if (rank === 3) {
     slice3d(
-        xVals, xStrides[0], xStrides[1], outVals,
-        begin as [number, number, number], size as [number, number, number]);
+        xVals as TypedArray, xStrides[0], xStrides[1], outVals,
+        begin_ as [number, number, number], size_ as [number, number, number]);
   } else if (rank === 4) {
     slice4d(
-        xVals, xStrides[0], xStrides[1], xStrides[2], outVals,
-        begin as [number, number, number, number],
-        size as [number, number, number, number]);
+        xVals as TypedArray, xStrides[0], xStrides[1], xStrides[2], outVals,
+        begin_ as [number, number, number, number],
+        size_ as [number, number, number, number]);
   } else {
-    genericSliceSlow(xVals, x, outVals, begin, size);
+    const res =
+        sliceImplCPU(xVals, begin_, size_, x.shape, x.dtype) as TypedArray;
+    outVals.set(res);
   }
+
   return out;
 }
 
@@ -122,20 +138,8 @@ function slice4d(
   }
 }
 
-function genericSliceSlow(
-    xVals: backend_util.TypedArray, xInfo: TensorInfo,
-    outVals: backend_util.TypedArray, begin: number[], size: number[]): void {
-  const outBuf = buffer(size, xInfo.dtype, outVals);
-  const xBuf = buffer(xInfo.shape, xInfo.dtype, xVals);
-  for (let i = 0; i < outBuf.size; ++i) {
-    const loc = outBuf.indexToLoc(i);
-    const xLoc = loc.map((idx, j) => idx + begin[j]);
-    outVals[i] = xBuf.get(...xLoc) as number;
-  }
-}
-
-registerKernel({
-  kernelName: 'Slice',
+export const sliceConfig: KernelConfig = {
+  kernelName: Slice,
   backendName: 'wasm',
-  kernelFunc: slice,
-});
+  kernelFunc: slice as unknown as KernelFunc,
+};

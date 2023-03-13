@@ -14,35 +14,37 @@
  * limitations under the License.
  * =============================================================================
  */
+import {env} from './environment';
 import {getGlobal} from './global_util';
+import * as log from './log';
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
-import {DataType, RecursiveArray} from './types';
+import {TensorInfo} from './tensor_info';
+import {RecursiveArray} from './types';
 
 const kernelRegistry =
-    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+  getGlobal('kernelRegistry', () => new Map<`${string}_${string}`,
+    KernelConfig>());
 const gradRegistry =
-    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
-
-export type DataId = object;
+  getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 type AttributeValue =
-    number|number[]|boolean|boolean[]|string|string[]|NamedAttrMap;
+  number | number[] | boolean | boolean[] | string | string[] | NamedAttrMap;
 
 /** These are extra non-tensor/primitive params passed to kernel functions. */
-export type Attribute = AttributeValue|RecursiveArray<AttributeValue>;
+export type Attribute = AttributeValue | RecursiveArray<AttributeValue>;
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
   inputs: NamedTensorInfoMap,
   backend: {},
   attrs?: NamedAttrMap,
-}) => TensorInfo|TensorInfo[];
+}) => TensorInfo | TensorInfo[];
 
 /** The function to run when computing a gradient during backprop. */
 export type GradFunc =
-    (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
-        NamedGradientMap;
+  (dy: Tensor | Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
+    NamedGradientMap;
 
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
@@ -69,15 +71,8 @@ export interface GradConfig {
   gradFunc: GradFunc;
 }
 
-/** Holds metadata for a given tensor. */
-export interface TensorInfo {
-  dataId: DataId;
-  shape: number[];
-  dtype: DataType;
-}
-
 export interface NamedTensorInfoMap {
-  [name: string]: TensorInfo;
+  [name: string]: TensorInfo|undefined;
 }
 
 export interface NamedAttrMap {
@@ -137,7 +132,7 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    console.warn(
+    log.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }
@@ -154,8 +149,13 @@ export function registerKernel(config: KernelConfig) {
  */
 export function registerGradient(config: GradConfig) {
   const {kernelName} = config;
+
   if (gradRegistry.has(kernelName)) {
-    console.warn(`Overriding the gradient for '${kernelName}'`);
+    // TODO (yassogba) after 3.0 assess whether we need to keep this gated
+    // to debug mode.
+    if (env().getBool('DEBUG')) {
+      log.warn(`Overriding the gradient for '${kernelName}'`);
+    }
   }
   gradRegistry.set(kernelName, config);
 }
@@ -187,6 +187,23 @@ export function unregisterGradient(kernelName: string): void {
   gradRegistry.delete(kernelName);
 }
 
-function makeKey(kernelName: string, backendName: string) {
+/**
+ * Finds kernels that have already been registered to a backend and re-registers
+ * them for a new backend. Useful for registering custom backends.
+ * @param registeredBackendName Already registered backend.
+ * @param newBackendName New backend.
+ */
+export function copyRegisteredKernels(
+    registeredBackendName: string, newBackendName: string): void {
+  const kernels = getKernelsForBackend(registeredBackendName);
+  kernels.forEach(kernelConfig => {
+    const newKernelConfig =
+        Object.assign({}, kernelConfig, {backendName: newBackendName});
+    registerKernel(newKernelConfig);
+  });
+}
+
+function makeKey(kernelName: string,
+                 backendName: string): `${string}_${string}` {
   return `${backendName}_${kernelName}`;
 }

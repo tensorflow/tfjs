@@ -17,8 +17,13 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
 import {fill} from '../ops/fill';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {mul} from '../ops/mul';
+import {sqrt} from '../ops/sqrt';
+import {square} from '../ops/square';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -26,7 +31,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class AdagradOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adagrad';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adagrad';
+  }
 
   private accumulatedGrads: OptimizerVariable[] = [];
 
@@ -62,33 +72,33 @@ export class AdagradOptimizer extends Optimizer {
       const accumulatedGrad = this.accumulatedGrads[i].variable;
 
       tidy(() => {
-        const newAccumulatedGrad = accumulatedGrad.add(gradient.square());
+        const newAccumulatedGrad = add(accumulatedGrad, square(gradient));
         accumulatedGrad.assign(newAccumulatedGrad);
 
-        const newValue =
-            gradient
-                .div(newAccumulatedGrad.add(ENGINE.backend.epsilon()).sqrt())
-                .mul(-this.learningRate)
-                .add(value);
+        const newValue = add(
+            mul(div(gradient,
+                    sqrt(add(newAccumulatedGrad, ENGINE.backend.epsilon()))),
+                -this.learningRate),
+            value);
         value.assign(newValue);
       });
     });
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     if (this.accumulatedGrads != null) {
       dispose(this.accumulatedGrads.map(v => v.variable));
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     return [await this.saveIterations()].concat(this.accumulatedGrads.map(
         v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const trainable = false;
     this.accumulatedGrads = weightValues.map(
@@ -103,9 +113,8 @@ export class AdagradOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate'], config['initialAccumulatorValue']);
   }
 }
-registerClass(AdagradOptimizer);

@@ -16,7 +16,7 @@ import {ones, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 describeMathCPU('ReLU: Symbolic', () => {
   it('Correct output shape', () => {
@@ -78,7 +78,7 @@ describeMathCPU('PReLU: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('PReLU: Tensor', () => {
+describeMathCPUAndWebGL2('PReLU: Tensor', () => {
   it('Forward pass', () => {
     const layer = tfl.layers.prelu({alphaInitializer: 'ones'});
     const x = tensor2d([[-100, -200], [0, 300], [200, 200]]);

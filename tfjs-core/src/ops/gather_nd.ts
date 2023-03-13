@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GatherNd, GatherNdInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -26,7 +26,7 @@ import {op} from './operation';
  * Gather slices from input tensor into a Tensor with shape specified by
  * `indices`.
  *
- * `indices` is an K-dimensional integer tensor, best thought of as a
+ * `indices` is a K-dimensional integer tensor, best thought of as a
  * (K-1)-dimensional tensor of indices into input, where each element defines a
  * slice of input:
  * output[\\(i_0, ..., i_{K-2}\\)] = input[indices[\\(i_0, ..., i_{K-2}\\)]]
@@ -57,20 +57,16 @@ import {op} from './operation';
  *
  * @param x The tensor from which to gather values.
  * @param indices Index tensor, must be of type int32.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
-  const $x = convertToTensor(x, 'x', 'gatherND');
-
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.gatherND($x, $indices);
-  };
+  const $x = convertToTensor(x, 'x', 'gatherND', 'string_or_numeric');
 
   const inputs: GatherNdInputs = {params: $x, indices: $indices};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */, GatherNd);
+  return ENGINE.runKernel(GatherNd, inputs as unknown as NamedTensorMap);
 }
 
-export const gatherND = op({gatherND_});
+export const gatherND = /* @__PURE__ */ op({gatherND_});

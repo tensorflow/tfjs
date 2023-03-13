@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {equal} from '../../ops/equal';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.equal = function<T extends Tensor>(b: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.equal = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return equal(this, b);
 };

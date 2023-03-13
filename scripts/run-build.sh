@@ -14,10 +14,11 @@
 # limitations under the License.
 # =============================================================================
 
+# Echo every command being executed
+set -x
+
+# Exit the script on any command with non 0 return code
 set -e
 
-DIR=$1
-if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true || $DIR == "e2e" ]]; then
-  gcloud builds submit . --config=$DIR/cloudbuild.yml \
-    --substitutions _NIGHTLY=$NIGHTLY
-fi
+gcloud builds submit . --config=cloudbuild_generated.yml \
+  --substitutions _NIGHTLY=$NIGHTLY

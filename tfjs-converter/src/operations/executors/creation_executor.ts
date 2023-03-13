@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {DataType, Tensor, Tensor1D} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -23,94 +25,112 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
-  switch (node.op) {
-    case 'Fill': {
-      const shape =
-          getParamValue('shape', node, tensorMap, context) as number[];
-      const dtype =
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
-      const value = getParamValue('value', node, tensorMap, context) as number;
-      return [tfc.fill(shape, value, dtype)];
-    }
-    case 'LinSpace': {
-      const start = getParamValue('start', node, tensorMap, context) as number;
-      const stop = getParamValue('stop', node, tensorMap, context) as number;
-      const num = getParamValue('num', node, tensorMap, context) as number;
-      return [tfc.linspace(start, stop, num)];
-    }
-    case 'Multinomial': {
-      const logits =
-          getParamValue('logits', node, tensorMap, context) as tfc.Tensor1D;
-      const numSamples =
-          getParamValue('numSamples', node, tensorMap, context) as number;
-      const seed = getParamValue('seed', node, tensorMap, context) as number;
-      return [tfc.multinomial(logits, numSamples, seed)];
-    }
-    case 'OneHot': {
-      const indices =
-          getParamValue('indices', node, tensorMap, context) as tfc.Tensor1D;
-      const depth = getParamValue('depth', node, tensorMap, context) as number;
-      const onValue =
-          getParamValue('onValue', node, tensorMap, context) as number;
-      const offValue =
-          getParamValue('offValue', node, tensorMap, context) as number;
-      return [tfc.oneHot(indices, depth, onValue, offValue)];
-    }
-    case 'Ones': {
-      return [tfc.ones(
-          getParamValue('shape', node, tensorMap, context) as number[],
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
-    }
-    case 'OnesLike': {
-      return [tfc.onesLike(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'RandomUniform': {
-      return [tfc.randomUniform(
-          // tslint:disable-next-line:no-any
-          getParamValue('shape', node, tensorMap, context) as any,
-          getParamValue('minval', node, tensorMap, context) as number,
-          getParamValue('maxval', node, tensorMap, context) as number,
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
-    }
-    case 'Range': {
-      const start = getParamValue('start', node, tensorMap, context) as number;
-      const stop = getParamValue('stop', node, tensorMap, context) as number;
-      const step = getParamValue('step', node, tensorMap, context) as number;
-      return [tfc.range(
-          start, stop, step,
-          getParamValue('dtype', node, tensorMap, context) as 'float32' |
-              'int32')];
-    }
-    case 'TruncatedNormal': {
-      const shape =
-          getParamValue('shape', node, tensorMap, context) as number[];
-      const mean = getParamValue('mean', node, tensorMap, context) as number;
-      const stdDev =
-          getParamValue('stdDev', node, tensorMap, context) as number;
-      const seed = getParamValue('seed', node, tensorMap, context) as number;
-      return [tfc.truncatedNormal(
-          shape, mean, stdDev,
-          getParamValue('dtype', node, tensorMap, context) as 'float32' |
-              'int32',
-          seed)];
-    }
-    case 'Zeros': {
-      return [tfc.zeros(
-          getParamValue('shape', node, tensorMap, context) as number[],
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
-    }
-    case 'ZerosLike': {
-      return [tfc.zerosLike(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+export const executeOp: InternalOpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
+      switch (node.op) {
+        case 'Fill': {
+          const shape =
+              getParamValue('shape', node, tensorMap, context) as number[];
+          const dtype =
+              getParamValue('dtype', node, tensorMap, context) as DataType;
+          const value =
+              getParamValue('value', node, tensorMap, context) as number;
+          return [ops.fill(shape, value, dtype)];
+        }
+        case 'LinSpace': {
+          const start =
+              getParamValue('start', node, tensorMap, context) as number;
+          const stop =
+              getParamValue('stop', node, tensorMap, context) as number;
+          const num = getParamValue('num', node, tensorMap, context) as number;
+          return [ops.linspace(start, stop, num)];
+        }
+        case 'Multinomial': {
+          const logits =
+              getParamValue('logits', node, tensorMap, context) as Tensor1D;
+          const numSamples =
+              getParamValue('numSamples', node, tensorMap, context) as number;
+          const seed =
+              getParamValue('seed', node, tensorMap, context) as number;
+          return [ops.multinomial(logits, numSamples, seed)];
+        }
+        case 'OneHot': {
+          const indices =
+              getParamValue('indices', node, tensorMap, context) as Tensor1D;
+          const depth =
+              getParamValue('depth', node, tensorMap, context) as number;
+          const onValue =
+              getParamValue('onValue', node, tensorMap, context) as number;
+          const offValue =
+              getParamValue('offValue', node, tensorMap, context) as number;
+          const dtype =
+              getParamValue('dtype', node, tensorMap, context) as DataType;
+          return [ops.oneHot(indices, depth, onValue, offValue, dtype)];
+        }
+        case 'Ones': {
+          return [ops.ones(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('dtype', node, tensorMap, context) as DataType)];
+        }
+        case 'OnesLike': {
+          return [ops.onesLike(
+              getParamValue('x', node, tensorMap, context) as Tensor)];
+        }
+        case 'RandomStandardNormal': {
+          return [ops.randomStandardNormal(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('dtype', node, tensorMap, context) as 'float32' |
+                  'int32',
+              getParamValue('seed', node, tensorMap, context) as number)];
+        }
+        case 'RandomUniform': {
+          return [ops.randomUniform(
+              // tslint:disable-next-line:no-any
+              getParamValue('shape', node, tensorMap, context) as any,
+              getParamValue('minval', node, tensorMap, context) as number,
+              getParamValue('maxval', node, tensorMap, context) as number,
+              getParamValue('dtype', node, tensorMap, context) as DataType)];
+        }
+        case 'Range': {
+          const start =
+              getParamValue('start', node, tensorMap, context) as number;
+          const stop =
+              getParamValue('stop', node, tensorMap, context) as number;
+          const step =
+              getParamValue('step', node, tensorMap, context) as number;
+          return [ops.range(
+              start, stop, step,
+              getParamValue('dtype', node, tensorMap, context) as 'float32' |
+                  'int32')];
+        }
+        case 'TruncatedNormal': {
+          const shape =
+              getParamValue('shape', node, tensorMap, context) as number[];
+          const mean =
+              getParamValue('mean', node, tensorMap, context) as number;
+          const stdDev =
+              getParamValue('stdDev', node, tensorMap, context) as number;
+          const seed =
+              getParamValue('seed', node, tensorMap, context) as number;
+          return [ops.truncatedNormal(
+              shape, mean, stdDev,
+              getParamValue('dtype', node, tensorMap, context) as 'float32' |
+                  'int32',
+              seed)];
+        }
+        case 'Zeros': {
+          return [ops.zeros(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('dtype', node, tensorMap, context) as DataType)];
+        }
+        case 'ZerosLike': {
+          return [ops.zerosLike(
+              getParamValue('x', node, tensorMap, context) as Tensor)];
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'creation';

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {depthToSpace} from '../../ops/depth_to_space';
-import {Tensor, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.depthToSpace = function<T extends Tensor4D>(
+getGlobalTensorClass().prototype.depthToSpace = function<T extends Tensor4D>(
     blockSize: number, dataFormat: 'NHWC'|'NCHW'): T {
   this.throwIfDisposed();
   return depthToSpace(this, blockSize, dataFormat) as T;

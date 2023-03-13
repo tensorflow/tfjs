@@ -1,0 +1,27 @@
+name: Deploy Benchmark Site to Live
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+    - "e2e/benchmarks/**"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_live_website:
+    permissions:
+      pull-requests: write # for FirebaseExtended/action-hosting-deploy to comment on PRs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSTENSORFLOW }}"
+          projectId: jstensorflow
+          target: tfjs-benchmarks
+          channelId: live
+          entryPoint: e2e/benchmarks/

@@ -39,8 +39,9 @@ export type LSTMCellFunc = {
  * @param data The input to the cell.
  * @param c Array of previous cell states.
  * @param h Array of previous cell outputs.
+ *
+ * @doc {heading: 'Operations', subheading: 'RNN'}
  */
-/** @doc {heading: 'Operations', subheading: 'RNN'} */
 function multiRNNCell_(
     lstmCells: LSTMCellFunc[], data: Tensor2D|TensorLike,
     c: Array<Tensor2D|TensorLike>,
@@ -65,4 +66,4 @@ function multiRNNCell_(
   }
   return [newC, newH];
 }
-export const multiRNNCell = op({multiRNNCell_});
+export const multiRNNCell = /* @__PURE__ */ op({multiRNNCell_});

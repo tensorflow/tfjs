@@ -145,10 +145,30 @@ export interface ModelPredictArgs {
 }
 
 /**
- * Load a model, including its topology and optionally weights.  See the
- * Tutorial named "How to import a Keras Model" for usage examples.
+ * Load a model composed of Layer objects, including its topology and optionally
+ * weights. See the Tutorial named "How to import a Keras Model" for usage
+ * examples.
  *
- * Example 1: Save `model`'s topology and weights to browser [local
+ * This method is applicable to:
+ *
+ * 1. Models created with the `tf.layers.*`, `tf.sequential`, and
+ * `tf.model` APIs of TensorFlow.js and later saved with the
+ * `tf.LayersModel.save` method.
+ * 2. Models converted from Keras or TensorFlow tf.keras using the
+ * [tensorflowjs_converter](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter).
+ *
+ * This mode is *not* applicable to TensorFlow `SavedModel`s or their converted
+ * forms. For those models, use `tf.loadGraphModel`.
+ *
+ * Example 1. Load a model from an HTTP server.
+ *
+ * ```js
+ * const model = await tf.loadLayersModel(
+ *     'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
+ * model.summary();
+ * ```
+ *
+ * Example 2: Save `model`'s topology and weights to browser [local
  * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
  * then load it back.
  *
@@ -165,7 +185,7 @@ export interface ModelPredictArgs {
  * loadedModel.predict(tf.ones([1, 3])).print();
  * ```
  *
- * Example 2. Saving `model`'s topology and weights to browser
+ * Example 3. Saving `model`'s topology and weights to browser
  * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API);
  * then load it back.
  *
@@ -182,7 +202,7 @@ export interface ModelPredictArgs {
  * loadedModel.predict(tf.ones([1, 3])).print();
  * ```
  *
- * Example 3. Load a model from user-selected files from HTML
+ * Example 4. Load a model from user-selected files from HTML
  * [file input
  * elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file).
  *
@@ -196,21 +216,12 @@ export interface ModelPredictArgs {
  *     tf.io.browserFiles([jsonUpload.files[0], weightsUpload.files[0]]));
  * ```
  *
- * Example 4. Load a model from an HTTP server.
- *
- * ```js
- * const model = await
- *     tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json');
- * model.summary();
- * ```
- *
  * @param pathOrIOHandler Can be either of the two formats
  *   1. A string path to the `ModelAndWeightsConfig` JSON describing
- *      the model in the canonical TensorFlow.js format. This path will be
- *      interpreted as a relative HTTP path, to which `fetch` will be used to
- *      request the model topology and weight manifest JSON.
- *      The content of the JSON file is assumed to be a JSON object with the
- *      following fields and values:
+ *      the model in the canonical TensorFlow.js format. For file://
+ *      (tfjs-node-only), http:// and https:// schemas, the path can be
+ *      either absolute or relative. The content of the JSON file is assumed to
+ *      be a JSON object with the following fields and values:
  *      - 'modelTopology': A JSON object that can be either of:
  *        1. a model architecture JSON consistent with the format of the return
  *            value of `keras.Model.to_json()`
@@ -219,7 +230,7 @@ export interface ModelPredictArgs {
  *      See the Python converter function `save_model()` for more details.
  *      It is also assumed that model weights can be accessed from relative
  *      paths described by the `paths` fields in weights manifest.
- *   2. An `tf.io.IOHandler` object that loads model artifacts with its `load`
+ *   2. A `tf.io.IOHandler` object that loads model artifacts with its `load`
  *      method.
  * @param options Optional configuration arguments for the model loading,
  *   including:
@@ -231,8 +242,10 @@ export interface ModelPredictArgs {
  *     model-loading process.
  * @returns A `Promise` of `tf.LayersModel`, with the topology and weights
  *     loaded.
+ *
+ * @doc {heading: 'Models', subheading: 'Loading'}
  */
-export async function loadLayersModelInternal(
+export async function loadLayersModel(
     pathOrIOHandler: string|io.IOHandler,
     options?: io.LoadOptions): Promise<LayersModel> {
   if (options == null) {
@@ -378,11 +391,12 @@ export interface SequentialArgs {
  *  await model.fit(xs, ys);
  *  model.predict(tf.tensor2d([5], [1, 1])).print();
  * ```
+ *
+ * @doc {heading: 'Models', subheading: 'Classes'}
  */
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Sequential extends LayersModel {
   /** @nocollapse */
-  static className = 'Sequential';
+  static override className = 'Sequential';
   private model: LayersModel;
   constructor(args?: SequentialArgs) {
     super({inputs: [], outputs: []});
@@ -432,8 +446,9 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case the `layer` argument has multiple output
    *   tensors, or is already connected somewhere else (forbidden in
    *   `Sequential` models).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   add(layer: Layer): void {
     const isLayerModelInstance =
         layer instanceof Sequential || layer instanceof LayersModel;
@@ -564,14 +579,14 @@ export class Sequential extends LayersModel {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
     return this.model.call(inputs, kwargs);
   }
 
-  build(inputShape?: Shape|Shape[]) {
+  override build(inputShape?: Shape|Shape[]) {
     // Call `getExactlyOneShape` without using its return value,
     // to verify that exactly one input shape is provided.
     getExactlyOneShape(inputShape);
@@ -607,7 +622,7 @@ export class Sequential extends LayersModel {
     this.built = true;
   }
 
-  countParams(): number {
+  override countParams(): number {
     if (!this.built) {
       this.build();
     }
@@ -641,9 +656,10 @@ export class Sequential extends LayersModel {
    * @param printFn Custom print function. Can be used to replace the default
    *   `console.log`. For example, you can use `x => {}` to mute the printed
    *   messages in the console.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
-  summary(
+  override summary(
       lineLength?: number, positions?: number[],
       printFn:
           // tslint:disable-next-line:no-any
@@ -660,7 +676,7 @@ export class Sequential extends LayersModel {
    * @param weights Should be a list of Tensors with shapes and types matching
    *   the output of `model.getWeights()`.
    */
-  setWeights(weights: Tensor[]): void {
+  override setWeights(weights: Tensor[]): void {
     if (this.model == null) {
       this.build();
     }
@@ -696,11 +712,10 @@ export class Sequential extends LayersModel {
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
    *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  evaluate(
+  override evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
       args: ModelEvaluateArgs = {}): Scalar|Scalar[] {
     if (!this.built) {
@@ -715,7 +730,7 @@ export class Sequential extends LayersModel {
   /**
    * Evaluate model using a dataset object.
    *
-   * Note: Unlike `evaluate()`, this method is asynchronous (`async`);
+   * Note: Unlike `evaluate()`, this method is asynchronous (`async`).
    *
    * @param dataset A dataset object. Its `iterator()` method is expected
    *   to generate a dataset iterator object, the `next()` method of which
@@ -723,18 +738,17 @@ export class Sequential extends LayersModel {
    *   of the `next()` call ought to contain a boolean `done` field and a
    *   `value` field. The `value` field is expected to be an array of two
    *   `tf.Tensor`s or an array of two nested `tf.Tensor` structures. The former
-   *   case is for models with exactly one input and one output (e.g..
+   *   case is for models with exactly one input and one output (e.g.
    *   a sequential model). The latter case is for models with multiple
    *   inputs and/or multiple outputs. Of the two items in the array, the
    *   first is the input feature(s) and the second is the output target(s).
    * @param args A configuration object for the dataset-based evaluation.
    * @returns Loss and metric values as an Array of `Scalar` objects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
-      Promise<Scalar|Scalar[]> {
+  override async evaluateDataset(dataset: Dataset<{}>,
+      args: ModelEvaluateDatasetArgs): Promise<Scalar|Scalar[]> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -748,7 +762,7 @@ export class Sequential extends LayersModel {
    * Computation is done in batches.
    *
    * Note: the "step" mode of predict() is currently not supported.
-   *   This is because the TensorFow.js core backend is imperative only.
+   *   This is because the TensorFlow.js core backend is imperative only.
    *
    * ```js
    * const model = tf.sequential({
@@ -766,11 +780,11 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
+  override predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}):
+      Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
@@ -784,7 +798,7 @@ export class Sequential extends LayersModel {
    *   has multiple inputs).
    * @return Tensor(s) of predictions
    */
-  predictOnBatch(x: Tensor): Tensor|Tensor[] {
+  override predictOnBatch(x: Tensor): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
@@ -796,7 +810,7 @@ export class Sequential extends LayersModel {
    *
    * @param args
    */
-  compile(args: ModelCompileArgs): void {
+  override compile(args: ModelCompileArgs): void {
     this.build();
     this.model.compile(args);
     this.optimizer_ = this.model.optimizer;
@@ -811,11 +825,11 @@ export class Sequential extends LayersModel {
     // TODO(cais): Add sampleWeights.
   }
 
-  get optimizer(): Optimizer {
+  override get optimizer(): Optimizer {
     return this.model == null ? undefined : this.model.optimizer;
   }
 
-  set optimizer(optimizer: Optimizer) {
+  override set optimizer(optimizer: Optimizer) {
     this.model.optimizer = optimizer;
   }
 
@@ -847,11 +861,10 @@ export class Sequential extends LayersModel {
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and what the model expects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async fit(
+  override async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},
       args: ModelFitArgs = {}): Promise<History> {
@@ -906,7 +919,7 @@ export class Sequential extends LayersModel {
    *   The `value` field is expected to be an object of with fields
    *   `xs` and `ys`, which point to the feature tensor and the target tensor,
    *   respectively. This case is for models with exactly one input and one
-   *   output (e.g.. a sequential model). For example:
+   *   output (e.g. a sequential model). For example:
    *   ```js
    *   {value: {xs: xsTensor, ys: ysTensor}, done: false}
    *   ```
@@ -945,12 +958,11 @@ export class Sequential extends LayersModel {
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
-  async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
-      Promise<History> {
+  override async fitDataset<T>(dataset: Dataset<T>,
+      args: ModelFitDatasetArgs<T>): Promise<History> {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before ' +
@@ -965,7 +977,7 @@ export class Sequential extends LayersModel {
    * This method differs from `fit()` and `fitDataset()` in the following
    * regards:
    *   - It operates on exactly one batch of data.
-   *   - It returns only the loss and matric values, instead of
+   *   - It returns only the loss and metric values, instead of
    *     returning the batch-by-batch loss and metric values.
    *   - It doesn't support fine-grained options such as verbosity and
    *     callbacks.
@@ -975,15 +987,14 @@ export class Sequential extends LayersModel {
    *     multiple inputs).
    *   - An Object mapping input names to corresponding `tf.Tensor` (if the
    *     model has named inputs).
-   * @param y Target darta. It could be either a `tf.Tensor` a multiple
+   * @param y Target data. It could be either a `tf.Tensor` or multiple
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  async trainOnBatch(
+  override async trainOnBatch(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|
       {[inputName: string]: Tensor}): Promise<number|number[]> {
@@ -992,7 +1003,7 @@ export class Sequential extends LayersModel {
 
   /* See parent class for JsDoc */
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict,
@@ -1062,7 +1073,7 @@ export class Sequential extends LayersModel {
    * console.log(history.history.loss);
    * ```
    */
-  set stopTraining(stop: boolean) {
+  override set stopTraining(stop: boolean) {
     // TODO(cais): When refactoring to remove the composition pattern happens,
     // remove this method overriding.
     if (this.model == null) {
@@ -1073,7 +1084,7 @@ export class Sequential extends LayersModel {
     this.model.stopTraining = stop;
   }
 
-  get stopTraining(): boolean {
+  override get stopTraining(): boolean {
     if (this.model == null) {
       throw new ValueError(
           'Cannot get the stopTraining property of a sequential model before ' +
@@ -1085,7 +1096,7 @@ export class Sequential extends LayersModel {
   // TODO(cais): Override get trainableWeights() here
 
   // tslint:disable-next-line:no-any
-  getConfig(): any {
+  override getConfig(): any {
     // NOTE(cais): We override the return type of getConfig() to `any` here,
     //   because the `Sequential` class is a special case among `Container`
     //   subtypes in that its getConfig() method returns an Array (not a

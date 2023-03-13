@@ -24,8 +24,7 @@ function calcL2Norms(w: Tensor, axis: number): Tensor {
 
 /**
  * Base class for functions that impose constraints on weight values
- */
-/**
+ *
  * @doc {
  *   heading: 'Constraints',
  *   subheading: 'Classes',
@@ -85,7 +84,7 @@ export class MaxNorm extends Constraint {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {maxValue: this.maxValue, axis: this.axis};
   }
 }
@@ -101,7 +100,7 @@ export interface UnitNormArgs {
    * of length `[inputDim,]`.
    * In a `Conv2D` layer with `dataFormat="channels_last"`,
    * the weight tensor has shape
-   * [rows, cols, inputDepth, outputDepth]`,
+   * `[rows, cols, inputDepth, outputDepth]`,
    * set `axis` to `[0, 1, 2]`
    * to constrain the weights of each filter tensor of size
    * `[rows, cols, inputDepth]`.
@@ -124,7 +123,7 @@ export class UnitNorm extends Constraint {
         () => tfc.div(w, tfc.add(epsilon(), calcL2Norms(w, this.axis))));
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {axis: this.axis};
   }
 }
@@ -207,7 +206,7 @@ export class MinMaxNorm extends Constraint {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       minValue: this.minValue,
       maxValue: this.maxValue,

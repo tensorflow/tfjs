@@ -17,7 +17,7 @@
 
 import {OneHot} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {zeros} from '../ops/tensor_ops';
+import {zeros} from '../ops/zeros';
 import {Tensor} from '../tensor';
 
 export const oneHotGradConfig: GradConfig = {

@@ -16,8 +16,8 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 inline bool logical_and(bool a, bool b) { return a && b; }
@@ -37,7 +37,8 @@ void LogicalAnd(const int a_id, const size_t* a_shape_ptr,
                 const DType input_type, const int out_id) {
   switch (input_type) {
     case DType::boolean:
-      compare_bool(a_id, b_id, out_id, logical_and);
+      compare_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                   b_shape_len, out_id, logical_and);
       break;
     default:
       util::warn(

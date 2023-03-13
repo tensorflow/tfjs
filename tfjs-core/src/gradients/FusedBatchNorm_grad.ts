@@ -19,12 +19,12 @@ import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {add} from '../ops/add';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
+import {rsqrt} from '../ops/rsqrt';
+import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
+import {sum} from '../ops/sum';
 import {tile} from '../ops/tile';
-import {rsqrt} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 
@@ -33,7 +33,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
   inputsToSave: ['x', 'mean', 'variance', 'scale'],
   gradFunc: <R extends Rank>(
       dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {varianceEpsilon} = attrs as {} as FusedBatchNormAttrs;
+    const {varianceEpsilon} = attrs as unknown as FusedBatchNormAttrs;
     const [x, mean, variance, scale] = saved;
 
     const scaleValue = scale == null ? scalar(1) : scale;
@@ -58,7 +58,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
         return reshape(
             mul(mul(dy,
                     tile(
-                        oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]),
+                        reshape(oneOverSqrtVariance, [1, 1, 1, mean.shape[0]]),
                         tileShape)),
                 scaleValue),
             x.shape);

@@ -15,30 +15,66 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor} from '../tensor';
 
-import {Conv2DInfo} from './conv_util';
+import * as broadcast_util from './broadcast_util';
+import {elu} from './elu';
+import {Activation} from './fused_types';
+import {leakyRelu} from './leaky_relu';
+import {mul} from './mul';
+import {prelu} from './prelu';
+import {relu} from './relu';
+import {relu6} from './relu6';
+import {reshape} from './reshape';
+import {sigmoid} from './sigmoid';
+import {step} from './step';
+import {sum} from './sum';
 
-export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
+// Returns gradient for fused activation.
+export function getFusedDyActivation(
+    dy: Tensor, y: Tensor, activation: Activation): Tensor {
+  if (activation == null || activation === 'linear') {
+    return dy;
+  }
+  if (activation === 'relu') {
+    return mul(dy, step(y));
+  }
+  throw new Error(
+      `Cannot compute gradient for fused activation ${activation}.`);
+}
 
-export type FusedBatchMatMulConfig = {
-  a: Tensor3D,
-  b: Tensor3D,
-  transposeA: boolean,
-  transposeB: boolean,
-  bias?: Tensor,
-  activation?: Activation,
-  preluActivationWeights?: Tensor
-};
+// Returns gradient for fused bias.
+export function getFusedBiasGradient(
+    bias: Tensor, dyActivation: Tensor): Tensor {
+  let res = dyActivation;
+  const reduceAxes =
+      broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
+  if (reduceAxes.length > 0) {
+    res = sum(res, reduceAxes);
+  }
+  return reshape(res, bias.shape);
+}
 
-export type FusedConv2DConfig = {
-  input: Tensor4D,
-  filter: Tensor4D,
-  convInfo: Conv2DInfo,
-  bias?: Tensor,
-  activation?: Activation,
-  preluActivationWeights?: Tensor
-};
+export function applyActivation(
+    x: Tensor, activation: Activation, preluActivationWeights?: Tensor,
+    leakyreluAlpha?: number): Tensor {
+  if (activation === 'linear') {
+    return x;
+  } else if (activation === 'relu') {
+    return relu(x);
+  } else if (activation === 'elu') {
+    return elu(x);
+  } else if (activation === 'relu6') {
+    return relu6(x);
+  } else if (activation === 'prelu') {
+    return prelu(x, preluActivationWeights);
+  } else if (activation === 'leakyrelu') {
+    return leakyRelu(x, leakyreluAlpha);
+  } else if (activation === 'sigmoid') {
+    return sigmoid(x);
+  }
+  throw new Error(`Unknown fused activation ${activation}.`);
+}
 
 // Whether we should call fused ops.
 export const shouldFuse = (gradientDepth: number, activation: Activation) => {

@@ -14,17 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr} from './test_helper';
 import {executeOp} from './transformation_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 
 describe('transformation', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
-  const input2 = [tfc.tensor1d([1, 1])];
+  const input1 = [tfOps.scalar(1)];
+  const input2 = [tfOps.tensor1d([1, 1])];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -41,128 +43,161 @@ describe('transformation', () => {
   });
 
   describe('executeOp', () => {
+    let spyOps: RecursiveSpy<typeof tfOps>;
+    let spyOpsAsTfOps: typeof tfOps;
+
+    beforeEach(() => {
+      spyOps = spyOnAllFunctions(tfOps);
+      spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
+    });
+
     describe('Cast', () => {
-      it('should call tfc.cast', () => {
-        spyOn(tfc, 'cast');
+      it('should call tfOps.cast', () => {
         node.op = 'Cast';
         node.attrParams.dtype = createDtypeAttr('float32');
-        executeOp(node, {input1}, context);
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.cast).toHaveBeenCalledWith(input1[0], 'float32');
+        expect(spyOps.cast).toHaveBeenCalledWith(input1[0], 'float32');
       });
     });
-    describe('expandDExpandDimsims', () => {
-      it('should call tfc.expandDims', () => {
-        spyOn(tfc, 'expandDims');
+    describe('ExpandDims', () => {
+      it('should call tfOps.expandDims', () => {
         node.op = 'ExpandDims';
         node.attrParams.axis = createNumberAttr(1);
-        executeOp(node, {input1}, context);
+        spyOps.expandDims.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.expandDims).toHaveBeenCalledWith(input1[0], 1);
+        expect(spyOps.expandDims).toHaveBeenCalledWith(input1[0], 1);
+      });
+    });
+    describe('MirrorPad', () => {
+      it('should call tfc.mirrorPad', () => {
+        node.op = 'MirrorPad';
+        node.inputParams.padding = createNumericArrayAttrFromIndex(1);
+        node.attrParams.mode = createStrAttr('reflect');
+        node.inputNames = ['input1', 'input3'];
+        const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
+        spyOps.mirrorPad.and.returnValue({});
+        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
+
+        expect(spyOps.mirrorPad)
+            .toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 'reflect');
       });
     });
     describe('Pad', () => {
-      it('should call tfc.pad', () => {
-        spyOn(tfc, 'pad');
+      it('should call tfOps.pad', () => {
         node.op = 'Pad';
         node.inputParams.padding = createNumericArrayAttrFromIndex(1);
         node.attrParams.constantValue = createNumberAttr(1);
         node.inputNames = ['input1', 'input3'];
-        const input3 = [tfc.tensor2d([1, 1, 2, 2], [2, 2])];
-        executeOp(node, {input1, input3}, context);
+        const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
+        spyOps.pad.and.returnValue({});
+        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
+        expect(spyOps.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
       });
     });
     describe('PadV2', () => {
-      it('should call tfc.pad', () => {
-        spyOn(tfc, 'pad');
+      it('should call tfOps.pad', () => {
         node.op = 'PadV2';
         node.inputParams.padding = createNumericArrayAttrFromIndex(1);
         node.attrParams.constantValue = createNumberAttr(1);
         node.inputNames = ['input1', 'input3'];
-        const input3 = [tfc.tensor2d([1, 1, 2, 2], [2, 2])];
-        executeOp(node, {input1, input3}, context);
+        const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
+        spyOps.pad.and.returnValue({});
+        executeOp(node, {input1, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
+        expect(spyOps.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
       });
     });
     describe('Reshape', () => {
-      it('should call tfc.reshape', () => {
-        spyOn(tfc, 'reshape');
+      it('should call tfOps.reshape', () => {
         node.op = 'Reshape';
         node.inputParams.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
 
-        executeOp(node, {input1, input2}, context);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-        expect(tfc.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
+        expect(spyOps.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
     });
     describe('Squeeze', () => {
-      it('should call tfc.squeeze', () => {
-        spyOn(tfc, 'squeeze');
+      it('should call tfOps.squeeze', () => {
         node.op = 'Squeeze';
         node.attrParams.axis = createNumberAttr(1);
-        executeOp(node, {input1}, context);
+        spyOps.squeeze.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.squeeze).toHaveBeenCalledWith(input1[0], 1);
+        expect(spyOps.squeeze).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('SpaceToBatchND', () => {
-      it('should call tfc.spaceToBatchND', () => {
-        spyOn(tfc, 'spaceToBatchND');
+      it('should call tfOps.spaceToBatchND', () => {
         node.op = 'SpaceToBatchND';
         node.inputParams.blockShape = createNumericArrayAttrFromIndex(1);
         node.inputParams.paddings = createNumericArrayAttrFromIndex(2);
         node.inputNames = ['input1', 'input2', 'input3'];
-        const input2 = [tfc.tensor1d([1, 1, 2, 2])];
-        const input3 = [tfc.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
-        executeOp(node, {input1, input2, input3}, context);
+        const input2 = [tfOps.tensor1d([1, 1, 2, 2])];
+        const input3 = [tfOps.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
+        spyOps.spaceToBatchND.and.returnValue({});
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.spaceToBatchND)
+        expect(spyOps.spaceToBatchND)
             .toHaveBeenCalledWith(
                 input1[0], [1, 1, 2, 2], [[1, 2], [2, 3], [2, 3], [3, 4]]);
       });
     });
     describe('BatchToSpaceND', () => {
-      it('should call tfc.batchToSpaceND', () => {
-        spyOn(tfc, 'batchToSpaceND');
+      it('should call tfOps.batchToSpaceND', () => {
         node.op = 'BatchToSpaceND';
         node.inputParams.blockShape = createNumericArrayAttrFromIndex(1);
         node.inputParams.crops = createNumericArrayAttrFromIndex(2);
         node.inputNames = ['input1', 'input2', 'input3'];
-        const input2 = [tfc.tensor1d([1, 1, 2, 2])];
-        const input3 = [tfc.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
-        executeOp(node, {input1, input2, input3}, context);
+        const input2 = [tfOps.tensor1d([1, 1, 2, 2])];
+        const input3 = [tfOps.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
+        spyOps.batchToSpaceND.and.returnValue({});
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
-        expect(tfc.batchToSpaceND)
+        expect(spyOps.batchToSpaceND)
             .toHaveBeenCalledWith(
                 input1[0], [1, 1, 2, 2], [[1, 2], [2, 3], [2, 3], [3, 4]]);
       });
     });
     describe('DepthToSpace', () => {
-      it('should call tfc.depthToSpace', () => {
-        spyOn(tfc, 'depthToSpace');
+      it('should call tfOps.depthToSpace', () => {
         node.op = 'DepthToSpace';
         node.attrParams.blockSize = createNumberAttr(1);
         node.attrParams.dataFormat = createStrAttr('nhwc');
         node.inputNames = ['input1'];
-        executeOp(node, {input1}, context);
+        spyOps.depthToSpace.and.returnValue({});
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-        expect(tfc.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
+        expect(spyOps.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
       });
     });
     describe('BroadcastTo', () => {
-      it('should call tfc.broadcastTo', () => {
-        spyOn(tfc, 'broadcastTo');
+      it('should call tfOps.broadcastTo', () => {
         node.op = 'BroadcastTo';
         node.inputParams.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
 
-        executeOp(node, {input1, input2}, context);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-        expect(tfc.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
+        expect(spyOps.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
+      });
+    });
+    describe('BroadcastArgs', () => {
+      it('should call tfOps.broadcastArgs', () => {
+        node.op = 'BroadcastArgs';
+        node.inputParams.s0 = createTensorAttr(0);
+        node.inputParams.s1 = createTensorAttr(1);
+        node.inputNames = ['input1', 'input2'];
+        const input1 = [tfOps.tensor1d([1, 1])];
+        const input2 = [tfOps.tensor1d([1, 1])];
+        spyOps.broadcastArgs.and.returnValue({});
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+
+        expect(spyOps.broadcastArgs).toHaveBeenCalledWith(input1[0], input2[0]);
       });
     });
   });

@@ -17,7 +17,7 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 
@@ -32,7 +32,8 @@ void FusedDepthwiseConv2D(
     const size_t dilation_width, const size_t stride_height,
     const size_t stride_width, const size_t input_channels,
     const size_t output_channels, const FusableActivation activation,
-    const size_t prelu_weights_id, const size_t out_id);
+    const size_t prelu_weights_id, const float leakyrelu_alpha,
+    const size_t out_id);
 }
 
 }  // namespace wasm

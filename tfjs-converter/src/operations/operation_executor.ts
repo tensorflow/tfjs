@@ -19,6 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
+import {ResourceManager} from '../executor/resource_manager';
 
 import {NodeValueImpl} from './custom_op/node_value_impl';
 import {getRegisteredOp} from './custom_op/register';
@@ -30,13 +31,17 @@ import * as creation from './executors/creation_executor';
 import * as dynamic from './executors/dynamic_executor';
 import * as evaluation from './executors/evaluation_executor';
 import * as graph from './executors/graph_executor';
+import * as hashTable from './executors/hash_table_executor';
 import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
+import * as ragged from './executors/ragged_executor';
 import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
+import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
+import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
 import {Node} from './types';
 
@@ -44,53 +49,59 @@ import {Node} from './types';
  * Executes the op defined by the node object.
  * @param node
  * @param tensorMap contains tensors for executed nodes and weights
+ * @param context contains tensors and information for running the current node.
+ * @param resourceManager Optional. Contains global resources of the model.
  */
 export function executeOp(
-    node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor[]|Promise<tfc.Tensor[]> {
+    node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+    resourceManager?: ResourceManager, tidy = tfc.tidy): tfc.Tensor[]|
+    Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         switch (node.category) {
           case 'arithmetic':
-            return tfc.tidy(
-                () => arithmetic.executeOp(node, tensorMap, context));
+            return tidy(() => arithmetic.executeOp(node, tensorMap, context));
           case 'basic_math':
-            return tfc.tidy(
-                () => basicMath.executeOp(node, tensorMap, context));
+            return tidy(() => basicMath.executeOp(node, tensorMap, context));
           case 'control':
             return control.executeOp(node, tensorMap, context);
           case 'convolution':
-            return tfc.tidy(
-                () => convolution.executeOp(node, tensorMap, context));
+            return tidy(() => convolution.executeOp(node, tensorMap, context));
           case 'creation':
-            return tfc.tidy(() => creation.executeOp(node, tensorMap, context));
+            return tidy(() => creation.executeOp(node, tensorMap, context));
           case 'dynamic':
             return dynamic.executeOp(node, tensorMap, context);
           case 'evaluation':
-            return tfc.tidy(
-                () => evaluation.executeOp(node, tensorMap, context));
+            return tidy(() => evaluation.executeOp(node, tensorMap, context));
           case 'image':
-            return tfc.tidy(() => image.executeOp(node, tensorMap, context));
+            return tidy(() => image.executeOp(node, tensorMap, context));
           case 'graph':
-            return tfc.tidy(() => graph.executeOp(node, tensorMap, context));
+            return tidy(() => graph.executeOp(node, tensorMap, context));
           case 'logical':
-            return tfc.tidy(() => logical.executeOp(node, tensorMap, context));
+            return tidy(() => logical.executeOp(node, tensorMap, context));
           case 'matrices':
-            return tfc.tidy(() => matrices.executeOp(node, tensorMap, context));
+            return tidy(() => matrices.executeOp(node, tensorMap, context));
           case 'normalization':
-            return tfc.tidy(
+            return tidy(
                 () => normalization.executeOp(node, tensorMap, context));
+          case 'ragged':
+            return tidy(() => ragged.executeOp(node, tensorMap, context));
           case 'reduction':
-            return tfc.tidy(
-                () => reduction.executeOp(node, tensorMap, context));
+            return tidy(() => reduction.executeOp(node, tensorMap, context));
           case 'slice_join':
-            return tfc.tidy(
-                () => sliceJoin.executeOp(node, tensorMap, context));
+            return tidy(() => sliceJoin.executeOp(node, tensorMap, context));
+          case 'sparse':
+            return tidy(() => sparse.executeOp(node, tensorMap, context));
           case 'spectral':
-            return tfc.tidy(() => spectral.executeOp(node, tensorMap, context));
+            return tidy(() => spectral.executeOp(node, tensorMap, context));
+          case 'string':
+            return tidy(() => string.executeOp(node, tensorMap, context));
           case 'transformation':
-            return tfc.tidy(
+            return tidy(
                 () => transformation.executeOp(node, tensorMap, context));
+          case 'hash_table':
+            return hashTable.executeOp(
+                node, tensorMap, context, resourceManager);
           case 'custom':
             const opMapper = getRegisteredOp(node.op);
             if (opMapper && opMapper.customExecutor) {
@@ -106,7 +117,7 @@ export function executeOp(
                 `, or register a custom execution with tf.registerOp()`);
         }
       })(node, tensorMap, context);
-  if (value instanceof Promise) {
+  if (tfc.util.isPromise(value)) {
     return value.then((data) => [].concat(data));
   }
   return [].concat(value);

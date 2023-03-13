@@ -38,4 +38,4 @@ function pad4d_(
   return pad(x, paddings, constantValue);
 }
 
-export const pad4d = op({pad4d_});
+export const pad4d = /* @__PURE__ */ op({pad4d_});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 import {histogram} from '../render/histogram';
 import {getDrawArea} from '../render/render_utils';
@@ -32,8 +32,6 @@ import {tensorStats} from '../util/math';
  * await tfvis.show.valuesDistribution(surface, tensor);
  * ```
  *
- */
-/**
  * @doc {heading: 'Models & Tensors', subheading: 'Model Inspection', namespace:
  * 'show'}
  */
@@ -41,5 +39,5 @@ export async function valuesDistribution(container: Drawable, tensor: Tensor) {
   const drawArea = getDrawArea(container);
   const stats = await tensorStats(tensor);
   const values = await tensor.data();
-  histogram(drawArea, values, {height: 150, stats});
+  return histogram(drawArea, values, {height: 150, stats});
 }

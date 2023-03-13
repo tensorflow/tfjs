@@ -16,13 +16,14 @@
  */
 
 import {ENGINE} from '../engine';
-import {SelectV2, SelectV2Inputs} from '../kernel_names';
+import {Select, SelectInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {assert, assertShapesMatch} from '../util';
 
+import {broadcastTo} from './broadcast_to';
+import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 
 /**
@@ -41,34 +42,33 @@ import {op} from './operation';
  * @param condition The input condition. Must be of dtype bool.
  * @param a If `condition` is rank 1, `a` may have a higher rank but
  *     its first dimension must match the size of `condition`.
- * @param b A tensor with the same shape and type as `a`.
+ * @param b A tensor with the same dtype as `a` and with shape that is
+ *     compatible with `a`.
+ * @return A tensor with same dtype as `a` and `b`, and shape that is
+ *     broadcastable from `a` and `b`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function where_<T extends Tensor>(
     condition: Tensor|TensorLike, a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'where');
   const $b = convertToTensor(b, 'b', 'where');
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
+  // TODO: move this logic to forward function when the broadcastTo op is
+  // implemented in WASM.
+  // Find the broadcastable shape for $condition, $a, and $b.
+  const broadcastShape = assertAndGetBroadcastShape(
+      assertAndGetBroadcastShape($condition.shape, $a.shape), $b.shape);
+  const $broadcastedCondition = broadcastTo($condition, broadcastShape);
+  const $broadcastedA = broadcastTo($a, broadcastShape);
+  const $broadcastedB = broadcastTo($b, broadcastShape);
 
-  assertShapesMatch($a.shape, $b.shape, 'Error in where: ');
-
-  if ($condition.rank === 1) {
-    // If condition rank is 1, then the first dimension must match the size of
-    // condition.
-    assert(
-        $condition.shape[0] === $a.shape[0],
-        () => 'The first dimension of `a` must match the size of `condition`.');
-  } else {
-    // A must have the same shape as condition.
-    assertShapesMatch($condition.shape, $b.shape, 'Error in where: ');
-  }
-
-  const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.select($condition, $a, $b);
-    save([$condition]);
-    return res;
-  }, inputs as unknown as NamedTensorMap, null /* gradient */, SelectV2) as T;
+  const inputs: SelectInputs = {
+    condition: $broadcastedCondition,
+    t: $broadcastedA,
+    e: $broadcastedB
+  };
+  return ENGINE.runKernel(Select, inputs as unknown as NamedTensorMap);
 }
 
-export const where = op({where_});
+export const where = /* @__PURE__ */ op({where_});

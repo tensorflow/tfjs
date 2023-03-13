@@ -1,0 +1,86 @@
+# Copyright 2022 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:defaults.bzl", "esbuild")
+load("//tools:get_extension.bzl", "get_extension")
+
+package(default_visibility = ["//visibility:public"])
+
+# Download the TFDF web API related WASM files from google storage, and make
+# them available for other targets.
+#
+# The downloaded files will be in `tfjs/dist/bin/tfjs-tfdf/wasm`.
+
+copy_to_dist(
+    name = "wasm_files",
+    srcs = [
+        "@tfdf_wasm_files//:wasm_files",
+    ],
+    dest_dir = ".",
+    global_root = "../tfdf_wasm_files",  # See tfdf_repositories.bzl
+)
+
+get_extension(
+    name = "inference_js",
+    srcs = [
+        ":wasm_files",
+    ],
+    include = [".js"],
+)
+
+get_extension(
+    name = "wasm_binary",
+    srcs = [
+        ":wasm_files",
+    ],
+    include = [".wasm"],
+)
+
+genrule(
+    name = "inference_jszip",
+    srcs = [
+        ":inference_js",
+    ],
+    outs = [
+        "inference_jszip.js",
+    ],
+    cmd = "sed 's/JSZip/require(\"jszip\")/' $(location :inference_js) > $@",
+)
+
+esbuild(
+    name = "inference_bundle",
+    srcs = [
+        ":inference_jszip",
+    ],
+    entry_point = "inference_jszip.js",
+    external = [
+        "fs",
+        "path",
+    ],
+    format = "cjs",
+    minify = True,
+    deps = [
+        "@npm//jszip",
+    ],
+)
+
+filegroup(
+    name = "wasm",
+    srcs = [
+        ":inference_bundle",
+        ":wasm_binary",
+    ],
+)

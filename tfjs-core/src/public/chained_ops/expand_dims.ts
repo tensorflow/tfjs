@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {expandDims} from '../../ops/expand_dims';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.expandDims = function<T extends Tensor>(axis?: number): T {
+getGlobalTensorClass().prototype.expandDims = function<T extends Tensor>(
+    axis?: number): T {
   this.throwIfDisposed();
   return expandDims(this, axis);
 };

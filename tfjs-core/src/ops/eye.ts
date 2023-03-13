@@ -18,9 +18,10 @@
 import {Tensor2D} from '../tensor';
 import {DataType} from '../types';
 
-import {buffer} from './array_ops';
+import {buffer} from './buffer';
 import {expandDims} from './expand_dims';
 import {op} from './operation';
+import {reshape} from './reshape';
 import {tile} from './tile';
 
 /**
@@ -34,8 +35,9 @@ import {tile} from './tile';
  * @param dtype Data type.
  * @returns Identity matrix of the specified size and data type, possibly
  *   with batch repetition if `batchShape` is specified.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function eye_(
     numRows: number, numColumns?: number,
     batchShape?:
@@ -52,17 +54,19 @@ function eye_(
   for (let i = 0; i < n; ++i) {
     buff.set(1, i, i);
   }
-  const out = buff.toTensor().as2D(numRows, numColumns);
+  const out: Tensor2D = reshape(buff.toTensor(), [numRows, numColumns]);
   if (batchShape == null) {
     return out;
   } else {
     if (batchShape.length === 1) {
       return tile(expandDims(out, 0), [batchShape[0], 1, 1]) as Tensor2D;
     } else if (batchShape.length === 2) {
+      // tslint:disable-next-line:no-unnecessary-type-assertion
       return tile(
                  expandDims(expandDims(out, 0), 0),
                  [batchShape[0], batchShape[1], 1, 1]) as Tensor2D;
     } else if (batchShape.length === 3) {
+      // tslint:disable-next-line:no-unnecessary-type-assertion
       return tile(expandDims(expandDims(expandDims(out, 0), 0), 0), [
                batchShape[0], batchShape[1], batchShape[2], 1, 1
              ]) as Tensor2D;
@@ -75,4 +79,4 @@ function eye_(
   }
 }
 
-export const eye = op({eye_});
+export const eye = /* @__PURE__ */ op({eye_});

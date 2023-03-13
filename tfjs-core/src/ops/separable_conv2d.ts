@@ -22,6 +22,7 @@ import * as util from '../util';
 import {conv2d} from './conv2d';
 import {depthwiseConv2d} from './depthwise_conv2d';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * 2-D convolution with separable filters.
@@ -54,8 +55,8 @@ import {op} from './operation';
  *   - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
  *     in which we sample input values across the height and width dimensions
  *     in atrous convolution. Defaults to `[1, 1]`. If `rate` is a single
@@ -65,8 +66,9 @@ import {op} from './operation';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels]. Only "NHWC" is currently supported.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function separableConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike,
     pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
@@ -82,7 +84,7 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
 
   if (dataFormat === 'NCHW') {
@@ -129,9 +131,9 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
       conv2d(depthwise, $pointwiseFilter, pointwiseStride, 'valid', dataFormat);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }
 
-export const separableConv2d = op({separableConv2d_});
+export const separableConv2d = /* @__PURE__ */ op({separableConv2d_});

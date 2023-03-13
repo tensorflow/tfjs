@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/BatchMatMul.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/BatchMatMul.h"
 
 TEST(BATCH_MATMUL, xnn_operator_lifetime) {
   tfjs::wasm::init();
@@ -39,7 +39,7 @@ TEST(BATCH_MATMUL, xnn_operator_lifetime) {
   size_t* b_shape_ptr = b_shape.data();
 
   size_t out_id = 5;
-  float out_values[2] = {0, 0};
+  float out_values[4] = {};
 
   tfjs::wasm::register_tensor(a0_id, size, a_values);
   tfjs::wasm::register_tensor(a1_id, size, a_values);

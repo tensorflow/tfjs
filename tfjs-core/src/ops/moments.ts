@@ -20,10 +20,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
-import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
+import {cast} from './cast';
+import {mean} from './mean';
 import {op} from './operation';
-import {mean} from './reduction_ops';
 import {reshape} from './reshape';
 import {square} from './square';
 import {sub} from './sub';
@@ -39,8 +39,9 @@ import {sub} from './sub';
  * @param keepDims If true, the moments have the same dimensionality as the
  *     input.
  * @return An object with two keys: `mean` and `variance`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function moments_(
     x: Tensor|TensorLike, axis: number|number[] = null,
     keepDims = false): {mean: Tensor, variance: Tensor} {
@@ -57,4 +58,4 @@ function moments_(
   return {mean: xMean, variance};
 }
 
-export const moments = op({moments_});
+export const moments = /* @__PURE__ */ op({moments_});

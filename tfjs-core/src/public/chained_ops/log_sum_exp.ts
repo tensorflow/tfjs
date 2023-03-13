@@ -15,18 +15,18 @@
  * =============================================================================
  */
 import {logSumExp} from '../../ops/log_sum_exp';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     logSumExp<T extends Tensor>(
-        this: T, axis: number|number[], keepDims?: boolean): T;
+        this: T, axis?: number|number[], keepDims?: boolean): T;
   }
 }
 
-Tensor.prototype.logSumExp = function<T extends Tensor>(
-    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+getGlobalTensorClass().prototype.logSumExp = function<T extends Tensor>(
+    this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return logSumExp(this, axis, keepDims);
 };

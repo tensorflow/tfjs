@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, Tensor4D} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -23,78 +25,93 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export const executeOp: InternalOpExecutor = (node: Node,
-                                              tensorMap: NamedTensorsMap,
-                                              context: ExecutionContext):
-                                                 tfc.Tensor[] => {
-  switch (node.op) {
-    case 'Cast': {
-      return [tfc.cast(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('dtype', node, tensorMap, context) as 'int32' |
-              'float32' | 'bool')];
-    }
-    case 'ExpandDims': {
-      const axis = getParamValue('axis', node, tensorMap, context) as number;
-      return [tfc.expandDims(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
-    }
-    case 'Squeeze': {
-      const axis = getParamValue('axis', node, tensorMap, context) as number[];
-      return [tfc.squeeze(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis)];
-    }
+export const executeOp: InternalOpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap,
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
+      switch (node.op) {
+        case 'Cast': {
+          return [ops.cast(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('dtype', node, tensorMap, context) as 'int32' |
+                  'float32' | 'bool')];
+        }
+        case 'ExpandDims': {
+          const axis =
+              getParamValue('axis', node, tensorMap, context) as number;
+          return [ops.expandDims(
+              getParamValue('x', node, tensorMap, context) as Tensor, axis)];
+        }
+        case 'Squeeze': {
+          const axis =
+              getParamValue('axis', node, tensorMap, context) as number[];
+          return [ops.squeeze(
+              getParamValue('x', node, tensorMap, context) as Tensor, axis)];
+        }
 
-    case 'Reshape': {
-      return [tfc.reshape(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('shape', node, tensorMap, context) as number[])];
-    }
-    case 'PadV2':
-    case 'Pad': {
-      return [tfc.pad(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('padding', node, tensorMap, context) as
-              Array<[number, number]>,
-          getParamValue('constantValue', node, tensorMap, context) as number)];
-    }
-    case 'SpaceToBatchND': {
-      const blockShape =
-          getParamValue('blockShape', node, tensorMap, context) as number[];
-      const paddings =
-          getParamValue('paddings', node, tensorMap, context) as number[][];
-      return [tfc.spaceToBatchND(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          blockShape, paddings)];
-    }
-    case 'BatchToSpaceND': {
-      const blockShape =
-          getParamValue('blockShape', node, tensorMap, context) as number[];
-      const crops =
-          getParamValue('crops', node, tensorMap, context) as number[][];
-      return [tfc.batchToSpaceND(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          blockShape, crops)];
-    }
-    case 'DepthToSpace': {
-      const blockSize =
-          getParamValue('blockSize', node, tensorMap, context) as number;
-      const dataFormat =
-          (getParamValue('dataFormat', node, tensorMap, context) as
-           string).toUpperCase() as 'NHWC' |
-          'NCHW';
-      return [tfc.depthToSpace(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor4D,
-          blockSize, dataFormat)];
-    }
-    case 'BroadcastTo': {
-      return [tfc.broadcastTo(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('shape', node, tensorMap, context) as number[])];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+        case 'Reshape': {
+          return [ops.reshape(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('shape', node, tensorMap, context) as number[])];
+        }
+        case 'MirrorPad': {
+          return [ops.mirrorPad(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('padding', node, tensorMap, context) as
+                  Array<[number, number]>,
+              getParamValue('mode', node, tensorMap, context) as 'reflect' |
+                  'symmetric')];
+        }
+        case 'PadV2':
+        case 'Pad': {
+          return [ops.pad(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('padding', node, tensorMap, context) as
+                  Array<[number, number]>,
+              getParamValue('constantValue', node, tensorMap, context) as
+                  number)];
+        }
+        case 'SpaceToBatchND': {
+          const blockShape =
+              getParamValue('blockShape', node, tensorMap, context) as number[];
+          const paddings =
+              getParamValue('paddings', node, tensorMap, context) as number[][];
+          return [ops.spaceToBatchND(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              blockShape, paddings)];
+        }
+        case 'BatchToSpaceND': {
+          const blockShape =
+              getParamValue('blockShape', node, tensorMap, context) as number[];
+          const crops =
+              getParamValue('crops', node, tensorMap, context) as number[][];
+          return [ops.batchToSpaceND(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              blockShape, crops)];
+        }
+        case 'DepthToSpace': {
+          const blockSize =
+              getParamValue('blockSize', node, tensorMap, context) as number;
+          const dataFormat =
+              (getParamValue('dataFormat', node, tensorMap, context) as
+               string).toUpperCase() as 'NHWC' |
+              'NCHW';
+          return [ops.depthToSpace(
+              getParamValue('x', node, tensorMap, context) as Tensor4D,
+              blockSize, dataFormat)];
+        }
+        case 'BroadcastTo': {
+          return [ops.broadcastTo(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('shape', node, tensorMap, context) as number[])];
+        }
+        case 'BroadcastArgs': {
+          return [ops.broadcastArgs(
+              getParamValue('s0', node, tensorMap, context) as Tensor,
+              getParamValue('s1', node, tensorMap, context) as Tensor)];
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'transformation';

@@ -12,9 +12,11 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#include <cstring>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include <stdio.h>
 
 #include <xnnpack.h>
 #include <array>
@@ -24,9 +26,9 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/AvgPool.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/AvgPool.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 typedef std::array<size_t, 14> OperatorCacheKey;
@@ -53,6 +55,14 @@ void AvgPool(const size_t x_id, const size_t batch_size,
 
   const float* x_buf = reinterpret_cast<float*>(x_info.memory_offset);
   float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+
+  // XNNPack does not support 1x1 filters for AvgPool
+  if (filter_width == 1 && filter_height == 1) {
+    tfjs::util::identity_pool(x_id, x_buf, out_buf, out_info.size, batch_size,
+                              input_height, input_width, stride_height,
+                              stride_width, channels);
+    return;
+  }
 
   xnn_operator_t avg_pool_op = nullptr;
 
@@ -93,7 +103,7 @@ void AvgPool(const size_t x_id, const size_t batch_size,
 
   xnn_status status = xnn_setup_average_pooling2d_nhwc_f32(
       avg_pool_op, batch_size, input_height, input_width, x_buf, out_buf,
-      nullptr /* thread pool */);
+      tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_average_pooling2d_nhwc_f32 is not "
@@ -103,7 +113,7 @@ void AvgPool(const size_t x_id, const size_t batch_size,
     return;
   }
 
-  xnn_run_operator(avg_pool_op, nullptr /* thread pool */);
+  xnn_run_operator(avg_pool_op, tfjs::backend::threadpool);
 }
 }  // extern "C"
 }  // namespace wasm

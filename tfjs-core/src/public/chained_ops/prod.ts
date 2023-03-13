@@ -15,18 +15,18 @@
  * =============================================================================
  */
 import {prod} from '../../ops/prod';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    prod<T extends Tensor>(this: T, axis: number|number[], keepDims?: boolean):
+    prod<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
         T;
   }
 }
 
-Tensor.prototype.prod = function<T extends Tensor>(
-    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+getGlobalTensorClass().prototype.prod = function<T extends Tensor>(
+    this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return prod(this, axis, keepDims);
 };

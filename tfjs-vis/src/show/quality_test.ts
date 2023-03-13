@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {showPerClassAccuracy} from './quality';
+import {perClassAccuracy} from './quality';
 
 describe('perClassAccuracy', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('perClassAccuracy', () => {
     ];
 
     const labels = ['cat', 'dog'];
-    await showPerClassAccuracy(container, acc, labels);
+    await perClassAccuracy(container, acc, labels);
     expect(document.querySelectorAll('table').length).toBe(1);
   });
 
@@ -40,7 +40,7 @@ describe('perClassAccuracy', () => {
       {accuracy: 0.5, count: 10},
       {accuracy: 0.8, count: 10},
     ];
-    await showPerClassAccuracy(container, acc);
+    await perClassAccuracy(container, acc);
     expect(document.querySelectorAll('table').length).toBe(1);
   });
 });

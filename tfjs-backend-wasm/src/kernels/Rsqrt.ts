@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Rsqrt} from '@tensorflow/tfjs-core';
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Rsqrt');
+import {createUnaryKernelConfig} from './unary_kernel';
+export const rsqrtConfig: KernelConfig = createUnaryKernelConfig(Rsqrt);

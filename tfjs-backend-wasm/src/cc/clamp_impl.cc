@@ -12,15 +12,15 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/clamp_impl.h"
+#include "tfjs-backend-wasm/src/cc/clamp_impl.h"
 
 #include <xnnpack.h>
 #include <cstddef>
 #include <map>
 #include <tuple>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // These values are keys to creating the xnn clamp operator. We use
@@ -62,7 +62,7 @@ void xnn_clamp(const size_t x_id, const size_t out_id, const float min,
 
   const size_t batch_size = out_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(op, batch_size, x_buf, out_buf,
-                                             nullptr /* thread pool */);
+                                             tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_clamp_nc_f32 is not successful. "
@@ -71,7 +71,7 @@ void xnn_clamp(const size_t x_id, const size_t out_id, const float min,
     return;
   }
 
-  xnn_run_operator(op, nullptr /* thread pool */);
+  xnn_run_operator(op, tfjs::backend::threadpool);
 }
 
 }  // namespace wasm

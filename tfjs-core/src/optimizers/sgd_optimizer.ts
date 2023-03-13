@@ -17,8 +17,10 @@
 
 import {ENGINE} from '../engine';
 import {keep, tidy} from '../globals';
-import {scalar} from '../ops/ops';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {add} from '../ops/add';
+import {mul} from '../ops/mul';
+import {scalar} from '../ops/scalar';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 
@@ -27,7 +29,12 @@ import {Optimizer} from './optimizer';
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'SGD';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'SGD';
+  }
   protected c: Scalar;
 
   constructor(protected learningRate: number) {
@@ -48,7 +55,7 @@ export class SGDOptimizer extends Optimizer {
       }
       const value = ENGINE.registeredVariables[name];
       tidy(() => {
-        const newValue = this.c.mul(gradient).add(value);
+        const newValue = add(mul(this.c, gradient), value);
         value.assign(newValue);
       });
     });
@@ -66,15 +73,15 @@ export class SGDOptimizer extends Optimizer {
     this.c = keep(scalar(-learningRate));
   }
 
-  dispose() {
+  override dispose() {
     this.c.dispose();
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     return [await this.saveIterations()];
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     if (weightValues.length !== 0) {
       throw new Error('SGD optimizer does not have settable weights.');
@@ -86,9 +93,8 @@ export class SGDOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate']);
   }
 }
-registerClass(SGDOptimizer);

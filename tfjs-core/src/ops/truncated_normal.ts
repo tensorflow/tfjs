@@ -17,8 +17,9 @@
 
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
-import {buffer} from './array_ops';
+import {buffer} from './buffer';
 import {op} from './operation';
 import {MPRandGauss} from './rand_util';
 
@@ -39,11 +40,13 @@ import {MPRandGauss} from './rand_util';
  * @param stdDev The standard deviation of the normal distribution.
  * @param dtype The data type of the output tensor.
  * @param seed The seed for the random number generator.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function truncatedNormal_<R extends Rank>(
     shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
     seed?: number): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && (dtype as DataType) === 'bool') {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
@@ -56,4 +59,4 @@ function truncatedNormal_<R extends Rank>(
   return res.toTensor();
 }
 
-export const truncatedNormal = op({truncatedNormal_});
+export const truncatedNormal = /* @__PURE__ */ op({truncatedNormal_});

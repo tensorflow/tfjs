@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {env, util} from '@tensorflow/tfjs-core';
+import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
 
-export function callAndCheck<T>(
-    gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
+export function callAndCheck<T>(gl: WebGLRenderingContext, func: () => T): T {
   const returnValue = func();
-  if (debugMode) {
+  if (env().getBool('DEBUG')) {
     checkWebGLError(gl);
   }
   return returnValue;
@@ -71,21 +70,19 @@ export function getWebGLErrorMessage(
 }
 
 export function getExtensionOrThrow(
-    gl: WebGLRenderingContext, debug: boolean, extensionName: string): {} {
+    gl: WebGLRenderingContext, extensionName: string): {} {
   return throwIfNull<{}>(
-      gl, debug, () => gl.getExtension(extensionName),
+      gl, () => gl.getExtension(extensionName),
       'Extension "' + extensionName + '" not supported on this browser.');
 }
 
 export function createVertexShader(
-    gl: WebGLRenderingContext, debug: boolean,
-    vertexShaderSource: string): WebGLShader {
+    gl: WebGLRenderingContext, vertexShaderSource: string): WebGLShader {
   const vertexShader: WebGLShader = throwIfNull<WebGLShader>(
-      gl, debug, () => gl.createShader(gl.VERTEX_SHADER),
+      gl, () => gl.createShader(gl.VERTEX_SHADER),
       'Unable to create vertex WebGLShader.');
-  callAndCheck(
-      gl, debug, () => gl.shaderSource(vertexShader, vertexShaderSource));
-  callAndCheck(gl, debug, () => gl.compileShader(vertexShader));
+  callAndCheck(gl, () => gl.shaderSource(vertexShader, vertexShaderSource));
+  callAndCheck(gl, () => gl.compileShader(vertexShader));
   if (gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS) === false) {
     console.log(gl.getShaderInfoLog(vertexShader));
     throw new Error('Failed to compile vertex shader.');
@@ -94,14 +91,15 @@ export function createVertexShader(
 }
 
 export function createFragmentShader(
-    gl: WebGLRenderingContext, debug: boolean,
-    fragmentShaderSource: string): WebGLShader {
+    gl: WebGLRenderingContext, fragmentShaderSource: string): WebGLShader {
   const fragmentShader: WebGLShader = throwIfNull<WebGLShader>(
-      gl, debug, () => gl.createShader(gl.FRAGMENT_SHADER),
+      gl, () => gl.createShader(gl.FRAGMENT_SHADER),
       'Unable to create fragment WebGLShader.');
-  callAndCheck(
-      gl, debug, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
-  callAndCheck(gl, debug, () => gl.compileShader(fragmentShader));
+  callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
+  callAndCheck(gl, () => gl.compileShader(fragmentShader));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return fragmentShader;
+  }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(
         fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
@@ -111,7 +109,7 @@ export function createFragmentShader(
 }
 
 const lineNumberRegex = /ERROR: [0-9]+:([0-9]+):/g;
-function logShaderSourceAndInfoLog(
+export function logShaderSourceAndInfoLog(
     shaderSource: string, shaderInfoLog: string) {
   const lineNumberRegexResult = lineNumberRegex.exec(shaderInfoLog);
   if (lineNumberRegexResult == null) {
@@ -144,24 +142,30 @@ function logShaderSourceAndInfoLog(
   console.log(afterErrorLines.join('\n'));
 }
 
-export function createProgram(
-    gl: WebGLRenderingContext, debug: boolean): WebGLProgram {
+export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
   return throwIfNull<WebGLProgram>(
-      gl, debug, () => gl.createProgram(), 'Unable to create WebGLProgram.');
+      gl, () => gl.createProgram(), 'Unable to create WebGLProgram.');
 }
 
-export function linkProgram(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram) {
-  callAndCheck(gl, debug, () => gl.linkProgram(program));
+export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
+  callAndCheck(gl, () => gl.linkProgram(program));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return;
+  }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Failed to link vertex and fragment shaders.');
   }
 }
 
+/// validateProgram is effectively "If we `useProgram(program); drawArrays();`,
+/// give feedback in log about perf/correctness warnings or errors that would
+/// occur."
+/// So make sure we set up all vertex/texture/sampler/uniform data before
+/// calling validateProgram!
 export function validateProgram(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram) {
-  callAndCheck(gl, debug, () => gl.validateProgram(program));
+    gl: WebGLRenderingContext, program: WebGLProgram) {
+  callAndCheck(gl, () => gl.validateProgram(program));
   if (gl.getProgramParameter(program, gl.VALIDATE_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Shader program validation failed.');
@@ -169,24 +173,21 @@ export function validateProgram(
 }
 
 export function createStaticVertexBuffer(
-    gl: WebGLRenderingContext, debug: boolean,
-    data: Float32Array): WebGLBuffer {
+    gl: WebGLRenderingContext, data: Float32Array): WebGLBuffer {
   const buffer: WebGLBuffer = throwIfNull<WebGLBuffer>(
-      gl, debug, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
-  callAndCheck(
-      gl, debug, () => gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW));
+      gl, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
+  callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
+  callAndCheck(gl, () => gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW));
   return buffer;
 }
 
 export function createStaticIndexBuffer(
-    gl: WebGLRenderingContext, debug: boolean, data: Uint16Array): WebGLBuffer {
+    gl: WebGLRenderingContext, data: Uint16Array): WebGLBuffer {
   const buffer: WebGLBuffer = throwIfNull<WebGLBuffer>(
-      gl, debug, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer));
+      gl, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
+  callAndCheck(gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer));
   callAndCheck(
-      gl, debug,
-      () => gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW));
+      gl, () => gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW));
   return buffer;
 }
 
@@ -197,10 +198,9 @@ export function getNumChannels(): number {
   return 4;
 }
 
-export function createTexture(
-    gl: WebGLRenderingContext, debug: boolean): WebGLTexture {
+export function createTexture(gl: WebGLRenderingContext): WebGLTexture {
   return throwIfNull<WebGLTexture>(
-      gl, debug, () => gl.createTexture(), 'Unable to create WebGLTexture.');
+      gl, () => gl.createTexture(), 'Unable to create WebGLTexture.');
 }
 
 export function validateTextureSize(width: number, height: number) {
@@ -218,53 +218,50 @@ export function validateTextureSize(width: number, height: number) {
   }
 }
 
-export function createFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean): WebGLFramebuffer {
+export function createFramebuffer(gl: WebGLRenderingContext): WebGLFramebuffer {
   return throwIfNull<WebGLFramebuffer>(
-      gl, debug, () => gl.createFramebuffer(),
-      'Unable to create WebGLFramebuffer.');
+      gl, () => gl.createFramebuffer(), 'Unable to create WebGLFramebuffer.');
 }
 
 export function bindVertexBufferToProgramAttribute(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
-    attribute: string, buffer: WebGLBuffer, arrayEntriesPerItem: number,
-    itemStrideInBytes: number, itemOffsetInBytes: number): boolean {
+    gl: WebGLRenderingContext, program: WebGLProgram, attribute: string,
+    buffer: WebGLBuffer, arrayEntriesPerItem: number, itemStrideInBytes: number,
+    itemOffsetInBytes: number): boolean {
   const loc = gl.getAttribLocation(program, attribute);
   if (loc === -1) {
     // The GPU compiler decided to strip out this attribute because it's unused,
     // thus no need to bind.
     return false;
   }
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
+  callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
   callAndCheck(
-      gl, debug,
+      gl,
       () => gl.vertexAttribPointer(
           loc, arrayEntriesPerItem, gl.FLOAT, false, itemStrideInBytes,
           itemOffsetInBytes));
-  callAndCheck(gl, debug, () => gl.enableVertexAttribArray(loc));
+  callAndCheck(gl, () => gl.enableVertexAttribArray(loc));
   return true;
 }
 
 export function bindTextureUnit(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
-    textureUnit: number) {
+    gl: WebGLRenderingContext, texture: WebGLTexture, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
-  callAndCheck(gl, debug, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
-  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
+  callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 }
 
 export function unbindTextureUnit(
-    gl: WebGLRenderingContext, debug: boolean, textureUnit: number) {
+    gl: WebGLRenderingContext, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
-  callAndCheck(gl, debug, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
-  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
+  callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
 export function getProgramUniformLocationOrThrow(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
+    gl: WebGLRenderingContext, program: WebGLProgram,
     uniformName: string): WebGLUniformLocation {
   return throwIfNull<WebGLUniformLocation>(
-      gl, debug, () => gl.getUniformLocation(program, uniformName),
+      gl, () => gl.getUniformLocation(program, uniformName),
       'uniform "' + uniformName + '" not present in program.');
 }
 
@@ -275,41 +272,33 @@ export function getProgramUniformLocation(
 }
 
 export function bindTextureToProgramUniformSampler(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
-    texture: WebGLTexture, uniformSamplerLocation: WebGLUniformLocation,
-    textureUnit: number) {
-  callAndCheck(
-      gl, debug, () => bindTextureUnit(gl, debug, texture, textureUnit));
-  callAndCheck(
-      gl, debug, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
+    gl: WebGLRenderingContext, texture: WebGLTexture,
+    uniformSamplerLocation: WebGLUniformLocation, textureUnit: number) {
+  callAndCheck(gl, () => bindTextureUnit(gl, texture, textureUnit));
+  callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
 }
 
-export function bindCanvasToFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean) {
-  callAndCheck(gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
-  callAndCheck(
-      gl, debug, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
-  callAndCheck(
-      gl, debug, () => gl.scissor(0, 0, gl.canvas.width, gl.canvas.height));
+export function bindCanvasToFramebuffer(gl: WebGLRenderingContext) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
+  callAndCheck(gl, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
+  callAndCheck(gl, () => gl.scissor(0, 0, gl.canvas.width, gl.canvas.height));
 }
 
 export function bindColorTextureToFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
+    gl: WebGLRenderingContext, texture: WebGLTexture,
     framebuffer: WebGLFramebuffer) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
   callAndCheck(
-      gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  callAndCheck(
-      gl, debug,
+      gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0));
 }
 
 export function unbindColorTextureFromFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean, framebuffer: WebGLFramebuffer) {
+    gl: WebGLRenderingContext, framebuffer: WebGLFramebuffer) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
   callAndCheck(
-      gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  callAndCheck(
-      gl, debug,
+      gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0));
 }
@@ -339,9 +328,9 @@ export function getFramebufferErrorMessage(
 }
 
 function throwIfNull<T>(
-    gl: WebGLRenderingContext, debug: boolean, returnTOrNull: () => T | null,
+    gl: WebGLRenderingContext, returnTOrNull: () => T | null,
     failureMessage: string): T {
-  const tOrNull: T|null = callAndCheck(gl, debug, () => returnTOrNull());
+  const tOrNull: T|null = callAndCheck(gl, () => returnTOrNull());
   if (tOrNull == null) {
     throw new Error(failureMessage);
   }
@@ -384,8 +373,16 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  let maxSizeForNarrowTex =
+      env().getNumber('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE');
+  if (maxSizeForNarrowTex === Infinity &&
+      env().getBool('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE')) {
+    maxSizeForNarrowTex = maxTexSize / 2;
+  }
+
   if (isPacked) {
     maxTexSize = maxTexSize * 2;
+    maxSizeForNarrowTex = maxSizeForNarrowTex * 2;
 
     // This logic ensures we accurately count the number of packed texels needed
     // to accommodate the tensor. We can only pack values in the same texel if
@@ -411,30 +408,40 @@ export function getTextureShapeFromLogicalShape(
   }
 
   let size = util.sizeFromShape(logShape);
+  let textureShape: [number, number] = null;
   if (logShape.length <= 1 && size <= maxTexSize) {
-    return [1, size];
+    textureShape = [1, size];
   } else if (
       logShape.length === 2 && logShape[0] <= maxTexSize &&
       logShape[1] <= maxTexSize) {
-    return logShape as [number, number];
+    textureShape = logShape as [number, number];
   } else if (
       logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
       logShape[2] <= maxTexSize) {
-    return [logShape[0] * logShape[1], logShape[2]];
+    textureShape = [logShape[0] * logShape[1], logShape[2]];
   } else if (
       logShape.length === 3 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2]];
+    textureShape = [logShape[0], logShape[1] * logShape[2]];
   } else if (
       logShape.length === 4 &&
       logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
       logShape[3] <= maxTexSize) {
-    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+    textureShape = [logShape[0] * logShape[1] * logShape[2], logShape[3]];
   } else if (
       logShape.length === 4 && logShape[0] <= maxTexSize &&
       logShape[1] * logShape[2] * logShape[3] <= maxTexSize) {
-    return [logShape[0], logShape[1] * logShape[2] * logShape[3]];
-  } else {
+    textureShape = [logShape[0], logShape[1] * logShape[2] * logShape[3]];
+  }
+
+  // true if one edge length is 1 (1 or 2, if packed), while another edge
+  // length exceeds maxSizeForNarrowTex.
+  const isLongNarrowTex = textureShape != null &&
+      Math.max(...textureShape) > maxSizeForNarrowTex &&
+      Math.min(...textureShape) <= (isPacked ? 2 : 1) &&
+      Math.min(...textureShape) > 0;
+
+  if (textureShape == null || isLongNarrowTex) {
     if (isPacked) {
       // For packed textures size equals the number of channels required to
       // accommodate the texture data. However in order to squarify such that
@@ -448,10 +455,14 @@ export function getTextureShapeFromLogicalShape(
         [rows, cols] = getRowsCols(logShape);
       }
       size = batchDim * (rows / 2) * (cols / 2);
-      return util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+      textureShape =
+          util.sizeToSquarishShape(size).map(d => d * 2) as [number, number];
+    } else {
+      textureShape = util.sizeToSquarishShape(size);
     }
-    return util.sizeToSquarishShape(size);
   }
+
+  return textureShape;
 }
 
 function isEven(n: number): boolean {
@@ -480,8 +491,8 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
   }
 
   if (shape1.length !== shape2.length) {  // One of the shapes is a vector.
-    const shape1Cols = shape1.slice(-1)[0];
-    const shape2Cols = shape2.slice(-1)[0];
+    const shape1Cols = shape1[shape1.length - 1];
+    const shape2Cols = shape2[shape2.length - 1];
     if (shape1Cols === shape2Cols) {
       return true;
     }
@@ -556,6 +567,7 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2) {
       return true;
     }
   } catch (e) {
+    console.log('Error when getting WebGL context: ', e);
     return false;
   }
   return false;
@@ -693,4 +705,19 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;
   return isEnabled;
+}
+
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors ` +
+              'in the WebGL backend.');
+    }
+  });
 }

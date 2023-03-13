@@ -1,0 +1,162 @@
+<!-- Copyright 2022 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+
+<html>
+<body style="margin: 5%"></body>
+<script src="./benchmark_results.js"></script>
+<script>
+
+  /**
+   * Returns the table name for this benchmark record, which is a combination
+   * of benchmark category (model or codeSnippet) and backend.
+   *
+   * Example: 'Code Snippet (webgl)'.
+   */
+  function getTableName(benchmarkReocrd) {
+    let benchmarkCategory =
+      benchmarkReocrd?.value?.modelInfo?.model !== 'codeSnippet'?
+          'Model' : 'Code Snippet';
+    return `${benchmarkCategory} (${benchmarkReocrd?.value?.modelInfo?.backend})`;
+  }
+
+  /**
+   * Returns the combination between device os and device name.
+   *
+   * Example: 'OS X(Monterey) safari15.3', 'android(12.0) Google Pixel 5'.
+   */
+  function getDeviceName(benchmarkReocrd) {
+    let deviceInfo = benchmarkReocrd?.value?.deviceInfo || {};
+    return `${deviceInfo.os}(${deviceInfo.os_version})  ${deviceInfo.device || deviceInfo.browser + deviceInfo.browser_version} `;
+  }
+
+  /**
+   * Returns the codeSnippet or model name.
+   *
+   * Example: 'MobileNetV2'.
+   */
+  function getBenchmarkTargetName(benchmarkReocrd) {
+    let benchmarkTargetName =
+      benchmarkReocrd?.value?.modelInfo?.model;
+      if (benchmarkTargetName === 'codeSnippet') {
+        benchmarkTargetName = benchmarkReocrd?.value?.codeSnippet || 'NA'
+      }
+    return `${benchmarkTargetName.replaceAll('\n', '').replaceAll('\t', '')}`;
+  }
+
+  /**
+   * Reorganize the data in benchmarkResults to  dict (object) that is aligned
+   * with tables. The generated dict is a mapping between table name and table
+   * dict. Each tale dict is also a mapping between device name and device
+   * benchmark info dict. The device benchmark info dict is a mapping between the
+   * model name and the average inference time for it.
+   *
+   * @param {object} benchmarkResults This is supposed to be loaded from
+   *     `benchmark_results.js` file and it is an array of benchmarkRecords. Each
+   * benchmarkRecord contains `status` and `value` fileds and `value` also
+   * contains an object with `timeInfo`, `memoryInfo`, `deviceInfo` and
+   * `modelInfo` fileds.
+   */
+  function parseBenchmarkResults(benchmarkResults) {
+    const structuredBenchmarkResults = {};
+    for (let benchmarkReocrd of benchmarkResults) {
+      if (benchmarkReocrd.status !== 'fulfilled') {
+        return;
+      }
+      let tableName = getTableName(benchmarkReocrd);
+      let deviceName = getDeviceName(benchmarkReocrd);
+      let benchmarkTargetName = getBenchmarkTargetName(benchmarkReocrd);
+
+      if (structuredBenchmarkResults[tableName] == null) {
+        structuredBenchmarkResults[tableName] = {};
+      }
+      if (structuredBenchmarkResults[tableName][deviceName] == null) {
+        structuredBenchmarkResults[tableName][deviceName] = {};
+      }
+
+      structuredBenchmarkResults[tableName][deviceName][benchmarkTargetName]
+        = benchmarkReocrd?.value?.timeInfo?.averageTimeExclFirst;
+    }
+    return structuredBenchmarkResults;
+  }
+
+  /**
+   * Create a table element, with table head and caption.
+   */
+  function initializeTable(tableName, tableHeaderfileds) {
+    const tableElem = document.createElement("TABLE");
+    let header = tableElem.createTHead();
+    let row = header.insertRow(0);
+    row.insertCell(0);
+    for (let filedIndex in tableHeaderfileds) {
+      let cell = row.insertCell(row.cells.length);
+      cell.innerHTML = `<b>${tableHeaderfileds[filedIndex]}</b>`;
+    }
+    tableElem.createCaption().innerHTML = tableName;
+    tableElem.setAttribute('border', '1');
+    return tableElem;
+  }
+
+
+  /**
+   * Add a row to the table element with a certain device benchmark record.
+   */
+  function addDevice(tableElem, tableHeaderfileds, tableData, deviceName) {
+    const deviceData = tableData[deviceName];
+    const row = tableElem.insertRow(tableElem.rows.length);
+    let deviceNameCell = row.insertCell(0);
+    deviceNameCell.innerHTML = deviceName;
+
+    for (const filedName of tableHeaderfileds) {
+      const cell = row.insertCell(row.cells.length);
+      cell.innerHTML = deviceData[filedName] || 'NA';
+    }
+  }
+
+  function buildTableElem(tableName, structuredBenchmarkResults) {
+    const tableData = structuredBenchmarkResults[tableName];
+
+    if (tableData == null || Object.keys(tableData).length === 0) {
+      return;
+    }
+
+    // Pick up one random device to know column names for the table.
+    const firstDeviceName = Object.keys(tableData)[0];
+    const tableHeaderfileds = Object.keys(tableData[firstDeviceName]);
+    const tableElem = initializeTable(tableName, tableHeaderfileds);
+
+    for (const deviceName in tableData) {
+      addDevice(tableElem, tableHeaderfileds, tableData, deviceName);
+    }
+    return tableElem;
+  }
+
+  function renderStructuredBenchmarkResults(structuredBenchmarkResults) {
+    for (let tableName in structuredBenchmarkResults) {
+      const tableElem = buildTableElem(tableName, structuredBenchmarkResults);
+      document.body.appendChild(tableElem);
+    }
+  }
+
+  function onPageLoad() {
+    // benchmarkResults is supposed to be loaded from benchmark_results.js.
+    if (benchmarkResults != null) {
+      const structuredBenchmarkResults = parseBenchmarkResults(benchmarkResults);
+      renderStructuredBenchmarkResults(structuredBenchmarkResults);
+    }
+  }
+
+  onPageLoad();
+</script>
+</html>

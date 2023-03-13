@@ -246,7 +246,7 @@ def _create_saved_model_with_conv2d(save_dir):
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+          "conv2d_input:0": {"value": np.ones((1, 24, 24, 3)).tolist(),
                 "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
@@ -275,7 +275,7 @@ def _create_saved_model_with_prelu(save_dir):
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+          "conv2d_1_input": {"value": np.ones((1, 24, 24, 3)).tolist(),
                 "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
@@ -353,7 +353,7 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
   """
   model = tf.keras.Sequential()
   model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
-  model.add(tf.keras.layers.GRU(4, reset_after=True))
+  model.add(tf.keras.layers.GRU(4))
 
   result = model.predict(tf.ones([1, 10]))
 
@@ -371,6 +371,124 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
               "value": result.tolist(),
               "shape": result.shape,
               "dtype": "float32"}}}
+
+def _create_saved_model_v1_with_hashtable(save_dir):
+  """Test a TF V1 model with HashTable Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  graph = tf.Graph()
+
+  with graph.as_default():
+    # Create a builder.
+    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
+
+    with tf.compat.v1.Session() as sess:
+      keys_tensor = tf.constant(["a", "b"])
+      vals_tensor = tf.constant([3, 4])
+
+      table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(keys=keys_tensor, values=vals_tensor
+        ),
+        default_value=-1
+      )
+      input = tf.compat.v1.placeholder(tf.string, shape=[2])
+      output = table.lookup(input)
+
+      sess.run(tf.compat.v1.tables_initializer())
+
+      # output_val = [3, -1]
+      output_val = sess.run(output, {input: ["a", "c"]})
+
+      builder.add_meta_graph_and_variables(
+          sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
+          signature_def_map={
+              "serving_default":
+                  tf.compat.v1.saved_model \
+                      .signature_def_utils.predict_signature_def(
+                          inputs={"input": input},
+                          outputs={"output": output})
+          },
+          assets_collection=None)
+
+    builder.save()
+    return {
+        "async": False,
+        "inputs": {
+            "Placeholder:0": {
+                "value": ["a", "c"], "shape": [2], "dtype": "string"
+            }
+        },
+        "outputs": {
+            "hash_table_Lookup/LookupTableFindV2:0": {
+                "value": output_val.tolist(), "shape": [2], "dtype": "int32"
+            }
+        }
+    }
+
+def _create_saved_model_v2_with_hashtable(save_dir):
+  """Test a TF V2 model with HashTable Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  class Table(tf.Module):
+    def __init__(self):
+        super(Table, self).__init__()
+        keys = tf.constant(['a', 'b'])
+        vals= tf.constant([0, 1])
+        init = tf.lookup.KeyValueTensorInitializer(keys, vals)
+        self.table = tf.lookup.StaticHashTable(init, -1)
+
+    def initializeTable(self):
+        @tf.function
+        def lookup(input):
+            return self.table.lookup(input)
+
+        return lookup
+
+  model = Table()
+  concrete_fn = model.initializeTable().get_concrete_function(
+    input=tf.TensorSpec([None], tf.string))
+
+  tf.saved_model.save(model, save_dir, signatures={"serving_default": concrete_fn})
+
+  return {
+      "async": False,
+      "inputs": {
+          "input:0": {
+              "value": ["a", "b", "c"], "shape": [3], "dtype": "string"
+          }
+      },
+      "outputs": {
+          "StatefulPartitionedCall/None_Lookup/LookupTableFindV2:0": {
+              "value": [0, 1, -1], "shape": [3], "dtype": "int32"
+          }
+      }
+  }
+
+def _layers_mobilenet():
+  model = tf.keras.applications.MobileNetV2()
+  model_path = 'mobilenet'
+  tfjs.converters.save_keras_model(model, os.path.join(
+      _tmp_dir, model_path))
+  xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
+  xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
+  ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
+  ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
+
+  input = tf.ones([1, 224, 224, 3])
+  output = model.predict(input)
+
+  with open(xs_data_path, 'w') as f:
+    f.write(json.dumps([input.numpy().tolist()]))
+  with open(xs_shape_path, 'w') as f:
+    f.write(json.dumps([input.shape.as_list()]))
+  with open(ys_data_path, 'w') as f:
+    f.write(json.dumps([output.tolist()]))
+  with open(ys_shape_path, 'w') as f:
+    f.write(json.dumps([output.shape]))
 
 def main():
   # Create the directory to store model and data.
@@ -392,5 +510,11 @@ def main():
       'saved_model_with_prelu')
   _save_and_convert_model(_create_saved_model_v2_with_tensorlist_ops,
       'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
+  _save_and_convert_model(_create_saved_model_v1_with_hashtable,
+      'saved_model_v1_with_hashtable')
+  _save_and_convert_model(_create_saved_model_v2_with_hashtable,
+      'saved_model_v2_with_hashtable')
+
+  _layers_mobilenet()
 if __name__ == '__main__':
   main()

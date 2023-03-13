@@ -27,6 +27,7 @@ export interface ReduceInfo {
   windowSize: number;
   batchSize: number;
   inSize: number;
+  outSize: number;
 }
 
 export function computeOptimalWindowSize(inSize: number): number {

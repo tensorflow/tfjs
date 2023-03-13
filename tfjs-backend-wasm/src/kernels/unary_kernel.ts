@@ -15,27 +15,29 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelConfig, TensorInfo, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface UnaryInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
+import {CppDType} from './types';
 
-export function registerUnaryKernel(kernelName: string) {
-  let wasmFunc: (xId: number, outId: number) => void;
+export function createUnaryKernelConfig(
+    kernelName: string, outType?: DataType): KernelConfig {
+  let wasmFunc: (xId: number, dtype: number, outId: number) => void;
 
   function setupFunc(backend: BackendWasm): void {
-    wasmFunc =
-        backend.wasm.cwrap(kernelName, null /* void */, ['number', 'number']);
+    wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+      'number',  // x_id
+      'number',  // dtype
+      'number',  // out_id
+    ]);
   }
 
   function kernelFunc(args: {backend: BackendWasm, inputs: UnaryInputs}):
       TensorInfo {
     const {backend, inputs: {x}} = args;
     const xId = backend.dataIdMap.get(x.dataId).id;
-    const out = backend.makeOutput(x.shape, x.dtype);
+    const out = backend.makeOutput(x.shape, outType || x.dtype);
     const outId = backend.dataIdMap.get(out.dataId).id;
 
     // Short-circuit zero-sized tensors.
@@ -43,9 +45,9 @@ export function registerUnaryKernel(kernelName: string) {
       return out;
     }
 
-    wasmFunc(xId, outId);
+    wasmFunc(xId, CppDType[x.dtype], outId);
     return out;
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }

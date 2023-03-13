@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Neg} from '@tensorflow/tfjs-core';
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Neg');
+import {createUnaryKernelConfig} from './unary_kernel';
+export const negConfig: KernelConfig = createUnaryKernelConfig(Neg);

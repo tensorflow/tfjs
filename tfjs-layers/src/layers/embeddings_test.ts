@@ -144,7 +144,7 @@ describeMathCPU('Embedding Layers: Tensor', () => {
         maskZero: false
       });
       const x = tensor2d([[0], [0], [2]], [3, 1], dtype);
-      const y = embeddingLayer.computeMask(x) as Tensor;
+      const y = embeddingLayer.computeMask(x);
       expect(y).toBeNull();
     });
 
@@ -156,7 +156,7 @@ describeMathCPU('Embedding Layers: Tensor', () => {
         maskZero: true
       });
       const x = tensor2d([[0], [0], [2]], [3, 1], dtype);
-      const y = embeddingLayer.computeMask(x) as Tensor;
+      const y = embeddingLayer.computeMask(x);
       expectTensorsClose(y, tensor2d([[0], [0], [1]], [3, 1], 'bool'));
     });
   }

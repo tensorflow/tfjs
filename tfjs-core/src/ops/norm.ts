@@ -20,15 +20,17 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
+import {abs} from './abs';
 import * as axis_util from './axis_util';
 import {max} from './max';
+import {min} from './min';
 import {op} from './operation';
 import {pow} from './pow';
-import {min, sum} from './reduction_ops';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
+import {sqrt} from './sqrt';
 import {square} from './square';
-import {scalar} from './tensor_ops';
-import {abs, sqrt} from './unary_ops';
+import {sum} from './sum';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.
@@ -53,20 +55,21 @@ import {abs, sqrt} from './unary_ops';
  *  |Infinity    |max(sum(abs(x), axis=1))   |max(abs(x))
  *  |-Infinity   |min(sum(abs(x), axis=1))   |min(abs(x))
  *  |1           |max(sum(abs(x), axis=0))   |sum(abs(x))
- *  |2           |                           |sum(abs(x)^2)^1/2*
+ *  |2           |                           |sum(abs(x)^2)^(1/2)
  *
  * @param axis Optional. If axis is null (the default), the input is
  * considered a vector and a single vector norm is computed over the entire
  * set of values in the Tensor, i.e. norm(x, ord) is equivalent
- * to norm(x.reshape([-1]), ord). If axis is a integer, the input
+ * to norm(x.reshape([-1]), ord). If axis is an integer, the input
  * is considered a batch of vectors, and axis determines the axis in x
  * over which to compute vector norms. If axis is a 2-tuple of integer it is
  * considered a batch of matrices and axis determines the axes in NDArray
  * over which to compute a matrix norm.
- * @param keepDims Optional. If true, the norm have the same dimensionality
+ * @param keepDims Optional. If true, the norm has the same dimensionality
  * as the input.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function norm_(
     x: Tensor|TensorLike, ord: number|'euclidean'|'fro' = 'euclidean',
     axis: number|number[] = null, keepDims = false): Tensor {
@@ -78,7 +81,7 @@ function norm_(
     const axes = parseAxisParam(axis, x.shape);
     keepDimsShape = axis_util.expandShapeToKeepDim(norm.shape, axes);
   }
-  return norm.reshape(keepDimsShape);
+  return reshape(norm, keepDimsShape);
 }
 
 function normImpl(
@@ -134,4 +137,4 @@ function normImpl(
   throw new Error(`Error in norm: invalid axis: ${axis}`);
 }
 
-export const norm = op({norm_});
+export const norm = /* @__PURE__ */ op({norm_});

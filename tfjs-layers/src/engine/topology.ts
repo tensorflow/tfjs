@@ -91,9 +91,10 @@ export class InputSpec {
  * `tf.SymbolicTensor` is a placeholder for a Tensor without any concrete value.
  *
  * They are most often encountered when building a graph of `Layer`s for a
- * a `tf.LayersModel` and the input data's shape, but not values are known.
+ * `tf.LayersModel` and the input data's shape, but not values are known.
+ *
+ * @doc {heading: 'Models', 'subheading': 'Classes'}
  */
-/** @doc {heading: 'Models', 'subheading': 'Classes'} */
 export class SymbolicTensor {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
@@ -398,8 +399,9 @@ let _nextLayerID = 0;
  *
  * Layers are constructed by using the functions under the
  * [tf.layers](#Layers-Basic) namespace.
+ *
+ * @doc {heading: 'Layers', subheading: 'Classes', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Classes', namespace: 'layers'} */
 export abstract class Layer extends serialization.Serializable {
   /** Name for this layer. Must be unique within a model. */
   name: string;
@@ -874,9 +876,9 @@ export abstract class Layer extends serialization.Serializable {
   }
 
   /**
-   * Builds or executes a `Layer's logic.
+   * Builds or executes a `Layer`'s logic.
    *
-   * When called with `tf.Tensor`(s), execute the `Layer`s computation and
+   * When called with `tf.Tensor`(s), execute the `Layer`'s computation and
    * return Tensor(s). For example:
    *
    * ```js
@@ -926,7 +928,7 @@ export abstract class Layer extends serialization.Serializable {
    * // dense layer.
    * console.log(JSON.stringify(output2.shape));
    *
-   * // The input and output and be used to construct a model that consists
+   * // The input and output can be used to construct a model that consists
    * // of the flatten and dense layers.
    * const model = tf.model({inputs: input, outputs: output2});
    * ```
@@ -938,9 +940,10 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @exception ValueError error in case the layer is missing shape information
    *   for its `build` call.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
   // Porting Note: This is a replacement for __call__() in Python.
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
@@ -1129,8 +1132,9 @@ export abstract class Layer extends serialization.Serializable {
    * @returns Output shape or shapes.
    * @throws AttributeError: if the layer is connected to more than one incoming
    *   nodes.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   get outputShape(): Shape|Shape[] {
     if (this.inboundNodes == null || this.inboundNodes.length === 0) {
       throw new AttributeError(
@@ -1156,7 +1160,7 @@ export abstract class Layer extends serialization.Serializable {
     } else {
       throw new AttributeError(
           `The layer ${this.name} has multiple inbound nodes with different ` +
-          `output shapes. Hence the notion of "outut shape" is ill-defined ` +
+          `output shapes. Hence the notion of "output shape" is ill-defined ` +
           `for the layer.`);
       // TODO(cais): Implement getOutputShapeAt().
     }
@@ -1169,8 +1173,9 @@ export abstract class Layer extends serialization.Serializable {
    * @returns An integer count.
    * @throws RuntimeError: If the layer is not built yet (in which case its
    *   weights are not defined yet.)
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   countParams(): number {
     if (!this.built) {
       throw new RuntimeError(
@@ -1189,8 +1194,9 @@ export abstract class Layer extends serialization.Serializable {
    * Called when apply() is called to construct the weights.
    *
    * @param inputShape A `Shape` or array of `Shape` (unused).
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   build(inputShape: Shape|Shape[]) {
     this.built = true;
   }
@@ -1200,8 +1206,9 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @param trainableOnly Whether to get the values of only trainable weights.
    * @returns Weight values as an `Array` of `tf.Tensor`s.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getWeights(trainableOnly = false): Tensor[] {
     return batchGetValue(trainableOnly ? this.trainableWeights : this.weights);
   }
@@ -1215,8 +1222,9 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @exception ValueError If the provided weights list does not match the
    *   layer's specifications.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   setWeights(weights: Tensor[]): void {
     tidy(() => {
       const params = this.weights;
@@ -1224,7 +1232,7 @@ export abstract class Layer extends serialization.Serializable {
         // TODO(cais): Restore the following and use `providedWeights`, instead
         // of `weights` in the error message, once the deeplearn.js bug is
         // fixed: https://github.com/PAIR-code/deeplearnjs/issues/498 const
-        // providedWeights = JSON.stringify(weights).substr(0, 50);
+        // providedWeights = JSON.stringify(weights).slice(0, 50);
         throw new ValueError(
             `You called setWeights(weights) on layer "${this.name}" ` +
             `with a weight list of length ${weights.length}, ` +
@@ -1263,12 +1271,13 @@ export abstract class Layer extends serialization.Serializable {
    *   (assuming that the layer itself is also trainable).
    * @param constraint An optional trainable.
    * @return The created weight variable.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   protected addWeight(
       name: string, shape: Shape, dtype?: DataType, initializer?: Initializer,
-      regularizer?: Regularizer, trainable?: boolean,
-      constraint?: Constraint): LayerVariable {
+      regularizer?: Regularizer, trainable?: boolean, constraint?: Constraint,
+      getInitializerFunc?: Function): LayerVariable {
     // Reject duplicate weight names.
     if (this._addedWeightNames.indexOf(name) !== -1) {
       throw new ValueError(
@@ -1281,7 +1290,8 @@ export abstract class Layer extends serialization.Serializable {
     }
 
     if (this.fastWeightInitDuringBuild) {
-      initializer = getInitializer('zeros');
+      initializer = getInitializerFunc != null ? getInitializerFunc() :
+                                                 getInitializer('zeros');
     }
     const initValue = initializer.apply(shape, dtype);
     const weight =
@@ -1319,10 +1329,11 @@ export abstract class Layer extends serialization.Serializable {
   /**
    * Add losses to the layer.
    *
-   * The loss may potentionally be conditional on some inputs tensors,
+   * The loss may potentially be conditional on some inputs tensors,
    * for instance activity losses are conditional on the layer's inputs.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   addLoss(losses: RegularizerFn|RegularizerFn[]): void {
     if (losses == null || Array.isArray(losses) && losses.length === 0) {
       return;
@@ -1342,8 +1353,9 @@ export abstract class Layer extends serialization.Serializable {
    * @param inputShape A shape (tuple of integers) or a list of shape tuples
    *   (one per output tensor of the layer). Shape tuples can include null for
    *   free dimensions, instead of an integer.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
@@ -1462,14 +1474,15 @@ export abstract class Layer extends serialization.Serializable {
    * information, nor the layer class name.  These are handled
    * by 'Container' (one layer of abstraction above).
    *
-   * Porting Note: The TS dictionary follows TS naming standrds for
+   * Porting Note: The TS dictionary follows TS naming standards for
    * keys, and uses tfjs-layers type-safe Enums.  Serialization methods
    * should use a helper function to convert to the pythonic storage
    * standard. (see serialization_utils.convertTsToPythonic)
    *
    * @returns TS dictionary of configuration.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   getConfig(): serialization.ConfigDict {
     const config:
         serialization.ConfigDict = {name: this.name, trainable: this.trainable};
@@ -1501,11 +1514,11 @@ export abstract class Layer extends serialization.Serializable {
   /**
    * Attempt to dispose layer's weights.
    *
-   * This method decrease the reference count of the Layer object by 1.
+   * This method decreases the reference count of the Layer object by 1.
    *
    * A Layer is reference-counted. Its reference count is incremented by 1
    * the first item its `apply()` method is called and when it becomes a part
-   * of a new `Node` (through calling the `apply()`) method on a
+   * of a new `Node` (through calling the `apply()` method on a
    * `tf.SymbolicTensor`).
    *
    * If the reference count of a Layer becomes 0, all the weights will be
@@ -1525,8 +1538,9 @@ export abstract class Layer extends serialization.Serializable {
    *     during this `dispose()` call.
    * @throws {Error} If the layer is not built yet, or if the layer has already
    *   been disposed.
+   *
+   * @doc {heading: 'Models', 'subheading': 'Classes'}
    */
-  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   dispose(): DisposeResult {
     if (!this.built) {
       throw new Error(

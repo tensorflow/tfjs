@@ -9,19 +9,19 @@ This package will work on Linux, Windows, and Mac platforms where TensorFlow is 
 TensorFlow.js for Node currently supports the following platforms:
 - Mac OS X CPU (10.12.6 Siera or higher)
 - Linux CPU (Ubuntu 14.04 or higher)
-- Linux GPU (Ubuntu 14.04 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
+- Linux GPU (Ubuntu 14.04 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
 - Windows CPU (Win 7 or higher)
-- Windows GPU (Win 7 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
+- Windows GPU (Win 7 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
 
 For GPU support, tfjs-node-gpu@1.2.4 or later requires the following NVIDIA® software installed on your system:
 
 | Name | Version |
 | ------------- | ------------- |
-| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >410.x  |
-| [CUDA® Toolkit](https://developer.nvidia.com/cuda-10.0-download-archive)  | 10.0  |
-| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | >=7.4.1  |
+| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >450.x  |
+| [CUDA® Toolkit](https://developer.nvidia.com/cuda-toolkit-archive)  | 11.2  |
+| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | 8.1.0  |
 
-*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
+*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/source).*
 
 #### Installing CPU TensorFlow.js for Node:
 
@@ -58,12 +58,67 @@ After that operation completes, re-run `yarn add` or `npm install` for the `@ten
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
 
+#### Mac OS X with M1 chip
+For Mac with M1 chip, tfjs-node only support arm64 build.
+To install tfjs-node, you need to ensure rosetta has been turned off on your terminal app.
+Start your terminal and verify following command shows `arm64` as response:
+```
+uname -m
+```
+Install your node version with arm64 binary. You can verify that with following command also shows `arm64`:
+```
+node -e 'console.log(os.arch())'
+```
+Now you can install tfjs-node as described before.
+
 #### Rebuild the package on Raspberry Pi
 
 To use this package on Raspberry Pi, you need to rebuild the node native addon with the following command after you installed the package:
 
 ```sh
 $ npm rebuild @tensorflow/tfjs-node --build-from-source
+```
+
+#### Custom binaries URI
+
+If you happen to be using a mirror for the libtensorflow binaries (default is [https://storage.googleapis.com/]), you have 3 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_CDN_STORAGE`. This has the same behavior as `CDN_STORAGE`, but introduced to prevent collisions with other npm packages that might use `CDN_STORAGE`.
+
+```sh
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_CDN_STORAGE` to your `.npmrc` file.
+
+```
+TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com/
+```
+
+3. Set the environment variable `CDN_STORAGE`. This option is deprecated in favor of the `TFJS_NODE_` prefix version above and will be removed in a future release.
+
+```sh
+CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+If your "mirror" uses a custom URI path that doesn't match the default, you have 2 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_BASE_URI`
+
+```sh
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" npm install <package>
+(or)
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_BASE_URI` to your `.npmrc` file
+
+```
+TFJS_NODE_BASE_URI=https://yourhost.com/your/path/libtensorflow-
 ```
 
 ## Using the binding

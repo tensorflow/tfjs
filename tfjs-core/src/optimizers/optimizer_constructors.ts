@@ -58,8 +58,7 @@ export class OptimizerConstructors {
    * ```
    *
    * @param learningRate The learning rate to use for the SGD algorithm.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static sgd(learningRate: number): SGDOptimizer {
@@ -78,8 +77,7 @@ export class OptimizerConstructors {
    * descent algorithm.
    * @param momentum The momentum to use for the momentum gradient descent
    * algorithm.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static momentum(learningRate: number, momentum: number, useNesterov = false):
@@ -104,8 +102,7 @@ export class OptimizerConstructors {
    * @param epsilon Small value to avoid zero denominator.
    * @param centered If true, gradients are normalized by the estimated
    * variance of the gradient.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static rmsprop(
@@ -124,8 +121,7 @@ export class OptimizerConstructors {
    * @param beta1 The exponential decay rate for the 1st moment estimates.
    * @param beta2 The exponential decay rate for the 2nd moment estimates.
    * @param epsilon A small constant for numerical stability.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static adam(
@@ -143,8 +139,7 @@ export class OptimizerConstructors {
    * @param rho The learning rate decay over each update.
    * @param epsilon A constant epsilon used to better condition the grad
    * update.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static adadelta(learningRate = .001, rho = .95, epsilon: number = null):
@@ -162,8 +157,7 @@ export class OptimizerConstructors {
    * @param beta2 The exponential decay rate for the 2nd moment estimates.
    * @param epsilon A small constant for numerical stability.
    * @param decay The learning rate decay over each update.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static adamax(
@@ -185,8 +179,7 @@ export class OptimizerConstructors {
    * descent algorithm.
    * @param initialAccumulatorValue Starting value for the accumulators, must be
    * positive.
-   */
-  /**
+   *
    * @doc {heading: 'Training', subheading: 'Optimizers', namespace: 'train'}
    */
   static adagrad(learningRate: number, initialAccumulatorValue = 0.1):

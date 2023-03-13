@@ -57,6 +57,56 @@
     ]
   },
   {
+    "tfOpName": "NonMaxSuppressionV4",
+    "category": "dynamic",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "boxes",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "scores",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "maxOutputSize",
+        "type": "number"
+      },
+      {
+        "start": 3,
+        "name": "iouThreshold",
+        "type": "number"
+      },
+      {
+        "start": 4,
+        "name": "scoreThreshold",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      },
+      {
+        "tfName": "T_threshold",
+        "name": "threshold",
+        "type": "dtype",
+        "notSupported": true
+      },
+      {
+        "tfName": "pad_to_max_output_size",
+        "name": "padToMaxOutputSize",
+        "type": "bool"
+      }
+    ]
+  },
+  {
     "tfOpName": "NonMaxSuppressionV5",
     "category": "dynamic",
     "inputs": [

@@ -18,12 +18,23 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('relu', ALL_ENVS, () => {
   it('basic', async () => {
     const a = tf.tensor1d([1, -2, 0, 3, -0.1]);
     const result = tf.relu(a);
     expectArraysClose(await result.data(), [1, 0, 0, 3, 0]);
+  });
+
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([12345678, -2, 0, 3, -1], 'int32');
+      const result = tf.relu(a);
+      expect(result.dtype).toEqual('int32');
+      expectArraysClose(await result.data(), [12345678, 0, 0, 3, 0]);
+    }
   });
 
   it('5D', async () => {

@@ -36,8 +36,9 @@ import {TensorLike} from '../types';
  * const result = await tf.whereAsync(cond);
  * result.print();
  * ```
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 async function whereAsync_(condition: Tensor|TensorLike): Promise<Tensor2D> {
   const $condition =
       convertToTensor(condition, 'condition', 'whereAsync', 'bool');

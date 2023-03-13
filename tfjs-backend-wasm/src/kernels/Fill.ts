@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {Fill, FillAttrs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
+export function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
   const {attrs: {shape, value, dtype}, backend} = args;
   const out = backend.makeOutput(shape, dtype);
   const outVals = backend.typedArrayFromHeap(out);
@@ -28,8 +28,8 @@ function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'wasm',
-  kernelFunc: fill as {} as KernelFunc,
-});
+  kernelFunc: fill as unknown as KernelFunc,
+};

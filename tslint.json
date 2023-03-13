@@ -38,6 +38,7 @@
     "no-debugger": true,
     "no-default-export": true,
     "no-imports-from-dist": true,
+    "no-imports-with-regex": [true, "src"],
     "no-inferrable-types": true,
     "no-namespace": [true, "allow-declarations"],
     "no-reference": true,

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Maximum, MaximumInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -23,8 +23,8 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './array_ops';
 import {assertAndGetBroadcastShape} from './broadcast_util';
+import {cast} from './cast';
 import {op} from './operation';
 
 /**
@@ -51,8 +51,9 @@ import {op} from './operation';
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function maximum_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'maximum');
@@ -65,17 +66,9 @@ function maximum_<T extends Tensor>(
   }
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.maximum($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: MaximumInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Maximum) as T;
+  return ENGINE.runKernel(Maximum, inputs as unknown as NamedTensorMap);
 }
 
-export const maximum = op({maximum_});
+export const maximum = /* @__PURE__ */ op({maximum_});

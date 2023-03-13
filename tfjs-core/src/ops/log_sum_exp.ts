@@ -22,15 +22,16 @@ import {parseAxisParam} from '../util';
 
 import {add} from './add';
 import {expandShapeToKeepDim} from './axis_util';
+import {exp} from './exp';
+import {log} from './log';
 import {max} from './max';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {reshape} from './reshape';
 import {sub} from './sub';
-import {exp, log} from './unary_ops';
+import {sum} from './sum';
 
 /**
- * Computes the log(sum(exp(elements across the reduction dimensions)).
+ * Computes the log(sum(exp(elements across the reduction dimensions))).
  *
  * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
  * is true, the rank of the array is reduced by 1 for each entry in `axis`.
@@ -55,8 +56,9 @@ import {exp, log} from './unary_ops';
  *     reduces all dimensions.
  * @param keepDims If true, retains reduced dimensions with length
  *     of 1. Defaults to false.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function logSumExp_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'logSumExp');
@@ -76,4 +78,4 @@ function logSumExp_<T extends Tensor>(
   return res as T;
 }
 
-export const logSumExp = op({logSumExp_});
+export const logSumExp = /* @__PURE__ */ op({logSumExp_});

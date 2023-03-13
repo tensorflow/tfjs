@@ -16,6 +16,7 @@
  */
 
 import * as tf from '../index';
+import {backend} from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
@@ -107,15 +108,17 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
   });
 
-  it('stridedSlice should fail if ellipsis mask is set and newAxisMask or ' +
-         'shrinkAxisMask are also set',
-     async () => {
-       const tensor = tf.tensor1d([0, 1, 2, 3]);
-       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 1))
-           .toThrow();
-       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 0, 1))
-           .toThrow();
-     });
+  it('both ellipsis mask and newAxisMask are set', async () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const result = tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 1);
+    expectArraysClose(await result.data(), [0, 1, 2, 3]);
+  });
+
+  it('both ellipsis mask and shrinkAxisMask are set', async () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const result = tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 0, 1);
+    expectArraysClose(await result.data(), [0, 1, 2, 3]);
+  });
 
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
@@ -134,12 +137,12 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [0, 2]);
   });
 
-  it('strided slice with several new axes', () => {
+  it('strided slice with several new axes', async () => {
     // Python slice code: t[1:2,tf.newaxis,0:3,tf.newaxis,2:5]
     const t = tf.zeros([2, 3, 4, 5]);
     const begin = [1, 0, 0, 0, 2];
     const end = [2, 1, 3, 1, 5];
-    const strides: number[] = null;
+    const strides: number[] = [1, 1, 1, 1, 1];
     const beginMask = 0;
     const endMask = 0;
     const ellipsisMask = 0;
@@ -147,6 +150,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
     expect(output.shape).toEqual([1, 1, 3, 1, 2, 5]);
+    expectArraysClose(await output.data(), new Array(30).fill(0));
   });
 
   it('strided slice with new axes and shrink axes', () => {
@@ -154,7 +158,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const t = tf.zeros([2, 3, 4, 5]);
     const begin = [1, 0, 1, 0, 2, 2];
     const end = [2, 1, 2, 1, 3, 5];
-    const strides: number[] = null;
+    const strides: number[] = [1, 1, 1, 1, 1, 1];
     const beginMask = 0;
     const endMask = 0;
     const ellipsisMask = 0;
@@ -415,8 +419,8 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
      async () => {
        const tensor =
            tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
-       const output = tf.stridedSlice(
-           tensor, [1, 0], [2, 3, 1, 2], [1, 1, 1, 1], 0, 0, 0, 0, 0);
+       const output =
+           tf.stridedSlice(tensor, [1, 0], [2, 3], [1, 1], 0, 0, 0, 0, 0);
        expect(output.shape).toEqual([1, 3, 1, 2]);
        expectArraysClose(await output.data(), [7, 8, 9, 10, 11, 12]);
      });
@@ -425,18 +429,8 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
      async () => {
        const tensor =
            tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
-       const output = tf.stridedSlice(
-           tensor, [1, 0, 0, 0], [2, 3], [1, 1, 1, 1], 0, 0, 0, 0, 0);
-       expect(output.shape).toEqual([1, 3, 1, 2]);
-       expectArraysClose(await output.data(), [7, 8, 9, 10, 11, 12]);
-     });
-
-  it('stridedSlice should support 3d with smaller length of stride array',
-     async () => {
-       const tensor =
-           tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 1, 2]);
-       const output = tf.stridedSlice(
-           tensor, [1, 0, 0, 0], [2, 3, 1, 2], [1, 1], 0, 0, 0, 0, 0);
+       const output =
+           tf.stridedSlice(tensor, [1, 0], [2, 3], [1, 1], 0, 0, 0, 0, 0);
        expect(output.shape).toEqual([1, 3, 1, 2]);
        expectArraysClose(await output.data(), [7, 8, 9, 10, 11, 12]);
      });
@@ -446,10 +440,52 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'stridedSlice' must be a Tensor/);
   });
 
+  it('stridedSlice should handle negative end with ellipsisMask', () => {
+    const a = tf.ones([1, 240, 1, 10]);
+    const output =
+        tf.stridedSlice(a, [0, 0, 0], [0, -1, 0], [1, 1, 1], 3, 1, 4);
+    expect(output.shape).toEqual([1, 239, 1, 10]);
+  });
+
+  it('stridedSlice should handle negative begin with ellipsis_mask', () => {
+    const a = tf.ones([1, 36, 17, 3]);
+    const output = tf.stridedSlice(a, [0, -1], [0, 0], [1, 1], 0, 2, 1, 0, 0);
+    expect(output.shape).toEqual([1, 36, 17, 1]);
+  });
+
   it('accepts a tensor-like object', async () => {
     const tensor = [0, 1, 2, 3];
     const output = tf.stridedSlice(tensor, [0], [3], [2]);
     expect(output.shape).toEqual([2]);
     expectArraysClose(await output.data(), [0, 2]);
+  });
+
+  it('accepts int32 tensor', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
+      const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);
+      expect(output.shape).toEqual([1, 2]);
+      expect(output.dtype).toEqual('int32');
+      expectArraysClose(await output.data(), [4, 12345678]);
+    }
+  });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const output = tf.stridedSlice(tensor, [0], [3], [2]);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(await output.data(), [0, 2]);
+
+    tensor.dispose();
+    output.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

@@ -17,8 +17,16 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {pow, scalar, sub, zerosLike} from '../ops/ops';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {pow} from '../ops/pow';
+import {scalar} from '../ops/scalar';
+import {sqrt} from '../ops/sqrt';
+import {square} from '../ops/square';
+import {sub} from '../ops/sub';
+import {zerosLike} from '../ops/zeros_like';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -26,7 +34,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adam';  // Note: Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adam';
+  }
   private accBeta1: Variable;
   private accBeta2: Variable;
 
@@ -83,31 +96,33 @@ export class AdamOptimizer extends Optimizer {
         const secondMoment = this.accumulatedSecondMoment[i].variable;
 
         const newFirstMoment =
-            firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
-        const newSecondMoment = secondMoment.mul(this.beta2)
-                                    .add(gradient.square().mul(1 - this.beta2));
+            add(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
+        const newSecondMoment =
+            add(mul(secondMoment, this.beta2),
+                mul(square(gradient), 1 - this.beta2));
 
-        const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
-        const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
+        const biasCorrectedFirstMoment = div(newFirstMoment, oneMinusAccBeta1);
+        const biasCorrectedSecondMoment =
+            div(newSecondMoment, oneMinusAccBeta2);
 
         firstMoment.assign(newFirstMoment);
         secondMoment.assign(newSecondMoment);
 
         const newValue =
-            biasCorrectedFirstMoment
-                .div(biasCorrectedSecondMoment.sqrt().add(this.epsilon))
-                .mul(-this.learningRate)
-                .add(value);
+            add(mul(div(biasCorrectedFirstMoment,
+                        add(sqrt(biasCorrectedSecondMoment), this.epsilon)),
+                    -this.learningRate),
+                value);
         value.assign(newValue);
       });
 
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
-      this.accBeta2.assign(this.accBeta2.mul(this.beta2));
+      this.accBeta1.assign(mul(this.accBeta1, this.beta1));
+      this.accBeta2.assign(mul(this.accBeta2, this.beta2));
     });
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     this.accBeta1.dispose();
     this.accBeta2.dispose();
 
@@ -119,7 +134,7 @@ export class AdamOptimizer extends Optimizer {
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     const variables: OptimizerVariable[] =
         [...this.accumulatedFirstMoment, ...this.accumulatedSecondMoment];
@@ -127,7 +142,7 @@ export class AdamOptimizer extends Optimizer {
         variables.map(v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     tidy(() => {
       this.accBeta1.assign(pow(this.beta1, this.iterations_ + 1));
@@ -160,11 +175,10 @@ export class AdamOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
         config['learningRate'], config['beta1'], config['beta2'],
         config['epsilon']);
   }
 }
-registerClass(AdamOptimizer);

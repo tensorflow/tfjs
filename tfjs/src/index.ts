@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+
 export * from '@tensorflow/tfjs-core';
 export * from '@tensorflow/tfjs-layers';
 export * from '@tensorflow/tfjs-converter';
@@ -24,8 +30,8 @@ import * as data from '@tensorflow/tfjs-data';
 export {data};
 
 // Import and register backends.
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+export * from '@tensorflow/tfjs-backend-cpu';
+export * from '@tensorflow/tfjs-backend-webgl';
 
 // Import versions of all sub-packages.
 import {version_core} from '@tensorflow/tfjs-core';

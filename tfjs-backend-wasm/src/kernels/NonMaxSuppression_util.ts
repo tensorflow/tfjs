@@ -22,6 +22,7 @@ interface Result {
   pSelectedIndices: number;
   selectedSize: number;
   pSelectedScores: number;
+  pValidOutputs: number;
 }
 /**
  * Parse the result of the c++ method, which has the shape equivalent to
@@ -29,11 +30,12 @@ interface Result {
  */
 export function parseResultStruct(
     backend: BackendWasm, resOffset: number): Result {
-  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 3);
+  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 4);
   const pSelectedIndices = result[0];
   const selectedSize = result[1];
   const pSelectedScores = result[2];
+  const pValidOutputs = result[3];
   // Since the result was allocated on the heap, we have to delete it.
   backend.wasm._free(resOffset);
-  return {pSelectedIndices, selectedSize, pSelectedScores};
+  return {pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs};
 }

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.test",
+  "include": [
+    "../../tools/"
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "../../dist/tools/custom_module"
+  }
+}

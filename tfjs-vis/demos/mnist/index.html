@@ -19,7 +19,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="./tufte.css" />
-  <script src="./index.js"></script>
+  <script type="module" src="index.js"></script>
 
   <style>
     .lang-javascript {
@@ -104,7 +104,7 @@
         To add content to the visor we need a
         <em>surface</em>. We make a surface with the following function call:
         <script type='text' class='show-script'>
-          tfVis.visor().surface({name: 'My First Surface', tab: 'Input Data'});
+          tfvis.visor().surface({name: 'My First Surface', tab: 'Input Data'});
         </script>
       </p>
       <button id='make-first-surface'>Make a surface</button>

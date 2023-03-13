@@ -15,6 +15,9 @@
  * =============================================================================
  */
 import {ENGINE} from '../engine';
+import {isPromise} from '../util';
+
+export const OP_SCOPE_SUFFIX = '__op';
 
 /**
  * Used for wrapping functions that perform math operations on
@@ -38,12 +41,15 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
     opName = opName.substring(0, opName.length - 1);
   }
 
+  // add an __op suffix to distinguish ops from kernels in tf.profile
+  opName = opName + OP_SCOPE_SUFFIX;
+
   // tslint:disable-next-line:no-any
   const f2 = (...args: any[]) => {
     ENGINE.startScope(opName);
     try {
       const result = fn(...args);
-      if (result instanceof Promise) {
+      if (isPromise(result)) {
         console.error('Cannot return a Promise inside of tidy.');
       }
       ENGINE.endScope(result);

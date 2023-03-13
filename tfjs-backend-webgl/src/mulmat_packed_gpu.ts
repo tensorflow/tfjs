@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class MatMulPackedProgram implements GPGPUProgram {
   variableNames = ['matrixA', 'matrixB'];
@@ -23,12 +23,15 @@ export class MatMulPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
 
   constructor(
-      aShape: [number, number, number], outputShape: [number, number, number],
-      transposeA = false, transposeB = false, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      aShape: [number, number, number], bShape: [number, number, number],
+      outputShape: [number, number, number], transposeA = false,
+      transposeB = false, addBias = false, activation: string = null,
+      hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
@@ -43,6 +46,11 @@ export class MatMulPackedProgram implements GPGPUProgram {
       if (hasPreluActivation) {
         activationSnippet = `vec4 activation(vec4 a) {
           vec4 b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else if (hasLeakyreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {
@@ -63,16 +71,30 @@ export class MatMulPackedProgram implements GPGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
+    if (hasLeakyreluActivation) {
+      this.variableNames.push('leakyreluAlpha');
+    }
+
+    let batchASnippet = 'rc.x';
+    let batchBSnippet = 'rc.x';
+    if (aShape[0] < bShape[0]) {
+      batchASnippet = `imod(rc.x, ${aShape[0]})`;
+    } else if (bShape[0] < aShape[0]) {
+      batchBSnippet = `imod(rc.x, ${bShape[0]})`;
+    }
+
     this.userCode = `
       ${activationSnippet}
-
+      // Don't use uniform for sharedDimensionPacked for performance.
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
+        int batchA = ${batchASnippet};
+        int batchB = ${batchBSnippet};
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          vec4 a = getMatrixA(rc.x, ${aSample});
-          vec4 b = getMatrixB(rc.x, ${bSample});
+          vec4 a = getMatrixA(batchA, ${aSample});
+          vec4 b = getMatrixB(batchB, ${bSample});
 
           // These swizzled products need to be separately added.
           // See: https://github.com/tensorflow/tfjs/issues/1735

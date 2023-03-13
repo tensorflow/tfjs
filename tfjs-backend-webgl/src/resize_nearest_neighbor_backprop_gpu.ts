@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {Tensor4D} from '@tensorflow/tfjs-core';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class ResizeNearestNeigborBackpropProgram implements GPGPUProgram {
@@ -23,10 +22,12 @@ export class ResizeNearestNeigborBackpropProgram implements GPGPUProgram {
   outputShape: number[] = [];
   userCode: string;
 
-  constructor(dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
-    this.outputShape = x.shape;
-    const [, xHeight, xWidth, ] = x.shape;
-    const [, yHeight, yWidth] = dy.shape;
+  constructor(
+      dyShape: [number, number, number, number],
+      inputShape: [number, number, number, number], alignCorners: boolean) {
+    this.outputShape = inputShape;
+    const [, xHeight, xWidth, ] = inputShape;
+    const [, yHeight, yWidth] = dyShape;
 
     // In the backwards pass, we want to find the pixels that were generated for
     // each pixel in the input image the forward pass and add the corresponding

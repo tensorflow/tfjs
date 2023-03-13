@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import './engine';
+
 import * as device_util from './device_util';
 import {env} from './environment';
 
@@ -50,6 +52,12 @@ ENV.registerFlag(
         navigator.userAgent != null && /Chrome/.test(navigator.userAgent) &&
         /Google Inc/.test(navigator.vendor));
 
+/** Whether this browser is Safari. */
+ENV.registerFlag(
+    'IS_SAFARI',
+    () => typeof navigator !== 'undefined' && navigator != null &&
+        navigator.userAgent != null && /Safari/.test(navigator.userAgent) &&
+        /Apple/.test(navigator.vendor));
 /**
  * True when the environment is "production" where we disable safety checks
  * to gain performance.
@@ -68,3 +76,15 @@ ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 
 /** True if running unit tests. */
 ENV.registerFlag('IS_TEST', () => false);
+
+/** Whether to check computation result for errors. */
+ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => ENV.getBool('DEBUG'));
+
+/** Whether the backend needs to wrap input to imageBitmap. */
+ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
+
+/** Whether to enable canvas2d willReadFrequently for GPU backends */
+ENV.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
+
+/** Whether to use setTimeoutCustom */
+ENV.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);

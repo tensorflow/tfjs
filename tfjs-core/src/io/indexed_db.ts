@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import '../flags';
+
 import {env} from '../environment';
 
 import {getModelArtifactsInfoForJSON} from './io_utils';
-import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
 
@@ -161,18 +162,29 @@ export class BrowserIndexedDB implements IOHandler {
           // First, put ModelArtifactsInfo into info store.
           const infoTx = db.transaction(INFO_STORE_NAME, 'readwrite');
           let infoStore = infoTx.objectStore(INFO_STORE_NAME);
-          const putInfoRequest =
+          let putInfoRequest: IDBRequest<IDBValidKey>;
+          try {
+            putInfoRequest =
               infoStore.put({modelPath: this.modelPath, modelArtifactsInfo});
+          } catch (error) {
+            return reject(error);
+          }
           let modelTx: IDBTransaction;
           putInfoRequest.onsuccess = () => {
             // Second, put model data into model store.
             modelTx = db.transaction(MODEL_STORE_NAME, 'readwrite');
             const modelStore = modelTx.objectStore(MODEL_STORE_NAME);
-            const putModelRequest = modelStore.put({
-              modelPath: this.modelPath,
-              modelArtifacts,
-              modelArtifactsInfo
-            });
+            let putModelRequest: IDBRequest<IDBValidKey>;
+            try {
+              putModelRequest = modelStore.put({
+                modelPath: this.modelPath,
+                modelArtifacts,
+                modelArtifactsInfo
+              });
+            } catch (error) {
+              // Sometimes, the serialized value is too large to store.
+              return reject(error);
+            }
             putModelRequest.onsuccess = () => resolve({modelArtifactsInfo});
             putModelRequest.onerror = error => {
               // If the put-model request fails, roll back the info entry as
@@ -349,15 +361,5 @@ export class BrowserIndexedDBManager implements ModelStoreManager {
       };
       openRequest.onerror = error => reject(openRequest.error);
     });
-  }
-}
-
-if (env().getBool('IS_BROWSER')) {
-  // Wrap the construction and registration, to guard against browsers that
-  // don't support Local Storage.
-  try {
-    ModelStoreManagerRegistry.registerManager(
-        BrowserIndexedDB.URL_SCHEME, new BrowserIndexedDBManager());
-  } catch (err) {
   }
 }

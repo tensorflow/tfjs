@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {atan2} from '../../ops/atan2';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.atan2 = function<T extends Tensor>(b: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.atan2 = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return atan2(this, b);
 };

@@ -25,9 +25,11 @@ const jasmineCore = jasmineRequire.core(jasmineRequire);
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
+import {purgeLocalStorageArtifacts} from './io/local_storage';
+import {isPromise} from './util_base';
 
 Error.stackTraceLimit = Infinity;
-jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000;
+jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 export type Constraints = {
   flags?: Flags,
@@ -115,7 +117,8 @@ export function setupTestFilters(
   const env = jasmine.getEnv();
 
   // Account for --grep flag passed to karma by saving the existing specFilter.
-  const grepFilter = env.specFilter;
+  const config = env.configuration();
+  const grepFilter = config.specFilter;
 
   /**
    * Filter method that returns boolean, if a given test should run or be
@@ -124,7 +127,7 @@ export function setupTestFilters(
    * list, it will be exluded.
    */
   // tslint:disable-next-line: no-any
-  env.specFilter = (spec: any) => {
+  const specFilter = (spec: any) => {
     // Filter out tests if the --grep flag is passed.
     if (!grepFilter(spec)) {
       return false;
@@ -157,6 +160,8 @@ export function setupTestFilters(
     // Otherwise ignore the test.
     return false;
   };
+
+  env.configure({...config, specFilter});
 }
 
 export function parseTestEnvFromKarmaFlags(
@@ -212,6 +217,7 @@ export function describeWithFlags(
 
   TEST_ENVS.forEach(testEnv => {
     env().setFlags(testEnv.flags);
+    env().set('IS_TEST', true);
     if (envSatisfiesConstraints(env(), testEnv, constraints)) {
       const testName =
           name + ' ' + testEnv.name + ' ' + JSON.stringify(testEnv.flags || {});
@@ -280,5 +286,41 @@ function executeTests(
 }
 
 export class TestKernelBackend extends KernelBackend {
-  dispose(): void {}
+  override dispose(): void {}
+}
+
+let lock = Promise.resolve();
+
+/**
+ * Wraps a Jasmine spec's test function so it is run exclusively to others that
+ * use runWithLock.
+ *
+ * @param spec The function that runs the spec. Must return a promise or call
+ *     `done()`.
+ *
+ */
+export function runWithLock(spec: (done?: DoneFn) => Promise<void>| void) {
+  return () => {
+    lock = lock.then(async () => {
+      let done: DoneFn;
+      const donePromise = new Promise<void>((resolve, reject) => {
+        done = (() => {
+                 resolve();
+               }) as DoneFn;
+        done.fail = (message?) => {
+          reject(message);
+        };
+      });
+
+      purgeLocalStorageArtifacts();
+      const result = spec(done);
+
+      if (isPromise(result)) {
+        await result;
+      } else {
+        await donePromise;
+      }
+    });
+    return lock;
+  };
 }

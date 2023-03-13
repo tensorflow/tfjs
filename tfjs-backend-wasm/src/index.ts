@@ -15,7 +15,5 @@
  * =============================================================================
  */
 
-import './kernels/all_kernels';
-
-export {BackendWasm, setWasmPath} from './backend_wasm';
-export {version as version_wasm} from './version';
+import './register_all_kernels';
+export * from './base';

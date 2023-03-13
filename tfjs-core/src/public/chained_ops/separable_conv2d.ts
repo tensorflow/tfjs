@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {separableConv2d} from '../../ops/separable_conv2d';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike, TensorLike4D} from '../../types';
 
 declare module '../../tensor' {
@@ -28,11 +28,12 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.separableConv2d = function<T extends Tensor3D|Tensor4D>(
-    depthwiseFilter: Tensor4D|TensorLike4D,
-    pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
-    pad: 'valid'|'same', dilation?: [number, number]|number,
-    dataFormat?: 'NHWC'|'NCHW'): T {
+getGlobalTensorClass().prototype.separableConv2d =
+    function<T extends Tensor3D|Tensor4D>(
+        depthwiseFilter: Tensor4D|TensorLike4D,
+        pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
+        pad: 'valid'|'same', dilation?: [number, number]|number,
+        dataFormat?: 'NHWC'|'NCHW'): T {
   this.throwIfDisposed();
   return separableConv2d(
              this, depthwiseFilter, pointwiseFilter, strides, pad, dilation,

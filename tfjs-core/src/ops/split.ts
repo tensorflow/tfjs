@@ -14,15 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {SplitV, SplitVAttrs, SplitVInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {assert,} from '../util';
-import {parseAxisParam} from '../util';
 
 import {op} from './operation';
 
@@ -55,40 +53,22 @@ import {op} from './operation';
  * splits along the axis or an array of integers containing the sizes of
  * each output tensor along the axis. If a number then it must evenly divide
  * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
+ * Can contain one -1 indicating that dimension is to be inferred.
  * @param axis The dimension along which to split. Defaults to 0 (the first
  * dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function split_<T extends Tensor>(
     x: Tensor|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
   const $x = convertToTensor(x, 'x', 'split');
 
-  const $axis = parseAxisParam(axis, $x.shape)[0];
-  let splitSizes: number[];
-
-  if (typeof (numOrSizeSplits) === 'number') {
-    assert(
-        $x.shape[$axis] % numOrSizeSplits === 0,
-        () => 'Number of splits must evenly divide the axis.');
-    splitSizes =
-        new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
-  } else {
-    assert(
-        $x.shape[$axis] === numOrSizeSplits.reduce((a, b) => a + b),
-        () => 'The sum of sizes must match the size of the axis dimension.');
-    splitSizes = numOrSizeSplits;
-  }
-
-  const forward: ForwardFunc<Tensor> = (backend, _) => {
-    return backend.split($x, splitSizes, $axis) as {} as T;
-  };
-
   const inputs: SplitVInputs = {x: $x};
   const attr: SplitVAttrs = {numOrSizeSplits, axis};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, SplitV,
-             attr as {} as NamedAttrMap) as {} as T[];
+  return ENGINE.runKernel(
+             SplitV, inputs as unknown as NamedTensorMap,
+             attr as unknown as NamedAttrMap) as unknown as T[];
 }
 
-export const split = op({split_});
+export const split = /* @__PURE__ */ op({split_});

@@ -23,7 +23,8 @@ extern "C" {
 
 void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
                     size_t old_width, size_t num_channels, size_t new_height,
-                    size_t new_width, bool align_corners, size_t out_id);
+                    size_t new_width, bool align_corners,
+                    bool half_pixel_centers, size_t out_id);
 }
 
 }  // namespace wasm

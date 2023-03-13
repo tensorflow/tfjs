@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {moments, reshape, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
@@ -131,12 +131,12 @@ function broadcastNormalizeBatchInTraining(
                targetShape.push(x.shape[axis]);
              }
            }
-           const broadcastMean = mean.reshape(targetShape);
-           const broadcastVariance = variance.reshape(targetShape);
+           const broadcastMean = reshape(mean, targetShape);
+           const broadcastVariance = reshape(variance, targetShape);
            const broadcastGamma =
-               gamma == null ? null : gamma.reshape(targetShape);
+               gamma == null ? null : reshape(gamma, targetShape);
            const broadcastBeta =
-               beta == null ? null : beta.reshape(targetShape);
+               beta == null ? null : reshape(beta, targetShape);
            const normed = batchNormalization(
                x, broadcastMean, broadcastVariance, broadcastBeta,
                broadcastGamma, epsilon);
@@ -295,7 +295,7 @@ export class BatchNormalization extends Layer {
     this.gammaRegularizer = getRegularizer(args.gammaRegularizer);
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const axis = this.axis >= 0 ? this.axis : (this.axis + inputShape.length);
     const dim = inputShape[axis];
@@ -326,7 +326,7 @@ export class BatchNormalization extends Layer {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const training = kwargs['training'] == null ? false : kwargs['training'];
       const input = getExactlyOneTensor(inputs);
@@ -346,13 +346,13 @@ export class BatchNormalization extends Layer {
       const normalizeInference: () => Tensor = () => {
         if (needsBroadcasting) {
           const broadcastMovingMean =
-              this.movingMean.read().reshape(broadcastShape);
+              reshape(this.movingMean.read(), broadcastShape);
           const broadcastMovingVariance =
-              this.movingVariance.read().reshape(broadcastShape);
+              reshape(this.movingVariance.read(), broadcastShape);
           const broadcastBeta =
-              this.center ? this.beta.read().reshape(broadcastShape) : null;
+              this.center ? reshape(this.beta.read(), broadcastShape) : null;
           const broadcastGamma =
-              this.scale ? this.gamma.read().reshape(broadcastShape) : null;
+              this.scale ? reshape(this.gamma.read(), broadcastShape) : null;
           return batchNormalization(
               input, broadcastMovingMean, broadcastMovingVariance,
               broadcastBeta, broadcastGamma, this.epsilon);
@@ -377,8 +377,8 @@ export class BatchNormalization extends Layer {
             tfc.tidy(() => {
               const decay = 1 - momentum;
               const origValue = variable.read();
-              const updateDelta = origValue.sub(value).mul(decay);
-              variable.write(origValue.sub(updateDelta));
+              const updateDelta = tfc.mul(tfc.sub(origValue, value), decay);
+              variable.write(tfc.sub(origValue, updateDelta));
             });
           };
 
@@ -398,7 +398,7 @@ export class BatchNormalization extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       axis: this.axis,
       momentum: this.momentum,
@@ -424,8 +424,8 @@ serialization.registerClass(BatchNormalization);
 
 export interface LayerNormalizationLayerArgs extends LayerArgs {
   /**
-   * The axis or axes that should be normalized (typically, the feature axis.)
-   * Defaults to -1 (the last axis.)
+   * The axis or axes that should be normalized (typically, the feature axis).
+   * Defaults to -1 (the last axis).
    */
   axis?: number|number[];
 
@@ -523,7 +523,7 @@ export class LayerNormalization extends Layer {
     this.supportsMasking = true;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const nDims = inputShape.length;
 
@@ -568,7 +568,7 @@ export class LayerNormalization extends Layer {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = getExactlyOneTensor(inputs);
     const inputShape = input.shape;
     const nDims = inputShape.length;
@@ -582,16 +582,15 @@ export class LayerNormalization extends Layer {
       }
 
       const broadcast = (v: Tensor) => {
-        if (v != null && v.shape.length !== nDims &&
-            this.axis !== [nDims - 1]) {
-          return v.reshape(broadcastShape);
+        if (v != null && v.shape.length !== nDims) {
+          return tfc.reshape(v, broadcastShape);
         } else {
           return v;
         }
       };
 
-      let scale = broadcast(this.gamma.read());
-      let offset = broadcast(this.beta.read());
+      let scale = this.scale ? broadcast(this.gamma.read()) : null;
+      let offset = this.center ? broadcast(this.beta.read()) : null;
 
       // TODO(https://github.com/tensorflow/tfjs/issues/2120): The tiling below
       // is a workaround for the limitation of core's batchNormalization?d don't
@@ -610,17 +609,21 @@ export class LayerNormalization extends Layer {
           scaleOffsetTiling.push(inputShape[i]);
         }
       }
-      mean = mean.tile(momentsTiling);
-      variance = variance.tile(momentsTiling);
-      scale = scale.tile(scaleOffsetTiling);
-      offset = offset.tile(scaleOffsetTiling);
+      mean = tfc.tile(mean, momentsTiling);
+      variance = tfc.tile(variance, momentsTiling);
+      if (scale != null) {
+        scale = tfc.tile(scale, scaleOffsetTiling);
+      }
+      if (offset != null) {
+        offset = tfc.tile(offset, scaleOffsetTiling);
+      }
 
       return batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       axis: this.axis,
       epsilon: this.epsilon,

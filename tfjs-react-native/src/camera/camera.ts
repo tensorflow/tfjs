@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_webgl_util';
+import {Rotation} from './types';
 interface Dimensions {
   width: number;
   height: number;
@@ -32,6 +33,7 @@ interface Size {
 interface FromTextureOptions {
   alignCorners?: boolean;
   interpolation?: 'nearest_neighbor'|'bilinear';
+  rotation?: Rotation;
 }
 
 const glCapabilities = {
@@ -46,8 +48,9 @@ const glCapabilities = {
  *
  * For best performance this should be be called once before using the other
  * camera related functions.
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
   if (glCapabilities.glCapabilitiesTested.get(gl)) {
     return;
@@ -100,8 +103,9 @@ export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
  * @param imageTensor the tensor to upload
  * @param texture optional the target texture. If none is passed in a new
  *     texture will be created.
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export async function toTexture(
     gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
     texture?: WebGLTexture): Promise<WebGLTexture> {
@@ -133,11 +137,15 @@ export async function toTexture(
  * @param texture the texture to convert into a tensor
  * @param sourceDims source dimensions of input texture (width, height, depth)
  * @param targetShape desired shape of output tensor
+ * @param useCustomShadersToResize whether to use custom shaders to resize
+ *   texture.
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
-    targetShape: Dimensions, options: FromTextureOptions = {}): tf.Tensor3D {
+    targetShape: Dimensions, useCustomShadersToResize = false,
+    options: FromTextureOptions = {}): tf.Tensor3D {
   tf.util.assert(
       targetShape.depth === 3 || targetShape.depth === 4,
       () => 'fromTexture Error: target depth must be 3 or 4');
@@ -178,14 +186,21 @@ export function fromTexture(
       options.alignCorners != null ? options.alignCorners : false;
   const interpolation =
       options.interpolation != null ? options.interpolation : 'bilinear';
+  const rotation = options.rotation != null ? options.rotation : 0;
 
   tf.util.assert(
       interpolation === 'bilinear' || interpolation === 'nearest_neighbor',
       () => 'fromTexture Error: interpolation must be one of' +
           ' "bilinear" or "nearest_neighbor"');
 
+  tf.util.assert(
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
+      () => 'fromTexture Error: rotation must be ' +
+          '0, +/- 90, +/- 180, +/- 270 or 360');
+
   const resizedTexture = runResizeProgram(
-      gl, texture, sourceDims, targetShape, alignCorners, interpolation);
+      gl, texture, sourceDims, targetShape, alignCorners,
+      useCustomShadersToResize, interpolation, rotation);
   const downloadedTextureData =
       downloadTextureData(gl, resizedTexture, targetShape);
 
@@ -219,14 +234,20 @@ export function fromTexture(
  * @param gl
  * @param texture
  * @param dims Dimensions of tensor
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
-    flipHorizontal = true) {
+    flipHorizontal = true, rotation: Rotation = 0) {
+  tf.util.assert(
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
+      () => 'renderToGLView Error: rotation must be ' +
+          '0, +/- 90, +/- 180, +/- 270 or 360');
+
   size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, size, flipHorizontal);
+  drawTexture(gl, texture, size, flipHorizontal, rotation);
 }

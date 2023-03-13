@@ -19,9 +19,11 @@ import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
+import {KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
 /** Directory that stores the model. */
@@ -36,55 +38,59 @@ const DATA_URL = 'create_save_predict_data';
  *  - Make inference using each backends, and validate the results against
  *    Keras results.
  */
-describe(`${REGRESSION} create_save_predict`, () => {
+describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
+  let originalTimeout: number;
+
+  beforeAll(() => {
+    // This test needs more time to finish the async fetch, adjusting
+    // jasmine timeout for this test to avoid flakiness. See jasmine
+    // documentation for detail:
+    // https://jasmine.github.io/2.0/introduction.html#section-42
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
   LAYERS_MODELS.forEach(model => {
-    describe(`${model}`, () => {
+    it(`${model}.`, async () => {
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
       let kerasOutputShapes: number[][];
 
-      beforeAll(async () => {
-        [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
-            await Promise.all([
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
-                  .then(response => response.json()),
-              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
-                  .then(response => response.json())
-            ]);
-      });
+      [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
+          await Promise.all([
+            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
+                .then(response => response.json()),
+            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
+                .then(response => response.json()),
+            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
+                .then(response => response.json()),
+            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
+                .then(response => response.json())
+          ]);
 
-      BACKENDS.forEach(backend => {
-        it(`with ${backend}.`, async () => {
-          const $model = await tfl.loadLayersModel(
-              `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+      const $model = await tfl.loadLayersModel(
+          `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs =
-              createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
+      const xs = createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
+      const result = $model.predict(xs);
 
-          await tfc.setBackend(backend);
+      const ys =
+          ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
 
-          const result = $model.predict(xs);
+      // Validate outputs with keras results.
+      for (let i = 0; i < ys.length; i++) {
+        const y = ys[i];
+        expect(y.shape).toEqual(kerasOutputShapes[i]);
+        tfc.test_util.expectArraysClose(
+            await y.data(), kerasOutputData[i], 0.005);
+      }
 
-          const ys =
-              ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
-
-          // Validate outputs with keras results.
-          for (let i = 0; i < ys.length; i++) {
-            const y = ys[i];
-            expect(y.shape).toEqual(kerasOutputShapes[i]);
-            tfc.test_util.expectArraysClose(await y.data(), kerasOutputData[i]);
-          }
-
-          // Dispose all tensors;
-          xs.forEach(tensor => tensor.dispose());
-          ys.forEach(tensor => tensor.dispose());
-        });
-      });
+      // Dispose all tensors;
+      xs.forEach(tensor => tensor.dispose());
+      ys.forEach(tensor => tensor.dispose());
     });
   });
 });

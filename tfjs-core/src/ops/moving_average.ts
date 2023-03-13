@@ -26,8 +26,8 @@ import {div} from './div';
 import {mul} from './mul';
 import {op} from './operation';
 import {pow} from './pow';
+import {scalar} from './scalar';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
 
 /**
  * Compute the moving average of a variable.
@@ -54,8 +54,9 @@ import {scalar} from './tensor_ops';
  * @param step Step count.
  * @param zeroDebias: Whether zeroDebias is to be performed (default: `true`).
  * @returns The new moving average value.
+ *
+ * @doc {heading: 'Operations', subheading: 'Moving Average'}
  */
-/** @doc {heading: 'Operations', subheading: 'Moving Average'} */
 function movingAverage_<T extends Tensor>(
     v: T|TensorLike, x: T|TensorLike, decay: number|Scalar,
     step?: number|Scalar, zeroDebias = true): T {
@@ -80,4 +81,4 @@ function movingAverage_<T extends Tensor>(
   return add($v, update);
 }
 
-export const movingAverage = op({movingAverage_});
+export const movingAverage = /* @__PURE__ */ op({movingAverage_});

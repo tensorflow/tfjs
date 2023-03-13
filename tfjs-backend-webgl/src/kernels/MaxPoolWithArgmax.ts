@@ -28,7 +28,7 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxPoolWithArgmaxInputs;
     const {filterSize, strides, pad, includeBatchInIndex} =
-        attrs as {} as MaxPoolWithArgmaxAttrs;
+        attrs as unknown as MaxPoolWithArgmaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     util.assert(

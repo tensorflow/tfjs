@@ -21,9 +21,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {div} from './div';
+import {equal} from './equal';
 import {op} from './operation';
-import {zerosLike} from './tensor_ops';
 import {where} from './where';
+import {zerosLike} from './zeros_like';
 
 /**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting. Return 0
@@ -52,8 +53,9 @@ import {where} from './where';
  * @param a The first tensor as the numerator.
  * @param b The second tensor as the denominator. Must have the same dtype as
  * `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function divNoNan_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   // TODO: Make this into its own kernel.
@@ -63,8 +65,8 @@ function divNoNan_<T extends Tensor>(
 
   const divResult = div($a, $b);
   const zeros = zerosLike(divResult);
-  const bEqualsZero = $b.equal(zeros);
+  const bEqualsZero = equal($b, zeros);
   return where(bEqualsZero, zeros, divResult) as T;
 }
 
-export const divNoNan = op({divNoNan_});
+export const divNoNan = /* @__PURE__ */ op({divNoNan_});

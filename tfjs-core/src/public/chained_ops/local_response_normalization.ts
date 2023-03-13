@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {localResponseNormalization} from '../../ops/local_response_normalization';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,8 +25,9 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.localResponseNormalization = function<T extends Tensor>(
-    depthRadius?: number, bias?: number, alpha?: number, beta?: number): T {
+getGlobalTensorClass().prototype.localResponseNormalization =
+    function<T extends Tensor>(
+        depthRadius?: number, bias?: number, alpha?: number, beta?: number): T {
   this.throwIfDisposed();
   return localResponseNormalization(this, depthRadius, bias, alpha, beta) as T;
 };

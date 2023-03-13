@@ -26,10 +26,7 @@ export class ReduceProgram implements GPGPUProgram {
   constructor(
       reduceInfo: backend_util.ReduceInfo,
       reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod') {
-    const windowSize = reduceInfo.windowSize;
-    const batchSize = reduceInfo.batchSize;
-    const inSize = reduceInfo.inSize;
-    const outSize = Math.ceil(inSize / windowSize);
+    const {windowSize, batchSize, inSize, outSize} = reduceInfo;
     this.outputShape = [batchSize, outSize];
 
     let initializationValue = '0.0';
@@ -71,6 +68,13 @@ export class ReduceProgram implements GPGPUProgram {
         prodValue *= tmp[0] * tmp[1];
       } else {
         minMaxValue = ${compareOp}(values, minMaxValue);
+        if (${reduceType === 'min'} || ${reduceType === 'max'}) {
+          minMaxValue = ${compareOp}(values, minMaxValue);
+          bvec4 isNaN = isnan(values);
+          if (isNaN.r || isNaN.g || isNaN.b || isNaN.a) {
+            minMaxValue = vec4(NAN);
+          }
+        }
       }
     `;
 

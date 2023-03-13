@@ -15,20 +15,16 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Prelu, PreluInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface PreluInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  alpha: TensorInfo;
-}
+import {cast} from './Cast';
 
 let wasmPrelu: (xId: number, weightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmPrelu = backend.wasm.cwrap('Prelu', null /* void */, [
+  wasmPrelu = backend.wasm.cwrap(Prelu, null /* void */, [
     'number',  // x_id
     'number',  // weights_id
     'number'   // out_id
@@ -41,15 +37,27 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
   const xId = backend.dataIdMap.get(x.dataId).id;
   const weightsId = backend.dataIdMap.get(alpha.dataId).id;
 
+  let inputId = xId;
+  const input = x;
+  let castedInput = input;
+  if (input.dtype !== 'float32') {
+    castedInput = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    inputId = backend.dataIdMap.get(castedInput.dataId).id;
+  }
+
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmPrelu(xId, weightsId, outId);
+  wasmPrelu(inputId, weightsId, outId);
+
+  if (input.dtype !== 'float32') {
+    backend.disposeData(castedInput.dataId);
+  }
   return out;
 }
 
-registerKernel({
-  kernelName: 'Prelu',
+export const preluConfig: KernelConfig = {
+  kernelName: Prelu,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: prelu
-});
+  kernelFunc: prelu as unknown as KernelFunc
+};

@@ -19,6 +19,7 @@ import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
 import {sizeFromShape} from '../util';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {op} from './operation';
 
@@ -30,10 +31,13 @@ import {op} from './operation';
  * @param randFunction A random number generator function which is called
  * for each element in the output tensor.
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
 function rand_<R extends Rank>(
     shape: ShapeMap[R], randFunction: () => number,
     dtype?: DataType): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   const size = sizeFromShape(shape);
   let values = null;
   if (dtype == null || dtype === 'float32') {
@@ -51,4 +55,4 @@ function rand_<R extends Rank>(
   return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
-export const rand = op({rand_});
+export const rand = /* @__PURE__ */ op({rand_});

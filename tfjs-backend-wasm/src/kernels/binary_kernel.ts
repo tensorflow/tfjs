@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
-export function registerBinaryKernel(
-    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
+export function createBinaryKernelConfig(
+    kernelName: string, supportsFullBroadcast: boolean,
+    dtype?: DataType): KernelConfig {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -63,30 +65,9 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    // Currently only some float operations support full broadcast.
-    if (supportsFullBroadcast && a.dtype === 'float32') {
-      kernelFunc();
-      return out;
-    }
-
-    const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
-    const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-    const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-    if (loopsOverAllOfA && loopsOverAllOfB) {
-      kernelFunc();
-      return out;
-    } else {
-      throw new Error(
-          `Broadcasting along outer dims is not yet ` +
-          `supported for ${a.dtype} ${kernelName}.`);
-    }
+    kernelFunc();
+    return out;
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
-}
-
-interface BinaryInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }

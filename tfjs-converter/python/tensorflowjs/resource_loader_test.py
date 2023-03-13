@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import json
 import unittest
+from os import path
 
 from tensorflowjs import resource_loader
 
@@ -28,10 +29,11 @@ class ResourceLoaderTest(unittest.TestCase):
     files = resource_loader.list_dir('op_list')
     self.assertGreater(len(files), 0)
     for filename in files:
-      self.assertTrue(filename.endswith('.json'))
+      self.assertTrue(filename == 'BUILD' or filename.endswith('.json'))
 
   def testReadingFileInOpList(self):
-    with resource_loader.open_file('op_list/arithmetic.json') as f:
+    file_path = path.join('op_list', 'arithmetic.json')
+    with resource_loader.open_file(file_path) as f:
       data = json.load(f)
       first_op = data[0]
       self.assertIn('tfOpName', first_op)

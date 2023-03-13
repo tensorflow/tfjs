@@ -24,8 +24,9 @@ import {concat} from './concat';
 import {matMul} from './mat_mul';
 import {mul} from './mul';
 import {op} from './operation';
+import {sigmoid} from './sigmoid';
 import {slice} from './slice';
-import {sigmoid, tanh} from './unary_ops';
+import {tanh} from './tanh';
 
 /**
  * Computes the next state and output of a BasicLSTMCell.
@@ -40,8 +41,9 @@ import {sigmoid, tanh} from './unary_ops';
  * @param data The input to the cell.
  * @param c Previous cell state.
  * @param h Previous cell output.
+ *
+ * @doc {heading: 'Operations', subheading: 'RNN'}
  */
-/** @doc {heading: 'Operations', subheading: 'RNN'} */
 function basicLSTMCell_(
     forgetBias: Scalar|TensorLike, lstmKernel: Tensor2D|TensorLike,
     lstmBias: Tensor1D|TensorLike, data: Tensor2D|TensorLike,
@@ -75,4 +77,4 @@ function basicLSTMCell_(
   return [newC, newH];
 }
 
-export const basicLSTMCell = op({basicLSTMCell_});
+export const basicLSTMCell = /* @__PURE__ */ op({basicLSTMCell_});

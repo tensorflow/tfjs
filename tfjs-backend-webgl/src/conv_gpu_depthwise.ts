@@ -16,26 +16,27 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class DepthwiseConv2DProgram implements GPGPUProgram {
   variableNames = ['x', 'W'];
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
+  customUniforms = [
+    {name: 'pads', type: 'ivec2' as const },
+    {name: 'strides', type: 'ivec2' as const },
+    {name: 'dilations', type: 'ivec2' as const },
+    {name: 'inDims', type: 'ivec2' as const },
+  ];
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      activation: string = null, hasPreluActivation = false,
+      hasLeakyReluAlpha = false) {
     this.outputShape = convInfo.outShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
-    const xNumRows = convInfo.inHeight;
-    const xNumCols = convInfo.inWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const channelMul = convInfo.outChannels / convInfo.inChannels;
@@ -45,6 +46,11 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
       if (hasPreluActivation) {
         activationSnippet = `float activation(float a) {
           float b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else if (hasLeakyReluAlpha) {
+        activationSnippet = `float activation(float a) {
+          float b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {
@@ -66,12 +72,12 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
     if (hasPreluActivation) {
       this.variableNames.push('preluActivationWeights');
     }
+    if (hasLeakyReluAlpha) {
+      this.variableNames.push('leakyreluAlpha');
+    }
 
     this.userCode = `
       ${activationSnippet}
-
-      const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
-      const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
         ivec4 coords = getOutputCoords();
@@ -89,16 +95,16 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
         float dotProd = 0.0;
         // TO DO(dsmilkov): Flatten the two for loops and vec4 the operations.
         for (int wR = 0; wR < ${filterHeight}; wR++) {
-          int xR = xRCorner + wR * ${dilationHeight};
+          int xR = xRCorner + wR * dilations[0];
 
-          if (xR < 0 || xR >= ${xNumRows}) {
+          if (xR < 0 || xR >= inDims[0]) {
             continue;
           }
 
           for (int wC = 0; wC < ${filterWidth}; wC++) {
-            int xC = xCCorner + wC * ${dilationWidth};
+            int xC = xCCorner + wC * dilations[1];
 
-            if (xC < 0 || xC >= ${xNumCols}) {
+            if (xC < 0 || xC >= inDims[1]) {
               continue;
             }
 

@@ -24,7 +24,7 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
+import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
@@ -36,6 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly requestInit: RequestInit;
 
   private readonly fetch: Function;
+  private readonly weightUrlConverter: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
 
@@ -50,6 +51,7 @@ export class HTTPRequest implements IOHandler {
     }
     this.weightPathPrefix = loadOptions.weightPathPrefix;
     this.onProgress = loadOptions.onProgress;
+    this.weightUrlConverter = loadOptions.weightUrlConverter;
 
     if (loadOptions.fetchFunc != null) {
       assert(
@@ -97,14 +99,8 @@ export class HTTPRequest implements IOHandler {
       paths: ['./model.weights.bin'],
       weights: modelArtifacts.weightSpecs,
     }];
-    const modelTopologyAndWeightManifest: ModelJSON = {
-      modelTopology: modelArtifacts.modelTopology,
-      format: modelArtifacts.format,
-      generatedBy: modelArtifacts.generatedBy,
-      convertedBy: modelArtifacts.convertedBy,
-      userDefinedMetadata: modelArtifacts.userDefinedMetadata,
-      weightsManifest
-    };
+    const modelTopologyAndWeightManifest: ModelJSON =
+        getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
 
     init.body.append(
         'model.json',
@@ -151,9 +147,9 @@ export class HTTPRequest implements IOHandler {
           `${modelConfigRequest.status}. Please verify this URL points to ` +
           `the model JSON of the model to load.`);
     }
-    let modelConfig: ModelJSON;
+    let modelJSON: ModelJSON;
     try {
-      modelConfig = await modelConfigRequest.json();
+      modelJSON = await modelConfigRequest.json();
     } catch (e) {
       let message = `Failed to parse model JSON of response from ${this.path}.`;
       // TODO(nsthorat): Remove this after some time when we're comfortable that
@@ -171,36 +167,18 @@ export class HTTPRequest implements IOHandler {
       }
       throw new Error(message);
     }
-    const modelTopology = modelConfig.modelTopology;
-    const weightsManifest = modelConfig.weightsManifest;
-    const generatedBy = modelConfig.generatedBy;
-    const convertedBy = modelConfig.convertedBy;
-    const format = modelConfig.format;
-    const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
     if (modelTopology == null && weightsManifest == null) {
       throw new Error(
           `The JSON from HTTP path ${this.path} contains neither model ` +
           `topology or manifest for weights.`);
     }
 
-    let weightSpecs: WeightsManifestEntry[];
-    let weightData: ArrayBuffer;
-    if (weightsManifest != null) {
-      const results = await this.loadWeights(weightsManifest);
-      [weightSpecs, weightData] = results;
-    }
-
-    return {
-      modelTopology,
-      weightSpecs,
-      weightData,
-      userDefinedMetadata,
-      generatedBy,
-      convertedBy,
-      format
-    };
+    return getModelArtifactsForJSON(
+        modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
@@ -209,17 +187,24 @@ export class HTTPRequest implements IOHandler {
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
 
-    const weightSpecs = [];
-    for (const entry of weightsManifest) {
-      weightSpecs.push(...entry.weights);
-    }
+    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
-    weightsManifest.forEach(weightsGroup => {
-      weightsGroup.paths.forEach(path => {
-        fetchURLs.push(pathPrefix + path + suffix);
-      });
-    });
+    const urlPromises: Array<Promise<string>> = [];
+    for (const weightsGroup of weightsManifest) {
+      for (const path of weightsGroup.paths) {
+        if (this.weightUrlConverter != null) {
+          urlPromises.push(this.weightUrlConverter(path));
+        } else {
+          fetchURLs.push(pathPrefix + path + suffix);
+        }
+      }
+    }
+
+    if (this.weightUrlConverter) {
+      fetchURLs.push(...await Promise.all(urlPromises));
+    }
+
     const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
       requestInit: this.requestInit,
       fetchFunc: this.fetch,
@@ -313,7 +298,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  * https://gist.github.com/dsmilkov/1b6046fd6132d7408d5257b0976f7864
  * implements a server based on [flask](https://github.com/pallets/flask) that
  * can receive the request. Upon receiving the model artifacts via the requst,
- * this particular server reconsistutes instances of [Keras
+ * this particular server reconstitutes instances of [Keras
  * Models](https://keras.io/models/model/) in memory.
  *
  *
@@ -339,8 +324,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  *   - onProgress Optional, progress callback function, fired periodically
  *     before the load is completed.
  * @returns An instance of `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',

@@ -21,7 +21,7 @@ import {DataFormat} from '../keras_format/common';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {spatial2dPadding, temporalPadding, ZeroPadding2D, ZeroPadding2DLayerArgs} from './padding';
+import {spatial2dPadding, temporalPadding, ZeroPadding2DLayerArgs} from './padding';
 
 describeMathCPUAndGPU('temporalPadding', () => {
   it('default padding 1-1', () => {
@@ -152,11 +152,11 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
   });
 
   it('Serialization round trip', () => {
-    const layer = tfl.layers.zeroPadding2d({padding: [2, 4]}) as ZeroPadding2D;
+    const layer = tfl.layers.zeroPadding2d({padding: [2, 4]});
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     const tsConfig = convertPythonicToTs(pythonicConfig);
     const layerPrime = tfl.layers.zeroPadding2d(
-                           tsConfig as ZeroPadding2DLayerArgs) as ZeroPadding2D;
+                           tsConfig as ZeroPadding2DLayerArgs);
     expect(layerPrime.padding).toEqual(layer.padding);
     expect(layerPrime.dataFormat).toEqual(layer.dataFormat);
   });

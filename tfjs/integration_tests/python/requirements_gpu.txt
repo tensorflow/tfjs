@@ -1,2 +1,0 @@
-tensorflowjs>=1.2.9
-tf-nightly>=2.1.0.dev20191008

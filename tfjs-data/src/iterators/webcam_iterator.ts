@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {browser, env, image, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {browser, cast, env, expandDims, image, reshape, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {WebcamConfig} from '../types';
 import {LazyIterator} from './lazy_iterator';
 
@@ -67,7 +67,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   // Construct a WebcamIterator and start it's video stream.
   static async create(
       webcamVideoElement?: HTMLVideoElement, webcamConfig: WebcamConfig = {}) {
-    if (env().get('IS_NODE')) {
+    if (!env().get('IS_BROWSER')) {
       throw new Error(
           'tf.data.webcam is only supported in browser environment.');
     }
@@ -129,7 +129,8 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
       this.webcamVideoElement.srcObject = this.stream;
     } catch (error) {
       console.log(error);
-      this.webcamVideoElement.src = window.URL.createObjectURL(this.stream);
+      this.webcamVideoElement.src = window.URL.createObjectURL(
+        this.stream as unknown as MediaSource);
     }
     // Start the webcam video stream
     this.webcamVideoElement.play();
@@ -184,14 +185,14 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   // Cropping and resizing each frame based on config
   cropAndResizeFrame(img: Tensor3D): Tensor3D {
     return tidy(() => {
-      const expandedImage: Tensor4D = img.toFloat().expandDims(0);
+      const expandedImage: Tensor4D = expandDims(cast(img, 'float32'), (0));
       let resizedImage;
       resizedImage = image.cropAndResize(
           expandedImage, this.cropBox, this.cropBoxInd, this.cropSize,
           'bilinear');
       // Extract image from batch cropping.
       const shape = resizedImage.shape;
-      return resizedImage.reshape(shape.slice(1) as [number, number, number]);
+      return reshape(resizedImage, shape.slice(1) as [number, number, number]);
     });
   }
 
@@ -217,7 +218,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   }
 
   // Override toArray() function to prevent collecting.
-  toArray(): Promise<Tensor3D[]> {
+  override toArray(): Promise<Tensor3D[]> {
     throw new Error('Can not convert infinite video stream to array.');
   }
 }

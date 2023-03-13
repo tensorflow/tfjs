@@ -14,7 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Minimum} from '@tensorflow/tfjs-core';
 
-import {registerBinaryKernel} from './binary_kernel';
+import {createBinaryKernelConfig} from './binary_kernel';
 const supportsFullBroadcast = false;
-registerBinaryKernel('Minimum', supportsFullBroadcast);
+export const minimumConfig: KernelConfig =
+    createBinaryKernelConfig(Minimum, supportsFullBroadcast);

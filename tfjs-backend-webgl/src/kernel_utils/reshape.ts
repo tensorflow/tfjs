@@ -19,9 +19,9 @@ import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReshapePackedProgram} from '../reshape_packed_gpu';
-import {getBatchDim, getRowsCols, isReshapeFree} from '../webgl_util';
+import {getBatchDim, getRowsCols} from '../webgl_util';
 
-function packedReshape(
+export function packedReshape(
     input: TensorInfo, afterShape: number[],
     backend: MathBackendWebGL): TensorInfo {
   const input3DShape =
@@ -38,21 +38,9 @@ function packedReshape(
 
   const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
   const preventEagerUnpackingOfOutput = true;
+  const customValues = [input3DShape];
   const output = backend.runWebGLProgram(
-      program, [input3D], input.dtype, null /* customSetup */,
+      program, [input3D], input.dtype, customValues,
       preventEagerUnpackingOfOutput);
   return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
-}
-
-export function reshape(
-    x: TensorInfo, afterShape: number[],
-    backend: MathBackendWebGL): TensorInfo {
-  const xTexData = backend.texData.get(x.dataId);
-  if (xTexData.isPacked && !isReshapeFree(x.shape, afterShape) &&
-      !(xTexData.texture !== null &&
-        isReshapeFree(xTexData.shape, afterShape))) {
-    return packedReshape(x, afterShape, backend);
-  }
-
-  return {dataId: x.dataId, shape: afterShape, dtype: x.dtype};
 }

@@ -16,7 +16,7 @@
  */
 import {conv1d} from '../../ops/conv1d';
 import {ExplicitPadding} from '../../ops/conv_util';
-import {Tensor, Tensor2D, Tensor3D} from '../../tensor';
+import {getGlobalTensorClass, Tensor2D, Tensor3D} from '../../tensor';
 import {Rank, TensorLike3D} from '../../types';
 
 declare module '../../tensor' {
@@ -28,7 +28,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.conv1d = function<T extends Tensor2D|Tensor3D>(
+getGlobalTensorClass().prototype.conv1d = function<T extends Tensor2D|Tensor3D>(
     filter: Tensor3D|TensorLike3D, stride: number,
     pad: 'valid'|'same'|number|ExplicitPadding, dataFormat?: 'NWC'|'NCW',
     dilation?: number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {

@@ -15,17 +15,19 @@
  * =============================================================================
  */
 
-import {env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {GPGPUContext} from './gpgpu_context';
+import {GPGPUContext, GPGPUContextProgram} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
-import {InputInfo, ShapeInfo} from './shader_compiler';
+import {InputInfo, ShapeInfo, UniformType} from './shader_compiler';
 import {PackingScheme, TextureData, TextureUsage} from './tex_util';
+import {createFragmentShader} from './webgl_util';
 
 export interface GPGPUProgram {
   variableNames: string[];
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms?: boolean;
   /** If true, this program expects packed input textures. Defaults to false. */
   packedInputs?: boolean;
   /** If true, this program produces a packed texture. Defaults to false. */
@@ -40,17 +42,35 @@ export interface GPGPUProgram {
    * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
    */
   outPackingScheme?: PackingScheme;
+  customUniforms?:
+      Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
-export interface GPGPUBinary {
-  webGLProgram: WebGLProgram;
+export interface GPGPUBinary extends GPGPUBinaryLocations {
+  webGLProgram: GPGPUContextProgram;
   program: GPGPUProgram;
-  uniformLocations: {[name: string]: WebGLUniformLocation};
   source: string;
+  fragmentShader: WebGLShader;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
+}
+
+export interface GPGPUBinaryLocations {
+  customUniformLocations?: WebGLUniformLocation[];
   infLoc: WebGLUniformLocation;
   nanLoc: WebGLUniformLocation;
+  outShapeLocation?: WebGLUniformLocation;
+  outShapeStridesLocation?: WebGLUniformLocation;
+  outTexShapeLocation?: WebGLUniformLocation;
+  variablesLocations?: GPGPUVariableLocations[];
+}
+
+export interface GPGPUVariableLocations {
+  name: string;
+  uniform: WebGLUniformLocation;
+  offset: WebGLUniformLocation;
+  shape?: WebGLUniformLocation;
+  texShape?: WebGLUniformLocation;
 }
 
 export interface TensorData {
@@ -64,7 +84,6 @@ export interface TensorData {
 export function compileProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, program: GPGPUProgram, inputs: TensorData[],
     output: TensorData): GPGPUBinary {
-  const userCode = program.userCode;
   const inputInfos: InputInfo[] = inputs.map((input, i) => {
     const shapeInfo: ShapeInfo = {
       logicalShape: input.shape,
@@ -87,38 +106,99 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     isPacked: output.texData.isPacked,
     flatOffset: null
   };
-  const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.packedInputs);
+  const source = shader_compiler.makeShader(inputInfos, outShapeInfo, program);
+  const fragmentShader = createFragmentShader(gpgpu.gl, source);
+  const webGLProgram = gpgpu.createProgram(fragmentShader);
 
-  const webGLProgram = gpgpu.createProgram(source);
+  if (!env().get('ENGINE_COMPILE_ONLY')) {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      ...getUniformLocations(gpgpu, program, webGLProgram)
+    };
+  } else {
+    return {
+      program,
+      fragmentShader,
+      source,
+      webGLProgram,
+      inShapeInfos,
+      outShapeInfo,
+      variablesLocations: null,
+      customUniformLocations: null,
+      infLoc: null,
+      nanLoc: null,
+      outShapeLocation: null,
+      outShapeStridesLocation: null,
+      outTexShapeLocation: null
+    };
+  }
+}
+
+export function getUniformLocations(
+    gpgpu: GPGPUContext, program: GPGPUProgram,
+    webGLProgram: WebGLProgram): GPGPUBinaryLocations {
+  const variablesLocations: GPGPUVariableLocations[] = [];
+  const customUniformLocations: WebGLUniformLocation[] = [];
+  let outShapeLocation: WebGLUniformLocation;
+  let outTexShapeLocation: WebGLUniformLocation;
+  let outShapeStridesLocation: WebGLUniformLocation;
+  let infLoc: WebGLUniformLocation = null;
+  let nanLoc: WebGLUniformLocation = null;
 
   // Add special uniforms (NAN, INFINITY)
-  let infLoc: WebGLUniformLocation = null;
-  const nanLoc = gpgpu.getUniformLocation(webGLProgram, 'NAN', false);
+  nanLoc = gpgpu.getUniformLocation(webGLProgram, 'NAN', false);
   if (env().getNumber('WEBGL_VERSION') === 1) {
     infLoc = gpgpu.getUniformLocation(webGLProgram, 'INFINITY', false);
   }
 
   // Add user-defined uniforms
-  const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
-  for (let i = 0; i < program.variableNames.length; i++) {
-    const varName = program.variableNames[i];
-    const shouldThrow = false;
-    uniformLocations[varName] =
-        gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
-    uniformLocations[`offset${varName}`] =
-        gpgpu.getUniformLocation(webGLProgram, `offset${varName}`, shouldThrow);
+  const shouldThrow = false;
+  for (const varName of program.variableNames) {
+    const varLocs: GPGPUVariableLocations = {
+      name: varName,
+      uniform: gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow),
+      offset: gpgpu.getUniformLocation(
+          webGLProgram, `offset${varName}`, shouldThrow),
+    };
+    if (program.enableShapeUniforms) {
+      varLocs.shape = gpgpu.getUniformLocation(
+          webGLProgram, `${varName}Shape`, shouldThrow);
+      varLocs.texShape = gpgpu.getUniformLocation(
+          webGLProgram, `${varName}TexShape`, shouldThrow);
+    }
+
+    variablesLocations.push(varLocs);
+  }
+
+  if (program.enableShapeUniforms) {
+    outShapeLocation =
+        gpgpu.getUniformLocation(webGLProgram, 'outShape', shouldThrow);
+    outShapeStridesLocation =
+        gpgpu.getUniformLocation(webGLProgram, 'outShapeStrides', shouldThrow);
+    outTexShapeLocation =
+        gpgpu.getUniformLocation(webGLProgram, 'outTexShape', shouldThrow);
+  }
+
+  if (program.customUniforms) {
+    for (const d of program.customUniforms) {
+      customUniformLocations.push(
+          gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow));
+    }
   }
 
   return {
-    program,
-    source,
-    webGLProgram,
-    uniformLocations,
-    inShapeInfos,
-    outShapeInfo,
+    variablesLocations,
+    customUniformLocations,
     infLoc,
     nanLoc,
+    outShapeLocation,
+    outShapeStridesLocation,
+    outTexShapeLocation
   };
 }
 
@@ -157,18 +237,20 @@ function validateBinaryAndProgram(
 
 export function runProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, binary: GPGPUBinary, inputs: TensorData[],
-    output: TensorData,
-    customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
-        void): void {
-  validateBinaryAndProgram(binary.inShapeInfos, inputs);
-  validateBinaryAndProgram([binary.outShapeInfo], [output]);
+    output: TensorData, customUniformValues?: number[][]): void {
+  if (!binary.program.enableShapeUniforms) {
+    validateBinaryAndProgram(binary.inShapeInfos, inputs);
+    validateBinaryAndProgram([binary.outShapeInfo], [output]);
+  }
 
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
   if (output.texData.isPacked) {
-    gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputPackedMatrixTexture(
+        outTex.texture, outTexShape[0], outTexShape[1]);
   } else {
-    gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputMatrixTexture(
+        outTex.texture, outTexShape[0], outTexShape[1]);
   }
   gpgpu.setProgram(binary.webGLProgram);
 
@@ -183,14 +265,44 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   }
 
   // Set user-defined inputs
-  inputs.forEach((input, i) => {
-    const varName = binary.program.variableNames[i];
-    const varLoc = binary.uniformLocations[varName];
-    const varOffsetLoc = binary.uniformLocations[`offset${varName}`];
+  for (let i = 0; i < inputs.length; ++i) {
+    const input = inputs[i];
+    const {
+      uniform: varLoc,
+      offset: varOffsetLoc,
+      shape: varShapeLoc,
+      texShape: varTexShapeLoc,
+    } = binary.variablesLocations[i];
+
+    if (varShapeLoc) {
+      const {uniformShape} = shader_compiler.getUniformInfoFromShape(
+          binary.program.packedInputs, input.shape, input.texData.texShape);
+      switch (uniformShape.length) {
+        case 1:
+          gpgpu.gl.uniform1iv(varShapeLoc, new Int32Array(uniformShape));
+          break;
+        case 2:
+          gpgpu.gl.uniform2iv(varShapeLoc, new Int32Array(uniformShape));
+          break;
+        case 3:
+          gpgpu.gl.uniform3iv(varShapeLoc, new Int32Array(uniformShape));
+          break;
+        case 4:
+          gpgpu.gl.uniform4iv(varShapeLoc, new Int32Array(uniformShape));
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (varTexShapeLoc) {
+      gpgpu.gl.uniform2i(
+          varTexShapeLoc, input.texData.texShape[0], input.texData.texShape[1]);
+    }
 
     if (varLoc == null) {
       // The compiler inferred that this variable is not used in this shader.
-      return;
+      continue;
     }
 
     if (input.isUniform) {
@@ -204,7 +316,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
         }
         gpgpu.gl.uniform1fv(varLoc, vals);
       }
-      return;
+      continue;
     }
 
     // If the input was sliced, upload the flat offset index.
@@ -212,11 +324,78 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
 
-    gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
-  });
+    gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
+  }
 
-  if (customSetup != null) {
-    customSetup(gpgpu, binary.webGLProgram);
+  const outShapeLoc = binary.outShapeLocation;
+  if (outShapeLoc) {
+    switch (output.shape.length) {
+      case 1:
+        gpgpu.gl.uniform1iv(outShapeLoc, new Int32Array(output.shape));
+        break;
+      case 2:
+        gpgpu.gl.uniform2iv(outShapeLoc, new Int32Array(output.shape));
+        break;
+      case 3:
+        gpgpu.gl.uniform3iv(outShapeLoc, new Int32Array(output.shape));
+        break;
+      case 4:
+        gpgpu.gl.uniform4iv(outShapeLoc, new Int32Array(output.shape));
+        break;
+      default:
+        break;
+    }
+  }
+  if (binary.outShapeStridesLocation) {
+    const strides = util.computeStrides(output.shape);
+    switch (output.shape.length) {
+      case 2:
+        gpgpu.gl.uniform1iv(
+            binary.outShapeStridesLocation, new Int32Array(strides));
+        break;
+      case 3:
+        gpgpu.gl.uniform2iv(
+            binary.outShapeStridesLocation, new Int32Array(strides));
+        break;
+      case 4:
+        gpgpu.gl.uniform3iv(
+            binary.outShapeStridesLocation, new Int32Array(strides));
+        break;
+      default:
+        break;
+    }
+  }
+  if (binary.outTexShapeLocation) {
+    gpgpu.gl.uniform2i(
+        binary.outTexShapeLocation, output.texData.texShape[0],
+        output.texData.texShape[1]);
+  }
+
+  if (binary.program.customUniforms && customUniformValues) {
+    for (let i = 0; i < binary.program.customUniforms.length; ++i) {
+      const d = binary.program.customUniforms[i];
+      const customLoc = binary.customUniformLocations[i];
+      const customValue = customUniformValues[i];
+      if (d.type === 'float') {
+        gpgpu.gl.uniform1fv(customLoc, customValue);
+      } else if (d.type === 'vec2') {
+        gpgpu.gl.uniform2fv(customLoc, customValue);
+      } else if (d.type === 'vec3') {
+        gpgpu.gl.uniform3fv(customLoc, customValue);
+      } else if (d.type === 'vec4') {
+        gpgpu.gl.uniform4fv(customLoc, customValue);
+      } else if (d.type === 'int') {
+        gpgpu.gl.uniform1iv(customLoc, customValue);
+      } else if (d.type === 'ivec2') {
+        gpgpu.gl.uniform2iv(customLoc, customValue);
+      } else if (d.type === 'ivec3') {
+        gpgpu.gl.uniform3iv(customLoc, customValue);
+      } else if (d.type === 'ivec4') {
+        gpgpu.gl.uniform4iv(customLoc, customValue);
+      } else {
+        throw Error(`uniform type ${d.type} is not supported yet.`);
+      }
+    }
   }
   gpgpu.executeProgram();
 }
@@ -227,12 +406,73 @@ export function makeShaderKey(
   inputs.concat(output).forEach(x => {
     const hasOffset = x.texData != null && x.texData.slice != null &&
         x.texData.slice.flatOffset > 0;
-    const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
-    keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
+    // TODO: Remove the condition of !x.isUniform.
+    if (program.enableShapeUniforms && !x.isUniform) {
+      const xTexShape = x.texData.texShape;
+      const {useSqueezeShape, uniformShape, keptDims} =
+          shader_compiler.getUniformInfoFromShape(
+              program.packedInputs, x.shape, xTexShape);
+      let rank1 = '', rank2 = '', rank34 = '';
+      if (uniformShape.length === 1 && program.packedInputs) {
+        const packedTexShape =
+            [Math.ceil(xTexShape[0] / 2), Math.ceil(xTexShape[1] / 2)];
+        rank1 = `${packedTexShape[0] > 1}_${packedTexShape[1] > 1}`;
+      } else if (uniformShape.length === 2 && !program.packedInputs) {
+        rank2 = `${uniformShape[0] > 1}_${uniformShape[1] > 1}`;
+      } else if (uniformShape.length > 2 && !program.packedInputs) {
+        const strides = util.computeStrides(uniformShape);
+        rank34 = `${strides[0] === xTexShape[1]}_${
+            strides[strides.length - 1] === xTexShape[1]}`;
+      }
+      const xRank = x.shape.length;
+      const isLogicalShapTexShapeEqual =
+          uniformShape.length === 2 && util.arraysEqual(x.shape, xTexShape);
+      const isScalar = util.sizeFromShape(x.shape) === 1;
+      const broadcastDims =
+          backend_util.getBroadcastDims(x.shape, output.shape);
+      const isInOutTexShapeEqual = !program.packedInputs &&
+          xRank === output.shape.length &&
+          util.arraysEqual(xTexShape, output.texData.texShape);
+      const isTexShapeGreaterThanOne =
+          program.packedInputs || uniformShape.length > 2 ?
+          '' :
+          `${xTexShape[0] > 1}_${xTexShape[1] > 1}`;
+      // These key components are needed due to shader_compiler is embedding
+      // them in the shader.
+      // |xRank| is used to determine the coords length. See
+      // get[Packed]SamplerAtOutputCoords.
+      // |isInOutTexShapeEqual| is used to determine whether going to an
+      // optimization path in getSamplerAtOutputCoords.
+      // |useSqueezeShape| is extracted from squeezeInputInfo of
+      // getSampler[2|3|4]D/getPackedSampler3D.
+      // |isScalar| is extracted from isInputScalar/isOutputScalar in
+      // getPackedSamplerAtOutputCoords.
+      // |broadcastDims| is extracted from get[Packed]SamplerAtOutputCoords.
+      // |isLogicalShapTexShapeEqual| is used in
+      // getOutput[Packed]2DCoords/get[Packed]Sampler2D.
+      // |rank1| is used in getOutputPacked1DCoords.
+      // |rank2| is used in getOutput2DCoords.
+      // |rank34| is used in getSampler3D/getSampler4D.
+      // |isTexShapeGreaterThanOne| are used in
+      // getSampler[Scalar|1D|2D]/getOutput1DCoords.
+      keyInputs += `${xRank}_${isInOutTexShapeEqual}_${
+          useSqueezeShape ? keptDims : ''}_${uniformShape.length}_${isScalar}_${
+          broadcastDims}_${isLogicalShapTexShapeEqual}_${rank1}_${rank2}_${
+          rank34}_${isTexShapeGreaterThanOne}_${hasOffset}`;
+    } else {
+      const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
+      keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
+    }
   });
   const keyUserCode = program.userCode;
   let key = program.constructor.name;
   // Fast string concat. See https://jsperf.com/string-concatenation/14.
-  key += '_' + keyInputs + '_' + keyUserCode;
+  key += '_' + keyInputs + '_' + keyUserCode +
+      `${env().getNumber('WEBGL_VERSION')}`;
   return key;
+}
+
+export function useShapeUniforms(rank: number) {
+  // TODO: Remove the limitaion of rank <= 4.
+  return env().getBool('WEBGL_USE_SHAPES_UNIFORMS') && rank <= 4;
 }

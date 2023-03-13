@@ -37,8 +37,9 @@ import {op} from './operation';
  *     `[strideDepth, strideHeight, strideWidth]`.
  * @param pad  The type of padding algorithm used in the non-transpose version
  *    of the op.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function conv3dTranspose_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filter: Tensor5D|TensorLike,
     outputShape:
@@ -51,4 +52,4 @@ function conv3dTranspose_<T extends Tensor4D|Tensor5D>(
   return conv3DBackpropInput(outputShape, $x, $filter, strides, pad);
 }
 
-export const conv3dTranspose = op({conv3dTranspose_});
+export const conv3dTranspose = /* @__PURE__ */ op({conv3dTranspose_});

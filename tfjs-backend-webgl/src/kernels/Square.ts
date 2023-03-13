@@ -15,18 +15,16 @@
  * =============================================================================
  */
 
-import {KernelConfig, Square, SquareInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, Square} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {SQUARE, UnaryOpProgram} from '../unaryop_gpu';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+const SQUARE = `return x * x;`;
+
+export const square = unaryKernelFunc({opSnippet: SQUARE});
 
 export const squareConfig: KernelConfig = {
   kernelName: Square,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as SquareInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
-  }
+  kernelFunc: square,
 };

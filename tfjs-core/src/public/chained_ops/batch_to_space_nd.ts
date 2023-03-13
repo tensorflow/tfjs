@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {batchToSpaceND} from '../../ops/batch_to_space_nd';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.batchToSpaceND = function<R extends Rank>(
+getGlobalTensorClass().prototype.batchToSpaceND = function<R extends Rank>(
     blockShape: number[], crops: number[][]): Tensor<R> {
   this.throwIfDisposed();
   return batchToSpaceND(this, blockShape, crops);

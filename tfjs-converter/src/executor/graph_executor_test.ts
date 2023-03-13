@@ -17,6 +17,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
+import {createNumberAttr} from '../operations/executors/test_helper';
 import {createTensorAttr} from '../operations/executors/test_helper';
 import {Graph, Node} from '../operations/types';
 
@@ -37,11 +38,7 @@ const SIGNATURE: tensorflow.ISignatureDef = {
     x: {name: 'input', dtype: tensorflow.DataType.DT_INT32, tensorShape: {}}
   },
   outputs: {
-    add: {
-      name: 'output',
-      dtype: tensorflow.DataType.DT_FLOAT,
-      tensorShape: {}
-    }
+    add: {name: 'output', dtype: tensorflow.DataType.DT_FLOAT, tensorShape: {}}
   }
 };
 
@@ -181,6 +178,68 @@ describe('GraphExecutor', () => {
           tfc.test_util.expectArraysClose(await result[0].data(), [3.0]);
         });
 
+        it('should skip noop', async () => {
+          const inputNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'input',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+
+          const noopNode: Node = {
+            inputNames: ['input'],
+            inputs: [inputNode],
+            children: [],
+            name: 'noop',
+            op: 'NoOp',
+            category: 'graph',
+            inputParams: {},
+            attrParams: {}
+          };
+
+          const packNode: Node = {
+            // Even though `noop` is an input, it should be excluded during
+            // execution
+            inputNames: ['input', 'noop'],
+            inputs: [inputNode, noopNode],
+            children: [],
+            name: 'pack',
+            op: 'Pack',
+            category: 'slice_join',
+            inputParams: {
+              tensors: { // this range matches all the tensors in the input
+                'type': 'tensors',
+                'inputIndexStart': 0,
+                'inputIndexEnd': 0,
+              }
+            },
+            attrParams: {axis: createNumberAttr(0)}
+          };
+          inputNode.children.push(noopNode, packNode);
+          noopNode.children.push(packNode);
+
+          const graph: Graph = {
+            inputs: [inputNode],
+            nodes: {
+              'input': inputNode,
+              'noop': noopNode,
+              'pack': packNode,
+            },
+            outputs: [packNode],
+            placeholders: [inputNode],
+            weights: []
+          };
+
+          const executor = new GraphExecutor(graph);
+          const inputTensor = tfc.tensor1d([123, 456]);
+          const result = executor.execute({input: inputTensor}, ['pack']);
+          tfc.test_util.expectArraysClose(await result[0].data(), [123, 456]);
+        });
+
         describe('strict input check', () => {
           it('should throw exception if missing inputs', () => {
             expect(() => executor.execute({}, ['output']))
@@ -250,6 +309,15 @@ describe('GraphExecutor', () => {
           const inputTensor = tfc.tensor4d([1, 1], [2, 1, 1, 1], 'float32');
           const res = executor.execute({input: inputTensor}, ['output']);
           expect(res).not.toBeNull();
+        });
+
+        it('should not have mem leak when add index', async () => {
+          const inputTensor = tfc.tensor4d([1, 1], [2, 1, 1, 1], 'float32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          const res = executor.execute({input: inputTensor}, ['output:0']);
+          expect(res).not.toBeNull();
+          expect(tfc.memory().numTensors).toEqual(numTensors + 1);
         });
       });
 
@@ -410,11 +478,8 @@ describe('GraphExecutor', () => {
             },
             inputParams: {
               'cond': {'type': 'tensor', 'inputIndexStart': 0},
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 1,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 1, 'inputIndexEnd': 0}
             }
           };
           inputNode.children.push(outputNode);
@@ -469,6 +534,7 @@ describe('GraphExecutor', () => {
           };
 
           executor = new GraphExecutor(graphWithControlFlow);
+          executor.weightMap = {};
         });
 
         it('should execute control flow v2 graph', async () => {
@@ -530,11 +596,8 @@ describe('GraphExecutor', () => {
               'body': {'value': 'bodyFunc', 'type': 'func'}
             },
             inputParams: {
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 0,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 0, 'inputIndexEnd': 0}
             }
           };
           inputNode2.children.push(outputNode);
@@ -595,6 +658,7 @@ describe('GraphExecutor', () => {
           };
 
           executor = new GraphExecutor(graphWithControlFlow);
+          executor.weightMap = {};
         });
 
         it('should execute control flow v2 graph', async () => {
@@ -612,6 +676,15 @@ describe('GraphExecutor', () => {
 
           await executor.executeAsync(
               {x: trueTensor, y: falseTensor}, ['output']);
+          expect(tfc.memory().numTensors).toEqual(numTensors + 1);
+        });
+        it('should not have mem leak when add index', async () => {
+          const trueTensor = tfc.scalar(-1, 'int32');
+          const falseTensor = tfc.scalar(1, 'int32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          await executor.executeAsync(
+              {x: trueTensor, y: falseTensor}, ['output:0']);
           expect(tfc.memory().numTensors).toEqual(numTensors + 1);
         });
       });

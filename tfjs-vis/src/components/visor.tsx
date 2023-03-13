@@ -203,15 +203,15 @@ export class VisorComponent extends Component<VisorProps, VisorState> {
 
   // Lifecycle Methods
 
-  componentDidMount() {
+  override componentDidMount() {
     this.bindKeys();
   }
 
-  componentWillMount() {
+  override componentWillMount() {
     this.setTabs(this.props.surfaceList);
   }
 
-  componentWillReceiveProps(nextProps: VisorProps) {
+  override componentWillReceiveProps(nextProps: VisorProps) {
     this.setTabs(nextProps.surfaceList);
   }
 

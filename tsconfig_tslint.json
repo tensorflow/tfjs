@@ -1,0 +1,51 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./tsc-dist",
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/tfjs-backend-cpu": ["tfjs-backend-cpu/src/index.ts"],
+      "@tensorflow/tfjs-backend-cpu/dist/*": ["tfjs-backend-cpu/src/*"],
+      "@tensorflow/tfjs-backend-webgl": ["tfjs-backend-webgl/src/index.ts"],
+      "@tensorflow/tfjs-backend-webgl/dist/*": ["tfjs-backend-webgl/src/*"],
+      "@tensorflow/tfjs-backend-webgpu": ["tfjs-backend-webgpu/src/index.ts"],
+      "@tensorflow/tfjs-backend-webgpu/dist/*": ["tfjs-backend-webgpu/src/*"],
+      "@tensorflow/tfjs-converter": ["tfjs-converter/src/index.ts"],
+      "@tensorflow/tfjs-converter/dist/*": ["tfjs-converter/src/*"],
+      "@tensorflow/tfjs-core": ["tfjs-core/src/index.ts"],
+      "@tensorflow/tfjs-core/dist/*": ["tfjs-core/src/*"],
+      "@tensorflow/tfjs-layers": ["tfjs-layers/src/index.ts"],
+      "@tensorflow/tfjs-layers/dist/*": ["tfjs-layers/src/*"],
+      "@tensorflow/tfjs-data": ["tfjs-data/src/index.ts"],
+      "@tensorflow/tfjs-data/dist/*": ["tfjs-data/src/*"],
+      "@tensorflow/tfjs-tfdf": ["tfjs-tfdf/src/index.ts"],
+      "@tensorflow/tfjs-tfdf/dist/*": ["tfjs-tfdf/src/*"],
+      "@tensorflow/tfjs-tflite": ["tfjs-tflite/src/index.ts"],
+      "@tensorflow/tfjs-tflite/dist/*": ["tfjs-tflite/src/*"],
+      "@tensorflow/tfjs-backend-wasm": ["tfjs-backend-wasm/src/index.ts"],
+      "@tensorflow/tfjs-backend-wasm/dist/*": ["tfjs-backend-wasm/src/*"]
+    },
+    "rootDirs": [
+      ".",
+      "dist/bin/"
+    ]
+  },
+  "include": [
+    "**/src",
+  ],
+  "exclude": [
+    "**/dist",
+    "bazel-out",
+    "dist",
+    "link-package",
+    "node_modules",
+    "tfjs-backend-nodegl",
+    "tfjs-inference",
+    "tfjs-node",
+    "tfjs-node-gpu",
+    "tfjs-react-native",
+    "tfjs-vis",
+    "tsc-dist",
+    "wasm-dist"
+  ]
+}

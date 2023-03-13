@@ -35,4 +35,4 @@ function concat1d_(tensors: Array<Tensor1D|TensorLike>): Tensor1D {
   return concat(tensors, 0 /* axis */);
 }
 
-export const concat1d = op({concat1d_});
+export const concat1d = /* @__PURE__ */ op({concat1d_});

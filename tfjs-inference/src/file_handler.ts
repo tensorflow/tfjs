@@ -63,6 +63,22 @@ export class FileHandler implements tf.io.IOHandler {
         convertedBy: modelJSON.convertedBy
       };
 
+      if (modelJSON.signature != null) {
+        modelArtifacts.signature = modelJSON.signature;
+      }
+
+      if (modelJSON.userDefinedMetadata != null) {
+        modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+      }
+
+      if (modelJSON.modelInitializer != null) {
+        modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+      }
+
+      if (modelJSON.initializerSignature != null) {
+        modelArtifacts.initializerSignature = modelJSON.initializerSignature;
+      }
+
       if (modelJSON.weightsManifest != null) {
         const [weightSpecs, weightData] =
             this.loadWeights(modelJSON.weightsManifest, path);
@@ -71,9 +87,6 @@ export class FileHandler implements tf.io.IOHandler {
       }
       if (modelJSON.trainingConfig != null) {
         modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-      }
-      if (modelJSON.userDefinedMetadata != null) {
-        modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
       }
 
       return modelArtifacts;
