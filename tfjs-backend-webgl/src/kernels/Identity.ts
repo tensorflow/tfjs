@@ -28,8 +28,6 @@ export function identity(
   const {x} = inputs;
 
   const dataId = x.dataId;
-
-
   const texData = backend.texData.get(dataId);
   const {dtype, shape, isPacked} = texData;
   let program;
@@ -38,7 +36,7 @@ export function identity(
   } else {
     program = new UnaryOpProgram(shape, unary_op.CLONE);
   }
-  return backend.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
+  return backend.runWebGLProgram(program, [x], dtype);
 }
 
 export const identityConfig: KernelConfig = {
