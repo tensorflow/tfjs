@@ -18,9 +18,9 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-import * as matrices from '../op_list/matrices';
 
 import {ExecutionContext} from '../../executor/execution_context';
+import * as matrices from '../op_list/matrices';
 import {Node} from '../types';
 
 import {executeOp} from './matrices_executor';
@@ -141,7 +141,7 @@ describe('matrices', () => {
         node.op = '_FusedMatMul';
 
         node.attrParams['fusedOps'] =
-          createStrArrayAttr(['biasadd', 'leakyrelu']);
+            createStrArrayAttr(['biasadd', 'leakyrelu']);
         node.attrParams['numArgs'] = createNumberAttr(1);
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
@@ -197,6 +197,21 @@ describe('matrices', () => {
         executeOp(node, {input1}, context, spyOpsAsTfOps);
 
         expect(spyOps.transpose).toHaveBeenCalledWith(input1[0], [1, 2]);
+      });
+    });
+    describe('MatrixBandPart', () => {
+      it('should call tfOps.linalg.bandPart', () => {
+        node.op = 'MatrixBandPart';
+        node.inputNames = ['input1', 'input2', 'input3'];
+        node.inputParams.a = createTensorAttr(0);
+        node.inputParams.numLower = createTensorAttr(1);
+        node.inputParams.numUpper = createTensorAttr(2);
+        const input3 = [tfOps.scalar(3.0)];
+        spyOps.linalg.bandPart.and.returnValue({});
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
+
+        expect(spyOps.linalg.bandPart)
+            .toHaveBeenCalledWith(input1[0], input2[0], input3[0]);
       });
     });
   });

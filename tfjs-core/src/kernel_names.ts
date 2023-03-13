@@ -489,6 +489,11 @@ export interface LRNGradAttrs {
   beta: number;
 }
 
+export const MatrixBandPart = 'MatrixBandPart';
+export type MatrixBandPartInputs =
+    Pick<NamedTensorInfoMap, 'input'|'numLower'|'numUpper'>;
+export interface MatrixBandPartAttrs {}
+
 export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxAttrs {
@@ -846,6 +851,14 @@ export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const StaticRegexReplace = 'StaticRegexReplace';
+export type StaticRegexReplaceInputs = UnaryInputs;
+export interface StaticRegexReplaceAttrs {
+  pattern: string;
+  rewrite: string;
+  replaceGlobal: boolean;
+}
 
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;

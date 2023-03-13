@@ -33,7 +33,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
-  isVec4 = true;
+  outputComponent = 4;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,

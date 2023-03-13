@@ -77,7 +77,7 @@ function config({plugins = [], output = {}}) {
   };
 }
 
-module.exports = cmdOptions => {
+export default cmdOptions => {
   const bundles = [];
 
   // Node

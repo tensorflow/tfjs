@@ -18,7 +18,13 @@
 <head>
   <meta charset="utf-8">
   <!-- <script src="../../dist/tfjs-vis.umd.min.js"></script> -->
-  <script type="module" src="index.js"></script>
+  <script type="module">
+    import * as tfvis from '@tensorflow/tfjs-vis'
+    import * as tf from '@tensorflow/tfjs'
+
+    window.tfvis = tfvis;
+    window.tf = tf;
+  </script>
 
 
   <style>
@@ -58,9 +64,6 @@
         tfjs models.
         It is designed in a way to work along side regular web apps. This page is a testbed for the api.
       </p>
-      <script class='show-script' type="module">
-        // import * as tfvis from 'tfjs-vis'
-      </script>
     </section>
 
     <section>

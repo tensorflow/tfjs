@@ -48,7 +48,8 @@ export class ExecutionContext {
       readonly weightMap: NamedTensorsMap = {},
       readonly tensorArrayMap: TensorArrayMap = {},
       readonly tensorListMap: TensorListMap = {},
-      readonly functionMap: {[key: string]: FunctionExecutor} = {}) {
+      readonly functionMap: {[key: string]: FunctionExecutor} = {},
+      readonly parseNodeNameCache?: Map<string, [string, number, string?]>) {
     this.generateCurrentContextIds();
   }
 

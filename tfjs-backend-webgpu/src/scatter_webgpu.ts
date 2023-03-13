@@ -16,8 +16,9 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
+
 import {atomicAddSnippet} from './shader_util';
-import {getCoordsDataType, getMainHeaderString as main, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
+import {dataTypeToGPUType, getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterProgram implements WebGPUProgram {
@@ -107,7 +108,7 @@ export class ScatterProgram implements WebGPUProgram {
             flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
           let updateValue =
-              ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
+              ${dataTypeToGPUType(this.type)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
           ${
