@@ -397,6 +397,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Multinomial",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -890,6 +891,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Expm1",
+    srcs = ["kernels/Expm1.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "FlipLeftRight",
     srcs = ["kernels/FlipLeftRight.cc"],
     deps = [
@@ -1208,6 +1219,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Multinomial",
+    srcs = ["kernels/Multinomial.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 

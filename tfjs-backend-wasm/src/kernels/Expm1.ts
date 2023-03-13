@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Expm1, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {gather} from '../../ops/gather';
-import {getGlobalTensorClass, Tensor} from '../../tensor';
-import {Rank, TensorLike} from '../../types';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    gather<T extends Tensor>(
-        this: T, indices: Tensor|TensorLike, axis?: number,
-        batchDims?: number): T;
-  }
-}
-
-getGlobalTensorClass().prototype.gather = function<T extends Tensor>(
-    this: T, indices: Tensor|TensorLike, axis?: number, batchDims?: number): T {
-  this.throwIfDisposed();
-  return gather(this, indices, axis, batchDims);
-};
+export const expm1Config: KernelConfig =
+    createUnaryKernelConfig(Expm1, 'float32');

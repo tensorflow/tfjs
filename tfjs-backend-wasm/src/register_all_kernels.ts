@@ -66,6 +66,7 @@ import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -102,6 +103,7 @@ import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -163,6 +165,7 @@ import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
@@ -215,6 +218,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   expConfig,
   expandDimsConfig,
+  expm1Config,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -251,6 +255,7 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
@@ -312,6 +317,7 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transformConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   zerosLikeConfig
 ];
