@@ -409,6 +409,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'bincount'},
   {include: 'expm1 '},
   {include: 'multinomial'},
+  {include: 'unique'},
 ];
 
 const customInclude = (testName: string) => {
