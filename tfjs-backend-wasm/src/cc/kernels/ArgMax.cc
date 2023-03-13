@@ -18,32 +18,11 @@
 
 #include <cstddef>
 
+#include "tfjs-backend-wasm/src/cc/argminmax_impl.h"
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs::wasm {
-
-namespace {
-
-template <typename T>
-void ArgMaxImpl(const T* x, const size_t outer_size, const size_t inner_size,
-                int32_t* out_buf) {
-  for (int i = 0; i < outer_size; ++i) {
-    const int offset = i * inner_size;
-    T max_value = x[offset];
-    int max_index = 0;
-    for (int j = 1; j < inner_size; ++j) {
-      T value = x[offset + j];
-      if (value > max_value) {
-        max_value = value;
-        max_index = j;
-      }
-    }
-    out_buf[i] = max_index;
-  }
-}
-
-}  // namespace
 
 // We use C-style API to interface with Javascript.
 extern "C" {
