@@ -114,6 +114,12 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
+  it('creates the same data given the same seed', async () => {
+    const res1 = tf.multinomial([1, 2, 3, 4], NUM_SAMPLES, SEED);
+    const res2 = tf.multinomial([1, 2, 3, 4], NUM_SAMPLES, SEED);
+    expectArraysClose(await res1.data(), await res2.data());
+  });
+
   function computeProbs(
       events: Float32Array|Uint8Array|Int32Array, numOutcomes: number) {
     const counts = [];
