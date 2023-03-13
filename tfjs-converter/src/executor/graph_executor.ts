@@ -236,14 +236,16 @@ export class GraphExecutor implements FunctionExecutor {
   execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
     // Dispose any tensors from a prior run to avoid leaking them.
 
-    if (engine().backend.isRecordSupported() &&
+    if (env().getBool('IS_RECORD_SUPPORTED') &&
+        engine().backend.isRecordSupported() &&
         this.placeHolderInputs != null &&
         arraysEqual(outputs, this.onHoldOutputs)) {
       // console.log('Replaying');
       return this.replay(inputs);
     }
 
-    if (engine().backend.isRecordSupported()) {
+    if (env().getBool('IS_RECORD_SUPPORTED') &&
+        engine().backend.isRecordSupported()) {
       engine().clearOnHoldTensors();
       engine().backend.clearRecord();
       console.log('Start Recording!!');

@@ -239,7 +239,7 @@ ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
 ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
 
 /** Whether we will use the experimental conv op. */
-ENV.registerFlag('WEBGL_EXP_CONV', () => true);
+ENV.registerFlag('WEBGL_EXP_CONV', () => false);
 
 /**
  * If the device performance is low or if no hardware GPU is available, whether
