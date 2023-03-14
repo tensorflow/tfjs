@@ -36,7 +36,7 @@ export function identity(
   } else {
     program = new UnaryOpProgram(shape, unary_op.CLONE);
   }
-  return backend.runWebGLProgram(program, [x], dtype);
+  return backend.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
 }
 
 export const identityConfig: KernelConfig = {

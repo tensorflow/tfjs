@@ -198,10 +198,19 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   public override replay() {
+    const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
     for (const command of this.recordedGLCommands) {
       gpgpu_math.runProgram(
           command.gpgpu, command.binary, command.inputs, command.output,
           command.customUniformValues);
+      // Manually GL flush requested
+      if (glFlushThreshold > 0) {
+        const time = util.now();
+        if ((time - this.lastGlFlushTime) > glFlushThreshold) {
+          this.gpgpu.gl.flush();
+          this.lastGlFlushTime = time;
+        }
+      }
     }
   }
 
