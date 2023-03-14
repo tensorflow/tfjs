@@ -24,6 +24,10 @@ import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as webgl_util from './webgl_util';
 
 describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {
+  beforeEach(() => {
+    tf.env().reset();
+  });
+
   it('scalar', () => {
     const texShape = webgl_util.getTextureShapeFromLogicalShape([]);
     expect(texShape).toEqual([1, 1]);
@@ -79,6 +83,46 @@ describeWithFlags('getTextureShapeFromLogicalShape', WEBGL_ENVS, () => {
   it('4d 1x3x1x8 got squeezed', () => {
     const texShape = webgl_util.getTextureShapeFromLogicalShape([1, 3, 1, 8]);
     expect(texShape).toEqual([3, 8]);
+  });
+
+  it('Multi width works', () => {
+    tf.env().set('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', true);
+    const texShape =
+        webgl_util.getTextureShapeFromLogicalShape([1, 4, 16384, 128], true);
+    expect(texShape).toEqual([32768, 256]);
+
+    const texShape2 =
+        webgl_util.getTextureShapeFromLogicalShape([1, 16, 16384, 128], true);
+    expect(texShape2).toEqual([32768, 256 * 4]);
+
+    const texShape3 =
+        webgl_util.getTextureShapeFromLogicalShape([1, 1, 40000, 128], true);
+    expect(texShape3).toEqual([20000, 256]);
+  });
+
+  it('Max width works', () => {
+    tf.env().set('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', false);
+    tf.env().set('WEBGL2_TEX_RESHAPE_MAX_WIDTH', true);
+    const texShape =
+        webgl_util.getTextureShapeFromLogicalShape([1, 4, 16384, 128], true);
+    expect(texShape).toEqual([256, 32768]);
+
+    const texShape2 =
+        webgl_util.getTextureShapeFromLogicalShape([1, 16, 16384, 128], true);
+    expect(texShape2).toEqual([256 * 4, 32768]);
+  });
+
+  it('Max height works', () => {
+    tf.env().set('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', false);
+    tf.env().set('WEBGL2_TEX_RESHAPE_MAX_WIDTH', false);
+    tf.env().set('WEBGL2_TEX_RESHAPE_MAX_HEIGHT', true);
+    const texShape =
+        webgl_util.getTextureShapeFromLogicalShape([1, 4, 16384, 128], true);
+    expect(texShape).toEqual([32768, 256]);
+
+    const texShape2 =
+        webgl_util.getTextureShapeFromLogicalShape([1, 1, 40000, 128], true);
+    expect(texShape2).toEqual([32768, 158]);
   });
 });
 

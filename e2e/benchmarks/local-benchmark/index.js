@@ -35,7 +35,7 @@ const BACKEND_FLAGS_MAP = {
 };
 if (tf.engine().backendNames().includes('webgpu')) {
   BACKEND_FLAGS_MAP['webgpu'] =
-      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'KEEP_INTERMEDIATE_TENSORS'];
+    ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'KEEP_INTERMEDIATE_TENSORS'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -55,7 +55,7 @@ const TUNABLE_FLAG_NAME_MAP = {
 };
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
-      'deferred submit batch size';
+    'deferred submit batch size';
 }
 
 /**
@@ -75,12 +75,12 @@ let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
  * @param {string} backendName
  */
 async function showFlagSettingsAndReturnTunableFlagControllers(
-    folderController, backendName) {
+  folderController, backendName) {
   // Determine wether it is the first call.
   if (TUNABLE_FLAG_DEFAULT_VALUE_MAP == null) {
     await initDefaultValueMap();
     showBackendFlagSettingsAndReturnTunableFlagControllers(
-        folderController, 'general');
+      folderController, 'general');
   } else {
     // Clean up flag settings for the previous backend.
     // The first constroller under the `folderController` is the backend
@@ -88,15 +88,15 @@ async function showFlagSettingsAndReturnTunableFlagControllers(
     const fixedSelectionCount = BACKEND_FLAGS_MAP.general.length + 1;
     while (folderController.__controllers.length > fixedSelectionCount) {
       folderController.remove(
-          folderController
-              .__controllers[folderController.__controllers.length - 1]);
+        folderController
+          .__controllers[folderController.__controllers.length - 1]);
     }
   }
 
   // Show flag settings for the new backend and return the tunable flags
   // controllers.
   return showBackendFlagSettingsAndReturnTunableFlagControllers(
-      folderController, backendName);
+    folderController, backendName);
 }
 
 const stringValueMap = {};
@@ -108,14 +108,14 @@ const stringValueMap = {};
  * @param {string} backendName
  */
 function showBackendFlagSettingsAndReturnTunableFlagControllers(
-    folderController, backendName) {
+  folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
   const tunableFlagControllers = {};
 
   // Remove it once we figure out how to correctly read the tensor data
   // before the tensor is disposed in profiling mode.
   if (backendName === 'webgpu' &&
-      state.flags['CHECK_COMPUTATION_FOR_ERRORS'] === true) {
+    state.flags['CHECK_COMPUTATION_FOR_ERRORS'] === true) {
     state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
     state.isFlagChanged = true;
   }
@@ -130,8 +130,8 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
     // Heuristically consider a flag with at least two options as tunable.
     if (flagValueRange.length < 2) {
       console.warn(
-          `The ${flag} is considered as untunable, ` +
-          `because its value range is [${flagValueRange}].`);
+        `The ${flag} is considered as untunable, ` +
+        `because its value range is [${flagValueRange}].`);
       continue;
     }
     let flagController;
@@ -147,7 +147,7 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
       // Show dropdown for other types of flags.
       try {
         flagController =
-            folderController.add(state.flags, flag, flagValueRange);
+          folderController.add(state.flags, flag, flagValueRange);
       } catch (ex) {
         console.warn(ex.message);
         continue;
@@ -213,7 +213,7 @@ async function initDefaultValueMap() {
 function getTunableRange(flag) {
   const defaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
   if (flag === 'WEBGL_FORCE_F16_TEXTURES' ||
-      flag === 'WEBGL_PACK_DEPTHWISECONV' || 'KEEP_INTERMEDIATE_TENSORS') {
+    flag === 'WEBGL_PACK_DEPTHWISECONV' || 'KEEP_INTERMEDIATE_TENSORS') {
     return [false, true];
   } else if (flag === 'WEBGL_VERSION') {
     const tunableRange = [];
@@ -229,11 +229,71 @@ function getTunableRange(flag) {
     return tunableRange;
   } else if (typeof defaultValue === 'boolean') {
     return defaultValue || flag === 'WEBGL_USE_SHAPES_UNIFORMS' ?
-        [false, true] :
-        [false];
+      [false, true] :
+      [false];
   } else if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag] != null) {
     return TUNABLE_FLAG_VALUE_RANGE_MAP[flag];
   } else {
     return [defaultValue];
+  }
+}
+
+
+async function benchmarkAll() {
+  const numRuns = 50;
+  const SHARED_DIM = 256;
+  const OUTPUT_HEIGHT = 256;
+  const OUTPUT_WIDTH = 256;
+
+  tf.env().set('WEBGL2_TEX_RESHAPE_MULTI_WIDTH', false);
+  tf.env().set('WEBGL2_TEX_RESHAPE_MAX_WIDTH', false);
+  tf.env().set('WEBGL2_TEX_RESHAPE_MAX_HEIGHT', true);
+
+  assert(tf.env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0, 'ext is unavailable!');
+  tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', true);
+
+  console.log('Varying OUTPUT_HEIGHT:');
+  const maxTexSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  const bias = maxTexSize * 2 - 128 * 9;
+  resData = [];
+  for (let index = 0; index < 20; index += 1) {
+    const variable = index * 128 + bias;
+    const res = await benchmark(SHARED_DIM, variable, OUTPUT_WIDTH, numRuns);
+    resData.push(`${variable}\t${res}`);
+  }
+  console.log(resData.join('\n'));
+}
+
+async function getPerf(sharedD, height, width, numRuns) {
+  const a = tf.ones([height, sharedD]);
+  const b = tf.ones([sharedD, width]);
+  const inf = () => tf.matMul(a, b);
+  await tf.profile(inf);
+
+  const res = [];
+  for (let i = 0; i < numRuns; i++) {
+    const perf = await tf.profile(inf);
+    assert(perf.kernels[0].extraInfo.match(/:/g).length === 1, perf.kernels[0].extraInfo.match(/:/g));
+    assert(perf.kernels[0].extraInfo.includes('MatMulPackedProgram'), 'Is not running MRT matmul');
+    res.push(perf.kernels[0]);
+  }
+  return res;
+}
+
+async function benchmark(sharedD, height, width, numRuns) {
+  console.log('running setting: ', [sharedD, height, width]);
+  const res = (await getPerf(sharedD, height, width, numRuns)).map(e => e.kernelTimeMs);
+  return res.reduce((prev, cur) => prev + cur, 0) / numRuns;
+}
+
+function size(shape) {
+  shape.reduce(
+    (previousValue, currentValue) => previousValue * currentValue, 1
+  );
+}
+
+function assert(bool, msg = 'assert failed!') {
+  if (!bool) {
+    throw new Error(msg);
   }
 }
