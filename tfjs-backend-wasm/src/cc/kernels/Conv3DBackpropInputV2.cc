@@ -17,9 +17,10 @@
 #endif
 
 #include <algorithm>
+#include <limits>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/pool3d_impl.h"
+#include "tfjs-backend-wasm/src/cc/conv3d_impl.h"
 
 namespace tfjs::wasm {
 
@@ -31,49 +32,45 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 // REQUIRES:
-// - Tensor `dx` and `dy` must have dtype float32 (checked in tfjs-core)
-// - Tensor `dx` and `dy` must have data format 'NDHWC' (checked in tfjs-core)
-void AvgPool3DGrad(int dy_id, int dx_id, int batch_size, int channel_size,
-                   int in_depth, int in_height, int in_width, int out_depth,
-                   int out_height, int out_width, int stride_depth,
-                   int stride_height, int stride_width, int dilation_depth,
-                   int dilation_height, int dilation_width,
-                   int effective_filter_depth, int effective_filter_height,
-                   int effective_filter_width, int pad_front, int pad_top,
-                   int pad_left, int filter_depth, int filter_height,
-                   int filter_width) {
+// - Tensor `filter`, `dy`, and `dx` must have dtype float32.
+// - Tensor `dy` and `dx` must be in data format 'NDHWC' (checked in tfjs-core).
+void Conv3DBackpropInputV2(int filter_id, int dy_id, int dx_id, int batch_size,
+                           int in_depth, int in_height, int in_width,
+                           int in_channels, int out_depth, int out_height,
+                           int out_width, int out_channels, int stride_depth,
+                           int stride_height, int stride_width,
+                           int dilation_depth, int dilation_height,
+                           int dilation_width, int filter_depth,
+                           int filter_height, int filter_width, int pad_front,
+                           int pad_top, int pad_left) {
+  const TensorInfo& filter_info = backend::get_tensor_info(filter_id);
   const TensorInfo& dy_info = backend::get_tensor_info(dy_id);
   TensorInfo& dx_info = backend::get_tensor_info_out(dx_id);
 
-  NDHWCPool3DGradImpl(
-      dy_info.f32(), dx_info.f32_write(),
-      NDHWCPool3DInfo{
+  NDHWCConv3DBackpropInputV2Impl</*IN=*/float, /*FILTER=*/float, /*OUT=*/float>(
+      filter_info.f32(), dy_info.f32(), dx_info.f32_write(),
+      NDHWCConv3DInfo{
           .batch_size = batch_size,
-          .channel_size = channel_size,
           .in_depth = in_depth,
           .in_height = in_height,
           .in_width = in_width,
+          .in_channels = in_channels,
           .out_depth = out_depth,
           .out_height = out_height,
           .out_width = out_width,
+          .out_channels = out_channels,
           .stride_depth = stride_depth,
           .stride_height = stride_height,
           .stride_width = stride_width,
           .dilation_depth = dilation_depth,
           .dilation_height = dilation_height,
           .dilation_width = dilation_width,
-          .effective_filter_depth = effective_filter_depth,
-          .effective_filter_height = effective_filter_height,
-          .effective_filter_width = effective_filter_width,
+          .filter_depth = filter_depth,
+          .filter_height = filter_height,
+          .filter_width = filter_width,
           .pad_front = pad_front,
           .pad_top = pad_top,
           .pad_left = pad_left,
-      },
-      /*pixel_mask=*/
-      [avg_multiplier = 1.0f / (static_cast<float>(filter_depth) *
-                                static_cast<float>(filter_height) *
-                                static_cast<float>(filter_width))](int, int) {
-        return avg_multiplier;
       });
 }
 
