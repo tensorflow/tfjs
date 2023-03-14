@@ -273,6 +273,14 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "conv3d_impl",
+    hdrs = ["conv3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -354,6 +362,9 @@ tfjs_cc_library(
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
+        ":Conv3D",
+        ":Conv3DBackpropFilterV2",
+        ":Conv3DBackpropInputV2",
         ":Cos",
         ":Cosh",
         ":CropAndResize",
@@ -717,6 +728,33 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2DBackpropInput.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv3D",
+    srcs = ["kernels/Conv3D.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv3DBackpropFilterV2",
+    srcs = ["kernels/Conv3DBackpropFilterV2.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv3DBackpropInputV2",
+    srcs = ["kernels/Conv3DBackpropInputV2.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
     ],
 )
 

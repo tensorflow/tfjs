@@ -128,8 +128,13 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
 
 template <typename DY, typename DX, typename FM>
 inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
-                                const NDHWCPool3DInfo& info,
+                                const NDHWCPool3DInfo& forward_info,
                                 const FM& pixel_mask) {
+  auto info = forward_info;
+  info.pad_front = info.effective_filter_depth - 1 - info.pad_front;
+  info.pad_top = info.effective_filter_height - 1 - info.pad_top;
+  info.pad_left = info.effective_filter_width - 1 - info.pad_left;
+
   for (int batch = 0; batch < info.batch_size; ++batch) {
     for (int channel = 0; channel < info.channel_size; ++channel) {
       for (int dx_depth = 0; dx_depth < info.in_depth; ++dx_depth) {

@@ -47,6 +47,9 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {conv3DConfig} from './kernels/Conv3D';
+import {conv3DBackpropFilterV2Config} from './kernels/Conv3DBackpropFilterV2';
+import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -197,6 +200,9 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  conv3DConfig,
+  conv3DBackpropFilterV2Config,
+  conv3DBackpropInputV2Config,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
