@@ -141,6 +141,7 @@ export class WebGPUBackend extends KernelBackend {
   private inputTensorsForReplay: {tensorId: DataId, resource: BufferInfo}[] =
       [];
   private recordList: webgpu_program.WebGPUProgram[] = [];
+  private record = false;
   // record owned ids include model inputs/outpus?
   // private recordOwnedIds = new WeakSet<DataId>();
 
@@ -321,22 +322,22 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
-    if (!env().getBool('RECORD')) {
-      this.ensureComputePassEnded();
-      this.queue.submit([this.currentCommandEncoder.finish()]);
-    }
+    this.ensureComputePassEnded();
+    this.queue.submit([this.currentCommandEncoder.finish()]);
 
     this.currentCommandEncoder = null;
     this.dispatchNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
-    this.tensorDataPendingDisposal.forEach(d => {
-      this.releaseResource(d);
-      this.tensorMap.delete(d);
-    });
-    // Don't dispose uniform buffer for record mode.
-    if (this.recordList.length === 0) {
+    if (!this.record) {
+      // Don't release intermediate tensors in record mode.
+      this.tensorDataPendingDisposal.forEach(d => {
+        this.releaseResource(d);
+        this.tensorMap.delete(d);
+      });
+
+      // Don't dispose uniform buffer for record mode.
       this.uniformPendingDisposal.forEach(
           d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
       this.uniformPendingDisposal = [];
@@ -428,12 +429,10 @@ export class WebGPUBackend extends KernelBackend {
 
     const {values} = tensorData;
 
-    // always get data from buffer to verify the result.
-    if (this.recordList.length === 0) {
-      if (values != null) {
-        return this.convertAndCacheOnCPU(dataId, values);
-      }
+    if (values != null) {
+      return this.convertAndCacheOnCPU(dataId, values);
     }
+
     // Download the values from the GPU.
     let vals: BackendValues;
     if (tensorData.dtype === 'complex64') {
@@ -451,7 +450,7 @@ export class WebGPUBackend extends KernelBackend {
       const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
       vals = util.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
     }
-    this.convertAndCacheOnCPU(dataId, vals);
+    // this.convertAndCacheOnCPU(dataId, vals);
     return vals;
   }
 
@@ -655,6 +654,7 @@ export class WebGPUBackend extends KernelBackend {
         d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
     this.uniformPendingDisposal = [];
     this.recordList = [];
+    this.record = false;
     // Release model inputs/outputs placehoders.
   }
 
@@ -916,18 +916,7 @@ export class WebGPUBackend extends KernelBackend {
 
     if (env().getBool('RECORD')) {
       this.recordList.push(program);
-
-      // This is to make sure we have similar execution list with reply mode.
-      inputs.forEach(input => {
-        this.commandQueueOwnedIds.add(input.dataId);
-      });
-      this.commandQueueOwnedIds.add(output.dataId);
-      this.dispatchNumberInEncoder++;
-      if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-          number <= this.dispatchNumberInEncoder) {
-        this.submitQueue();
-      }
-      return output;
+      this.record = true;
     }
 
     this.ensureCommandEncoderReady();
