@@ -250,6 +250,8 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
+          // skip the first run.
+          await predictAndGetData(predict, model, inferenceInput, enableDump);
           const actualResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
           actualData = actualResult['data'];
           if (enableDump) {
