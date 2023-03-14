@@ -406,6 +406,11 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'selu '},
   {include: 'softplus '},
   {include: 'linspace'},
+  {include: 'bincount'},
+  {include: 'expm1 '},
+  {include: 'multinomial'},
+  {include: 'unique'},
+  {include: 'conv3d'},
 ];
 
 const customInclude = (testName: string) => {
