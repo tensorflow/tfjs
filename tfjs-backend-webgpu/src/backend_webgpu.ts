@@ -43,8 +43,7 @@ export type TextureInfo = {
   height: number,
   format: GPUTextureFormat,
   usage: GPUTextureUsageFlags,
-  texture: GPUTexture|GPUExternalTexture,
-  isCanvas?: boolean,
+  texture: GPUTexture|GPUExternalTexture
 };
 
 type TensorData = {
@@ -256,9 +255,7 @@ export class WebGPUBackend extends KernelBackend {
     }
     if ('texture' in tensorData.resourceInfo) {
       const textureInfo = tensorData.resourceInfo;
-      // Texture from canvas should not be released.
-      if (textureInfo.texture instanceof GPUTexture &&
-          textureInfo.isCanvas !== true) {
+      if (textureInfo.texture instanceof GPUTexture) {
         this.textureManager.releaseTexture(
             textureInfo.texture, textureInfo.width, textureInfo.height,
             textureInfo.format, textureInfo.usage);
@@ -758,7 +755,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   // Draw GPUTexture to GPUCanvasContext.
-  private drawTexture(gpuContext: GPUCanvasContext, texture: GPUTexture) {
+  private drawTextureToCanvas(
+      gpuContext: GPUCanvasContext, texture: GPUTexture) {
     if (!this.drawTexturePipeline) {
       this.drawTexturePipeline = compileTextureProgram(this.device);
     }
@@ -777,7 +775,7 @@ export class WebGPUBackend extends KernelBackend {
       colorAttachments: [
         {
           view: gpuContext.getCurrentTexture().createView(),
-          loadOp: 'clear',
+          loadOp: 'load',
           clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 0.0},
           storeOp: 'store',
         },
@@ -823,24 +821,23 @@ export class WebGPUBackend extends KernelBackend {
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
+    const uniformsType = 'int32';
     if (program.pixelsOpType == null) {
       programUniform.push(
           {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
-      const uniformsType = 'int32';
       bufferShapes.map(d => {
         programUniform.push({type: uniformsType, data: d});
       });
-      const strides = util.computeStrides(output.shape);
-      programUniform.push({type: uniformsType, data: strides});
-      if (program.size) {
-        const size = util.sizeFromShape(program.outputShape);
-        programUniform.push({
-          type: uniformsType,
-          data:
-              [program.outputComponent ? size / program.outputComponent : size]
-        });
-      }
+    }
+    const strides = util.computeStrides(output.shape);
+    programUniform.push({type: uniformsType, data: strides});
+    if (program.size) {
+      const size = util.sizeFromShape(program.outputShape);
+      programUniform.push({
+        type: uniformsType,
+        data: [program.outputComponent ? size / program.outputComponent : size]
+      });
     }
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
@@ -913,7 +910,8 @@ export class WebGPUBackend extends KernelBackend {
     this.commandQueueOwnedIds.add(output.dataId);
     if (program.pixelsOpType === webgpu_program.PixelsOpType.TO_PIXELS) {
       this.ensureComputePassEnded();
-      this.drawTexture(gpuContext, outputTextureInfo.texture as GPUTexture);
+      this.drawTextureToCanvas(
+          gpuContext, outputTextureInfo.texture as GPUTexture);
       this.submitQueue();
     } else if (
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
