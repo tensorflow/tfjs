@@ -1,4 +1,4 @@
-/* Copyright 2019 Google LLC. All Rights Reserved.
+/* Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void ArgMax(const int x_id, const DType dtype, const int outer_size,
+void ArgMin(const int x_id, const DType dtype, const int outer_size,
             const int inner_size, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -38,16 +38,16 @@ void ArgMax(const int x_id, const DType dtype, const int outer_size,
 
   switch (dtype) {
     case DType::float32:
-      ArgMaxImpl<float>(x_info.f32(), outer_size, inner_size, out_buf);
+      ArgMinImpl<float>(x_info.f32(), outer_size, inner_size, out_buf);
       break;
     case DType::int32:
-      ArgMaxImpl<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
+      ArgMinImpl<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
       break;
     case DType::boolean:
-      ArgMaxImpl<bool>(x_info.b(), outer_size, inner_size, out_buf);
+      ArgMinImpl<bool>(x_info.b(), outer_size, inner_size, out_buf);
       break;
     default:
-      util::warn("ArgMax failed. Unknown dtype %d", dtype);
+      util::warn("ArgMin failed. Unknown dtype %d", dtype);
   }
 }
 

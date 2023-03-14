@@ -249,8 +249,13 @@ async function timeInference(predict, numRuns = 1) {
   for (let i = 0; i < numRuns; i++) {
     const start = performance.now();
     const res = await predict();
-    // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
-    const value = await downloadValuesFromTensorContainer(res);
+    // Prediction from tflite backend generates in the worker thread,
+    // we don't post the result back to main thread to avoid unnecessary
+    // overhead in transferring between worker and main thread.
+    if(!isTflite()) {
+      // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
+      const value = await downloadValuesFromTensorContainer(res);
+    }
     const elapsedTime = performance.now() - start;
 
     tf.dispose(res);
@@ -356,14 +361,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
- * @param isTflite Whether a TFLite model is being profiled or not.
  * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(
-  model, input, isTflite = false, numProfiles = 1) {
-  const predict = isTflite ? () => tfliteModel.predict(input) :
-    getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite, numProfiles);
+async function profileModelInference(model, input, numProfiles = 1) {
+  const predict = getPredictFnForModel(model, input);
+  return profileInference(predict, false, numProfiles);
 }
 
 /**
@@ -409,7 +411,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (isTflite) {
     for (let i = 0; i < numProfiles; i++) {
       await predict();
-      const profileItems = tfliteModel.getProfilingResults();
+      const profileItems = await tfliteModel.getProfilingResults();
       kernelInfo.kernels = profileItems.map(item => {
         return {
           name: item.nodeType,
