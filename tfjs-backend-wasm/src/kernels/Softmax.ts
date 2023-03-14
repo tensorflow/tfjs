@@ -31,7 +31,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function softmax(
+export function softmax(
     args: {backend: BackendWasm, inputs: SoftmaxInputs, attrs: SoftmaxAttrs}):
     TensorInfo {
   const {backend, inputs: {logits}, attrs: {dim}} = args;

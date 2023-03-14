@@ -92,7 +92,7 @@ export function uniqueImpl(
 
   // A map from unique elements (their string representations) to their values
   // in "indices" (below).
-  const uniqueElements: {[key: string]: number} = {};
+  const uniqueElements = new Map<string, number>();
   // The indices of each unique element in the original tensor along the given
   // axis. It is 1D and has the same size as the given axis.
   const indices = new Int32Array(shape[$axis]);
@@ -119,11 +119,12 @@ export function uniqueImpl(
     }
 
     // Dedup and update various indices.
-    if (uniqueElements[element] !== undefined) {
-      indices[i] = uniqueElements[element];
+    const existingIndex = uniqueElements.get(element);
+    if (existingIndex != null) {
+      indices[i] = existingIndex;
     } else {
-      const uniqueIndex = Object.keys(uniqueElements).length;
-      uniqueElements[element] = uniqueIndex;
+      const uniqueIndex = uniqueElements.size;
+      uniqueElements.set(element, uniqueIndex);
       indices[i] = uniqueIndex;
       uniqueIndices.push(i);
     }
@@ -133,7 +134,7 @@ export function uniqueImpl(
   // (uniqueIndices). Extract them from input buffer and store them in the
   // output buffer.
   const outputTmpShape = newShape.slice();
-  outputTmpShape[1] = Object.keys(uniqueElements).length;
+  outputTmpShape[1] = uniqueElements.size;
   const outputBuffer = new TensorBuffer(outputTmpShape, dtype);
   uniqueIndices.forEach((uniqueElementIndex, i) => {
     for (let m = 0; m < newShape[0]; m++) {
