@@ -210,9 +210,9 @@ function makeShader(
             dataTypeToGPUType(inputInfo[0].dtype, program.outputComponent)}>;`;
     prefixSnippets.push(`
         struct Uniform {
+          outShapeStrides : vec2<i32>,
           size            : i32,
           numChannels     : i32,
-          outShapeStrides : vec2<i32>,
         };
 
         ${inoutSnippet}

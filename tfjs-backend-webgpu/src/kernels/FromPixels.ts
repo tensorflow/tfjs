@@ -16,7 +16,7 @@
  */
 
 import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs, util} from '@tensorflow/tfjs-core';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {TextureInfo, WebGPUBackend} from '../backend_webgpu';
@@ -95,9 +95,8 @@ export function fromPixels(args: {
         if (fromPixels2DContext == null ||
             newWillReadFrequently !== willReadFrequently) {
           willReadFrequently = newWillReadFrequently;
-          fromPixels2DContext =
-              document.createElement('canvas').getContext(
-                  '2d', {willReadFrequently});
+          fromPixels2DContext = document.createElement('canvas').getContext(
+              '2d', {willReadFrequently});
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;
@@ -117,15 +116,10 @@ export function fromPixels(args: {
       textureInfo = {width, height, format, usage, texture};
     }
 
-    const size = util.sizeFromShape(outputShape);
-    const strides = util.computeStrides(outputShape);
     const program =
         new FromPixelsProgram(outputShape, numChannels, importVideo);
 
-    const uniformData = [
-      {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
-      {type: 'uint32', data: [...strides]}
-    ];
+    const uniformData = [{type: 'uint32', data: [numChannels]}];
     const input = backend.makeTensorInfo([height, width], 'int32');
     const info = backend.tensorMap.get(input.dataId);
     info.resourceInfo = textureInfo;

@@ -15,25 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 import {ToPixels, ToPixelsAttrs, ToPixelsInputs} from '@tensorflow/tfjs-core';
 
 import {TextureInfo, WebGPUBackend} from '../backend_webgpu';
 import {ToPixelsProgram} from '../to_pixels_webgpu';
-
-export const toPixelsConfig: KernelConfig = {
-  kernelName: ToPixels,
-  backendName: 'webgpu',
-  kernelFunc: toPixels as {} as KernelFunc,
-};
-
-function getNumberChannel(format: GPUTextureFormat) {
-  if (format === 'rgba8unorm' || format === 'bgra8unorm') {
-    return 4;
-  } else {
-    throw new Error(`${format} is not supported!`);
-  }
-}
 
 export function toPixels(
     args:
@@ -45,7 +31,7 @@ export function toPixels(
   const [height, width] = $img.shape.slice(0, 2);
 
   const format = 'rgba8unorm';
-  const outShape = [height, width, getNumberChannel(format)];
+  const outShape = [height, width, 4];
   const program = new ToPixelsProgram(outShape, $img.dtype, format);
   canvas.width = width;
   canvas.height = height;
@@ -69,23 +55,16 @@ export function toPixels(
         GPUTextureUsage.TEXTURE_BINDING
   });
 
-  const textureInfo: TextureInfo = {
-    width,
-    height,
-    format: null,
-    usage: null,
-    texture: intermediateTexture,
-    isCanvas: true
-  };
+  const textureInfo: TextureInfo =
+      {width, height, format: null, usage: null, texture: intermediateTexture};
 
-  const size = util.sizeFromShape(program.outputShape);
-  const strides = util.computeStrides(program.outputShape);
-
-  const uniformData = [
-    {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
-    {type: 'uint32', data: [...strides]}
-  ];
-
+  const uniformData = [{type: 'uint32', data: [numChannels]}];
   return backend.runWebGPUProgram(
       program, [$img], 'int32', uniformData, null, textureInfo, gpuContext);
 }
+
+export const toPixelsConfig: KernelConfig = {
+  kernelName: ToPixels,
+  backendName: 'webgpu',
+  kernelFunc: toPixels as unknown as KernelFunc
+};

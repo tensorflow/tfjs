@@ -31,6 +31,7 @@ export class ToPixelsProgram implements WebGPUProgram {
   type: DataType;
   textureFormat: GPUTextureFormat;
   pixelsOpType = PixelsOpType.TO_PIXELS;
+  size = true;
 
   constructor(
       outShape: number[], type: DataType, textureFormat: GPUTextureFormat) {
