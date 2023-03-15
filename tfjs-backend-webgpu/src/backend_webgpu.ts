@@ -328,24 +328,23 @@ export class WebGPUBackend extends KernelBackend {
     this.currentCommandEncoder = null;
     this.dispatchNumberInEncoder = 0;
 
-    this.commandQueueOwnedIds = new WeakSet<DataId>();
-
     if (!this.record) {
       // Don't release intermediate tensors in record mode.
+      this.commandQueueOwnedIds = new WeakSet<DataId>();
       this.tensorDataPendingDisposal.forEach(d => {
         this.releaseResource(d);
         this.tensorMap.delete(d);
       });
+      this.tensorDataPendingDisposal = [];
 
-      // Don't dispose uniform buffer for record mode.
+      // Don't dispose uniform buffer in record/replay mode.
       this.uniformPendingDisposal.forEach(
           d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
       this.uniformPendingDisposal = [];
     }
+
     this.stagingPendingDisposal.forEach(
         d => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage));
-
-    this.tensorDataPendingDisposal = [];
     this.stagingPendingDisposal = [];
   }
 
