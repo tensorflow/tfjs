@@ -1208,7 +1208,6 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   return output_tensor_infos;
 }
 
-
 napi_value TFJSBackend::GetNumOfSavedModels(napi_env env) {
   napi_status nstatus;
   napi_value num_saved_models;
