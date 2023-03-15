@@ -31,7 +31,7 @@ export function toPixels(
   const [height, width] = $img.shape.slice(0, 2);
 
   const format = 'rgba8unorm';
-  const outShape = [height, width, 4];
+  const outShape = [height, width, 1];
   const program = new ToPixelsProgram(outShape, $img.dtype, format);
   canvas.width = width;
   canvas.height = height;

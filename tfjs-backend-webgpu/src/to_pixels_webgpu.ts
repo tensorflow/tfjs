@@ -27,7 +27,6 @@ export class ToPixelsProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workgroupSize: [number, number, number] = [64, 1, 1];
-  workPerThread = 4;
   type: DataType;
   textureFormat: GPUTextureFormat;
   pixelsOpType = PixelsOpType.TO_PIXELS;
@@ -38,8 +37,7 @@ export class ToPixelsProgram implements WebGPUProgram {
     this.outputShape = outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.type = type;
     this.textureFormat = textureFormat;
     this.shaderKey = `toPixels_${type}`;
@@ -71,18 +69,17 @@ export class ToPixelsProgram implements WebGPUProgram {
        @group(0) @binding(0) var outImage : texture_storage_2d<${
         this.textureFormat}, write>;
        ${main('index')} {
-            let flatIndex = index * 4;
-            if (flatIndex < uniforms.size) {
-              var rgba = vec4<f32>(0.0, 0.0, 0.0, 1.0);
-              for (var d = 0; d < uniforms.numChannels; d = d + 1) {
-                let value = f32(inBuf[index * uniforms.numChannels + d]);
-                ${calculateResult}
-              }
-              let coord = getCoordsFromIndex(flatIndex);
-              textureStore(outImage, vec2<i32>(coord.yx), rgba);
-            }
-          }
-        `;
+         if (index < uniforms.size) {
+           var rgba = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+           for (var d = 0; d < uniforms.numChannels; d = d + 1) {
+             let value = f32(inBuf[index * uniforms.numChannels + d]);
+             ${calculateResult}
+           }
+           let coords = getCoordsFromIndex(index);
+           textureStore(outImage, vec2<i32>(coords.yx), rgba);
+         }
+       }
+      `;
     return userCode;
   }
 }
