@@ -237,9 +237,9 @@ export class GraphExecutor implements FunctionExecutor {
     this.disposeIntermediateTensors();
     const recordEnabled = env().getBool('IS_RECORD_SUPPORTED') &&
         engine().backend.isRecordSupported();
-    // TODO: Consider the outputs are changed.
+    // TODO: Consider the input nodes/outputs are changed.
     if (recordEnabled && this.placeHolderOutputs != null) {
-      // update input tensors.
+      // Update placeHolderInputs's content based on new inputs.
       for (const prop in inputs) {
         if (this.placeHolderInputs.hasOwnProperty(prop) &&
             inputs[prop].dataId !== this.placeHolderInputs[prop].dataId) {
@@ -253,6 +253,9 @@ export class GraphExecutor implements FunctionExecutor {
     }
 
     if (recordEnabled) {
+      // clear history recordings. Currently recording multiple modules is not
+      // supported.
+      engine().backend.disposeRecordList();
       console.log('Start Recording!!');
       env().set('RECORD', true);
     }

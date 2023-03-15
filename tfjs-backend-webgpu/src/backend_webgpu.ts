@@ -142,8 +142,6 @@ export class WebGPUBackend extends KernelBackend {
       [];
   private recordList: webgpu_program.WebGPUProgram[] = [];
   private record = false;
-  // record owned ids include model inputs/outpus?
-  // private recordOwnedIds = new WeakSet<DataId>();
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -321,6 +319,21 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, {dtype, shape, values, refCount});
   }
 
+  private releasePendingDisposalTensors() {
+    this.commandQueueOwnedIds = new WeakSet<DataId>();
+    this.tensorDataPendingDisposal.forEach(d => {
+      this.releaseResource(d);
+      this.tensorMap.delete(d);
+    });
+    this.tensorDataPendingDisposal = [];
+  }
+
+  private releasePendingDisposalUniforms() {
+    this.uniformPendingDisposal.forEach(
+        d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
+    this.uniformPendingDisposal = [];
+  }
+
   submitQueue() {
     this.ensureComputePassEnded();
     this.queue.submit([this.currentCommandEncoder.finish()]);
@@ -330,17 +343,10 @@ export class WebGPUBackend extends KernelBackend {
 
     if (!this.record) {
       // Don't release intermediate tensors in record mode.
-      this.commandQueueOwnedIds = new WeakSet<DataId>();
-      this.tensorDataPendingDisposal.forEach(d => {
-        this.releaseResource(d);
-        this.tensorMap.delete(d);
-      });
-      this.tensorDataPendingDisposal = [];
+      this.releasePendingDisposalTensors();
 
       // Don't dispose uniform buffer in record/replay mode.
-      this.uniformPendingDisposal.forEach(
-          d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
-      this.uniformPendingDisposal = [];
+      this.releasePendingDisposalUniforms();
     }
 
     this.stagingPendingDisposal.forEach(
@@ -449,6 +455,8 @@ export class WebGPUBackend extends KernelBackend {
       const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
       vals = util.convertBackendValuesAndArrayBuffer(data, tensorData.dtype);
     }
+    // comment out below code in case benchmarks directly use cached data on
+    // cpu.
     // this.convertAndCacheOnCPU(dataId, vals);
     return vals;
   }
@@ -648,18 +656,17 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   public override disposeRecordList(): void {
-    // Release uniformPendingDisposal
-    this.uniformPendingDisposal.forEach(
-        d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
-    this.uniformPendingDisposal = [];
+    this.releasePendingDisposalTensors();
+    this.releasePendingDisposalUniforms();
+
     this.recordList = [];
     this.record = false;
-    // Release model inputs/outputs placehoders.
   }
 
   public override isRecordSupported(): boolean {
     return true;
   }
+
   public override replay(): void {
     const length = this.recordList.length;
     for (let i = 0; i < length; i++) {
