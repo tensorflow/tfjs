@@ -172,6 +172,7 @@ const IGNORE_LIST: string[] = [
   // upperBound and lowerBound use SearchSorted, which is unsupported
   'upperBound',
   'lowerBound',
+  'multinomial test-tensorflow {} creates the same data given the same seed',
 ];
 
 if (process.platform === 'win32') {

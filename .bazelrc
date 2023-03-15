@@ -79,8 +79,8 @@ test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true --//:headless=false
 
 # Enable debugging tests with --config=debug
-run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
-test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
+test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
 
 test:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
 run:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results

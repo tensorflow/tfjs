@@ -784,8 +784,11 @@ export class WebGPUBackend extends KernelBackend {
       programUniform.push({type: uniformsType, data: strides});
       if (program.size) {
         const size = util.sizeFromShape(program.outputShape);
-        programUniform.push(
-            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+        programUniform.push({
+          type: uniformsType,
+          data:
+              [program.outputComponent ? size / program.outputComponent : size]
+        });
       }
     }
 

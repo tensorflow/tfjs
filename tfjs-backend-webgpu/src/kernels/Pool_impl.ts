@@ -17,8 +17,8 @@
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Pool2DProgram} from '../pool2d_webgpu';
 import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
+import {Pool2DProgram} from '../pool_webgpu';
 
 import {identity} from './Identity';
 import {max} from './Max';

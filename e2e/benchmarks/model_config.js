@@ -78,6 +78,23 @@ function predictFunction(input) {
   return model => model.predict(input);
 }
 
+// Common predict function for MobileNetV3 and MobileNetV2Lite
+function commonMobileNetPredictFunc() {
+  const input = tf.randomNormal([1, 224, 224, 3]);
+  const inputData = input.dataSync();
+  if (typeof isTflite === 'function' && isTflite()) {
+    return async () => {
+      // Do copy from 'inputData' in each predict as its buffer
+      // will be detached after transferring to worker.
+      const input = inputData.slice(0);
+      return await tfliteModel.predict(
+          Comlink.transfer(input, [input.buffer]));
+    };
+  } else {
+    return predictFunction(input);
+  }
+}
+
 const benchmarks = {
   'MobileNetV3': {
     type: 'GraphModel',
@@ -91,16 +108,9 @@ const benchmarks = {
         enableProfiling = false, modelArchitecture = 'small_075') => {
       const url = `https://tfhub.dev/google/lite-model/imagenet/mobilenet_v3_${
           modelArchitecture}_224/classification/5/metadata/1`;
-      return tflite.loadTFLiteModel(url, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
-    predictFunc: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      if (typeof isTflite === 'function' && isTflite()) {
-        return () => tfliteModel.predict(input);
-      } else {
-        return predictFunction(input);
-      }
-    },
+    predictFunc: commonMobileNetPredictFunc,
   },
   'MobileNetV2': {
     type: 'GraphModel',
@@ -115,9 +125,9 @@ const benchmarks = {
       return predictFunction(input);
     },
   },
-  // Currently, for mibilnet_v2, only the architectures with alpha=100 has
+  // Currently, for mobilenet_v2, only the architectures with alpha=100 has
   // tflite model. Since users could tune the alpha for 'mobilenet_v2' tfjs
-  // models, while we could only provides mibilnet_v2_lite with alpha=100 on the
+  // models, while we could only provides mobilnet_v2_lite with alpha=100 on the
   // tflite backend, so mibilnet_v2_lite is separated from mibilnet_v2 and fixes
   // alpha=100; othwise it would confuse users.
   'MobileNetV2Lite': {
@@ -128,16 +138,9 @@ const benchmarks = {
     loadTflite: async (enableProfiling = false) => {
       const url =
           'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
-      return tflite.loadTFLiteModel(url, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(url, {enableProfiling});
     },
-    predictFunc: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      if (typeof isTflite === 'function' && isTflite()) {
-        return () => tfliteModel.predict(input);
-      } else {
-        return predictFunction(input);
-      }
-    },
+    predictFunc: commonMobileNetPredictFunc,
   },
   'HandPoseDetector': {
     type: 'GraphModel',
@@ -504,7 +507,7 @@ const benchmarks = {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     loadTflite: async (enableProfiling = false) => {
-      return tflite.loadTFLiteModel(state.modelUrl, {enableProfiling});
+      return await tfliteWorkerAPI.loadTFLiteModel(state.modelUrl, {enableProfiling});
     },
     predictFunc: () => {
       return async (model, customInput) => {
@@ -514,15 +517,26 @@ const benchmarks = {
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
           if (typeof isTflite === 'function' && isTflite()) {
-            return await tfliteModel.predict(inferenceInput);
+            const inputDataArray = [];
+            inferenceInput = inferenceInput instanceof
+                Array ? inferenceInput : [inferenceInput];
+            for (let tensor of inferenceInput) {
+              const inputData = tensor.dataSync();
+              // Do copy from 'inputData' in each predict as its buffer
+              // will be detached after transferring to worker.
+              inputDataArray.push(inputData.slice(0));
+            }
+
+            const buffer = inputDataArray.map(data => data.buffer);
+            return await tfliteModel.predict(
+                Comlink.transfer(inputDataArray, buffer));
           } else {
             const predict = getPredictFnForModel(model, inferenceInput);
-            const inferenceOutput = await predict();
-            return inferenceOutput;
+            return await predict();
           }
         } finally {
           // dispose input tensors
-          if (!customInput) {
+          if (!customInput && inferenceInput) {
             tf.dispose(inferenceInput);
           }
         }

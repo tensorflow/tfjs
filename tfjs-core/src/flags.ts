@@ -52,6 +52,12 @@ ENV.registerFlag(
         navigator.userAgent != null && /Chrome/.test(navigator.userAgent) &&
         /Google Inc/.test(navigator.vendor));
 
+/** Whether this browser is Safari. */
+ENV.registerFlag(
+    'IS_SAFARI',
+    () => typeof navigator !== 'undefined' && navigator != null &&
+        navigator.userAgent != null && /Safari/.test(navigator.userAgent) &&
+        /Apple/.test(navigator.vendor));
 /**
  * True when the environment is "production" where we disable safety checks
  * to gain performance.
