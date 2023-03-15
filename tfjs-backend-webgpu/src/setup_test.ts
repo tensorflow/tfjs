@@ -49,7 +49,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'gather ',
     excludes: [
       'throws when index is out of bound',
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -81,7 +80,6 @@ const TEST_FILTERS: TestFilter[] = [
       'stringSplit ',
       'stringToHashBucketFast ',
       'unique ',
-      'unsortedSegmentSum ',
     ]
   },
 ];
