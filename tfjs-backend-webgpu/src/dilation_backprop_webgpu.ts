@@ -28,7 +28,7 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'w', 'dy'];
   uniforms =
-      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, outSize: i32,';
+      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   atomic = true;
   type: DataType;
@@ -44,7 +44,7 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
           types, does not support ${outputDtype} type.`);
     }
     this.type = outputDtype;
-    this.shaderKey = `dilation2DBackpropInput_${this.type}`;
+    this.shaderKey = 'dilation2DBackpropInput';
   }
 
   getUserCode(): string {
@@ -52,38 +52,35 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/dilation_ops_gpu.cu.cc
     const userCode = `
        ${main('index')} {
-         if (index < uniforms.outSize) {
-           let d = index % uniforms.dyShape[3];
-           let out_idx2 = index / uniforms.dyShape[3];
-           let w_out = out_idx2 % uniforms.dyShape[2];
-           let out_idx3 = out_idx2 / uniforms.dyShape[2];
-           let h_out = out_idx3 % uniforms.dyShape[1];
-           let batch = out_idx3 / uniforms.dyShape[1];
+         if (index < uniforms.dySize) {
+           let coords = getDyCoordsFromIndex(index);
+           let batch = coords[0];
+           let r = coords[1];
+           let c = coords[2];
+           let d = coords[3];
 
-           let h_beg = h_out * uniforms.strides[0] - uniforms.pads[0];
-           let w_beg = w_out * uniforms.strides[1] - uniforms.pads[1];
-
+           let dyCorner = vec2<i32>(r, c) * uniforms.strides - uniforms.pads;
            var curVal = -3.4e38;  // neg_infinity
-           var h_in_max = select(h_beg, 0, h_beg < 0);
-           var w_in_max = select(w_beg, 0, w_beg < 0);
+           var xRMax = 0;
+           var xCMmax = 0;
 
            // In the case of multiple argmax branches, we only back-propagate
            // along the last branch, i.e., the one with largest value of
-           // 'h * filter_cols + w', similarly to the max-pooling backward
-           // routines.
-           for (var h = 0; h < uniforms.filterDims[0]; h++) {
-             let h_in = h_beg + h * uniforms.dilations[0];
+           // 'wR * uniforms.filterDims[1] + wC', similarly to the max-pooling
+           // backward routines.
+           for (var wR = 0; wR < uniforms.filterDims[0]; wR++) {
+             let xR = dyCorner.x + wR * uniforms.dilations[0];
 
-             if (h_in >= 0 && h_in < uniforms.xShape[1]) {
-               for (var w = 0; w < uniforms.filterDims[1]; w++) {
-                 let w_in = w_beg + w * uniforms.dilations[1];
+             if (xR >= 0 && xR < uniforms.xShape[1]) {
+               for (var wC = 0; wC < uniforms.filterDims[1]; wC++) {
+                 let xC = dyCorner.y + wC * uniforms.dilations[1];
 
-                 if (w_in >= 0 && w_in < uniforms.xShape[2]) {
-                   let val = getX(batch, h_in, w_in, d) + getW(h, w, d);
+                 if (xC >= 0 && xC < uniforms.xShape[2]) {
+                   let val = getX(batch, xR, xC, d) + getW(wR, wC, d);
                    if (val > curVal) {
                      curVal = val;
-                     h_in_max = h_in;
-                     w_in_max = w_in;
+                     xRMax = xR;
+                     xCMmax = xC;
                    }
                  }
                }
@@ -91,8 +88,8 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
            }
 
            let flatIndexIn = d + uniforms.xShape[3] *
-               (w_in_max + uniforms.xShape[2] * (h_in_max + uniforms.xShape[1] * batch));
-           let value = getDy(batch, h_out, w_out, d);
+               (xCMmax + uniforms.xShape[2] * (xRMax + uniforms.xShape[1] * batch));
+           let value = getDy(batch, r, c, d);
            ${
         atomicAddSnippet(
             '&result[flatIndexIn]', 'value', this.type as 'float32' | 'int32')}
@@ -110,7 +107,7 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'w', 'dy'];
   uniforms =
-      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, outSize: i32,';
+      'filterDims: vec2<i32>, pads: vec2<i32>, strides: vec2<i32>, dilations: vec2<i32>, dySize: i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   atomic = true;
   type: DataType;
@@ -128,7 +125,7 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
           types, does not support ${outputDtype} type.`);
     }
     this.type = outputDtype;
-    this.shaderKey = `dilation2DBackpropFilter_${this.type}`;
+    this.shaderKey = 'dilation2DBackpropFilter';
   }
 
   getUserCode(): string {
@@ -136,46 +133,43 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/dilation_ops_gpu.cu.cc
     const userCode = `
        ${main('index')} {
-         if (index < uniforms.outSize) {
-           let d = index % uniforms.dyShape[3];
-           let out_idx2 = index / uniforms.dyShape[3];
-           let w_out = out_idx2 % uniforms.dyShape[2];
-           let out_idx3 = out_idx2 / uniforms.dyShape[2];
-           let h_out = out_idx3 % uniforms.dyShape[1];
-           let batch = out_idx3 / uniforms.dyShape[1];
+         if (index < uniforms.dySize) {
+           let coords = getDyCoordsFromIndex(index);
+           let batch = coords[0];
+           let r = coords[1];
+           let c = coords[2];
+           let d = coords[3];
 
-           let h_beg = h_out * uniforms.strides[0] - uniforms.pads[0];
-           let w_beg = w_out * uniforms.strides[1] - uniforms.pads[1];
-
+           let dyCorner = vec2<i32>(r, c) * uniforms.strides - uniforms.pads;
            var curVal = -3.4e38;  // neg_infinity
-           var h_w_max = 0;
-           var w_w_max = 0;
+           var wRMax = 0;
+           var wCMmax = 0;
 
            // In the case of multiple argmax branches, we only back-propagate
            // along the last branch, i.e., the one with largest value of
-           // 'h * filter_cols + w', similarly to the max-pooling backward
-           // routines.
-           for (var h = 0; h < uniforms.filterDims[0]; h++) {
-             let h_in = h_beg + h * uniforms.dilations[0];
+           // 'wR * uniforms.filterDims[1] + wC', similarly to the max-pooling
+           // backward routines.
+           for (var wR = 0; wR < uniforms.filterDims[0]; wR++) {
+             let xR = dyCorner.x + wR * uniforms.dilations[0];
 
-             if (h_in >= 0 && h_in < uniforms.xShape[1]) {
-               for (var w = 0; w < uniforms.filterDims[1]; w++) {
-                 let w_in = w_beg + w * uniforms.dilations[1];
+             if (xR >= 0 && xR < uniforms.xShape[1]) {
+               for (var wC = 0; wC < uniforms.filterDims[1]; wC++) {
+                 let xC = dyCorner.y + wC * uniforms.dilations[1];
 
-                 if (w_in >= 0 && w_in < uniforms.xShape[2]) {
-                   let val = getX(batch, h_in, w_in, d) + getW(h, w, d);
+                 if (xC >= 0 && xC < uniforms.xShape[2]) {
+                   let val = getX(batch, xR, xC, d) + getW(wR, wC, d);
                    if (val > curVal) {
                      curVal = val;
-                     h_w_max = h;
-                     w_w_max = w;
+                     wRMax = wR;
+                     wCMmax = wC;
                    }
                  }
                }
              }
            }
 
-           let flatIndexIn = d + uniforms.wShape[2] * (w_w_max + h_w_max * uniforms.wShape[1]);
-           let value = getDy(batch, h_out, w_out, d);
+           let flatIndexIn = d + uniforms.wShape[2] * (wCMmax + wRMax * uniforms.wShape[1]);
+           let value = getDy(batch, r, c, d);
            ${
         atomicAddSnippet(
             '&result[flatIndexIn]', 'value', this.type as 'float32' | 'int32')}
