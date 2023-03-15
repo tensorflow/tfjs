@@ -120,8 +120,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     // We can then change the return type from Tensor to TensorInfo.
     // return {dataId: newId, shape: metadata.shape, dtype};
 
-    const tensorInfo: TensorInfo = {
-      dataId: newId, shape: metadata.shape, dtype};
+    const tensorInfo:
+        TensorInfo = {dataId: newId, shape: metadata.shape, dtype};
     return tf.engine().makeTensorFromTensorInfo(tensorInfo);
   }
 
@@ -393,6 +393,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         this.binding.createTensor(imageShape, this.binding.TF_UINT8, imageData);
     const outputMetadata =
         this.binding.executeOp(name, opAttrs, [inputTensorId], 1);
+    this.binding.deleteTensor(inputTensorId);
     const outputTensorInfo = outputMetadata[0];
     // prevent the tensor data from being converted to a UTF8 string, since
     // the encoded data is not valid UTF8
