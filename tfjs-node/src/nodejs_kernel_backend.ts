@@ -680,6 +680,10 @@ export class NodeJSKernelBackend extends KernelBackend {
   getNumOfSavedModels() {
     return this.binding.getNumOfSavedModels();
   }
+
+  getNumOfTFTensors() {
+    return this.binding.getNumOfTensors();
+  }
 }
 
 /** Returns an instance of the Node.js backend. */

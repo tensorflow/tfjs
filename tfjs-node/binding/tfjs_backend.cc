@@ -804,6 +804,15 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
   tfe_handle_map_.erase(tensor_entry);
 }
 
+napi_value TFJSBackend::GetNumOfTensors(napi_env env) {
+  napi_status nstatus;
+  napi_value num_of_tensors;
+  nstatus =
+      napi_create_int32(env, tfe_handle_map_.size(), &num_of_tensors);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return num_of_tensors;
+}
+
 napi_value TFJSBackend::GetTensorData(napi_env env,
                                       napi_value tensor_id_value) {
   int32_t tensor_id;
@@ -1198,6 +1207,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
   return output_tensor_infos;
 }
+
 
 napi_value TFJSBackend::GetNumOfSavedModels(napi_env env) {
   napi_status nstatus;
