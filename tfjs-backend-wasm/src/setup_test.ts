@@ -236,7 +236,8 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
-  {include: 'argmax', excludes: ['gradient']},
+  {include: 'argmax '},
+  {include: 'argmin '},
   {include: 'exp '},
   {include: 'elu '},
   {include: 'unstack'},
@@ -406,6 +407,11 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'selu '},
   {include: 'softplus '},
   {include: 'linspace'},
+  {include: 'bincount'},
+  {include: 'expm1 '},
+  {include: 'multinomial'},
+  {include: 'unique'},
+  {include: 'conv3d'},
 ];
 
 const customInclude = (testName: string) => {

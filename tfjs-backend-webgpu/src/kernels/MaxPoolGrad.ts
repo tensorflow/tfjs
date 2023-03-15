@@ -18,8 +18,8 @@
 import {backend_util, KernelConfig, KernelFunc, MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {MaxPool2DBackpropProgram} from '../max_pool2d_backprop_webgpu';
-import {Pool2DProgram} from '../pool2d_webgpu';
+import {MaxPool2DBackpropProgram} from '../max_pool_backprop_webgpu';
+import {Pool2DProgram} from '../pool_webgpu';
 import {assertNotComplex} from '../webgpu_util';
 
 export function maxPoolGrad(args: {

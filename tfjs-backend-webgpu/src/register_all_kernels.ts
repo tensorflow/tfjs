@@ -32,6 +32,8 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPool3DConfig} from './kernels/AvgPool3D';
+import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
@@ -46,6 +48,8 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {conv3DConfig} from './kernels/Conv3D';
+import {conv3DBackpropFilterV2Config} from './kernels/Conv3DBackpropFilterV2';
+import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -99,6 +103,8 @@ import {lrnGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPool3DConfig} from './kernels/MaxPool3D';
+import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
@@ -183,6 +189,8 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPool3DConfig,
+  avgPool3DGradConfig,
   avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
@@ -197,6 +205,8 @@ const kernelConfigs: KernelConfig[] = [
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
   conv3DConfig,
+  conv3DBackpropFilterV2Config,
+  conv3DBackpropInputV2Config,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
@@ -251,6 +261,8 @@ const kernelConfigs: KernelConfig[] = [
   maximumConfig,
   maxPoolConfig,
   maxPoolGradConfig,
+  maxPool3DConfig,
+  maxPool3DGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   minConfig,

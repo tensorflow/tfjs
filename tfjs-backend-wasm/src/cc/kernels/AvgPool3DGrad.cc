@@ -65,9 +65,9 @@ void AvgPool3DGrad(int dy_id, int dx_id, int batch_size, int channel_size,
           .effective_filter_depth = effective_filter_depth,
           .effective_filter_height = effective_filter_height,
           .effective_filter_width = effective_filter_width,
-          .pad_front = effective_filter_depth - 1 - pad_front,
-          .pad_top = effective_filter_height - 1 - pad_top,
-          .pad_left = effective_filter_width - 1 - pad_left,
+          .pad_front = pad_front,
+          .pad_top = pad_top,
+          .pad_left = pad_left,
       },
       /*pixel_mask=*/
       [avg_multiplier = 1.0f / (static_cast<float>(filter_depth) *

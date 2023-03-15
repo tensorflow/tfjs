@@ -27,7 +27,7 @@ export class ClipVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread = 4;
   workgroupSize: [number, number, number] = [64, 1, 1];
-  isVec4 = true;
+  outputComponent = 4;
   size = true;
 
   constructor(outputShape: number[]) {
