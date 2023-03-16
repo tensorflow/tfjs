@@ -459,6 +459,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   private getMappedInputTensorIds(
       inputs: Tensor[], inputTensorInfos: ModelTensorInfo[]) {
     const tensorIds = this.getInputTensorIds(inputs);
+    const newTensors = [];
     for (let i = 0; i < inputs.length; i++) {
       if (inputTensorInfos[i] != null) {
         if (inputTensorInfos[i].tfDtype === 'DT_UINT8') {
@@ -466,25 +467,33 @@ export class NodeJSKernelBackend extends KernelBackend {
           const inputTensorId = this.binding.createTensor(
               inputs[i].shape, this.binding.TF_UINT8, data);
           tensorIds[i] = inputTensorId;
+          newTensors.push(i);
         } else if (inputTensorInfos[i].tfDtype === 'DT_INT64') {
           const data =
               encodeInt32ArrayAsInt64(inputs[i].dataSync() as Int32Array);
           const inputTensorId = this.binding.createTensor(
               inputs[i].shape, this.binding.TF_INT64, data);
           tensorIds[i] = inputTensorId;
+          newTensors.push(i);
         }
       }
     }
-    return tensorIds;
+    return {tensorIds, newTensors};
   }
 
   runSavedModel(
       id: number, inputs: Tensor[], inputTensorInfos: ModelTensorInfo[],
       outputOpNames: string[]): Tensor[] {
+    const {tensorIds, newTensors} =
+        this.getMappedInputTensorIds(inputs, inputTensorInfos);
     const outputMetadata = this.binding.runSavedModel(
-        id, this.getMappedInputTensorIds(inputs, inputTensorInfos),
-        inputTensorInfos.map(info => info.name).join(','),
+        id, tensorIds, inputTensorInfos.map(info => info.name).join(','),
         outputOpNames.join(','));
+    for (let i = 0; i < tensorIds.length; i++) {
+      if (newTensors.includes(i)) {
+        this.binding.deleteTensor(tensorIds[i]);
+      }
+    }
     return outputMetadata.map(m => this.createOutputTensor(m));
   }
 
@@ -542,9 +551,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       }
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
-
-      this.binding.executeOp(
-          'WriteScalarSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteScalarSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
     });
   }
 
@@ -561,9 +571,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       // and places the values in 30 buckets, while WriteSummary expects a
       // tensor which already describes the bucket widths and counts.
       //
-      // If we were to use WriteHistogramSummary, we wouldn't have to implement
-      // the "bucketization" of the input tensor, but we also wouldn't have
-      // control over the number of buckets, or the description of the graph.
+      // If we were to use WriteHistogramSummary, we wouldn't have to
+      // implement the "bucketization" of the input tensor, but we also
+      // wouldn't have control over the number of buckets, or the description
+      // of the graph.
       //
       // Therefore, we instead use WriteSummary, which makes it possible to
       // support these features. However, the trade-off is that we have to
@@ -594,8 +605,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       const typeAttr = this.typeAttributeFromTensor(buckets);
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
-      this.binding.executeOp(
-          'WriteSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
     });
   }
 
@@ -609,9 +622,10 @@ export class NodeJSKernelBackend extends KernelBackend {
    *
    * @param data A `Tensor` of any shape. Must be castable to `float32`
    * @param bucketCount Optional positive `number`
-   * @returns A `Tensor` of shape `[k, 3]` and type `float32`. The `i`th row is
-   *   a triple `[leftEdge, rightEdge, count]` for a single bucket. The value of
-   *   `k` is either `bucketCount`, `1` or `0`.
+   * @returns A `Tensor` of shape `[k, 3]` and type `float32`. The `i`th row
+   *     is
+   *   a triple `[leftEdge, rightEdge, count]` for a single bucket. The value
+   * of `k` is either `bucketCount`, `1` or `0`.
    */
   private buckets(data: Tensor, bucketCount?: number): Tensor<tf.Rank> {
     if (data.size === 0) {
