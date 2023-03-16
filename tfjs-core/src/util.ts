@@ -135,6 +135,7 @@ export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
 
 export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
     Uint8ClampedArray {
+  // TODO(mattsoulanille): Remove this fallback in 5.0.0
   if (env().platform.isTypedArray != null) {
     return env().platform.isTypedArray(a);
   } else {
