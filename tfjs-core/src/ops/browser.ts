@@ -326,7 +326,7 @@ export async function toPixels(
     const tensorPlaceholder = ENGINE.runKernel(
         ToPixels, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
     (tensorPlaceholder as Tensor).dispose();
-    if (env().getBool('TO_PIXELS_RETURN_VOID')) {
+    if (!getData) {
       if ($img !== img) {
         $img.dispose();
       }
