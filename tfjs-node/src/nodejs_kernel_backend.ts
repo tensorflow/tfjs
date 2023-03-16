@@ -542,9 +542,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       }
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
-
-      this.binding.executeOp(
-          'WriteScalarSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteScalarSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
     });
   }
 
@@ -594,8 +595,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       const typeAttr = this.typeAttributeFromTensor(buckets);
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
-      this.binding.executeOp(
-          'WriteSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
     });
   }
 
