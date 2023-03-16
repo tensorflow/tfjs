@@ -284,10 +284,8 @@ export async function fromPixelsAsync(
  * @param canvas The canvas to draw to.
  * @param getData Whether to return the data of the tensor draw to the canvas or
  * only draw to teh canvas (and return null). For backends that run on the GPU,
- * set this to false to avoid copying the data back to the CPU. Defaults to true
- * When canvas is non null and getData is false, returns
- * Promise<void>. Otherwise, returns canvas data via Promise<Uint8ClampedArray>.
-
+ * set this to false to avoid copying the data back to the CPU. Defaults to
+ * true.
  * @return Returns a promise that resolves when the canvas has been drawn to.
  * When canvas is non null and getData is false, returns
  * Promise<void>. Otherwise, returns canvas data via Promise<Uint8ClampedArray>.
@@ -308,7 +306,8 @@ export function toPixels(img: Tensor2D|Tensor3D|
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     // tslint:disable-next-line:no-any
-    canvas?: HTMLCanvasElement, getData = true): Promise<any> {
+    canvas?: HTMLCanvasElement,
+    getData = true): Promise<Uint8ClampedArray|void> {
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
