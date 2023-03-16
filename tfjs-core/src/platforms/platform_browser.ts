@@ -93,9 +93,14 @@ export class PlatformBrowser implements Platform {
 
   isTypedArray(a: unknown): a is Uint8Array | Float32Array | Int32Array
     | Uint8ClampedArray {
-    return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+    return isTypedArrayBrowser(a);
   }
+}
+
+export function isTypedArrayBrowser(a: unknown): a is Uint8Array
+  | Float32Array | Int32Array | Uint8ClampedArray {
+  return a instanceof Float32Array || a instanceof Int32Array ||
+    a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
 
 if (env().get('IS_BROWSER')) {

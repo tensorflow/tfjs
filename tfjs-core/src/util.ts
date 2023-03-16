@@ -16,6 +16,7 @@
  */
 
 import {env} from './environment';
+import { isTypedArrayBrowser, PlatformBrowser } from './platforms/platform_browser';
 import {BackendValues, DataType, RecursiveArray, TensorLike, TypedArray} from './types';
 import * as base from './util_base';
 export * from './util_base';
@@ -134,7 +135,8 @@ export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
 
 export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
     Uint8ClampedArray {
-  return env().platform.isTypedArray(a);
+  const isTypedArray = env().platform.isTypedArray || isTypedArrayBrowser;
+  return isTypedArray(a);
 }
 
 // NOTE: We explicitly type out what T extends instead of any so that
