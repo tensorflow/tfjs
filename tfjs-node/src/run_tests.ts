@@ -188,8 +188,13 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
+const grepRegex = new RegExp(argv.grep as string);
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({
+  spec_files: ['src/**/*_test.ts'],
+  random: false,
+  jsLoader: "require",
+});
 // Also import tests from core.
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
@@ -200,23 +205,23 @@ if (process.env.JASMINE_SEED) {
 
 const env = jasmine.getEnv();
 
-const grepRegex = new RegExp(argv.grep as string);
-
-// Filter method that returns boolean, if a given test should return.
-env.specFilter = spec => {
-  // Filter based on the grep flag.
-  if (!grepRegex.test(spec.getFullName())) {
-    return false;
-  }
-  // Return false (skip the test) if the test is in the ignore list.
-  for (let i = 0; i < IGNORE_LIST.length; ++i) {
-    if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+// // Filter method that returns boolean, if a given test should return.
+env.configure({
+  specFilter: (spec: jasmine.Spec) => {
+    // Filter based on the grep flag.
+    if (!grepRegex.test(spec.getFullName())) {
       return false;
     }
+    // Return false (skip the test) if the test is in the ignore list.
+    for (let i = 0; i < IGNORE_LIST.length; ++i) {
+      if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+        return false;
+      }
+    }
+    // Otherwise run the test.
+    return true;
   }
-  // Otherwise run the test.
-  return true;
-};
+});
 
 // TODO(kreeger): Consider moving to C-code.
 console.log(`Running tests against TensorFlow: ${
