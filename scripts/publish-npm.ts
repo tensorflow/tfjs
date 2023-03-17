@@ -32,7 +32,7 @@ import * as child_process from 'child_process';
 import {BAZEL_PACKAGES} from './bazel_packages';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const VERDACCIO_REGISTRY = 'http://localhost:4873';
+const VERDACCIO_REGISTRY = 'http://127.0.0.1:4873';
 const NPM_REGISTRY = 'https://registry.npmjs.org/';
 
 // This script can not publish the tfjs website
