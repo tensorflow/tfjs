@@ -226,36 +226,74 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
+"@tensorflow/tfjs-backend-cpu@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-4.3.0.tgz#959f1c4eeea4713179e4028c793a06542ad2f3d0"
+  integrity sha512-ovGI/eLHMJuZCkl630+zA0SU6zuPaUYu1g8LSDcjjEG0g1aadzA6XnrAohI2Man3F7nWvC2pImt3JUgW87iaVA==
+  dependencies:
+    "@types/seedrandom" "^2.4.28"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-4.3.0.tgz#9bb4fac6592176bfe6e51dc7edae81222521082d"
+  integrity sha512-ByzAcLK1nIxeP+A+36my1uFtZldUnaI9SIasfC6HcWazcVbxlNwLmK2NcyORkGI1eQjcG8ODbZfADE9OhI6fWw==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "4.3.0"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-converter@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-4.3.0.tgz#151bbfa3fca9bc685a2a817b2b02866fc00449eb"
+  integrity sha512-c/XZSmDWQ/TnHEy8Jd+EyoVIEWtdUtPaLkvtAYi63+iSlft6K4kHdCgwFj37OewJWqPIgP7DIGEhoseOTv8twQ==
 
-"@tensorflow/tfjs-converter@link:../link-package/node_modules/@tensorflow/tfjs-converter":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-4.3.0.tgz#bada62597a010e94ed30dd195d2941e2965c7768"
+  integrity sha512-Vl6NaZizUZt1KssLuGn9Ube83/fdtZjKjFZDuAbkZwouAo+joJF0mskDKKGBagEyWX5YGRR8FaX9VLy4XLLnsA==
+  dependencies:
+    "@types/long" "^4.0.1"
+    "@types/offscreencanvas" "~2019.7.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    "@webgpu/types" "0.1.21"
+    long "4.0.0"
+    node-fetch "~2.6.1"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-data@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-4.3.0.tgz#2fd9e645666b0717354885ef15bf0be0de86817b"
+  integrity sha512-WwmiyILakUpUXZ6UyuN3LOz9w93ewDxCUsXdVzacj7qvU4iTJLjqHnkzVv2q4hyMghcr9QkD8QHKdStyJ2vRtQ==
+  dependencies:
+    "@types/node-fetch" "^2.1.2"
+    node-fetch "~2.6.1"
+    string_decoder "^1.3.0"
 
-"@tensorflow/tfjs-data@link:../link-package/node_modules/@tensorflow/tfjs-data":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-layers@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-4.3.0.tgz#b19ec6b9d6734a1a95cfecceff451ddbcf866f15"
+  integrity sha512-q4pR5yfj0A+GIa0Ro9sAEl/EaXdSMLkiZqv021blgIFGt2jHSgS1U49rtFVhn0DpfrgXO1XBZJemZwr+eH/UZQ==
 
-"@tensorflow/tfjs-layers@link:../link-package/node_modules/@tensorflow/tfjs-layers":
-  version "0.0.0"
-  uid ""
-
-"@tensorflow/tfjs@link:../tfjs":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs@4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-4.3.0.tgz#4dbce8babedf92356725f759e057dd13471dbdc1"
+  integrity sha512-QLVhUgF54IYuai8Oj+mj19kBPAvubDcW2kz8XZLD4UjIrBvgiocXwSmi/2Foe/FniN8NwqARfdcaFNb0t5QXNQ==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "4.3.0"
+    "@tensorflow/tfjs-backend-webgl" "4.3.0"
+    "@tensorflow/tfjs-converter" "4.3.0"
+    "@tensorflow/tfjs-core" "4.3.0"
+    "@tensorflow/tfjs-data" "4.3.0"
+    "@tensorflow/tfjs-layers" "4.3.0"
+    argparse "^1.0.10"
+    chalk "^4.1.0"
+    core-js "3"
+    regenerator-runtime "^0.13.5"
+    yargs "^16.0.3"
 
 "@types/glob@*":
   version "7.1.3"
