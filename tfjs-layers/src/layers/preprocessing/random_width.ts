@@ -52,7 +52,6 @@ export class RandomWidth extends BaseRandomLayer {
   private widthLower: number;
   private widthUpper: number;
   private imgHeight: number;
-  private adjustedWidth: number;
   private widthFactor: Tensor<Rank.R1>;
 
   constructor(args: RandomWidthArgs) {
@@ -110,7 +109,7 @@ export class RandomWidth extends BaseRandomLayer {
   override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const numChannels = inputShape[2];
-    return [this.imgHeight, this.adjustedWidth, numChannels];
+    return [this.imgHeight, -1, numChannels];
   }
 
   override call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>,
@@ -126,10 +125,10 @@ export class RandomWidth extends BaseRandomLayer {
         'float32', this.randomGenerator.next()
       );
 
-      this.adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
-      this.adjustedWidth = Math.round(this.adjustedWidth);
+      let adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
+      adjustedWidth = Math.round(adjustedWidth);
 
-      const size:[number, number] = [this.imgHeight, this.adjustedWidth];
+      const size:[number, number] = [this.imgHeight, adjustedWidth];
 
       switch (this.interpolation) {
         case 'bilinear':
