@@ -201,7 +201,7 @@ describe('File system IOHandler', () => {
       // Load the artifacts consisting of a model.json and two binary weight
       // files.
       const handler = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
-      const modelArtifacts = await handler.load()
+      const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual([
         {
@@ -324,7 +324,7 @@ describe('File system IOHandler', () => {
       // binary weight files.
       const handler =
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
-      const modelArtifacts = await handler.load()
+      const modelArtifacts = await handler.load();
       tf.test_util.expectArraysClose(
         new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
         new Uint8Array(modelData));

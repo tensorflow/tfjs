@@ -193,7 +193,7 @@ const runner = new jasmineCtor();
 runner.loadConfig({
   spec_files: ['src/**/*_test.ts'],
   random: false,
-  jsLoader: "require",
+  jsLoader: 'require',
 });
 // Also import tests from core.
 // tslint:disable-next-line: no-imports-from-dist
