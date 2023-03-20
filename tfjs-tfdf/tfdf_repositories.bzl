@@ -16,19 +16,22 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def tfdf_repositories(version = "1.4.0"):
-    versions = {
-        "1.1.0": "36b6974996d899589ba99ee95fb56699bf34c582f71e2d98475d7db4bce43b5b/javascript_wasm.zip",
-        "1.4.0": "ca903f36893a6a9bd59bf3128f51cb0588f6e4f6430863b0c4d3235a168f1b7d/ydf_js.zip",
+    sha256s = {
+        "1.1.0": "36b6974996d899589ba99ee95fb56699bf34c582f71e2d98475d7db4bce43b5b",
+        "1.4.0": "ca903f36893a6a9bd59bf3128f51cb0588f6e4f6430863b0c4d3235a168f1b7d",
     }
-    if not version in versions:
-        versions_string = ", ".join(versions.keys())
+    filenames = {
+        "1.1.0": "javascript_wasm.zip",
+        "1.4.0": "ydf_js.zip",
+    }
+    if not version in sha256s:
+        versions_string = ", ".join(sha256s.keys())
         fail("Unsupported tfdf wasm files version %s. Supported versions are %s." %
              (version, versions_string))
-
     http_archive(
         name = "tfdf_wasm_files",
-        sha256 = versions[version],
-        url = "https://github.com/google/yggdrasil-decision-forests/releases/download/%s" % version,
+        sha256 = sha256s[version],
+        url = "https://github.com/google/yggdrasil-decision-forests/releases/download/%s/%s" % (version,filenames[version]),
         build_file_content = """
 filegroup(
     name = "wasm_files",
