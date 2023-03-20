@@ -16,6 +16,7 @@
 #define BACKEND_H_
 
 #include <xnnpack.h>
+#include <xnnpack/cache.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -92,6 +93,9 @@ const size_t num_tensors();
 extern size_t xnn_operator_count;
 
 extern pthreadpool *threadpool;
+
+xnn_caches *GetGlobalXNNCaches();
+
 }  // namespace backend
 
 namespace wasm {

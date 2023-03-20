@@ -112,12 +112,6 @@ void associate_tensor_with_key(
 namespace tfjs {
 namespace wasm {
 
-namespace {
-
-xnn_caches xnncaches;
-
-}
-
 void conv2d(const size_t x_id, const size_t batch_size,
             const size_t input_height, const size_t input_width,
             const size_t filter_id, const size_t filter_height,
@@ -243,7 +237,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
         stride_height, stride_width, dilation_height, dilation_width, groups,
         group_input_channels, group_output_channels, input_pixel_stride,
         output_pixel_stride, filter_xnn, bias_buf, output_min, output_max,
-        flags, &xnncaches, &conv2d_op);
+        flags, tfjs::backend::GetGlobalXNNCaches(), &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "

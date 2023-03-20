@@ -68,6 +68,18 @@ void register_disposal_callback(const size_t tensor_id,
 
 const size_t num_tensors() { return data.size(); }
 
+xnn_caches *GetGlobalXNNCaches() {
+  static xnn_caches *caches = nullptr;
+  if (caches == nullptr) {
+    caches = new xnn_caches;
+#if XNN_PLATFORM_JIT && XNN_ENABLE_JIT
+    caches->code_cache = new xnn_code_cache;
+    xnn_init_code_cache(caches->code_cache);
+#endif
+  }
+  return caches;
+}
+
 }  // namespace backend
 
 namespace wasm {
