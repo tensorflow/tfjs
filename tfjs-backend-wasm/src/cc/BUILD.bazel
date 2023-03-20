@@ -58,8 +58,6 @@ cc_binary(
     copts = [
         "-msimd128",
         # "-mrelaxed-simd",
-        "-Wno-unused-function",
-        "-Wno-implicit-function-declaration",
     ],
     linkopts = BASE_LINKOPTS,
     deps = [
