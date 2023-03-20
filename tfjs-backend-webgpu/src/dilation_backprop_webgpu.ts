@@ -54,7 +54,7 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
        ${main('index')} {
          if (index < uniforms.dySize) {
            let coords = getDyCoordsFromIndex(index);
-           let batch = coords[0];
+           let b = coords[0];
            let r = coords[1];
            let c = coords[2];
            let d = coords[3];
@@ -62,7 +62,7 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
            let dyCorner = vec2<i32>(r, c) * uniforms.strides - uniforms.pads;
            var curVal = -3.4e38;  // neg_infinity
            var xRMax = 0;
-           var xCMmax = 0;
+           var xCMax = 0;
 
            // In the case of multiple argmax branches, we only back-propagate
            // along the last branch, i.e., the one with largest value of
@@ -76,11 +76,11 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
                  let xC = dyCorner.y + wC * uniforms.dilations[1];
 
                  if (xC >= 0 && xC < uniforms.xShape[2]) {
-                   let val = getX(batch, xR, xC, d) + getW(wR, wC, d);
+                   let val = getX(b, xR, xC, d) + getW(wR, wC, d);
                    if (val > curVal) {
                      curVal = val;
                      xRMax = xR;
-                     xCMmax = xC;
+                     xCMax = xC;
                    }
                  }
                }
@@ -88,8 +88,8 @@ export class Dilation2DBackpropInputProgram implements WebGPUProgram {
            }
 
            let flatIndexIn = d + uniforms.xShape[3] *
-               (xCMmax + uniforms.xShape[2] * (xRMax + uniforms.xShape[1] * batch));
-           let value = getDy(batch, r, c, d);
+               (xCMax + uniforms.xShape[2] * (xRMax + uniforms.xShape[1] * b));
+           let value = getDy(b, r, c, d);
            ${
         atomicAddSnippet(
             '&result[flatIndexIn]', 'value', this.type as 'float32' | 'int32')}
@@ -135,7 +135,7 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
        ${main('index')} {
          if (index < uniforms.dySize) {
            let coords = getDyCoordsFromIndex(index);
-           let batch = coords[0];
+           let b = coords[0];
            let r = coords[1];
            let c = coords[2];
            let d = coords[3];
@@ -143,7 +143,7 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
            let dyCorner = vec2<i32>(r, c) * uniforms.strides - uniforms.pads;
            var curVal = -3.4e38;  // neg_infinity
            var wRMax = 0;
-           var wCMmax = 0;
+           var wCMax = 0;
 
            // In the case of multiple argmax branches, we only back-propagate
            // along the last branch, i.e., the one with largest value of
@@ -157,19 +157,19 @@ export class Dilation2DBackpropFilterProgram implements WebGPUProgram {
                  let xC = dyCorner.y + wC * uniforms.dilations[1];
 
                  if (xC >= 0 && xC < uniforms.xShape[2]) {
-                   let val = getX(batch, xR, xC, d) + getW(wR, wC, d);
+                   let val = getX(b, xR, xC, d) + getW(wR, wC, d);
                    if (val > curVal) {
                      curVal = val;
                      wRMax = wR;
-                     wCMmax = wC;
+                     wCMax = wC;
                    }
                  }
                }
              }
            }
 
-           let flatIndexIn = d + uniforms.wShape[2] * (wCMmax + wRMax * uniforms.wShape[1]);
-           let value = getDy(batch, r, c, d);
+           let flatIndexIn = d + uniforms.wShape[2] * (wCMax + wRMax * uniforms.wShape[1]);
+           let value = getDy(b, r, c, d);
            ${
         atomicAddSnippet(
             '&result[flatIndexIn]', 'value', this.type as 'float32' | 'int32')}
