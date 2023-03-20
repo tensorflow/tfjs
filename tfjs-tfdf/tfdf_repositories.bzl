@@ -20,7 +20,6 @@ def tfdf_repositories(version = "1.4.0"):
         "1.1.0": "36b6974996d899589ba99ee95fb56699bf34c582f71e2d98475d7db4bce43b5b/javascript_wasm.zip",
         "1.4.0": "ca903f36893a6a9bd59bf3128f51cb0588f6e4f6430863b0c4d3235a168f1b7d/ydf_js.zip",
     }
-
     if not version in versions:
         versions_string = ", ".join(versions.keys())
         fail("Unsupported tfdf wasm files version %s. Supported versions are %s." %
