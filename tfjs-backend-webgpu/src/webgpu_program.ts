@@ -219,16 +219,23 @@ function makeShader(
     ].join('\n');
   }
 
+  let stridesLength: number;
+  let stridesDataType: string;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, INFINITY : f32, ';
   program.variableNames.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
     uniformDeclaration +=
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
+    stridesLength = inputInfo[i].shape.length - 1;
+    stridesDataType = getCoordsDataType(stridesLength);
+    uniformDeclaration +=
+        `${x.charAt(0).toLowerCase() + x.slice(1)}ShapeStrides: ${
+            stridesDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
   uniformDeclaration += `outShape : ${outputDataType}, `;
-  const stridesLength = outputData.shape.length - 1;
-  const stridesDataType = getCoordsDataType(stridesLength);
+  stridesLength = outputData.shape.length - 1;
+  stridesDataType = getCoordsDataType(stridesLength);
   uniformDeclaration += `
          outShapeStrides: ${stridesDataType}, `;
 
@@ -284,6 +291,10 @@ function makeShader(
     sources.push(setOutputSnippet(
         outputData.shape, outputData.dtype, program.outputComponent));
   }
+
+  program.variableNames.forEach((x, i) => {
+    sources.push(`${getCoordsFromIndexSnippet(inputInfo[i].shape, x)}`);
+  });
 
   const inputSnippet =
       inputInfo
@@ -403,11 +414,17 @@ type InputInfo = {
  * with each stride and decrements the index until the index equals the final
  * dimension coordinate.
  */
-function getCoordsFromIndexSnippet(shape: number[]): string {
+function getCoordsFromIndexSnippet(shape: number[], name = ''): string {
   const rank = shape.length;
+  const funcName = name !== '' ?
+      `get${name.charAt(0).toUpperCase() + name.slice(1)}CoordsFromIndex` :
+      'getCoordsFromIndex';
+  const stridesName = name !== '' ?
+      `${name.charAt(0).toLowerCase() + name.slice(1)}ShapeStrides` :
+      `outShapeStrides`;
 
   if (rank <= 1) {
-    return `fn getCoordsFromIndex(index : i32) -> i32 { return index; }`;
+    return `fn ${funcName}(index : i32) -> i32 { return index; }`;
   }
 
   const strides = util.computeStrides(shape);
@@ -419,8 +436,9 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
   }
 
   if (strides.length === 1) {
-    return `    fn getCoordsFromIndex(index : i32) -> vec2<i32> {
-      let d0 = index / uniforms.outShapeStrides; let d1 = index - d0 * uniforms.outShapeStrides;
+    return `    fn ${funcName}(index : i32) -> vec2<i32> {
+      let d0 = index / uniforms.${
+        stridesName}; let d1 = index - d0 * uniforms.${stridesName};
       return vec2<i32>(d0, d1);
     }`;
   }
@@ -428,20 +446,19 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
   snippet = 'var index2 = index;' +
       strides
           .map((_, i) => {
-            const line1 =
-                `let ${coords[i]} = index2 / uniforms.outShapeStrides.${
-                    getCoordsXYZ(i)}`;
+            const line1 = `let ${coords[i]} = index2 / uniforms.${
+                stridesName}.${getCoordsXYZ(i)}`;
             const line2 = i === strides.length - 1 ?
-                `let ${coords[i + 1]} = index2 - ${
-                    coords[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` :
-                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides.${
+                `let ${coords[i + 1]} = index2 - ${coords[i]} * uniforms.${
+                    stridesName}.${getCoordsXYZ(i)}` :
+                `index2 = index2 - ${coords[i]} * uniforms.${stridesName}.${
                     getCoordsXYZ(i)}`;
             return `${line1}; ${line2};`;
           })
           .join('');
 
   return `
-    fn getCoordsFromIndex(index : i32) -> ${dtype} {
+    fn ${funcName}(index : i32) -> ${dtype} {
       ${snippet}
       return ${dtype}(${coords.join(',')});
     }

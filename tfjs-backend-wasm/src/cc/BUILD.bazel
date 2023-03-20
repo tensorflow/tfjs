@@ -156,6 +156,14 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "argminmax_impl",
+    hdrs = ["argminmax_impl.h"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "bincount_impl",
     hdrs = ["bincount_impl.h"],
     deps = [":util"],
@@ -344,6 +352,7 @@ tfjs_cc_library(
         ":All",
         ":Any",
         ":ArgMax",
+        ":ArgMin",
         ":Atan",
         ":Atan2",
         ":Atanh",
@@ -517,6 +526,17 @@ tfjs_cc_library(
     name = "ArgMax",
     srcs = ["kernels/ArgMax.cc"],
     deps = [
+        ":argminmax_impl",
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ArgMin",
+    srcs = ["kernels/ArgMin.cc"],
+    deps = [
+        ":argminmax_impl",
         ":backend",
         ":util",
     ],

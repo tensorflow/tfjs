@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {ArgMax, KernelConfig} from '@tensorflow/tfjs-core';
+import {ArgMin, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {createArgMinMaxKernelConfig} from './argminmax_kernel';
 
-export const argMaxConfig: KernelConfig = createArgMinMaxKernelConfig(ArgMax);
+export const argMinConfig: KernelConfig = createArgMinMaxKernelConfig(ArgMin);
