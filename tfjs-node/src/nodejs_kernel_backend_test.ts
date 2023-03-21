@@ -75,20 +75,15 @@ describe('Exposes Backend for internal Op execution.', () => {
     expect(nodeBackend().binding).toBeDefined();
   });
 
-  it('throw error if backend is not tensorflow', async done => {
+  it('throw error if backend is not tensorflow', async () => {
+    const testBackend = new TestKernelBackend();
+    tf.registerBackend('fake', () => testBackend);
+    tf.setBackend('fake');
     try {
-      const testBackend = new TestKernelBackend();
-      tf.registerBackend('fake', () => testBackend);
-      tf.setBackend('fake');
-
-      ensureTensorflowBackend();
-      done.fail();
-    } catch (err) {
-      expect(err.message)
-          .toBe(
-              'Expect the current backend to be "tensorflow", but got "fake"');
+      expect(() => ensureTensorflowBackend()).toThrowError(
+        'Expect the current backend to be "tensorflow", but got "fake"');
+    } finally {
       tf.setBackend('tensorflow');
-      done();
     }
   });
 });

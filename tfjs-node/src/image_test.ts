@@ -273,50 +273,31 @@ describe('decode images', () => {
         .toBe(beforeNumTFTensors + 1);
   });
 
-  it('throw error if request non int32 dtype', async done => {
-    try {
-      const uint8array = await getUint8ArrayFromImage(
-          'test_objects/images/image_png_test.png');
-      tf.node.decodeImage(uint8array, 0, 'uint8');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'decodeImage could only return Tensor of type `int32` for now.');
-      done();
-    }
+  it('throw error if request non int32 dtype', async () => {
+    const uint8array = await getUint8ArrayFromImage(
+      'test_objects/images/image_png_test.png');
+    expect(() => tf.node.decodeImage(uint8array, 0, 'uint8')).toThrowError(
+      'decodeImage could only return Tensor of type `int32` for now.');
   });
 
-  it('throw error if decode invalid image type', async done => {
-    try {
-      const uint8array = await getUint8ArrayFromImage('package.json');
-      tf.node.decodeImage(uint8array);
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'Expected image (BMP, JPEG, PNG, or GIF), ' +
-              'but got unsupported image type');
-      done();
-    }
+  it('throw error if decode invalid image type', async () => {
+    const uint8array = await getUint8ArrayFromImage('package.json');
+    expect(() => tf.node.decodeImage(uint8array)).toThrowError(
+      'Expected image (BMP, JPEG, PNG, or GIF), ' +
+        'but got unsupported image type');
   });
 
-  it('throw error if backend is not tensorflow', async done => {
+  it('throw error if backend is not tensorflow', async () => {
+    const testBackend = new TestKernelBackend();
+    registerBackend('fake', () => testBackend);
+    setBackend('fake');
     try {
-      const testBackend = new TestKernelBackend();
-      registerBackend('fake', () => testBackend);
-      setBackend('fake');
-
       const uint8array = await getUint8ArrayFromImage(
-          'test_objects/images/image_png_test.png');
-      tf.node.decodeImage(uint8array);
-      done.fail();
-    } catch (err) {
-      expect(err.message)
-          .toBe(
-              'Expect the current backend to be "tensorflow", but got "fake"');
+        'test_objects/images/image_png_test.png');
+      expect(() => tf.node.decodeImage(uint8array)).toThrowError(
+        'Expect the current backend to be "tensorflow", but got "fake"');
+    } finally {
       setBackend('tensorflow');
-      done();
     }
   });
 });
