@@ -31,7 +31,7 @@ def tfdf_repositories(version = "1.4.0"):
     http_archive(
         name = "tfdf_wasm_files",
         sha256 = sha256s[version],
-        url = "https://github.com/google/yggdrasil-decision-forests/releases/download/%s/%s" % (version,filenames[version]),
+        url = "https://github.com/google/yggdrasil-decision-forests/releases/download/%s/%s" % (version, filenames[version]),
         build_file_content = """
 filegroup(
     name = "wasm_files",
