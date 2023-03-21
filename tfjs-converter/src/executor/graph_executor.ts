@@ -393,12 +393,12 @@ export class GraphExecutor implements FunctionExecutor {
       return;
     }
 
-    for (const liveUntilThisNode of liveUntilNodes) {
-      if (isNonDisposableNode(liveUntilThisNode)) {
+    for (const nodeToDispose of liveUntilNodes) {
+      if (isNonDisposableNode(nodeToDispose)) {
         continue;
       }
       const tensors = getTensorsForCurrentContext(
-          liveUntilThisNode.name, tensorMap, context);
+          nodeToDispose.name, tensorMap, context);
       for (const tensor of tensors) {
         if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
           continue;
