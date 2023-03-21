@@ -40,12 +40,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'dilation2d ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
@@ -89,7 +83,6 @@ const TEST_FILTERS: TestFilter[] = [
       'tensorScatterUpdate ',
       'unique ',
       'unsortedSegmentSum ',
-      'valueAndGradients ',
     ]
   },
 ];
