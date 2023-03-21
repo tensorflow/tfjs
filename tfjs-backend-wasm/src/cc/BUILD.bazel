@@ -102,14 +102,14 @@ wasm_cc_binary(
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
     cc_target = ":tfjs-backend-wasm-simd.js",
-    simd = True,
+    # simd = True,
     tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
     cc_target = ":tfjs-backend-wasm-threaded-simd.js",
-    simd = True,
+    # simd = True,
     tags = ["local"],
     threads = "emscripten",
 )
