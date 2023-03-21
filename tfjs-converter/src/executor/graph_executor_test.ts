@@ -27,7 +27,7 @@ let executor: GraphExecutor;
 let inputNode: Node;
 let constNode: Node;
 let intermediateNode: Node;
-let intermediateNode_2: Node;
+let intermediateNode2: Node;
 let rsqrtNode: Node;
 let outputNode: Node;
 let graph: Graph;
@@ -77,19 +77,19 @@ describe('GraphExecutor', () => {
       inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
       attrParams: {}
     };
-    intermediateNode_2 = {
+    intermediateNode2 = {
       inputNames: ['intermediate', 'const'],
       inputs: [intermediateNode, constNode],
       children: [],
-      name: 'intermediate_2',
+      name: 'intermediate2',
       op: 'Add',
       category: 'arithmetic',
       inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
       attrParams: {}
     };
     outputNode = {
-      inputNames: ['intermediate_2', 'const'],
-      inputs: [intermediateNode_2, constNode],
+      inputNames: ['intermediate2', 'const'],
+      inputs: [intermediateNode2, constNode],
       children: [],
       name: 'output',
       signatureKey: 'add',
@@ -104,7 +104,7 @@ describe('GraphExecutor', () => {
         'input': inputNode,
         'const': constNode,
         'intermediate': intermediateNode,
-        'intermediate_2': intermediateNode_2,
+        'intermediate2': intermediateNode2,
         'output': outputNode
       },
       outputs: [outputNode],
@@ -117,7 +117,7 @@ describe('GraphExecutor', () => {
             'input': inputNode,
             'const': constNode,
             'intermediate': intermediateNode,
-            'intermediate_2': intermediateNode_2,
+            'intermediate2': intermediateNode2,
             'output': outputNode
           },
           outputs: [outputNode],
@@ -129,9 +129,9 @@ describe('GraphExecutor', () => {
       signature: SIGNATURE
     };
     inputNode.children.push(intermediateNode);
-    constNode.children.push(intermediateNode, intermediateNode_2, outputNode);
-    intermediateNode.children.push(intermediateNode_2);
-    intermediateNode_2.children.push(outputNode);
+    constNode.children.push(intermediateNode, intermediateNode2, outputNode);
+    intermediateNode.children.push(intermediateNode2);
+    intermediateNode2.children.push(outputNode);
     executor = new GraphExecutor(graph);
     constTensor = tfc.scalar(2.0);
     executor.weightMap = {'const': [constTensor]};
@@ -189,7 +189,7 @@ describe('GraphExecutor', () => {
           const inputTensor = tfc.scalar(1);
           const result = executor.execute(
               {input: inputTensor},
-              ['output', 'intermediate', 'intermediate_2']);
+              ['output', 'intermediate', 'intermediate2']);
           tfc.test_util.expectArraysClose(await result[1].data(), [3.0]);
           tfc.test_util.expectArraysClose(await result[2].data(), [5.0]);
           tfc.test_util.expectArraysClose(await result[0].data(), [7.0]);
