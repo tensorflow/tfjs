@@ -267,13 +267,12 @@ function validateNodesExecutionOrder(
  * Given the execution info, return a map from node name to the disposable
  * node name list after its execution.
  *
- * @returns A map from node name to disposable node names after its
+ * @returns A map from node name to disposable nodes after its
  *     execution. That is, for a node `x`, `nodeLiveUntilMap[x]` indicates
  *     all nodes which their intermediate tensors should be disposed after `x`
  *     being executed.
  */
-export function getNodeLiveUntilMap(orderedNodes: Node[]):
-    Map<string, string[]> {
+export function getNodeLiveUntilMap(orderedNodes: Node[]): Map<string, Node[]> {
   const nodeNameToOrder = new Map<string, number>(
       orderedNodes.map((node, order) => [node.name, order]));
 
@@ -307,7 +306,7 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]):
   // - Key: Name of a node `x`
   // - Values: All nodes whose intermediate tensors should be disposed
   //           after `x` is executed.
-  const liveUntilMap = new Map<string, string[]>();
+  const liveUntilMap = new Map<string, Node[]>();
   for (let nodeOrder = 0; nodeOrder < orderedNodes.length; ++nodeOrder) {
     const liveUntilOrder = liveUntilOrders[nodeOrder];
     if (liveUntilOrder === INF_LIFE) {
@@ -318,7 +317,7 @@ export function getNodeLiveUntilMap(orderedNodes: Node[]):
     if (!liveUntilMap.has(liveUntilNode.name)) {
       liveUntilMap.set(liveUntilNode.name, []);
     }
-    liveUntilMap.get(liveUntilNode.name)!.push(node.name);
+    liveUntilMap.get(liveUntilNode.name)!.push(node);
   }
   return liveUntilMap;
 }
