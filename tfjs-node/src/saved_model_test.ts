@@ -113,15 +113,10 @@ describe('SavedModel', () => {
     expect(enumKey2).toBe('DT_DOUBLE');
   });
 
-  it('read non-exist file', async done => {
-    try {
-      await readSavedModelProto('/not-exist');
-      done.fail();
-    } catch (err) {
-      expect(err.message)
-          .toBe(`There is no saved_model.pb file in the directory: /not-exist`);
-      done();
-    }
+  it('read non-exist file', async () => {
+    await expectAsync(readSavedModelProto('/not-exist'))
+      .toBeRejectedWithError(
+        `There is no saved_model.pb file in the directory: /not-exist`);
   });
 
   it('inspect SavedModel metagraphs', async () => {
@@ -206,30 +201,21 @@ describe('SavedModel', () => {
     model.dispose();
   });
 
-  it('load TFSavedModel with wrong tags throw exception', async done => {
-    try {
-      await tf.node.loadSavedModel(
-          './test_objects/saved_model/times_three_float', ['serve', 'gpu'],
-          'serving_default');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe('The SavedModel does not have tags: serve,gpu');
-      done();
-    }
+  it('load TFSavedModel with wrong tags throw exception', async () => {
+    await expectAsync(tf.node.loadSavedModel(
+      './test_objects/saved_model/times_three_float', ['serve', 'gpu'],
+      'serving_default'))
+      .toBeRejectedWithError('The SavedModel does not have tags: serve,gpu');
   });
 
-  it('load TFSavedModel with wrong signature throw exception', async done => {
-    try {
-      await tf.node.loadSavedModel(
-          './test_objects/saved_model/times_three_float', ['serve'],
-          'wrong_signature');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe('The SavedModel does not have signature: wrong_signature');
-      done();
-    }
+  it('load TFSavedModel with wrong signature throw exception', async () => {
+    await expectAsync(
+      tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'wrong_signature')
+    ).toBeRejectedWithError(
+      'The SavedModel does not have signature: wrong_signature'
+    );
   });
 
   it('load TFSavedModel and delete', async () => {
@@ -252,18 +238,13 @@ describe('SavedModel', () => {
     expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 
-  it('delete TFSavedModel multiple times throw exception', async done => {
+  it('delete TFSavedModel multiple times throw exception', async () => {
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/times_three_float', ['serve'],
         'serving_default');
     model.dispose();
-    try {
-      model.dispose();
-      done.fail();
-    } catch (error) {
-      expect(error.message).toBe('This SavedModel has already been deleted.');
-      done();
-    }
+    expect(() => model.dispose())
+      .toThrowError('This SavedModel has already been deleted.');
   });
 
   it('load multiple signatures from the same metagraph only call binding once',
@@ -316,23 +297,17 @@ describe('SavedModel', () => {
     expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
   });
 
-  it('throw error when input tensors do not match input ops', async done => {
+  it('throw error when input tensors do not match input ops', async () => {
     const model = await tf.node.loadSavedModel(
-        './test_objects/saved_model/times_three_float', ['serve'],
-        'serving_default');
+      './test_objects/saved_model/times_three_float', ['serve'],
+      'serving_default');
     const input1 = tf.tensor1d([1.0, 2, 3]);
     const input2 = tf.tensor1d([1.0, 2, 3]);
-    try {
-      model.predict([input1, input2]);
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'Length of input op names (1) does not match the ' +
-              'length of input tensors (2).');
-      model.dispose();
-      done();
-    }
+
+    expect(() => model.predict([input1, input2])).toThrowError(
+      'Length of input op names (1) does not match the ' +
+        'length of input tensors (2).');
+    model.dispose();
   });
 
   it('execute model float times three', async () => {
@@ -377,22 +352,16 @@ describe('SavedModel', () => {
     model.dispose();
   });
 
-  it('execute model with wrong tensor name', async done => {
+  it('execute model with wrong tensor name', async () => {
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/times_three_float', ['serve'],
         'serving_default');
     const input = tf.tensor1d([1.0, 2, 3]);
-    try {
-      model.predict({'xyz': input});
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'The model signatureDef input names are x, however ' +
-              'the provided input names are xyz.');
-      model.dispose();
-      done();
-    }
+    expect(() => model.predict({'xyz': input})).toThrowError(
+      'The model signatureDef input names are x, however ' +
+        'the provided input names are xyz.');
+
+    model.dispose();
   });
   it('execute model with uint8 input', async () => {
     const model = await tf.node.loadSavedModel(
