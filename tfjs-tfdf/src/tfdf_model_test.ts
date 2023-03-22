@@ -20,50 +20,103 @@ import * as tf from '@tensorflow/tfjs-core';
 import {loadTFDFModel, TFDFModel} from './tfdf_model';
 
 describe('TFDFModel ', () => {
-  let model: TFDFModel;
+
+  let modelAdult: TFDFModel;
+  let modelSst: TFDFModel;
+
   beforeEach(async () => {
-    model = await loadTFDFModel(
-        'https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json');
+    modelAdult = await loadTFDFModel(
+      'https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json');
+
+    modelSst = await loadTFDFModel(
+      'https://storage.googleapis.com/tfjs-testing/tf_df_gbt_sst/model.json');
   });
 
-  it('predict', async () => {
+  it('predict_adult', async () => {
     const inputs = {
       'age': tf.tensor1d([39, 40, 40, 35], 'int32'),
       'workclass': tf.tensor1d(
-          ['State-gov', 'Private', 'Private', 'Federal-gov'], 'string'),
+        ['State-gov', 'Private', 'Private', 'Federal-gov'], 'string'),
       'fnlwgt': tf.tensor1d([77516, 121772, 193524, 76845], 'int32'),
       'education':
-          tf.tensor1d(['Bachelors', 'Assoc-voc', 'Doctorate', '9th'], 'string'),
+        tf.tensor1d(['Bachelors', 'Assoc-voc', 'Doctorate', '9th'], 'string'),
       'education_num': tf.tensor1d([13, 11, 16, 5], 'int32'),
       'marital_status': tf.tensor1d(
-          [
-            'Never-married', 'Married-civ-spouse', 'Married-civ-spouse',
-            'Married-civ-spouse'
-          ],
-          'string'),
+        [
+          'Never-married', 'Married-civ-spouse', 'Married-civ-spouse',
+          'Married-civ-spouse'
+        ],
+        'string'),
       'occupation': tf.tensor1d(
-          ['Adm-clerical', 'Craft-repair', 'Prof-specialty', 'Farming-fishing'],
-          'string'),
+        ['Adm-clerical', 'Craft-repair', 'Prof-specialty', 'Farming-fishing'],
+        'string'),
       'relationship': tf.tensor1d(
-          ['Not-in-family', 'Husband', 'Husband', 'Husband'], 'string'),
+        ['Not-in-family', 'Husband', 'Husband', 'Husband'], 'string'),
       'race': tf.tensor1d(
-          ['White', 'Asian-Pac-Islander', 'White', 'Black'], 'string'),
+        ['White', 'Asian-Pac-Islander', 'White', 'Black'], 'string'),
       'sex': tf.tensor1d(['Male', 'Male', 'Male', 'Male'], 'string'),
       'capital_gain': tf.tensor1d([2174, 0, 0, 0], 'int32'),
       'capital_loss': tf.tensor1d([0, 0, 0, 0], 'int32'),
       'hours_per_week': tf.tensor1d([40, 40, 60, 40], 'int32'),
       'native_country': tf.tensor1d(
-          ['United-States', '', 'United-States', 'United-States'], 'string')
+        ['United-States', '', 'United-States', 'United-States'], 'string')
     };
 
-    const densePredictions = await model.executeAsync(inputs) as tf.Tensor;
+    const densePredictions = await modelAdult.executeAsync(inputs) as tf.Tensor;
 
     tf.test_util.expectArraysEqual(densePredictions.shape, [4, 1]);
     tf.test_util.expectArraysClose(await densePredictions.data(), [[
-                                     0.13323983550071716,
-                                     0.47678571939468384,
-                                     0.818461537361145,
-                                     0.4974619150161743,
-                                   ]]);
+      0.13323983550071716,
+      0.47678571939468384,
+      0.818461537361145,
+      0.4974619150161743,
+    ]]);
+  });
+
+  it('predict_sst', async () => {
+    const inputs = {
+      'sentence': tf.tensor2d([['a', 'valueless', 'kiddie', 'paean', 'to',
+        'pro', 'basketball',
+        'underwritten', 'by', 'the', 'nba', '.'],
+        ['featuring', 'a', 'dangerously', 'seductive', 'performance', 'from',
+          'the', 'great', 'daniel', 'auteuil', ',', '``', 'sade', '\'\'',
+          'covers', 'the', 'same', 'period', 'as', 'kaufmann', '\'s', '``',
+          'quills', '\'\'', 'with', 'more', 'unsettlingly', 'realistic',
+          'results', '.'],
+        ['i', 'am', 'sorry', 'that', 'i', 'was', 'unable', 'to', 'get',
+          'the', 'full', 'brunt', 'of', 'the', 'comedy', '.'],
+        ['the', 'inspirational', 'screenplay', 'by', 'mike', 'rich',
+          'covers', 'a', 'lot', 'of', 'ground', ',', 'perhaps', 'too',
+          'much', ',', 'but', 'ties', 'things', 'together', ',', 'neatly',
+          ',', 'by', 'the', 'end', '.'],
+        ['from', 'the', 'opening', 'scenes', ',', 'it', '\'s', 'clear',
+          'that', 'all', 'about', 'the', 'benjamins', 'is', 'a', 'totally',
+          'formulaic', 'movie', '.'],
+        ['exquisitely', 'nuanced', 'in', 'mood', 'tics', 'and', 'dialogue',
+          ',', 'this', 'chamber', 'drama', 'is', 'superbly', 'acted', 'by',
+          'the', 'deeply', 'appealing', 'veteran', 'bouquet', 'and', 'the',
+          'chilling', 'but', 'quite', 'human', 'berling', '.'],
+        ['slick', 'piece', 'of', 'cross-promotion', '.'],
+        ['one', 'of', 'the', 'more', 'intelligent', 'children', '\'s',
+          'movies', 'to', 'hit', 'theaters', 'this', 'year', '.'],
+        ['but', 'it', 'could', 'have', 'been', 'worse', '.'],
+        ['the', 'movie', '\'s', 'relatively', 'simple', 'plot', 'and',
+          'uncomplicated', 'morality', 'play', 'well', 'with', 'the',
+          'affable', 'cast', '.']]),
+    };
+
+    const densePredictions = await modelSst.executeAsync(inputs) as tf.Tensor;
+
+    tf.test_util.expectArraysEqual(densePredictions.shape, [10, 1]);
+    tf.test_util.expectArraysClose(await densePredictions.data(), [[0.5386623],
+      [0.64523983],
+    [0.45326024],
+    [0.43459246],
+    [0.52655387],
+    [0.64283407],
+      [0.5427809],
+    [0.54747176],
+    [0.35419527],
+      [0.577703]]);
   });
 });
