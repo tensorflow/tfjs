@@ -159,13 +159,13 @@ export class GraphExecutor implements FunctionExecutor {
    * @returns {Object} compilation The compile result.
    * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
    *     order.
-   * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
+   * @returns {Map<string, Node[]>} compilation.nodeLiveUntilMap A map from node
    *     to disposable nodes after its execution. That is, for a node `x`,
    *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
    *     tensors should be disposed after `x` is executed.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]):
-      {orderedNodes: Node[], nodeLiveUntilMap: Map<string, string[]>} {
+      {orderedNodes: Node[], nodeLiveUntilMap: Map<string, Node[]>} {
     const executionInfo =
         getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const {missingInputs, dynamicNode, syncInputs} = executionInfo;
@@ -364,13 +364,15 @@ export class GraphExecutor implements FunctionExecutor {
           continue;
         }
 
+        // Only intermediate nodes' tensors have counts set, not marked as
+        // kept, and not in `tensorsToKeep`.
+        // Input and weight nodes' tensors should exist in `tensorsToKeep`.
+        // Output and control flow nodes' tensors should never have count set.
         const count = intermediateTensorConsumerCount[tensor.id];
         if (count === 1) {
           tensor.dispose();
           delete intermediateTensorConsumerCount[tensor.id];
         } else if (count != null) {
-          // only intermediate nodes has count set, inputs and weights
-          // are not.
           intermediateTensorConsumerCount[tensor.id]--;
         }
       }
@@ -380,19 +382,23 @@ export class GraphExecutor implements FunctionExecutor {
   private checkTensorForDisposalWithNodeLiveUntilInfo(
       node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
       tensorsToKeep: Set<number>, outputNodeNameSet: Set<string>,
-      liveUntilNodes?: string[]) {
-    // Skip output nodes and any control flow nodes, since its dependency is
-    // tricky to track correctly.
-    if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
-      return;
+      liveUntilNodes?: Node[]) {
+    function isNonDisposableNode(node: Node) {
+      // Skip output nodes and any control flow nodes, since its dependency is
+      // tricky to track correctly.
+      return isControlFlow(node) || outputNodeNameSet.has(node.name);
     }
-    if (liveUntilNodes == null) {
+
+    if (isControlFlow(node) || liveUntilNodes == null) {
       return;
     }
 
-    for (const inputNodeName of liveUntilNodes) {
-      const tensors =
-          getTensorsForCurrentContext(inputNodeName, tensorMap, context);
+    for (const nodeToDispose of liveUntilNodes) {
+      if (isNonDisposableNode(nodeToDispose)) {
+        continue;
+      }
+      const tensors = getTensorsForCurrentContext(
+          nodeToDispose.name, tensorMap, context);
       for (const tensor of tensors) {
         if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
           continue;
