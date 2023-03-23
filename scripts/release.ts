@@ -28,6 +28,7 @@
 
 import * as argparse from 'argparse';
 import chalk from 'chalk';
+import semver from 'semver';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
 import {RELEASE_UNITS, WEBSITE_RELEASE_UNIT, TMP_DIR, $, question, printReleaseUnit, printPhase, makeReleaseDir, updateDependency, prepareReleaseBuild, createPR, getPatchUpdateVersion, ALPHA_RELEASE_UNIT} from './release-util';
@@ -120,8 +121,9 @@ async function main() {
     const packageJsonPath = `${dir}/${packageName}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
-    const latestVersion =
-        $(`npm view @tensorflow/${packageName} dist-tags.latest`);
+    const packageVersions: string[] =
+        JSON.parse($(`npm view @tensorflow/${packageName} versions --json`));
+    const latestVersion = semver.rsort(packageVersions)[0];
 
     console.log(chalk.magenta.bold(
         `~~~ Processing ${packageName} (${latestVersion}) ~~~`));
