@@ -12,6 +12,7 @@ build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
+build --copt="-Wno-unused-function"
 
 # The following --define=EXECUTOR=remote will be able to be removed
 # once https://github.com/bazelbuild/bazel/issues/7254 is fixed
