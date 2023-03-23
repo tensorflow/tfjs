@@ -19,7 +19,6 @@
 #include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
-#include <xnnpack/cache.h>
 #include <cmath>
 #include <cstddef>
 #include <limits>
