@@ -21,7 +21,7 @@ import {isPromise} from './util_base';
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
 const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
 
-type FlagValue = number|boolean;
+type FlagValue = number|boolean|string;
 type FlagEvaluationFn = (() => FlagValue)|(() => Promise<FlagValue>);
 export type Flags = {
   [featureName: string]: FlagValue
@@ -117,6 +117,10 @@ export class Environment {
     return this.get(flagName) as boolean;
   }
 
+  getString(flagName: string): string {
+    return this.get(flagName) as string;
+  }
+
   getFlags(): Flags {
     return this.flags;
   }
@@ -192,9 +196,9 @@ function parseValue(flagName: string, value: string): FlagValue {
     return value === 'true';
   } else if (`${+ value}` === value) {
     return +value;
+  } else {
+    return value;
   }
-  throw new Error(
-      `Could not parse value flag value ${value} for flag ${flagName}.`);
 }
 
 /**

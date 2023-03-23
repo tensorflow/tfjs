@@ -34,9 +34,7 @@ describe('initializes flags from the url', () => {
   it('one unregistered flag', () => {
     const global = {location: {search: ''}};
     const env = new Environment(global);
-    spyOn(env, 'getQueryParams').and.returnValue({
-      'tfjsflags': 'FLAG1:true'
-    });
+    spyOn(env, 'getQueryParams').and.returnValue({'tfjsflags': 'FLAG1:true'});
     expect(env.features).toEqual({});
   });
 
@@ -54,6 +52,21 @@ describe('initializes flags from the url', () => {
     env.registerFlag('FLAG1', () => true);
 
     expect(env.get('FLAG1')).toBe(false);
+  });
+
+  it('one registered flag string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:FlagString'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+
+    expect(env.get('FLAG1')).toBe('flagstring');
+  });
+
+  it('one registered flag empty string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+    expect(env.get('FLAG1')).toBe('');
   });
 
   it('two registered flags', () => {
