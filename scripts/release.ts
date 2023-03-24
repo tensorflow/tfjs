@@ -98,8 +98,10 @@ async function main() {
 
   if (phaseInt !== 0) {
     // Phase0 should be published and release branch should have been created.
-    const firstPackageLatestVersion =
-        $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
+    const firstPackageVersions: string[] = JSON.parse(
+        $(`npm view @tensorflow/${phases[0].packages[0]} versions --json`));
+    const firstPackageLatestVersion = semver.rsort(firstPackageVersions)[0];
+
     releaseBranch = `${name}_${firstPackageLatestVersion}`;
 
     $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
