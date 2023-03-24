@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {DepthwiseConv2DVec4Program} from '../depthwise_conv2d_vec4_webgpu';
@@ -86,8 +86,9 @@ export function fusedDepthwiseConv2D(args: {
     dimensions.push({type: 'float32', data: [leakyreluAlpha]});
     program.uniforms += ' alpha : f32,';
   }
-  const result =
-      backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
+  const result = backend.runWebGPUProgram(
+      program, programInputs, env().getBool('FLOAT16') ? 'float16' : 'float32',
+      dimensions);
 
   return result;
 }

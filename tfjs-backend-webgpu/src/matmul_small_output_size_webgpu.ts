@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
@@ -25,9 +25,12 @@ export function makeMatMulSmallOutputSizeSource(
   const tileAOuter = workgroupSize[1];
   const tileBOuter = workgroupSize[0];
   const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+  const floatType = env().getBool('FLOAT16') ? 'f16' : 'f32';
   return `
-  var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
-  var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
+  var<workgroup> mm_Asub : array<array<${floatType}, ${tileInner}>, ${
+      tileAOuter}>;
+  var<workgroup> mm_Bsub : array<array<${floatType}, ${tileBOuter}>, ${
+      tileInner}>;
 
   // If the output size is small for matrix multiplication, avoid to use vec4
   // and handle some elements per thread to optimally utilize the ALU.
@@ -46,7 +49,7 @@ export function makeMatMulSmallOutputSizeSource(
 
     // uniforms.dimInner should be greater than 0.
     let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
-    var acc = 0.0;
+    var acc = ${floatType}(0.0);
 
     var globalColA = tileCol;
     var globalRowB = 0;

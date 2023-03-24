@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
@@ -23,8 +23,9 @@ import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(workgroupSizeX: number): string {
+  const floatType = env().getBool('FLOAT16') ? 'f16' : 'f32';
   return `
-    var<workgroup> sumValues : array<f32, ${workgroupSizeX}>;
+    var<workgroup> sumValues : array<${floatType}, ${workgroupSizeX}>;
     ${main()} {
       let coords = getOutputCoords();
       let batch = coords[0];
@@ -32,7 +33,7 @@ export function makeMatMulReduceSource(workgroupSizeX: number): string {
       let batchB = batch % uniforms.bShape[0];
       let row = coords[1];
       let col = coords[2];
-      var sum = 0.0;
+      var sum = ${floatType}(0.0);
       let Length = uniforms.dimInner;
       for (var k = i32(localId.x); k < Length; k = k + ${workgroupSizeX}) {
         let dataA = mm_readA(batchA, row, k);

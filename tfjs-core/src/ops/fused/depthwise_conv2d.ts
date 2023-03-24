@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../../engine';
+import {env} from '../../environment';
 import {customGrad} from '../../gradients';
 import {FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
@@ -123,9 +124,12 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
                result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
-  const $x = convertToTensor(x, 'x', 'depthwiseConv2d', 'float32');
-  const $filter =
-      convertToTensor(filter, 'filter', 'depthwiseConv2d', 'float32');
+  const $x = convertToTensor(
+      x, 'x', 'depthwiseConv2d',
+      env().getBool('FLOAT16') ? 'float16' : 'float32');
+  const $filter = convertToTensor(
+      filter, 'filter', 'depthwiseConv2d',
+      env().getBool('FLOAT16') ? 'float16' : 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;

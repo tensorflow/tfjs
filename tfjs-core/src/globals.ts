@@ -52,6 +52,19 @@ export function enableDebugMode(): void {
   env().set('DEBUG', true);
 }
 
+/**
+ * Enables float16 mode. tensorflow js has many backends, float16 mode is not
+ * supported by all backends. If you want to use this mode, please firstly call
+ * tf.backend().supportFloat16() api to check whether current backend supports
+ * float16, and then users make sure that all float16 related contents are only
+ * used in current backend, not used by other backends.
+ *
+ * @doc {heading: 'Environment'}
+ */
+export function enableFloat16Mode(): void {
+  env().set('FLOAT16', true);
+}
+
 /** Globally disables deprecation warnings */
 export function disableDeprecationWarnings(): void {
   env().set('DEPRECATION_WARNINGS_ENABLED', false);

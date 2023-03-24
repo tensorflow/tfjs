@@ -56,6 +56,8 @@ export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
   }
   if (dtype == null || dtype === 'float32' || dtype === 'complex64') {
     return new Float32Array(a as number[]);
+  } else if (dtype === 'float16') {
+    return new Uint16Array(a as number[]);
   } else if (dtype === 'int32') {
     return new Int32Array(a as number[]);
   } else if (dtype === 'bool') {
@@ -133,8 +135,8 @@ export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   return env().platform.decode(bytes, encoding);
 }
 
-export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
-    Uint8ClampedArray {
+export function isTypedArray(a: {}): a is Float32Array|Uint16Array|Int32Array|
+    Uint8Array|Uint8ClampedArray {
   // TODO(mattsoulanille): Remove this fallback in 5.0.0
   if (env().platform.isTypedArray != null) {
     return env().platform.isTypedArray(a);
@@ -169,7 +171,7 @@ flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
     result = [];
   }
   if (typeof arr === 'boolean' || typeof arr === 'number' ||
-    typeof arr === 'string' || base.isPromise(arr) || arr == null ||
+      typeof arr === 'string' || base.isPromise(arr) || arr == null ||
       isTypedArray(arr) && skipTypedArray) {
     result.push(arr as T);
   } else if (Array.isArray(arr) || isTypedArray(arr)) {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, env, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
@@ -69,6 +69,9 @@ export const compileProgram =
     };
 
 export const typeSnippet = (component: number, type = 'f32') => {
+  if (env().getBool('FLOAT16')) {
+    type = 'f16';
+  }
   switch (component) {
     case 1:
       return `${type}`;
@@ -211,6 +214,7 @@ function makeShader(
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
     return [
+      env().getBool('FLOAT16') ? 'enable f16;' : '',
       commonSnippet,
       prefixSnippets.join('\n'),
       getCoordsFromIndexSnippet(outputData.shape),
@@ -283,7 +287,8 @@ function makeShader(
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    commonSnippet, prefixSnippets.join('\n') + isInfSnippet,
+    env().getBool('FLOAT16') ? 'enable f16;' : '', commonSnippet,
+    prefixSnippets.join('\n') + isInfSnippet,
     getCoordsFromIndexSnippet(outputData.shape), coordsSnippet,
     getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
@@ -749,6 +754,8 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
 export function dataTypeToGPUType(type: DataType, component = 1) {
   if (type === 'float32') {
     return typeSnippet(component, 'f32');
+  } else if (type === 'float16') {
+    return typeSnippet(component, 'f16');
   } else if (type === 'int32' || type === 'bool') {
     return typeSnippet(component, 'i32');
   }

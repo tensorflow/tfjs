@@ -106,7 +106,7 @@ export function convertToTensor<T extends Tensor>(
   // If the user expects a bool/int/float, use that info to update the
   // inferredDtype when it is not a string.
   if (inferredDtype !== 'string' &&
-      ['bool', 'int32', 'float32'].indexOf(parseAsDtype) >= 0) {
+      ['bool', 'int32', 'float32', 'float16'].indexOf(parseAsDtype) >= 0) {
     inferredDtype = parseAsDtype as DataType;
   }
   assertDtype(parseAsDtype, inferredDtype, argName, functionName);

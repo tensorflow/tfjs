@@ -26,6 +26,7 @@ enum DType {
   boolean = 2,
   str = 3,
   complex64 = 4,
+  float16 = 5
 };
 
 // Must match enum in kernels/types.ts.
