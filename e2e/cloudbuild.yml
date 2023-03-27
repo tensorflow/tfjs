@@ -15,6 +15,13 @@ steps:
   args: ['build-deps-ci']
   env: ['NIGHTLY=$_NIGHTLY']
 
+# Fetch graph model golden data from public TFJS gcp storage.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['fetch-graph-model-golden-data-ci']
+
 # Test.
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
