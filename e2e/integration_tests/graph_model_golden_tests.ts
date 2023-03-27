@@ -128,8 +128,8 @@ async function expectTensorsToEqualGoldens(
   if (tensors instanceof tfc.Tensor) {
     expectTensorToEqualGolden(tensors, goldens as TensorDetail);
   } else if (Array.isArray(tensors)) {
-    const details = goldens as TensorDetail[];
     expect(Array.isArray(goldens)).toEqual(true);
+    const details = goldens as TensorDetail[];
     expect(tensors.length).toEqual(details.length);
     for (let i = 0; i < tensors.length; ++i) {
       expectTensorToEqualGolden(tensors[i], details[i]);
