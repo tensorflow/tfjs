@@ -50,6 +50,7 @@
     "build-deps": "yarn build-link-package && yarn build-union && yarn build-node",
     "build-deps-ci": "./scripts/build-deps-ci.sh",
     "build-graph-model-golden-data": "ts-node ./scripts/build-graph-model-golden-data.ts",
+    "fetch-graph-model-golden-data": "./scripts/fetch-graph-model-golden-data.sh",
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
     "test": "./scripts/test.sh",
