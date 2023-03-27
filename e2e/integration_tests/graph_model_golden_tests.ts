@@ -136,6 +136,8 @@ async function expectTensorsToEqualGoldens(
     }
   } else {
     const detailMap = goldens as Record<string, TensorDetail>;
+    expect(new Set(Object.keys(detailMap)))
+        .toEqual(new Set(Object.keys(tensors)));
     for (const [name, detail] of Object.entries(detailMap)) {
       expectTensorToEqualGolden(tensors[name], detail);
     }
