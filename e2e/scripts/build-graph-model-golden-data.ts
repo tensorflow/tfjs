@@ -98,8 +98,8 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
     const model = models[i];
     const {inputs} = MODEL_CONFIGS[i];
 
-    const predictTensors = model.predict(inputs);
-    const predictDetails = await getTensorDetails(predictTensors);
+    const outputTensors = model.predict(inputs);
+    const outputDetails = await getTensorDetails(outputTensors);
 
     const intermediateTensors = model.getIntermediateTensors();
     const intermediateDetails: Record<string, TensorDetail> = {};
@@ -112,17 +112,17 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
     writeGraphModelGoldenData({
       ...MODEL_CONFIGS[i],
       inputs: await getTensorDetails(inputs),
-      predictDetails,
+      outputDetails,
       intermediateDetails,
     });
 
     // Dispose tensors
-    if (predictTensors instanceof tf.Tensor) {
-      predictTensors.dispose();
-    } else if (Array.isArray(predictTensors)) {
-      for (const tensor of predictTensors) tensor.dispose();
+    if (outputTensors instanceof tf.Tensor) {
+      outputTensors.dispose();
+    } else if (Array.isArray(outputTensors)) {
+      for (const tensor of outputTensors) tensor.dispose();
     } else {
-      for (const tensor of Object.values(predictTensors)) tensor.dispose();
+      for (const tensor of Object.values(outputTensors)) tensor.dispose();
     }
     model.disposeIntermediateTensors();
   }

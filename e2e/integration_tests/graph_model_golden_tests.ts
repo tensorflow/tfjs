@@ -52,7 +52,7 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
         tfc.tidy(() => {
           const outputs = model.predict(createGoldenInputTensors(modelGolden));
-          expectTensorsToEqualGoldens(outputs, modelGolden.predictDetails);
+          expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
         });
       });
 
@@ -60,7 +60,7 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
         tfc.tidy(() => {
           const outputs = model.execute(createGoldenInputTensors(modelGolden));
-          expectTensorsToEqualGoldens(outputs, modelGolden.predictDetails);
+          expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
         });
       });
 

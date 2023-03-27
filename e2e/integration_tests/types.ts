@@ -36,7 +36,7 @@ export interface GraphModeGoldenData {
   /**
    * The returned tensor values of `model.predict(this.inputs)`.
    */
-  readonly predictDetails: TensorDetail|TensorDetail[]|
+  readonly outputDetails: TensorDetail|TensorDetail[]|
       Record<string, TensorDetail>;
   /**
    * All intermediate node tensor values after calling
