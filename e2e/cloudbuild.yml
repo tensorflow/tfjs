@@ -19,7 +19,7 @@ steps:
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'yarn'
-  id: 'yarn'
+  id: 'fetch-graph-model-golden-data'
   args: ['fetch-graph-model-golden-data-ci']
 
 # Test.
