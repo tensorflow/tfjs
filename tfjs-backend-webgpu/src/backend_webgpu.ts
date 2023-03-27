@@ -818,7 +818,7 @@ export class WebGPUBackend extends KernelBackend {
       pipeline = this.pipelineCache[key];
     } else {
       pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
+          this.device, program, inputsData, output, key);
       this.pipelineCache[key] = pipeline;
     }
 
