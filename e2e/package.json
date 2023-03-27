@@ -49,6 +49,7 @@
     "build-node-ci": "cd ../tfjs-node && yarn && yarn build-ci",
     "build-deps": "yarn build-link-package && yarn build-union && yarn build-node",
     "build-deps-ci": "./scripts/build-deps-ci.sh",
+    "build-graph-model-golden-data": "ts-node ./scripts/build-graph-model-golden-data.ts",
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
     "test": "./scripts/test.sh",
