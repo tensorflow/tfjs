@@ -62,9 +62,5 @@
   "license": "Apache-2.0",
   "engines": {
     "yarn": ">= 1.0.0"
-  },
-  "dependencies": {
-    "global": "^4.4.0",
-    "tfjs-license-fix": "chunnienc/tfjs-license-fix"
   }
 }
