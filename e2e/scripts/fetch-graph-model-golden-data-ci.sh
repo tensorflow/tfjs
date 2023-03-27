@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 
-STORAGE_URL="https://storage.googleapis.com/tfjs-e2e-graph-mode-golden-data"
+STORAGE_URL="https://storage.googleapis.com/tfjs-e2e-graph-model-golden-data"
 
 cd ./integration_tests/graph_model_golden_data
 
