@@ -18,7 +18,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import babel from 'rollup-plugin-babel';
+import babel from '@rollup/plugin-babel';
 import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
 
@@ -101,15 +101,15 @@ module.exports = cmdOptions => {
 
   const babelPlugin = babel({
     babelrc: false,
+    babelHelpers: 'bundled',
     presets: [
       // ensure we get es5 by adding IE 11 as a target
       [
         '@babel/env', {
           modules: false,
           useBuiltIns: 'entry',
-          corejs: 3,
+          corejs: '3.29.1',
           targets: {'ie': '11'},
-          loose: true
         }
       ]
     ]
