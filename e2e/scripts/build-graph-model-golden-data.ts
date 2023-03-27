@@ -115,6 +115,6 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
   }
 
   fs.writeFileSync(
-      path.join(GRAPH_MODEL_GOLDEN_DATA_DIR, 'golden_model_data'),
-      goldenModelDataNames.join('\n'));
+      path.join(GRAPH_MODEL_GOLDEN_DATA_DIR, 'golden_model_data.json'),
+      JSON.stringify(goldenModelDataNames));
 }());
