@@ -134,7 +134,8 @@ limitations under the License.
       if (tunableFlagsControllers != null) {
         const urlFlagStrings = ['WEBGL_USE_SHAPES_UNIFORMS',
                                 'KEEP_INTERMEDIATE_TENSORS',
-                                'CHECK_COMPUTATION_FOR_ERRORS'];
+                                'CHECK_COMPUTATION_FOR_ERRORS',
+                                'WEBGPU_PRINT_SHADER'];
         for (let i = 0; i < urlFlagStrings.length; i++) {
           if (tunableFlagsControllers[urlFlagStrings[i]] != null &&
               urlState.has(urlFlagStrings[i])) {

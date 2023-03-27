@@ -817,8 +817,9 @@ export class WebGPUBackend extends KernelBackend {
     if (key in this.pipelineCache) {
       pipeline = this.pipelineCache[key];
     } else {
+      const printShader = env().get('WEBGPU_PRINT_SHADER') as boolean;
       pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
+          this.device, program, inputsData, output, printShader);
       this.pipelineCache[key] = pipeline;
     }
 

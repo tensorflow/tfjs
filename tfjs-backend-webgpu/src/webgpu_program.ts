@@ -54,7 +54,7 @@ export interface WebGPUProgram {
 
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): GPUComputePipeline => {
+     output: TensorInfo, printShader = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
       const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
@@ -65,6 +65,10 @@ export const compileProgram =
         layout: 'auto'
       });
 
+      if (printShader) {
+        console.log(program.constructor.name);
+        console.log(source);
+      }
       return pipeline;
     };
 
