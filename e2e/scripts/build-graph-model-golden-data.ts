@@ -23,15 +23,8 @@ import {GraphModeGoldenData, TensorDetail} from '../integration_tests/types';
 const GRAPH_MODEL_GOLDEN_DATA_DIR =
     './integration_tests/graph_model_golden_data/';
 
-type GraphModelInputs = tf.Tensor|tf.Tensor[]|tf.NamedTensorMap;
-
-interface GraphModelConfig {
-  readonly name: string;
-  readonly url: string;
-  readonly fromTFHub?: boolean;
-  readonly inputs: GraphModelInputs;
-}
-
+// Defines models to be used in the golden tests here.
+// TODO: Support async models (models with control flow ops).
 const MODEL_CONFIGS: GraphModelConfig[] = [
   {
     name: 'MobileNetV3_small_075',
@@ -41,6 +34,15 @@ const MODEL_CONFIGS: GraphModelConfig[] = [
     inputs: tf.randomNormal([1, 224, 224, 3]),
   },
 ];
+
+type GraphModelInputs = tf.Tensor|tf.Tensor[]|tf.NamedTensorMap;
+
+interface GraphModelConfig {
+  readonly name: string;
+  readonly url: string;
+  readonly fromTFHub?: boolean;
+  readonly inputs: GraphModelInputs;
+}
 
 async function getTensorDetail(tensor: tf.Tensor): Promise<TensorDetail> {
   const data = await tensor.data();
@@ -68,16 +70,19 @@ async function getTensorDetails(tensors: tf.Tensor|tf.Tensor[]|
   return details;
 }
 
-function writeGraphModelGoldenData(data: GraphModeGoldenData) {
-  const filename = `${data.name}.golden.json`;
+function getGraphModelGoldenDataFilename(modelName: string) {
+  return `${modelName}.golden.json`;
+}
 
+function writeGraphModelGoldenData(data: GraphModeGoldenData) {
   if (!fs.existsSync(GRAPH_MODEL_GOLDEN_DATA_DIR)) {
     fs.mkdirSync(GRAPH_MODEL_GOLDEN_DATA_DIR, {recursive: true});
   }
   fs.writeFileSync(
-      path.join(GRAPH_MODEL_GOLDEN_DATA_DIR, filename), JSON.stringify(data));
-
-  return filename;
+      path.join(
+          GRAPH_MODEL_GOLDEN_DATA_DIR,
+          getGraphModelGoldenDataFilename(data.name)),
+      JSON.stringify(data));
 }
 
 (async function main() {
@@ -88,14 +93,13 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
   const models = await Promise.all(MODEL_CONFIGS.map(
       ({url, fromTFHub}) => tf.loadGraphModel(url, {fromTFHub})));
 
-
-  const goldenModelDataNames: string[] = [];
   tf.env().set('KEEP_INTERMEDIATE_TENSORS', true);
   for (let i = 0; i < MODEL_CONFIGS.length; ++i) {
     const model = models[i];
     const {inputs} = MODEL_CONFIGS[i];
 
-    const predictDetails = await getTensorDetails(model.predict(inputs));
+    const predictTensors = model.predict(inputs);
+    const predictDetails = await getTensorDetails(predictTensors);
 
     const intermediateTensors = model.getIntermediateTensors();
     const intermediateDetails: Record<string, TensorDetail> = {};
@@ -105,16 +109,27 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
       intermediateDetails[name] = details[0];
     }
 
-    model.disposeIntermediateTensors();
-    goldenModelDataNames.push(writeGraphModelGoldenData({
+    writeGraphModelGoldenData({
       ...MODEL_CONFIGS[i],
       inputs: await getTensorDetails(inputs),
       predictDetails,
       intermediateDetails,
-    }));
+    });
+
+    // Dispose tensors
+    if (predictTensors instanceof tf.Tensor) {
+      predictTensors.dispose();
+    } else if (Array.isArray(predictTensors)) {
+      for (const tensor of predictTensors) tensor.dispose();
+    } else {
+      for (const tensor of Object.values(predictTensors)) tensor.dispose();
+    }
+    model.disposeIntermediateTensors();
   }
 
+  // Write all golden filenames to GRAPH_MODEL_GOLDEN_DATA_DIR/filenames.json.
   fs.writeFileSync(
-      path.join(GRAPH_MODEL_GOLDEN_DATA_DIR, 'golden_model_data.json'),
-      JSON.stringify(goldenModelDataNames));
+      path.join(GRAPH_MODEL_GOLDEN_DATA_DIR, 'filenames.json'),
+      JSON.stringify(MODEL_CONFIGS.map(
+          ({name}) => getGraphModelGoldenDataFilename(name))));
 }());

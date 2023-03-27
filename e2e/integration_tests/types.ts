@@ -23,11 +23,24 @@ export interface TensorDetail {
 }
 
 export interface GraphModeGoldenData {
+  /** The model name. */
   readonly name: string;
+  /** Url for loading the model with `tf.loadGraphModel`. */
   readonly url: string;
+  /** Whether model is to be loaded from TF Hub. */
   readonly fromTFHub?: boolean;
+  /**
+   * Golden tensor values for `model.predict`.
+   */
   readonly inputs: TensorDetail|TensorDetail[]|Record<string, TensorDetail>;
+  /**
+   * The returned tensor values of `model.predict(this.inputs)`.
+   */
   readonly predictDetails: TensorDetail|TensorDetail[]|
       Record<string, TensorDetail>;
+  /**
+   * All intermediate node tensor values after calling
+   * `model.predict(this.inputs)`. The object keys are the node names.
+   */
   readonly intermediateDetails: Record<string, TensorDetail>;
 }

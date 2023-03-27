@@ -23,7 +23,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {KARMA_SERVER, REGRESSION} from './constants';
-import * as GOLDEN_MODEL_DATA_LIST from './graph_model_golden_data/golden_model_data.json';
+import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
 import {GraphModeGoldenData, TensorDetail} from './types';
 
 
@@ -46,7 +46,7 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
-  for (const goldenFilename of GOLDEN_MODEL_DATA_LIST) {
+  for (const goldenFilename of GOLDEN_MODEL_DATA_FILENAMES) {
     describe(goldenFilename, () => {
       it('model.predict(...)', async () => {
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
@@ -71,6 +71,9 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
              const intermediateNodeNames =
                  Object.keys(modelGolden.intermediateDetails);
 
+             // Validates the intermediate node tensor values and output values.
+             // Every `INTERMEDIATE_NODE_TESTS_NUM` nodes in
+             // `intermediateDetails` are chosen to be validated.
              const targetNodeNames = [
                ...intermediateNodeNames.filter(
                    (unused, i) =>
