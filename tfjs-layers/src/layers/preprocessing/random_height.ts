@@ -16,7 +16,7 @@ import { ValueError } from '../../errors';
 import { BaseRandomLayerArgs, BaseRandomLayer } from '../../engine/base_random_layer';
 import { randomUniform } from '@tensorflow/tfjs-core';
 
-export declare interface RandomWidthArgs extends BaseRandomLayerArgs {
+export declare interface RandomHeightArgs extends BaseRandomLayerArgs {
    factor: number | [number, number];
    interpolation?: InterpolationType; // default = 'bilinear';
    seed?: number; // default = null;
@@ -30,7 +30,7 @@ type InterpolationType = typeof INTERPOLATION_KEYS[number];
 /**
  * Preprocessing Layer with randomly varies image during training
  *
- * This layer randomly adjusts the width of a batch of images of a
+ * This layer randomly adjusts the height of a
  * batch of images by a random factor.
  *
  * The input should be a 3D (unbatched) or
@@ -44,44 +44,44 @@ type InterpolationType = typeof INTERPOLATION_KEYS[number];
  *
  */
 
-export class RandomWidth extends BaseRandomLayer {
+export class RandomHeight extends BaseRandomLayer {
   /** @nocollapse */
-  static override className = 'RandomWidth';
+  static override className = 'RandomHeight';
   private readonly factor: number | [number, number];
   private readonly interpolation?: InterpolationType;  // defualt = 'bilinear
-  private widthLower: number;
-  private widthUpper: number;
-  private imgHeight: number;
-  private widthFactor: Tensor<Rank.R1>;
+  private heightLower: number;
+  private heightUpper: number;
+  private imgWidth: number;
+  private heightFactor: Tensor<Rank.R1>;
 
-  constructor(args: RandomWidthArgs) {
+  constructor(args: RandomHeightArgs) {
     super(args);
     const {factor, interpolation = 'bilinear'} = args;
 
     this.factor = factor;
 
     if (Array.isArray(this.factor) && this.factor.length === 2) {
-      this.widthLower = this.factor[0];
-      this.widthUpper = this.factor[1];
+      this.heightLower = this.factor[0];
+      this.heightUpper = this.factor[1];
     } else if (!Array.isArray(this.factor) && this.factor > 0){
-      this.widthLower = -this.factor;
-      this.widthUpper = this.factor;
+      this.heightLower = -this.factor;
+      this.heightUpper = this.factor;
     } else {
       throw new ValueError(
         `Invalid factor: ${this.factor}. Must be positive number or tuple of 2 numbers`
       );
     }
-    if (this.widthLower < -1.0 || this.widthUpper < -1.0) {
+    if (this.heightLower < -1.0 || this.heightUpper < -1.0) {
       throw new ValueError(
         `factor must have values larger than -1. Got: ${this.factor}`
       );
     }
 
-    if (this.widthUpper < this.widthLower) {
+    if (this.heightUpper < this.heightLower) {
       throw new ValueError(
         `factor cannot have upper bound less than lower bound.
-        Got upper bound: ${this.widthUpper}.
-        Got lower bound: ${this.widthLower}
+        Got upper bound: ${this.heightUpper}.
+        Got lower bound: ${this.heightLower}
       `);
     }
 
@@ -109,7 +109,7 @@ export class RandomWidth extends BaseRandomLayer {
   override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const numChannels = inputShape[2];
-    return [this.imgHeight, -1, numChannels];
+    return [-1, this.imgWidth, numChannels];
   }
 
   override call(inputs: Tensor<Rank.R3>|Tensor<Rank.R4>,
@@ -117,18 +117,18 @@ export class RandomWidth extends BaseRandomLayer {
 
     return tidy(() => {
       const input = getExactlyOneTensor(inputs);
-      this.imgHeight = input.shape[input.shape.length - 3];
-      const imgWidth = input.shape[input.shape.length - 2];
+      this.imgWidth = input.shape[input.shape.length - 2];
+      const imgHeight = input.shape[input.shape.length - 3];
 
-      this.widthFactor = randomUniform([1],
-        (1.0 + this.widthLower), (1.0 + this.widthUpper),
+      this.heightFactor = randomUniform([1],
+        (1.0 + this.heightLower), (1.0 + this.heightUpper),
         'float32', this.randomGenerator.next()
       );
 
-      let adjustedWidth = this.widthFactor.dataSync()[0] * imgWidth;
-      adjustedWidth = Math.round(adjustedWidth);
+      let adjustedHeight = this.heightFactor.dataSync()[0] * imgHeight;
+      adjustedHeight = Math.round(adjustedHeight);
 
-      const size:[number, number] = [this.imgHeight, adjustedWidth];
+      const size:[number, number] = [adjustedHeight, this.imgWidth];
 
       switch (this.interpolation) {
         case 'bilinear':
@@ -143,4 +143,4 @@ export class RandomWidth extends BaseRandomLayer {
   }
 }
 
-serialization.registerClass(RandomWidth);
+serialization.registerClass(RandomHeight);
