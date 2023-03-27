@@ -36,6 +36,10 @@ export function toPixels(
   canvas.width = width;
   canvas.height = height;
   const gpuContext = canvas.getContext('webgpu');
+  if (!gpuContext) {
+    throw new Error(
+        `Please make sure this canvas has only been used for webgpu context!`);
+  }
   //  'rgba8unorm' is not supported yet as the context format
   //  (https://bugs.chromium.org/p/chromium/issues/detail?id=1241369).
   //  If supported, we can use single compute pass to transfer the input tensor

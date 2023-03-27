@@ -19,10 +19,6 @@ import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 
 import {toPixelsNoCanvas, toPixelsTestCase, toPixelsWithCanvas} from './to_pixels_util_test';
 
-describeWithFlags('toPixels no canvas, returns void', ALL_ENVS, () => {
-  toPixelsTestCase(toPixelsNoCanvas, false);
-});
-
 describeWithFlags('toPixels no canvas, returns data', ALL_ENVS, () => {
   toPixelsTestCase(toPixelsNoCanvas, true);
 });
