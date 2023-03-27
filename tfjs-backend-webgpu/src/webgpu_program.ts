@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, env, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
@@ -65,6 +65,27 @@ export const compileProgram =
         layout: 'auto'
       });
 
+      let printShaderString = env().get('WEBGPU_PRINT_SHADER') as string;
+      if (printShaderString === '') {
+        return pipeline;
+      }
+      // If set WEBGPU_PRINT_SHADER to boolean or number, throw error.
+      try {
+        printShaderString = printShaderString.toLowerCase();
+      } catch {
+        throw new Error(
+            `WEBGPU_PRINT_SHADER doesn't support value ` +
+            `'${printShaderString}'. ` +
+            `It should be 'all' or program name`);
+      }
+
+      const printShaderArray = printShaderString.split(',');
+      if (printShaderString === 'all' ||
+          printShaderArray.some(item => program.shaderKey.includes(item))) {
+        console.group(program.shaderKey);
+        console.debug(source);
+        console.groupEnd();
+      }
       return pipeline;
     };
 
