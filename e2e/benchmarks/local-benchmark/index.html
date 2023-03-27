@@ -96,6 +96,7 @@ limitations under the License.
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
+    let untunableFlagsConfig = {};
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
@@ -112,6 +113,9 @@ limitations under the License.
       }
       if (params.has('task')) {
         task = params.get('task');
+      }
+      if (params.has('WEBGPU_PRINT_SHADER')) {
+        untunableFlagsConfig['WEBGPU_PRINT_SHADER'] = params.get('WEBGPU_PRINT_SHADER');
       }
       return params;
     }
@@ -749,7 +753,7 @@ limitations under the License.
       }
       await tf.ready();
       if (state.isFlagChanged) {
-        const canProceed = await setEnvFlags(state.flags);
+        const canProceed = await setEnvFlags(state.flags, untunableFlagsConfig);
         envDiv.innerHTML = '';
         showVersions();
         await showEnvironment();
