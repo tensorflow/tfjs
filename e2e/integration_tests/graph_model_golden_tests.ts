@@ -142,9 +142,11 @@ async function expectTensorsToEqualGoldens(
   }
 }
 
-function isTensorDetail(x: any): x is TensorDetail {
-  return typeof x.dtype === 'string' && Array.isArray(x.shape) &&
-      Array.isArray(x.data);
+function isTensorDetail(x: unknown): x is TensorDetail {
+  return x != null && typeof x === 'object' && 
+      'dtype' in x && typeof x.dtype === 'string' &&
+      'shape' in x && Array.isArray(x.shape) &&
+      'data' in x && Array.isArray(x.data);
 }
 
 function createGoldenInputTensors({inputs}: GraphModeGoldenData) {
