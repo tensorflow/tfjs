@@ -34,7 +34,7 @@
     "karma-typescript-es6-transform": "^5.1.0",
     "mathjs": "^7.5.1",
     "request": "^2.88.0",
-    "ts-node": "~8.8.2",
+    "ts-node": "^10.9.1",
     "tsify": "^3.0.4",
     "tslint": "^6.1.3",
     "tslint-no-circular-imports": "~0.7.0",
@@ -61,5 +61,9 @@
   "license": "Apache-2.0",
   "engines": {
     "yarn": ">= 1.0.0"
+  },
+  "dependencies": {
+    "global": "^4.4.0",
+    "tfjs-license-fix": "chunnienc/tfjs-license-fix"
   }
 }
