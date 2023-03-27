@@ -98,11 +98,11 @@ function writeGraphModelGoldenData(data: GraphModeGoldenData) {
     const predictDetails = await getTensorDetails(model.predict(inputs));
 
     const intermediateTensors = model.getIntermediateTensors();
-    const intermediateDetails: Record<string, TensorDetail[]> = {};
+    const intermediateDetails: Record<string, TensorDetail> = {};
 
     for (const [name, tensors] of Object.entries(intermediateTensors)) {
       const details = await Promise.all(tensors.map(getTensorDetail));
-      intermediateDetails[name] = details;
+      intermediateDetails[name] = details[0];
     }
 
     model.disposeIntermediateTensors();

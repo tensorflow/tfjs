@@ -29,5 +29,5 @@ export interface GraphModeGoldenData {
   readonly inputs: TensorDetail|TensorDetail[]|Record<string, TensorDetail>;
   readonly predictDetails: TensorDetail|TensorDetail[]|
       Record<string, TensorDetail>;
-  readonly intermediateDetails: Record<string, TensorDetail[]>;
+  readonly intermediateDetails: Record<string, TensorDetail>;
 }
