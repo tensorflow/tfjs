@@ -649,26 +649,36 @@ export class WebGPUBackend extends KernelBackend {
     tensorData
         .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
     if (tensorData.values) {
-      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-          size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
-      const arrayBuffer = stagingBuffer.getMappedRange();
-      if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-        new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+      if (env().getBool('WEBGPU_DISABLE_BUFFER_MAPPED_AT_CREATION')) {
+        if (tensorData.dtype === 'bool') {
+          // Number of bytes to write must be a multiple of 4
+          this.queue.writeBuffer(
+              buffer, 0, new Int32Array(tensorData.values as ArrayBuffer));
+        } else {
+          this.queue.writeBuffer(buffer, 0, tensorData.values as ArrayBuffer);
+        }
       } else {
-        new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
-      }
-      stagingBuffer.unmap();
-      this.ensureCommandEncoderReady();
-      this.ensureComputePassEnded();
-      this.currentCommandEncoder.copyBufferToBuffer(
-          stagingBuffer, 0, buffer, 0, size);
+        const stagingBuffer = this.bufferManager.acquireUploadBuffer(
+            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+        const arrayBuffer = stagingBuffer.getMappedRange();
+        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        }
+        stagingBuffer.unmap();
+        this.ensureCommandEncoderReady();
+        this.ensureComputePassEnded();
+        this.currentCommandEncoder.copyBufferToBuffer(
+            stagingBuffer, 0, buffer, 0, size);
 
-      const stagingInfo = {
-        size,
-        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        buffer: stagingBuffer
-      };
-      this.stagingPendingDisposal.push(stagingInfo);
+        const stagingInfo = {
+          size,
+          usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+          buffer: stagingBuffer
+        };
+        this.stagingPendingDisposal.push(stagingInfo);
+      }
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
