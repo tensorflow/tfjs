@@ -112,8 +112,8 @@ async function loadModelGolden(goldenFilename: string) {
 
 async function expectTensorToEqualGolden(
     tensor: tfc.Tensor, golden: TensorDetail) {
-  expect(tensor).not.toBeNull();
-  expect(golden).not.toBeNull();
+  expect(tensor).not.toEqual(null);
+  expect(golden).not.toEqual(null);
 
   expect(isTensorDetail(golden));
   expect(tensor.isDisposed).toEqual(false);
@@ -125,8 +125,8 @@ async function expectTensorToEqualGolden(
 async function expectTensorsToEqualGoldens(
     tensors: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
     goldens: TensorDetail|TensorDetail[]|Record<string, TensorDetail>) {
-  expect(tensors).not.toBeNull();
-  expect(goldens).not.toBeNull();
+  expect(tensors).not.toEqual(null);
+  expect(goldens).not.toEqual(null);
   if (tensors instanceof tfc.Tensor) {
     expectTensorToEqualGolden(tensors, goldens as TensorDetail);
   } else if (Array.isArray(tensors)) {
