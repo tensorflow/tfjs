@@ -125,6 +125,8 @@ async function expectTensorToEqualGolden(
 async function expectTensorsToEqualGoldens(
     tensors: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
     goldens: TensorDetail|TensorDetail[]|Record<string, TensorDetail>) {
+  expect(tensors).not.toBeNull();
+  expect(goldens).not.toBeNull();
   if (tensors instanceof tfc.Tensor) {
     expectTensorToEqualGolden(tensors, goldens as TensorDetail);
   } else if (Array.isArray(tensors)) {
