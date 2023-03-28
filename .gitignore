@@ -30,6 +30,7 @@ tfjs-layers/integration/typescript/yarn.lock
 e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
 e2e/integration_tests/metadata
+e2e/integration_tests/graph_model_golden_data/*.golden.json
 e2e/scripts/storage
 e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
