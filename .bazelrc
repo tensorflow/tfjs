@@ -12,6 +12,7 @@ build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
+# Required to avoid unused function error when building XNNPACK.
 build --copt="-DXNN_LOG_TO_STDIO=0"
 
 # The following --define=EXECUTOR=remote will be able to be removed
