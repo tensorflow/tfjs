@@ -54,21 +54,6 @@ describe('initializes flags from the url', () => {
     expect(env.get('FLAG1')).toBe(false);
   });
 
-  it('one registered flag string', () => {
-    const global = {location: {search: '?tfjsflags=FLAG1:FlagString'}};
-    const env = new Environment(global);
-    env.registerFlag('FLAG1', () => 'FlagString');
-
-    expect(env.get('FLAG1')).toBe('flagstring');
-  });
-
-  it('one registered flag empty string', () => {
-    const global = {location: {search: '?tfjsflags=FLAG1:'}};
-    const env = new Environment(global);
-    env.registerFlag('FLAG1', () => 'FlagString');
-    expect(env.get('FLAG1')).toBe('');
-  });
-
   it('two registered flags', () => {
     const global = {location: {search: '?tfjsflags=FLAG1:true,FLAG2:200'}};
     const env = new Environment(global);
@@ -95,6 +80,17 @@ describe('flag registration and evaluation', () => {
     // Multiple calls to get do not call the evaluation function again.
     expect(env.get('FLAG1')).toBe(true);
     expect(spy.calls.count()).toBe(1);
+  });
+
+  it('one string flag registered', () => {
+    const env = new Environment({});
+
+    env.registerFlag('FLAG1', () => '');
+
+    // Set to a non empty string, this is case sensitive.
+    env.set('FLAG1', 'FlagString');
+    expect(env.get('FLAG1')).toBe('FlagString');
+    expect(env.get('FLAG1')).not.toBe('flagString');
   });
 
   it('multiple flags registered', () => {
