@@ -20,4 +20,8 @@ cd ./integration_tests/graph_model_golden_data
 
 golden_files=$(python -c "import json; print('\n'.join(json.load(open('./filenames.json'))))")
 
-while read golden_file; do curl -O "$STORAGE_URL/$golden_file"; done <<<"$(echo "$golden_files")"
+while read golden_file; do
+  url="$STORAGE_URL/$golden_file"
+  echo "Downloading $url"
+  curl -O "$url"
+done <<<"$(echo "$golden_files")"
