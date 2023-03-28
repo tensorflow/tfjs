@@ -80,7 +80,6 @@ const TEST_FILTERS: TestFilter[] = [
       'staticRegexReplace ',
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tensorScatterUpdate ',
       'unique ',
       'unsortedSegmentSum ',
     ]
