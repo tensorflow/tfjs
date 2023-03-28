@@ -78,10 +78,16 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
                ...intermediateNodeNames.filter(
                    (unused, i) =>
                        (i % INTERMEDIATE_NODE_TESTS_NUM) + 1 === batchId),
-               ...model.outputNodes,
+               ...model.outputs.map(output => output.name),
              ];
+
              const goldens = targetNodeNames.map((name) => {
-               return modelGolden.intermediateDetails[name];
+               const details = modelGolden.intermediateDetails[name];
+               if (details == null) {
+                 throw new Error(`Golden file is missing tensor details for ` +
+                   `${name}`);
+               }
+               return details;
              });
 
              tfc.tidy(() => {
@@ -112,8 +118,8 @@ async function loadModelGolden(goldenFilename: string) {
 
 async function expectTensorToEqualGolden(
     tensor: tfc.Tensor, golden: TensorDetail) {
-  expect(tensor).not.toEqual(null);
-  expect(golden).not.toEqual(null);
+  expect(tensor).toEqual(jasmine.anything());
+  expect(golden).toEqual(jasmine.anything());
 
   expect(isTensorDetail(golden));
   expect(tensor.isDisposed).toEqual(false);
@@ -125,8 +131,8 @@ async function expectTensorToEqualGolden(
 async function expectTensorsToEqualGoldens(
     tensors: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
     goldens: TensorDetail|TensorDetail[]|Record<string, TensorDetail>) {
-  expect(tensors).not.toEqual(null);
-  expect(goldens).not.toEqual(null);
+  expect(tensors).toEqual(jasmine.anything());
+  expect(goldens).toEqual(jasmine.anything());
   if (tensors instanceof tfc.Tensor) {
     expectTensorToEqualGolden(tensors, goldens as TensorDetail);
   } else if (Array.isArray(tensors)) {
