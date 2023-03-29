@@ -357,13 +357,6 @@ export class GraphExecutor implements FunctionExecutor {
     return tidy(exe);
   }
 
-
-  public cleanOutputs() {
-    for (const output of this.placeHolderOutputs) {
-      engine().backend.cleanTensor(output.dataId);
-    }
-  }
-
   public cloneTensors(tensors: Tensor[]) {
     return tensors.map(tensor => {
       const newTensor = clone(tensor);
@@ -375,7 +368,6 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   public replay(inputs: NamedTensorMap) {
-    this.cleanOutputs();
     for (const prop in inputs) {
       if (this.placeHolderInputs.hasOwnProperty(prop)) {
         engine().backend.bindInputToPlaceHolder(
