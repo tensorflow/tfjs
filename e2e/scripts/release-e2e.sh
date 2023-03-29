@@ -66,13 +66,15 @@ startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 "$e2e_root_path"/scripts/publish-tfjs-ci.sh
 
 # ****************************************************************************
-# Second, install the packages from local registry.
+# Second, install the packages from local registry and fetch golden data for testing.
 # ****************************************************************************
 # First make sure npm install succeeds.
 npm install
 rm -rf node_modules
 # Then install dependencies via yarn.
 yarn
+# Fetch golden data for testing
+yarn fetch-graph-model-golden-data-ci
 
 # ****************************************************************************
 # Third, run integration tests against locally published version.
