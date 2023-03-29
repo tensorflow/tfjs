@@ -30,7 +30,6 @@ export const fromPixelsConfig: KernelConfig = {
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 let willReadFrequently = env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
-const videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -72,21 +71,14 @@ export function fromPixels(args: {
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo: TextureInfo;
     if (importVideo) {
-      const videoElement = pixels as HTMLVideoElement;
-      if (!(videoToTextureMap.has(videoElement)) ||
-          (videoToTextureMap.get(videoElement) as GPUExternalTexture).expired) {
-        const externalTextureDescriptor = {source: videoElement};
-        videoToTextureMap.set(
-            videoElement,
-            backend.device.importExternalTexture(externalTextureDescriptor));
-      }
-
+      const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
       textureInfo = {
         width,
         height,
         format: null,
         usage: null,
-        texture: videoToTextureMap.get(videoElement) as GPUExternalTexture
+        texture: backend.device.importExternalTexture(
+                     externalTextureDescriptor) as GPUExternalTexture
       };
     } else {
       if (isVideoOrImage) {
@@ -95,9 +87,8 @@ export function fromPixels(args: {
         if (fromPixels2DContext == null ||
             newWillReadFrequently !== willReadFrequently) {
           willReadFrequently = newWillReadFrequently;
-          fromPixels2DContext =
-              document.createElement('canvas').getContext(
-                  '2d', {willReadFrequently});
+          fromPixels2DContext = document.createElement('canvas').getContext(
+              '2d', {willReadFrequently});
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;
