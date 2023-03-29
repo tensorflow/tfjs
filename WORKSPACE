@@ -102,6 +102,7 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
+    sha256 = "6cb6fd281081f309f82a2769fa06633e25fd851a8539462676bf021c78a5ba19",
     strip_prefix = "emsdk-3.1.26/bazel",
     urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.26.tar.gz"],
 )
