@@ -26,10 +26,6 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
-  acquireUploadBuffer(size: number, usage: GPUBufferUsageFlags) {
-    return this.acquireBuffer(size, usage, true);
-  }
-
   acquireBuffer(
       size: number, usage: GPUBufferUsageFlags, mappedAtCreation = false) {
     const key = getBufferKey(size, usage);
@@ -44,7 +40,7 @@ export class BufferManager {
     this.numBytesUsed += size;
     this.numUsedBuffers++;
 
-    if (this.freeBuffers.get(key).length > 0) {
+    if (!mappedAtCreation && this.freeBuffers.get(key).length > 0) {
       this.numFreeBuffers--;
 
       const newBuffer = this.freeBuffers.get(key).shift();
@@ -82,18 +78,6 @@ export class BufferManager {
     }
     bufferList.splice(bufferIndex, 1);
     this.numBytesUsed -= size;
-  }
-
-  releaseUploadBuffer(
-      buffer: GPUBuffer, size: number, usage: GPUBufferUsageFlags) {
-    buffer.mapAsync(GPUMapMode.WRITE)
-        .then(
-            () => {
-              this.releaseBuffer(buffer, size, usage);
-            },
-            (err) => {
-                // Do nothing;
-            });
   }
 
   getNumUsedBuffers(): number {

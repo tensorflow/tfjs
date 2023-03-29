@@ -132,7 +132,6 @@ export class WebGPUBackend extends KernelBackend {
   private pipelineCache: {[key: string]: GPUComputePipeline};
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
-  private stagingPendingDisposal: BufferInfo[] = [];
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
@@ -189,8 +188,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   defaultGpuBufferUsage(): number {
-    return GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC |
-        GPUBufferUsage.COPY_DST;
+    return GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC;
   }
 
   /**
@@ -327,12 +325,9 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.uniformPendingDisposal.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
-    this.stagingPendingDisposal.forEach(
-        d => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage));
 
     this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
-    this.stagingPendingDisposal = [];
   }
 
   ensureCommandEncoderReady() {
@@ -508,7 +503,10 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const size = (resourceInfo as BufferInfo).size;
-    const buffer = this.bufferManager.acquireBuffer(size, resourceInfo.usage);
+    const buffer = this.bufferManager.acquireBuffer(
+        size,
+        GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC |
+            GPUBufferUsage.COPY_DST);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
@@ -520,8 +518,7 @@ export class WebGPUBackend extends KernelBackend {
     const tensorRef = engine().makeTensorFromTensorInfo(tensorInfo);
 
     const tensorData = this.tensorMap.get(tensorInfo.dataId);
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    tensorData.resourceInfo = {size, usage: buffer.usage, buffer};
 
     return {tensorRef, buffer, bufSize: size};
   }
@@ -643,48 +640,30 @@ export class WebGPUBackend extends KernelBackend {
 
     const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
-    const buffer =
-        this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
-
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    let buffer;
     if (tensorData.values) {
-      if (env().getBool('WEBGPU_DISABLE_BUFFER_MAPPED_AT_CREATION')) {
-        if (tensorData.dtype === 'bool') {
-          // Number of bytes to write must be a multiple of 4
-          this.queue.writeBuffer(
-              buffer, 0, new Int32Array(tensorData.values as ArrayBuffer));
-        } else {
-          this.queue.writeBuffer(buffer, 0, tensorData.values as ArrayBuffer);
-        }
-      } else {
-        const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
-        const arrayBuffer = stagingBuffer.getMappedRange();
-        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
-        } else {
-          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
-        }
-        stagingBuffer.unmap();
-        this.ensureCommandEncoderReady();
-        this.ensureComputePassEnded();
-        this.currentCommandEncoder.copyBufferToBuffer(
-            stagingBuffer, 0, buffer, 0, size);
+      buffer = this.bufferManager.acquireBuffer(
+          size, this.defaultGpuBufferUsage(), true);
 
-        const stagingInfo = {
-          size,
-          usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-          buffer: stagingBuffer
-        };
-        this.stagingPendingDisposal.push(stagingInfo);
+      const arrayBuffer = buffer.getMappedRange();
+      if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+        new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+      } else {
+        new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
       }
+      buffer.unmap();
+
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
       // model; 2) swithcing the backend within the model. Temporarilly keep
       // the values on CPU to solve the first issue. tensorData.values = null;
+    } else {
+      buffer =
+          this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
     }
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
   }
 
   private makeUniforms(programUniform: ProgramUniform): GPUBindingResource {

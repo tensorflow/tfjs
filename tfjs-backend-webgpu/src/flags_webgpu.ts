@@ -82,9 +82,3 @@ ENV.registerFlag('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => 0);
  * Whether we will run im2col as a separate shader for convolution.
  */
 ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
-
-/**
- * When running a very large model, disable buffer mappedAtCreation can save
- * memory.
- */
-ENV.registerFlag('WEBGPU_DISABLE_BUFFER_MAPPED_AT_CREATION', () => false);
