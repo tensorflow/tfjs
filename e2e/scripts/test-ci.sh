@@ -67,8 +67,4 @@ for t in "${COMMANDS[@]}"; do
   TO_RUN+=("node ../scripts/run_flaky.js \"$t\"")
 done
 
-for t in "${TO_RUN[@]}"; do
-  echo Running $t
-done
-
 parallel ::: "${TO_RUN[@]}"
