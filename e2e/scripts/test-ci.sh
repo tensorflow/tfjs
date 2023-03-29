@@ -63,8 +63,8 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   )
 fi
 
-for t in "${COMMANDS[@]}"; do
-  TO_RUN+=("node ../scripts/run_flaky.js \"$t\"")
+for command in "${COMMANDS[@]}"; do
+  TO_RUN+=("node ../scripts/run_flaky.js \"$command\"")
 done
 
 parallel ::: "${TO_RUN[@]}"
