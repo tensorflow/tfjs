@@ -214,15 +214,12 @@ limitations under the License.
 
         // load model and run inference
         try {
-          const expectedBackend = 'cpu';
-          tf.setBackend(expectedBackend);
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg(`Runing on ${expectedBackend}`);
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -234,8 +231,17 @@ limitations under the License.
           } catch (e) {
             console.warn(e.message);
           }
-
           const enableDump = keepIntermediateTensors & (benchmarks[state.benchmark].supportDump !== false);
+
+          // Pre-run for recording.
+          const tempRes = await predictAndGetData(predict, model, inferenceInput, enableDump);
+          // Reset predict.
+          const benchmark = benchmarks[state.benchmark];
+          predict = benchmark.predictFunc();
+
+          const expectedBackend = 'cpu';
+          await showMsg(`Runing on ${expectedBackend}`);
+          tf.setBackend(expectedBackend);
           const expectedResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
           expectedData = expectedResult['data'];
 
@@ -250,7 +256,6 @@ limitations under the License.
             tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
           }
 
-          await predictAndGetData(predict, model, inferenceInput, enableDump);
           console.log('real run');
           const actualResult = await predictAndGetData(predict, model, inferenceInput, enableDump);
           actualData = actualResult['data'];
