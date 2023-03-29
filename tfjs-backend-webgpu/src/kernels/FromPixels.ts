@@ -77,8 +77,7 @@ export function fromPixels(args: {
         height,
         format: null,
         usage: null,
-        texture: backend.device.importExternalTexture(
-                     externalTextureDescriptor) as GPUExternalTexture
+        texture: backend.device.importExternalTexture(externalTextureDescriptor)
       };
     } else {
       if (isVideoOrImage) {
