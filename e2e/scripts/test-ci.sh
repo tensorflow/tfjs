@@ -62,7 +62,7 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac --tags '$TAGS' --testEnv webgl --flags '{"\""WEBGL_VERSION"\"": 1, "\""WEBGL_CPU_FORWARD"\"": false, "\""WEBGL_SIZE_UPLOAD_UNIFORM"\"": 0}'"
 
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac --tags '$TAGS'"
-  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS_WITH_GOLDEN'"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'"
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_android_10 --tags '$TAGS'"
 
   # Test script tag bundles
