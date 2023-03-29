@@ -19,9 +19,12 @@
 export const SMOKE = '#SMOKE';
 /** Regression tests run in nightly builds. */
 export const REGRESSION = '#REGRESSION';
+// TODO: Make golden tests part of regression tests.
+/** Golden regression tests */
+export const GOLDEN = '#GOLDEN';
 
 /** Testing tags. */
-export const TAGS = [SMOKE, REGRESSION];
+export const TAGS = [SMOKE, REGRESSION, GOLDEN];
 
 /** Testing backends. */
 export const BACKENDS = ['cpu', 'webgl'];

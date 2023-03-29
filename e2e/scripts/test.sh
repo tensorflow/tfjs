@@ -26,11 +26,11 @@ if [[ -z "$TAGS" ]]; then
 fi
 
 if [[ "$NIGHTLY" = true ]]; then
-    TAGS="${TAGS},#REGRESSION"
+  TAGS="${TAGS},#GOLDEN,#REGRESSION"
 fi
 
 # Additional setup for regression tests.
-if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
+if [[ "$TAGS" == *"#REGRESSION"* ]]; then
   # Generate canonical layers models and inputs.
   ./scripts/create_save_predict.sh
 
@@ -65,4 +65,3 @@ fi
 
 echo "Karma tests."
 yarn karma start --tags $TAGS
-
