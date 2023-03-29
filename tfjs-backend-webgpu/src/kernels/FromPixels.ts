@@ -71,13 +71,13 @@ export function fromPixels(args: {
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo: TextureInfo;
     if (importVideo) {
-      const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
       textureInfo = {
         width,
         height,
         format: null,
         usage: null,
-        texture: backend.device.importExternalTexture(externalTextureDescriptor)
+        texture: backend.device.importExternalTexture(
+            {source: pixels as HTMLVideoElement})
       };
     } else {
       if (isVideoOrImage) {
