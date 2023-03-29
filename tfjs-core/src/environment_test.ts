@@ -63,6 +63,23 @@ describe('initializes flags from the url', () => {
     expect(env.get('FLAG1')).toBe(true);
     expect(env.get('FLAG2')).toBe(200);
   });
+
+  it('one registered flag string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:FlagString'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+
+    expect(env.get('FLAG1')).toBe('FlagString');
+    expect(env.get('FLAG1')).not.toBe('flagstring');
+  });
+
+  it('one registered flag empty string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+
+    expect(env.get('FLAG1')).toBe('');
+  });
 });
 
 describe('flag registration and evaluation', () => {

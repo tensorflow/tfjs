@@ -191,11 +191,11 @@ function decodeParam(
 }
 
 function parseValue(flagName: string, value: string): FlagValue {
-  value = value.toLowerCase();
-  if (value === 'true' || value === 'false') {
-    return value === 'true';
-  } else if (`${+ value}` === value) {
-    return +value;
+  const lowerCaseValue = value.toLowerCase();
+  if (lowerCaseValue === 'true' || lowerCaseValue === 'false') {
+    return lowerCaseValue === 'true';
+  } else if (`${+ lowerCaseValue}` === lowerCaseValue) {
+    return +lowerCaseValue;
   } else {
     return value;
   }
