@@ -54,10 +54,9 @@ export function unsortedSegmentSum(args: {
   toDispose.push(a2D);
 
   const dtype = x.dtype;
-  const output = fill(
-      {backend, attrs: {shape: [a2D.shape[0], numSegments], value: 0, dtype}});
-  const program = new UnsortedSegmentSumProgram(
-      [a2D.shape[0], a2D.shape[1]], numSegments, dtype);
+  const shape = [a2D.shape[0], numSegments];
+  const output = fill({backend, attrs: {shape, value: 0, dtype}});
+  const program = new UnsortedSegmentSumProgram(a2D.shape, shape, dtype);
   const uniformData = [
     {type: 'int32', data: [numSegments]},
     {type: 'int32', data: [util.sizeFromShape(a2D.shape)]}

@@ -29,16 +29,14 @@ export class UnsortedSegmentSumProgram implements WebGPUProgram {
   variableNames = ['x', 'segmentIds'];
   uniforms = 'numSegments : i32, xSize: i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
-  size = true;
   atomic = true;
   type: DataType;
 
-  constructor(
-      inSize: [number, number], numSegments: number, outputDtype: DataType) {
-    this.outputShape = [inSize[0], numSegments];
-    this.dispatchLayout = flatDispatchLayout(inSize);
+  constructor(inShape: number[], outShape: number[], outputDtype: DataType) {
+    this.outputShape = outShape;
+    this.dispatchLayout = flatDispatchLayout(inShape);
     this.dispatch =
-        computeDispatch(this.dispatchLayout, inSize, this.workgroupSize);
+        computeDispatch(this.dispatchLayout, inShape, this.workgroupSize);
     if (outputDtype !== 'float32' && outputDtype !== 'int32') {
       throw new Error(`UnsortedSegmentSum only supports float32 and int32
               types, does not support ${outputDtype} type.`);
