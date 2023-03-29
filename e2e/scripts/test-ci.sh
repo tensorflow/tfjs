@@ -18,7 +18,7 @@ set -e
 
 # Smoke and regression tests run in PR and nightly builds.
 TAGS="#SMOKE,#REGRESSION"
-TAGS_WITH_GOLDEN+=",#GOLDEN"
+TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
 # Generate canonical layers models and inputs.
 ./scripts/create_save_predict.sh
