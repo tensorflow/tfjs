@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 set -e
 
-# Smoke and regression tests run in PR and nightly builds.
-export TAGS="#SMOKE,#REGRESSION"
+# Generate canonical layers models and inputs.
+./scripts/create_save_predict.sh
 
-./scripts/run-custom-builds.sh # Generate custom bundle files for tests
+cd integration_tests
 
-parallel ::: ./scripts/run-python-tests.sh \
-  ./scripts/run-browserstack-tests.sh
+source ../scripts/setup-py-env.sh --dev
 
+parallel ::: 'echo "Load equivalent keras models and generate outputs." && python create_save_predict.py' \
+  'echo "Create saved models and convert." && python convert_predict.py' \
+  'echo "Convert model with user defined metadata." && python metadata.py'
+
+# Cleanup python env.
+source ../scripts/cleanup-py-env.sh
+
+cd ..
