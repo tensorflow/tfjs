@@ -21,6 +21,7 @@ export TAGS="#SMOKE,#REGRESSION"
 
 ./scripts/run-custom-builds.sh # Generate custom bundle files for tests
 
-parallel ::: ./scripts/run-python-tests.sh \
-  ./scripts/run-browserstack-tests.sh
+parallel ::: ./scripts/create-python-models.sh \
+  ./scripts/run-browserstack-tests.sh \
+  "cd webpack_test && yarn && yarn build"
 
