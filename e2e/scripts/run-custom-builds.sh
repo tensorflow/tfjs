@@ -31,8 +31,7 @@ echo "npm version $(npm --version)"
 yarn make-custom-tfjs-modules
 # TODO(yassogba) once blazeface kernels are modularized in cpu
 # switch the config to cpu and also run and test rollup bundle.
-yarn webpack:full
-yarn webpack:custom
+parallel ::: 'yarn webpack:full' 'yarn webpack:custom'
 
 echo $PWD
 cd $e2e_root_path
@@ -43,10 +42,10 @@ yarn
 rm -f ./custom_tfjs/*.js
 yarn make-custom-tfjs-modules
 
-yarn webpack:full
-yarn webpack:custom
-yarn rollup:full
-yarn rollup:custom
+parallel ::: 'yarn webpack:full' \
+  'yarn webpack:custom' \
+  'yarn rollup:full' \
+  'yarn rollup:custom'
 
 cd $e2e_root_path
 echo $PWD
@@ -56,7 +55,7 @@ yarn
 rm -f ./custom_tfjs/*.js
 yarn make-custom-tfjs-modules
 
-yarn webpack:full
-yarn webpack:custom
-yarn rollup:full
-yarn rollup:custom
+parallel ::: 'yarn webpack:full' \
+  'yarn webpack:custom' \
+  'yarn rollup:full' \
+  'yarn rollup:custom'
