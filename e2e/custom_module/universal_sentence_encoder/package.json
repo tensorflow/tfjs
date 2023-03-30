@@ -9,7 +9,7 @@
     "rollup:full": "rollup -c",
     "rollup:custom": "rollup -c --useCustomTfjs",
     "webpack:full": "webpack",
-    "webpack:custom": "webpack --useCustomTfjs"
+    "webpack:custom": "webpack --env useCustomTfjs"
   },
   "dependencies": {
     "@tensorflow-models/universal-sentence-encoder": "^1.3.2",
