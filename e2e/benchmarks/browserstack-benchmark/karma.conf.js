@@ -75,7 +75,6 @@ module.exports = function(config) {
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@latest/dist/posenet.min.js',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@latest/dist/body-pix.min.js',
-    'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@latest/dist/pose-detection.min.js',
     {pattern: './benchmark_parameters.json', included: false, served: true},
     '../util.js', '../benchmark_util.js', '../model_config.js',
     'benchmark_models.js'
