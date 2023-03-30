@@ -103,9 +103,12 @@ const devConfig = {
 
 const browserstackConfig = {
   ...devConfig,
-  hostname: 'bs-local.com',
+  // TODONT: do not use `hostname: 'bs-local.com'. This is automatically changed
+  // by BrowserStack when necessary (i.e. on ios safari). Setting it manually
+  // breaks WASM file serving.
+  // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9816
+  port: 9876
 };
 
 module.exports = function(config) {

@@ -18,8 +18,8 @@
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
-module.exports = function(env, argv) {
-  const outputPath = argv.useCustomTfjs ? 'dist/custom' : 'dist/full'
+module.exports = function(env) {
+  const outputPath = (env && env.useCustomTfjs) ? 'dist/custom' : 'dist/full'
 
   const config = {
     mode: 'production',
@@ -49,7 +49,7 @@ module.exports = function(env, argv) {
     }
   };
 
-  if (argv.useCustomTfjs) {
+  if (env && env.useCustomTfjs) {
     config.resolve = {
       alias: {
         '@tensorflow/tfjs$':
