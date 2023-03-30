@@ -21,8 +21,7 @@ set -e
 
 TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
-# Test webpack
-COMMANDS+=("cd webpack_test && yarn && yarn build && cd ..")
+# Test windows 10 with golden model tests
 COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS_WITH_GOLDEN'")
 
 # Test script tag bundles

@@ -17,7 +17,7 @@
 
 set -e
 
-yarn
+yarn --mutex network
 # Ensure that we test against freshly generated custom modules.
 rm -f ./custom_tfjs/*.js
 yarn make-custom-tfjs-modules
