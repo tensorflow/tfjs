@@ -46,7 +46,7 @@ cd ..
 
 # Test webpack
 COMMANDS+=("cd webpack_test && yarn && yarn build && cd ..")
-COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS'")
+COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS_WITH_GOLDEN'")
 
 # Test script tag bundles
 COMMANDS+=("karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js")
@@ -55,7 +55,7 @@ COMMANDS+=("karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --b
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   #TODO: Run golden tests on all devices.
   COMMANDS+=(
-    "yarn run-browserstack --browsers=bs_ios_12 --tags '$TAGS_WITH_GOLDEN' --testEnv webgl --flags '{\"\\"\"WEBGL_VERSION\"\\"\": 1, \"\\"\"WEBGL_CPU_FORWARD\"\\"\": false, \"\\"\"WEBGL_SIZE_UPLOAD_UNIFORM\"\\"\": 0}'"
+    "yarn run-browserstack --browsers=bs_ios_12 --tags '$TAGS' --testEnv webgl --flags '{\"\\"\"WEBGL_VERSION\"\\"\": 1, \"\\"\"WEBGL_CPU_FORWARD\"\\"\": false, \"\\"\"WEBGL_SIZE_UPLOAD_UNIFORM\"\\"\": 0}'"
     "yarn run-browserstack --browsers=bs_safari_mac --tags '$TAGS' --testEnv webgl --flags '{\"\\"\"WEBGL_VERSION\"\\"\": 1, \"\\"\"WEBGL_CPU_FORWARD\"\\"\": false, \"\\"\"WEBGL_SIZE_UPLOAD_UNIFORM\"\\"\": 0}'"
     "yarn run-browserstack --browsers=bs_firefox_mac --tags '$TAGS'"
     "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'"
@@ -64,7 +64,6 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
     "karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js --browserstack --browsers=bs_chrome_mac"
   )
 fi
-  #TODO: Run golden tests on all devices.
 
 for command in "${COMMANDS[@]}"; do
   TO_RUN+=("node ../scripts/run_flaky.js \"$command\"")
