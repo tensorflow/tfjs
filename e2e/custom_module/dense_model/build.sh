@@ -15,6 +15,8 @@
 # limitations under the License.
 # ==============================================================================
 
+set -e
+
 yarn
 # Ensure that we test against freshly generated custom modules.
 rm -f ./custom_tfjs/*.js
