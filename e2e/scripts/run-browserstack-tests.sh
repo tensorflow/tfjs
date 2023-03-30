@@ -19,9 +19,11 @@
 
 set -e
 
+TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
+
 # Test webpack
 COMMANDS+=("cd webpack_test && yarn && yarn build && cd ..")
-COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS'")
+COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS_WITH_GOLDEN'")
 
 # Test script tag bundles
 COMMANDS+=("karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js")

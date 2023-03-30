@@ -24,4 +24,3 @@ export TAGS="#SMOKE,#REGRESSION"
 parallel ::: ./scripts/create-python-models.sh \
   ./scripts/run-browserstack-tests.sh \
   "cd webpack_test && yarn && yarn build"
-
