@@ -127,7 +127,9 @@ export function maxPoolPositions(
             const wR = xR - xRCorner;
             for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
               const wC = xC - xCCorner;
-              // tslint:disable-next-line: no-unnecessary-type-assertion
+              // For some reason, disable-next-line is not working
+              // TODO(mattsoulanille): Remove this when switching to TS5.
+              /* tslint:disable: no-unnecessary-type-assertion */
               const pixel = xBuf.get(b, xR, xC, d) as number;
               if (pixel > maxValue) {
                 maxValue = pixel as number;
@@ -314,7 +316,6 @@ export function maxPool3dPositions(
                 for (let xCol = xColMin; xCol < xColMax;
                      xCol += dilationWidth) {
                   const wCol = xCol - xColCorner;
-                  // tslint:disable-next-line: no-unnecessary-type-assertion
                   const pixel = xBuf.get(batch, xDepth, xRow, xCol,
                                          channel) as number;
                   if (pixel >= maxValue) {
