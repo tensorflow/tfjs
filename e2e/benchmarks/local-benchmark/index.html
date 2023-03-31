@@ -19,7 +19,7 @@ limitations under the License.
   <title>TensorFlow.js Model Benchmark</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link href="./main.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.18"></script>
   <script src="loader.js"></script>
   <link rel="shortcut icon"
         href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
@@ -795,7 +795,7 @@ limitations under the License.
     }
 
     async function onPageLoad() {
-      const gui = new dat.gui.GUI({ width: 550 });
+      const gui = new lil.GUI({ width: 350 });
       gui.domElement.id = 'gui';
 
       urlState = getURLState(location.search);
@@ -819,15 +819,15 @@ limitations under the License.
         state.isModelChanged = true;
         state.isModelLoaded = false;
         if (modelArchitectureController !== null) {
-          modelParameterFolder.remove(modelArchitectureController);
+          modelArchitectureController.destroy();
           modelArchitectureController = null;
         }
         if (inputSizeController !== null) {
-          modelParameterFolder.remove(inputSizeController);
+          inputSizeController.destroy();
           inputSizeController = null;
         }
         if (inputTypeController !== null) {
-          modelParameterFolder.remove(inputTypeController);
+          inputTypeController.destroy();
           inputTypeController = null;
         }
 
@@ -908,7 +908,7 @@ limitations under the License.
             }
           }
         } else if (modelUrlController != null) {
-          modelFolder.remove(modelUrlController);
+          modelUrlController.destroy();
           modelUrlController = null;
         }
       });
@@ -958,7 +958,7 @@ limitations under the License.
         }
         if (isTflite()) {
           // Remove the "Test correctness" button which doesn't apply to tfjs-tflite.
-          correctnessButton.remove();
+          correctnessButton.destroy();
           correctnessButton = null;
 
           // Update models drop down to only show models that support tflite.
@@ -1017,7 +1017,7 @@ limitations under the License.
 
     function updateModelsDropdown(newValues) {
       const tfliteBenchmarksHtml = newValues.map(name => `<option value="${name}">${name}</option>`);
-      modelController.domElement.children[0].innerHTML = tfliteBenchmarksHtml;
+      modelController.domElement.children[1].children[0].innerHTML = tfliteBenchmarksHtml;
     }
 
     onPageLoad();
