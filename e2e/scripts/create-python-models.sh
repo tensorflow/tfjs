@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-# Copyright 2020 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +14,20 @@
 # limitations under the License.
 # ==============================================================================
 
-# Start in scripts/ even if run from root directory
-cd "$(dirname "$0")"
+set -e
 
-# Go to e2e root
+# Generate canonical layers models and inputs.
+./scripts/create_save_predict.sh
+
+cd integration_tests
+
+source ../scripts/setup-py-env.sh --dev
+
+parallel ::: 'echo "Load equivalent keras models and generate outputs." && python create_save_predict.py' \
+  'echo "Create saved models and convert." && python convert_predict.py' \
+  'echo "Convert model with user defined metadata." && python metadata.py'
+
+# Cleanup python env.
+source ../scripts/cleanup-py-env.sh
+
 cd ..
-
-parallel ::: 'cd custom_module/blazeface && ./build.sh' \
-  'cd custom_module/dense_model && ./build.sh' \
-  'cd custom_module/universal_sentence_encoder && ./build.sh'

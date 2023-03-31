@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2020 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
 # limitations under the License.
 # ==============================================================================
 
-# Start in scripts/ even if run from root directory
-cd "$(dirname "$0")"
+set -e
 
-# Go to e2e root
-cd ..
-
-parallel ::: 'cd custom_module/blazeface && ./build.sh' \
-  'cd custom_module/dense_model && ./build.sh' \
-  'cd custom_module/universal_sentence_encoder && ./build.sh'
+yarn --mutex network
+# Ensure that we test against freshly generated custom modules.
+rm -f ./custom_tfjs_blazeface/*.js
+echo "npm version $(npm --version)"
+yarn make-custom-tfjs-modules
+# TODO(yassogba) once blazeface kernels are modularized in cpu
+# switch the config to cpu and also run and test rollup bundle.
+parallel ::: "yarn webpack:full" "yarn webpack:custom"
