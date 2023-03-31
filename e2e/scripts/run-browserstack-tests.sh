@@ -19,6 +19,8 @@
 
 set -e
 
+# Smoke and regression tests run in PR and nightly builds.
+TAGS="#SMOKE,#REGRESSION"
 TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
 # Test windows 10 with golden model tests

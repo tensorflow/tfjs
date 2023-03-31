@@ -16,9 +16,6 @@
 
 set -e
 
-# Smoke and regression tests run in PR and nightly builds.
-export TAGS="#SMOKE,#REGRESSION"
-
 ./scripts/run-custom-builds.sh # Generate custom bundle files for tests
 
 parallel ::: ./scripts/create-python-models.sh \
