@@ -153,6 +153,22 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   dispose(): void {
     return notYetImplemented('dispose');
   }
+
+  isRecordSupported(): boolean {
+    return false;
+  }
+  replay(): void {
+    return notYetImplemented('replay');
+  }
+
+  bindInputToPlaceHolder(inId: DataId, placeholderId: DataId): void {
+    return notYetImplemented('bindInputToPlaceHolder');
+  }
+  // TODO: add model id to support multiple models?
+  traceInputTensor(tensorId: DataId): void {}
+  disposeRecordList(): void {
+    return notYetImplemented('disposeRecordList');
+  }
 }
 
 function notYetImplemented(kernelName: string): never {

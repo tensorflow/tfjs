@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, engine, env, keep, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
 import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
@@ -48,6 +48,8 @@ export class GraphExecutor implements FunctionExecutor {
   private _resourceManager: ResourceManager;
   private clonedTensorsMap: NamedTensorsMap;
   private keepIntermediateTensors = false;
+  private placeHolderInputs: NamedTensorMap;
+  private placeHolderOutputs: Tensor[];
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -190,7 +192,7 @@ export class GraphExecutor implements FunctionExecutor {
     return {orderedNodes, nodeLiveUntilMap};
   }
 
-  private cloneAndKeepTensor(tensor: Tensor) {
+  private cloneAndKeepTensor(tensor: Tensor, keeping = true) {
     if (tensor == null) {
       return null;
     }
@@ -198,16 +200,18 @@ export class GraphExecutor implements FunctionExecutor {
     // Keep the clone because`model.execute()` may be called within
     // a `tidy()`, but the user may inspect these tensors after the
     // tidy.
-    keep(clone);
+    if (keeping) {
+      keep(clone);
+    }
     return clone;
   }
 
-  private cloneTensorList(tensors: Tensor[]) {
+  private cloneTensorList(tensors: Tensor[], keep = true) {
     if (!tensors) {
       return null;
     }
     const clonedTensor = tensors.map(tensor => {
-      return this.cloneAndKeepTensor(tensor);
+      return this.cloneAndKeepTensor(tensor, keep);
     });
     return clonedTensor;
   }
@@ -231,6 +235,31 @@ export class GraphExecutor implements FunctionExecutor {
   execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
     // Dispose any tensors from a prior run to avoid leaking them.
     this.disposeIntermediateTensors();
+    const recordEnabled = env().getBool('IS_RECORD_SUPPORTED') &&
+        engine().backend.isRecordSupported();
+    // TODO: Consider the input nodes/outputs are changed.
+    if (recordEnabled && this.placeHolderOutputs != null) {
+      // Update placeHolderInputs's content based on new inputs.
+      for (const prop in inputs) {
+        if (this.placeHolderInputs.hasOwnProperty(prop) &&
+            inputs[prop].dataId !== this.placeHolderInputs[prop].dataId) {
+          engine().backend.bindInputToPlaceHolder(
+              inputs[prop].dataId, this.placeHolderInputs[prop].dataId)
+        }
+      }
+
+      engine().backend.replay();
+      return this.cloneTensorList(this.placeHolderOutputs, false);
+    }
+
+    if (recordEnabled) {
+      // clear history recordings. Currently recording multiple modules is not
+      // supported.
+      engine().backend.disposeRecordList();
+      console.log('Start Recording!!');
+      env().set('RECORD', true);
+    }
+
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -313,7 +342,18 @@ export class GraphExecutor implements FunctionExecutor {
         context.dispose(tensorsToKeep);
       }
 
-      return outputs.map(name => getTensor(name, tensorsMap, context));
+      const outputTensors =
+          outputs.map(name => getTensor(name, tensorsMap, context));
+      if (recordEnabled) {
+        this.placeHolderOutputs = this.cloneTensorList(outputTensors);
+        this.placeHolderInputs = inputs;
+        Object.values(this.placeHolderInputs).forEach(e => {
+          // mapping input tenosr to corresponding backend resource.
+          engine().backend.traceInputTensor(e.dataId);
+        });
+        env().set('RECORD', false);
+      }
+      return outputTensors;
     });
   }
 
@@ -699,6 +739,10 @@ export class GraphExecutor implements FunctionExecutor {
     Object.keys(this.weightMap)
         .forEach(
             key => this.weightMap[key].forEach(tensor => tensor.dispose()));
+    if (this.placeHolderOutputs != null) {
+      this.placeHolderOutputs.forEach(tensor => tensor.dispose());
+    }
+    engine().backend.disposeRecordList();
   }
 
   private checkInputShapeAndType(inputs: NamedTensorMap) {
