@@ -32,16 +32,17 @@ const DATA_URL = 'graph_model_golden_data';
 const INTERMEDIATE_NODE_TESTS_NUM = 5;
 
 
-describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
+describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // This test needs more time to finish the async fetch, adjusting
     // jasmine timeout for this test to avoid flakiness. See jasmine
     // documentation for detail:
     // https://jasmine.github.io/2.0/introduction.html#section-42
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+    await tfc.setBackend(env.name);
   });
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
