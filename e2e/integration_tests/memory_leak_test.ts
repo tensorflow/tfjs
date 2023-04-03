@@ -16,6 +16,8 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -61,6 +63,13 @@ const CUSTOM_HTTP_MODEL_LOADER = {
   }
 };
 
+// From: https://github.com/jasmine/jasmine/issues/1414.
+function spyOnWorkaround<T>(target: T, prop: keyof T): jasmine.Spy {
+  const spy = jasmine.createSpy(`${String(prop)}Spy`);
+  spyOnProperty(target, prop).and.returnValue(spy);
+  return spy;
+}
+
 describeWithFlags(
     `${SMOKE} A custom op that calls unmodularized kernels and modularized ` +
         `kernels`,
@@ -68,7 +77,7 @@ describeWithFlags(
       it('should have no memory leak in a model run.', async () => {
         const model = new tfconverter.GraphModel(MODEL_URL);
 
-        spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        spyOnWorkaround(tfc.io, 'getLoadHandlers').and.returnValue([
           CUSTOM_HTTP_MODEL_LOADER
         ]);
 

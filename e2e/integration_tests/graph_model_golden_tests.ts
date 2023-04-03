@@ -25,6 +25,7 @@ import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_ut
 import {GOLDEN, KARMA_SERVER} from './constants';
 import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
 import {GraphModeGoldenData, TensorDetail} from './types';
+import {setBackend} from './test_util';
 
 
 /** Directory that stores the model golden data. */
@@ -32,7 +33,7 @@ const DATA_URL = 'graph_model_golden_data';
 const INTERMEDIATE_NODE_TESTS_NUM = 5;
 
 
-describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
+describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
   beforeAll(() => {
@@ -49,6 +50,7 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
   for (const goldenFilename of GOLDEN_MODEL_DATA_FILENAMES) {
     describe(goldenFilename, () => {
       it('model.predict(...)', async () => {
+        await setBackend(env.name);
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
         tfc.tidy(() => {
           const outputs = model.predict(createGoldenInputTensors(modelGolden));
@@ -57,6 +59,7 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
       });
 
       it('model.execute(...) with default outputs', async () => {
+        await setBackend(env.name);
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
         tfc.tidy(() => {
           const outputs = model.execute(createGoldenInputTensors(modelGolden));
@@ -67,6 +70,7 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
       for (let batchId = 1; batchId <= INTERMEDIATE_NODE_TESTS_NUM; ++batchId) {
         it(`model.execute(...) with intermediate node names #${batchId}`,
            async () => {
+            await setBackend(env.name);
              const [modelGolden, model] = await loadModelGolden(goldenFilename);
              const intermediateNodeNames =
                  Object.keys(modelGolden.intermediateDetails);

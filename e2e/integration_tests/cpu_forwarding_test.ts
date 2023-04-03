@@ -17,37 +17,41 @@
 
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
+import {setBackend} from './test_util';
 
 /**
  *  This file tests cpu forwarding from webgl backend.
  */
 
 describeWithFlags(
-    `${SMOKE} cpu forwarding (webgl->cpu)`, {
-      predicate: testEnv => testEnv.backendName === 'webgl' &&
-          tfc.findBackend('webgl') !== null && tfc.findBackend('cpu') !== null
-    },
+    `${SMOKE} cpu forwarding (webgl->cpu)`,
+    {predicate: testEnv => testEnv.backendName !== 'cpu'},
 
-    () => {
+    (env) => {
       let webglCpuForwardFlagSaved: boolean;
+      let webgpuCpuForwardFlagSaved: boolean;
 
       beforeAll(() => {
         webglCpuForwardFlagSaved = tfc.env().getBool('WEBGL_CPU_FORWARD');
         tfc.env().set('WEBGL_CPU_FORWARD', true);
+        webgpuCpuForwardFlagSaved = tfc.env().getBool('WEBGPU_CPU_FORWARD');
+        tfc.env().set('WEBGPU_CPU_FORWARD', true);
       });
 
       afterAll(() => {
         tfc.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
+        tfc.env().set('WEBGPU_CPU_FORWARD', webgpuCpuForwardFlagSaved);
       });
 
       it('should work for slice.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
         const result = a.slice([0, 1, 1]);
@@ -56,7 +60,7 @@ describeWithFlags(
       });
 
       it('should work for stridedSlice.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const t = tfc.tensor2d([
           [1, 2, 3, 4, 5],
@@ -84,7 +88,7 @@ describeWithFlags(
       });
 
       it('should work for concat.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([3]);
         const b = tfc.tensor1d([5]);
@@ -95,7 +99,7 @@ describeWithFlags(
       });
 
       it('should work for neg.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, -3, 2, 7, -4]);
         const result = tfc.neg(a);
@@ -104,7 +108,7 @@ describeWithFlags(
       });
 
       it('should work for multiply.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor2d([1, 2, -3, -4], [2, 2]);
         const b = tfc.tensor2d([5, 3, 4, -7], [2, 2]);
@@ -116,7 +120,7 @@ describeWithFlags(
       });
 
       it('should work for gather.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const t = tfc.tensor1d([1, 2, 3]);
 
@@ -127,7 +131,7 @@ describeWithFlags(
       });
 
       it('should work for prod.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
         const result = tfc.prod(a);
@@ -135,7 +139,7 @@ describeWithFlags(
       });
 
       it('should work for less.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, 4, 5], 'int32');
         const b = tfc.tensor1d([2, 3, 5], 'int32');
@@ -146,7 +150,7 @@ describeWithFlags(
       });
 
       it('should work for greater.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, 4, 5], 'int32');
         const b = tfc.tensor1d([2, 3, 5], 'int32');
@@ -157,7 +161,7 @@ describeWithFlags(
       });
 
       it('should work for minimum.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([0.5, 3, -0.1, -4]);
         const b = tfc.tensor1d([0.2, 0.4, 0.25, 0.15]);
@@ -169,7 +173,7 @@ describeWithFlags(
       });
 
       it('should work for maximum.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([0.5, 3, -0.1, -4]);
         const b = tfc.tensor1d([0.2, 0.4, 0.25, 0.15]);
@@ -181,7 +185,7 @@ describeWithFlags(
       });
 
       it('should work for max.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([3, -1, 0, 100, -7, 2]);
         const r = tfc.max(a);
@@ -189,7 +193,7 @@ describeWithFlags(
       });
 
       it('should work for add.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const c = tfc.scalar(5);
         const a = tfc.tensor1d([1, 2, 3]);
@@ -200,7 +204,7 @@ describeWithFlags(
       });
 
       it('should work for sub.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const c = tfc.scalar(5);
         const a = tfc.tensor1d([7, 2, 3]);
@@ -211,7 +215,7 @@ describeWithFlags(
       });
 
       it('should work for ceil.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1.5, 2.1, -1.4]);
         const r = tfc.ceil(a);
@@ -219,7 +223,7 @@ describeWithFlags(
       });
 
       it('should work for floor.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1.5, 2.1, -1.4]);
         const r = tfc.floor(a);
@@ -228,7 +232,7 @@ describeWithFlags(
       });
 
       it('should work for exp.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, 2, 0]);
         const r = tfc.exp(a);
@@ -238,7 +242,7 @@ describeWithFlags(
       });
 
       it('should work for expm1.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, 2, 0]);
         const r = tfc.expm1(a);
@@ -248,7 +252,7 @@ describeWithFlags(
       });
 
       it('should work for log.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, 2]);
         const r = tfc.log(a);
@@ -257,7 +261,7 @@ describeWithFlags(
       });
 
       it('should work for rsqrt.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([2, 4]);
         const r = tfc.rsqrt(a);
@@ -266,7 +270,7 @@ describeWithFlags(
       });
 
       it('should work for abs.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const a = tfc.tensor1d([1, -2, 0, 3, -0.1]);
         const result = tfc.abs(a);
@@ -274,7 +278,7 @@ describeWithFlags(
       });
 
       it('should work for transpose.', async () => {
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
         const t = tfc.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
         const t2 = tfc.transpose(t, [1, 0]);

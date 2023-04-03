@@ -11,7 +11,8 @@
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.7.0",
+    "typescript": "^5.0.3"
   },
   "dependencies": {
     "@bazel/bazelisk": "^1.12.0",

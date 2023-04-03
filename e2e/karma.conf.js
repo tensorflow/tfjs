@@ -137,7 +137,7 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
-    browsers: ['Chrome'],
+    browsers: ['chrome_webgpu'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
@@ -154,6 +154,9 @@ module.exports = function(config) {
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
@@ -189,9 +192,18 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
         browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
+      },
+      chrome_webgpu: {
+        base: 'Chrome',
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},
