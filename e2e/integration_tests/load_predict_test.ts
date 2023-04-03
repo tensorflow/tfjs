@@ -17,6 +17,7 @@
 
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -34,35 +35,24 @@ import {KARMA_SERVER, SMOKE} from './constants';
  *  - Make inference using each backends.
  */
 describe(`${SMOKE} load_predict`, () => {
-  describeWithFlags(`layers_model`, ALL_ENVS, () => {
-    let model: tfl.LayersModel;
-    let inputs: tfc.Tensor;
-
-    const expected = [
-      -0.003578941337764263, 0.0028922036290168762, -0.002957976423203945,
-      0.00955402385443449
-    ];
-
-    beforeAll(async () => {
-      model = await tfl.loadLayersModel(
-          `${KARMA_SERVER}/load_predict_data/layers_model/model.json`);
-    });
-
-    beforeEach(() => {
-      inputs = tfc.tensor([86, 11, 62, 40, 36, 75, 82, 94, 67, 75], [1, 10]);
-    });
-
-    afterEach(() => {
-      inputs.dispose();
-    });
-
+  describeWithFlags(`layers_model`, ALL_ENVS, (env) => {
     it(`predict`, async () => {
+      await tfc.setBackend(env.name);
+      const model = await tfl.loadLayersModel(
+          `${KARMA_SERVER}/load_predict_data/layers_model/model.json`);
+      const inputs =
+          tfc.tensor([86, 11, 62, 40, 36, 75, 82, 94, 67, 75], [1, 10]);
+      const expected = [
+        -0.003578941337764263, 0.0028922036290168762, -0.002957976423203945,
+        0.00955402385443449
+      ];
       const result = model.predict(inputs) as tfc.Tensor;
       tfc.test_util.expectArraysClose(await result.data(), expected);
+      inputs.dispose();
     });
   });
 
-  describeWithFlags(`graph_model`, ALL_ENVS, async () => {
+  describeWithFlags(`graph_model`, ALL_ENVS, async (env) => {
     let a: tfc.Tensor;
 
     const expected = [
@@ -79,6 +69,7 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     it(`predict for old model.`, async () => {
+      await tfc.setBackend(env.name);
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
@@ -86,6 +77,7 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     it(`predict for new model.`, async () => {
+      await tfc.setBackend(env.name);
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model_new.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
