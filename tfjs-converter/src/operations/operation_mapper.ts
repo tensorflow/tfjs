@@ -486,8 +486,9 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
   }
   switch (value) {
     case tensorflow.DataType.DT_FLOAT:
-    case tensorflow.DataType.DT_HALF:
       return 'float32';
+    case tensorflow.DataType.DT_HALF:
+      return env().getBool('FLOAT16') ? 'float16' : 'float32';
     case tensorflow.DataType.DT_INT32:
     case tensorflow.DataType.DT_INT64:
     case tensorflow.DataType.DT_INT8:

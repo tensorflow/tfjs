@@ -64,6 +64,9 @@ ENV.registerFlag(
  */
 ENV.registerFlag('PROD', () => false);
 
+/** Whether to enable float16 mode. */
+ENV.registerFlag('FLOAT16', () => false);
+
 /**
  * Whether to do sanity checks when inferring a shape from user-provided
  * values, used when creating a new tensor.

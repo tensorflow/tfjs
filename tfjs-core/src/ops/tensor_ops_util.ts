@@ -34,7 +34,7 @@ export function makeTensor(
   }
 
   if (isWebGPUData(values) || isWebGLData(values)) {
-    if (dtype !== 'float32' && dtype !== 'int32') {
+    if (dtype !== 'float32' && dtype !== 'float16' && dtype !== 'int32') {
       throw new Error(
           `Creating tensor from GPU data only supports ` +
           `'float32'|'int32' dtype, while the dtype is ${dtype}.`);

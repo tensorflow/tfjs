@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, env} from '@tensorflow/tfjs-core';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -50,8 +50,9 @@ export class ReduceProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    const floatType = env().getBool('FLOAT16') ? 'f16' : 'f32';
     let reduceOp = ``;
-    let initValue = '0.0';
+    let initValue = `${floatType}(0.0)`;
     const workgroupSizeX = this.workgroupSize[0];
     if (this.reduceType === 'min' || this.reduceType === 'max') {
       reduceOp = `
@@ -60,27 +61,30 @@ export class ReduceProgram implements WebGPUProgram {
          } else if (!isnan(bestValue) && candidate ${
           this.reduceType === 'min' ? '<' : '>'} bestValue)
            {  bestValue = candidate; }`;
-      initValue = 'f32(x[offset])';
+      initValue = `${floatType}(x[offset])`;
     } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
       reduceOp = ' bestValue = bestValue + candidate; ';
     } else if (this.reduceType === 'prod') {
       reduceOp = ' bestValue = bestValue * candidate; ';
-      initValue = '1.0';
+      initValue = `${floatType}(1.0)`;
     } else if (this.reduceType === 'all') {
-      reduceOp = ' bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ';
-      initValue = '1.0';
+      reduceOp = ` bestValue = ${floatType}(bestValue >= ${
+          floatType}(1.0) && candidate >= ${floatType}(1.0)); `;
+      initValue = `${floatType}(1.0)`;
     } else if (this.reduceType === 'any') {
-      reduceOp = ' bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ';
-      initValue = '0.0';
+      reduceOp = ` bestValue = ${floatType}(bestValue >= ${
+          floatType}(1.0) || candidate >= ${floatType}(1.0)); `;
+      initValue = `${floatType}(0.0)`;
     }
 
     const outputSnippet = this.reduceType === 'mean' ?
         // tslint:disable-next-line:max-line-length
-        `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` :
+        `setOutputAtIndex(outputIndex, bestValue / ${
+            floatType}(uniforms.reduceSize));` :
         `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
+         var<workgroup> xBestValues : array<${floatType}, ${workgroupSizeX}>;
        `;
 
     const userCode = `
@@ -105,7 +109,7 @@ export class ReduceProgram implements WebGPUProgram {
          let WorkPerThread = DIV_CEIL(u32(Length), ${workgroupSizeX}u);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
              k = k + ${workgroupSizeX}) {
-           let candidate = f32(x[offset + k]);
+           let candidate = ${floatType}(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;

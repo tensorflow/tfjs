@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, env} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
@@ -90,7 +90,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
           // values in that axis. x(?, ?, d1) and y(yR, yC, d2) is for NHWC.
           // x(d1, ?, ?) and y(d2, yR, yC) is for NCHW.
-          var value = 0.0;
+          var value = ${env().getBool('FLOAT16') ? 'f16' : 'f32'}(0.0);
 
           // Extract if checking out of for loop for performance.
           if (inputRowStart >= 0 && inputColStart >= 0 &&

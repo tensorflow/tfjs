@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {reshape} from '../kernels/Reshape';
@@ -79,7 +79,9 @@ export function reduce(
     const batchSize = xSize / inSize;
 
     const reduceInfo = {windowSize: inSize, inSize, batchSize, outSize: 1};
-    const dtype = reduceType === 'mean' ? 'float32' : sumOutType(x.dtype);
+    const dtype = reduceType === 'mean' ?
+        env().getBool('FLOAT16') ? 'float16' : 'float32' :
+        sumOutType(x.dtype);
     const uniformData = [
       {type: 'int32', data: [inSize]},
     ];

@@ -134,6 +134,7 @@ export class WebGPUBackend extends KernelBackend {
   private querySet: GPUQuerySet;
   private stagingPendingDisposal: BufferInfo[] = [];
   private supportTimeQuery: boolean;
+  private supportShaderF16: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
 
@@ -153,6 +154,7 @@ export class WebGPUBackend extends KernelBackend {
     this.currentComputePass = null;
     this.supportTimeQuery =
         device.features.has('timestamp-query-inside-passes');
+    this.supportShaderF16 = device.features.has('shader-f16');
     this.adapterInfo = new AdapterInfo(adapterInfo);
     this.thresholdToIncreaseWorkgroups =
         this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
@@ -186,6 +188,10 @@ export class WebGPUBackend extends KernelBackend {
 
   override floatPrecision(): 32 {
     return 32;
+  }
+
+  override supportFloat16(): boolean {
+    return this.supportShaderF16;
   }
 
   defaultGpuBufferUsage(): number {
@@ -641,8 +647,10 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
 
-    const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
+    const elementsSize = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
+    const size = Math.round(elementsSize / 4) * 4;
+
     const buffer =
         this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
 
@@ -654,6 +662,8 @@ export class WebGPUBackend extends KernelBackend {
       const arrayBuffer = stagingBuffer.getMappedRange();
       if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
         new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+      } else if (tensorData.dtype === 'float16') {
+        new Uint16Array(arrayBuffer).set(tensorData.values as Uint16Array);
       } else {
         new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
       }

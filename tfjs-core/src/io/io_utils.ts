@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '../environment';
 import {complex} from '../ops/complex';
 import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
@@ -131,7 +132,7 @@ export function decodeWeights(
               `doesn't have corresponding metadata min and scale.`);
         }
       } else if (quantization.dtype === 'float16') {
-        if (dtype !== 'float32') {
+        if (dtype !== 'float32' && dtype !== 'float16') {
           throw new Error(
               `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
               `which only supports weights of type float32 not ${dtype}.`);
@@ -177,6 +178,8 @@ export function decodeWeights(
           const v = quantizedArray[i];
           values[i] = Math.round(v * quantization.scale + quantization.min);
         }
+      } else if (env().getBool('FLOAT16') && dtype === 'float16') {
+        values = quantizedArray as Uint16Array;
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
@@ -419,7 +422,6 @@ export function getModelJSONForModelArtifacts(
 export function getModelArtifactsForJSONSync(
     modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
     weightData?: ArrayBuffer): ModelArtifacts {
-
   const modelArtifacts: ModelArtifacts = {
     modelTopology: modelJSON.modelTopology,
     format: modelJSON.format,
@@ -470,8 +472,8 @@ export async function getModelArtifactsForJSON(
     loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
       /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
     ]>): Promise<ModelArtifacts> {
-  let weightSpecs: WeightsManifestEntry[] | undefined;
-  let weightData: ArrayBuffer | undefined;
+  let weightSpecs: WeightsManifestEntry[]|undefined;
+  let weightData: ArrayBuffer|undefined;
 
   if (modelJSON.weightsManifest != null) {
     [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);

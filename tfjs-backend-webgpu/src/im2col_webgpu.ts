@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
+
 import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -58,7 +60,7 @@ export class Im2ColProgram implements WebGPUProgram {
         let col = ${col};
         let offsetY = (row / uniforms.outWidth) * uniforms.strides[0] - uniforms.pads[0];
         let xRow = offsetY + uniforms.dilations[0] * (col / uniforms.itemsPerBlockRow);
-        var value = 0.0;
+        var value = ${env().getBool('FLOAT16') ? 'f16' : 'f32'}(0.0);
         if(xRow < uniforms.xShape[${rowDim}] && xRow >= 0) {
           let offsetX = (row % uniforms.outWidth) * uniforms.strides[1] -
               uniforms.pads[1];

@@ -31,8 +31,8 @@ import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, Tenso
  * @doc {heading: 'Util', namespace: 'util'}
  */
 // tslint:disable-next-line:no-any
-export function shuffle(array: any[]|Uint32Array|Int32Array|
-                        Float32Array): void {
+export function shuffle(array: any[]|Uint32Array|Int32Array|Float32Array|
+                        Uint16Array): void {
   let counter = array.length;
   let index = 0;
   // While there are elements in the array
@@ -64,9 +64,9 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  */
 export function shuffleCombo(
     // tslint:disable-next-line:no-any
-    array: any[]|Uint32Array|Int32Array|Float32Array,
+    array: any[]|Uint32Array|Int32Array|Float32Array|Uint16Array,
     // tslint:disable-next-line:no-any
-    array2: any[]|Uint32Array|Int32Array|Float32Array): void {
+    array2: any[]|Uint32Array|Int32Array|Float32Array|Uint16Array): void {
   if (array.length !== array2.length) {
     throw new Error(
         `Array sizes must match to be shuffled together ` +
@@ -420,6 +420,8 @@ export function getArrayFromDType<D extends DataType>(
   let values = null;
   if (dtype == null || dtype === 'float32') {
     values = new Float32Array(size);
+  } else if (dtype === 'float16') {
+    values = new Uint16Array(size);
   } else if (dtype === 'int32') {
     values = new Int32Array(size);
   } else if (dtype === 'bool') {
@@ -445,7 +447,7 @@ export function checkConversionForErrors<D extends DataType>(
 /** Returns true if the dtype is valid. */
 export function isValidDtype(dtype: DataType): boolean {
   return dtype === 'bool' || dtype === 'complex64' || dtype === 'float32' ||
-      dtype === 'int32' || dtype === 'string';
+      dtype === 'float16' || dtype === 'int32' || dtype === 'string';
 }
 
 /**
@@ -457,6 +459,10 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
     return false;
   }
   if (newType === 'float32' && oldType !== 'complex64') {
+    return false;
+  }
+  if (newType === 'float16' && oldType !== 'float32' && oldType !== 'int32' &&
+      oldType !== 'complex64') {
     return false;
   }
   if (newType === 'int32' && oldType !== 'float32' && oldType !== 'complex64') {
@@ -471,6 +477,8 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
 export function bytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32') {
     return 4;
+  } else if (dtype === 'float16') {
+    return 2;
   } else if (dtype === 'complex64') {
     return 8;
   } else if (dtype === 'bool') {
@@ -514,6 +522,8 @@ export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   }
   if (values instanceof Float32Array) {
     return 'float32';
+  } else if (values instanceof Uint16Array) {
+    return 'float16';
   } else if (
       values instanceof Int32Array || values instanceof Uint8Array ||
       values instanceof Uint8ClampedArray) {
@@ -604,6 +614,8 @@ export function convertBackendValuesAndArrayBuffer(
   }
   if (dtype === 'float32') {
     return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'float16') {
+    return data instanceof Uint16Array ? data : new Uint16Array(data);
   } else if (dtype === 'int32') {
     return data instanceof Int32Array ? data : new Int32Array(data);
   } else if (dtype === 'bool' || dtype === 'string') {
@@ -626,6 +638,8 @@ export function makeZerosTypedArray<D extends DataType>(
     size: number, dtype: D): DataTypeMap[D] {
   if (dtype == null || dtype === 'float32' || dtype === 'complex64') {
     return new Float32Array(size) as DataTypeMap[D];
+  } else if (dtype === 'float16') {
+    return new Uint16Array(size) as DataTypeMap[D];
   } else if (dtype === 'int32') {
     return new Int32Array(size) as DataTypeMap[D];
   } else if (dtype === 'bool') {
@@ -645,6 +659,8 @@ export function makeZerosNestedTypedArray<D extends DataType>(
   const size = shape.reduce((prev, curr) => prev * curr, 1);
   if (dtype == null || dtype === 'float32') {
     return toNestedArray(shape, new Float32Array(size));
+  } else if (dtype === 'float16') {
+    return toNestedArray(shape, new Uint16Array(size));
   } else if (dtype === 'int32') {
     return toNestedArray(shape, new Int32Array(size));
   } else if (dtype === 'bool') {

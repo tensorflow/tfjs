@@ -153,6 +153,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   dispose(): void {
     return notYetImplemented('dispose');
   }
+  supportFloat16(): boolean {
+    return notYetImplemented('supportFloat16');
+  }
 }
 
 function notYetImplemented(kernelName: string): never {
