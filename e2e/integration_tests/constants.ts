@@ -27,7 +27,7 @@ export const GOLDEN = '#GOLDEN';
 export const TAGS = [SMOKE, REGRESSION, GOLDEN];
 
 /** Testing backends. */
-export const BACKENDS = ['cpu', 'webgl'];
+export const BACKENDS = ['cpu', 'webgl', 'webgpu'];
 
 /** Testing models for CUJ: create -> save -> predict. */
 export const LAYERS_MODELS = [
@@ -42,6 +42,19 @@ export const CONVERT_PREDICT_MODELS = {
     'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2',
     'saved_model_v2_with_tensorlist_ops', 'saved_model_v1_with_hashtable',
     'saved_model_v2_with_hashtable'
+  ],
+  layers_model: ['mobilenet']
+};
+
+/**saved_model_v2_with_tensorlist_ops dosen't support webgpu. TODO:
+ * https://github.com/tensorflow/tfjs/issues/7619
+ */
+export const CONVERT_PREDICT_MODELS_WEBGPU = {
+  graph_model: [
+    'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
+    'saved_model_with_conv2d', 'saved_model_with_prelu',
+    'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2',
+    'saved_model_v1_with_hashtable', 'saved_model_v2_with_hashtable'
   ],
   layers_model: ['mobilenet']
 };

@@ -21,7 +21,6 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
-import '@tensorflow/tfjs-backend-wasm';
 
 import {TAGS} from './constants';
 
@@ -36,13 +35,19 @@ registerTestEnv({
   isDataSync: true
 });
 
-registerTestEnv({
-  name: 'wasm',
-  backendName: 'wasm',
-  isDataSync: true,
-});
-
 registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
+
+// TODO: Support test windows on WebGPU. Bug:
+// https://github.com/tensorflow/tfjs/issues/7616.
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+if (isMac) {
+  registerTestEnv({
+    name: 'webgpu',
+    backendName: 'webgpu',
+    flags: {'WEBGPU_CPU_FORWARD': false},
+    isDataSync: true
+  });
+}
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;

@@ -43,3 +43,7 @@ export function createInputTensors(
   }
   return xs;
 }
+
+export async function setBackend(backendName: string) {
+  await tfc.setBackend(backendName);
+}

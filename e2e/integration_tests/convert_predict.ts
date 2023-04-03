@@ -26,6 +26,7 @@
  */
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -33,8 +34,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
-import {createInputTensors} from './test_util';
+import {CONVERT_PREDICT_MODELS, CONVERT_PREDICT_MODELS_WEBGPU, KARMA_SERVER, REGRESSION} from './constants';
+import {createInputTensors, setBackend} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
@@ -52,15 +53,20 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, (env) => {
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
-  for (const modelType in CONVERT_PREDICT_MODELS) {
+  const CONVERT_PREDICT_MODELS_TMP = env.name !== 'webgpu' ?
+      CONVERT_PREDICT_MODELS :
+      CONVERT_PREDICT_MODELS_WEBGPU;
+
+  for (const modelType in CONVERT_PREDICT_MODELS_TMP) {
     const models =
-        (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];
+        (CONVERT_PREDICT_MODELS_TMP as {[key: string]: string[]})[modelType];
     for (const model of models) {
       if (env.backendName === 'wasm' && model.includes('complex')) {
         // WASM does not support complex
         continue;
       }
       it(`${model}.`, async () => {
+        await setBackend(env.name);
         let inputsNames: string[];
         let inputsData: tfc.TypedArray[];
         let inputsShapes: number[][];

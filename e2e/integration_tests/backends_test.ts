@@ -17,28 +17,28 @@
 
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
+import {setBackend} from './test_util';
 
 /**
  *  This file tests backend switching scenario.
  */
 
 describeWithFlags(
-    `${SMOKE} backend switching`, {
-      predicate: testEnv => testEnv.backendName === 'webgl' &&
-          tfc.findBackend('webgl') !== null && tfc.findBackend('cpu') !== null
-    },
+    `${SMOKE} backend switching`,
+    {predicate: testEnv => testEnv.backendName !== 'cpu'},
 
-    () => {
-      it(`from webgl to cpu.`, async () => {
-        await tfc.setBackend('webgl');
+    (env) => {
+      it(`from ${env.name} to cpu.`, async () => {
+        await setBackend(env.name);
 
-        const webglBefore = tfc.engine().backend.numDataIds();
+        const backendBefore = tfc.engine().backend.numDataIds();
 
         const input = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
         // input is stored in webgl backend.
@@ -47,7 +47,7 @@ describeWithFlags(
 
         const webglAfter = tfc.engine().backend.numDataIds();
 
-        expect(webglAfter).toEqual(webglBefore + 1);
+        expect(webglAfter).toEqual(backendBefore + 1);
 
         await tfc.setBackend('cpu');
 
@@ -57,7 +57,7 @@ describeWithFlags(
         // input moved to cpu.
 
         // Because input is moved to cpu, data should be deleted from webgl
-        expect(tfc.findBackend('webgl').numDataIds()).toEqual(webglAfter - 1);
+        expect(tfc.findBackend(env.name).numDataIds()).toEqual(webglAfter - 1);
 
         const cpuAfter = tfc.engine().backend.numDataIds();
 
@@ -77,7 +77,7 @@ describeWithFlags(
         expect(after).toBe(cpuBefore);
       });
 
-      it(`from cpu to webgl.`, async () => {
+      it(`from cpu to ${env.name}.`, async () => {
         await tfc.setBackend('cpu');
 
         const cpuBefore = tfc.engine().backend.numDataIds();
@@ -91,9 +91,9 @@ describeWithFlags(
 
         expect(cpuAfter).toEqual(cpuBefore + 1);
 
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
 
-        const webglBefore = tfc.engine().backend.numDataIds();
+        const backendBefore = tfc.engine().backend.numDataIds();
 
         const inputReshaped2 = tfc.reshape(inputReshaped, [2, 2]);
         // input moved to webgl.
@@ -103,7 +103,7 @@ describeWithFlags(
 
         const webglAfter = tfc.engine().backend.numDataIds();
 
-        expect(webglAfter).toEqual(webglBefore + 1);
+        expect(webglAfter).toEqual(backendBefore + 1);
 
         input.dispose();
 
@@ -117,19 +117,19 @@ describeWithFlags(
 
         const after = tfc.engine().backend.numDataIds();
 
-        expect(after).toBe(webglBefore);
+        expect(after).toBe(backendBefore);
       });
 
       it('can execute op with data from mixed backends', async () => {
         const numTensors = tfc.memory().numTensors;
-        const webglNumDataIds = tfc.findBackend('webgl').numDataIds();
+        const webglNumDataIds = tfc.findBackend(env.name).numDataIds();
         const cpuNumDataIds = tfc.findBackend('cpu').numDataIds();
 
         await tfc.setBackend('cpu');
         // This scalar lives in cpu.
         const a = tfc.scalar(5);
 
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
         // This scalar lives in webgl.
         const b = tfc.scalar(3);
 
@@ -141,20 +141,22 @@ describeWithFlags(
         tfc.test_util.expectArraysClose(await result.data(), [8]);
         expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds + 3);
 
-        await tfc.setBackend('webgl');
+        await setBackend(env.name);
         tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
-        expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds + 3);
+        expect(tfc.findBackend(env.name).numDataIds())
+            .toBe(webglNumDataIds + 3);
 
         tfc.engine().endScope();
 
         expect(tfc.memory().numTensors).toBe(numTensors + 2);
-        expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds + 2);
+        expect(tfc.findBackend(env.name).numDataIds())
+            .toBe(webglNumDataIds + 2);
         expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
 
         tfc.dispose([a, b]);
 
         expect(tfc.memory().numTensors).toBe(numTensors);
-        expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds);
+        expect(tfc.findBackend(env.name).numDataIds()).toBe(webglNumDataIds);
         expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
       });
 

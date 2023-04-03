@@ -137,7 +137,7 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
-    browsers: ['Chrome'],
+    browsers: ['chrome_webgpu'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
@@ -156,7 +156,17 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'High Sierra',
+        flags: [
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
+        ],
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
@@ -192,6 +202,19 @@ module.exports = function(config) {
         browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
+      },
+      chrome_webgpu: {
+        base: 'Chrome',
+        flags: [
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
+        ],
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},
