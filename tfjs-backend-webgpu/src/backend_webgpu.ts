@@ -508,10 +508,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const size = (resourceInfo as BufferInfo).size;
-    const buffer = this.bufferManager.acquireBuffer(
-        size,
-        GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC |
-            GPUBufferUsage.COPY_DST);
+    const buffer = this.bufferManager.acquireBuffer(size, resourceInfo.usage);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
@@ -523,7 +520,8 @@ export class WebGPUBackend extends KernelBackend {
     const tensorRef = engine().makeTensorFromTensorInfo(tensorInfo);
 
     const tensorData = this.tensorMap.get(tensorInfo.dataId);
-    tensorData.resourceInfo = {size, usage: buffer.usage, buffer};
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
 
     return {tensorRef, buffer, bufSize: size};
   }
