@@ -26,6 +26,12 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
+  // The upload buffer is not reusable.
+  acquireUploadBuffer(size: number, usage: GPUBufferUsageFlags) {
+    this.numBytesAllocated += size;
+    return this.device.createBuffer({size, usage, mappedAtCreation: true});
+  }
+
   acquireBuffer(
       size: number, usage: GPUBufferUsageFlags, mappedAtCreation = false) {
     const key = getBufferKey(size, usage);
@@ -40,7 +46,7 @@ export class BufferManager {
     this.numBytesUsed += size;
     this.numUsedBuffers++;
 
-    if (!mappedAtCreation && this.freeBuffers.get(key).length > 0) {
+    if (this.freeBuffers.get(key).length > 0) {
       this.numFreeBuffers--;
 
       const newBuffer = this.freeBuffers.get(key).shift();
@@ -78,6 +84,11 @@ export class BufferManager {
     }
     bufferList.splice(bufferIndex, 1);
     this.numBytesUsed -= size;
+  }
+
+  releaseUploadBuffer(buffer: GPUBuffer) {
+    this.numBytesAllocated -= buffer.size;
+    buffer.destroy();
   }
 
   getNumUsedBuffers(): number {
