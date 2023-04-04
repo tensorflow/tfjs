@@ -26,8 +26,10 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
+  // The upload buffer is not reusable.
   acquireUploadBuffer(size: number, usage: GPUBufferUsageFlags) {
-    return this.acquireBuffer(size, usage, true);
+    this.numBytesAllocated += size;
+    return this.device.createBuffer({size, usage, mappedAtCreation: true});
   }
 
   acquireBuffer(
@@ -84,16 +86,9 @@ export class BufferManager {
     this.numBytesUsed -= size;
   }
 
-  releaseUploadBuffer(
-      buffer: GPUBuffer, size: number, usage: GPUBufferUsageFlags) {
-    buffer.mapAsync(GPUMapMode.WRITE)
-        .then(
-            () => {
-              this.releaseBuffer(buffer, size, usage);
-            },
-            (err) => {
-                // Do nothing;
-            });
+  releaseUploadBuffer(buffer: GPUBuffer) {
+    this.numBytesAllocated -= buffer.size;
+    buffer.destroy();
   }
 
   getNumUsedBuffers(): number {
