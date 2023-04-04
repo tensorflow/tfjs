@@ -348,10 +348,9 @@ export async function updateDependency(
 export function updateTFJSDependencyVersions(
     pkg: string, versions: Map<string, string>,
     depsToReplace = [...versions.keys()]): string {
-  console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
-  const parsedPkg = JSON.parse(`${pkg}`);
-  JSON.parse(pkg);
+  const parsedPkg = JSON.parse(pkg);
+
   for (const dep of depsToReplace) {
     const newVersion = versions.get(dep);
     if (!newVersion) {
