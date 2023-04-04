@@ -16,8 +16,10 @@
 
 set -e
 
-./scripts/run-custom-builds.sh # Generate custom bundle files for tests
+# Generate custom bundle files and model files for tests
+parallel ::: ./scripts/run-custom-builds.sh \
+  ./scripts/create-python-models.sh
 
-parallel ::: ./scripts/create-python-models.sh \
-  ./scripts/run-browserstack-tests.sh \
+# Run browserstack tests (and webpack test)
+parallel ::: ./scripts/run-browserstack-tests.sh \
   "cd webpack_test && yarn --mutex network && yarn build"
