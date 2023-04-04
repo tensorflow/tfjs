@@ -132,7 +132,7 @@ export class WebGPUBackend extends KernelBackend {
   private pipelineCache: {[key: string]: GPUComputePipeline};
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
-  private stagingPendingDisposal: BufferInfo[] = [];
+  private stagingPendingDisposal: GPUBuffer[] = [];
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
@@ -328,7 +328,7 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformPendingDisposal.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
     this.stagingPendingDisposal.forEach(
-        d => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage));
+        buf => this.bufferManager.releaseUploadBuffer(buf));
 
     this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
@@ -643,38 +643,47 @@ export class WebGPUBackend extends KernelBackend {
 
     const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
-    const buffer =
-        this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
-
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    let buffer;
     if (tensorData.values) {
-      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-          size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
-      const arrayBuffer = stagingBuffer.getMappedRange();
-      if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-        new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
-      } else {
-        new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
-      }
-      stagingBuffer.unmap();
-      this.ensureCommandEncoderReady();
-      this.ensureComputePassEnded();
-      this.currentCommandEncoder.copyBufferToBuffer(
-          stagingBuffer, 0, buffer, 0, size);
+      buffer = this.bufferManager.acquireBuffer(
+          size, this.defaultGpuBufferUsage(), true);
+      if (buffer.mapState === 'unmapped') {
+        const stagingBuffer = this.bufferManager.acquireUploadBuffer(
+            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+        const arrayBuffer = stagingBuffer.getMappedRange();
+        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        }
+        stagingBuffer.unmap();
+        this.ensureCommandEncoderReady();
+        this.ensureComputePassEnded();
+        this.currentCommandEncoder.copyBufferToBuffer(
+            stagingBuffer, 0, buffer, 0, size);
 
-      const stagingInfo = {
-        size,
-        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        buffer: stagingBuffer
-      };
-      this.stagingPendingDisposal.push(stagingInfo);
+        this.stagingPendingDisposal.push(stagingBuffer);
+      } else {
+        const arrayBuffer = buffer.getMappedRange();
+        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        }
+        buffer.unmap();
+      }
+
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
       // model; 2) swithcing the backend within the model. Temporarilly keep
       // the values on CPU to solve the first issue. tensorData.values = null;
+    } else {
+      buffer =
+          this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
     }
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
   }
 
   private makeUniforms(programUniform: ProgramUniform): GPUBindingResource {
@@ -779,13 +788,16 @@ export class WebGPUBackend extends KernelBackend {
       const uniformsType = 'int32';
       bufferShapes.map(d => {
         programUniform.push({type: uniformsType, data: d});
+        const strides = util.computeStrides(d);
+        programUniform.push({type: uniformsType, data: strides});
       });
-      const strides = util.computeStrides(output.shape);
-      programUniform.push({type: uniformsType, data: strides});
       if (program.size) {
         const size = util.sizeFromShape(program.outputShape);
-        programUniform.push(
-            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+        programUniform.push({
+          type: uniformsType,
+          data:
+              [program.outputComponent ? size / program.outputComponent : size]
+        });
       }
     }
 

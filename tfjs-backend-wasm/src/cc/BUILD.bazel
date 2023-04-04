@@ -153,6 +153,20 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "argminmax_impl",
+    hdrs = ["argminmax_impl.h"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "bincount_impl",
+    hdrs = ["bincount_impl.h"],
+    deps = [":util"],
+)
+
+tfjs_cc_library(
     name = "check_macros",
     srcs = ["check_macros.h"],
     deps = [
@@ -259,6 +273,14 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "conv3d_impl",
+    hdrs = ["conv3d_impl.h"],
+    deps = [
+        ":shape",
+    ],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -327,6 +349,7 @@ tfjs_cc_library(
         ":All",
         ":Any",
         ":ArgMax",
+        ":ArgMin",
         ":Atan",
         ":Atan2",
         ":Atanh",
@@ -334,15 +357,20 @@ tfjs_cc_library(
         ":AvgPool3D",
         ":AvgPool3DGrad",
         ":BatchMatMul",
+        ":Bincount",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
+        ":Conv3D",
+        ":Conv3DBackpropFilterV2",
+        ":Conv3DBackpropInputV2",
         ":Cos",
         ":Cosh",
         ":CropAndResize",
         ":Cumprod",
         ":Cumsum",
+        ":DenseBincount",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Dilation2D",
@@ -368,6 +396,7 @@ tfjs_cc_library(
         ":LeakyRelu",
         ":Less",
         ":LessEqual",
+        ":LinSpace",
         ":Log1p",
         ":Max",
         ":MaxPool",
@@ -377,6 +406,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Multinomial",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -493,6 +523,17 @@ tfjs_cc_library(
     name = "ArgMax",
     srcs = ["kernels/ArgMax.cc"],
     deps = [
+        ":argminmax_impl",
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ArgMin",
+    srcs = ["kernels/ArgMin.cc"],
+    deps = [
+        ":argminmax_impl",
         ":backend",
         ":util",
     ],
@@ -597,6 +638,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Bincount",
+    srcs = ["kernels/Bincount.cc"],
+    deps = [
+        ":backend",
+        ":bincount_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "_FusedMatMul",
     srcs = ["kernels/_FusedMatMul.cc"],
     hdrs = ["kernels/_FusedMatMul.h"],
@@ -681,6 +732,33 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Conv3D",
+    srcs = ["kernels/Conv3D.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv3DBackpropFilterV2",
+    srcs = ["kernels/Conv3DBackpropFilterV2.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv3DBackpropInputV2",
+    srcs = ["kernels/Conv3DBackpropInputV2.cc"],
+    deps = [
+        ":backend",
+        ":conv3d_impl",
+    ],
+)
+
+tfjs_cc_library(
     name = "Cos",
     srcs = ["kernels/Cos.cc"],
     deps = [
@@ -723,6 +801,7 @@ tfjs_cc_library(
     srcs = ["kernels/DenseBincount.cc"],
     deps = [
         ":backend",
+        ":bincount_impl",
         ":util",
     ],
 )
@@ -824,6 +903,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Exp",
     srcs = ["kernels/Exp.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Expm1",
+    srcs = ["kernels/Expm1.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -978,6 +1067,14 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LinSpace",
+    srcs = ["kernels/LinSpace.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
@@ -1142,6 +1239,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Multinomial",
+    srcs = ["kernels/Multinomial.cc"],
+    deps = [
+        ":backend",
+        ":shape",
     ],
 )
 

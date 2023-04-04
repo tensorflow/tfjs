@@ -29,7 +29,7 @@ export interface FenceContext {
   isFencePassed(): boolean;
 }
 
-type WebGLVao = WebGLVertexArrayObject | WebGLVertexArrayObjectOES;
+type WebGLVao = WebGLVertexArrayObject|WebGLVertexArrayObjectOES;
 
 export interface GPGPUContextProgram extends WebGLProgram {
   vao: WebGLVao;
@@ -55,8 +55,8 @@ export class GPGPUContext {
   textureConfig: TextureConfig;
 
   createVertexArray: () => WebGLVao | null;
-  bindVertexArray: (vao: WebGLVao | null) => void;
-  deleteVertexArray: (vao: WebGLVao | null) => void;
+  bindVertexArray: (vao: WebGLVao|null) => void;
+  deleteVertexArray: (vao: WebGLVao|null) => void;
   getVertexArray: () => WebGLVao | null;
 
   constructor(gl?: WebGLRenderingContext) {
@@ -72,20 +72,19 @@ export class GPGPUContext {
     if (env().getNumber('WEBGL_VERSION') === 2) {
       const gl2 = gl as WebGL2RenderingContext;
       this.createVertexArray = () => {
-        return webgl_util.callAndCheck(gl2,
-          () => gl2.createVertexArray());
+        return webgl_util.callAndCheck(gl2, () => gl2.createVertexArray());
       };
       this.bindVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl2,
-          () => gl2.bindVertexArray(vao as WebGLVertexArrayObject));
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.bindVertexArray(vao as WebGLVertexArrayObject));
       };
       this.deleteVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl2,
-          () => gl2.deleteVertexArray(vao as WebGLVertexArrayObject));
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.deleteVertexArray(vao as WebGLVertexArrayObject));
       };
       this.getVertexArray = () => {
-        return webgl_util.callAndCheck(gl2,
-          () => gl2.getParameter(gl2.VERTEX_ARRAY_BINDING));
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.getParameter(gl2.VERTEX_ARRAY_BINDING));
       };
     } else if (gl != null) {
       const ext = gl.getExtension('OES_vertex_array_object');
@@ -95,20 +94,20 @@ export class GPGPUContext {
             ' OES_vertex_array_object.');
       }
       this.createVertexArray = () => {
-        return webgl_util.callAndCheck(gl,
-          () => ext.createVertexArrayOES());
+        return webgl_util.callAndCheck(gl, () => ext.createVertexArrayOES());
       };
       this.bindVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl,
-          () => ext.bindVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+        return webgl_util.callAndCheck(
+            gl, () => ext.bindVertexArrayOES(vao as WebGLVertexArrayObjectOES));
       };
       this.deleteVertexArray = (vao: WebGLVao|null) => {
-        return webgl_util.callAndCheck(gl,
-          () => ext.deleteVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+        return webgl_util.callAndCheck(
+            gl,
+            () => ext.deleteVertexArrayOES(vao as WebGLVertexArrayObjectOES));
       };
       this.getVertexArray = () => {
-        return webgl_util.callAndCheck(gl,
-          () => gl.getParameter(ext.VERTEX_ARRAY_BINDING_OES));
+        return webgl_util.callAndCheck(
+            gl, () => gl.getParameter(ext.VERTEX_ARRAY_BINDING_OES));
       };
     }
 
@@ -352,9 +351,9 @@ export class GPGPUContext {
       webgl_util.callAndCheck(
           gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer));
       console.assert(
-        gpgpu_util.bindVertexProgramAttributeStreams(gl, program2,
-                                                     this.vertexBuffer),
-        'gpgpu_util.bindVertexProgramAttributeStreams not fully successful.');
+          gpgpu_util.bindVertexProgramAttributeStreams(
+              gl, program2, this.vertexBuffer),
+          'gpgpu_util.bindVertexProgramAttributeStreams not fully successful.');
 
       if (this.debug) {
         webgl_util.validateProgram(gl, program2);
@@ -464,8 +463,9 @@ export class GPGPUContext {
     const gl = this.gl;
     if (this.debug) {
       const boundVao = this.getVertexArray();
-      console.assert(boundVao === this.program.vao,
-                     'VAO changed between setProgram and executeProgram!');
+      console.assert(
+          boundVao === this.program.vao,
+          'VAO changed between setProgram and executeProgram!');
 
       this.debugValidate();
     }

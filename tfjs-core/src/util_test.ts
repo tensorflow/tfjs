@@ -20,6 +20,7 @@ import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {complex, scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
+import {env} from './environment';
 
 describe('Util', () => {
   it('Correctly gets size from shape', () => {
@@ -132,6 +133,22 @@ describe('Util', () => {
       [[new Uint8Array([1, 2])], [new Uint8Array([2, 1])]]
     ];
     expect(inferShape(a, 'string')).toEqual([2, 2, 1]);
+  });
+  describe('isTypedArray', () => {
+    it('checks if a value is a typed array', () => {
+      expect(util.isTypedArray(new Uint8Array([1,2,3]))).toBeTrue();
+      expect(util.isTypedArray([1,2,3])).toBeFalse();
+    });
+    it('uses fallback if platform is missing isTypedArray', () => {
+      const tmpIsTypedArray = env().platform.isTypedArray;
+      try {
+        env().platform.isTypedArray = null;
+        expect(util.isTypedArray(new Uint8Array([1,2,3]))).toBeTrue();
+        expect(util.isTypedArray([1,2,3])).toBeFalse();
+      } finally {
+        env().platform.isTypedArray = tmpIsTypedArray;
+      }
+    });
   });
 });
 

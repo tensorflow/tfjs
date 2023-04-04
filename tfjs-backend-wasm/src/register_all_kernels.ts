@@ -28,6 +28,7 @@ import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
+import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
@@ -38,6 +39,7 @@ import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -45,6 +47,9 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {conv3DConfig} from './kernels/Conv3D';
+import {conv3DBackpropFilterV2Config} from './kernels/Conv3DBackpropFilterV2';
+import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -62,6 +67,7 @@ import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -80,6 +86,7 @@ import {isNaNConfig} from './kernels/IsNan';
 import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
@@ -97,6 +104,7 @@ import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -158,6 +166,7 @@ import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
@@ -172,6 +181,7 @@ const kernelConfigs: KernelConfig[] = [
   allConfig,
   anyConfig,
   argMaxConfig,
+  argMinConfig,
   asinConfig,
   asinhConfig,
   atanConfig,
@@ -182,6 +192,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPool3DGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -189,6 +200,9 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  conv3DConfig,
+  conv3DBackpropFilterV2Config,
+  conv3DBackpropInputV2Config,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
@@ -206,6 +220,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   expConfig,
   expandDimsConfig,
+  expm1Config,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -224,6 +239,7 @@ const kernelConfigs: KernelConfig[] = [
   leakyReluConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   log1pConfig,
   logConfig,
   logicalAndConfig,
@@ -241,6 +257,7 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  multinomialConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
@@ -302,6 +319,7 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transformConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   zerosLikeConfig
 ];

@@ -10,17 +10,17 @@
     "build": "cross-env NODE_ENV=production parcel build index.html --public-url ./"
   },
   "devDependencies": {
-    "clang-format": "~1.2.2",
-    "cross-env": "^5.2.0",
-    "parcel": "~2.3.2",
+    "clang-format": "~1.8.0",
+    "cross-env": "^7.0.3",
+    "parcel": "~2.8.3",
     "yalc": "~1.0.0-pre.53"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@tensorflow/tfjs-automl": "file:../../dist",
-    "@tensorflow/tfjs-backend-webgl": "^3.0.0-rc.1",
-    "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
-    "@tensorflow/tfjs-core": "^3.0.0-rc.1"
+    "@tensorflow/tfjs-automl": "link:../../",
+    "@tensorflow/tfjs-backend-webgl": "^4.2.0",
+    "@tensorflow/tfjs-converter": "^4.2.0",
+    "@tensorflow/tfjs-core": "^4.2.0"
   },
   "resolutions": {
     "minimist": "1.2.6"

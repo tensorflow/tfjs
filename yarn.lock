@@ -502,10 +502,10 @@
   resolved "https://registry.yarnpkg.com/@verdaccio/ui-theme/-/ui-theme-6.0.0-6-next.23.tgz#268da5091e1e9264fe87b8b94c0ac596e9e54879"
   integrity sha512-GXpEPdZJm6o+2VAxzUsKaiDriS+5enqr7Gjrb2Bttcd+IkOuC8lDsoFHxIv0ib4JudZJ/aKsRYL3TN2AetPFjw==
 
-"@webgpu/types@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.21.tgz#b181202daec30d66ccd67264de23814cfd176d3a"
-  integrity sha512-pUrWq3V5PiSGFLeLxoGqReTZmiiXwY3jRkIG5sLLKjyqNxrwm/04b4nw7LSmGWJcKk59XOM/YRTUwOzo4MMlow==
+"@webgpu/types@0.1.30":
+  version "0.1.30"
+  resolved "https://registry.npmmirror.com/@webgpu/types/-/types-0.1.30.tgz#b6406dc4a1c1e0d469028ceb30ddffbbd2fa706c"
+  integrity sha512-9AXJSmL3MzY8ZL//JjudA//q+2kBRGhLBFpkdGksWIuxrMy81nFrCzj2Am+mbh8WoU6rXmv7cY5E3rdlyru2Qg==
 
 "@xmldom/xmldom@^0.7.3":
   version "0.7.5"

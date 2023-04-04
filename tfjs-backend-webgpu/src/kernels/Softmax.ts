@@ -18,12 +18,11 @@
 import {backend_util, KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {SoftmaxProgram} from '../softmax_webgpu';
 
-import {exp} from './Exp';
 import {max} from './Max';
 import {realDiv} from './RealDiv';
 import {reshape} from './Reshape';
-import {sub} from './Sub';
 import {sum} from './Sum';
 
 export function softmax(
@@ -45,9 +44,9 @@ export function softmax(
 
   const maxLogitsReshaped =
       reshape({inputs: {x: maxLogit}, backend, attrs: {shape: expandedShape}});
-  const a =
-      sub({inputs: {a: logits, b: maxLogitsReshaped}, backend}) as TensorInfo;
-  const b = exp({inputs: {x: a}, backend}) as TensorInfo;
+  const program = new SoftmaxProgram(logits.shape);
+  const b = backend.runWebGPUProgram(
+      program, [logits, maxLogitsReshaped], logits.dtype);
   const sumExp =
       sum({inputs: {x: b}, backend, attrs: {axis: axes, keepDims: false}});
   const sumExpReshaped =
@@ -57,7 +56,6 @@ export function softmax(
 
   backend.disposeData(maxLogit.dataId);
   backend.disposeData(maxLogitsReshaped.dataId);
-  backend.disposeData(a.dataId);
   backend.disposeData(b.dataId);
   backend.disposeData(sumExp.dataId);
   backend.disposeData(sumExpReshaped.dataId);

@@ -34,21 +34,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'conv3d ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'dilation2d ',
-    excludes: [
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -61,7 +49,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'gather ',
     excludes: [
       'throws when index is out of bound',
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -76,22 +63,11 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented
     ]
   },
-  {
-    startsWith: 'resizeBilinear ',
-    excludes: [
-      'gradients',  // Not yet implemented
-    ]
-  },
 
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
-      'avgPool3d ',
-      'avgPool3dBackprop ',
-      'conv3dTranspose ',
-      'maxPool3d ',
-      'maxPool3dBackprop ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
@@ -103,10 +79,7 @@ const TEST_FILTERS: TestFilter[] = [
       'staticRegexReplace ',
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tensorScatterUpdate ',
       'unique ',
-      'unsortedSegmentSum ',
-      'valueAndGradients ',
     ]
   },
 ];
@@ -136,7 +109,7 @@ if (typeof __karma__ !== 'undefined') {
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
-// Import and run tests from webgl.
+// Import and run tests from webgpu.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('./tests');

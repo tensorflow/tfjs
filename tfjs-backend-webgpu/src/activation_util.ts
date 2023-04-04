@@ -19,21 +19,7 @@ import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-
-export const typeSnippet = (component: number) => {
-  switch (component) {
-    case 1:
-      return 'f32';
-    case 2:
-      return 'vec2<f32>';
-    case 3:
-      return 'vec3<f32>';
-    case 4:
-      return 'vec4<f32>';
-    default:
-      throw new Error(`${component}-component is not supported.`);
-  }
-};
+import {typeSnippet} from './webgpu_program';
 
 export function activationFnSnippet(
     activation: backend_util.Activation, hasPreluActivationWeights = false,
