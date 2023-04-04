@@ -227,6 +227,8 @@ async function main() {
             .split('\n');
       for (const packageJsonPath of subpackages) {
         const pkg = fs.readFileSync(packageJsonPath, 'utf8');
+        console.log(chalk.magenta.bold(
+            `~~~ Update dependency versions for ${packageJsonPath} ~~~`));
         const updated = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
         fs.writeFileSync(packageJsonPath, updated);
       }
