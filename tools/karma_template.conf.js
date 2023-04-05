@@ -16,7 +16,6 @@
  */
 
 const browserstackConfig = {
-  hostname: 'bs-local.com',
   port: 9876,
 };
 
@@ -67,6 +66,23 @@ const CUSTOM_LAUNCHERS = {
     browser_version: '104.0',
     os: 'Windows',
     os_version: '10'
+  },
+  bs_chrome_mac_webgpu: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: 'latest',
+    os: 'OS X',
+    os_version: 'High Sierra',
+    flags: [
+      '--enable-features=Vulkan,UseSkiaRenderer',
+      '--use-vulkan=native',
+      '--enable-unsafe-webgpu',
+      '--disable-vulkan-fallback-to-gl-for-testing',
+      '--disable-vulkan-surface',
+      '--disable-features=VaapiVideoDecoder',
+      '--ignore-gpu-blocklist',
+      '--use-angle=vulkan',
+    ],
   },
   chrome_with_swift_shader: {
     base: CHROME,
