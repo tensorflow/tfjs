@@ -26,32 +26,13 @@ if [[ -z "$TAGS" ]]; then
 fi
 
 if [[ "$NIGHTLY" = true ]]; then
-    TAGS="${TAGS},#REGRESSION"
+  TAGS="${TAGS},#GOLDEN,#REGRESSION"
 fi
 
 # Additional setup for regression tests.
-if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
+if [[ "$TAGS" == *"#REGRESSION"* ]]; then
   # Generate canonical layers models and inputs.
-  ./scripts/create_save_predict.sh
-
-  cd integration_tests
-
-  # Setup python env.
-  source ../scripts/setup-py-env.sh --dev
-
-  echo "Load equivalent keras models and generate outputs."
-  python create_save_predict.py
-
-  echo "Create saved models and convert."
-  python convert_predict.py
-
-  echo "Convert model with user defined metadata."
-  python metadata.py
-
-  # Cleanup python env.
-  source ../scripts/cleanup-py-env.sh
-
-  cd ..
+  ./scripts/create-python-models.sh
 
   # Test webpack
   cd webpack_test
@@ -65,4 +46,3 @@ fi
 
 echo "Karma tests."
 yarn karma start --tags $TAGS
-

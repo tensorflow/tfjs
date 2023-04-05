@@ -25,6 +25,7 @@
 
 import * as argparse from 'argparse';
 import chalk from 'chalk';
+import semver from 'semver';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
 import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE, getReleaseBlockers, getNightlyVersion} from './release-util';
@@ -57,8 +58,8 @@ parser.addArgument(['--commit-hash', '--hash'], {
 
 parser.addArgument(['--use-local-changes'], {
   action: 'storeTrue',
-  help: 'Use local changes to the repo instead of a remote branch. Only for'
-      + ' testing and debugging.',
+  help: 'Use local changes to the repo instead of a remote branch. Only for' +
+      ' testing and debugging.',
 });
 
 parser.addArgument('--force', {
@@ -66,15 +67,17 @@ parser.addArgument('--force', {
   help: 'Force a release even if there are release blockers.',
 });
 
-async function getNewVersion(packageName: string,
-                             incrementVersion: (version: string) => string,
-                             ask = true) {
-
-  let newVersion: string | undefined;
+async function getNewVersion(
+    packageName: string, incrementVersion: (version: string) => string,
+    ask = true) {
+  let newVersion: string|undefined;
   try {
-    const latestVersion =
-      $(`npm view @tensorflow/${packageName} dist-tags.latest`);
-    newVersion = incrementVersion(latestVersion);
+    const versions: string[] =
+        JSON.parse($(`npm view @tensorflow/${packageName} versions --json`));
+    if (Array.isArray(versions) && versions.length !== 0) {
+      const latestVersion = semver.rsort(versions)[0];
+      newVersion = incrementVersion(latestVersion);
+    }
   } catch (e) {
     // Suppress errors when guessing the version.
   }
@@ -83,34 +86,36 @@ async function getNewVersion(packageName: string,
     if (!ask) {
       return newVersion;
     }
-    newVersion = await question(
-      `New version for ${packageName} (leave empty for ${newVersion}): `)
-      || newVersion;
+    newVersion = await question(`New version for ${
+                     packageName} (leave empty for ${newVersion}): `) ||
+        newVersion;
     return newVersion;
   }
 
   if (!ask) {
-    console.warn('Guessing version 0.0.1 for unpublished package '
-      + `${packageName}`);
+    console.warn(
+        'Guessing version 0.0.1 for unpublished package ' +
+        `${packageName}`);
     return '0.0.1';
   }
 
   // Repeat until the user answers.
   while (true) {
     newVersion = await question(
-      `New Version for ${packageName} (no current version found on npm): `);
+        `New Version for ${packageName} (no current version found on npm): `);
     if (newVersion !== '') {
       return newVersion;
     }
-    console.log(`${packageName} has no version on npm. `
-      + 'Please provide an initial version.');
+    console.log(
+        `${packageName} has no version on npm. ` +
+        'Please provide an initial version.');
   }
 }
 
 async function main() {
   const args = parser.parseArgs();
 
-  let incrementVersion: ((version: string) => string) | undefined;
+  let incrementVersion: ((version: string) => string)|undefined;
   if (args.guess_version === 'nightly') {
     incrementVersion = v => getNightlyVersion(getMinorUpdateVersion(v));
   }
@@ -161,7 +166,7 @@ async function main() {
     if (!commit) {
       commit = await question(
           'Commit of release candidate (the last ' +
-            'successful nightly build): ');
+          'successful nightly build): ');
     }
     if (commit === '') {
       console.log(chalk.red('Commit cannot be empty.'));
@@ -177,8 +182,8 @@ async function main() {
   if (args.use_local_changes) {
     shell.cd(path.join(__dirname, '../'));
     console.log(chalk.magenta.bold(
-        '~~~ Copying current changes to a new release branch'
-         + ` ${releaseBranch} ~~~`));
+        '~~~ Copying current changes to a new release branch' +
+        ` ${releaseBranch} ~~~`));
     // Avoid copying `.git/` because this script will `git push`
     // to origin, which it expects to be the tfjs repo as was set
     // up when the script ran 'git clone' above.
@@ -196,25 +201,37 @@ async function main() {
   }
 
   // Update versions in package.json files.
-  const phases = [
-    ...TFJS_RELEASE_UNIT.phases, ...ALPHA_RELEASE_UNIT.phases, E2E_PHASE
-  ];
+  const phases =
+      [...TFJS_RELEASE_UNIT.phases, ...ALPHA_RELEASE_UNIT.phases, E2E_PHASE];
   for (const phase of phases) {
     for (const packageName of phase.packages) {
       shell.cd(packageName);
 
-      // Update the version.
-      const packageJsonPath = `${dir}/${packageName}/package.json`;
-      let pkg = `${fs.readFileSync(packageJsonPath)}`;
+      // Update the version number of the package.json
+      const packagePath = path.join(dir, packageName);
+      const packageJsonPath = path.join(packagePath, 'package.json');
+      let pkg = fs.readFileSync(packageJsonPath, 'utf8');
       const parsedPkg = JSON.parse(`${pkg}`);
 
       console.log(chalk.magenta.bold(`~~~ Processing ${packageName} ~~~`));
       const newVersion = versions.get(packageName);
       pkg = `${pkg}`.replace(
-        `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
-      pkg = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
+          `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
 
       fs.writeFileSync(packageJsonPath, pkg);
+
+      // Update dependency versions of all package.json files found in the
+      // package to use the new verison numbers (except ones in node_modules).
+      const subpackages =
+            $(`find ${packagePath} -name package.json -not -path \'*/node_modules/*\'`)
+            .split('\n');
+      for (const packageJsonPath of subpackages) {
+        const pkg = fs.readFileSync(packageJsonPath, 'utf8');
+        console.log(chalk.magenta.bold(
+            `~~~ Update dependency versions for ${packageJsonPath} ~~~`));
+        const updated = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
+        fs.writeFileSync(packageJsonPath, updated);
+      }
 
       shell.cd('..');
 

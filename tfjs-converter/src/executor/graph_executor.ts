@@ -159,13 +159,13 @@ export class GraphExecutor implements FunctionExecutor {
    * @returns {Object} compilation The compile result.
    * @returns {Node[]} compilation.orderedNodes Nodes in the correct execution
    *     order.
-   * @returns {Map<Node, Node[]>} compilation.nodeLiveUntilMap A map from node
+   * @returns {Map<string, Node[]>} compilation.nodeLiveUntilMap A map from node
    *     to disposable nodes after its execution. That is, for a node `x`,
    *     `nodeLiveUntilMap[x]` indicates all nodes whose intermediate
    *     tensors should be disposed after `x` is executed.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]):
-      {orderedNodes: Node[], nodeLiveUntilMap: Map<Node, Node[]>} {
+      {orderedNodes: Node[], nodeLiveUntilMap: Map<string, Node[]>} {
     const executionInfo =
         getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const {missingInputs, dynamicNode, syncInputs} = executionInfo;
@@ -185,8 +185,7 @@ export class GraphExecutor implements FunctionExecutor {
           `[${inNames}]. Missing the following inputs: [${missingInputs}]`);
     }
 
-    const orderedNodes =
-        getNodesInTopologicalOrder(this.graph, this.weightMap, executionInfo);
+    const orderedNodes = getNodesInTopologicalOrder(this.graph, executionInfo);
     const nodeLiveUntilMap = getNodeLiveUntilMap(orderedNodes);
     return {orderedNodes, nodeLiveUntilMap};
   }
@@ -305,8 +304,8 @@ export class GraphExecutor implements FunctionExecutor {
           this.clonedTensorsMap[node.name] = this.cloneTensorList(tensors);
         }
         this.checkTensorForDisposalWithNodeLiveUntilInfo(
-            node, tensorsMap, tensorsToKeep, outputNodeNameSet,
-            nodeLiveUntilMap.get(node));
+            node, tensorsMap, context, tensorsToKeep, outputNodeNameSet,
+            nodeLiveUntilMap.get(node.name));
       }
 
       // dispose the context for the root executor
@@ -365,13 +364,15 @@ export class GraphExecutor implements FunctionExecutor {
           continue;
         }
 
+        // Only intermediate nodes' tensors have counts set, not marked as
+        // kept, and not in `tensorsToKeep`.
+        // Input and weight nodes' tensors should exist in `tensorsToKeep`.
+        // Output and control flow nodes' tensors should never have count set.
         const count = intermediateTensorConsumerCount[tensor.id];
         if (count === 1) {
           tensor.dispose();
           delete intermediateTensorConsumerCount[tensor.id];
         } else if (count != null) {
-          // only intermediate nodes has count set, inputs and weights
-          // are not.
           intermediateTensorConsumerCount[tensor.id]--;
         }
       }
@@ -379,19 +380,26 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   private checkTensorForDisposalWithNodeLiveUntilInfo(
-      node: Node, tensorMap: NamedTensorsMap, tensorsToKeep: Set<number>,
-      outputNodeNameSet: Set<string>, liveUntilNodes?: Node[]) {
-    // Skip output nodes and any control flow nodes, since its dependency is
-    // tricky to track correctly.
-    if (isControlFlow(node) || outputNodeNameSet.has(node.name)) {
-      return;
+      node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+      tensorsToKeep: Set<number>, outputNodeNameSet: Set<string>,
+      liveUntilNodes?: Node[]) {
+    function isNonDisposableNode(node: Node) {
+      // Skip output nodes and any control flow nodes, since its dependency is
+      // tricky to track correctly.
+      return isControlFlow(node) || outputNodeNameSet.has(node.name);
     }
-    if (liveUntilNodes == null) {
+
+    if (isControlFlow(node) || liveUntilNodes == null) {
       return;
     }
 
-    for (const node of liveUntilNodes) {
-      for (const tensor of tensorMap[node.name]) {
+    for (const nodeToDispose of liveUntilNodes) {
+      if (isNonDisposableNode(nodeToDispose)) {
+        continue;
+      }
+      const tensors = getTensorsForCurrentContext(
+          nodeToDispose.name, tensorMap, context);
+      for (const tensor of tensors) {
         if (!tensor || tensor.kept || tensorsToKeep.has(tensor.id)) {
           continue;
         }

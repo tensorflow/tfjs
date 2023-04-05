@@ -29,6 +29,8 @@ import {stringNGramsImpl as stringNGramsImplCPU} from '@tensorflow/tfjs-backend-
 import {stringSplitImpl as stringSplitImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 // tslint:disable-next-line: no-imports-from-dist
 import {stringToHashBucketFastImpl as stringToHashBucketFastImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {uniqueImpl as uniqueImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
 export {
   concatImplCPU,
@@ -36,5 +38,6 @@ export {
   sliceImplCPU,
   stringNGramsImplCPU,
   stringSplitImplCPU,
-  stringToHashBucketFastImplCPU
+  stringToHashBucketFastImplCPU,
+  uniqueImplCPU,
 };

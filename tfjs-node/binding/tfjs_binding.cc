@@ -260,6 +260,13 @@ static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
   return backend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
 }
 
+static napi_value GetNumOfTensors(napi_env env, napi_callback_info info) {
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+  // Delete SavedModel takes 0 param;
+  return backend->GetNumOfTensors(env);
+}
+
 static napi_value GetNumOfSavedModels(napi_env env, napi_callback_info info) {
   TFJSBackend *const backend = GetTFJSBackend(env);
   if (!backend) return nullptr;
@@ -314,6 +321,9 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"getNumOfSavedModels", nullptr, GetNumOfSavedModels, nullptr, nullptr,
        nullptr, napi_default, nullptr},
+      {"getNumOfTensors", nullptr, GetNumOfTensors, nullptr, nullptr,
+       nullptr, napi_default, nullptr},
+
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
                                    exports_properties);

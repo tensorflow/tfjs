@@ -62,6 +62,8 @@ import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
+import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
+import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -164,11 +166,13 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
+import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -219,6 +223,8 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
+  dilation2DBackpropFilterConfig,
+  dilation2DBackpropInputConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
@@ -321,11 +327,13 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,
   transposeConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 

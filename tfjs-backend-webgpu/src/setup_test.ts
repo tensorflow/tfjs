@@ -40,12 +40,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'dilation2d ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
@@ -55,7 +49,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'gather ',
     excludes: [
       'throws when index is out of bound',
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -86,10 +79,7 @@ const TEST_FILTERS: TestFilter[] = [
       'staticRegexReplace ',
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tensorScatterUpdate ',
       'unique ',
-      'unsortedSegmentSum ',
-      'valueAndGradients ',
     ]
   },
 ];

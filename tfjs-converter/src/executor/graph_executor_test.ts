@@ -17,6 +17,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
+import {createNumberAttr} from '../operations/executors/test_helper';
 import {createTensorAttr} from '../operations/executors/test_helper';
 import {Graph, Node} from '../operations/types';
 
@@ -26,6 +27,7 @@ let executor: GraphExecutor;
 let inputNode: Node;
 let constNode: Node;
 let intermediateNode: Node;
+let intermediateNode2: Node;
 let rsqrtNode: Node;
 let outputNode: Node;
 let graph: Graph;
@@ -37,11 +39,7 @@ const SIGNATURE: tensorflow.ISignatureDef = {
     x: {name: 'input', dtype: tensorflow.DataType.DT_INT32, tensorShape: {}}
   },
   outputs: {
-    add: {
-      name: 'output',
-      dtype: tensorflow.DataType.DT_FLOAT,
-      tensorShape: {}
-    }
+    add: {name: 'output', dtype: tensorflow.DataType.DT_FLOAT, tensorShape: {}}
   }
 };
 
@@ -79,9 +77,19 @@ describe('GraphExecutor', () => {
       inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
       attrParams: {}
     };
-    outputNode = {
+    intermediateNode2 = {
       inputNames: ['intermediate', 'const'],
       inputs: [intermediateNode, constNode],
+      children: [],
+      name: 'intermediate2',
+      op: 'Add',
+      category: 'arithmetic',
+      inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
+      attrParams: {}
+    };
+    outputNode = {
+      inputNames: ['intermediate2', 'const'],
+      inputs: [intermediateNode2, constNode],
       children: [],
       name: 'output',
       signatureKey: 'add',
@@ -96,6 +104,7 @@ describe('GraphExecutor', () => {
         'input': inputNode,
         'const': constNode,
         'intermediate': intermediateNode,
+        'intermediate2': intermediateNode2,
         'output': outputNode
       },
       outputs: [outputNode],
@@ -108,6 +117,7 @@ describe('GraphExecutor', () => {
             'input': inputNode,
             'const': constNode,
             'intermediate': intermediateNode,
+            'intermediate2': intermediateNode2,
             'output': outputNode
           },
           outputs: [outputNode],
@@ -119,8 +129,9 @@ describe('GraphExecutor', () => {
       signature: SIGNATURE
     };
     inputNode.children.push(intermediateNode);
-    constNode.children.push(intermediateNode, outputNode);
-    intermediateNode.children.push(outputNode);
+    constNode.children.push(intermediateNode, intermediateNode2, outputNode);
+    intermediateNode.children.push(intermediateNode2);
+    intermediateNode2.children.push(outputNode);
     executor = new GraphExecutor(graph);
     constTensor = tfc.scalar(2.0);
     executor.weightMap = {'const': [constTensor]};
@@ -163,7 +174,7 @@ describe('GraphExecutor', () => {
         it('should execute the op', async () => {
           const inputTensor = tfc.scalar(1);
           const result = executor.execute({input: inputTensor}, ['output']);
-          tfc.test_util.expectArraysClose(await result[0].data(), [5.0]);
+          tfc.test_util.expectArraysClose(await result[0].data(), [7.0]);
         });
 
         it('should allow output intermediate nodes', async () => {
@@ -171,14 +182,87 @@ describe('GraphExecutor', () => {
           const result = executor.execute(
               {input: inputTensor}, ['output', 'intermediate']);
           tfc.test_util.expectArraysClose(await result[1].data(), [3.0]);
-          tfc.test_util.expectArraysClose(await result[0].data(), [5.0]);
+          tfc.test_util.expectArraysClose(await result[0].data(), [7.0]);
+        });
+
+        it('should allow output multiple intermediate nodes', async () => {
+          const inputTensor = tfc.scalar(1);
+          const result = executor.execute(
+              {input: inputTensor},
+              ['output', 'intermediate', 'intermediate2']);
+          tfc.test_util.expectArraysClose(await result[1].data(), [3.0]);
+          tfc.test_util.expectArraysClose(await result[2].data(), [5.0]);
+          tfc.test_util.expectArraysClose(await result[0].data(), [7.0]);
         });
 
         it('should allow feed intermediate nodes', async () => {
           const intermediateTensor = tfc.scalar(1);
           const result =
               executor.execute({intermediate: intermediateTensor}, ['output']);
-          tfc.test_util.expectArraysClose(await result[0].data(), [3.0]);
+          tfc.test_util.expectArraysClose(await result[0].data(), [5.0]);
+        });
+
+        it('should skip noop', async () => {
+          const inputNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'input',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+
+          const noopNode: Node = {
+            inputNames: ['input'],
+            inputs: [inputNode],
+            children: [],
+            name: 'noop',
+            op: 'NoOp',
+            category: 'graph',
+            inputParams: {},
+            attrParams: {}
+          };
+
+          const packNode: Node = {
+            // Even though `noop` is an input, it should be excluded during
+            // execution
+            inputNames: ['input', 'noop'],
+            inputs: [inputNode, noopNode],
+            children: [],
+            name: 'pack',
+            op: 'Pack',
+            category: 'slice_join',
+            inputParams: {
+              tensors: {
+                // this range matches all the tensors in the input
+                'type': 'tensors',
+                'inputIndexStart': 0,
+                'inputIndexEnd': 0,
+              }
+            },
+            attrParams: {axis: createNumberAttr(0)}
+          };
+          inputNode.children.push(noopNode, packNode);
+          noopNode.children.push(packNode);
+
+          const graph: Graph = {
+            inputs: [inputNode],
+            nodes: {
+              'input': inputNode,
+              'noop': noopNode,
+              'pack': packNode,
+            },
+            outputs: [packNode],
+            placeholders: [inputNode],
+            weights: []
+          };
+
+          const executor = new GraphExecutor(graph);
+          const inputTensor = tfc.tensor1d([123, 456]);
+          const result = executor.execute({input: inputTensor}, ['pack']);
+          tfc.test_util.expectArraysClose(await result[0].data(), [123, 456]);
         });
 
         describe('strict input check', () => {
@@ -419,11 +503,8 @@ describe('GraphExecutor', () => {
             },
             inputParams: {
               'cond': {'type': 'tensor', 'inputIndexStart': 0},
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 1,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 1, 'inputIndexEnd': 0}
             }
           };
           inputNode.children.push(outputNode);
@@ -540,11 +621,8 @@ describe('GraphExecutor', () => {
               'body': {'value': 'bodyFunc', 'type': 'func'}
             },
             inputParams: {
-              'args': {
-                'type': 'tensors',
-                'inputIndexStart': 0,
-                'inputIndexEnd': 0
-              }
+              'args':
+                  {'type': 'tensors', 'inputIndexStart': 0, 'inputIndexEnd': 0}
             }
           };
           inputNode2.children.push(outputNode);

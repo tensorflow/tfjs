@@ -85,9 +85,6 @@ void MaxPool3DGrad(int x_id, int dy_id, int dx_id, int batch_size,
       /*filter_aggregate=*/
       [](const std::pair<float, int>& data) { return data.second; });
 
-  pool3d_info.pad_front = effective_filter_depth - 1 - pad_front;
-  pool3d_info.pad_top = effective_filter_height - 1 - pad_top;
-  pool3d_info.pad_left = effective_filter_width - 1 - pad_left;
   NDHWCPool3DGradImpl(
       dy_info.f32(), dx_info.f32_write(), pool3d_info,
       /*pixel_mask=*/
