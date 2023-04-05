@@ -30,7 +30,11 @@ const CUSTOM_LAUNCHERS = {
     browser: 'chrome',
     browser_version: 'latest',
     os: 'OS X',
-    os_version: 'High Sierra'
+    os_version: 'High Sierra',
+    flags: [
+      // For tfjs-data
+      '--autoplay-policy=no-user-gesture-required',
+    ],
   },
   bs_firefox_mac: {
     base: 'BrowserStack',
@@ -65,7 +69,11 @@ const CUSTOM_LAUNCHERS = {
     browser: 'chrome',
     browser_version: '104.0',
     os: 'Windows',
-    os_version: '10'
+    os_version: '10',
+    flags: [
+      // For tfjs-data
+      '--autoplay-policy=no-user-gesture-required',
+    ],
   },
   bs_chrome_mac_webgpu: {
     base: 'BrowserStack',
