@@ -130,6 +130,7 @@ describeWebGPU('Ops benchmarks', () => {
   });
 
   // Failing on MacOS
+  // tslint:disable-next-line: ban
   xit('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
@@ -158,6 +159,7 @@ describeWebGPU('Ops benchmarks', () => {
   });
 
   // Failing on MacOS
+  // tslint:disable-next-line: ban
   xit('conv2d', async () => {
     const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
     const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
@@ -166,6 +168,7 @@ describeWebGPU('Ops benchmarks', () => {
   });
 
   // Failing on MacOS
+  // tslint:disable-next-line: ban
   xit('conv2dWithInChannel3', async () => {
     const a = tf.randomNormal<tf.Rank.R4>([1, 231, 231, 3]);
     const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
@@ -210,6 +213,7 @@ describeWebGPU('Ops benchmarks', () => {
   });
 
   // Failing on MacOS
+  // tslint:disable-next-line: ban
   xit('transpose', async () => {
     const x = tf.randomNormal([1024, 1024]);
     await time(() => tf.transpose(x, [1, 0]), null, false, 10, 10);
