@@ -7,8 +7,8 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-wasm": "3.14.0",
-    "@tensorflow/tfjs-core": "3.14.0"
+    "@tensorflow/tfjs-backend-wasm": "4.4.0",
+    "@tensorflow/tfjs-core": "4.4.0"
   },
   "browserslist": [
     "defaults"
