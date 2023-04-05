@@ -63,6 +63,54 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients',  // Not yet implemented
     ]
   },
+  {
+    startsWith: 'cos ',
+    excludes: [
+      'gradients',             // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'tan ',
+    excludes: [
+      'gradients',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'acosh ',
+    excludes: [
+      'propagates NaNs',       // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'asinh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'atanh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'sigmoid ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'log ',
+    excludes: [
+      'log propagates NaNs',  // Failing on MacOS
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {

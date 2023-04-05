@@ -16,7 +16,6 @@
  */
 
 const browserstackConfig = {
-  hostname: 'bs-local.com',
   port: 9876,
 };
 
@@ -31,7 +30,11 @@ const CUSTOM_LAUNCHERS = {
     browser: 'chrome',
     browser_version: 'latest',
     os: 'OS X',
-    os_version: 'High Sierra'
+    os_version: 'High Sierra',
+    flags: [
+      // For tfjs-data
+      '--autoplay-policy=no-user-gesture-required',
+    ],
   },
   bs_firefox_mac: {
     base: 'BrowserStack',
@@ -66,7 +69,28 @@ const CUSTOM_LAUNCHERS = {
     browser: 'chrome',
     browser_version: '104.0',
     os: 'Windows',
-    os_version: '10'
+    os_version: '10',
+    flags: [
+      // For tfjs-data
+      '--autoplay-policy=no-user-gesture-required',
+    ],
+  },
+  bs_chrome_mac_webgpu: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: 'latest',
+    os: 'OS X',
+    os_version: 'High Sierra',
+    flags: [
+      '--enable-unsafe-webgpu',
+      '--disable-vulkan-fallback-to-gl-for-testing',
+      '--disable-vulkan-surface',
+      '--disable-features=VaapiVideoDecoder',
+      '--ignore-gpu-blocklist',
+      // For some reason, the tests fail without this flag, even though macos
+      // does not use Vulkan.
+      '--use-angle=vulkan',
+    ],
   },
   chrome_with_swift_shader: {
     base: CHROME,
