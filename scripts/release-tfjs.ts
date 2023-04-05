@@ -229,7 +229,27 @@ async function main() {
         const pkg = fs.readFileSync(packageJsonPath, 'utf8');
         console.log(chalk.magenta.bold(
             `~~~ Update dependency versions for ${packageJsonPath} ~~~`));
-        const updated = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
+
+        // Subpackages may depend on the package itself, so add the package to
+        // the list of deps.
+        // TODO(mattSoulanille): Do we need to only update the deps of a phase?
+        // Partial answer: It depends. If the package needs to be built for
+        // release and needs to download from npm in order to build, then if we
+        // update dependencies not listed in the phase's deps, they will not
+        // have been published to npm yet, and the build will fail. On the other
+        // hand, for demos that we don't need to build for publishing to npm,
+        // it's fine to update everything, since they will be run after all
+        // packages are published. Additionally, Bazel packages do not have this
+        // issue since they do not fetch TFJS dependnecies from npm when
+        // building. In general, we should try to move towards updating all
+        // dependencies, or throw an error when it's not possible.
+        const depsWithPackage = [...(phase.deps ?? [])];
+        if (versions.has(packageName)) {
+          // Some packages, like e2e, are never published to npm.
+          depsWithPackage.push(packageName);
+        }
+        const updated = updateTFJSDependencyVersions(pkg, versions,
+                                                     depsWithPackage);
         fs.writeFileSync(packageJsonPath, updated);
       }
 
