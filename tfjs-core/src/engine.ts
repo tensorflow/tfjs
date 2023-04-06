@@ -120,13 +120,21 @@ interface GradientTapeState {
   kernelDepth: number;
 }
 
+interface TensorPlaceholderConfig {
+  readonly allowOverwriteTensor: boolean;
+}
+
 class TensorPlaceholder {
+  static readonly DEFAULT_CONFIG: TensorPlaceholderConfig = {
+    allowOverwriteTensor: true,
+  };
   // A map from templateDataId to built TensorPlaceholder. When the refCount of
   // a TensorPlaceholder decreases to zero, its corresponding entry in the pool
   // will be deleted.
   private static pool =
       new WeakMap</*templateDataId=*/DataId, TensorPlaceholder>();
 
+  readonly config: TensorPlaceholderConfig;
   readonly template: TensorInfo;
   /** Unique id of this placeholder. */
   readonly pid: DataId;
@@ -136,7 +144,10 @@ class TensorPlaceholder {
   private refCount = 1;
   private disposed = false;
 
-  private constructor(template: TensorInfo|Tensor) {
+  private constructor(
+      template: TensorInfo|Tensor, config?: Partial<TensorPlaceholderConfig>) {
+    this.config = {...TensorPlaceholder.DEFAULT_CONFIG, ...(config ?? {})};
+
     this.template = {
       dataId: template.dataId,
       shape: [...template.shape],
@@ -165,7 +176,8 @@ class TensorPlaceholder {
       throw new Error(
           `Cannot set TensorPlaceholder to null or undefined: ${this}`);
     }
-    if (this.tensor != null && this.tensor.dataId !== tensor.dataId) {
+    if (!this.config.allowOverwriteTensor && this.tensor != null &&
+        this.tensor.dataId !== tensor.dataId) {
       throw new Error(
           `Tensor has been set. Cannot double set a TensorPlaceholder.`);
     }
@@ -196,7 +208,7 @@ class TensorPlaceholder {
     return t;
   }
 
-  clear(): void {
+  reset(): void {
     this.assertNotDisposed();
     if (this.tensor == null) {
       return;
@@ -218,7 +230,7 @@ class TensorPlaceholder {
   }
 
   dispose() {
-    this.clear();
+    this.reset();
     if (!this.disposed && --this.refCount === 0) {
       this.disposed = true;
       TensorPlaceholder.pool.delete(this.template.dataId);
