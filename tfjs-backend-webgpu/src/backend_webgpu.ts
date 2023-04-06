@@ -132,7 +132,7 @@ export class WebGPUBackend extends KernelBackend {
   private pipelineCache: {[key: string]: GPUComputePipeline};
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
-  private stagingPendingDisposal: GPUBuffer[] = [];
+  private stagingPendingDisposal: BufferInfo[] = [];
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
@@ -326,9 +326,10 @@ export class WebGPUBackend extends KernelBackend {
       this.tensorMap.delete(d);
     });
     this.uniformPendingDisposal.forEach(
-        d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
+        b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
     this.stagingPendingDisposal.forEach(
-        buf => this.bufferManager.releaseUploadBuffer(buf));
+        b =>
+            this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage, false));
 
     this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
@@ -648,8 +649,9 @@ export class WebGPUBackend extends KernelBackend {
       buffer = this.bufferManager.acquireBuffer(
           size, this.defaultGpuBufferUsage(), true);
       if (buffer.mapState === 'unmapped') {
-        const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+        const stagingBuffer = this.bufferManager.acquireBuffer(
+            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC, true,
+            false);
         const arrayBuffer = stagingBuffer.getMappedRange();
         if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
           new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
@@ -662,7 +664,11 @@ export class WebGPUBackend extends KernelBackend {
         this.currentCommandEncoder.copyBufferToBuffer(
             stagingBuffer, 0, buffer, 0, size);
 
-        this.stagingPendingDisposal.push(stagingBuffer);
+        this.stagingPendingDisposal.push({
+          size: size,
+          usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+          buffer: stagingBuffer
+        });
       } else {
         const arrayBuffer = buffer.getMappedRange();
         if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
