@@ -18,19 +18,22 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
+import {backend} from './globals';
 import {Add, Cast, Identity} from './kernel_names';
-import { getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap } from './kernel_registry';
-import { TensorInfo } from './tensor_info';
+import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap} from './kernel_registry';
 import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
+import {TensorInfo} from './tensor_info';
 import {DataId} from './tensor_info';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
+
+export const ENGINE = getOrMakeEngine();
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -109,7 +112,165 @@ function isRegisteredKernelInvocation<T extends Tensor|Tensor[],
   return (kernelInvocation as RegisteredKernelInvocation<I>).kernelName != null;
 }
 
-class EngineState {
+interface GradientTapeState {
+  activeTape: TapeNode[]|null;
+  // Number of nested tf.grad() statements when computing higher-order
+  // gradients. E.g. `1` for first-order gradients and `2` for second-order
+  // gradients. Used to track if the tape should be removed after a backprop.
+  gradientDepth: number;
+  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
+  // off the tape.
+  kernelDepth: number;
+}
+
+class TensorPlaceholder {
+  // A map from templateDataId to built TensorPlaceholder. When the refCount of
+  // a TensorPlaceholder decreases to zero, its corresponding entry in the pool
+  // will be deleted.
+  private static pool =
+      new WeakMap</*templateDataId=*/DataId, TensorPlaceholder>();
+
+  readonly templateDataId: DataId;
+  readonly shape: number[];
+  readonly dtype: DataType;
+  private backend?: KernelBackend;
+  private tensor?: TensorInfo|Tensor;
+  private refCount = 1;
+  private disposed = false;
+
+  private constructor(template: TensorInfo|Tensor) {
+    this.templateDataId = template.dataId;
+    this.shape = [...template.shape];
+    this.dtype = template.dtype;
+  }
+
+  static build(template: TensorInfo|Tensor): TensorPlaceholder {
+    const {dataId} = template;
+    const existingPlaceholder = TensorPlaceholder.pool.get(dataId);
+    if (existingPlaceholder != null) {
+      existingPlaceholder.refCount++;
+      return existingPlaceholder;
+    }
+    return new TensorPlaceholder(template);
+  }
+
+  set(tensor: TensorInfo, backend?: KernelBackend): void {
+    this.assertNotDisposed();
+    if (tensor == null) {
+      throw new Error(
+          `Cannot set TensorPlaceholder to null or undefined: ${this}`);
+    }
+    if (this.tensor != null && this.tensor.dataId !== tensor.dataId) {
+      throw new Error(
+          `Tensor has been set. Cannot double set a TensorPlaceholder.`);
+    }
+    this.backend = backend;
+    this.tensor = tensor;
+  }
+
+  get(): TensorInfo {
+    this.assertNotDisposed();
+    if (this.tensor == null) {
+      throw new Error(`Empty TensorPlaceholder: ${this}`);
+    }
+    return this.tensor;
+  }
+
+  clear(): void {
+    this.assertNotDisposed();
+    if (this.tensor == null) {
+      return;
+    }
+
+    if (this.tensor instanceof Tensor && !this.tensor.kept) {
+      this.tensor.dispose();
+    } else {
+      this.backend.disposeData(this.tensor.dataId);
+    }
+    this.backend = undefined;
+    this.tensor = undefined;
+  }
+
+  private assertNotDisposed() {
+    if (this.disposed) {
+      throw new Error(`TensorPlaceholder is disposed: ${this}`);
+    }
+  }
+
+  dispose() {
+    if (!this.disposed && --this.refCount === 0) {
+      this.disposed = true;
+      TensorPlaceholder.pool.delete(this.templateDataId);
+    }
+  }
+}
+
+interface UninitCommand {
+  inputs: TensorPlaceholder[];
+  outputs: TensorPlaceholder[];
+}
+
+abstract class Command {
+  readonly inputs: TensorPlaceholder[];
+  readonly outputs: TensorPlaceholder[];
+
+  abstract execute(): void;
+
+  dispose(): void {
+    for (const placeholder of [...this.inputs, ...this.outputs]) {
+      placeholder.dispose();
+    }
+  }
+}
+
+export class ClosureCommand extends Command {
+  private constructor(readonly func: (tensors: TensorInfo[]) => TensorInfo[]) {
+    super();
+  }
+
+  static buildAndExecute(
+      inputTensors: TensorInfo[],
+      func: (tensors: TensorInfo[]) => TensorInfo[]) {
+    const command = new ClosureCommand(func) as UninitCommand;
+
+    command.inputs = inputTensors.map((t) => TensorPlaceholder.build(t));
+
+    const outputTensors = func(inputTensors);
+    command.outputs = outputTensors.map((t) => TensorPlaceholder.build(t));
+
+    return {command: command as Command, outputs: outputTensors};
+  }
+
+  execute() {
+    const inputTensors = this.inputs.map((placeholder) => placeholder.get());
+    const outputTensors = this.func(inputTensors);
+    if (outputTensors.length !== this.outputs.length) {
+      throw new Error(`ClosureCommand execute error: expect ${
+          this.outputs.length} outputs, got ${outputTensors.length}.`);
+    }
+    for (let i = 0; i < this.outputs.length; ++i) {
+      this.outputs[i].set(outputTensors[i]);
+    }
+  }
+}
+
+interface BuildAndExecutableCommand {
+  buildAndExecute(...args: unknown[]):
+      {command: Command, outputs: TensorInfo[]};
+}
+
+class CommandTape {
+  readonly commands: Command[];
+
+  pushAndExecute<T>(commandCls: BuildAndExecutableCommand, ...args: T[]):
+      TensorInfo[] {
+    const {command, outputs} = commandCls.buildAndExecute(...args);
+    this.commands.push(command);
+    return outputs;
+  }
+}
+
+class EngineState implements GradientTapeState {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
 
@@ -119,14 +280,12 @@ class EngineState {
   numStringTensors = 0;
   numDataBuffers = 0;
 
-  activeTape: TapeNode[];
-  // Number of nested tf.grad() statements when computing higher-order
-  // gradients. E.g. `1` for first-order gradients and `2` for second-order
-  // gradients. Used to track if the tape should be removed after a backprop.
+  // GradientTapeState
+  activeTape: TapeNode[]|null = null;
   gradientDepth = 0;
-  // Number of nested kernel calls. When kernel depth is greater than 1, we turn
-  // off the tape.
   kernelDepth = 0;
+
+  activateCommandTape?: CommandTape;
 
   // Keep Tensors that parallel the tapes.
   activeScope: ScopeState;
@@ -234,8 +393,8 @@ export class Engine implements TensorTracker, DataMover {
 
   findBackend(backendName: string): KernelBackend {
     if (!(backendName in this.registry)) {
-      // If the backend hasn't been initialized but we have a registry entry for
-      // it, initialize it and return it.
+      // If the backend hasn't been initialized but we have a registry entry
+      // for it, initialize it and return it.
       if (backendName in this.registryFactory) {
         const {asyncInit} = this.initializeBackend(backendName);
         if (asyncInit) {
@@ -337,7 +496,8 @@ export class Engine implements TensorTracker, DataMover {
         const success =
             backend
                 .then(backendInstance => {
-                  // Outdated promise. Another backend was set in the meantime.
+                  // Outdated promise. Another backend was set in the
+                  // meantime.
                   if (promiseId < this.pendingBackendInitId) {
                     return false;
                   }
@@ -346,7 +506,8 @@ export class Engine implements TensorTracker, DataMover {
                   return true;
                 })
                 .catch(err => {
-                  // Outdated promise. Another backend was set in the meantime.
+                  // Outdated promise. Another backend was set in the
+                  // meantime.
                   if (promiseId < this.pendingBackendInitId) {
                     return false;
                   }
@@ -503,8 +664,8 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y: Tensor = ENGINE.runKernel(Identity,
-                                       {x} as unknown as NamedTensorMap);
+    const y: Tensor =
+        ENGINE.runKernel(Identity, {x} as unknown as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {
@@ -572,10 +733,10 @@ export class Engine implements TensorTracker, DataMover {
     });
 
     // Account for the number of moves during kernel execution. A "data move"
-    // can happen in the middle of a kernel execution, placing a new (key,value)
-    // pair in the data storage. Since data moves have net zero effect (we
-    // always remove the data from the old backend), we have to cancel them out
-    // when detecting memory leaks.
+    // can happen in the middle of a kernel execution, placing a new
+    // (key,value) pair in the data storage. Since data moves have net zero
+    // effect (we always remove the data from the old backend), we have to
+    // cancel them out when detecting memory leaks.
     const numMoves =
         this.state.numDataMovesStack[this.state.numDataMovesStack.length - 1];
     const dataIdsLeaked =
@@ -629,11 +790,11 @@ export class Engine implements TensorTracker, DataMover {
     if (isRegisteredKernelInvocation(kernelParams)) {
       const {kernelName, inputs, attrs} = kernelParams;
       if (this.backendName == null) {
-        // backend has not been initialized yet (backend initialization is lazy
-        // can be deferred until an op/ kernel is run).
-        // The below getter has side effects that will try to initialize the
-        // backend and set properties like this.backendName
-        // tslint:disable-next-line: no-unused-expression
+        // backend has not been initialized yet (backend initialization is
+        // lazy can be deferred until an op/ kernel is run). The below getter
+        // has side effects that will try to initialize the backend and set
+        // properties like this.backendName tslint:disable-next-line:
+        // no-unused-expression
         this.backend;
       }
       const kernel = getKernel(kernelName, this.backendName);
@@ -690,7 +851,8 @@ export class Engine implements TensorTracker, DataMover {
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
         const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
-          // Scope name is used to print a more helpful error message if needed.
+          // Scope name is used to print a more helpful error message if
+          // needed.
           this.checkKernelForMemLeak(kernelOrScopeName, numDataIdsBefore, outs);
         }
         return outs;
@@ -786,9 +948,9 @@ export class Engine implements TensorTracker, DataMover {
 
       return inputTensorsToSave.concat(outputTensorsToSave);
     }
-    // We return an empty list rather than throw an error because the kernel we
-    // are looking up may not actually be relevant to backproping through the
-    // overall function
+    // We return an empty list rather than throw an error because the kernel
+    // we are looking up may not actually be relevant to backproping through
+    // the overall function
     //
     // See 'does not error if irrelevant (pruned) ops are missing grads' test
     // in gradients_test.ts for an example.
@@ -833,8 +995,8 @@ export class Engine implements TensorTracker, DataMover {
    * @deprecated
    */
   makeTensorFromDataId(
-    dataId: DataId, shape: number[], dtype: DataType,
-    backend?: KernelBackend): Tensor {
+      dataId: DataId, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const tensorInfo: TensorInfo = {dataId, shape, dtype};
     return this.makeTensorFromTensorInfo(tensorInfo, backend);
@@ -842,8 +1004,8 @@ export class Engine implements TensorTracker, DataMover {
 
   /**
    * Internal method used by backends. Makes a new tensor that is a wrapper
-   * around an existing data id in TensorInfo. It doesn't create a new data id,
-   * only increments the ref count used in memory tracking.
+   * around an existing data id in TensorInfo. It doesn't create a new data
+   * id, only increments the ref count used in memory tracking.
    */
   makeTensorFromTensorInfo(tensorInfo: TensorInfo, backend?: KernelBackend):
       Tensor {
@@ -897,11 +1059,11 @@ export class Engine implements TensorTracker, DataMover {
     }
   }
 
-  // Track the tensor by dataId and increase the refCount for the dataId in the
-  // backend.
-  // TODO(pyu10055): This is currently used by makeVariable method, to increase
-  // refCount on the backend for the dataId. It can potentially be replaced with
-  // Identity op indead of calling backend directly.
+  // Track the tensor by dataId and increase the refCount for the dataId in
+  // the backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to
+  // increase refCount on the backend for the dataId. It can potentially be
+  // replaced with Identity op indead of calling backend directly.
   incRef(a: Tensor, backend: KernelBackend): void {
     this.trackTensor(a, backend);
     this.backend.incRef(a.dataId);
@@ -1300,7 +1462,6 @@ export function getOrMakeEngine(): Engine {
   return ns._tfengine;
 }
 
-export const ENGINE = getOrMakeEngine();
 
 /**
  * A implementation of the add op for use within engine and tape.

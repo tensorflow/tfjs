@@ -11,7 +11,7 @@
     "declaration": true,
     "target": "es2017",
     "lib": [
-      "es2019",
+      "esnext",
       "dom"
     ],
     "outDir": "./dist",

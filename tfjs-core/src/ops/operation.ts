@@ -14,10 +14,61 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE} from '../engine';
+import {ClosureCommand, ENGINE, TensorPlaceholder} from '../engine';
+import {Tensor} from '../tensor';
 import {isPromise} from '../util';
 
 export const OP_SCOPE_SUFFIX = '__op';
+
+// tslint:disable-next-line:no-any
+function buildOpRecorderInputs(inputs: any[]) {
+  const tensors: {tensor: Tensor, setter: (tensor: Tensor) => void}[] = [];
+
+  const extract =
+      (vals: any, setter: (tensor: Tensor) => void) => {
+        if (vals instanceof Tensor) {
+          tensors.push({tensor: vals, setter});
+          return vals;
+        }
+        if (Array.isArray(vals)) {
+          const clonedArray: any[] = [];
+          for (let i = 0; i < vals.length; ++i) {
+            clonedArray[i] = extract(vals[i], (t) => clonedArray[i] = t);
+          }
+          return clonedArray;
+        }
+        if (typeof vals === 'object') {
+          // The order is consistent and determined.
+          const clonedObject: Record<string, any> = {};
+          for (const [key, val] of Object.entries(vals)) {
+            clonedObject[key] = extract(val, (t) => clonedObject[key] = t);
+          }
+          return clonedObject
+        }
+
+        return vals;
+      }
+
+  const clonedInputs = extract(inputs, () => {});
+  return {clonedInputs, tensors};
+}
+
+function buildAutoOpRecorder<T extends Function>(opFn: T) {
+  // tslint:disable-next-line:no-any
+  return function opRecorder(...args: any[]) {
+    const {clonedInputs, tensors} = buildOpRecorderInputs(args);
+    ENGINE.state.activateCommandTape.pushAndExecute(
+        ClosureCommand, tensors.map(({tensor}) => tensor), (inputTensors) => {
+          for (let i = 0; i < inputTensors.length; ++i) {
+            tensors[i].setter(inputTensors[i] as Tensor);
+          }
+          const outputTensors = opFn(clonedInputs);
+          if (Array.isArray(outputTensors)) {
+            return outputTensors;
+          } if ()
+        });
+  };
+}
 
 /**
  * Used for wrapping functions that perform math operations on
