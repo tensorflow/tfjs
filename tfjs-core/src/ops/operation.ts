@@ -14,59 +14,67 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ClosureCommand, ENGINE, TensorPlaceholder} from '../engine';
+import {ClosureCommand, CommandTape, ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {isPromise} from '../util';
 
 export const OP_SCOPE_SUFFIX = '__op';
 
-// tslint:disable-next-line:no-any
-function buildOpRecorderInputs(inputs: any[]) {
+function buildOpAutoRecorderInputs(inputs: unknown[]) {
   const tensors: {tensor: Tensor, setter: (tensor: Tensor) => void}[] = [];
 
   const extract =
-      (vals: any, setter: (tensor: Tensor) => void) => {
-        if (vals instanceof Tensor) {
-          tensors.push({tensor: vals, setter});
-          return vals;
+      (x: unknown, setter: (tensor: Tensor) => void) => {
+        if (x instanceof Tensor) {
+          tensors.push({tensor: x, setter});
+          return x;
         }
-        if (Array.isArray(vals)) {
-          const clonedArray: any[] = [];
-          for (let i = 0; i < vals.length; ++i) {
-            clonedArray[i] = extract(vals[i], (t) => clonedArray[i] = t);
+        if (Array.isArray(x)) {
+          const arrayCopy: unknown[] = [];
+          for (let i = 0; i < x.length; ++i) {
+            arrayCopy[i] = extract(x[i], (t) => arrayCopy[i] = t);
           }
-          return clonedArray;
+          return arrayCopy;
         }
-        if (typeof vals === 'object') {
+        if (typeof x === 'object') {
           // The order is consistent and determined.
-          const clonedObject: Record<string, any> = {};
-          for (const [key, val] of Object.entries(vals)) {
-            clonedObject[key] = extract(val, (t) => clonedObject[key] = t);
+          const objectCopy: Record<string, unknown> = {};
+          for (const [key, val] of Object.entries(x)) {
+            objectCopy[key] = extract(val, (t) => objectCopy[key] = t);
           }
-          return clonedObject
+          return objectCopy
         }
 
-        return vals;
+        // Should be primitive type, returns original reference.
+        return x;
       }
 
-  const clonedInputs = extract(inputs, () => {});
-  return {clonedInputs, tensors};
+  const inputsCopy = extract(inputs, () => {}) as unknown[];
+  return {inputsCopy, tensors};
 }
 
-function buildAutoOpRecorder<T extends Function>(opFn: T) {
+function buildOpAutoRecorder<T extends Function>(opFn: T) {
   // tslint:disable-next-line:no-any
-  return function opRecorder(...args: any[]) {
-    const {clonedInputs, tensors} = buildOpRecorderInputs(args);
-    ENGINE.state.activateCommandTape.pushAndExecute(
-        ClosureCommand, tensors.map(({tensor}) => tensor), (inputTensors) => {
-          for (let i = 0; i < inputTensors.length; ++i) {
-            tensors[i].setter(inputTensors[i] as Tensor);
-          }
-          const outputTensors = opFn(clonedInputs);
-          if (Array.isArray(outputTensors)) {
-            return outputTensors;
-          } if ()
-        });
+  return function opAutoRecorder(...args: any[]) {
+    const {inputsCopy, tensors} = buildOpAutoRecorderInputs(args);
+    return ClosureCommand.record<
+        Tensor>(tensors.map(({tensor}) => tensor), (inputTensors: Tensor[]) => {
+      for (let i = 0; i < inputTensors.length; ++i) {
+        tensors[i].setter(inputTensors[i] as Tensor);
+      }
+
+      const outputTensors = opFn(...inputsCopy);
+
+      if (outputTensors instanceof Tensor) {
+        return outputTensors;
+      }
+      if (Array.isArray(outputTensors)) {
+        return outputTensors;
+      }
+      throw new Error(
+          `Op auto recorder only supports Tensor and Tensor[] as outputs, got ${
+              outputTensors}`);
+    });
   };
 }
 
@@ -75,7 +83,8 @@ function buildAutoOpRecorder<T extends Function>(opFn: T) {
  * Tensors. The function will be wrapped in a named scope that cleans all
  * memory usage after the function is done.
  */
-export function op<T extends Function>(f: {[name: string]: T}): T {
+export function op<T extends Function>(
+    f: {[name: string]: T}, record: 'builtin'|'auto'|'none' = 'auto'): T {
   const keys = Object.keys(f);
   if (keys.length !== 1) {
     throw new Error(
@@ -110,8 +119,33 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
       throw ex;
     }
   };
-  Object.defineProperty(f2, 'name', {value: opName, configurable: true});
 
-  // tslint:disable-next-line:no-any
-  return f2 as any as T;
+  let recorder: (...args: unknown[]) => unknown;
+  switch (record) {
+    case 'none':
+      recorder = () => {
+        throw new Error(`Op ${opName} does not support recording`);
+      };
+      break;
+    case 'builtin':
+      recorder = f2;
+      break;
+    case 'auto':
+      recorder = buildOpAutoRecorder(f2);
+  }
+
+  const recordFn = (...args: unknown[]) => {
+    ENGINE.state.activateCommandTape = new CommandTape();
+    const outputs = recorder(...args);
+    const result = {
+      tape: ENGINE.state.activateCommandTape,
+      outputs: outputs,
+    };
+    ENGINE.state.activateCommandTape = undefined;
+    return result;
+  };
+
+  Object.defineProperty(f2, 'name', {value: opName, configurable: true});
+  Object.defineProperty(f2, 'record', {value: recordFn, configurable: false});
+  return f2 as unknown as T;
 }

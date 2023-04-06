@@ -18,7 +18,6 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
-import {backend} from './globals';
 import {Add, Cast, Identity} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap} from './kernel_registry';
 import * as log from './log';
@@ -32,8 +31,6 @@ import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
-
-export const ENGINE = getOrMakeEngine();
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -130,18 +127,26 @@ class TensorPlaceholder {
   private static pool =
       new WeakMap</*templateDataId=*/DataId, TensorPlaceholder>();
 
-  readonly templateDataId: DataId;
-  readonly shape: number[];
-  readonly dtype: DataType;
+  readonly template: TensorInfo;
+  /** Unique id of this placeholder. */
+  readonly pid: DataId;
+
   private backend?: KernelBackend;
   private tensor?: TensorInfo|Tensor;
   private refCount = 1;
   private disposed = false;
 
   private constructor(template: TensorInfo|Tensor) {
-    this.templateDataId = template.dataId;
-    this.shape = [...template.shape];
-    this.dtype = template.dtype;
+    this.template = {
+      dataId: template.dataId,
+      shape: [...template.shape],
+      dtype: template.dtype,
+    };
+    this.pid = template.dataId;
+  }
+
+  static engine() {
+    return ENGINE;
   }
 
   static build(template: TensorInfo|Tensor): TensorPlaceholder {
@@ -176,6 +181,21 @@ class TensorPlaceholder {
     return this.tensor;
   }
 
+  toTensor() {
+    const t = this.get();
+    if (t instanceof Tensor) {
+      return t;
+    }
+    return TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
+  }
+
+  releaseTensor() {
+    const t = this.toTensor();
+    this.backend = undefined;
+    this.tensor = undefined;
+    return t;
+  }
+
   clear(): void {
     this.assertNotDisposed();
     if (this.tensor == null) {
@@ -198,14 +218,15 @@ class TensorPlaceholder {
   }
 
   dispose() {
+    this.clear();
     if (!this.disposed && --this.refCount === 0) {
       this.disposed = true;
-      TensorPlaceholder.pool.delete(this.templateDataId);
+      TensorPlaceholder.pool.delete(this.template.dataId);
     }
   }
 }
 
-interface UninitCommand {
+interface UnInitCommand {
   inputs: TensorPlaceholder[];
   outputs: TensorPlaceholder[];
 }
@@ -213,6 +234,25 @@ interface UninitCommand {
 abstract class Command {
   readonly inputs: TensorPlaceholder[];
   readonly outputs: TensorPlaceholder[];
+
+  static engine() {
+    return ENGINE;
+  }
+
+  static record<T extends TensorInfo>(...args: unknown[]): T|T[] {
+    const {command, outputs} = this.build<T>(...args);
+    const tape = Command.engine().state.activateCommandTape;
+    if (tape == null) {
+      return outputs;
+    }
+    tape.commands.push(command);
+    return outputs;
+  }
+
+  static build<T extends TensorInfo>(...args: unknown[]):
+      {command: Command, outputs: T|T[]} {
+    throw new Error('Command.build not implemented');
+  }
 
   abstract execute(): void;
 
@@ -223,27 +263,31 @@ abstract class Command {
   }
 }
 
-export class ClosureCommand extends Command {
-  private constructor(readonly func: (tensors: TensorInfo[]) => TensorInfo[]) {
+export class ClosureCommand<T extends TensorInfo> extends Command {
+  private constructor(public fn: (tensors: TensorInfo[]) => T | T[]) {
     super();
   }
 
-  static buildAndExecute(
-      inputTensors: TensorInfo[],
-      func: (tensors: TensorInfo[]) => TensorInfo[]) {
-    const command = new ClosureCommand(func) as UninitCommand;
+  static override build<T extends TensorInfo>(
+      inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T | T[]) {
+    const command = new ClosureCommand(fn) as UnInitCommand;
 
     command.inputs = inputTensors.map((t) => TensorPlaceholder.build(t));
 
-    const outputTensors = func(inputTensors);
+    const fnOutputs = fn(inputTensors);
+    const outputTensors = Array.isArray(fnOutputs) ? fnOutputs : [fnOutputs];
     command.outputs = outputTensors.map((t) => TensorPlaceholder.build(t));
 
-    return {command: command as Command, outputs: outputTensors};
+    return {
+      command: command as Command,
+      outputs: fnOutputs,
+    };
   }
 
-  execute() {
+  override execute(): void {
     const inputTensors = this.inputs.map((placeholder) => placeholder.get());
-    const outputTensors = this.func(inputTensors);
+    const fnOutput = this.fn(inputTensors);
+    const outputTensors = Array.isArray(fnOutput) ? fnOutput : [fnOutput];
     if (outputTensors.length !== this.outputs.length) {
       throw new Error(`ClosureCommand execute error: expect ${
           this.outputs.length} outputs, got ${outputTensors.length}.`);
@@ -254,20 +298,8 @@ export class ClosureCommand extends Command {
   }
 }
 
-interface BuildAndExecutableCommand {
-  buildAndExecute(...args: unknown[]):
-      {command: Command, outputs: TensorInfo[]};
-}
-
-class CommandTape {
-  readonly commands: Command[];
-
-  pushAndExecute<T>(commandCls: BuildAndExecutableCommand, ...args: T[]):
-      TensorInfo[] {
-    const {command, outputs} = commandCls.buildAndExecute(...args);
-    this.commands.push(command);
-    return outputs;
-  }
+export class CommandTape {
+  readonly commands: Command[] = [];
 }
 
 class EngineState implements GradientTapeState {
@@ -1462,6 +1494,7 @@ export function getOrMakeEngine(): Engine {
   return ns._tfengine;
 }
 
+export const ENGINE = getOrMakeEngine();
 
 /**
  * A implementation of the add op for use within engine and tape.
