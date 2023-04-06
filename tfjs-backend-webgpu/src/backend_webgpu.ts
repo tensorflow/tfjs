@@ -665,7 +665,7 @@ export class WebGPUBackend extends KernelBackend {
             stagingBuffer, 0, buffer, 0, size);
 
         this.stagingPendingDisposal.push({
-          size: size,
+          size,
           usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
           buffer: stagingBuffer
         });

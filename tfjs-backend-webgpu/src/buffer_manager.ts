@@ -38,7 +38,7 @@ export class BufferManager {
       }
 
       if (this.freeBuffers.get(key).length > 0) {
-        buffer = this.freeBuffers.get(key).shift();
+        buffer = this.freeBuffers.get(key).pop();
         this.numFreeBuffers--;
       } else {
         buffer = this.device.createBuffer({size, usage, mappedAtCreation});
@@ -67,12 +67,13 @@ export class BufferManager {
     }
 
     const key = getBufferKey(size, usage);
-    const bufferList = this.usedBuffers.get(key);
-    const bufferIndex = bufferList.indexOf(buffer);
-    if (bufferIndex < 0) {
+    const bufferArray = this.usedBuffers.get(key);
+    const index = bufferArray.indexOf(buffer);
+    if (index < 0) {
       throw new Error('Cannot find the buffer in buffer manager');
     }
-    bufferList.splice(bufferIndex, 1);
+    bufferArray[index] = bufferArray[bufferArray.length - 1];
+    bufferArray.pop();
     this.numUsedBuffers--;
     this.numBytesUsed -= size;
 
