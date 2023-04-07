@@ -39,6 +39,10 @@ export class ReduceProgram implements WebGPUProgram {
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
+    // If reduceSize |reduceInfo.inSize| is very large, the I/O accessing will
+    // become the bottleneck. Increasing workgroupSize can reduce the times of
+    // accessing global memory. The threshold value is just to make sure the
+    // reduceSize is large enough for a bigger workgroupSize.
     if (reduceInfo.inSize >= 32768 && maxComputeWorkgroupSizeX >= 512) {
       this.workgroupSize = [512, 1, 1];
     } else if (reduceInfo.inSize >= 4096) {
