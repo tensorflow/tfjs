@@ -696,7 +696,6 @@ protobuf==3.9.2 \
     --hash=sha256:f0144ad97cd28bfdda0567b9278d25061ada5ad2b545b538cd3577697b32bda3 \
     --hash=sha256:f655338491481f482042f19016647e50365ab41b75b486e0df56e0dcc425abf4
     # via
-    #   -r tfjs-converter/python/requirements.txt
     #   tensorboard
     #   tensorflow
     #   tensorflow-hub
