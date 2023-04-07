@@ -1905,32 +1905,57 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
+"@tensorflow/tfjs-backend-cpu@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-4.4.0.tgz#c6700c6285f012d06ba030422850aba68e883b24"
+  integrity sha512-d4eln500/qNym78z9IrUUzF0ITBoJGLrxV8xd92kLVoXhg35Mm+zqUXShjFcrH8joOHOFuST0qZ0TbDDqcPzPA==
+  dependencies:
+    "@types/seedrandom" "^2.4.28"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-4.4.0.tgz#3f328488df7abd3e5e677d18feb125d75ac0e2c4"
+  integrity sha512-TzQKvfAPgGt9cMG+5bVoTckoG1xr/PVJM/uODkPvzcMqi3j97kuWDXwkYJIgXldStmfiKkU7f5CmyD3Cq3E6BA==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "4.4.0"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-converter@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-4.4.0.tgz#3ff3095f32efd05b948f6080a4fb5df0ff9ffde4"
+  integrity sha512-JUjpRStrAuw37tgPd5UENu0UjQVuJT09yF7KpOur4BriJ0uQqrbEZHMPHmvUtr5nYzkqlXJTuXIyxvEY/olNpg==
 
-"@tensorflow/tfjs-converter@link:../link-package/node_modules/@tensorflow/tfjs-converter":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-4.4.0.tgz#5b3abce8149330ca8091a7d6e4137e188ea1f3e9"
+  integrity sha512-Anxpc7cAOA0Q7EUXdTbQKMg3reFvrdkgDlaYzH9ZfkMq2CgLV4Au6E/s6HmbYn/VrAtWy9mLY5c/lLJqh4764g==
+  dependencies:
+    "@types/long" "^4.0.1"
+    "@types/offscreencanvas" "~2019.7.0"
+    "@types/seedrandom" "^2.4.28"
+    "@types/webgl-ext" "0.0.30"
+    "@webgpu/types" "0.1.30"
+    long "4.0.0"
+    node-fetch "~2.6.1"
+    seedrandom "^3.0.5"
 
-"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-data@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-4.4.0.tgz#ea0bb00653db24d25f20225b98891ba90705e348"
+  integrity sha512-aY4eq4cgrsrXeBU6ABZAAN3tV0fG4YcHd0z+cYuNXnCo+VEQLJnPmhn+xymZ4VQZQH4GXbVS4dV9pXMclFNRFw==
+  dependencies:
+    "@types/node-fetch" "^2.1.2"
+    node-fetch "~2.6.1"
+    string_decoder "^1.3.0"
 
-"@tensorflow/tfjs-data@link:../link-package/node_modules/@tensorflow/tfjs-data":
-  version "0.0.0"
-  uid ""
-
-"@tensorflow/tfjs-layers@link:../link-package/node_modules/@tensorflow/tfjs-layers":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-layers@4.4.0":
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-4.4.0.tgz#2797676d6040d9739a74615974b83722db2548e7"
+  integrity sha512-OGC7shfiD9Gc698hINHK4y9slOJvu5m54tVNm4xf+WSNrw/avvgpar6yyoL5bakYIZNQvFNK75Yr8VRPR7oPeQ==
 
 "@types/argparse@^1.0.38":
   version "1.0.38"
@@ -2050,10 +2075,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@webgpu/types@0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.21.tgz#b181202daec30d66ccd67264de23814cfd176d3a"
-  integrity sha512-pUrWq3V5PiSGFLeLxoGqReTZmiiXwY3jRkIG5sLLKjyqNxrwm/04b4nw7LSmGWJcKk59XOM/YRTUwOzo4MMlow==
+"@webgpu/types@0.1.30":
+  version "0.1.30"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.30.tgz#b6406dc4a1c1e0d469028ceb30ddffbbd2fa706c"
+  integrity sha512-9AXJSmL3MzY8ZL//JjudA//q+2kBRGhLBFpkdGksWIuxrMy81nFrCzj2Am+mbh8WoU6rXmv7cY5E3rdlyru2Qg==
 
 accepts@~1.3.4:
   version "1.3.8"
