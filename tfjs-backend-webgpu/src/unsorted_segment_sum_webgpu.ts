@@ -53,9 +53,9 @@ export class UnsortedSegmentSumProgram implements WebGPUProgram {
         let b = coords[0];
         let inCol = coords[1];
 
-        let segmentId = i32(getSegmentIds(inCol)) % uniforms.numSegments;
+        let segmentId = i32(getSegmentIds(inCol));
         if (segmentId >= 0) {
-          let flatIndex = b * uniforms.numSegments + segmentId;
+          let flatIndex = b * uniforms.numSegments + segmentId % uniforms.numSegments;
           let value = getX(b, inCol);
 
           ${
