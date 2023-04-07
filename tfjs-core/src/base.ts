@@ -55,7 +55,7 @@ export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 export {DataToGPUOptions, DataToGPUWebGLOption, GPUData, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {BackendValues, DataType, DataTypeMap, DataTypeFor, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType, WebGLData, WebGPUData} from './types';
+export {BackendValues, DataType, DataTypeFor, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType, WebGLData, WebGPUData} from './types';
 
 export * from './ops/ops';
 export {Reduction} from './ops/loss_ops_utils';
@@ -67,6 +67,9 @@ export {TensorInfo, DataId} from './tensor_info';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
+// Record/Replay types
+export {Command, UnInitCommand, ClosureCommand, KernelCommand, CommandBuildOutput, TensorPlaceholder} from './engine';
+
 export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';
 

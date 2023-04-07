@@ -121,6 +121,7 @@ export function op<T extends Function>(
   };
 
   let recorder: (...args: unknown[]) => unknown;
+  let allowKernelCommands: boolean = true;
   switch (record) {
     case 'none':
       recorder = () => {
@@ -129,13 +130,16 @@ export function op<T extends Function>(
       break;
     case 'builtin':
       recorder = f2;
+      allowKernelCommands = true;
       break;
     case 'auto':
       recorder = buildOpAutoRecorder(f2);
+      allowKernelCommands = false;
+      break;
   }
 
   const recordFn = (...args: unknown[]) => {
-    ENGINE.state.activateCommandTape = new CommandTape();
+    ENGINE.state.activateCommandTape = new CommandTape({allowKernelCommands});
     const outputs = recorder(...args);
     const result = {
       tape: ENGINE.state.activateCommandTape,
