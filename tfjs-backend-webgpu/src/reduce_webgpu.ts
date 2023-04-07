@@ -24,7 +24,7 @@ export class ReduceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workgroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'reduceSize : i32,';
   reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
@@ -47,6 +47,8 @@ export class ReduceProgram implements WebGPUProgram {
       this.workgroupSize = [512, 1, 1];
     } else if (reduceInfo.inSize >= 4096) {
       this.workgroupSize = [256, 1, 1];
+    } else {
+      this.workgroupSize = [64, 1, 1];
     }
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     // A work group only outputs a data, so we transfer [1, 1, 1] to compute
