@@ -15,13 +15,9 @@
   resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.12.0.tgz#f08aebbf4afcb12684422450b0845dd6ef5cfe50"
   integrity sha512-7oQusq1e4AIyFgotxVV7Pc40Et0QyvoVjujL+7/qV5Vrbfh0Nj3CfqSgl63weEyI4r0+K6RlGVsjfRuBi05p5w==
 
-"@tensorflow/tfjs-backend-cpu@4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-4.4.0.tgz#c6700c6285f012d06ba030422850aba68e883b24"
-  integrity sha512-d4eln500/qNym78z9IrUUzF0ITBoJGLrxV8xd92kLVoXhg35Mm+zqUXShjFcrH8joOHOFuST0qZ0TbDDqcPzPA==
-  dependencies:
-    "@types/seedrandom" "^2.4.28"
-    seedrandom "^3.0.5"
+"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
 
 "@types/offscreencanvas@~2019.3.0":
   version "2019.3.0"
