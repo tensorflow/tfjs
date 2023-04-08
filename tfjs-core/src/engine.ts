@@ -140,7 +140,7 @@ export class TensorPlaceholder {
   readonly pid: DataId;
 
   private backend?: KernelBackend;
-  private value?: TensorInfo|Tensor;
+  private values: Record<string|symbol, TensorInfo|Tensor> = {};
   private refCount = 1;
   private disposed_ = false;
 
@@ -174,58 +174,82 @@ export class TensorPlaceholder {
     return this.disposed_;
   }
 
-  set(tensor: TensorInfo, backend?: KernelBackend): void {
+  private static DEFAULT_TAG = '';
+
+
+  get(tag = TensorPlaceholder.DEFAULT_TAG): TensorInfo {
+    this.assertNotDisposed();
+    const value = this.values[tag];
+    if (value == null) {
+      throw new Error(`Empty TensorPlaceholder: ${this}`);
+    }
+    return value;
+  }
+
+  getNoNotFoundError(tag = TensorPlaceholder.DEFAULT_TAG): TensorInfo|null {
+    this.assertNotDisposed();
+    return this.values[tag];
+  }
+
+  set(tensor: TensorInfo, backend?: KernelBackend,
+      tag = TensorPlaceholder.DEFAULT_TAG): void {
     this.assertNotDisposed();
     if (tensor == null) {
       throw new Error(
           `Cannot set TensorPlaceholder to null or undefined: ${this}`);
     }
-    if (!this.config.allowOverwriteTensor && this.value != null &&
-        this.value.dataId !== tensor.dataId) {
+    const oldValue = this.values[tag];
+    if (!this.config.allowOverwriteTensor && oldValue != null &&
+        oldValue !== tensor.dataId) {
       throw new Error(
           'Tensor has been set. ' +
           'Cannot overwrite the tensor with another one with different dataId.');
     }
     this.backend = backend;
-    this.value = tensor;
+    this.values[tag] = tensor;
   }
 
-  get(): TensorInfo {
-    this.assertNotDisposed();
-    if (this.value == null) {
-      throw new Error(`Empty TensorPlaceholder: ${this}`);
-    }
-    return this.value;
-  }
-
-  toTensor() {
-    const t = this.get();
+  toTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
+    const t = this.get(tag);
     if (t instanceof Tensor) {
       return t;
     }
     return TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
   }
 
-  releaseTensor() {
-    const t = this.toTensor();
+  release(tag = TensorPlaceholder.DEFAULT_TAG) {
+    const t = this.get(tag);
     this.backend = undefined;
-    this.value = undefined;
+    this.values[tag] = undefined;
+    return t;
+  }
+
+  releaseTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
+    const t = this.toTensor(tag);
+    this.backend = undefined;
+    this.values[tag] = undefined;
     return t;
   }
 
   reset(): void {
     this.assertNotDisposed();
-    if (this.value == null) {
+    const values = Object.values(this.values);
+    if (values.length === 0) {
       return;
     }
 
-    if (this.value instanceof Tensor && !this.value.kept) {
-      this.value.dispose();
-    } else {
-      this.backend.disposeData(this.value.dataId);
+    for (const value of values) {
+      if (value == null) {
+        continue;
+      }
+      if (value instanceof Tensor && !value.kept) {
+        value.dispose();
+      } else {
+        this.backend.disposeData(value.dataId);
+      }
     }
     this.backend = undefined;
-    this.value = undefined;
+    this.values = {};
   }
 
   private assertNotDisposed() {
@@ -243,26 +267,22 @@ export class TensorPlaceholder {
   }
 }
 
-type Mutable<T> = {
-  -readonly[P in keyof T]: T[P];
-};
-
-export interface CommandBuildOutput<C extends Command, T extends TensorInfo> {
-  readonly command: C;
-  readonly outputs: T|T[];
+export interface CommandBuildOutput<T> {
+  readonly command: Command;
+  readonly outputs: T;
 }
 
 export abstract class Command {
-  readonly inputs: TensorPlaceholder[];
-  readonly outputs: TensorPlaceholder[];
+  inputs: TensorPlaceholder[];
+  outputs: TensorPlaceholder[];
 
   static engine() {
     return ENGINE;
   }
 
-  static record<T extends TensorInfo>(...args: unknown[]): T|T[] {
+  static record<T extends TensorInfo>(...args: unknown[]): T {
     const {command, outputs} = this.build<T>(...args);
-    const tape = Command.engine().state.activateCommandTape;
+    const tape = Command.engine().state.activeCommandTape;
     if (tape == null) {
       return outputs;
     }
@@ -271,7 +291,7 @@ export abstract class Command {
   }
 
   static build<T extends TensorInfo>(...args: unknown[]):
-      CommandBuildOutput<Command, T> {
+      CommandBuildOutput<T> {
     throw new Error('Command.build not implemented');
   }
 
@@ -283,49 +303,35 @@ export abstract class Command {
     }
   }
 
-  public setInputPlaceholders(inputTensors: TensorInfo[]) {
-    (this as Mutable<Command>).inputs =
-        inputTensors.map((t) => TensorPlaceholder.build(t));
+  public pushInput(...tensors: TensorInfo[]) {
+    this.inputs.push(...tensors.map((t) => TensorPlaceholder.build(t)));
   }
-  public setOutputPlaceholders(outputTensors: TensorInfo[]) {
-    (this as Mutable<Command>).outputs =
-        outputTensors.map((t) => TensorPlaceholder.build(t))
+  public pushOutput(...tensors: TensorInfo[]) {
+    this.outputs.push(...tensors.map((t) => TensorPlaceholder.build(t)));
   }
 }
 
 export abstract class KernelCommand extends Command {
   readonly isKernelCommand = true;
-
-  static override record<T extends TensorInfo>(...args: unknown[]): T|T[] {
-    const {command, outputs} = this.build<T>(...args);
-    const tape = Command.engine().state.activateCommandTape;
-    if (tape == null) {
-      return outputs;
-    }
-    if (tape.config.allowKernelCommands) {
-      tape.commands.push(command);
-    }
-    return outputs;
-  }
 }
 
 export class ClosureCommand<T extends TensorInfo> extends Command {
-  private constructor(public fn: (tensors: TensorInfo[]) => T | T[]) {
+  private constructor(public fn: (tensors: TensorInfo[]) => T) {
     super();
   }
 
   static override build<T extends TensorInfo>(
-      inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T | T[]):
-      CommandBuildOutput<ClosureCommand<T>, T> {
+      inputTensors: TensorInfo[],
+      fn: (tensors: TensorInfo[]) => T): CommandBuildOutput<T> {
     const command = new ClosureCommand(fn);
-    command.setInputPlaceholders(inputTensors);
+    command.pushInput(...inputTensors);
 
     const fnOutputs = fn(inputTensors);
     const outputTensors = Array.isArray(fnOutputs) ? fnOutputs : [fnOutputs];
-    command.setOutputPlaceholders(outputTensors);
+    command.pushOutput(...outputTensors);
 
     return {
-      command: command as ClosureCommand<T>,
+      command,
       outputs: fnOutputs,
     };
   }
@@ -344,14 +350,18 @@ export class ClosureCommand<T extends TensorInfo> extends Command {
   }
 }
 
-export interface CommandTapeConfig {
-  readonly allowKernelCommands: boolean;
-}
-
 export class CommandTape {
   readonly commands: Command[] = [];
 
-  constructor(readonly config: CommandTapeConfig) {}
+  constructor() {}
+
+  noCommandScope<T>(fn: () => T) {
+    const oldCommandsLength = this.commands.length;
+    const result = fn();
+    // Remove all commands added while executing fn.
+    this.commands.splice(oldCommandsLength);
+    return result;
+  }
 }
 
 class EngineState implements GradientTapeState {
@@ -369,7 +379,7 @@ class EngineState implements GradientTapeState {
   gradientDepth = 0;
   kernelDepth = 0;
 
-  activateCommandTape?: CommandTape;
+  activeCommandTape?: CommandTape;
 
   // Keep Tensors that parallel the tapes.
   activeScope: ScopeState;

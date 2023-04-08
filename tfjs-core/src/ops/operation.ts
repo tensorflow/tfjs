@@ -63,7 +63,13 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
         tensors[i].setter(inputTensors[i] as Tensor);
       }
 
-      const outputTensors = opFn(...inputsCopy);
+      const outputTensors =
+          ENGINE.state.activeCommandTape.noCommandScope(() => {
+            // Execute the opFn in noCommandScope to get rid of commands from
+            // kernel execution, since op auto recorder produces one single
+            // command to include all computations in the op.
+            return opFn(...inputsCopy);
+          });
 
       if (outputTensors instanceof Tensor) {
         return outputTensors;
@@ -121,7 +127,6 @@ export function op<T extends Function>(
   };
 
   let recorder: (...args: unknown[]) => unknown;
-  let allowKernelCommands: boolean = true;
   switch (record) {
     case 'none':
       recorder = () => {
@@ -130,22 +135,21 @@ export function op<T extends Function>(
       break;
     case 'builtin':
       recorder = f2;
-      allowKernelCommands = true;
       break;
     case 'auto':
       recorder = buildOpAutoRecorder(f2);
-      allowKernelCommands = false;
       break;
   }
 
   const recordFn = (...args: unknown[]) => {
-    ENGINE.state.activateCommandTape = new CommandTape({allowKernelCommands});
+    ENGINE.state.activeCommandTape = new CommandTape();
     const outputs = recorder(...args);
+
     const result = {
-      tape: ENGINE.state.activateCommandTape,
+      tape: ENGINE.state.activeCommandTape,
       outputs: outputs,
     };
-    ENGINE.state.activateCommandTape = undefined;
+    ENGINE.state.activeCommandTape = undefined;
     return result;
   };
 

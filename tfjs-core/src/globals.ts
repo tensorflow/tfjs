@@ -87,6 +87,29 @@ export function engine(): Engine {
 }
 
 /**
+ * This is a decorator to wrap a function in noCommandScope of the current
+ * state.activeCommandTape.
+ */
+export function NoCommandRecording<T>() {
+  return (target: unknown, propertyKey: string,
+          descriptor: TypedPropertyDescriptor<T>) => {
+    const fn = descriptor.value;
+    if (typeof fn === 'function') {
+      descriptor.value = function(...args: any[]) {
+        const activeCommandTape = engine().state.activeCommandTape;
+
+        if (activeCommandTape != null) {
+          return activeCommandTape.noCommandScope(() => {
+            return fn.apply(target, args);
+          });
+        }
+        return fn.apply(target, args);
+      } as T;
+    }
+  }
+}
+
+/**
  * Returns memory info at the current time in the program. The result is an
  * object with the following properties:
  *
@@ -96,14 +119,14 @@ export function engine(): Engine {
  *   (undisposed) at this time, which is ≤ the number of tensors
  *   (e.g. `a.reshape(newShape)` makes a new Tensor that shares the same
  *   data buffer with `a`).
- * - `unreliable`: True if the memory usage is unreliable. See `reasons` when
- *    `unreliable` is true.
+ * - `unreliable`: True if the memory usage is unreliable. See `reasons`
+ * when `unreliable` is true.
  * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
  *    `unreliable` is true.
  *
  * WebGL Properties:
- * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
- *     this time.
+ * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only
+ * at this time.
  *
  * @doc {heading: 'Performance', subheading: 'Memory'}
  */
