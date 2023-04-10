@@ -139,8 +139,9 @@ export class TensorPlaceholder {
   /** Unique id of this placeholder. */
   readonly pid: DataId;
 
-  private backend?: KernelBackend;
-  private values: Record<string|symbol, TensorInfo|Tensor> = {};
+  private values: Record<string|symbol, {
+    backend?: KernelBackend, t: TensorInfo|Tensor,
+  }> = {};
   private refCount = 1;
   private disposed_ = false;
 
@@ -183,12 +184,13 @@ export class TensorPlaceholder {
     if (value == null) {
       throw new Error(`Empty TensorPlaceholder: ${this}`);
     }
-    return value;
+    return value.t;
   }
 
   getNoNotFoundError(tag = TensorPlaceholder.DEFAULT_TAG): TensorInfo|null {
     this.assertNotDisposed();
-    return this.values[tag];
+    const value = this.values[tag];
+    return value && value.t;
   }
 
   set(tensor: TensorInfo, backend?: KernelBackend,
@@ -205,8 +207,7 @@ export class TensorPlaceholder {
           'Tensor has been set. ' +
           'Cannot overwrite the tensor with another one with different dataId.');
     }
-    this.backend = backend;
-    this.values[tag] = tensor;
+    this.values[tag] = {backend, t: tensor};
   }
 
   toTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
@@ -219,15 +220,13 @@ export class TensorPlaceholder {
 
   release(tag = TensorPlaceholder.DEFAULT_TAG) {
     const t = this.get(tag);
-    this.backend = undefined;
-    this.values[tag] = undefined;
+    delete this.values[tag];
     return t;
   }
 
   releaseTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
     const t = this.toTensor(tag);
-    this.backend = undefined;
-    this.values[tag] = undefined;
+    delete this.values[tag];
     return t;
   }
 
@@ -238,17 +237,16 @@ export class TensorPlaceholder {
       return;
     }
 
-    for (const value of values) {
-      if (value == null) {
+    for (const {t, backend} of values) {
+      if (t == null) {
         continue;
       }
-      if (value instanceof Tensor && !value.kept) {
-        value.dispose();
+      if (t instanceof Tensor && !t.kept) {
+        t.dispose();
       } else {
-        this.backend.disposeData(value.dataId);
+        backend.disposeData(t.dataId);
       }
     }
-    this.backend = undefined;
     this.values = {};
   }
 
@@ -268,24 +266,45 @@ export class TensorPlaceholder {
 }
 
 export interface CommandBuildOutput<T> {
-  readonly command: Command;
+  /**
+   * If the builder is invoked in a no command recording scope, the command
+   * field in the output can be undefined. Otherwise there must be a recorded
+   * command.
+   */
+  readonly command?: Command;
   readonly outputs: T;
 }
 
 export abstract class Command {
-  inputs: TensorPlaceholder[];
-  outputs: TensorPlaceholder[];
+  inputs: TensorPlaceholder[] = [];
+  outputs: TensorPlaceholder[] = [];
+  private disposed_ = false;
 
   static engine() {
     return ENGINE;
   }
 
+  static noCommandRecording() {
+    const engine = this.engine();
+    return engine.state.activeCommandTape == null ||
+        engine.state.activeCommandTape.noCommandRecording();
+  }
+
   static record<T extends TensorInfo>(...args: unknown[]): T {
     const {command, outputs} = this.build<T>(...args);
-    const tape = Command.engine().state.activeCommandTape;
-    if (tape == null) {
+    const noCommandRecording = this.noCommandRecording();
+    if (noCommandRecording) {
+      if (command != null) {
+        command.dispose();
+      }
       return outputs;
     }
+
+    if (command == null) {
+      throw new Error(
+          'Command builder must produce a command while recording, got undefined');
+    }
+    const tape = this.engine().state.activeCommandTape;
     tape.commands.push(command);
     return outputs;
   }
@@ -295,18 +314,23 @@ export abstract class Command {
     throw new Error('Command.build not implemented');
   }
 
+  get disposed() {
+    return this.disposed_;
+  }
+
   abstract execute(): void;
 
   dispose(): void {
     for (const placeholder of [...this.inputs, ...this.outputs]) {
       placeholder.dispose();
     }
+    this.disposed_ = true;
   }
 
-  public pushInput(...tensors: TensorInfo[]) {
+  pushInput(...tensors: TensorInfo[]) {
     this.inputs.push(...tensors.map((t) => TensorPlaceholder.build(t)));
   }
-  public pushOutput(...tensors: TensorInfo[]) {
+  pushOutput(...tensors: TensorInfo[]) {
     this.outputs.push(...tensors.map((t) => TensorPlaceholder.build(t)));
   }
 }
@@ -352,15 +376,36 @@ export class ClosureCommand<T extends TensorInfo> extends Command {
 
 export class CommandTape {
   readonly commands: Command[] = [];
+  private noCommandRecordingScopeCount = 0;
 
   constructor() {}
 
-  noCommandScope<T>(fn: () => T) {
+  /** If true, the caller is in a scope with no command recording. */
+  noCommandRecording() {
+    return this.noCommandRecordingScopeCount > 0;
+  }
+
+  noCommandRecordingScope<T>(fn: () => T) {
+    this.noCommandRecordingScopeCount++;
     const oldCommandsLength = this.commands.length;
     const result = fn();
-    // Remove all commands added while executing fn.
-    this.commands.splice(oldCommandsLength);
+    // Remove all commands added while executing fn. While Command.record checks
+    // the current scope and does not push command into the list already, we
+    // still did an extra check here to guarantee the correctness of recording.
+    if (this.commands.length !== oldCommandsLength) {
+      const unusedCommands = this.commands.splice(oldCommandsLength);
+      for (const command of unusedCommands) {
+        command.dispose();
+      }
+    }
+    this.noCommandRecordingScopeCount--;
     return result;
+  }
+
+  dispose() {
+    for (const command of this.commands) {
+      command.dispose();
+    }
   }
 }
 
@@ -380,6 +425,12 @@ class EngineState implements GradientTapeState {
   kernelDepth = 0;
 
   activeCommandTape?: CommandTape;
+  disposeActiveCommandTape() {
+    if (this.activeCommandTape != null) {
+      this.activeCommandTape.dispose();
+    }
+    this.activeCommandTape = undefined;
+  }
 
   // Keep Tensors that parallel the tapes.
   activeScope: ScopeState;

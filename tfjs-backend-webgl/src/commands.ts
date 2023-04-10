@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {CommandBuildOutput, DataId, DataType, env, KernelCommand, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {CommandBuildOutput, DataType, env, KernelCommand, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {CPUTimerQuery, MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_math from './gpgpu_math';
@@ -22,18 +22,24 @@ import {GPGPUBinary, GPGPUProgram} from './gpgpu_math';
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
 
-const WEBGL_PACKED = 'WEBGL_PACKED';
-const WEBGL_UNPACKED = 'WEBGL_UNPACKED';
+// const WEBGL_PACKED = 'WEBGL_PACKED';
+// const WEBGL_UNPACKED = 'WEBGL_UNPACKED';
+
+interface WebGLProgramTensorData extends gpgpu_math.TensorData {
+  readonly tensorInfo: TensorInfo;
+  readonly disposeTensorInfoAfterRunProgram?: boolean;
+}
 
 export class WebGLProgramCommand extends KernelCommand {
-  public outDataTemplate: Partial<tex_util.TextureData> = {};
-  public isOutputAlwaysEmpty: boolean = false;
-  public binary?: GPGPUBinary;
+  public isOutputAlwaysEmpty = false;
 
-  constructor(
-      public backend: MathBackendWebGL, public program: GPGPUProgram,
-      public customUniformValues?: number[][],
-      public customTexShape?: [number, number]) {
+  private constructor(
+      public readonly backend: MathBackendWebGL,
+      public readonly program: GPGPUProgram,
+      public readonly outputDataTemplate: Partial<tex_util.TextureData>,
+      public readonly customUniformValues?: number[][],
+      public readonly customTexShape?: [number, number],
+      public readonly binary?: GPGPUBinary) {
     super();
   }
 
@@ -49,154 +55,159 @@ export class WebGLProgramCommand extends KernelCommand {
     super.pushInput(...tensors);
   }
 
-  programPackTag() {
-    return !!this.program.packedInputs ? WEBGL_PACKED : WEBGL_UNPACKED;
+  static prepareOutputData(
+      backend: MathBackendWebGL, program: GPGPUProgram, outputDtype: DataType,
+      outputDataTemplate: Partial<tex_util.TextureData>):
+      WebGLProgramTensorData {
+    const output = backend.makeTensorInfo(program.outputShape, outputDtype);
+    const outData = backend.texData.get(output.dataId);
+
+    Object.assign(outData, outputDataTemplate);
+    if (outputDataTemplate.values == null) {
+      backend.uploadToGPU(output.dataId);
+    }
+
+    return {
+      shape: output.shape,
+      texData: outData,
+      isUniform: false,
+      tensorInfo: output,
+    };
   }
 
-  prepareOutputData() {
-    // WebGLProgramCommand always has one output tensor only.
-    const placeholder = this.outputs[0];
-    const output = this.backend.makeTensorInfo(
-        placeholder.template.shape, placeholder.template.dtype);
-    const tag = !!this.program.packedOutput ? WEBGL_PACKED : WEBGL_UNPACKED;
-    // Increase the ref by one since it's set with two tags.
-    this.backend.incRef(output.dataId);
-    placeholder.set(output, this.backend);
-    placeholder.set(output, this.backend, /*tag=*/tag);
-
-    const outData = this.backend.texData.get(placeholder.get().dataId);
-    Object.assign(outData, this.outDataTemplate);
-    this.backend.uploadToGPU(output.dataId);
-    return {shape: output.shape, texData: outData, isUniform: false};
-  }
-
-  prepareInputsData() {
-    return this.inputs.map((placeholder) => {
-      let input = placeholder.getNoNotFoundError(this.programPackTag());
-      let texData;
-      let dataIdToDispose: DataId|null = null;
-
-      if (input != null) {
-        texData = this.backend.texData.get(input.dataId);
-      } else {
-        // Use the default one, upload to gpu and pack/unpack if necessary.
-        input = placeholder.get();
-        let texData = this.backend.texData.get(input.dataId);
-        if (texData.texture == null) {
-          if (!this.program.packedInputs &&
-              util.sizeFromShape(input.shape) <=
-                  env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')) {
-            // Upload small tensors that live on the CPU as uniforms, not as
-            // textures. Do this only when the environment supports 32bit
-            // floats due to problems when comparing 16bit floats with 32bit
-            // floats.
-            // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it
-            // possible for packed shaders to sample from uniforms.
-            return {
-              shape: input.shape,
-              texData: null,
-              isUniform: true,
-              uniformValues: texData.values as TypedArray
-            };
-          }
-
-          // This ensures that if a packed program's inputs have not yet
-          // been uploaded to the GPU, they get uploaded as packed right off
-          // the bat.
-          if (this.program.packedInputs) {
-            texData.isPacked = true;
-            texData.shape = input.shape;
-          }
-        }
-
-        this.backend.uploadToGPU(input.dataId);
-        if (!!texData.isPacked !== !!this.program.packedInputs) {
-          const newInput = this.program.packedInputs ?
-              this.backend.packTensor(input) :
-              this.backend.unpackTensor(input);
-          // Store the packed/unpacked tensor as additional value in
-          // placeholder for reuse.
-          placeholder.set(newInput, this.backend, this.programPackTag())
-          texData = this.backend.texData.get(newInput.dataId);
-        }
+  static prepareInputData(
+      backend: MathBackendWebGL, program: GPGPUProgram,
+      input: TensorInfo): WebGLProgramTensorData {
+    let disposeTensorInfoAfterRunProgram = false;
+    let texData = backend.texData.get(input.dataId);
+    if (texData.texture == null) {
+      if (!program.packedInputs &&
+          util.sizeFromShape(input.shape) <=
+              env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')) {
+        // Upload small tensors that live on the CPU as uniforms, not as
+        // textures. Do this only when the environment supports 32bit
+        // floats due to problems when comparing 16bit floats with 32bit
+        // floats.
+        // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it
+        // possible for packed shaders to sample from uniforms.
+        return {
+          shape: input.shape,
+          texData: null,
+          isUniform: true,
+          uniformValues: texData.values as TypedArray,
+          tensorInfo: input,
+        };
       }
 
-      if (texData.isPacked &&
-          !webgl_util.isReshapeFree(texData.shape, input.shape)) {
-        // This is a special case where a texture exists for a tensor
-        // but the shapes are incompatible (due to packing constraints)
-        // because the tensor did not have a chance to go through the packed
-        // reshape shader. This only happens when we reshape the *same*
-        // tensor to form *distinct* inputs to an op, e.g. dotting a vector
-        // with itself. This case will disappear once packed uploading is
-        // the default.
-        const savedInput = input;
-        const targetShape = input.shape;
-
-        input.shape = texData.shape;
-        const newInput = this.backend.packedReshape(input, targetShape);
-        texData = this.backend.texData.get(input.dataId);
-        dataIdToDispose = newInput;
-
-        savedInput.shape = targetShape;
+      // This ensures that if a packed program's inputs have not yet
+      // been uploaded to the GPU, they get uploaded as packed right off
+      // the bat.
+      if (program.packedInputs) {
+        texData.isPacked = true;
+        texData.shape = input.shape;
       }
-      return {shape: input.shape, texData, isUniform: false, dataIdToDispose};
-    });
+    }
+
+    backend.uploadToGPU(input.dataId);
+    if (!!texData.isPacked !== !!program.packedInputs) {
+      input = program.packedInputs ? backend.packTensor(input) :
+                                     backend.unpackTensor(input);
+      texData = backend.texData.get(input.dataId);
+      disposeTensorInfoAfterRunProgram = true;
+    } else if (
+        texData.isPacked &&
+        !webgl_util.isReshapeFree(texData.shape, input.shape)) {
+      // This is a special case where a texture exists for a tensor
+      // but the shapes are incompatible (due to packing constraints)
+      // because the tensor did not have a chance to go through the packed
+      // reshape shader. This only happens when we reshape the *same*
+      // tensor to form *distinct* inputs to an op, e.g. dotting a vector
+      // with itself. This case will disappear once packed uploading is
+      // the default.
+      const savedInput = input;
+      const targetShape = input.shape;
+
+      input.shape = texData.shape;
+
+      input = backend.packedReshape(input, targetShape);
+      texData = backend.texData.get(input.dataId);
+      disposeTensorInfoAfterRunProgram = true;
+
+      savedInput.shape = targetShape;
+    }
+
+    return {
+      shape: input.shape,
+      texData,
+      isUniform: false,
+      tensorInfo: input,
+      disposeTensorInfoAfterRunProgram,
+    };
   }
 
-  runProgram(
-      inputsData: ReturnType<typeof this.prepareInputsData>,
-      outputData: ReturnType<typeof this.prepareOutputData>) {
-    const activeTimers = this.backend.activeTimers;
+  static runProgram(
+      backend: MathBackendWebGL, program: GPGPUProgram, binary: GPGPUBinary,
+      customUniformValues: number[][]|undefined,
+      inputsData: gpgpu_math.TensorData[], outputData: gpgpu_math.TensorData) {
+    const activeTimers = backend.activeTimers;
     const shouldTimeProgram = activeTimers != null;
     let query: WebGLQuery|CPUTimerQuery;
     if (shouldTimeProgram) {
-      query = this.backend.startTimer();
+      query = backend.startTimer();
     }
 
     if (!env().get('ENGINE_COMPILE_ONLY')) {
       gpgpu_math.runProgram(
-          this.backend.gpgpu, this.binary!, inputsData, outputData,
-          this.customUniformValues);
+          backend.gpgpu, binary, inputsData, outputData, customUniformValues);
     }
 
     if (shouldTimeProgram) {
-      query = this.backend.endTimer(query);
-      this.backend.activeTimers.push({
-        name: this.program.constructor.name,
-        query: this.backend.getQueryTime(query)
+      query = backend.endTimer(query);
+      backend.activeTimers.push({
+        name: program.constructor.name,
+        query: backend.getQueryTime(query),
       });
     }
   }
 
+  static disposeIntermediateTensorInfos(
+      backend: MathBackendWebGL, ...data: WebGLProgramTensorData[]) {
+    for (const {tensorInfo, disposeTensorInfoAfterRunProgram} of data) {
+      if (!!disposeTensorInfoAfterRunProgram) {
+        backend.disposeData(tensorInfo.dataId);
+      }
+    }
+  }
+
   override execute() {
-    const outData = this.prepareOutputData();
+    const cls = WebGLProgramCommand;
+    const outputData = cls.prepareOutputData(
+        this.backend, this.program, this.outputs[0].template.dtype,
+        this.outputDataTemplate);
+    this.outputs[0].set(outputData.tensorInfo);
+
     if (this.isOutputAlwaysEmpty) {
       return;
     }
-    const inputsData = this.prepareInputsData();
-    this.runProgram(inputsData, outData);
-    for (const {dataIdToDispose} of inputsData) {
-      if (dataIdToDispose != null) {
-        this.backend.disposeData(dataIdToDispose);
-      }
-    }
+
+    const inputsData = this.inputs.map((placeholder) => {
+      return cls.prepareInputData(
+          this.backend, this.program, placeholder.get());
+    });
+    cls.runProgram(
+        this.backend, this.program, this.binary, this.customUniformValues,
+        inputsData, outputData);
+    cls.disposeIntermediateTensorInfos(this.backend, ...inputsData, outputData);
   }
 
   static override build<TensorInfo>(
       backend: MathBackendWebGL, program: GPGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, customUniformValues?: number[][],
       customTexShape?: [number, number]): CommandBuildOutput<TensorInfo> {
-    const command = new WebGLProgramCommand(
-        backend, program, customUniformValues, customTexShape);
-
-    // Make output tensor
-    const output = backend.makeTensorInfo(program.outputShape, outputDtype);
-    command.pushOutput(output);
-
-    // Prepare output data
+    // Prepare output texture data template.
+    const outputDataTemplate: Partial<tex_util.TextureData> = {};
     if (program.packedOutput) {
-      command.outDataTemplate.isPacked = true;
+      outputDataTemplate.isPacked = true;
     }
     if (program.outPackingScheme === tex_util.PackingScheme.DENSE) {
       const texelShape = customTexShape != null ?
@@ -206,51 +217,59 @@ export class WebGLProgramCommand extends KernelCommand {
       // so it doesn't get assigned later according to our typical packing
       // scheme wherein a single texel can only contain values from adjacent
       // rows/cols.
-      command.outDataTemplate.texShape =
+      outputDataTemplate.texShape =
           texelShape.map(d => d * 2) as [number, number];
     }
     if (program.outTexUsage != null) {
-      command.outDataTemplate.usage = program.outTexUsage;
+      outputDataTemplate.usage = program.outTexUsage;
     }
 
-    if (util.sizeFromShape(output.shape) === 0) {
+    let isOutputAlwaysEmpty = false;
+    if (util.sizeFromShape(program.outputShape) === 0) {
+      outputDataTemplate.values =
+          util.getTypedArrayFromDType(outputDtype as 'float32', 0);
+      isOutputAlwaysEmpty = true;
+    }
+
+    const outputData = this.prepareOutputData(
+        backend, program, outputDtype, outputDataTemplate);
+    if (isOutputAlwaysEmpty) {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
-      command.outDataTemplate.values =
-          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
-      command.isOutputAlwaysEmpty = true;
-      const outData = backend.texData.get(output.dataId);
-      Object.assign(outData, command.outDataTemplate);
-      return {command, outputs: output as TensorInfo};
+      let command = undefined;
+      if (!this.noCommandRecording) {
+        command = new WebGLProgramCommand(
+            backend, program, outputDataTemplate, customUniformValues,
+            customTexShape);
+        command.isOutputAlwaysEmpty = true;
+      }
+      return {command, outputs: outputData.tensorInfo as TensorInfo};
     }
 
-    command.pushInput(...(inputs as any));
-
-    // The output of record is generated by executing the command. Prepare the
-    // inputs and output with tensors we have.
-    for (let i = 0; i < command.inputs.length; ++i) {
-      command.inputs[i].set(inputs[i] as any, backend);
-    }
-    command.outputs[0].set(output, backend);
-
-    const inputsData = command.prepareInputsData();
-    const outputData = command.prepareOutputData();
+    const inputsData = inputs.map((input: TensorInfo) => {
+      return this.prepareInputData(backend, program, input as any);
+    });
 
     const key = gpgpu_math.makeShaderKey(program, inputsData, outputData);
     const binary = backend.getAndSaveBinary(key, () => {
       return gpgpu_math.compileProgram(
           backend.gpgpu, program, inputsData, outputData);
     });
-    command.binary = binary;
 
-    command.runProgram(inputsData, outputData);
+    this.runProgram(
+        backend, program, binary, customUniformValues, inputsData, outputData);
+    this.disposeIntermediateTensorInfos(backend, ...inputsData, outputData);
 
-    // Cleanup input and output placeholders used to generate recording output.
-    const buildOutput = command.outputs[0].release();
-    for (const placeholder of command.inputs) {
-      placeholder.reset();
+    let command: WebGLProgramCommand|undefined = undefined;
+    if (!this.noCommandRecording()) {
+      // Build the Command and TensorPLaceholder objects only when needed.
+      command = new WebGLProgramCommand(
+          backend, program, outputDataTemplate, customUniformValues,
+          customTexShape, binary);
+      command.pushInput(...(inputs as any));
+      command.pushOutput(outputData.tensorInfo);
     }
 
-    return {command, outputs: buildOutput as any};
+    return {command, outputs: outputData.tensorInfo as any};
   }
 }

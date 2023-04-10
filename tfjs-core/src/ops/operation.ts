@@ -64,10 +64,10 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
       }
 
       const outputTensors =
-          ENGINE.state.activeCommandTape.noCommandScope(() => {
-            // Execute the opFn in noCommandScope to get rid of commands from
-            // kernel execution, since op auto recorder produces one single
-            // command to include all computations in the op.
+          ENGINE.state.activeCommandTape.noCommandRecordingScope(() => {
+            // Execute the opFn in noCommandRecordingScope to get rid of
+            // commands from kernel execution, since op auto recorder produces
+            // one single command to include all computations in the op.
             return opFn(...inputsCopy);
           });
 
@@ -90,7 +90,7 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
  * memory usage after the function is done.
  */
 export function op<T extends Function>(
-    f: {[name: string]: T}, record: 'builtin'|'auto'|'none' = 'auto'): T {
+    f: {[name: string]: T}, record: 'builtin'|'auto'|'none' = 'builtin'): T {
   const keys = Object.keys(f);
   if (keys.length !== 1) {
     throw new Error(
@@ -111,7 +111,7 @@ export function op<T extends Function>(
   opName = opName + OP_SCOPE_SUFFIX;
 
   // tslint:disable-next-line:no-any
-  const f2 = (...args: any[]) => {
+  const rawOpFn = (...args: any[]) => {
     ENGINE.startScope(opName);
     try {
       const result = fn(...args);
@@ -126,24 +126,25 @@ export function op<T extends Function>(
     }
   };
 
-  let recorder: (...args: unknown[]) => unknown;
+  let opRecorder: (...args: unknown[]) => unknown;
   switch (record) {
     case 'none':
-      recorder = () => {
+      opRecorder = () => {
         throw new Error(`Op ${opName} does not support recording`);
       };
       break;
     case 'builtin':
-      recorder = f2;
+      opRecorder = rawOpFn;
       break;
     case 'auto':
-      recorder = buildOpAutoRecorder(f2);
+      opRecorder = buildOpAutoRecorder(rawOpFn);
       break;
   }
 
-  const recordFn = (...args: unknown[]) => {
+  const recordOpFn = (...args: unknown[]) => {
+    ENGINE.state.disposeActiveCommandTape();
     ENGINE.state.activeCommandTape = new CommandTape();
-    const outputs = recorder(...args);
+    const outputs = opRecorder(...args);
 
     const result = {
       tape: ENGINE.state.activeCommandTape,
@@ -152,8 +153,13 @@ export function op<T extends Function>(
     ENGINE.state.activeCommandTape = undefined;
     return result;
   };
+  const opFn = (...args: unknown[]) => {
+    ENGINE.state.disposeActiveCommandTape();
+    return rawOpFn(...args);
+  };
 
-  Object.defineProperty(f2, 'name', {value: opName, configurable: true});
-  Object.defineProperty(f2, 'record', {value: recordFn, configurable: false});
-  return f2 as unknown as T;
+  Object.defineProperty(opFn, 'name', {value: opName, configurable: true});
+  Object.defineProperty(
+      opFn, 'record', {value: recordOpFn, configurable: false});
+  return opFn as unknown as T;
 }

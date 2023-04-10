@@ -87,23 +87,24 @@ export function engine(): Engine {
 }
 
 /**
- * This is a decorator to wrap a function in noCommandScope of the current
- * state.activeCommandTape.
+ * This is a decorator to wrap a function in noCommandRecordingScope of the
+ * current state.activeCommandTape.
  */
-export function NoCommandRecording<T>() {
-  return (target: unknown, propertyKey: string,
-          descriptor: TypedPropertyDescriptor<T>) => {
+export function NoCommandRecording<Cls, T>() {
+  return function(
+      target: unknown, propertyKey: string,
+      descriptor: TypedPropertyDescriptor<T>) {
     const fn = descriptor.value;
     if (typeof fn === 'function') {
-      descriptor.value = function(...args: any[]) {
+      descriptor.value = function(this: Cls, ...args: any[]) {
         const activeCommandTape = engine().state.activeCommandTape;
 
         if (activeCommandTape != null) {
-          return activeCommandTape.noCommandScope(() => {
-            return fn.apply(target, args);
+          return activeCommandTape.noCommandRecordingScope(() => {
+            return fn.apply(this, args);
           });
         }
-        return fn.apply(target, args);
+        return fn.apply(this, args);
       } as T;
     }
   }

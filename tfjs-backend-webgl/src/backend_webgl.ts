@@ -180,6 +180,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   // Writes a new entry to the data store with a WebGL texture, and registers it
   // to the texture manager.
+  @NoCommandRecording()
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
       texHeight: number, texWidth: number, channels: string): DataId {
@@ -270,6 +271,7 @@ export class MathBackendWebGL extends KernelBackend {
     this.disposeData(tensorInfo.dataId);
   }
 
+  @NoCommandRecording()
   override readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensorInfos, slice, shape, isPacked} = texData;
@@ -319,6 +321,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.convertAndCacheOnCPU(dataId, result);
   }
 
+  @NoCommandRecording()
   override async read(dataId: DataId): Promise<BackendValues> {
     if (this.pendingRead.has(dataId)) {
       const subscribers = this.pendingRead.get(dataId);
@@ -428,6 +431,7 @@ export class MathBackendWebGL extends KernelBackend {
    *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
    */
+  @NoCommandRecording()
   override readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}):
       GPUData {
     const texData = this.texData.get(dataId);
@@ -507,6 +511,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
+  @NoCommandRecording()
   private getValuesFromTexture(dataId: DataId): Float32Array {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
@@ -845,6 +850,7 @@ export class MathBackendWebGL extends KernelBackend {
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
+  @NoCommandRecording()
   private decode(dataId: DataId, customTexShape?: [number, number]):
       TensorInfo {
     const texData = this.texData.get(dataId);
@@ -881,11 +887,11 @@ export class MathBackendWebGL extends KernelBackend {
       customUniformValues?: number[][], preventEagerUnpackingOfOutput = false,
       customTexShape?: [number, number]): TensorInfo {
     const output = WebGLProgramCommand.record<TensorInfo>(
-        program, inputs, outputDtype, customUniformValues,
-        preventEagerUnpackingOfOutput, customTexShape);
+        this, program, inputs, outputDtype, customUniformValues,
+        customTexShape);
     const outData = this.texData.get(output.dataId);
 
-    const glFlushThreshold = Number(env().get('WEBGL_FLUSH_THRESHOLD'));
+    const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD') as number;
     // Manually GL flush requested
     if (glFlushThreshold > 0) {
       const time = util.now();
