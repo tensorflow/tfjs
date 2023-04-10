@@ -43,18 +43,6 @@ export class WebGLProgramCommand extends Command {
     super();
   }
 
-  public override pushInput(...tensors: TensorInfo[]): void {
-    for (const tensor of tensors) {
-      if (tensor.dtype === 'complex64') {
-        throw new Error(
-            `GPGPUProgram does not support complex64 input. For complex64 ` +
-            `dtypes, please separate the program into real and imaginary ` +
-            `parts.`);
-      }
-    }
-    super.pushInput(...tensors);
-  }
-
   static prepareOutputData(
       backend: MathBackendWebGL, program: GPGPUProgram, outputDtype: DataType,
       outputDataTemplate: Partial<tex_util.TextureData>):
@@ -200,10 +188,19 @@ export class WebGLProgramCommand extends Command {
     cls.disposeIntermediateTensorInfos(this.backend, ...inputsData, outputData);
   }
 
-  static override build<TensorInfo>(
+  static override build<T = TensorInfo>(
       backend: MathBackendWebGL, program: GPGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, customUniformValues?: number[][],
-      customTexShape?: [number, number]): CommandBuildOutput<TensorInfo> {
+      customTexShape?: [number, number]): CommandBuildOutput<T> {
+    for (const input of inputs) {
+      if (input.dtype === 'complex64') {
+        throw new Error(
+            `GPGPUProgram does not support complex64 input. For complex64 ` +
+            `dtypes, please separate the program into real and imaginary ` +
+            `parts.`);
+      }
+    }
+
     // Prepare output texture data template.
     const outputDataTemplate: Partial<tex_util.TextureData> = {};
     if (program.packedOutput) {
@@ -243,7 +240,7 @@ export class WebGLProgramCommand extends Command {
             customTexShape);
         command.isOutputAlwaysEmpty = true;
       }
-      return {command, outputs: outputData.tensorInfo as TensorInfo};
+      return {command, outputs: outputData.tensorInfo as any};
     }
 
     const inputsData = inputs.map((input: TensorInfo) => {
