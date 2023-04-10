@@ -184,7 +184,7 @@ export class WebGLProgramCommand extends Command {
     const outputData = cls.prepareOutputData(
         this.backend, this.program, this.outputs[0].template.dtype,
         this.outputDataTemplate);
-    this.outputs[0].set(outputData.tensorInfo);
+    this.outputs[0].set(outputData.tensorInfo, this.backend);
 
     if (this.isOutputAlwaysEmpty) {
       return;

@@ -336,14 +336,15 @@ export abstract class Command {
 }
 
 export class ClosureCommand<T extends TensorInfo> extends Command {
-  private constructor(public fn: (tensors: TensorInfo[]) => T) {
+  private constructor(
+      public fn: (tensors: TensorInfo[]) => T, public backend?: KernelBackend) {
     super();
   }
 
   static override build<T extends TensorInfo>(
-      inputTensors: TensorInfo[],
-      fn: (tensors: TensorInfo[]) => T): CommandBuildOutput<T> {
-    const command = new ClosureCommand(fn);
+      inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
+      backend?: KernelBackend): CommandBuildOutput<T> {
+    const command = new ClosureCommand(fn, backend);
     command.pushInput(...inputTensors);
 
     const fnOutputs = fn(inputTensors);
@@ -365,7 +366,7 @@ export class ClosureCommand<T extends TensorInfo> extends Command {
           this.outputs.length} outputs, got ${outputTensors.length}.`);
     }
     for (let i = 0; i < this.outputs.length; ++i) {
-      this.outputs[i].set(outputTensors[i]);
+      this.outputs[i].set(outputTensors[i], this.backend);
     }
   }
 }

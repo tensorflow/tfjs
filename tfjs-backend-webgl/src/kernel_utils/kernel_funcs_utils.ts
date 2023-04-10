@@ -144,7 +144,7 @@ export function binaryKernelFunc({
         // TODO(annxingyuan): Implement CPU forwarding for complex inputs.
 
         return complexOutput;
-      });
+      }, /*backend=*/webglBackend);
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
@@ -173,7 +173,7 @@ export function binaryKernelFunc({
         const outData = webglBackend.texData.get(out.dataId);
         outData.values = outValues;
         return out;
-      });
+      }, /*backend=*/webglBackend);
     }
 
     const shouldUsePackedProgram =
