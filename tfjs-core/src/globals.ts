@@ -110,20 +110,6 @@ export function NoCommandRecordingMethod<Cls, T>() {
   }
 }
 
-export function noCommandRecording<T extends(...args: unknown[]) => unknown>(
-    fn: T): T {
-  return function(...args: unknown[]) {
-    const activeCommandTape = engine().state.activeCommandTape;
-
-    if (activeCommandTape != null) {
-      return activeCommandTape.noCommandRecordingScope(() => {
-        return fn(...args);
-      });
-    }
-    return fn(...args);
-  } as T;
-}
-
 /**
  * Returns memory info at the current time in the program. The result is an
  * object with the following properties:

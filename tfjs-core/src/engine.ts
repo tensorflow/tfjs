@@ -424,12 +424,6 @@ class EngineState implements GradientTapeState {
   kernelDepth = 0;
 
   activeCommandTape?: CommandTape;
-  disposeActiveCommandTape() {
-    if (this.activeCommandTape != null) {
-      this.activeCommandTape.dispose();
-    }
-    this.activeCommandTape = undefined;
-  }
 
   // Keep Tensors that parallel the tapes.
   activeScope: ScopeState;
@@ -1368,6 +1362,13 @@ export class Engine implements TensorTracker, DataMover {
 
   private endTape() {
     this.state.gradientDepth--;
+  }
+
+  noCommandRecordingScope<T>(fn: () => T): T {
+    if (this.state.activeCommandTape == null) {
+      return fn();
+    }
+    return this.state.activeCommandTape.noCommandRecordingScope(() => fn());
   }
 
   /**

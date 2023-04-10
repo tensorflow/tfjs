@@ -15,7 +15,6 @@
  * =============================================================================
  */
 import {ClosureCommand, CommandTape, ENGINE} from '../engine';
-import {noCommandRecording} from '../globals';
 import {Tensor} from '../tensor';
 import {isPromise} from '../util';
 
@@ -58,10 +57,9 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
   // Execute the opFn in noCommandRecordingScope to get rid of
   // commands from kernel execution, since op auto recorder produces
   // one single command to include all computations in the op.
-  const noCommandRecordingOpFn =
-      noCommandRecording((...inputsCopy: unknown[]) => {
-        return opFn(...inputsCopy);
-      });
+  function noCommandRecordingOpFn(...inputsCopy: unknown[]) {
+    return ENGINE.noCommandRecordingScope(() => opFn(...inputsCopy));
+  }
 
   // tslint:disable-next-line:no-any
   return function opAutoRecorder(...args: any[]) {
@@ -152,21 +150,23 @@ export function op<T extends Function>(
     const option = recording instanceof Function ? recording() : recording;
 
     console.log(`======= Op<${opName}> recording option: "${option}" =======`);
-    ENGINE.state.disposeActiveCommandTape();
     ENGINE.state.activeCommandTape = new CommandTape();
-    const outputs = getOpRecorder(option)(...args);
-
-    const result = {
-      tape: ENGINE.state.activeCommandTape,
-      outputs: outputs,
-    };
+    let result;
+    try {
+      const outputs = getOpRecorder(option)(...args);
+      result = {
+        tape: ENGINE.state.activeCommandTape,
+        outputs: outputs,
+      };
+    } catch (err) {
+      ENGINE.state.activeCommandTape.dispose();
+      ENGINE.state.activeCommandTape = undefined;
+      throw err;
+    }
     ENGINE.state.activeCommandTape = undefined;
     return result;
   };
-  const opFn = (...args: unknown[]) => {
-    ENGINE.state.disposeActiveCommandTape();
-    return rawOpFn(...args);
-  };
+  const opFn = rawOpFn;
 
   Object.defineProperty(opFn, 'name', {value: opName, configurable: true});
   Object.defineProperty(
