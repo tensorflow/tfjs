@@ -109,8 +109,8 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         generatedRaw.dispose();
       } else {
         throw new Error(
-            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
-            `at model.inputs[${inputDefIndex}] is not supported.`);
+          `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+          `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
@@ -162,8 +162,8 @@ function getPredictFnForModel(model, input) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-        'Predict function was not found. Please provide a tf.GraphModel or ' +
-        'tf.LayersModel');
+      'Predict function was not found. Please provide a tf.GraphModel or ' +
+      'tf.LayersModel');
   }
   return predict;
 }
@@ -241,8 +241,8 @@ async function timeModelInference(model, input, numRuns = 1) {
 async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   const times = [];
@@ -252,9 +252,8 @@ async function timeInference(predict, numRuns = 1) {
     // Prediction from tflite backend generates in the worker thread,
     // we don't post the result back to main thread to avoid unnecessary
     // overhead in transferring between worker and main thread.
-    if (!isTflite()) {
-      // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]:
-      // tf.Tensor}.
+    if(!isTflite()) {
+      // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
       const value = await downloadValuesFromTensorContainer(res);
     }
     const elapsedTime = performance.now() - start;
@@ -265,8 +264,8 @@ async function timeInference(predict, numRuns = 1) {
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
   const averageTimeExclFirst = times.length > 1 ?
-      times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
-      'NA';
+    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+    'NA';
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
   const timeInfo = {
@@ -403,8 +402,8 @@ async function profileModelInference(model, input, numProfiles = 1) {
 async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   let kernelInfo = {};
@@ -442,7 +441,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
     kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
-      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+    kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -462,13 +461,13 @@ function aggregateKernelTime(kernels) {
       aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
     } else {
       aggregatedKernelTime[kernel.name] =
-          oldAggregatedKernelTime + kernel.kernelTimeMs;
+        oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-      .map(([name, timeMs]) => ({name, timeMs}))
-      .sort((a, b) => b.timeMs - a.timeMs);
+    .map(([name, timeMs]) => ({ name, timeMs }))
+    .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -504,8 +503,7 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  * Set environment flags for testing.
  *
  * This is a wrapper function of `tf.env().setFlags()` to constrain users to
- * set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`) or untunable flags
- * (such as 'WEBGPU_PRINT_SHADER').
+ * only set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`).
  *
  * ```js
  * const flagConfig = {
@@ -519,12 +517,12 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  *
  * @param flagConfig An object to store flag-value pairs.
  */
-async function setEnvFlags(flagConfig, untuableFlagConfig = null) {
+async function setEnvFlags(flagConfig) {
   if (flagConfig == null) {
     return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
-        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
   }
 
   // Check the validation of flags and values.
@@ -535,14 +533,12 @@ async function setEnvFlags(flagConfig, untuableFlagConfig = null) {
     }
     if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
       throw new Error(
-          `${flag} value is expected to be in the range [${
-              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-          ' is found.');
+        `${flag} value is expected to be in the range [${TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+        ' is found.');
     }
   }
 
-  // For untuable flags, set it directly.
-  tf.env().setFlags({...flagConfig, ...untuableFlagConfig});
+  tf.env().setFlags(flagConfig);
 
   // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
   // initializing backends, not only inferring.
