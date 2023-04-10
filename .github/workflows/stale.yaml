@@ -37,7 +37,7 @@ jobs:
         # Comma separated list of labels that can be assigned to PRs to exclude them from being marked as stale.
         exempt-pr-labels: "override-stale"
         # Limit the No. of API calls in one run default value is 30.
-        operations-per-run: 1000
+        operations-per-run: 500
         # Prevent to remove stale label when PRs or issues are updated.
         remove-stale-when-updated: false
         # comment on issue if not active for more then 7 days.
