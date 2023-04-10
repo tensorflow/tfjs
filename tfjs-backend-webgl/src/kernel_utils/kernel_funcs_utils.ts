@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, ClosureCommand, DataType, env, KernelFunc, noCommandRecording, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -106,64 +106,74 @@ export function binaryKernelFunc({
     const webglBackend = backend as MathBackendWebGL;
 
     if (supportsComplex && a.dtype === 'complex64') {
-      const aData = webglBackend.texData.get(a.dataId);
-      const bData = webglBackend.texData.get(b.dataId);
+      return ClosureCommand.record([a, b], ([a, b]: TensorInfo[]) => {
+        const aData = webglBackend.texData.get(a.dataId);
+        const bData = webglBackend.texData.get(b.dataId);
 
-      const [real, imag] = [
-        [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
-        [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
-      ].map(complexParts => {
-        const [aPart, bPart] = complexParts;
+        const [real, imag] = [
+          [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
+          [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
+        ].map(complexParts => {
+          const [aPart, bPart] = complexParts;
 
-        const aHandle = {
-          dataId: aPart.dataId,
-          dtype: aPart.dtype,
-          shape: a.shape
-        };
-        const bHandle = {
-          dataId: bPart.dataId,
-          dtype: bPart.dtype,
-          shape: b.shape
-        };
+          const aHandle = {
+            dataId: aPart.dataId,
+            dtype: aPart.dtype,
+            shape: a.shape
+          };
+          const bHandle = {
+            dataId: bPart.dataId,
+            dtype: bPart.dtype,
+            shape: b.shape
+          };
 
-        const program = new BinaryOpProgram(opSnippet, a.shape, b.shape);
-        return webglBackend.runWebGLProgram(
-            program, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
+          const program = new BinaryOpProgram(opSnippet, a.shape, b.shape);
+          return noCommandRecording(() => {
+            return webglBackend.runWebGLProgram(
+                program, [aHandle, bHandle],
+                upcastType(aPart.dtype, bPart.dtype));
+          })();
+        });
+
+        const complexOutput =
+            complex({inputs: {real, imag}, backend: webglBackend});
+
+        webglBackend.disposeIntermediateTensorInfo(real);
+        webglBackend.disposeIntermediateTensorInfo(imag);
+
+        // TODO(annxingyuan): Implement CPU forwarding for complex inputs.
+
+        return complexOutput;
       });
-
-      const complexOutput =
-          complex({inputs: {real, imag}, backend: webglBackend});
-
-      webglBackend.disposeIntermediateTensorInfo(real);
-      webglBackend.disposeIntermediateTensorInfo(imag);
-
-      // TODO(annxingyuan): Implement CPU forwarding for complex inputs.
-
-      return complexOutput;
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
     if ((a.dtype === 'string' || b.dtype === 'string' ||
          webglBackend.shouldExecuteOnCPU([a, b])) &&
         cpuKernelImpl != null) {
-      const aVals = webglBackend.texData.get(a.dataId).values as TypedArray;
-      const bVals = webglBackend.texData.get(b.dataId).values as TypedArray;
+      return ClosureCommand.record([a, b], ([a, b]: TensorInfo[]) => {
+        const aVals = webglBackend.texData.get(a.dataId).values as TypedArray;
+        const bVals = webglBackend.texData.get(b.dataId).values as TypedArray;
 
-      const decodedAVals = a.dtype === 'string' ?
-          // tslint:disable-next-line: no-any
-          backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
-          aVals;
-      const decodedBVals = a.dtype === 'string' ?
-          // tslint:disable-next-line: no-any
-          backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
-          bVals;
-      const [outValues, outShape] =
-          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
+        const decodedAVals = a.dtype === 'string' ?
+            // tslint:disable-next-line: no-any
+            backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
+            aVals;
+        const decodedBVals = a.dtype === 'string' ?
+            // tslint:disable-next-line: no-any
+            backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
+            bVals;
 
-      const out = webglBackend.makeTensorInfo(outShape, $dtype);
-      const outData = webglBackend.texData.get(out.dataId);
-      outData.values = outValues;
-      return out;
+        const [outValues, outShape] = noCommandRecording(() => {
+          return cpuKernelImpl(
+              a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
+        })();
+
+        const out = webglBackend.makeTensorInfo(outShape, $dtype);
+        const outData = webglBackend.texData.get(out.dataId);
+        outData.values = outValues;
+        return out;
+      });
     }
 
     const shouldUsePackedProgram =

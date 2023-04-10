@@ -22,29 +22,28 @@ import {Tensor} from './tensor';
 import {TensorInfo} from './tensor_info';
 import {RecursiveArray} from './types';
 
-const kernelRegistry =
-  getGlobal('kernelRegistry', () => new Map<`${string}_${string}`,
-    KernelConfig>());
+const kernelRegistry = getGlobal(
+    'kernelRegistry', () => new Map<`${string}_${string}`, KernelConfig>());
 const gradRegistry =
-  getGlobal('gradRegistry', () => new Map<string, GradConfig>());
+    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 type AttributeValue =
-  number | number[] | boolean | boolean[] | string | string[] | NamedAttrMap;
+    number|number[]|boolean|boolean[]|string|string[]|NamedAttrMap;
 
 /** These are extra non-tensor/primitive params passed to kernel functions. */
-export type Attribute = AttributeValue | RecursiveArray<AttributeValue>;
+export type Attribute = AttributeValue|RecursiveArray<AttributeValue>;
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
   inputs: NamedTensorInfoMap,
   backend: {},
   attrs?: NamedAttrMap,
-}) => TensorInfo | TensorInfo[];
+}) => TensorInfo|TensorInfo[];
 
 /** The function to run when computing a gradient during backprop. */
 export type GradFunc =
-  (dy: Tensor | Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
-    NamedGradientMap;
+    (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
+        NamedGradientMap;
 
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
@@ -58,6 +57,7 @@ export interface KernelConfig {
   kernelFunc: KernelFunc;
   setupFunc?: KernelSetupFunc;
   disposeFunc?: KernelDisposeFunc;
+  isRecordingBuiltin?: boolean;
 }
 
 /** Config object for registering a gradient in the global registry. */
@@ -203,7 +203,7 @@ export function copyRegisteredKernels(
   });
 }
 
-function makeKey(kernelName: string,
-                 backendName: string): `${string}_${string}` {
+function makeKey(
+    kernelName: string, backendName: string): `${string}_${string}` {
   return `${backendName}_${kernelName}`;
 }

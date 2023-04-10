@@ -68,7 +68,7 @@ export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} fro
 
 export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
 // Record/Replay types
-export {Command, ClosureCommand, KernelCommand, CommandBuildOutput, TensorPlaceholder} from './engine';
+export {Command, ClosureCommand, CommandBuildOutput, TensorPlaceholder} from './engine';
 
 export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';

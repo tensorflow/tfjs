@@ -90,7 +90,7 @@ export function engine(): Engine {
  * This is a decorator to wrap a function in noCommandRecordingScope of the
  * current state.activeCommandTape.
  */
-export function NoCommandRecording<Cls, T>() {
+export function NoCommandRecordingMethod<Cls, T>() {
   return function(
       target: unknown, propertyKey: string,
       descriptor: TypedPropertyDescriptor<T>) {
@@ -108,6 +108,20 @@ export function NoCommandRecording<Cls, T>() {
       } as T;
     }
   }
+}
+
+export function noCommandRecording<T extends(...args: unknown[]) => unknown>(
+    fn: T): T {
+  return function(...args: unknown[]) {
+    const activeCommandTape = engine().state.activeCommandTape;
+
+    if (activeCommandTape != null) {
+      return activeCommandTape.noCommandRecordingScope(() => {
+        return fn(...args);
+      });
+    }
+    return fn(...args);
+  } as T;
 }
 
 /**

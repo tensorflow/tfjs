@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {CommandBuildOutput, DataType, env, KernelCommand, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {Command, CommandBuildOutput, DataType, env, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {CPUTimerQuery, MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_math from './gpgpu_math';
@@ -30,7 +30,7 @@ interface WebGLProgramTensorData extends gpgpu_math.TensorData {
   readonly disposeTensorInfoAfterRunProgram?: boolean;
 }
 
-export class WebGLProgramCommand extends KernelCommand {
+export class WebGLProgramCommand extends Command {
   public isOutputAlwaysEmpty = false;
 
   private constructor(

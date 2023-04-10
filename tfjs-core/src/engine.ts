@@ -335,10 +335,6 @@ export abstract class Command {
   }
 }
 
-export abstract class KernelCommand extends Command {
-  readonly isKernelCommand = true;
-}
-
 export class ClosureCommand<T extends TensorInfo> extends Command {
   private constructor(public fn: (tensors: TensorInfo[]) => T) {
     super();
@@ -858,6 +854,23 @@ export class Engine implements TensorTracker, DataMover {
           this.backendName}'`);
     }
     return this.runKernelFunc({kernelName, inputs, attrs});
+  }
+
+  isKernelRecordingBuiltin(kernelName: string) {
+    if (this.backendName == null) {
+      // backend has not been initialized yet (backend initialization is lazy
+      // can be deferred until an op/ kernel is run).
+      // The below getter has side effects that will try to initialize the
+      // backend and set properties like this.backendName
+      // tslint:disable-next-line: no-unused-expression
+      this.backend;
+    }
+    const kernel = getKernel(kernelName, this.backendName);
+    if (!kernel) {
+      throw new Error(`Kernel '${kernelName}' not registered for backend '${
+          this.backendName}'`);
+    }
+    return !!kernel.isRecordingBuiltin;
   }
 
   private shouldCheckForMemLeaks(): boolean {

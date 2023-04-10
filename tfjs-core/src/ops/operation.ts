@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {ClosureCommand, CommandTape, ENGINE} from '../engine';
+import {noCommandRecording} from '../globals';
 import {Tensor} from '../tensor';
 import {isPromise} from '../util';
 
@@ -54,6 +55,14 @@ function buildOpAutoRecorderInputs(inputs: unknown[]) {
 }
 
 function buildOpAutoRecorder<T extends Function>(opFn: T) {
+  // Execute the opFn in noCommandRecordingScope to get rid of
+  // commands from kernel execution, since op auto recorder produces
+  // one single command to include all computations in the op.
+  const noCommandRecordingOpFn =
+      noCommandRecording((...inputsCopy: unknown[]) => {
+        return opFn(...inputsCopy);
+      });
+
   // tslint:disable-next-line:no-any
   return function opAutoRecorder(...args: any[]) {
     const {inputsCopy, tensors} = buildOpAutoRecorderInputs(args);
@@ -63,13 +72,7 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
         tensors[i].setter(inputTensors[i] as Tensor);
       }
 
-      const outputTensors =
-          ENGINE.state.activeCommandTape.noCommandRecordingScope(() => {
-            // Execute the opFn in noCommandRecordingScope to get rid of
-            // commands from kernel execution, since op auto recorder produces
-            // one single command to include all computations in the op.
-            return opFn(...inputsCopy);
-          });
+      const outputTensors = noCommandRecordingOpFn(...inputsCopy);
 
       if (outputTensors instanceof Tensor) {
         return outputTensors;
@@ -84,13 +87,19 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
   };
 }
 
+type OpRecordingOptions = 'builtin'|'auto'|'none';
+
 /**
  * Used for wrapping functions that perform math operations on
  * Tensors. The function will be wrapped in a named scope that cleans all
  * memory usage after the function is done.
  */
 export function op<T extends Function>(
-    f: {[name: string]: T}, record: 'builtin'|'auto'|'none' = 'builtin'): T {
+    f: {[name: string]: T},
+    recording: OpRecordingOptions|(() => OpRecordingOptions) = 'auto'): T {
+  // TODO(record-replay): For benchmarking record-replay with MobileNetV3, set
+  // the default recording to 'builtin'.
+
   const keys = Object.keys(f);
   if (keys.length !== 1) {
     throw new Error(
@@ -126,25 +135,26 @@ export function op<T extends Function>(
     }
   };
 
-  let opRecorder: (...args: unknown[]) => unknown;
-  switch (record) {
-    case 'none':
-      opRecorder = () => {
-        throw new Error(`Op ${opName} does not support recording`);
-      };
-      break;
-    case 'builtin':
-      opRecorder = rawOpFn;
-      break;
-    case 'auto':
-      opRecorder = buildOpAutoRecorder(rawOpFn);
-      break;
-  }
+  const getOpRecorder = (option: OpRecordingOptions) => {
+    switch (option) {
+      case 'none':
+        return () => {
+          throw new Error(`Op ${opName} does not support recording`);
+        };
+      case 'builtin':
+        return rawOpFn;
+      case 'auto':
+        return buildOpAutoRecorder(rawOpFn);
+    }
+  };
 
   const recordOpFn = (...args: unknown[]) => {
+    const option = recording instanceof Function ? recording() : recording;
+
+    console.log(`======= Op<${opName}> recording option: "${option}" =======`);
     ENGINE.state.disposeActiveCommandTape();
     ENGINE.state.activeCommandTape = new CommandTape();
-    const outputs = opRecorder(...args);
+    const outputs = getOpRecorder(option)(...args);
 
     const result = {
       tape: ENGINE.state.activeCommandTape,
