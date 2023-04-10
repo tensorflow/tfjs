@@ -168,7 +168,9 @@ export class TensorPlaceholder {
       existingPlaceholder.refCount++;
       return existingPlaceholder;
     }
-    return new TensorPlaceholder(template);
+    const placeholder = new TensorPlaceholder(template);
+    TensorPlaceholder.pool.set(dataId, placeholder);
+    return placeholder;
   }
 
   get disposed() {
