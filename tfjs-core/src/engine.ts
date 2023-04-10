@@ -204,7 +204,7 @@ export class TensorPlaceholder {
     }
     const oldValue = this.values[tag];
     if (!this.config.allowOverwriteTensor && oldValue != null &&
-        oldValue !== tensor.dataId) {
+        oldValue.t.dataId !== tensor.dataId) {
       throw new Error(
           'Tensor has been set. ' +
           'Cannot overwrite the tensor with another one with different dataId.');
