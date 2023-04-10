@@ -160,6 +160,6 @@ export function op<T extends Function>(
 
   Object.defineProperty(opFn, 'name', {value: opName, configurable: true});
   Object.defineProperty(
-      opFn, 'record', {value: recordOpFn, configurable: false});
+      opFn, '_record', {value: recordOpFn, configurable: false});
   return opFn as unknown as T;
 }
