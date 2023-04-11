@@ -164,7 +164,7 @@ limitations under the License.
         numProfilesController.setValue(urlState.get('profile'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
-        correctnessButton.domElement.click();
+        correctnessButton.$button.click();
       }
       if (runButton != null && task == 'performance') {
         runButton.$button.click();
