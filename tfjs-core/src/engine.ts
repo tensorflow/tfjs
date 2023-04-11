@@ -383,17 +383,8 @@ export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
 }
 
 export class DisposeTensorCommand extends Command {
-  static override build(tensor: Tensor, backend: undefined): CommandBuildOutput;
-  static override build(tensor: TensorInfo, backend: KernelBackend):
-      CommandBuildOutput;
-  static override build(tensor: TensorInfo|Tensor, backend?: KernelBackend):
-      CommandBuildOutput {
-    if (tensor instanceof Tensor) {
-      this.engine().disposeTensor(tensor);
-    } else {
-      backend.disposeData(tensor);
-    }
-
+  static override build(tensor: Tensor): CommandBuildOutput {
+    this.engine().disposeTensor(tensor);
     let command;
     if (!this.noRecordCommand()) {
       command = new DisposeTensorCommand();
