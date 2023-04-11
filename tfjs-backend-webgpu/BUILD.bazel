@@ -106,7 +106,9 @@ tfjs_web_test(
         "--flags",
         '{"WEBGPU_CPU_FORWARD": false}',
     ],
-    browsers = [],
+    browsers = [
+        "bs_chrome_mac_webgpu",
+    ],
     local_browser = select({
         "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
         "@bazel_tools//src/conditions:windows": "chrome_webgpu",
