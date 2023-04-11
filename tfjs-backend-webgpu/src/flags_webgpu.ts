@@ -82,3 +82,10 @@ ENV.registerFlag('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => 0);
  * Whether we will run im2col as a separate shader for convolution.
  */
 ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
+
+/**
+ * A string used to match shader key. If any matches, print the related shader.
+ * Seperated by comma. 'all' to print all. 'binary' to print binary(add, mul,
+ * etc.). 'unary,conv2d' to print both unary and conv2d.
+ */
+ENV.registerFlag('WEBGPU_PRINT_SHADER', () => '');
