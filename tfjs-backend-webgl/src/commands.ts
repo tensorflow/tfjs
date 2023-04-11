@@ -188,10 +188,19 @@ export class WebGLProgramCommand extends Command {
     cls.disposeIntermediateTensorInfos(this.backend, ...inputsData, outputData);
   }
 
-  static override build<T = TensorInfo>(
+  static override record(
       backend: MathBackendWebGL, program: GPGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, customUniformValues?: number[][],
-      customTexShape?: [number, number]): CommandBuildOutput<T> {
+      customTexShape?: [number, number]): TensorInfo {
+    return super.record(
+               backend, program, inputs, outputDtype, customUniformValues,
+               customTexShape) as TensorInfo;
+  }
+
+  static override build(
+      backend: MathBackendWebGL, program: GPGPUProgram, inputs: TensorInfo[],
+      outputDtype: DataType, customUniformValues?: number[][],
+      customTexShape?: [number, number]): CommandBuildOutput<TensorInfo> {
     for (const input of inputs) {
       if (input.dtype === 'complex64') {
         throw new Error(
@@ -234,7 +243,7 @@ export class WebGLProgramCommand extends Command {
       // Short-circuit the computation since the result is empty (has 0 in its
       // shape).
       let command = undefined;
-      if (!this.noCommandRecording) {
+      if (!this.noRecordCommand) {
         command = new WebGLProgramCommand(
             backend, program, outputDataTemplate, customUniformValues,
             customTexShape);
@@ -258,7 +267,7 @@ export class WebGLProgramCommand extends Command {
     this.disposeIntermediateTensorInfos(backend, ...inputsData, outputData);
 
     let command: WebGLProgramCommand|undefined = undefined;
-    if (!this.noCommandRecording()) {
+    if (!this.noRecordCommand()) {
       // Build the Command and TensorPLaceholder objects only when needed.
       command = new WebGLProgramCommand(
           backend, program, outputDataTemplate, customUniformValues,

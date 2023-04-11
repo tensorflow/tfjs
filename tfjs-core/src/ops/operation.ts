@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ClosureCommand, CommandTape, ENGINE} from '../engine';
+import {ClosureCommand, ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {isPromise} from '../util';
 
@@ -54,34 +54,34 @@ function buildOpAutoRecorderInputs(inputs: unknown[]) {
 }
 
 function buildOpAutoRecorder<T extends Function>(opFn: T) {
-  // Execute the opFn in noCommandRecordingScope to get rid of
+  // Execute the opFn in noRecordCommandScope to get rid of
   // commands from kernel execution, since op auto recorder produces
   // one single command to include all computations in the op.
-  function noCommandRecordingOpFn(...inputsCopy: unknown[]) {
-    return ENGINE.noCommandRecordingScope(() => opFn(...inputsCopy));
+  function noRecordCommandOpFn(...inputsCopy: unknown[]) {
+    return ENGINE.noRecordCommandScope(() => opFn(...inputsCopy));
   }
 
   // tslint:disable-next-line:no-any
   return function opAutoRecorder(...args: any[]) {
     const {inputsCopy, tensors} = buildOpAutoRecorderInputs(args);
-    return ClosureCommand.record<
-        Tensor>(tensors.map(({tensor}) => tensor), (inputTensors: Tensor[]) => {
-      for (let i = 0; i < inputTensors.length; ++i) {
-        tensors[i].setter(inputTensors[i] as Tensor);
-      }
+    return ClosureCommand.record(
+        tensors.map(({tensor}) => tensor), (inputTensors: Tensor[]) => {
+          for (let i = 0; i < inputTensors.length; ++i) {
+            tensors[i].setter(inputTensors[i] as Tensor);
+          }
 
-      const outputTensors = noCommandRecordingOpFn(...inputsCopy);
+          const outputTensors = noRecordCommandOpFn(...inputsCopy);
 
-      if (outputTensors instanceof Tensor) {
-        return outputTensors;
-      }
-      if (Array.isArray(outputTensors)) {
-        return outputTensors;
-      }
-      throw new Error(
-          `Op auto recorder only supports Tensor and Tensor[] as outputs, got ${
-              outputTensors}`);
-    });
+          if (outputTensors instanceof Tensor) {
+            return outputTensors;
+          }
+          if (Array.isArray(outputTensors)) {
+            return outputTensors;
+          }
+          throw new Error(
+              `Op auto recorder only supports Tensor and Tensor[] as outputs, got ${
+                  outputTensors}`);
+        });
   };
 }
 
@@ -149,24 +149,26 @@ export function op<T extends Function>(
   const recordOpFn = (...args: unknown[]) => {
     const option = recording instanceof Function ? recording() : recording;
 
-    console.log(`======= Op<${opName}> recording option: "${option}" =======`);
-    ENGINE.state.activeCommandTape = new CommandTape();
-    let result;
-    try {
-      const outputs = getOpRecorder(option)(...args);
-      result = {
-        tape: ENGINE.state.activeCommandTape,
-        outputs: outputs,
-      };
-    } catch (err) {
-      ENGINE.state.activeCommandTape.dispose();
-      ENGINE.state.activeCommandTape = undefined;
-      throw err;
-    }
-    ENGINE.state.activeCommandTape = undefined;
-    return result;
+    console.log(`======= Op<${opName}> recording option: "${option}".`);
+    return ENGINE.recordOpCommandScope(() => {
+      return getOpRecorder(option)(...args);
+    });
   };
-  const opFn = rawOpFn;
+
+  const opFn = (...args: unknown[]) => {
+    // If the op is executed in a recordOpCommandScope, execute the op recorder
+    // to push commands into the tape. Otherwise run the op in
+    // noRecordCommandScope to avoid any
+    // TODO: Remove recording scope and enforce recording through recordOpFn.
+    if (ENGINE.state.activeCommandTape != null) {
+      const option = recording instanceof Function ? recording() : recording;
+      console.log(`====== Op<${opName}, options: ${
+          option}>is recorded by executing in a recordOpCommandScope.`);
+      return getOpRecorder(option)(...args);
+    }
+
+    return ENGINE.noRecordCommandScope(() => rawOpFn(...args));
+  };
 
   Object.defineProperty(opFn, 'name', {value: opName, configurable: true});
   Object.defineProperty(

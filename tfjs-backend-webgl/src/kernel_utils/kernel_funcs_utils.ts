@@ -128,7 +128,7 @@ export function binaryKernelFunc({
           };
 
           const program = new BinaryOpProgram(opSnippet, a.shape, b.shape);
-          return engine().noCommandRecordingScope(() => {
+          return engine().noRecordCommandScope(() => {
             return webglBackend.runWebGLProgram(
                 program, [aHandle, bHandle],
                 upcastType(aPart.dtype, bPart.dtype));
@@ -164,7 +164,7 @@ export function binaryKernelFunc({
             backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
             bVals;
 
-        const [outValues, outShape] = engine().noCommandRecordingScope(() => {
+        const [outValues, outShape] = engine().noRecordCommandScope(() => {
           return cpuKernelImpl(
               a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
         });

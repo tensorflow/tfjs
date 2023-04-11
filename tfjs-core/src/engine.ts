@@ -31,6 +31,7 @@ import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
+import {isPromise} from './util';
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -267,7 +268,7 @@ export class TensorPlaceholder {
   }
 }
 
-export interface CommandBuildOutput<T> {
+export interface CommandBuildOutput<T = TensorInfo | TensorInfo[]> {
   /**
    * If the builder is invoked in a no command recording scope, the command
    * field in the output can be undefined. Otherwise there must be a recorded
@@ -286,16 +287,16 @@ export abstract class Command {
     return ENGINE;
   }
 
-  static noCommandRecording() {
+  static noRecordCommand() {
     const engine = this.engine();
     return engine.state.activeCommandTape == null ||
-        engine.state.activeCommandTape.noCommandRecording();
+        engine.state.activeCommandTape.noRecordCommand();
   }
 
-  static record<T extends TensorInfo>(...args: unknown[]): T {
-    const {command, outputs} = this.build<T>(...args);
-    const noCommandRecording = this.noCommandRecording();
-    if (noCommandRecording) {
+  static record(...args: unknown[]): TensorInfo|TensorInfo[] {
+    const {command, outputs} = this.build(...args);
+    const noRecordCommand = this.noRecordCommand();
+    if (noRecordCommand) {
       if (command != null) {
         command.dispose();
       }
@@ -311,8 +312,7 @@ export abstract class Command {
     return outputs;
   }
 
-  static build<T extends TensorInfo>(...args: unknown[]):
-      CommandBuildOutput<T> {
+  static build(...args: unknown[]): CommandBuildOutput {
     throw new Error('Command.build not implemented');
   }
 
@@ -337,21 +337,30 @@ export abstract class Command {
   }
 }
 
-export class ClosureCommand<T extends TensorInfo> extends Command {
+export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
   private constructor(
       public fn: (tensors: TensorInfo[]) => T, public backend?: KernelBackend) {
     super();
   }
 
-  static override build<T extends TensorInfo>(
+  static override record<T extends TensorInfo|TensorInfo[]>(
+      inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
+      backend?: KernelBackend): T {
+    return super.record(inputTensors, fn, backend) as T;
+  }
+
+  static override build<T extends TensorInfo|TensorInfo[]>(
       inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
       backend?: KernelBackend): CommandBuildOutput<T> {
-    const command = new ClosureCommand(fn, backend);
-    command.pushInput(...inputTensors);
-
     const fnOutputs = fn(inputTensors);
-    const outputTensors = Array.isArray(fnOutputs) ? fnOutputs : [fnOutputs];
-    command.pushOutput(...outputTensors);
+
+    let command;
+    if (!this.noRecordCommand()) {
+      const outputTensors = Array.isArray(fnOutputs) ? fnOutputs : [fnOutputs];
+      command = new ClosureCommand<T>(fn, backend);
+      command.pushInput(...inputTensors);
+      command.pushOutput(...outputTensors);
+    }
 
     return {
       command,
@@ -373,19 +382,44 @@ export class ClosureCommand<T extends TensorInfo> extends Command {
   }
 }
 
+export class DisposeTensorCommand extends Command {
+  static override build(tensor: Tensor, backend: undefined): CommandBuildOutput;
+  static override build(tensor: TensorInfo, backend: KernelBackend):
+      CommandBuildOutput;
+  static override build(tensor: TensorInfo|Tensor, backend?: KernelBackend):
+      CommandBuildOutput {
+    if (tensor instanceof Tensor) {
+      this.engine().disposeTensor(tensor);
+    } else {
+      backend.disposeData(tensor);
+    }
+
+    let command;
+    if (!this.noRecordCommand()) {
+      command = new DisposeTensorCommand();
+      command.pushInput(tensor);
+    }
+    return {command, outputs: []};
+  }
+
+  override execute(): void {
+    this.inputs[0].reset();
+  }
+}
+
 export class CommandTape {
   readonly commands: Command[] = [];
-  private noCommandRecordingScopeCount = 0;
+  private noRecordCommandScopeCount = 0;
 
   constructor() {}
 
   /** If true, the caller is in a scope with no command recording. */
-  noCommandRecording() {
-    return this.noCommandRecordingScopeCount > 0;
+  noRecordCommand() {
+    return this.noRecordCommandScopeCount > 0;
   }
 
-  noCommandRecordingScope<T>(fn: () => T) {
-    this.noCommandRecordingScopeCount++;
+  noRecordCommandScope<T>(fn: () => T) {
+    this.noRecordCommandScopeCount++;
     const oldCommandsLength = this.commands.length;
     const result = fn();
     // Remove all commands added while executing fn. While Command.record checks
@@ -397,7 +431,7 @@ export class CommandTape {
         command.dispose();
       }
     }
-    this.noCommandRecordingScopeCount--;
+    this.noRecordCommandScopeCount--;
     return result;
   }
 
@@ -458,6 +492,9 @@ class EngineState implements GradientTapeState {
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
+    }
+    if (this.activeCommandTape != null) {
+      this.activeCommandTape.dispose();
     }
   }
 }
@@ -1231,6 +1268,7 @@ export class Engine implements TensorTracker, DataMover {
       this.state.numDataBuffers--;
     }
   }
+
   disposeTensor(a: Tensor): void {
     if (!this.state.tensorInfo.has(a.dataId)) {
       return;
@@ -1364,11 +1402,36 @@ export class Engine implements TensorTracker, DataMover {
     this.state.gradientDepth--;
   }
 
-  noCommandRecordingScope<T>(fn: () => T): T {
+  noRecordCommandScope<T>(fn: () => T): T {
     if (this.state.activeCommandTape == null) {
       return fn();
     }
-    return this.state.activeCommandTape.noCommandRecordingScope(() => fn());
+    return this.state.activeCommandTape.noRecordCommandScope(() => fn());
+  }
+
+  recordOpCommandScope<T extends TensorInfo>(fn: () => (T | T[])):
+      {tape: CommandTape, outputs: T|T[]} {
+    if (this.state.activeCommandTape != null) {
+      throw new Error('Cannot start nested record command scopes.');
+    }
+    this.state.activeCommandTape = new CommandTape();
+    let result;
+    try {
+      const outputs = fn();
+      if (isPromise(outputs)) {
+        throw new Error('Recording does not support async computations.');
+      }
+      result = {
+        tape: this.state.activeCommandTape,
+        outputs: outputs,
+      };
+    } catch (err) {
+      this.state.activeCommandTape.dispose();
+      this.state.activeCommandTape = undefined;
+      throw err;
+    }
+    ENGINE.state.activeCommandTape = undefined;
+    return result;
   }
 
   /**

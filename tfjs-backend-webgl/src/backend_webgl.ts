@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NoCommandRecordingMethod, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NoRecordCommandMethod, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {WebGLProgramCommand} from './commands';
@@ -180,7 +180,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   // Writes a new entry to the data store with a WebGL texture, and registers it
   // to the texture manager.
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
       texHeight: number, texWidth: number, channels: string): DataId {
@@ -271,7 +271,7 @@ export class MathBackendWebGL extends KernelBackend {
     this.disposeData(tensorInfo.dataId);
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   override readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensorInfos, slice, shape, isPacked} = texData;
@@ -321,7 +321,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.convertAndCacheOnCPU(dataId, result);
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   override async read(dataId: DataId): Promise<BackendValues> {
     if (this.pendingRead.has(dataId)) {
       const subscribers = this.pendingRead.get(dataId);
@@ -431,7 +431,7 @@ export class MathBackendWebGL extends KernelBackend {
    *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
    */
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   override readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}):
       GPUData {
     const texData = this.texData.get(dataId);
@@ -511,7 +511,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   private getValuesFromTexture(dataId: DataId): Float32Array {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
@@ -811,13 +811,13 @@ export class MathBackendWebGL extends KernelBackend {
                this.makeTensorInfo(shape, dtype, values), this) as T;
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   unpackTensor(input: TensorInfo): TensorInfo {
     const program = new UnpackProgram(input.shape);
     return this.runWebGLProgram(program, [input], input.dtype);
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   packTensor(input: TensorInfo): TensorInfo {
     const program = new PackProgram(input.shape);
     const preventEagerUnpackingOutput = true;
@@ -826,7 +826,7 @@ export class MathBackendWebGL extends KernelBackend {
         preventEagerUnpackingOutput);
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
     const input3DShape = [
       webgl_util.getBatchDim(input.shape),
@@ -850,7 +850,7 @@ export class MathBackendWebGL extends KernelBackend {
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   private decode(dataId: DataId, customTexShape?: [number, number]):
       TensorInfo {
     const texData = this.texData.get(dataId);
@@ -886,7 +886,7 @@ export class MathBackendWebGL extends KernelBackend {
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
       customUniformValues?: number[][], preventEagerUnpackingOfOutput = false,
       customTexShape?: [number, number]): TensorInfo {
-    const output = WebGLProgramCommand.record<TensorInfo>(
+    const output = WebGLProgramCommand.record(
         this, program, inputs, outputDtype, customUniformValues,
         customTexShape);
     const outData = this.texData.get(output.dataId);
@@ -988,7 +988,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
 
-  @NoCommandRecordingMethod()
+  @NoRecordCommandMethod()
   uploadToGPU(dataId: DataId): tex_util.TextureData {
     const texData = this.texData.get(dataId);
     const {shape, dtype, values, texture, usage, isPacked} = texData;

@@ -18,9 +18,10 @@
 // Workaround for: https://github.com/bazelbuild/rules_nodejs/issues/1265
 /// <reference types="@webgpu/types/dist" />
 
+import {DisposeTensorCommand} from './engine';
 import {getGlobal} from './global_util';
-import {TensorInfo, DataId} from './tensor_info';
 import {tensorToString} from './tensor_format';
+import {DataId, TensorInfo} from './tensor_info';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
@@ -445,7 +446,10 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
     if (this.isDisposed) {
       return;
     }
-    trackerFn().disposeTensor(this);
+    // TODO: Merge this with TensorTracker.
+    // TODO: Check if recording dispose command here is always safe.
+    DisposeTensorCommand.record(this);
+    // trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
 
@@ -589,7 +593,10 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    trackerFn().disposeTensor(this);
+    // TODO: Merge this with TensorTracker.
+    // TODO: Check if recording dispose command here is always safe.
+    DisposeTensorCommand.record(this);
+    // trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
     trackerFn().incRef(this, null /* backend */);
   }
