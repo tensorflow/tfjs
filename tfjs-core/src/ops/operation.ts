@@ -91,7 +91,7 @@ type OpRecordingOptions = 'builtin'|'auto'|'none';
  */
 export function op<T extends Function>(
     f: {[name: string]: T},
-    recording: OpRecordingOptions|(() => OpRecordingOptions) = 'auto'): T {
+    recording: OpRecordingOptions|(() => OpRecordingOptions) = 'builtin'): T {
   // TODO(record-replay): For benchmarking record-replay with MobileNetV3, set
   // the default recording to 'builtin'.
 
@@ -159,8 +159,8 @@ export function op<T extends Function>(
     // TODO: Remove recording scope and enforce recording through recordOpFn.
     if (ENGINE.state.activeCommandTape != null) {
       const option = recording instanceof Function ? recording() : recording;
-      console.log(`====== Op<${opName}, options: ${
-          option}>is recorded by executing in a recordOpCommandScope.`);
+      console.log(`====== Op<${opName}, option: "${
+          option}"> is recorded by executing in a recordOpCommandScope.`);
       return getOpRecorder(option)(...args);
     }
 

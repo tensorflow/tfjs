@@ -136,8 +136,7 @@ export class TensorPlaceholder {
   readonly pid: DataId;
 
   // Number of different tensors set with different tensor ids.
-  // Undefined if the primary value is not a Tensor.
-  private primaryTensorSetCount?: number = undefined;
+  private primaryValueSetCount: number = 0;
   private primaryValue?: {backend?: KernelBackend, t: TensorInfo|Tensor};
   private taggedValues: Record<string|symbol, {
     backend?: KernelBackend, t: TensorInfo|Tensor,
@@ -187,13 +186,35 @@ export class TensorPlaceholder {
     return this.disposed_;
   }
 
-  get(tag?: string): TensorInfo {
+  private getValue(tag?: string) {
     this.assertNotDisposed();
     const value = tag == null ? this.primaryValue : this.taggedValues[tag];
     if (value == null) {
       throw new Error(`Empty TensorPlaceholder: ${JSON.stringify(this)}`);
     }
-    return value.t;
+    return value;
+  }
+
+  private disposeValue(value?:
+                           {backend?: KernelBackend, t: Tensor|TensorInfo}) {
+    if (value == null) {
+      return;
+    }
+    const {t, backend} = value;
+    if (t == null) {
+      return;
+    }
+    if (t instanceof Tensor) {
+      if (!t.kept) {
+        TensorPlaceholder.engine().disposeTensor(t);
+      }
+    } else {
+      backend.disposeData(t.dataId);
+    }
+  }
+
+  get(tag?: string): TensorInfo {
+    return this.getValue(tag).t;
   }
 
   getNoNotFoundError(tag?: string): TensorInfo|null {
@@ -208,16 +229,17 @@ export class TensorPlaceholder {
 
     const oldValue = isPrimary ? this.primaryValue : this.taggedValues[tag];
     if (oldValue != null && oldValue.t.dataId !== tensor.dataId) {
-      throw new Error(
-          'Tensor has been set. ' +
-          'Cannot overwrite the tensor with another one with different dataId.');
-    }
-    // TODO: Handle tensor leakage.
-    if (isPrimary && tensor instanceof Tensor) {
-      this.primaryTensorSetCount = (this.primaryTensorSetCount || 0) + 1;
+      if (!this.config.allowOverwriteTensor) {
+        throw new Error(
+            'Tensor has been set. ' +
+            'Cannot overwrite the tensor with another one with different dataId.');
+      } else {
+        this.disposeValue(oldValue);
+      }
     }
 
     if (isPrimary) {
+      this.primaryValueSetCount++;
       this.primaryValue = {backend, t: tensor};
     } else {
       this.taggedValues[tag] = {backend, t: tensor};
@@ -225,39 +247,28 @@ export class TensorPlaceholder {
   }
 
   toTensor(tag?: string) {
-    const t = this.get(tag);
+    const {t, backend} = this.getValue(tag);
     if (t instanceof Tensor) {
       return t;
     }
     const tensor = TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
-    this.set(tensor, /*backend=*/undefined, tag);
-    return tensor;
-  }
-
-  release(tag?: string) {
-    const t = this.get(tag);
-    const isPrimary = tag == null;
-    if (isPrimary && this.primaryTensorSetCount != null &&
-        --this.primaryTensorSetCount > 0) {
-      return (t as Tensor).clone();
-    }
-    if (isPrimary) {
-      this.primaryValue = null;
+    if (tag == null) {
+      this.primaryValue = {backend, t: tensor};
     } else {
-      this.taggedValues[tag] = undefined;
+      this.taggedValues[tag] = {backend, t: tensor};
     }
-    return t;
+    return tensor;
   }
 
   releaseTensor(tag?: string) {
     const t = this.toTensor(tag);
     const isPrimary = tag == null;
-    if (isPrimary && this.primaryTensorSetCount != null &&
-        --this.primaryTensorSetCount > 0) {
-      return (t as Tensor).clone();
+    if (isPrimary && --this.primaryValueSetCount > 0) {
+      return t.clone();
     }
+
     if (isPrimary) {
-      this.primaryValue = null;
+      this.primaryValue = undefined;
     } else {
       this.taggedValues[tag] = undefined;
     }
@@ -266,33 +277,17 @@ export class TensorPlaceholder {
 
   clear(force = false): void {
     this.assertNotDisposed();
-    if (!force && this.primaryTensorSetCount != null &&
-        this.primaryTensorSetCount > 1) {
-      --this.primaryTensorSetCount;
+    if (!force && this.primaryValueSetCount > 1) {
+      this.primaryValueSetCount--;
       return;
     }
 
-    const values = [...Object.values(this.taggedValues), this.primaryValue];
-    if (values.length === 0) {
-      return;
-    }
-
-    for (const value of values) {
-      if (value == null) {
-        continue;
-      }
-      const {t, backend} = value;
-      if (t == null) {
-        continue;
-      }
-      if (t instanceof Tensor && !t.kept) {
-        t.dispose();
-      } else {
-        backend.disposeData(t.dataId);
-      }
+    for (const value
+             of [...Object.values(this.taggedValues), this.primaryValue]) {
+      this.disposeValue(value);
     }
     this.primaryValue = undefined;
-    this.primaryTensorSetCount = undefined;
+    this.primaryValueSetCount = 0;
     this.taggedValues = {};
   }
 
@@ -447,11 +442,15 @@ export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
 }
 
 export class DisposeTensorCommand extends Command {
+  private constructor(readonly pidToDispose: DataId) {
+    super();
+  }
+
   static override build(tensor: Tensor): CommandBuildOutput {
     this.engine().disposeTensor(tensor);
     let command;
     if (!this.noRecordCommand()) {
-      command = new DisposeTensorCommand();
+      command = new DisposeTensorCommand(tensor.dataId);
       command.pushInput(tensor);
     }
     return {command, outputs: []};
