@@ -129,21 +129,21 @@ export class TensorPlaceholder {
   static readonly DEFAULT_CONFIG: TensorPlaceholderConfig = {
     allowOverwriteTensor: true,
   };
-  // A map from templateDataId to built TensorPlaceholder. When the refCount of
-  // a TensorPlaceholder decreases to zero, its corresponding entry in the pool
-  // will be deleted.
-  private static pool =
-      new WeakMap</*templateDataId=*/DataId, TensorPlaceholder>();
 
   readonly config: TensorPlaceholderConfig;
   readonly template: TensorInfo;
   /** Unique id of this placeholder. */
   readonly pid: DataId;
 
-  private values: Record<string|symbol, {
+  // Number of different tensors set with different tensor ids.
+  // Undefined if the primary value is not a Tensor.
+  private primaryTensorSetCount?: number = undefined;
+  private primaryValue?: {backend?: KernelBackend, t: TensorInfo|Tensor};
+  private taggedValues: Record<string|symbol, {
     backend?: KernelBackend, t: TensorInfo|Tensor,
   }> = {};
-  private refCount = 1;
+
+  private placeholderRefCount = 1;
   private disposed_ = false;
 
   private constructor(
@@ -158,19 +158,28 @@ export class TensorPlaceholder {
     this.pid = template.dataId;
   }
 
+  /**
+   * A map from templateDataId to built TensorPlaceholder. When the refCount of
+   * a TensorPlaceholder decreases to zero, its corresponding entry in the pool
+   * will be deleted.
+   */
+  static pool() {
+    return this.engine().tensorPlaceholderPool;
+  }
+
   static engine() {
     return ENGINE;
   }
 
   static build(template: TensorInfo|Tensor): TensorPlaceholder {
     const {dataId} = template;
-    const existingPlaceholder = TensorPlaceholder.pool.get(dataId);
+    const existingPlaceholder = TensorPlaceholder.pool().get(dataId);
     if (existingPlaceholder != null) {
-      existingPlaceholder.refCount++;
+      existingPlaceholder.placeholderRefCount++;
       return existingPlaceholder;
     }
     const placeholder = new TensorPlaceholder(template);
-    TensorPlaceholder.pool.set(dataId, placeholder);
+    TensorPlaceholder.pool().set(dataId, placeholder);
     return placeholder;
   }
 
@@ -178,69 +187,101 @@ export class TensorPlaceholder {
     return this.disposed_;
   }
 
-  private static DEFAULT_TAG = '';
-
-
-  get(tag = TensorPlaceholder.DEFAULT_TAG): TensorInfo {
+  get(tag?: string): TensorInfo {
     this.assertNotDisposed();
-    const value = this.values[tag];
+    const value = tag == null ? this.primaryValue : this.taggedValues[tag];
     if (value == null) {
-      throw new Error(`Empty TensorPlaceholder: ${this}`);
+      throw new Error(`Empty TensorPlaceholder: ${JSON.stringify(this)}`);
     }
     return value.t;
   }
 
-  getNoNotFoundError(tag = TensorPlaceholder.DEFAULT_TAG): TensorInfo|null {
+  getNoNotFoundError(tag?: string): TensorInfo|null {
     this.assertNotDisposed();
-    const value = this.values[tag];
+    const value = tag == null ? this.primaryValue : this.taggedValues[tag];
     return value && value.t;
   }
 
-  set(tensor: TensorInfo, backend?: KernelBackend,
-      tag = TensorPlaceholder.DEFAULT_TAG): void {
+  set(tensor: TensorInfo, backend?: KernelBackend, tag?: string): void {
     this.assertNotDisposed();
-    if (tensor == null) {
-      throw new Error(
-          `Cannot set TensorPlaceholder to null or undefined: ${this}`);
-    }
-    const oldValue = this.values[tag];
-    if (!this.config.allowOverwriteTensor && oldValue != null &&
-        oldValue.t.dataId !== tensor.dataId) {
+    const isPrimary = tag == null;
+
+    const oldValue = isPrimary ? this.primaryValue : this.taggedValues[tag];
+    if (oldValue != null && oldValue.t.dataId !== tensor.dataId) {
       throw new Error(
           'Tensor has been set. ' +
           'Cannot overwrite the tensor with another one with different dataId.');
     }
-    this.values[tag] = {backend, t: tensor};
+    // TODO: Handle tensor leakage.
+    if (isPrimary && tensor instanceof Tensor) {
+      this.primaryTensorSetCount = (this.primaryTensorSetCount || 0) + 1;
+    }
+
+    if (isPrimary) {
+      this.primaryValue = {backend, t: tensor};
+    } else {
+      this.taggedValues[tag] = {backend, t: tensor};
+    }
   }
 
-  toTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
+  toTensor(tag?: string) {
     const t = this.get(tag);
     if (t instanceof Tensor) {
       return t;
     }
-    return TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
+    const tensor = TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
+    this.set(tensor, /*backend=*/undefined, tag);
+    return tensor;
   }
 
-  release(tag = TensorPlaceholder.DEFAULT_TAG) {
+  release(tag?: string) {
     const t = this.get(tag);
-    delete this.values[tag];
+    const isPrimary = tag == null;
+    if (isPrimary && this.primaryTensorSetCount != null &&
+        --this.primaryTensorSetCount > 0) {
+      return (t as Tensor).clone();
+    }
+    if (isPrimary) {
+      this.primaryValue = null;
+    } else {
+      this.taggedValues[tag] = undefined;
+    }
     return t;
   }
 
-  releaseTensor(tag = TensorPlaceholder.DEFAULT_TAG) {
+  releaseTensor(tag?: string) {
     const t = this.toTensor(tag);
-    delete this.values[tag];
+    const isPrimary = tag == null;
+    if (isPrimary && this.primaryTensorSetCount != null &&
+        --this.primaryTensorSetCount > 0) {
+      return (t as Tensor).clone();
+    }
+    if (isPrimary) {
+      this.primaryValue = null;
+    } else {
+      this.taggedValues[tag] = undefined;
+    }
     return t;
   }
 
-  reset(): void {
+  clear(force = false): void {
     this.assertNotDisposed();
-    const values = Object.values(this.values);
+    if (!force && this.primaryTensorSetCount != null &&
+        this.primaryTensorSetCount > 1) {
+      --this.primaryTensorSetCount;
+      return;
+    }
+
+    const values = [...Object.values(this.taggedValues), this.primaryValue];
     if (values.length === 0) {
       return;
     }
 
-    for (const {t, backend} of values) {
+    for (const value of values) {
+      if (value == null) {
+        continue;
+      }
+      const {t, backend} = value;
       if (t == null) {
         continue;
       }
@@ -250,7 +291,9 @@ export class TensorPlaceholder {
         backend.disposeData(t.dataId);
       }
     }
-    this.values = {};
+    this.primaryValue = undefined;
+    this.primaryTensorSetCount = undefined;
+    this.taggedValues = {};
   }
 
   private assertNotDisposed() {
@@ -260,10 +303,10 @@ export class TensorPlaceholder {
   }
 
   dispose() {
-    this.reset();
-    if (!this.disposed_ && --this.refCount === 0) {
+    this.clear();
+    if (!this.disposed_ && --this.placeholderRefCount === 0) {
       this.disposed_ = true;
-      TensorPlaceholder.pool.delete(this.template.dataId);
+      TensorPlaceholder.pool().delete(this.template.dataId);
     }
   }
 }
@@ -337,27 +380,42 @@ export abstract class Command {
   }
 }
 
+export interface ClosureCommandConfig {
+  readonly backend?: KernelBackend;
+  readonly convertInputsToTensor: boolean;
+  readonly attrs: Record<string, any>;
+}
+
 export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
+  static DEFAULT_CONFIG: ClosureCommandConfig = {
+    backend: undefined,
+    convertInputsToTensor: false,
+    attrs: {},
+  };
+  readonly config: ClosureCommandConfig;
+
   private constructor(
-      public fn: (tensors: TensorInfo[]) => T, public backend?: KernelBackend) {
+      public fn: (tensors: TensorInfo[]) => T,
+      config?: Partial<ClosureCommandConfig>) {
     super();
+    this.config = {...ClosureCommand.DEFAULT_CONFIG, ...(config || {})};
   }
 
   static override record<T extends TensorInfo|TensorInfo[]>(
       inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
-      backend?: KernelBackend): T {
-    return super.record(inputTensors, fn, backend) as T;
+      config?: Partial<ClosureCommandConfig>): T {
+    return super.record(inputTensors, fn, config) as T;
   }
 
   static override build<T extends TensorInfo|TensorInfo[]>(
       inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
-      backend?: KernelBackend): CommandBuildOutput<T> {
+      config?: Partial<ClosureCommandConfig>): CommandBuildOutput<T> {
     const fnOutputs = fn(inputTensors);
 
     let command;
     if (!this.noRecordCommand()) {
       const outputTensors = Array.isArray(fnOutputs) ? fnOutputs : [fnOutputs];
-      command = new ClosureCommand<T>(fn, backend);
+      command = new ClosureCommand<T>(fn, config);
       command.pushInput(...inputTensors);
       command.pushOutput(...outputTensors);
     }
@@ -369,7 +427,13 @@ export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
   }
 
   override execute(): void {
-    const inputTensors = this.inputs.map((placeholder) => placeholder.get());
+    let inputTensors;
+    if (this.config.convertInputsToTensor) {
+      inputTensors = this.inputs.map((placeholder) => placeholder.toTensor());
+    } else {
+      inputTensors = this.inputs.map((placeholder) => placeholder.get());
+    }
+
     const fnOutput = this.fn(inputTensors);
     const outputTensors = Array.isArray(fnOutput) ? fnOutput : [fnOutput];
     if (outputTensors.length !== this.outputs.length) {
@@ -377,7 +441,7 @@ export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
           this.outputs.length} outputs, got ${outputTensors.length}.`);
     }
     for (let i = 0; i < this.outputs.length; ++i) {
-      this.outputs[i].set(outputTensors[i], this.backend);
+      this.outputs[i].set(outputTensors[i], this.config.backend);
     }
   }
 }
@@ -394,7 +458,7 @@ export class DisposeTensorCommand extends Command {
   }
 
   override execute(): void {
-    this.inputs[0].reset();
+    this.inputs[0].clear();
   }
 }
 
@@ -500,6 +564,12 @@ export class Engine implements TensorTracker, DataMover {
       priority: number
     }
   } = {};
+
+  // A map from templateDataId to built TensorPlaceholder. When the refCount of
+  // a TensorPlaceholder decreases to zero, its corresponding entry in the pool
+  // will be deleted.
+  readonly tensorPlaceholderPool =
+      new WeakMap</*templateDataId=*/DataId, TensorPlaceholder>();
 
   private profiler: Profiler;
   private backendInstance: KernelBackend;

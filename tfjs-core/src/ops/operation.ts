@@ -53,7 +53,7 @@ function buildOpAutoRecorderInputs(inputs: unknown[]) {
   return {inputsCopy, tensors};
 }
 
-function buildOpAutoRecorder<T extends Function>(opFn: T) {
+function buildOpAutoRecorder<T extends Function>(opFn: T, opName: string) {
   // Execute the opFn in noRecordCommandScope to get rid of
   // commands from kernel execution, since op auto recorder produces
   // one single command to include all computations in the op.
@@ -72,16 +72,13 @@ function buildOpAutoRecorder<T extends Function>(opFn: T) {
 
           const outputTensors = noRecordCommandOpFn(...inputsCopy);
 
-          if (outputTensors instanceof Tensor) {
-            return outputTensors;
-          }
-          if (Array.isArray(outputTensors)) {
+          if (outputTensors instanceof Tensor || Array.isArray(outputTensors)) {
             return outputTensors;
           }
           throw new Error(
               `Op auto recorder only supports Tensor and Tensor[] as outputs, got ${
                   outputTensors}`);
-        });
+        }, {convertInputsToTensor: true, attrs: {opFn, opName}});
   };
 }
 
@@ -142,7 +139,7 @@ export function op<T extends Function>(
       case 'builtin':
         return rawOpFn;
       case 'auto':
-        return buildOpAutoRecorder(rawOpFn);
+        return buildOpAutoRecorder(rawOpFn, opName);
     }
   };
 
