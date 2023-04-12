@@ -200,20 +200,6 @@ describeWebGPU('backend webgpu', () => {
     await c3.data();
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
-
-  it('readSync should throw if tensors are on the GPU', async () => {
-    const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-
-    const c = tf.matMul(a, b);
-    expect(() => c.dataSync())
-        .toThrowError(
-            'WebGPU readSync is only available for CPU-resident tensors.');
-
-    await c.data();
-    // Now that data has been downloaded to the CPU, dataSync should work.
-    expect(() => c.dataSync()).not.toThrow();
-  });
 });
 
 describeWebGPU('backendWebGPU', () => {

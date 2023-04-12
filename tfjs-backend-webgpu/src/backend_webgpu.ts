@@ -136,6 +136,7 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
+  private littleEndian: boolean;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -182,6 +183,19 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
+
+    this.littleEndian = (() => {
+      const buf = new ArrayBuffer(4);
+      const dataInt8 = new Uint8ClampedArray(buf);
+      const dataInt32 = new Uint32Array(buf);
+      dataInt32[0] = 0x11223344;
+
+      if (dataInt8[0] === 0x44) {
+        return true;
+      } else {
+        return false;
+      }
+    })();
   }
 
   override floatPrecision(): 32 {
@@ -398,14 +412,119 @@ export class WebGPUBackend extends KernelBackend {
   // https://github.com/tensorflow/tfjs/issues/1595
   override readSync(dataId: object): BackendValues {
     const tensorData = this.tensorMap.get(dataId);
-    const {values} = tensorData;
+    const {values, complexTensorInfos} = tensorData;
 
-    if (values == null) {
-      throw new Error(
-          'WebGPU readSync is only available for CPU-resident tensors.');
+    if (values != null || tensorData.dtype === 'string') {
+      return values;
     }
 
-    return values;
+    if (tensorData.dtype === 'complex64') {
+      const realValues =
+          this.readSync(complexTensorInfos.real.dataId) as Float32Array;
+      const imagValues =
+          this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
+      const complexVals = util.convertBackendValuesAndArrayBuffer(
+          backend_util.mergeRealAndImagArrays(realValues, imagValues).buffer,
+          'float32');
+      this.convertAndCacheOnCPU(dataId, complexVals);
+      return complexVals;
+    }
+
+    let channelMask: Partial<Record<GPUCanvasAlphaMode, number>>;
+    if (this.littleEndian) {
+      channelMask = {
+        opaque: 0x00ffffff,
+        premultiplied: 0xff000000,
+      };
+    } else {
+      channelMask = {
+        opaque: 0xffffff00,
+        premultiplied: 0x000000ff,
+      };
+    }
+
+    const bufferInfo = tensorData.resourceInfo as BufferInfo;
+    const size = bufferInfo.size;
+    util.assert(size % 4 === 0, () => 'GPU buffer size must be multiple of 4.');
+    const $size = size / 4;
+    const valsGPU = new ArrayBuffer(size);
+    const side = 256;
+    const stagingDeviceStorage: OffscreenCanvas[] =
+        Object.keys(channelMask).map(_ => new OffscreenCanvas(side, side));
+    const stagingHostStorage = new OffscreenCanvas(side, side);
+
+    this.ensureComputePassEnded();
+    stagingDeviceStorage
+        .map((storage, index) => {
+          const context = storage.getContext('webgpu');
+          context.configure({
+            device: this.device,
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.COPY_DST,
+            alphaMode: Object.keys(channelMask)[index] as GPUCanvasAlphaMode,
+          });
+          return context.getCurrentTexture();
+        })
+        .map((texture, index) => {
+          const bytesPerRow = side * 4;
+          const readDataGPUToCPU =
+              (width: number, height: number, offset: number) => {
+                this.ensureCommandEncoderReady();
+                this.currentCommandEncoder.copyBufferToTexture(
+                    {
+                      buffer: bufferInfo.buffer,
+                      bytesPerRow,
+                      offset,
+                    },
+                    {
+                      texture,
+                    },
+                    {
+                      width,
+                      height,
+                    });
+                this.submitQueue();
+
+                const context = stagingHostStorage.getContext('2d', {
+                  willReadFrequently: true,
+                });
+                context.clearRect(0, 0, width, height);
+                context.drawImage(stagingDeviceStorage[index], 0, 0);
+                const stagingValues = new Uint32Array(
+                    context.getImageData(0, 0, width, height).data.buffer);
+                const alphaMode =
+                    Object.keys(channelMask)[index] as GPUCanvasAlphaMode;
+                const span = new Uint32Array(valsGPU, offset, width * height);
+                for (let k = 0; k < span.length; ++k) {
+                  span[k] |= stagingValues[k] & channelMask[alphaMode];
+                }
+              };
+
+          const fullCopyCount =
+              Math.floor($size / 65536);  // 65536 = side * side
+          let width = 256, height = 256, offset = 0;
+          for (let i = 0; i < fullCopyCount; i++) {
+            readDataGPUToCPU(width, height, offset);
+            offset += 262144;  // 262144 = side * side * 4
+          }
+
+          const remainSize = $size % 65536;
+          height = Math.floor(remainSize / 256);
+          if (height > 0) {
+            readDataGPUToCPU(width, height, offset);
+            offset += height * 1024;
+          }
+
+          width = remainSize % 256;
+          if (width > 0) {
+            readDataGPUToCPU(width, 1, offset);
+          }
+        });
+
+    const vals =
+        util.convertBackendValuesAndArrayBuffer(valsGPU, tensorData.dtype);
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
   }
 
   override async read(dataId: object): Promise<BackendValues> {
