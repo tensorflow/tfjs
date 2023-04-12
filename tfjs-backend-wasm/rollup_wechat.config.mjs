@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {patchWechatWebAssembly} from './scripts/patch_wechat_webassembly';
-import {makeRollupConfig} from 'make_rollup_config/make_rollup_config';
+import {patchWechatWebAssembly} from './scripts/patch_wechat_webassembly.js';
+import {makeRollupConfig} from 'make_rollup_config/make_rollup_config.js';
 
 export default makeRollupConfig({
   globals: {
