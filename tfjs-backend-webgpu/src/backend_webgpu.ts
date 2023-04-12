@@ -825,16 +825,16 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
 
-    const key =
+    const shaderKey =
         webgpu_program.makeShaderKey(program, bufferShapes, inputsData, output);
 
     let pipeline;
-    if (key in this.pipelineCache) {
-      pipeline = this.pipelineCache[key];
+    if (shaderKey in this.pipelineCache) {
+      pipeline = this.pipelineCache[shaderKey];
     } else {
       pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
-      this.pipelineCache[key] = pipeline;
+          this.device, program, inputsData, output, shaderKey);
+      this.pipelineCache[shaderKey] = pipeline;
     }
 
     if (programDefinedUniform) {
