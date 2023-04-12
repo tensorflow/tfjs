@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {makeRollupConfig} from 'make_rollup_config/make_rollup_config';
+import {makeRollupConfig} from 'make_rollup_config/make_rollup_config.js';
 
 export default makeRollupConfig({
   globals: TEMPLATE_globals,
