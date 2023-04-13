@@ -18,7 +18,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import * as vm from 'vm';
 
 process.on('unhandledRejection', ex => {
   throw ex;
@@ -144,7 +143,7 @@ async function visit(
         console.log = (msg: string) => {};
         console.warn = (msg: string) => {};
         try {
-          await vm.runInNewContext(evalString, {tf});
+          await eval(evalString);
         } catch (e) {
           reportError(e);
         }
