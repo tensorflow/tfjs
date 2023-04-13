@@ -1277,6 +1277,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   getUniformLocations() {
     for (const binary of Object.values(this.binaryCache)) {
+      this.gpgpu.buildVao(binary.webGLProgram);
       const {
         variablesLocations,
         customUniformLocations,
