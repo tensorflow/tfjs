@@ -18,6 +18,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
+import * as vm from 'vm';
 
 process.on('unhandledRejection', ex => {
   throw ex;
@@ -122,9 +123,7 @@ async function visit(
         }
 
         const srcCode = evalLines.join('\n');
-
-        const evalString = '(async function runner() { try { ' + srcCode +
-            '} catch (e) { reportError(e); } })()';
+        const evalString = `(async () => {${srcCode}})()`;
 
         const oldLog = console.log;
         const oldWarn = console.warn;
@@ -145,7 +144,7 @@ async function visit(
         console.log = (msg: string) => {};
         console.warn = (msg: string) => {};
         try {
-          await eval(evalString);
+          await vm.runInNewContext(evalString, {tf});
         } catch (e) {
           reportError(e);
         }
