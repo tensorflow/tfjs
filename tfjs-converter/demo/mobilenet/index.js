@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import 'babel-polyfill';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import {MobileNet} from './mobilenet';
 import imageURL from './cat.jpg';
 

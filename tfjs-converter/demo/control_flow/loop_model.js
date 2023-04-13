@@ -15,7 +15,11 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
+import * as converter from '@tensorflow/tfjs-converter';
+import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
+
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/tfjs-models/savedmodel/';
 const MODEL_FILE_URL = 'nested_loop/model.json';
@@ -25,7 +29,7 @@ export class LoopModel {
   constructor() {}
 
   async load() {
-    this.model = await tf.loadGraphModel(
+    this.model = await converter.loadGraphModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL);
   }
 
