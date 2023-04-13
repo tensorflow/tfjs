@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, ClosureCommand, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {concatImpl} from './Concat_impl';
@@ -42,15 +42,18 @@ export function concat(
 
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
-  if ($inputs.length === 1) {
-    return identity({inputs: {x: $inputs[0]}, backend});
-  }
+  return ClosureCommand.record($inputs, ($inputs: TensorInfo[]) => {
+    if ($inputs.length === 1) {
+      return identity({inputs: {x: $inputs[0]}, backend});
+    }
 
-  return concatImpl($inputs, $axis, backend);
+    return concatImpl($inputs, $axis, backend);
+  }, {backend});
 }
 
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'webgl',
-  kernelFunc: concat as unknown as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc,
+  isRecordingBuiltin: true,
 };

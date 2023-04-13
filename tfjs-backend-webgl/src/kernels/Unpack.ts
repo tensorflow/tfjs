@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
+import {ClosureCommand, KernelConfig, KernelFunc, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
@@ -46,28 +46,31 @@ export function unpack(
     }
   }
 
-  const toDispose = [];
+  return ClosureCommand.record([x], ([x]) => {
+    const toDispose = [];
 
-  const begin = new Array(xRank).fill(0);
-  const size = x.shape.slice();
-  size[axis] = 1;
-  const res: TensorInfo[] = new Array(num);
-  for (let i = 0; i < res.length; i++) {
-    begin[axis] = i;
-    const sliced = slice({inputs: {x}, backend, attrs: {begin, size}});
-    const reshaped =
-        reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
-    res[i] = reshaped;
+    const begin = new Array(xRank).fill(0);
+    const size = x.shape.slice();
+    size[axis] = 1;
+    const res: TensorInfo[] = new Array(num);
+    for (let i = 0; i < res.length; i++) {
+      begin[axis] = i;
+      const sliced = slice({inputs: {x}, backend, attrs: {begin, size}});
+      const reshaped =
+          reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
+      res[i] = reshaped;
 
-    toDispose.push(sliced);
-  }
+      toDispose.push(sliced);
+    }
 
-  toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
-  return res;
+    toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return res;
+  }, {backend});
 }
 
 export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
   backendName: 'webgl',
-  kernelFunc: unpack as unknown as KernelFunc
+  kernelFunc: unpack as unknown as KernelFunc,
+  isRecordingBuiltin: true,
 };

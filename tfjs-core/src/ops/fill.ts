@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {ClosureCommand} from '../engine';
 import {Fill, FillAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -43,8 +44,9 @@ function fill<R extends Rank>(
 
   dtype = dtype || inferDtype(value);
   const attrs: FillAttrs = {shape, value, dtype};
-
-  return ENGINE.runKernel(Fill, {}, attrs as unknown as NamedAttrMap);
+  return ClosureCommand.record([], () => {
+    return ENGINE.runKernel(Fill, {}, attrs as unknown as NamedAttrMap);
+  });
 }
 
 export {fill};

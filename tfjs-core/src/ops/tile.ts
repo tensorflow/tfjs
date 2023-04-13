@@ -66,4 +66,6 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const tile = /* @__PURE__ */ op({tile_});
+export const tile = /* @__PURE__ */ op({tile_}, () => {
+  return ENGINE.isKernelRecordingBuiltin(Tile) ? 'builtin' : 'auto';
+});

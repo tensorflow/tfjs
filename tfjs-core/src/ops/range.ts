@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ClosureCommand, ENGINE} from '../engine';
 import {Range, RangeAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor1D} from '../tensor';
@@ -47,7 +47,8 @@ export function range(
   }
 
   const attrs: RangeAttrs = {start, stop, step, dtype};
-
-  return ENGINE.runKernel(Range, {} /* inputs */,
-      attrs as unknown as NamedAttrMap);
+  return ClosureCommand.record([], () => {
+    return ENGINE.runKernel(
+        Range, {} /* inputs */, attrs as unknown as NamedAttrMap);
+  });
 }

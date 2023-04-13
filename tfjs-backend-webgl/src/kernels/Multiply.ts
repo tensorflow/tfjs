@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, env, KernelConfig, Multiply, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, ClosureCommand, env, KernelConfig, Multiply, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import * as binaryop_complex_gpu from '../binaryop_complex_gpu';
@@ -35,61 +35,65 @@ export function multiply(
   const dtype = backend_util.upcastType(a.dtype, b.dtype);
 
   if (a.dtype === 'complex64') {
-    const aData = backend.texData.get(a.dataId);
-    const bData = backend.texData.get(b.dataId);
+    return ClosureCommand.record([a, b], ([a, b]) => {
+      const aData = backend.texData.get(a.dataId);
+      const bData = backend.texData.get(b.dataId);
 
-    const realProgram = new BinaryOpComplexProgram(
-        binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-    const imagProgram = new BinaryOpComplexProgram(
-        binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
+      const realProgram = new BinaryOpComplexProgram(
+          binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
+      const imagProgram = new BinaryOpComplexProgram(
+          binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
 
-    const inputs = [
-      {
-        dataId: aData.complexTensorInfos.real.dataId,
-        dtype: aData.complexTensorInfos.real.dtype,
-        shape: a.shape
-      },
-      {
-        dataId: aData.complexTensorInfos.imag.dataId,
-        dtype: aData.complexTensorInfos.imag.dtype,
-        shape: a.shape
-      },
-      {
-        dataId: bData.complexTensorInfos.real.dataId,
-        dtype: bData.complexTensorInfos.real.dtype,
-        shape: b.shape
-      },
-      {
-        dataId: bData.complexTensorInfos.imag.dataId,
-        dtype: bData.complexTensorInfos.imag.dtype,
-        shape: b.shape
-      }
-    ];
+      const inputs = [
+        {
+          dataId: aData.complexTensorInfos.real.dataId,
+          dtype: aData.complexTensorInfos.real.dtype,
+          shape: a.shape
+        },
+        {
+          dataId: aData.complexTensorInfos.imag.dataId,
+          dtype: aData.complexTensorInfos.imag.dtype,
+          shape: a.shape
+        },
+        {
+          dataId: bData.complexTensorInfos.real.dataId,
+          dtype: bData.complexTensorInfos.real.dtype,
+          shape: b.shape
+        },
+        {
+          dataId: bData.complexTensorInfos.imag.dataId,
+          dtype: bData.complexTensorInfos.imag.dtype,
+          shape: b.shape
+        }
+      ];
 
-    const realPart = backend.runWebGLProgram(realProgram, inputs, 'float32');
-    const imagPart = backend.runWebGLProgram(imagProgram, inputs, 'float32');
+      const realPart = backend.runWebGLProgram(realProgram, inputs, 'float32');
+      const imagPart = backend.runWebGLProgram(imagProgram, inputs, 'float32');
 
-    const complexOutput =
-        complex({inputs: {real: realPart, imag: imagPart}, backend});
+      const complexOutput =
+          complex({inputs: {real: realPart, imag: imagPart}, backend});
 
-    backend.disposeIntermediateTensorInfo(realPart);
-    backend.disposeIntermediateTensorInfo(imagPart);
+      backend.disposeIntermediateTensorInfo(realPart);
+      backend.disposeIntermediateTensorInfo(imagPart);
 
-    // TODO(annxingyuan): CPU forwarding for complex inputs.
-    return complexOutput;
+      // TODO(annxingyuan): CPU forwarding for complex inputs.
+      return complexOutput;
+    }, {backend});
   }
 
   if (backend.shouldExecuteOnCPU([a, b])) {
-    const aData = backend.texData.get(a.dataId);
-    const bData = backend.texData.get(b.dataId);
-    const [outValues, outShape] = cpuMultiply(
-        a.shape, b.shape, aData.values as TypedArray,
-        bData.values as TypedArray, dtype);
+    return ClosureCommand.record([a, b], ([a, b]) => {
+      const aData = backend.texData.get(a.dataId);
+      const bData = backend.texData.get(b.dataId);
+      const [outValues, outShape] = cpuMultiply(
+          a.shape, b.shape, aData.values as TypedArray,
+          bData.values as TypedArray, dtype);
 
-    const out = backend.makeTensorInfo(outShape, dtype);
-    const outData = backend.texData.get(out.dataId);
-    outData.values = outValues;
-    return out;
+      const out = backend.makeTensorInfo(outShape, dtype);
+      const outData = backend.texData.get(out.dataId);
+      outData.values = outValues;
+      return out;
+    }, {backend});
   }
 
   let program: BinaryOpProgram|BinaryOpPackedProgram;
@@ -105,5 +109,6 @@ export function multiply(
 export const multiplyConfig: KernelConfig = {
   kernelName: Multiply,
   backendName: 'webgl',
-  kernelFunc: multiply
+  kernelFunc: multiply,
+  isRecordingBuiltin: true,
 };

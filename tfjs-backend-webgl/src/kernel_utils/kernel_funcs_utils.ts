@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, ClosureCommand, DataType, engine, env, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, ClosureCommand, DataType, env, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -128,11 +128,9 @@ export function binaryKernelFunc({
           };
 
           const program = new BinaryOpProgram(opSnippet, a.shape, b.shape);
-          return engine().noRecordCommandScope(() => {
-            return webglBackend.runWebGLProgram(
-                program, [aHandle, bHandle],
-                upcastType(aPart.dtype, bPart.dtype));
-          });
+          return webglBackend.runWebGLProgram(
+              program, [aHandle, bHandle],
+              upcastType(aPart.dtype, bPart.dtype));
         });
 
         const complexOutput =
@@ -164,10 +162,8 @@ export function binaryKernelFunc({
             backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
             bVals;
 
-        const [outValues, outShape] = engine().noRecordCommandScope(() => {
-          return cpuKernelImpl(
-              a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
-        });
+        const [outValues, outShape] =
+            cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
         const out = webglBackend.makeTensorInfo(outShape, $dtype);
         const outData = webglBackend.texData.get(out.dataId);

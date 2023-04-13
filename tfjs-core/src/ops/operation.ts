@@ -54,13 +54,6 @@ function buildOpAutoRecorderInputs(inputs: unknown[]) {
 }
 
 function buildOpAutoRecorder<T extends Function>(opFn: T, opName: string) {
-  // Execute the opFn in noRecordCommandScope to get rid of
-  // commands from kernel execution, since op auto recorder produces
-  // one single command to include all computations in the op.
-  function noRecordCommandOpFn(...inputsCopy: unknown[]) {
-    return ENGINE.noRecordCommandScope(() => opFn(...inputsCopy));
-  }
-
   // tslint:disable-next-line:no-any
   return function opAutoRecorder(...args: any[]) {
     const {inputsCopy, tensors} = buildOpAutoRecorderInputs(args);
@@ -70,7 +63,9 @@ function buildOpAutoRecorder<T extends Function>(opFn: T, opName: string) {
             tensors[i].setter(inputTensors[i] as Tensor);
           }
 
-          const outputTensors = noRecordCommandOpFn(...inputsCopy);
+          // The ClosureCommand executes the opFn in noRecordCommandScope to get
+          // rid of commands from kernel execution.
+          const outputTensors = opFn(...inputsCopy);
 
           if (outputTensors instanceof Tensor || Array.isArray(outputTensors)) {
             return outputTensors;

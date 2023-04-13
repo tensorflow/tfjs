@@ -405,7 +405,8 @@ export class ClosureCommand<T extends TensorInfo|TensorInfo[]> extends Command {
   static override build<T extends TensorInfo|TensorInfo[]>(
       inputTensors: TensorInfo[], fn: (tensors: TensorInfo[]) => T,
       config?: Partial<ClosureCommandConfig>): CommandBuildOutput<T> {
-    const fnOutputs = fn(inputTensors);
+    const fnOutputs =
+        this.engine().noRecordCommandScope(() => fn(inputTensors));
 
     let command;
     if (!this.noRecordCommand()) {

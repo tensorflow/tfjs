@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ClosureCommand, ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -42,9 +41,7 @@ import {reshape} from './reshape';
 function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
   const $x = convertToTensor(x, 'x', 'squeeze', 'string_or_numeric');
   const newShape = squeezeShape($x.shape, axis).newShape;
-  return ClosureCommand.record([$x], ([x]: Tensor[]) => {
-    return ENGINE.noRecordCommandScope(() => reshape(x, newShape)) as T;
-  }, {convertInputsToTensor: true});
+  return reshape(x, newShape) as T;
 }
 
-export const squeeze = /* @__PURE__ */ op({squeeze_}, 'builtin');
+export const squeeze = /* @__PURE__ */ op({squeeze_}, 'auto');
