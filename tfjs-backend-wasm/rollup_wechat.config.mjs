@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,35 @@
  * =============================================================================
  */
 
-import {makeRollupConfig} from 'make_rollup_config/make_rollup_config';
+import {patchWechatWebAssembly} from './scripts/patch_wechat_webassembly.js';
+import {makeRollupConfig} from 'make_rollup_config/make_rollup_config.js';
 
 export default makeRollupConfig({
-  globals: TEMPLATE_globals,
-  external: TEMPLATE_external,
-  leave_as_require: TEMPLATE_leave_as_require,
-  terser: TEMPLATE_minify,
-  es5: TEMPLATE_es5,
-  vis_filename: 'TEMPLATE_stats',
+  globals: {
+    '@tensorflow/tfjs-core': 'tf',
+    'fs': 'fs',
+    'path': 'path',
+    'perf_hooks': 'perf_hooks',
+    'worker_threads': 'worker_threads',
+  },
+  external: [
+    'crypto',
+    '@tensorflow/tfjs-core',
+    'fs',
+    'path',
+    'worker_threads',
+    'perf_hooks',
+  ],
+  leave_as_require: [
+    'crypto',
+    'node-fetch',
+    'util',
+    'fs',
+    'path',
+    'worker_threads',
+    'perf_hooks',
+    'os',
+  ],
+  es5: true,
+  plugins: [patchWechatWebAssembly()],
 });
