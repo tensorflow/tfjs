@@ -52,9 +52,7 @@ export class PlatformNode implements Platform {
 
   fetch(path: string, requestInits?: RequestInit): Promise<Response> {
     if (env().global.fetch != null) {
-//      throw new Error('no global fetch')
       return env().global.fetch(path, requestInits);
-      //throw env().global.fetch === fetch;
     }
 
     if (systemFetch == null) {
