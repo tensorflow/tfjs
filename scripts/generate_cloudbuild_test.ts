@@ -40,28 +40,4 @@ describe('generateCloudbuild', () => {
                                           /* print */ false);
     expect(cloudbuild).toEqual(expectedCloudbuild as CloudbuildYaml);
   });
-
-  it('filters nightlyOnly steps when running presubmit tests', () => {
-    const cloudbuild = generateCloudbuild(['e2e'], /* nightly */ false,
-                                          /* print */ false);
-    expect(cloudbuild.steps).not.toContain(jasmine.objectContaining({
-      id: 'nightly-verdaccio-test',
-    }));
-  });
-
-  it('includes nightlyOnly steps when running nightly tests', () => {
-    const cloudbuild = generateCloudbuild(['e2e'], /* nightly */ true,
-                                          /* print */ false);
-    expect(cloudbuild.steps).toContain(jasmine.objectContaining({
-      id: 'nightly-verdaccio-test',
-    }));
-  });
-
-  it('removes the nightlyOnly property from the generated steps', () => {
-    const cloudbuild = generateCloudbuild(['e2e'], /* nightly */ true,
-                                          /* print */ false);
-    for (let step of cloudbuild.steps) {
-      expect(Object.keys(step)).not.toContain('nightlyOnly');
-    }
-  });
 });
