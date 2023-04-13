@@ -15,12 +15,7 @@
  * =============================================================================
  */
 import 'babel-polyfill';
-import * as tf from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
-import * as converter from '@tensorflow/tfjs-converter';
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+import * as tf from '@tensorflow/tfjs';
 import {CLASSES} from './classes';
 import imageURL from './image1.jpg';
 import image2URL from './image2.jpg';
@@ -31,7 +26,7 @@ const MODEL_URL = GOOGLE_CLOUD_STORAGE_DIR + 'ssdlite_mobilenet_v2/model.json';
 
 let modelPromise;
 
-window.onload = () => modelPromise = converter.loadGraphModel(MODEL_URL);
+window.onload = () => modelPromise = tf.loadGraphModel(MODEL_URL);
 
 const button = document.getElementById('toggle');
 button.onclick = () => {

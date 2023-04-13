@@ -15,12 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
-import * as converter from '@tensorflow/tfjs-converter';
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+import * as tf from '@tensorflow/tfjs';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
@@ -35,7 +30,7 @@ export class MobileNet {
   constructor() {}
 
   async load() {
-    this.model = await converter.loadGraphModel(
+    this.model = await tf.loadGraphModel(
         GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL);
   }
 
