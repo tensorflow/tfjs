@@ -36,8 +36,8 @@ function processUrls(urls, localBuild) {
     if (localBuild.includes(name)) {
       urls[i] = `../../../dist/bin/${urls[i]}`;
     } else {
-      urls[i] =
-          `https://unpkg.com/@tensorflow/${urls[i].replace('/', '@latest/')}`;
+      urls[i] = `https://cdn.jsdelivr.net/npm/@tensorflow/${
+          urls[i].replace('/', '@latest/')}`;
     }
   }
 }

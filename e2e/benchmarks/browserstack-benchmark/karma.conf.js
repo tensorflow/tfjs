@@ -66,7 +66,8 @@ module.exports = function(config) {
     if (config.localBuild?.includes(name)) {
       return `../../../dist/bin/${url}`;
     } else {
-      return `https://unpkg.com/@tensorflow/${url.replace('/', '@latest/')}`;
+      return `https://cdn.jsdelivr.net/npm/@tensorflow/${
+          url.replace('/', '@latest/')}`;
     }
   });
 
