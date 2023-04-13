@@ -50,7 +50,7 @@ load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 
 nodejs_register_toolchains(
     name = "nodejs",
-    node_version = "18.7.0",
+    node_version = "18.13.0",
 )
 
 # Install the yarn tool
