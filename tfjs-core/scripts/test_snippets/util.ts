@@ -122,9 +122,7 @@ async function visit(
         }
 
         const srcCode = evalLines.join('\n');
-
-        const evalString = '(async function runner() { try { ' + srcCode +
-            '} catch (e) { reportError(e); } })()';
+        const evalString = `(async () => {${srcCode}})()`;
 
         const oldLog = console.log;
         const oldWarn = console.warn;
