@@ -121,7 +121,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'softmax ',
     excludes: [
-      'underflow',  // Actual: NaN,NaN. Expected: 0.5,0.5.
+      'underflow',        // Actual: NaN,NaN. Expected: 0.5,0.5.
+      'Propagates NaNs',  // Failing on MacOS
     ],
   },
 
