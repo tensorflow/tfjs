@@ -33,7 +33,7 @@ export class SoftmaxProgram implements WebGPUProgram {
     if (this.outputShape[1] >= 4096) {
       this.workgroupSize = [256, 1, 1];
     } else {
-      this.workgroupSize = [64, 1, 1]
+      this.workgroupSize = [64, 1, 1];
     }
     this.shaderKey = 'softmax';
   }
