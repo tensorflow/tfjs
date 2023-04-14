@@ -44,6 +44,8 @@ export class ComplexAbsProgram implements WebGPUProgram {
         let im = abs(getImagByOutputIndex(index));
         let mx = max(re, im);
 
+        // The length function in wgsl may be not underflow-safe on some GPUs.
+        // So the safe solution is to ensure underflow-safety in all cases.
         setOutputAtIndex(index, select(mx * length(vec2(1, min(re, im)/mx)), 0.0, mx == 0.0));
       }
     }
