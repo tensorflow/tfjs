@@ -17,10 +17,23 @@
 
 import './flags_webgpu';
 
-import {env, registerBackend} from '@tensorflow/tfjs-core';
+import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
+// @ts-ignore
+import nodeGPUBinding from 'bindings';
 
 import {WebGPUBackend} from './backend_webgpu';
 import {isWebGPUSupported} from './webgpu_util';
+
+let nodeGPU: GPU = null;
+function getNodeGPU() {
+  if (nodeGPU) {
+    return nodeGPU;
+  }
+  const gpuProviderModule = nodeGPUBinding('dawn');
+  const gpuProviderFlags = ['disable-dawn-features=disallow_unsafe_apis'];
+  nodeGPU = gpuProviderModule.create(gpuProviderFlags);
+  return nodeGPU;
+}
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
@@ -34,7 +47,10 @@ if (isWebGPUSupported()) {
           'high-performance'
     };
 
-    const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
+    const adapter = device_util.isBrowser() ?
+        await navigator.gpu.requestAdapter(gpuDescriptor) :
+        await getNodeGPU().requestAdapter(gpuDescriptor);
+
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
     // Note that timestamp-query-inside-passes is not formally in spec as
@@ -61,7 +77,12 @@ if (isWebGPUSupported()) {
     };
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    const adapterInfo = await adapter.requestAdapterInfo();
+    const adapterInfo = device_util.isBrowser() ?
+        await adapter.requestAdapterInfo() :
+        {} as GPUAdapterInfo;
+    if (!device_util.isBrowser()) {
+      console.warn('adapter.requestAdapterInfo is not supportted on node!');
+    }
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }

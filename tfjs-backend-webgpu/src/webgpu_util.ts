@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {DataType, device_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -155,10 +155,11 @@ export function GPUBytesPerElement(dtype: DataType): number {
 }
 
 export function isWebGPUSupported(): boolean {
-  return ((typeof window !== 'undefined') ||
-          //@ts-ignore
-          (typeof WorkerGlobalScope !== 'undefined')) &&
-      !!navigator.gpu;
+  return (((typeof window !== 'undefined') ||
+           //@ts-ignore
+           (typeof WorkerGlobalScope !== 'undefined')) &&
+          !!navigator.gpu) ||
+      !device_util.isBrowser();
 }
 
 export function assertNotComplex(

@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, BackendValues, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util, WebGPUData} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataStorage, DataType, device_util, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util, WebGPUData} from '@tensorflow/tfjs-core';
 
 import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
@@ -648,7 +648,12 @@ export class WebGPUBackend extends KernelBackend {
     if (tensorData.values) {
       buffer = this.bufferManager.acquireBuffer(
           size, this.defaultGpuBufferUsage(), true);
-      if (buffer.mapState === 'unmapped') {
+      const unmappedState =
+          device_util.isBrowser() ? buffer.mapState === 'unmapped' : true;
+      if (!device_util.isBrowser()) {
+        console.error('GPUBuffer.mapState is not supportted on node!');
+      }
+      if (unmappedState) {
         const stagingBuffer = this.bufferManager.acquireBuffer(
             size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC, true,
             false);
