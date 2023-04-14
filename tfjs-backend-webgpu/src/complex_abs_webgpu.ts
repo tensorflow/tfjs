@@ -46,7 +46,7 @@ export class ComplexAbsProgram implements WebGPUProgram {
 
         // The length function in wgsl may be not underflow-safe on some GPUs.
         // So the safe solution is to ensure underflow-safety in all cases.
-        setOutputAtIndex(index, select(mx * length(vec2(1, min(re, im)/mx)), 0.0, mx == 0.0));
+        setOutputAtIndex(index, select(mx * length(vec2<f32>(1, min(re, im)/mx)), 0.0, mx == 0.0));
       }
     }
   `;
