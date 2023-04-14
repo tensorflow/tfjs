@@ -262,26 +262,19 @@ export class GraphExecutor implements FunctionExecutor {
       for (const [name, tensor] of Object.entries(inputs)) {
         recordedData.inputPlaceholders.get(name)!.set(tensor);
       }
+
       for (const command of recordedData.tape.commands) {
         command.execute();
       }
-
+      const outputTensors = recordedData.outputPlaceholders.map((p) => {
+        return p.releaseTensor();
+      });
       // Release inputs since the ownership belongs to the caller.
       for (const p of recordedData.inputPlaceholders.values()) {
         p.releaseTensor();
       }
-      const outputsTensors = recordedData.outputPlaceholders.map((p) => {
-        return p.releaseTensor();
-      });
 
-      for (const cmd of recordedData.tape.commands) {
-        for (const p of [...cmd.inputs, ...cmd.outputs]) {
-          if ((p as any).primaryValueSetCount > 0) {
-            console.log(cmd, p);
-          }
-        }
-      }
-      return outputsTensors;
+      return outputTensors;
     }
 
     // Do nothing if the compiled graph cache contains the input.

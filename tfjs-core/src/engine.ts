@@ -228,7 +228,7 @@ export class TensorPlaceholder {
           'Tensor has been set. ' +
           'Cannot overwrite the tensor with another one with different dataId.');
     }
-    if (oldValue != null && (tensor as any) !== oldValue) {
+    if (oldValue != null) {
       // console.trace('OverSet', oldValue, tensor, (tensor as any) !==
       // oldValue);
       this.disposeValue(oldValue);
