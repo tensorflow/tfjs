@@ -189,7 +189,7 @@ export class TensorPlaceholder {
   private getValue(tag?: string) {
     this.assertNotDisposed();
     const value = tag == null ? this.primaryValue : this.taggedValues[tag];
-    if (value == null) {
+    if (value == null || value.t == null) {
       throw new Error(`Empty TensorPlaceholder: ${JSON.stringify(this)}`);
     }
     return value;
@@ -217,27 +217,22 @@ export class TensorPlaceholder {
     return this.getValue(tag).t;
   }
 
-  getNoNotFoundError(tag?: string): TensorInfo|null {
-    this.assertNotDisposed();
-    const value = tag == null ? this.primaryValue : this.taggedValues[tag];
-    return value && value.t;
-  }
-
   set(tensor: TensorInfo, backend?: KernelBackend, tag?: string): void {
     this.assertNotDisposed();
     const isPrimary = tag == null;
 
     const oldValue = isPrimary ? this.primaryValue : this.taggedValues[tag];
-    if (oldValue != null && oldValue.t.dataId !== tensor.dataId) {
-      if (!this.config.allowOverwriteTensor) {
-        throw new Error(
-            'Tensor has been set. ' +
-            'Cannot overwrite the tensor with another one with different dataId.');
-      } else {
-        this.disposeValue(oldValue);
-      }
+    if (oldValue != null && !this.config.allowOverwriteTensor &&
+        oldValue.t.dataId !== tensor.dataId) {
+      throw new Error(
+          'Tensor has been set. ' +
+          'Cannot overwrite the tensor with another one with different dataId.');
     }
-
+    if (oldValue != null && (tensor as any) !== oldValue) {
+      // console.trace('OverSet', oldValue, tensor, (tensor as any) !==
+      // oldValue);
+      this.disposeValue(oldValue);
+    }
     if (isPrimary) {
       this.primaryValueSetCount++;
       this.primaryValue = {backend, t: tensor};
@@ -251,7 +246,8 @@ export class TensorPlaceholder {
     if (t instanceof Tensor) {
       return t;
     }
-    const tensor = TensorPlaceholder.engine().makeTensorFromTensorInfo(t);
+    const tensor =
+        TensorPlaceholder.engine().makeTensorFromTensorInfo(t, backend);
     if (tag == null) {
       this.primaryValue = {backend, t: tensor};
     } else {
@@ -277,8 +273,7 @@ export class TensorPlaceholder {
 
   clear(force = false): void {
     this.assertNotDisposed();
-    if (!force && this.primaryValueSetCount > 1) {
-      this.primaryValueSetCount--;
+    if (!force && --this.primaryValueSetCount > 0) {
       return;
     }
 
@@ -452,6 +447,27 @@ export class DisposeTensorCommand extends Command {
     let command;
     if (!this.noRecordCommand()) {
       command = new DisposeTensorCommand(tensor.dataId);
+      command.pushInput(tensor);
+    }
+    return {command, outputs: []};
+  }
+
+  override execute(): void {
+    this.inputs[0].clear();
+  }
+}
+
+export class DisposeTensorInfoCommand extends Command {
+  private constructor(readonly pidToDispose: DataId) {
+    super();
+  }
+
+  static override build(tensor: TensorInfo, backend: KernelBackend):
+      CommandBuildOutput {
+    backend.disposeData(tensor.dataId);
+    let command;
+    if (!this.noRecordCommand()) {
+      command = new DisposeTensorInfoCommand(tensor.dataId);
       command.pushInput(tensor);
     }
     return {command, outputs: []};

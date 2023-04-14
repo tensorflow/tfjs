@@ -61,5 +61,5 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 export const mul = /* @__PURE__ */ op({mul_}, () => {
-  return ENGINE.isKernelRecordingBuiltin(Multiply) ? 'auto' : 'none';
+  return ENGINE.isKernelRecordingBuiltin(Multiply) ? 'builtin' : 'auto';
 });
