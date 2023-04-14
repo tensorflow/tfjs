@@ -43,24 +43,24 @@ export class SoftmaxProgram implements WebGPUProgram {
     var<workgroup> buf : array<f32, ${this.workgroupSize[0]}>;
     var<workgroup> rowMaxShared : f32;
     var<workgroup> rowSumShared : f32;
-    const block_size = ${this.workgroupSize[0]};
+    const blockSize = ${this.workgroupSize[0]};
     ${main('index')} {
-      let row = index / block_size;
+      let row = index / blockSize;
       let tid = i32(localId.x);
       let cols = uniforms.outShape[1];
 
-      var thread_max = -1.0 / 1e-20;
-      for (var col = tid; col < cols; col += block_size) {
-        let pack = getLogits(row, col);
-        thread_max = max(thread_max, pack);
+      var threadMax = -1.0 / 1e-20;
+      for (var col = tid; col < cols; col += blockSize) {
+        let value = getLogits(row, col);
+        threadMax = max(threadMax, value);
       }
       if (tid < cols)
       {
-        buf[tid] = thread_max;
+        buf[tid] = threadMax;
       }
       workgroupBarrier();
 
-      for (var currSize = block_size >> 1;  currSize > 0; currSize = currSize >> 1)
+      for (var currSize = blockSize >> 1;  currSize > 0; currSize = currSize >> 1)
       {
         if (tid < currSize) {
           buf[tid] = max(buf[tid], buf[tid + currSize]);
@@ -73,18 +73,18 @@ export class SoftmaxProgram implements WebGPUProgram {
       }
       workgroupBarrier();
 
-      var thread_sum = 0.0;
-      for (var col = tid; col < cols; col += block_size) {
+      var threadSum = 0.0;
+      for (var col = tid; col < cols; col += blockSize) {
         let subExp = exp(getLogits(row, col) - rowMaxShared);
-        thread_sum += subExp;
+        threadSum += subExp;
       }
       if (tid < cols)
       {
-        buf[tid] = thread_sum;
+        buf[tid] = threadSum;
       }
       workgroupBarrier();
 
-      for (var currSize = block_size >> 1;  currSize > 0; currSize = currSize >> 1)
+      for (var currSize = blockSize >> 1;  currSize > 0; currSize = currSize >> 1)
       {
         if (tid < currSize) {
           buf[tid] = buf[tid] + buf[tid + currSize];
@@ -97,9 +97,9 @@ export class SoftmaxProgram implements WebGPUProgram {
       }
       workgroupBarrier();
 
-      for (var col = tid; col < cols; col += block_size) {
-        let pack = exp(getLogits(row, col) - rowMaxShared) / rowSumShared;
-        setOutputAtCoords(row, col, pack);
+      for (var col = tid; col < cols; col += blockSize) {
+        let value = exp(getLogits(row, col) - rowMaxShared) / rowSumShared;
+        setOutputAtCoords(row, col, value);
       }
   }
     `;
