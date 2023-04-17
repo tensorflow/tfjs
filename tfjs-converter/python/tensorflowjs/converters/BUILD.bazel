@@ -191,6 +191,7 @@ py_library(
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_decision_forests_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_text_installed",
         "//tfjs-converter/python/tensorflowjs:resource_loader",
         "//tfjs-converter/python/tensorflowjs:version",
         "//tfjs-converter/python/tensorflowjs:write_weights",

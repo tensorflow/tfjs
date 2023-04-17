@@ -26,6 +26,7 @@ from zipfile import ZipFile
 
 # Required to load saved models that use TFDF.
 import tensorflow_decision_forests
+import tensorflow_text
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2

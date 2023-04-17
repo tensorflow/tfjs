@@ -855,6 +855,7 @@ tensorflow==2.12.0 \
     # via
     #   -r tfjs-converter/python/requirements.txt
     #   tensorflow-decision-forests
+    #   tensorflow-text
 tensorflow-decision-forests==1.3.0 \
     --hash=sha256:9729973a6b16ee75161cf2e8d68a8fddef3988db8e05734b94a3fad6780a916d \
     --hash=sha256:bb8b07d3e39e00153428288202e1393991308411c0af542afdc7b721856aa15a \
@@ -865,7 +866,9 @@ tensorflow-estimator==2.12.0 \
     # via tensorflow
 tensorflow-hub==0.13.0 ; python_version >= "3" \
     --hash=sha256:3544f4fd9fd99e4eeb6da1b5b5320e4a2dbdef7f9bb778f66f76d6790f32dd65
-    # via -r tfjs-converter/python/requirements.txt
+    # via
+    #   -r tfjs-converter/python/requirements.txt
+    #   tensorflow-text
 tensorflow-io-gcs-filesystem==0.28.0 \
     --hash=sha256:00cf6a92f1f9f90b2ba2d728870bcd2a70b116316d0817ab0b91dd390c25b3fd \
     --hash=sha256:22753dc28c949bfaf29b573ee376370762c88d80330fe95cfb291261eb5e927a \
@@ -883,6 +886,16 @@ tensorflow-io-gcs-filesystem==0.28.0 \
     --hash=sha256:cc062ce13ec95fb64b1fd426818a6d2b0e5be9692bc0e43a19cce115b6da4336 \
     --hash=sha256:f76cbe1a784841c223f6861e5f6c7e53aa6232cb626d57e76881a0638c365de6
     # via tensorflow
+tensorflow-text==2.12.1 \
+    --hash=sha256:4963d6bb0e5741ea8d2426e2f2c98fa9267b45bcc8304be78740e874f2094df9 \
+    --hash=sha256:625e72e2f444c41243556c3155b48eef78127988e6e0aa43adcab2998caed268 \
+    --hash=sha256:6d4cfd03f7cc9751f92f5692f5dfc32aa86e65403a300681edfc74bc41a32e24 \
+    --hash=sha256:82a716b3b87551cc8b917629a7ac04abe1028815a7d4e0c8aa366ee613dca343 \
+    --hash=sha256:9d5751ff8ad3eea2f32641e65bf29814a1b6059f0dc0ccb09d44676f26fbf6ac \
+    --hash=sha256:a04956680ad5d08f21ddcd5d0c21ebf90b5cdb2edd6f0859e833d62e2640f4c2 \
+    --hash=sha256:d196d43d8bdcc80153c097485c7c24862c550ef129423323f9a18cf1a4241598 \
+    --hash=sha256:d834d63052be092246ed3374fe2beaaea40a64a29904104b00a93519fd63a6ca
+    # via -r tfjs-converter/python/requirements.txt
 tensorstore==0.1.28 \
     --hash=sha256:197159da3ee97c08d8769fa151ff167328108bf07a13886f688b21f64abfb7d6 \
     --hash=sha256:1c53e1e0e7996b8ba41854135d748c2bc8802b94a79122b56448aeb1f77efd9f \

@@ -30,6 +30,8 @@ _AUTO_DTYPE_CONVERSION = {
     np.dtype(np.float16): np.float32,
     np.dtype(np.float64): np.float32,
     np.dtype(np.int64): np.int32,
+    # TODO: Support uint32
+    np.dtype(np.uint32): np.int32,
     np.dtype(np.complex128): np.complex64}
 
 def write_weights(
