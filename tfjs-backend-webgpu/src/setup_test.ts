@@ -28,12 +28,6 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 const TEST_FILTERS: TestFilter[] = [
   // skip specific test cases for supported kernels
   {
-    startsWith: 'abs ',
-    excludes: [
-      'complex64',  // Kernel 'ComplexAbs' not registered.
-    ]
-  },
-  {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
