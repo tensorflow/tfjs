@@ -1277,7 +1277,12 @@ export class MathBackendWebGL extends KernelBackend {
 
   getUniformLocations() {
     for (const binary of Object.values(this.binaryCache)) {
+      // TODO: Iterate through all binaries to build VAO is supposed to be in a
+      // seperate function, like 'setVao'. However, to avoid breaking changes
+      // for the users using parallel compile feature now, buildVao is silently
+      // added here.
       this.gpgpu.buildVao(binary.webGLProgram);
+
       const {
         variablesLocations,
         customUniformLocations,
