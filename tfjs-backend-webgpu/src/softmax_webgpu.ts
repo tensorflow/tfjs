@@ -60,7 +60,8 @@ export class SoftmaxProgram implements WebGPUProgram {
       }
       workgroupBarrier();
 
-      for (var currSize = blockSize >> 1;  currSize > 0; currSize = currSize >> 1)
+      let reduceSize = min(cols, blockSize);
+      for (var currSize = reduceSize >> 1;  currSize > 0; currSize = currSize >> 1)
       {
         if (tid < currSize) {
           buf[tid] = max(buf[tid], buf[tid + currSize]);
@@ -69,7 +70,7 @@ export class SoftmaxProgram implements WebGPUProgram {
       }
 
       if (tid == 0) {
-        rowMaxShared = buf[0];
+        rowMaxShared = max(buf[0], buf[reduceSize - 1]);
       }
       workgroupBarrier();
 
