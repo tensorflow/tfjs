@@ -212,24 +212,80 @@ export function weightsLoaderFactory(
     groupIndicesToFetch.forEach(i => {
       const numBuffers = manifest[i].paths.length;
 
-      let groupBytes = 0;
-      for (let i = 0; i < numBuffers; i++) {
-        groupBytes += buffers[bufferIndexOffset + i].byteLength;
-      }
+      // let groupBytes = 0;
+      // for (let i = 0; i < numBuffers; i++) {
+      //   groupBytes += buffers[bufferIndexOffset + i].byteLength;
+      // }
 
       // Create a buffer for the whole group.
-      const groupBuffer = new ArrayBuffer(groupBytes);
-      const groupByteBuffer = new Uint8Array(groupBuffer);
-      let groupBufferOffset = 0;
-      for (let i = 0; i < numBuffers; i++) {
-        const buffer = new Uint8Array(buffers[bufferIndexOffset + i]);
-        groupByteBuffer.set(buffer, groupBufferOffset);
-        groupBufferOffset += buffer.byteLength;
+      // const groupBuffer = new ArrayBuffer(groupBytes);
+      // const groupByteBuffer = new Uint8Array(groupBuffer);
+      // let groupBufferOffset = 0;
+      // for (let i = 0; i < numBuffers; i++) {
+      //   const buffer = new Uint8Array(buffers[bufferIndexOffset + i]);
+      //   groupByteBuffer.set(buffer, groupBufferOffset);
+      //   groupBufferOffset += buffer.byteLength;
+      // }
+
+
+
+      const weightsEntries = [...groupWeightsToFetch[i]];
+      weightsEntries.sort((a, b) => a.groupOffset - b.groupOffset);
+
+      let bufferIndex = 0;
+      let precedingBytes = 0;
+
+      function advanceTo(byteIndex: number) {
+        if (byteIndex < precedingBytes) {
+          throw new Error(`Buffer reader at ${precedingBytes} is already past ${byteIndex}`);
+        }
+
+        for (let i = bufferIndex; i < numBuffers; i++) {
+          const buffer = buffers[bufferIndexOffset + i];
+          const nextBytes = precedingBytes + buffer.byteLength;
+          if (nextBytes > byteIndex) {
+            return;
+          }
+          bufferIndex = i + 1;
+          precedingBytes = nextBytes;
+        }
+        throw new Error('Advanced past end');
       }
 
-      const weightsEntries = groupWeightsToFetch[i];
+      function slice(start: number, end: number): ArrayBuffer {
+        advanceTo(start);
+        const size = end - start;
+        const outputBuffer = new ArrayBuffer(size);
+        const outputArray = new Uint8Array(outputBuffer);
+        let sliced = 0;
+        for (let i = bufferIndex; i < numBuffers; i++) {
+          const buffer = buffers[bufferIndexOffset + i];
+          const nextBytes = precedingBytes + buffer.byteLength;
+
+          const globalStart = start + sliced;
+          const localStart = globalStart - precedingBytes;
+          const outputStart = sliced;
+
+          const globalEnd = Math.min(end, nextBytes);
+          const localEnd = globalEnd - precedingBytes;
+          // const outputEnd = outputStart + (localEnd - localStart);
+
+          const outputSlice = new Uint8Array(buffer.slice(localStart, localEnd));
+          sliced += outputSlice.length;
+          outputArray.set(outputSlice, outputStart);
+
+          if (end < nextBytes) {
+            break;
+          }
+
+          bufferIndex = i + 1;
+          precedingBytes = nextBytes;
+        }
+        return outputBuffer;
+      }
+
       weightsEntries.forEach(weightsEntry => {
-        const byteBuffer = groupBuffer.slice(
+        const byteBuffer = slice(
             weightsEntry.groupOffset,
             weightsEntry.groupOffset + weightsEntry.sizeBytes);
         const nameToTensorMap =
@@ -245,3 +301,68 @@ export function weightsLoaderFactory(
     return weightsTensorMap;
   };
 }
+
+class CompositeArrayBuffer {
+  private ranges: Array<{
+    start: number,
+    end: number,
+    buffer: ArrayBuffer,
+  }> = [];
+
+  constructor(buffers: ArrayBuffer[]) {
+    let start = 0;
+    for (const buffer of buffers) {
+      const end = start + buffer.byteLength;
+      this.ranges.push({buffer, start, end,});
+      start = end;
+    };
+  }
+
+  get size() {
+    return this.ranges[this.ranges.length - 1].end;
+  }
+
+  slice(start: number, end: number): ArrayBuffer {
+    if (start < 0 || start >= this.size) {
+      throw new Error(`Start position ${start} is outside range [0, ${this.size})`);
+    }
+    if (end < start) {
+      throw new Error('End must be greater than start');
+    }
+
+    const startRange = this.search(start);
+
+    const size = end - start;
+    const outputBuffer = new ArrayBuffer(size);
+    const outputArray = new Uint8Array(outputBuffer);
+    let sliced = 0;
+    for (let i = startRange; i < this.ranges.length; i++) {
+      const range = this.ranges[i];
+
+      const globalStart = start + sliced;
+      const localStart = globalStart - range.start;
+      const outputStart = sliced;
+
+      const globalEnd = Math.min(end, range.end);
+      const localEnd = globalEnd - range.start;
+
+      const outputSlice = new Uint8Array(range.buffer.slice(localStart, localEnd));
+      outputArray.set(outputSlice, outputStart);
+
+      if (end < range.end) {
+        break;
+      }
+    }
+    return outputBuffer
+  }
+  private search(byteIndex: number) {
+    // TODO: Binsearch
+    const val = this.ranges.find(r => r.start <= byteIndex && r.end > byteIndex);
+    if (!val) {
+      throw new Error(`${byteIndex} not found in ranges`);
+    }
+    return this.ranges.indexOf(val);
+  }
+}
+
+CompositeArrayBuffer;
