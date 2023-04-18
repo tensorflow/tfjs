@@ -212,80 +212,13 @@ export function weightsLoaderFactory(
     groupIndicesToFetch.forEach(i => {
       const numBuffers = manifest[i].paths.length;
 
-      // let groupBytes = 0;
-      // for (let i = 0; i < numBuffers; i++) {
-      //   groupBytes += buffers[bufferIndexOffset + i].byteLength;
-      // }
+      const weightsBuffer = new CompositeArrayBuffer(
+        buffers.slice(bufferIndexOffset, bufferIndexOffset + numBuffers));
 
-      // Create a buffer for the whole group.
-      // const groupBuffer = new ArrayBuffer(groupBytes);
-      // const groupByteBuffer = new Uint8Array(groupBuffer);
-      // let groupBufferOffset = 0;
-      // for (let i = 0; i < numBuffers; i++) {
-      //   const buffer = new Uint8Array(buffers[bufferIndexOffset + i]);
-      //   groupByteBuffer.set(buffer, groupBufferOffset);
-      //   groupBufferOffset += buffer.byteLength;
-      // }
-
-
-
-      const weightsEntries = [...groupWeightsToFetch[i]];
-      weightsEntries.sort((a, b) => a.groupOffset - b.groupOffset);
-
-      let bufferIndex = 0;
-      let precedingBytes = 0;
-
-      function advanceTo(byteIndex: number) {
-        if (byteIndex < precedingBytes) {
-          throw new Error(`Buffer reader at ${precedingBytes} is already past ${byteIndex}`);
-        }
-
-        for (let i = bufferIndex; i < numBuffers; i++) {
-          const buffer = buffers[bufferIndexOffset + i];
-          const nextBytes = precedingBytes + buffer.byteLength;
-          if (nextBytes > byteIndex) {
-            return;
-          }
-          bufferIndex = i + 1;
-          precedingBytes = nextBytes;
-        }
-        throw new Error('Advanced past end');
-      }
-
-      function slice(start: number, end: number): ArrayBuffer {
-        advanceTo(start);
-        const size = end - start;
-        const outputBuffer = new ArrayBuffer(size);
-        const outputArray = new Uint8Array(outputBuffer);
-        let sliced = 0;
-        for (let i = bufferIndex; i < numBuffers; i++) {
-          const buffer = buffers[bufferIndexOffset + i];
-          const nextBytes = precedingBytes + buffer.byteLength;
-
-          const globalStart = start + sliced;
-          const localStart = globalStart - precedingBytes;
-          const outputStart = sliced;
-
-          const globalEnd = Math.min(end, nextBytes);
-          const localEnd = globalEnd - precedingBytes;
-          // const outputEnd = outputStart + (localEnd - localStart);
-
-          const outputSlice = new Uint8Array(buffer.slice(localStart, localEnd));
-          sliced += outputSlice.length;
-          outputArray.set(outputSlice, outputStart);
-
-          if (end < nextBytes) {
-            break;
-          }
-
-          bufferIndex = i + 1;
-          precedingBytes = nextBytes;
-        }
-        return outputBuffer;
-      }
+      const weightsEntries = groupWeightsToFetch[i];
 
       weightsEntries.forEach(weightsEntry => {
-        const byteBuffer = slice(
+        const byteBuffer = weightsBuffer.slice(
             weightsEntry.groupOffset,
             weightsEntry.groupOffset + weightsEntry.sizeBytes);
         const nameToTensorMap =
@@ -348,6 +281,7 @@ class CompositeArrayBuffer {
 
       const outputSlice = new Uint8Array(range.buffer.slice(localStart, localEnd));
       outputArray.set(outputSlice, outputStart);
+      sliced += outputSlice.length;
 
       if (end < range.end) {
         break;
