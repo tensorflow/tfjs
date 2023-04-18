@@ -235,12 +235,15 @@ export function weightsLoaderFactory(
   };
 }
 
+type BufferRange = {
+  start: number,
+  end: number,
+  buffer: ArrayBuffer,
+};
+
 class CompositeArrayBuffer {
-  private ranges: Array<{
-    start: number,
-    end: number,
-    buffer: ArrayBuffer,
-  }> = [];
+  private ranges: BufferRange[] = [];
+  private lastSearchIndex = 0;
 
   constructor(buffers: ArrayBuffer[]) {
     let start = 0;
@@ -248,7 +251,7 @@ class CompositeArrayBuffer {
       const end = start + buffer.byteLength;
       this.ranges.push({buffer, start, end,});
       start = end;
-    };
+    }
   }
 
   get size() {
@@ -257,7 +260,8 @@ class CompositeArrayBuffer {
 
   slice(start: number, end: number): ArrayBuffer {
     if (start < 0 || start >= this.size) {
-      throw new Error(`Start position ${start} is outside range [0, ${this.size})`);
+      throw new Error(`Start position ${start} is outside range ` +
+        `[0, ${this.size})`);
     }
     if (end < start) {
       throw new Error('End must be greater than start');
@@ -279,7 +283,8 @@ class CompositeArrayBuffer {
       const globalEnd = Math.min(end, range.end);
       const localEnd = globalEnd - range.start;
 
-      const outputSlice = new Uint8Array(range.buffer.slice(localStart, localEnd));
+      const outputSlice = new Uint8Array(range.buffer.slice(localStart,
+                                                            localEnd));
       outputArray.set(outputSlice, outputStart);
       sliced += outputSlice.length;
 
@@ -287,10 +292,11 @@ class CompositeArrayBuffer {
         break;
       }
     }
-    return outputBuffer
+    return outputBuffer;
   }
   private search(byteIndex: number) {
-    return binsearch(this.ranges, (range) => {
+    // Check where the byteIndex lies relative to a range.
+    function check(range: BufferRange) {
       if (byteIndex < range.start) {
         return -1;
       }
@@ -298,7 +304,17 @@ class CompositeArrayBuffer {
         return 1;
       }
       return 0;
-    });
+    }
+
+    // For efficiency, try the last searched range
+    if (check(this.ranges[this.lastSearchIndex]) === 0) {
+      return this.lastSearchIndex;
+    }
+
+    // Otherwise, binsearch for the range.
+    this.lastSearchIndex = binsearch(this.ranges, check);
+
+    return this.lastSearchIndex;
   }
 }
 
@@ -311,7 +327,8 @@ class CompositeArrayBuffer {
  *     the value passed to the function, and positive if the searched value is
  *     greater than the value passed to the function.
  */
-function binsearch<T>(list: T[], compare: (t: T) => number, min = 0, max = list.length): number {
+function binsearch<T>(list: T[], compare: (t: T) => number, min = 0,
+                      max = list.length): number {
   if (min > max) {
     return -1;
   }
@@ -326,5 +343,3 @@ function binsearch<T>(list: T[], compare: (t: T) => number, min = 0, max = list.
     return binsearch(list, compare, middle + 1, max);
   }
 }
-
-CompositeArrayBuffer;
