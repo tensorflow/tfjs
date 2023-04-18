@@ -155,7 +155,14 @@ module.exports = function(config) {
         base: 'BrowserStack',
         browser: 'chrome',
         flags: [
-          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
         ],
         browser_version: 'latest',
         os: 'OS X',
@@ -193,7 +200,14 @@ module.exports = function(config) {
         base: 'BrowserStack',
         browser: 'chrome',
         flags: [
-          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
         ],
         browser_version: '101.0',
         os: 'Windows',
@@ -202,7 +216,14 @@ module.exports = function(config) {
       chrome_webgpu: {
         base: 'Chrome',
         flags: [
-          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
         ],
       }
     },
