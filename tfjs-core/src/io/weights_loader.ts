@@ -369,6 +369,7 @@ class CompositeArrayBuffer {
  *     value. Return 0 on a match, negative if the searched value is less than
  *     the value passed to the function, and positive if the searched value is
  *     greater than the value passed to the function.
+ * @returns The index of the element, or -1 if it's not in the array.
  */
 function search<T>(sortedArray: T[], compare: (t: T) => number): number {
   // Binary search
