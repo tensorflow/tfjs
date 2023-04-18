@@ -243,31 +243,51 @@ type BufferRange = {
 
 class CompositeArrayBuffer {
   private ranges: BufferRange[] = [];
-  private lastSearchIndex = 0;
+  private previousRangeIndex = 0;
+  private bufferUniformSize?: number;
 
   constructor(buffers: ArrayBuffer[]) {
+    if (buffers.length === 0) {
+      return;
+    }
+
+    this.bufferUniformSize = buffers[0].byteLength;
     let start = 0;
-    for (const buffer of buffers) {
+
+    for (let i = 0; i < buffers.length; i++) {
+      const buffer = buffers[i];
+      // Check that all buffers except the last one have the same length.
+      if (i !== buffers.length - 1 &&
+        buffer.byteLength !== this.bufferUniformSize) {
+        // Unset the buffer uniform size, since the buffer sizes are not
+        // uniform.
+        this.bufferUniformSize = undefined;
+      }
+
+      // Create the ranges, including their start and end poionts.
       const end = start + buffer.byteLength;
       this.ranges.push({buffer, start, end,});
       start = end;
     }
   }
 
-  get size() {
+  get byteLength() {
+    if (this.ranges.length === 0) {
+      return 0;
+    }
     return this.ranges[this.ranges.length - 1].end;
   }
 
   slice(start: number, end: number): ArrayBuffer {
-    if (start < 0 || start >= this.size) {
+    if (start < 0 || start >= this.byteLength) {
       throw new Error(`Start position ${start} is outside range ` +
-        `[0, ${this.size})`);
+        `[0, ${this.byteLength})`);
     }
     if (end < start) {
       throw new Error('End must be greater than start');
     }
 
-    const startRange = this.search(start);
+    const startRange = this.findRangeForByte(start);
 
     const size = end - start;
     const outputBuffer = new ArrayBuffer(size);
@@ -294,8 +314,25 @@ class CompositeArrayBuffer {
     }
     return outputBuffer;
   }
-  private search(byteIndex: number) {
-    // Check where the byteIndex lies relative to a range.
+
+  /**
+   * Get the index of the range that contains the byte at `byteIndex`.
+   */
+  private findRangeForByte(byteIndex: number): number {
+    if (this.ranges.length === 0 || byteIndex < 0 ||
+      byteIndex >= this.byteLength) {
+      return -1;
+    }
+
+    // If the buffers have a uniform size, compute the range directly.
+    if (this.bufferUniformSize != null) {
+      this.previousRangeIndex = Math.floor(byteIndex / this.bufferUniformSize);
+      return this.previousRangeIndex;
+    }
+
+    // If the buffers don't have a uniform size, we need to search for the
+    // range. That means we need a function to check where the byteIndex lies
+    // relative to a given range.
     function check(range: BufferRange) {
       if (byteIndex < range.start) {
         return -1;
@@ -306,40 +343,44 @@ class CompositeArrayBuffer {
       return 0;
     }
 
-    // For efficiency, try the last searched range
-    if (check(this.ranges[this.lastSearchIndex]) === 0) {
-      return this.lastSearchIndex;
+    // For efficiency, try the previous range first.
+    if (check(this.ranges[this.previousRangeIndex]) === 0) {
+      return this.previousRangeIndex;
     }
 
-    // Otherwise, binsearch for the range.
-    this.lastSearchIndex = binsearch(this.ranges, check);
+    // Otherwise, use a generic search function.
+    const index = search(this.ranges, check);
+    if (index === -1) {
+      return -1;
+    }
 
-    return this.lastSearchIndex;
+    this.previousRangeIndex = index;
+    return this.previousRangeIndex;
   }
 }
 
 /**
- * Binary search on list.
+ * Search for an element of a sorted array.
  *
- * @param list The list to search
+ * @param sortedArray The sorted array to search
  * @param compare A function to compare the current value against the searched
  *     value. Return 0 on a match, negative if the searched value is less than
  *     the value passed to the function, and positive if the searched value is
  *     greater than the value passed to the function.
  */
-function binsearch<T>(list: T[], compare: (t: T) => number, min = 0,
-                      max = list.length): number {
+function search<T>(sortedArray: T[], compare: (t: T) => number, min = 0,
+                      max = sortedArray.length): number {
   if (min > max) {
     return -1;
   }
 
   const middle = Math.floor((max - min) / 2);
-  const side = compare(list[middle]);
+  const side = compare(sortedArray[middle]);
   if (side === 0) {
     return middle;
   } else if (side < 0) {
-    return binsearch(list, compare, min, middle);
+    return search(sortedArray, compare, min, middle);
   } else {
-    return binsearch(list, compare, middle + 1, max);
+    return search(sortedArray, compare, middle + 1, max);
   }
 }
