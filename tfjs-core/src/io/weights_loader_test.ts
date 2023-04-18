@@ -175,6 +175,18 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     expect(weight2.dtype).toEqual('float32');
   });
 
+  // it('1 group, out of order weights manifest', async () => {
+  //   const shard0 = new Float32Array([1, 2, 3, 4, 5]);
+  //   const shard1 = new Float32Array([1.1, 2.2]);
+  //   const shard2 = new Float32Array([10, 20, 30]);
+
+  //   setupFakeWeightFiles({
+  //     './weightfile0': shard0,
+  //     './weightsfile1': shard1,
+  //     './weightsfile2': shard2
+  //   });
+  // });
+
   it('1 group, sharded 1 weight across multiple files', async () => {
     const shard0 = new Float32Array([1, 2, 3, 4, 5]);
     const shard1 = new Float32Array([1.1, 2.2]);
