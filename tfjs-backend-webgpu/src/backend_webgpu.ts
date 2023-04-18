@@ -136,7 +136,7 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
-  private littleEndian: boolean;
+  private isLittleEndian: boolean;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -184,13 +184,10 @@ export class WebGPUBackend extends KernelBackend {
       document.body.appendChild(this.dummyCanvas);
     }
 
-    this.littleEndian = (() => {
-      const buf = new ArrayBuffer(4);
-      const dataInt8 = new Uint8ClampedArray(buf);
-      const dataInt32 = new Uint32Array(buf);
-      dataInt32[0] = 0x11223344;
-
-      if (dataInt8[0] === 0x44) {
+    this.isLittleEndian = (() => {
+      const uint32Data = new Uint32Array([0x11223344]);
+      const uint8Data = new Uint8Array(uint32Data.buffer);
+      if (uint8Data[0] === 0x44) {
         return true;
       } else {
         return false;
@@ -431,7 +428,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     let channelMask: Partial<Record<GPUCanvasAlphaMode, number>>;
-    if (this.littleEndian) {
+    if (this.isLittleEndian) {
       channelMask = {
         opaque: 0x00ffffff,
         premultiplied: 0xff000000,
@@ -444,29 +441,34 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const bufferInfo = tensorData.resourceInfo as BufferInfo;
-    const size = bufferInfo.size;
-    util.assert(size % 4 === 0, () => 'GPU buffer size must be multiple of 4.');
-    const $size = size / 4;
-    const valsGPU = new ArrayBuffer(size);
-    const side = 256;
+    const bufSize = bufferInfo.size;
+    util.assert(bufSize % 4 === 0, () => `Because there is 4 bytes for
+        one pixel, buffer size must be multiple of 4.`);
+    const pixelsSize = bufSize / 4;
+    const valsGPU = new ArrayBuffer(bufSize);
+    // TODO: adjust the reading window size according the `bufSize`.
+    const canvasWidth = 256, canvasHeight = 256;
     const stagingDeviceStorage: OffscreenCanvas[] =
-        Object.keys(channelMask).map(_ => new OffscreenCanvas(side, side));
-    const stagingHostStorage = new OffscreenCanvas(side, side);
+        Object.keys(channelMask)
+            .map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
+    const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
 
     this.ensureComputePassEnded();
     stagingDeviceStorage
         .map((storage, index) => {
           const context = storage.getContext('webgpu');
+          // TODO: use rgba8unorm format when this format is supported on Mac.
+          // https://bugs.chromium.org/p/chromium/issues/detail?id=1298618
           context.configure({
             device: this.device,
-            format: 'rgba8unorm',
+            format: 'bgra8unorm',
             usage: GPUTextureUsage.COPY_DST,
             alphaMode: Object.keys(channelMask)[index] as GPUCanvasAlphaMode,
           });
           return context.getCurrentTexture();
         })
         .map((texture, index) => {
-          const bytesPerRow = side * 4;
+          const bytesPerRow = canvasWidth * 4;
           const readDataGPUToCPU =
               (width: number, height: number, offset: number) => {
                 this.ensureCommandEncoderReady();
@@ -496,27 +498,41 @@ export class WebGPUBackend extends KernelBackend {
                     Object.keys(channelMask)[index] as GPUCanvasAlphaMode;
                 const span = new Uint32Array(valsGPU, offset, width * height);
                 for (let k = 0; k < span.length; ++k) {
-                  span[k] |= stagingValues[k] & channelMask[alphaMode];
+                  if (alphaMode === 'premultiplied') {
+                    span[k] |= stagingValues[k] & channelMask[alphaMode];
+                  } else {
+                    const val = stagingValues[k] & channelMask[alphaMode];
+                    if (this.isLittleEndian) {
+                      span[k] |= ((val >>> 16) & 0x000000ff) |
+                          (val & 0x0000ff00) | ((val << 16) & 0x00ff0000);
+                    } else {
+                      span[k] |= ((val >>> 16) & 0x0000ff00) |
+                          (val & 0x00ff0000) | ((val << 16) & 0xff000000);
+                    }
+                  }
                 }
               };
 
-          const fullCopyCount =
-              Math.floor($size / 65536);  // 65536 = side * side
-          let width = 256, height = 256, offset = 0;
-          for (let i = 0; i < fullCopyCount; i++) {
+          const fullyReadCount =
+              Math.floor(pixelsSize / (canvasWidth * canvasHeight));
+          let width = canvasWidth, height = canvasHeight, offset = 0;
+          for (let i = 0; i < fullyReadCount; i++) {
+            // Read the buffer data, which fully fill the whole canvas.
             readDataGPUToCPU(width, height, offset);
-            offset += 262144;  // 262144 = side * side * 4
+            offset += canvasWidth * canvasHeight * 4;
           }
 
-          const remainSize = $size % 65536;
-          height = Math.floor(remainSize / 256);
+          const remainSize = pixelsSize % (canvasWidth * canvasHeight);
+          height = Math.floor(remainSize / canvasWidth);
           if (height > 0) {
+            // Read the buffer data, which fully fill certain rows of canvas.
             readDataGPUToCPU(width, height, offset);
-            offset += height * 1024;
+            offset += height * (canvasWidth * 4);
           }
 
-          width = remainSize % 256;
+          width = remainSize % canvasWidth;
           if (width > 0) {
+            // Read the buffer data, which not fully fill one row of canvas.
             readDataGPUToCPU(width, 1, offset);
           }
         });
@@ -798,11 +814,8 @@ export class WebGPUBackend extends KernelBackend {
         buffer.unmap();
       }
 
-      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
-      // So it will report error when switching backend from WebGPU to others.
-      // There are two situations: 1) swithcing the backend after running a
-      // model; 2) swithcing the backend within the model. Temporarilly keep
-      // the values on CPU to solve the first issue. tensorData.values = null;
+      // Once uploaded, don't store the values on cpu.
+      tensorData.values = null;
     } else {
       buffer =
           this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
