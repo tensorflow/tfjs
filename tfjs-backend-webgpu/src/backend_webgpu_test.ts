@@ -230,6 +230,12 @@ describeWebGPU('backendWebGPU', () => {
 
   it('lazily upload', async () => {
     const adapter = await navigator.gpu.requestAdapter({});
+    console.error('adapter lazily upload********************************');
+    console.error(adapter);
+    console.error('adapter lazily upload******************************** end');
+    console.log('adapter lazily upload********************************');
+    console.log(adapter);
+    console.log('adapter lazily upload******************************** end');
     const device = await adapter.requestDevice({});
     const backend = new WebGPUBackend(device);
     tf.registerBackend('test-storage', () => backend);
@@ -238,7 +244,7 @@ describeWebGPU('backendWebGPU', () => {
     const bufferManager = backend.bufferManager;
     const t = tf.tensor1d([1, 2, 3], 'float32');
 
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
+    expect(bufferManager.getNumUsedBuffers()).toBe(100);
 
     backend.uploadToGPU(t.dataId);
     expect(bufferManager.getNumUsedBuffers()).toBe(1);

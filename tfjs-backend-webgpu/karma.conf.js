@@ -77,7 +77,14 @@ module.exports = function(config) {
         base: 'ChromeCanary',
         flags: [
           '--enable-unsafe-webgpu',
-          '--disable-dawn-features=disallow_unsafe_apis'
+          '--disable-dawn-features=disallow_unsafe_apis',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
         ],
       }
     },
