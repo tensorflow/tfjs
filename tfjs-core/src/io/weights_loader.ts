@@ -368,19 +368,21 @@ class CompositeArrayBuffer {
  *     the value passed to the function, and positive if the searched value is
  *     greater than the value passed to the function.
  */
-function search<T>(sortedArray: T[], compare: (t: T) => number, min = 0,
-                      max = sortedArray.length): number {
-  if (min > max) {
-    return -1;
-  }
+function search<T>(sortedArray: T[], compare: (t: T) => number): number {
+  let min = 0;
+  let max = sortedArray.length;
 
-  const middle = Math.floor((max - min) / 2);
-  const side = compare(sortedArray[middle]);
-  if (side === 0) {
-    return middle;
-  } else if (side < 0) {
-    return search(sortedArray, compare, min, middle);
-  } else {
-    return search(sortedArray, compare, middle + 1, max);
+  while (min <= max) {
+    const middle = Math.floor((max - min) / 2);
+    const side = compare(sortedArray[middle]);
+
+    if (side === 0) {
+      return middle;
+    } else if (side < 0) {
+      max = middle;
+    } else {
+      min = middle + 1;
+    }
   }
+  return -1;
 }
