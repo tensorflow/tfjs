@@ -290,12 +290,40 @@ class CompositeArrayBuffer {
     return outputBuffer
   }
   private search(byteIndex: number) {
-    // TODO: Binsearch
-    const val = this.ranges.find(r => r.start <= byteIndex && r.end > byteIndex);
-    if (!val) {
-      throw new Error(`${byteIndex} not found in ranges`);
-    }
-    return this.ranges.indexOf(val);
+    return binsearch(this.ranges, (range) => {
+      if (byteIndex < range.start) {
+        return -1;
+      }
+      if (byteIndex >= range.end) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+}
+
+/**
+ * Binary search on list.
+ *
+ * @param list The list to search
+ * @param compare A function to compare the current value against the searched
+ *     value. Return 0 on a match, negative if the searched value is less than
+ *     the value passed to the function, and positive if the searched value is
+ *     greater than the value passed to the function.
+ */
+function binsearch<T>(list: T[], compare: (t: T) => number, min = 0, max = list.length): number {
+  if (min > max) {
+    return -1;
+  }
+
+  const middle = Math.floor((max - min) / 2);
+  const side = compare(list[middle]);
+  if (side === 0) {
+    return middle;
+  } else if (side < 0) {
+    return binsearch(list, compare, min, middle);
+  } else {
+    return binsearch(list, compare, middle + 1, max);
   }
 }
 
