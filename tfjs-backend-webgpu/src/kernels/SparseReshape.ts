@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, SparseReshape, SparseReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, SparseReshape, SparseReshapeInputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {SparseReshapeOutputIndicesProgram, SparseReshapeOutputShapeProgram} from '../sparse_reshape_webgpu';
@@ -25,28 +25,80 @@ export function sparseReshape(
     [TensorInfo, TensorInfo] {
   const {inputs, backend} = args;
   const {inputIndices, inputShape, newShape} = inputs;
-  if (inputIndices.shape.length !== 2) {
-    throw new Error(`Input indices should be a matrix but received shape ${
-        inputIndices.shape}`);
-  }
-  if (inputShape.shape.length !== 1) {
-    throw new Error(`Input shape should be a vector but received shape ${
-        inputShape.shape}`);
+
+  const shapeOnCPU = backend.shouldExecuteOnCPU([inputShape, newShape]);
+  let outputShape: TensorInfo;
+  if (shapeOnCPU) {
+    const $inputShape = Array.from(
+        backend.tensorMap.get(inputShape.dataId).values as TypedArray);
+    const $newShape =
+        Array.from(backend.tensorMap.get(newShape.dataId).values as TypedArray);
+
+    const denseSize = util.sizeFromShape($inputShape);
+    const outputRank = $newShape.length;
+
+    // Compute the output shape. Determine product of specified dimensions, and
+    // find the index of the unspecified one.
+    const shape: number[] = [];
+    let product = 1;
+    let unknownIndex = -1;
+    for (let d = 0; d < outputRank; ++d) {
+      const size = $newShape[d];
+      if (size === -1) {
+        if (unknownIndex !== -1) {
+          throw new Error(
+              backend_util
+                  .getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(
+                      unknownIndex, d));
+        }
+        unknownIndex = d;
+        shape.push(1);
+      } else {
+        if (size < 0) {
+          throw new Error(
+              backend_util.getSparseReshapeNegativeOutputDimErrorMessage(
+                  d, size));
+        }
+        product *= size;
+        shape.push(size);
+      }
+    }
+    if (unknownIndex !== -1) {
+      if (product <= 0) {
+        throw new Error(
+            backend_util
+                .getSparseReshapeEmptyTensorZeroOutputDimErrorMessage());
+      }
+      const missing = Math.trunc(denseSize / product);
+      if (product * missing !== denseSize) {
+        throw new Error(
+            backend_util.getSparseReshapeInputOutputMultipleErrorMessage(
+                $inputShape, shape));
+      }
+
+      shape[unknownIndex] = missing;
+    }
+    const outputSize = util.sizeFromShape(shape);
+    if (outputSize !== denseSize) {
+      throw new Error(
+          backend_util.getSparseReshapeInputOutputMismatchErrorMessage(
+              $inputShape, shape));
+    }
+    outputShape = backend.makeTensorInfo(
+        [shape.length], newShape.dtype, new Int32Array(shape));
+  } else {
+    const shapeProgram = new SparseReshapeOutputShapeProgram(newShape.shape);
+    outputShape = backend.runWebGPUProgram(
+        shapeProgram, [inputShape, newShape], newShape.dtype);
   }
 
-  if (newShape.shape.length !== 1) {
-    throw new Error(
-        `Target shape should be a vector but received shape ${newShape.shape}`);
-  }
-
-  let program = new SparseReshapeOutputShapeProgram(newShape.shape);
-  const outputShape =
-      backend.runWebGPUProgram(program, [inputShape, newShape], newShape.dtype);
-
-  program = new SparseReshapeOutputIndicesProgram(
+  const indicesProgram = new SparseReshapeOutputIndicesProgram(
       [inputIndices.shape[0], newShape.shape[0]]);
+
   const outputIndices = backend.runWebGPUProgram(
-      program, [inputIndices, inputShape, outputShape], inputIndices.dtype);
+      indicesProgram, [inputIndices, inputShape, outputShape],
+      inputIndices.dtype);
+
   return [outputIndices, outputShape];
 }
 

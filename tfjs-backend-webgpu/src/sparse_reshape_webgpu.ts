@@ -81,31 +81,16 @@ export class SparseReshapeOutputIndicesProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      var<workgroup> inputStrides : array<i32, 6>;
-      var<workgroup> outputStrides : array<i32, 6>;
       ${main('index')} {
-        if (localId.x == 0) {
-          inputStrides[uniforms.inputShapeShape - 1] = 1;
-          for (var i = uniforms.inputShapeShape - 2; i >= 0; i--) {
-            inputStrides[i] = inputStrides[i + 1] * inputShape[i + 1];
-          }
-
-          outputStrides[uniforms.newShapeShape - 1] = 1;
-          for (var i = uniforms.newShapeShape - 2; i >= 0; i--) {
-            outputStrides[i] = outputStrides[i + 1] * newShape[i + 1];
-          }
-        }
-        workgroupBarrier();
-
-        if (index < uniforms.size) {
+        if (index < uniforms.size / uniforms.outShape[1]) {
           var id = 0;
           for (var i = 0; i < uniforms.inputShapeShape; i++) {
-            id += inputIndices[index * uniforms.inputShapeShape + i] * inputStrides[i];
+            id = id * inputShape[i] + inputIndices[index * uniforms.inputShapeShape + i];
           }
 
-          for (var i = 0; i < uniforms.newShapeShape; i++) {
-            result[index * uniforms.newShapeShape + i] = id / outputStrides[i];
-            id %= outputStrides[i];
+          for (var i = uniforms.newShapeShape - 1; i >= 0; i--) {
+            result[index * uniforms.newShapeShape + i] = id  % newShape[i];
+            id /= newShape[i];
           }
         }
       }
