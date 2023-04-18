@@ -168,6 +168,23 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
+      bs_chrome_mac_webgpu: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra',
+        flags: [
+          '--enable-unsafe-webgpu',
+          '--disable-vulkan-fallback-to-gl-for-testing',
+          '--disable-vulkan-surface',
+          '--disable-features=VaapiVideoDecoder',
+          '--ignore-gpu-blocklist',
+          // For some reason, the tests fail without this flag, even though
+          // macos does not use Vulkan.
+          '--use-angle=vulkan',
+        ],
+      },
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
