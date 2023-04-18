@@ -264,7 +264,7 @@ class CompositeArrayBuffer {
         this.bufferUniformSize = undefined;
       }
 
-      // Create the ranges, including their start and end poionts.
+      // Create the ranges, including their start and end points.
       const end = start + buffer.byteLength;
       this.ranges.push({buffer, start, end,});
       start = end;
@@ -349,6 +349,8 @@ class CompositeArrayBuffer {
     }
 
     // Otherwise, use a generic search function.
+    // This should almost never end up being used in practice since the weight
+    // entries should always be in order.
     const index = search(this.ranges, check);
     if (index === -1) {
       return -1;
@@ -369,6 +371,7 @@ class CompositeArrayBuffer {
  *     greater than the value passed to the function.
  */
 function search<T>(sortedArray: T[], compare: (t: T) => number): number {
+  // Binary search
   let min = 0;
   let max = sortedArray.length;
 
