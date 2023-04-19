@@ -180,7 +180,7 @@ export function getWorkgroupSizeString(program: WebGPUProgram): string {
 `;
 }
 
-function makeShader(
+export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
