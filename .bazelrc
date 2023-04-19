@@ -13,6 +13,9 @@ build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
+# Required by tensorflow
+common --experimental_repo_remote_exec
+
 # The following --define=EXECUTOR=remote will be able to be removed
 # once https://github.com/bazelbuild/bazel/issues/7254 is fixed
 build:rbe --define=EXECUTOR=remote
