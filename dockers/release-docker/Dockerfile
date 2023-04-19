@@ -1,4 +1,4 @@
-FROM node:16.13.2-buster-slim
+FROM node:18.13.0-buster-slim
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=355.0.0
@@ -8,6 +8,7 @@ ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
 RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
+        parallel \
         python \
         python-dev \
         python3 \

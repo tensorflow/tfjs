@@ -22,7 +22,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {KARMA_SERVER, REGRESSION} from './constants';
+import {GOLDEN, KARMA_SERVER} from './constants';
 import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
 import {GraphModeGoldenData, TensorDetail} from './types';
 
@@ -32,7 +32,7 @@ const DATA_URL = 'graph_model_golden_data';
 const INTERMEDIATE_NODE_TESTS_NUM = 5;
 
 
-describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
+describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, () => {
   let originalTimeout: number;
 
   beforeAll(() => {
@@ -84,8 +84,9 @@ describeWithFlags(`${REGRESSION} graph_model_golden`, ALL_ENVS, () => {
              const goldens = targetNodeNames.map((name) => {
                const details = modelGolden.intermediateDetails[name];
                if (details == null) {
-                 throw new Error(`Golden file is missing tensor details for ` +
-                   `${name}`);
+                 throw new Error(
+                     `Golden file is missing tensor details for ` +
+                     `${name}`);
                }
                return details;
              });

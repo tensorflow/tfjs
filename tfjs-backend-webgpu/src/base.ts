@@ -55,6 +55,9 @@ if (isWebGPUSupported()) {
           adapterLimits.maxComputeWorkgroupsPerDimension,
       'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
       'maxBufferSize': adapterLimits.maxBufferSize,
+      'maxComputeWorkgroupSizeX': adapterLimits.maxComputeWorkgroupSizeX,
+      'maxComputeInvocationsPerWorkgroup':
+          adapterLimits.maxComputeInvocationsPerWorkgroup,
     };
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);

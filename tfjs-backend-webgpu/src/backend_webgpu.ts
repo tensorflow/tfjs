@@ -326,9 +326,10 @@ export class WebGPUBackend extends KernelBackend {
       this.tensorMap.delete(d);
     });
     this.uniformPendingDisposal.forEach(
-        d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
+        b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
     this.stagingPendingDisposal.forEach(
-        d => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage));
+        b =>
+            this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage, false));
 
     this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
@@ -643,38 +644,52 @@ export class WebGPUBackend extends KernelBackend {
 
     const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
         util.sizeFromShape(tensorData.shape);
-    const buffer =
-        this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
-
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    let buffer;
     if (tensorData.values) {
-      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
-          size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
-      const arrayBuffer = stagingBuffer.getMappedRange();
-      if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
-        new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
-      } else {
-        new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
-      }
-      stagingBuffer.unmap();
-      this.ensureCommandEncoderReady();
-      this.ensureComputePassEnded();
-      this.currentCommandEncoder.copyBufferToBuffer(
-          stagingBuffer, 0, buffer, 0, size);
+      buffer = this.bufferManager.acquireBuffer(
+          size, this.defaultGpuBufferUsage(), true);
+      if (buffer.mapState === 'unmapped') {
+        const stagingBuffer = this.bufferManager.acquireBuffer(
+            size, GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC, true,
+            false);
+        const arrayBuffer = stagingBuffer.getMappedRange();
+        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        }
+        stagingBuffer.unmap();
+        this.ensureCommandEncoderReady();
+        this.ensureComputePassEnded();
+        this.currentCommandEncoder.copyBufferToBuffer(
+            stagingBuffer, 0, buffer, 0, size);
 
-      const stagingInfo = {
-        size,
-        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        buffer: stagingBuffer
-      };
-      this.stagingPendingDisposal.push(stagingInfo);
+        this.stagingPendingDisposal.push({
+          size,
+          usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+          buffer: stagingBuffer
+        });
+      } else {
+        const arrayBuffer = buffer.getMappedRange();
+        if (tensorData.dtype === 'int32' || tensorData.dtype === 'bool') {
+          new Int32Array(arrayBuffer).set(tensorData.values as TypedArray);
+        } else {
+          new Float32Array(arrayBuffer).set(tensorData.values as Float32Array);
+        }
+        buffer.unmap();
+      }
+
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
       // model; 2) swithcing the backend within the model. Temporarilly keep
       // the values on CPU to solve the first issue. tensorData.values = null;
+    } else {
+      buffer =
+          this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
     }
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
   }
 
   private makeUniforms(programUniform: ProgramUniform): GPUBindingResource {
@@ -810,16 +825,16 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
 
-    const key =
+    const shaderKey =
         webgpu_program.makeShaderKey(program, bufferShapes, inputsData, output);
 
     let pipeline;
-    if (key in this.pipelineCache) {
-      pipeline = this.pipelineCache[key];
+    if (shaderKey in this.pipelineCache) {
+      pipeline = this.pipelineCache[shaderKey];
     } else {
       pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output);
-      this.pipelineCache[key] = pipeline;
+          this.device, program, inputsData, output, shaderKey);
+      this.pipelineCache[shaderKey] = pipeline;
     }
 
     if (programDefinedUniform) {

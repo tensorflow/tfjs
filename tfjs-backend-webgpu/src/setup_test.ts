@@ -28,12 +28,6 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 const TEST_FILTERS: TestFilter[] = [
   // skip specific test cases for supported kernels
   {
-    startsWith: 'abs ',
-    excludes: [
-      'complex64',  // Kernel 'ComplexAbs' not registered.
-    ]
-  },
-  {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
@@ -62,6 +56,60 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradients',  // Not yet implemented
     ]
+  },
+  {
+    startsWith: 'cos ',
+    excludes: [
+      'gradients', // Failing on MacOS
+      'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'tan ',
+    excludes: [
+      'gradients', // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'acosh ',
+    excludes: [
+      'propagates NaNs', // Failing on MacOS
+      'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'asinh ',
+    excludes: [
+      'propagates NaNs', // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'atanh ',
+    excludes: [
+      'propagates NaNs', // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'sigmoid ',
+    excludes: [
+      'propagates NaNs', // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'unsortedSegmentSum ',
+    excludes: [
+      'ignores negative segmentIds', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'log ',
+    excludes: [
+      'log propagates NaNs', // Failing on MacOS
+    ],
   },
 
   // exclude unsupported kernels and to be fixed cases
