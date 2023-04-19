@@ -226,3 +226,34 @@ tf_workspace1()
 load("@org_tensorflow//tensorflow:workspace0.bzl", "tf_workspace0")
 
 tf_workspace0()
+
+http_archive(
+    name = "darts_clone",
+    build_file = "@org_tensorflow_text//third_party/darts_clone:BUILD.bzl",
+    sha256 = "c97f55d05c98da6fcaf7f9ecc6a6dc6bc5b18b8564465f77abff8879d446491c",
+    strip_prefix = "darts-clone-e40ce4627526985a7767444b6ed6893ab6ff8983",
+    urls = [
+        "https://github.com/s-yata/darts-clone/archive/e40ce4627526985a7767444b6ed6893ab6ff8983.zip",
+    ],
+)
+
+http_archive(
+    name = "com_google_sentencepiece",
+    build_file = "@org_tensorflow_text//third_party/sentencepiece:BUILD",
+    patch_args = ["-p1"],
+    patches = ["//third_party/sentencepiece:sp.patch"],
+    sha256 = "8409b0126ebd62b256c685d5757150cf7fcb2b92a2f2b98efb3f38fc36719754",
+    strip_prefix = "sentencepiece-0.1.96",
+    urls = [
+        "https://github.com/google/sentencepiece/archive/refs/tags/v0.1.96.zip",
+    ],
+)
+
+http_archive(
+    name = "org_tensorflow_text",
+    sha256 = "29ead7ffc398266c5d3e6211c11d2d49632cf1412d0f94bafbc8b76a2da5e644",
+    strip_prefix = "text-2.12.1",
+    urls = [
+        "https://github.com/tensorflow/text/archive/refs/tags/v2.12.1.tar.gz",
+    ],
+)
