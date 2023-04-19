@@ -404,7 +404,6 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
 
   it('throws if requested weight has unknown dtype', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
-
     const manifest: WeightsManifestConfig = [{
       'paths': ['weightfile0'],
       'weights': [{
@@ -588,12 +587,6 @@ describe('CompositeArrayBuffer', () => {
                            [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
        });
 
-    it(`${buffersType}: can be created from a single array`, () => {
-      const singleComposite = new CompositeArrayBuffer(buffers[0]);
-      expectArraysEqual(new Uint8Array(singleComposite.slice()),
-                        new Uint8Array(buffers[0]));
-    });
-
     it(`${buffersType}: slices from zero when start is negative`, () => {
       expectArraysEqual(new Uint8Array(composite.slice(-4, 5)),
                         [0,1,2,3,4])
@@ -605,4 +598,28 @@ describe('CompositeArrayBuffer', () => {
                            [7,8,9,10,11,12,13,14,15,16]);
        });
   }
+
+  it('can be passed an empty arraybuffer', () => {
+    const array = new Uint8Array([]);
+    const singleComposite = new CompositeArrayBuffer(array.buffer);
+    expectArraysEqual(new Uint8Array(singleComposite.slice()), []);
+  });
+
+  it('can be created from a single array', () => {
+    const array = new Uint8Array([1,2,3]);
+    const singleComposite = new CompositeArrayBuffer(array.buffer);
+    expectArraysEqual(new Uint8Array(singleComposite.slice()), array);
+  });
+
+  it('treats NaN as zero when passed as the start of slice', () => {
+    const array = new Uint8Array([1,2,3]);
+    const composite = new CompositeArrayBuffer(array.buffer);
+    expectArraysEqual(new Uint8Array(composite.slice(NaN, 2)), [1,2]);
+  });
+
+  it('treats NaN as zero when passed as the end of slice', () => {
+    const array = new Uint8Array([1,2,3]);
+    const composite = new CompositeArrayBuffer(array.buffer);
+    expectArraysEqual(new Uint8Array(composite.slice(0, NaN)), []);
+  });
 });

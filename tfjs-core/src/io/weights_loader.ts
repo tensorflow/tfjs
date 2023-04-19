@@ -282,19 +282,29 @@ export class CompositeArrayBuffer {
   }
 
   slice(start = 0, end = this.byteLength): ArrayBuffer {
+    // NaN is treated as zero for slicing. This matches ArrayBuffer's behavior.
+    start = isNaN(start) ? 0 : start;
+    end = isNaN(end) ? 0 : end;
+
+    // Fix the bounds to within the array.
     start = Math.max(0, start);
     end = Math.min(this.byteLength, end);
     if (end <= start) {
       return new ArrayBuffer(0);
     }
 
-    const startRange = this.findRangeForByte(start);
+    const startRangeIndex = this.findRangeForByte(start);
+    if (startRangeIndex === -1) {
+      // This should not happen since the start and end indices are always
+      // within 0 and the composite array's length.
+      throw new Error(`Could not find start range for byte ${start}`);
+    }
 
     const size = end - start;
     const outputBuffer = new ArrayBuffer(size);
     const outputArray = new Uint8Array(outputBuffer);
     let sliced = 0;
-    for (let i = startRange; i < this.ranges.length; i++) {
+    for (let i = startRangeIndex; i < this.ranges.length; i++) {
       const range = this.ranges[i];
 
       const globalStart = start + sliced;
