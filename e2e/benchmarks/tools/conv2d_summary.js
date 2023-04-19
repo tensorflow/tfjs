@@ -18,7 +18,7 @@
 
 function isConv2D(kernel) {
   return kernel.name.includes('Conv2D') &&
-      (!kernel.name.includes('Conv2DBackpropInput'));
+    (!kernel.name.includes('Conv2DBackpropInput'));
 }
 
 function isDepthwise(kernel) {
@@ -31,12 +31,12 @@ function isNotDepthwise(kernel) {
 
 function is1x1Filter(kernel) {
   return kernel.inputShapes.length >= 2 && kernel.inputShapes[1].length === 4 &&
-      kernel.inputShapes[1][0] === 1 && kernel.inputShapes[1][1] === 1;
+    kernel.inputShapes[1][0] === 1 && kernel.inputShapes[1][1] === 1;
 }
 
 function isNot1x1Filter(kernel) {
   return kernel.inputShapes.length >= 2 && kernel.inputShapes[1].length === 4 &&
-      (kernel.inputShapes[1][0] > 1 || kernel.inputShapes[1][1] > 1);
+    (kernel.inputShapes[1][0] > 1 || kernel.inputShapes[1][1] > 1);
 }
 
 async function getKernels(modelKey) {
@@ -47,7 +47,7 @@ async function getKernels(modelKey) {
       const model = await benchmark.load(undefined, arch);
       const predict = benchmark.predictFunc();
       const profileInfo =
-          await profileInference(() => predict(model), false, 1);
+        await profileInference(() => predict(model), false, 1);
       kernels.push(...profileInfo.kernels);
       if (model.dispose != null) {
         model.dispose();
@@ -58,6 +58,33 @@ async function getKernels(modelKey) {
     const predict = benchmark.predictFunc();
     const profileInfo = await profileInference(() => predict(model), false, 1);
     kernels = profileInfo.kernels;
+    if (model.dispose != null) {
+      model.dispose();
+    }
+  }
+  return kernels;
+}
+
+let res = '';
+function getModelInfo(modelName, model) {
+  res += `${modelName}\t${model.artifacts.weightData.byteLength}\t${model.artifacts.modelTopology.node.length}\n`;
+  console.log(`${modelName}\t${model.artifacts.weightData.byteLength}\t${model.artifacts.modelTopology.node.length}\n`);
+}
+
+async function getModels(modelKey) {
+  const benchmark = benchmarks[modelKey];
+  let kernels = [];
+  if (benchmark.architectures != null) {
+    for (const arch of benchmark.architectures) {
+      const model = await benchmark.load(undefined, arch);
+      getModelInfo(`${modelKey}-${arch}`, model);
+      if (model.dispose != null) {
+        model.dispose();
+      }
+    }
+  } else {
+    const model = await benchmark.load();
+    getModelInfo(`${modelKey}`, model);
     if (model.dispose != null) {
       model.dispose();
     }
@@ -107,19 +134,19 @@ function aggregate(items) {
 
 function aggregatedArrayToStr(aggregatedArray) {
   const total =
-      aggregatedArray.map(e => e[1]).reduce((pre, cur) => pre + cur, 0);
+    aggregatedArray.map(e => e[1]).reduce((pre, cur) => pre + cur, 0);
   return aggregatedArray.slice(0, showTopNum)
-      .map(e => `${e[0]}   (cout:${e[1]}, ${(e[1] / total * 100).toFixed(2)}%)`)
-      .join('<br/>');
+    .map(e => `${e[0]}   (cout:${e[1]}, ${(e[1] / total * 100).toFixed(2)}%)`)
+    .join('<br/>');
 }
 
 function presentKernels(tableElem, name, kernels) {
   // Check kernels
   kernels.forEach(kernel => {
     if (kernel.inputShapes.length < 2 || kernel.inputShapes[0].length !== 4 ||
-        kernel.inputShapes[1].length !== 4 ||
-        kernel.inputShapes[0][3] !==
-            kernel.inputShapes[1][2]) {  // Channel last.
+      kernel.inputShapes[1].length !== 4 ||
+      kernel.inputShapes[0][3] !==
+      kernel.inputShapes[1][2]) {  // Channel last.
       console.warn(kernel);
     }
   });
@@ -134,7 +161,7 @@ function presentKernels(tableElem, name, kernels) {
 
   const cell2 = row.insertCell(2);
   const imageShapeAgg = aggregate(
-      kernels.map(e => `${e.inputShapes[0][1]}x${e.inputShapes[0][2]}`));
+    kernels.map(e => `${e.inputShapes[0][1]}x${e.inputShapes[0][2]}`));
   cell2.innerHTML = aggregatedArrayToStr(imageShapeAgg);
 
   const cell3 = row.insertCell(3);
@@ -151,7 +178,7 @@ function presentKernels(tableElem, name, kernels) {
 
   const cell6 = row.insertCell(6);
   const filterShapeAgg = aggregate(
-      kernels.map(e => `[${e.inputShapes[1][0]}x${e.inputShapes[1][1]}]`));
+    kernels.map(e => `[${e.inputShapes[1][0]}x${e.inputShapes[1][1]}]`));
   cell6.innerHTML = aggregatedArrayToStr(filterShapeAgg);
 
   const cell7 = row.insertCell(7);
@@ -160,6 +187,6 @@ function presentKernels(tableElem, name, kernels) {
 
   const cell8 = row.insertCell(8);
   const opAgg = aggregate(
-      kernels.map(e => `Img:${e.inputShapes[0]}, Filter:${e.inputShapes[1]}`));
+    kernels.map(e => `Img:${e.inputShapes[0]}, Filter:${e.inputShapes[1]}`));
   cell8.innerHTML = aggregatedArrayToStr(opAgg);
 }
