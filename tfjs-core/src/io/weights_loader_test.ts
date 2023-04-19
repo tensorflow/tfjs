@@ -18,6 +18,7 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {WeightsManifestConfig} from './types';
+import { CompositeArrayBuffer } from './weights_loader';
 
 describeWithFlags('loadWeights', BROWSER_ENVS, () => {
   const setupFakeWeightFiles = (fileBufferMap: {
@@ -541,4 +542,67 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     expect(weight2.shape).toEqual([3, 1]);
     expect(weight2.dtype).toEqual('float32');
   });
+});
+
+describe('CompositeArrayBuffer', () => {
+  const uniformBuffers = [
+    new Uint8Array([0, 1, 2, 3]).buffer,
+    new Uint8Array([4, 5, 6, 7]).buffer,
+    new Uint8Array([8, 9, 10, 11]).buffer,
+    new Uint8Array([12, 13, 14, 15]).buffer,
+    new Uint8Array([16]).buffer,
+  ];
+
+  const nonUniformBuffers = [
+    new Uint8Array([0, 1, 2]).buffer,
+    new Uint8Array([3, 4, 5, 6, 7]).buffer,
+    new Uint8Array([8, 9, 10, 11]).buffer,
+    new Uint8Array([12, 13, 14, 15, 16]).buffer,
+  ];
+
+  const bufferTestCases = [
+    ['uniform', uniformBuffers],
+    ['non-uniform', nonUniformBuffers]
+  ] as const;
+
+  for (const [buffersType, buffers] of bufferTestCases) {
+    let composite: CompositeArrayBuffer;
+    beforeEach(() => {
+      composite = new CompositeArrayBuffer(buffers);
+    });
+
+    it(`${buffersType}: slices across multiple buffers`, () => {
+      expectArraysEqual(new Uint8Array(composite.slice(1, 13)),
+                        [1,2,3,4,5,6,7,8,9,10,11,12]);
+    });
+
+    it(`${buffersType}: slices to the end of the array when \'end\' is not ` +
+      'specified', () => {
+        expectArraysEqual(new Uint8Array(composite.slice(5)),
+                          [5,6,7,8,9,10,11,12,13,14,15,16]);
+      });
+
+    it(`${buffersType}: makes a copy when slice() is called with no arguments`,
+       () => {
+         expectArraysEqual(new Uint8Array(composite.slice()),
+                           [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
+       });
+
+    it(`${buffersType}: can be created from a single array`, () => {
+      const singleComposite = new CompositeArrayBuffer(buffers[0]);
+      expectArraysEqual(new Uint8Array(singleComposite.slice()),
+                        new Uint8Array(buffers[0]));
+    });
+
+    it(`${buffersType}: slices from zero when start is negative`, () => {
+      expectArraysEqual(new Uint8Array(composite.slice(-4, 5)),
+                        [0,1,2,3,4])
+    });
+
+    it(`${buffersType}: slices to the end when end is greater than length`,
+       () => {
+         expectArraysEqual(new Uint8Array(composite.slice(7, 1000)),
+                           [7,8,9,10,11,12,13,14,15,16]);
+       });
+  }
 });

@@ -241,12 +241,16 @@ type BufferRange = {
   buffer: ArrayBuffer,
 };
 
-class CompositeArrayBuffer {
+export class CompositeArrayBuffer {
   private ranges: BufferRange[] = [];
   private previousRangeIndex = 0;
   private bufferUniformSize?: number;
+  public readonly byteLength: number;
 
-  constructor(buffers: ArrayBuffer[]) {
+  constructor(buffers: ArrayBuffer | ArrayBuffer[]) {
+    if (buffers instanceof ArrayBuffer) {
+      buffers = [buffers];
+    }
     if (buffers.length === 0) {
       return;
     }
@@ -269,22 +273,19 @@ class CompositeArrayBuffer {
       this.ranges.push({buffer, start, end,});
       start = end;
     }
-  }
 
-  get byteLength() {
+    // Set the byteLenghth
     if (this.ranges.length === 0) {
-      return 0;
+      this.byteLength = 0;
     }
-    return this.ranges[this.ranges.length - 1].end;
+    this.byteLength = this.ranges[this.ranges.length - 1].end;
   }
 
-  slice(start: number, end: number): ArrayBuffer {
-    if (start < 0 || start >= this.byteLength) {
-      throw new Error(`Start position ${start} is outside range ` +
-        `[0, ${this.byteLength})`);
-    }
-    if (end < start) {
-      throw new Error('End must be greater than start');
+  slice(start = 0, end = this.byteLength): ArrayBuffer {
+    start = Math.max(0, start);
+    end = Math.min(this.byteLength, end);
+    if (end <= start) {
+      return new ArrayBuffer(0);
     }
 
     const startRange = this.findRangeForByte(start);
