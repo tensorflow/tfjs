@@ -49,7 +49,7 @@ export class SoftmaxProgram implements WebGPUProgram {
       let tid = i32(localId.x);
       let cols = uniforms.outShape[1];
 
-      var threadMax = -1.0 / 1e-20;
+      var threadMax = -3.402823e+38f;
       for (var col = tid; col < cols; col += blockSize) {
         let value = getLogits(row, col);
         threadMax = max(threadMax, value);
@@ -77,9 +77,7 @@ export class SoftmaxProgram implements WebGPUProgram {
         let subExp = exp(getLogits(row, col) - rowMaxShared);
         threadSum += subExp;
       }
-      if (tid < cols) {
-        buf[tid] = threadSum;
-      }
+      buf[tid] = threadSum;
       workgroupBarrier();
 
       for (var currSize = blockSize >> 1;  currSize > 0; currSize = currSize >> 1) {
