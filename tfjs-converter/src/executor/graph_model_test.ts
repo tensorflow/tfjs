@@ -586,7 +586,8 @@ describe('Model', () => {
         expect(handler.savedArtifacts.modelTopology).toEqual(CUSTOM_OP_MODEL);
         expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
         tfc.test_util.expectArraysClose(
-            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+          new Int32Array(new io.CompositeArrayBuffer(
+            handler.savedArtifacts.weightData).slice()), bias.dataSync());
       });
     });
   });
@@ -616,7 +617,8 @@ describe('Model', () => {
         });
         expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
         tfc.test_util.expectArraysClose(
-            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+          new Int32Array(new io.CompositeArrayBuffer(
+            handler.savedArtifacts.weightData).slice()), bias.dataSync());
       });
     });
 
@@ -904,7 +906,8 @@ describe('Model', () => {
         });
         expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
         tfc.test_util.expectArraysClose(
-            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+          new Int32Array(new io.CompositeArrayBuffer(handler.savedArtifacts
+            .weightData).slice()), bias.dataSync());
       });
     });
 
