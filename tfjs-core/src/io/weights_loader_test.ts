@@ -403,7 +403,6 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
 
   it('throws if requested weight has unknown dtype', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
-
     const manifest: WeightsManifestConfig = [{
       'paths': ['weightfile0'],
       'weights': [{
