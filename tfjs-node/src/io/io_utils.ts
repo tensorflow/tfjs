@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
-
 /**
  * Convert an ArrayBuffer to a Buffer.
  */
