@@ -23,7 +23,7 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {browserDownloads, BrowserDownloads, browserDownloadsRouter} from './browser_files';
 import {WeightsManifestConfig, WeightsManifestEntry} from './types';
-import {CompositeArrayBuffer} from './composite_array_buffer';
+import {concatenateArrayBuffers} from './io_utils';
 
 const modelTopology1: {} = {
   'class_name': 'Sequential',
@@ -311,8 +311,8 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelInitializer).toEqual({});
     expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
 
-    expect(new Uint8Array(new CompositeArrayBuffer(modelArtifacts.weightData)
-        .slice())).toEqual(new Uint8Array(weightData1));
+    expect(new Uint8Array(concatenateArrayBuffers(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array(weightData1));
   });
 
   it(`One group, two paths`, async () => {
@@ -352,10 +352,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     const modelArtifacts = await filesHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightSpecs);
-    expect(new Uint8Array(new CompositeArrayBuffer(modelArtifacts.weightData)
-      .slice())).toEqual(new Uint8Array([
-        1, 2, 3, 4, 10, 20, 30, 40
-      ]));
+    expect(new Uint8Array(concatenateArrayBuffers(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 2, 3, 4, 10, 20, 30, 40
+        ]));
   });
 
   it(`Two groups, four paths, reverseOrder=false`, async () => {
@@ -420,10 +420,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs)
         .toEqual(weightSpecs1.concat(weightSpecs2));
-    expect(new Uint8Array(new CompositeArrayBuffer(modelArtifacts.weightData)
-      .slice())).toEqual(new Uint8Array([
-        1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
-      ]));
+    expect(new Uint8Array(concatenateArrayBuffers(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
+        ]));
   });
 
   it(`Two groups, four paths, reverseOrder=true`, async () => {
@@ -488,10 +488,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs)
         .toEqual(weightSpecs1.concat(weightSpecs2));
-    expect(new Uint8Array(new CompositeArrayBuffer(modelArtifacts.weightData)
-      .slice())).toEqual(new Uint8Array([
-        1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
-      ]));
+    expect(new Uint8Array(concatenateArrayBuffers(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
+        ]));
   });
 
   it('Upload model topology only', async () => {
