@@ -18,8 +18,8 @@
 import * as tf from '../index';
 import {CHROME_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {deleteDatabase} from './indexed_db';
+import {concatenateArrayBuffers} from './io_utils';
 import {purgeLocalStorageArtifacts} from './local_storage';
-import {CompositeArrayBuffer} from './composite_array_buffer';
 
 // Disabled for non-Chrome browsers due to:
 // https://github.com/tensorflow/tfjs/issues/427
@@ -271,7 +271,7 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                         expect(loaded.weightSpecs).toEqual(weightSpecs1);
                         expect(loaded.weightData).toBeDefined();
                         expect(new Uint8Array(
-                          new CompositeArrayBuffer(loaded.weightData).slice()))
+                          concatenateArrayBuffers(loaded.weightData)))
                             .toEqual(new Uint8Array(weightData1));
                         done();
                       })
@@ -315,7 +315,7 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                         expect(loaded.modelTopology).toEqual(modelTopology1);
                         expect(loaded.weightSpecs).toEqual(weightSpecs1);
                         expect(new Uint8Array(
-                          new CompositeArrayBuffer(loaded.weightData).slice()))
+                          concatenateArrayBuffers(loaded.weightData)))
                             .toEqual(new Uint8Array(weightData1));
                         done();
                       })
