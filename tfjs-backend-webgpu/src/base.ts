@@ -35,9 +35,19 @@ if (isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    console.log('Adapter: ..............................');
+
+    console.log('kernel log: adapter ********************************');
     console.log(adapter);
-    console.log('Adapter: .............................. END');
+    console.log('stringify: ' + JSON.stringify(adapter));
+    console.log('log: adapter ******************************** end');
+
+    console.error('kernel error: ********************************');
+    console.error(adapter);
+    console.error('stringify: ' + JSON.stringify(adapter));
+    console.error('error: adapter ******************************** end');
+
+
+
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
     // Note that timestamp-query-inside-passes is not formally in spec as
@@ -65,9 +75,25 @@ if (isWebGPUSupported()) {
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
     const adapterInfo = await adapter.requestAdapterInfo();
-    console.log('AdapterInfo: ..............................');
+    console.log(
+        'kernel log: adapterInfo kernel********************************');
     console.log(adapterInfo);
-    console.log('AdapterInfo: .............................. END');
+    console.log('adapterInfo stringify: ' + JSON.stringify(adapterInfo));
+    console.log(adapterInfo.vendor);
+    console.log(adapterInfo.device);
+    console.log(adapterInfo.architecture);
+    console.log('log: adapterInfo kernel******************************** end');
+
+    console.error(
+        'kernel error: adapterInfo kernel********************************');
+    console.error(adapterInfo);
+    console.error('adapterInfo stringify: ' + JSON.stringify(adapterInfo));
+    console.error(adapterInfo.vendor);
+    console.error(adapterInfo.device);
+    console.error(adapterInfo.architecture);
+    console.error(
+        'error: adapterInfo kernel******************************** end');
+
 
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);

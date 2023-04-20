@@ -230,12 +230,19 @@ describeWebGPU('backendWebGPU', () => {
 
   it('lazily upload', async () => {
     const adapter = await navigator.gpu.requestAdapter({});
-    console.error('adapter lazily upload********************************');
+    console.error(
+        'unit Error: adapter lazily upload********************************');
     console.error(adapter);
-    console.error('adapter lazily upload******************************** end');
-    console.log('adapter lazily upload********************************');
+    console.error('stringify: ' + JSON.stringify(adapter));
+    console.error(
+        'Error: adapter lazily upload******************************** end');
+
+    console.log(
+        'unit log: adapter lazily upload********************************');
     console.log(adapter);
-    console.log('adapter lazily upload******************************** end');
+    console.log('stringify: ' + JSON.stringify(adapter));
+    console.log(
+        'log: adapter lazily upload******************************** end');
     const device = await adapter.requestDevice({});
     const backend = new WebGPUBackend(device);
     tf.registerBackend('test-storage', () => backend);
