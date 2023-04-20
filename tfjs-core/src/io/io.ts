@@ -27,13 +27,11 @@ import {fromMemory, fromMemorySync, withSaveHandler, withSaveHandlerSync} from '
 import {getLoadHandlers, getSaveHandlers, registerLoadRouter, registerSaveRouter} from './router_registry';
 import {IOHandler, IOHandlerSync, LoadHandler, LoadOptions, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, OnProgressCallback, RequestDetails, SaveConfig, SaveHandler, SaveResult, TrainingConfig, WeightGroup, WeightsManifestConfig, WeightsManifestEntry, WeightData} from './types';
 import {loadWeights, weightsLoaderFactory} from './weights_loader';
-import {CompositeArrayBuffer} from './composite_array_buffer';
 
 export {copyModel, listModels, moveModel, removeModel} from './model_management';
 export {
   browserFiles,
   browserHTTPRequest,
-  CompositeArrayBuffer,
   concatenateArrayBuffers,
   decodeWeights,
   encodeWeights,
