@@ -215,6 +215,8 @@ export declare interface TrainingConfig {
   loss_weights?: number[]|{[key: string]: number};
 }
 
+export type WeightData = ArrayBuffer | ArrayBuffer[];
+
 /**
  * The serialized artifacts of a model, including topology and weights.
  *
@@ -251,7 +253,7 @@ export declare interface ModelArtifacts {
    * Binary buffer for all weight values concatenated in the order specified
    * by `weightSpecs`.
    */
-  weightData?: ArrayBuffer;
+  weightData?: WeightData;
 
   /**
    * Hard-coded format name for models saved from TensorFlow.js or converted

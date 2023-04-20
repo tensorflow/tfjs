@@ -342,9 +342,9 @@ export async function loadLayersModelFromIOHandler(
 }
 
 function decodeModelAndOptimizerWeights(
-    buffer: ArrayBuffer, specs: io.WeightsManifestEntry[]):
+    weightData: io.WeightData, specs: io.WeightsManifestEntry[]):
     {modelWeights: NamedTensorMap, optimizerWeights: NamedTensor[]} {
-  const name2Tensor = io.decodeWeights(buffer, specs);
+  const name2Tensor = io.decodeWeights(weightData, specs);
   const modelWeights: NamedTensorMap = {};
   const optimizerWeights: NamedTensor[] = [];
   specs.forEach(spec => {
