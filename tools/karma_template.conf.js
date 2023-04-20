@@ -89,6 +89,17 @@ const CUSTOM_LAUNCHERS = {
       '--disable-vulkan-fallback-to-gl-for-testing',
     ],
   },
+  bs_chrome_swiftshader_webgpu: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: 'latest',
+    os: 'Windows',
+    os_version: '10',
+    flags: [
+      '--enable-unsafe-webgpu',
+      '--use-webgpu-adapter=swiftshader',
+    ],
+  },
   chrome_with_swift_shader: {
     base: CHROME,
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
