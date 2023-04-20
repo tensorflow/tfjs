@@ -589,7 +589,7 @@ describe('CompositeArrayBuffer', () => {
 
     it(`${buffersType}: slices from zero when start is negative`, () => {
       expectArraysEqual(new Uint8Array(composite.slice(-4, 5)),
-                        [0,1,2,3,4])
+                        [0,1,2,3,4]);
     });
 
     it(`${buffersType}: slices to the end when end is greater than length`,

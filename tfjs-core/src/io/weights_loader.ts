@@ -248,7 +248,8 @@ export class CompositeArrayBuffer {
   private bufferUniformSize?: number;
   public readonly byteLength: number;
 
-  constructor(buffers: ArrayBuffer | ArrayBuffer[] | TypedArray | TypedArray[]) {
+  constructor(buffers: ArrayBuffer | ArrayBuffer[] | TypedArray
+      | TypedArray[]) {
     // Normalize the `buffers` input to be `ArrayBuffer[]`.
     if (!(buffers instanceof Array)) {
       buffers = [buffers];
