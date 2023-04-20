@@ -92,6 +92,17 @@ const CUSTOM_LAUNCHERS = {
       '--use-angle=vulkan',
     ],
   },
+  bs_chrome_swiftshader_webgpu: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: 'latest',
+    os: 'Windows',
+    os_version: '10',
+    flags: [
+      '--enable-unsafe-webgpu',
+      '--use-webgpu-adapter=swiftshader',
+    ],
+  },
   chrome_with_swift_shader: {
     base: CHROME,
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
@@ -155,14 +166,16 @@ module.exports = function(config) {
     const username = process.env.BROWSERSTACK_USERNAME;
     const accessKey = process.env.BROWSERSTACK_KEY;
     if (!username) {
-      console.error('No browserstack username found. Please set the'
-                    + ' environment variable "BROWSERSTACK_USERNAME" to your'
-                    + ' browserstack username');
+      console.error(
+          'No browserstack username found. Please set the' +
+          ' environment variable "BROWSERSTACK_USERNAME" to your' +
+          ' browserstack username');
     }
     if (!accessKey) {
-      console.error('No browserstack access key found. Please set the'
-                    + ' environment variable "BROWSERSTACK_KEY" to your'
-                    + ' browserstack access key');
+      console.error(
+          'No browserstack access key found. Please set the' +
+          ' environment variable "BROWSERSTACK_KEY" to your' +
+          ' browserstack access key');
     }
     if (!username || !accessKey) {
       process.exit(1);
@@ -173,8 +186,7 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       timeout: 900,  // Seconds
-      tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     };
   }
 
@@ -201,7 +213,7 @@ module.exports = function(config) {
       args: TEMPLATE_args,
       jasmine: {
         random: TEMPLATE_jasmine_random,
-        seed: "TEMPLATE_jasmine_seed",
+        seed: 'TEMPLATE_jasmine_seed',
       },
     },
   });
