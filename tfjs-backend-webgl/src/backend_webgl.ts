@@ -288,7 +288,7 @@ export class MathBackendWebGL extends KernelBackend {
       this.disposeIntermediateTensorInfo(res);
       return data;
     }
-    if (values != null) {
+    if (values != null && env().get('WEBGL_READ_FROM_VALUES')) {
       return this.convertAndCacheOnCPU(dataId);
     }
     if (dtype === 'string') {
@@ -613,14 +613,14 @@ export class MathBackendWebGL extends KernelBackend {
     } as WebGLMemoryInfo;
   }
 
-  private startTimer(): WebGLQuery|CPUTimerQuery {
+  startTimer(): WebGLQuery|CPUTimerQuery {
     if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.beginQuery();
     }
     return {startMs: util.now(), endMs: null};
   }
 
-  private endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|CPUTimerQuery {
+  endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|CPUTimerQuery {
     if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       this.gpgpu.endQuery();
       return query;
@@ -629,7 +629,7 @@ export class MathBackendWebGL extends KernelBackend {
     return query;
   }
 
-  private async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
+  async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
     if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.waitForQueryAndGetTime(query as WebGLQuery);
     }
@@ -1198,6 +1198,13 @@ export class MathBackendWebGL extends KernelBackend {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
     }
     return texData.values as TypedArray;
+  }
+
+  convertOnCPU(dataId: DataId, float32Values?: Float32Array):
+      TypedArray {
+    const texData = this.texData.get(dataId);
+    const {dtype} = texData;
+    return float32ToTypedArray(float32Values, dtype as 'float32');
   }
 
   private acquireTexture(

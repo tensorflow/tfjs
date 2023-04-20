@@ -75,9 +75,15 @@ async function benchmarkModel(benchmarkParameters) {
   // Benchmark.
   let timeInfo;
   let memoryInfo;
+  let cpuTime;
+  let gpuTime;
   if (benchmark.predictFunc != null) {
     const predict = benchmark.predictFunc();
+    await timeInference(() => predict(model), 30);
     timeInfo = await timeInference(() => predict(model), numRuns);
+    cpuTime = await timeCpuInference(() => predict(model), 50 /* warm up */, 50 /* num runs */);
+    cpuFenceTime = await timeCpuInferenceFence(() => predict(model), 50 /* warm up */, 50 /* num runs */);
+    gpuTime = await timeGpuInference(() => predict(model), 50 /* warm up */, 50 /* num runs */);
     memoryInfo = await profileInference(() => predict(model));
   } else {
     const input = generateInput(model);
@@ -85,7 +91,7 @@ async function benchmarkModel(benchmarkParameters) {
     memoryInfo = await profileModelInference(model, input);
   }
 
-  return { timeInfo, memoryInfo };
+  return { timeInfo, memoryInfo, cpuTime, gpuTime, cpuFenceTime };
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
