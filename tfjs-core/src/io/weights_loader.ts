@@ -236,7 +236,7 @@ export function weightsLoaderFactory(
   };
 }
 
-type BufferRange = {
+type BufferShard = {
   start: number,
   end: number,
   buffer: ArrayBuffer,
@@ -253,8 +253,8 @@ type BufferRange = {
  * tensors out of it, but for large models, a different approach is needed.
  */
 export class CompositeArrayBuffer {
-  private ranges: BufferRange[] = [];
-  private previousRangeIndex = 0;
+  private shards: BufferShard[] = [];
+  private previousShardIndex = 0;
   private bufferUniformSize?: number;
   public readonly byteLength: number;
 
@@ -271,7 +271,7 @@ export class CompositeArrayBuffer {
       return bufferOrTypedArray;
     });
 
-    // Skip setting up ranges if there are no buffers.
+    // Skip setting up shards if there are no buffers.
     if (buffers.length === 0) {
       return;
     }
@@ -289,23 +289,23 @@ export class CompositeArrayBuffer {
         this.bufferUniformSize = undefined;
       }
 
-      // Create the ranges, including their start and end points.
+      // Create the shards, including their start and end points.
       const end = start + buffer.byteLength;
-      this.ranges.push({buffer, start, end,});
+      this.shards.push({buffer, start, end});
       start = end;
     }
 
     // Set the byteLenghth
-    if (this.ranges.length === 0) {
+    if (this.shards.length === 0) {
       this.byteLength = 0;
     }
-    this.byteLength = this.ranges[this.ranges.length - 1].end;
+    this.byteLength = this.shards[this.shards.length - 1].end;
   }
 
   slice(start = 0, end = this.byteLength): ArrayBuffer {
     // NaN is treated as zero for slicing. This matches ArrayBuffer's behavior.
-    start = isNaN(start) ? 0 : start;
-    end = isNaN(end) ? 0 : end;
+    start = isNaN(Number(start)) ? 0 : start;
+    end = isNaN(Number(end)) ? 0 : end;
 
     // Fix the bounds to within the array.
     start = Math.max(0, start);
@@ -314,33 +314,33 @@ export class CompositeArrayBuffer {
       return new ArrayBuffer(0);
     }
 
-    const startRangeIndex = this.findRangeForByte(start);
-    if (startRangeIndex === -1) {
+    const startShardIndex = this.findShardForByte(start);
+    if (startShardIndex === -1) {
       // This should not happen since the start and end indices are always
       // within 0 and the composite array's length.
-      throw new Error(`Could not find start range for byte ${start}`);
+      throw new Error(`Could not find start shard for byte ${start}`);
     }
 
     const size = end - start;
     const outputBuffer = new ArrayBuffer(size);
     const outputArray = new Uint8Array(outputBuffer);
     let sliced = 0;
-    for (let i = startRangeIndex; i < this.ranges.length; i++) {
-      const range = this.ranges[i];
+    for (let i = startShardIndex; i < this.shards.length; i++) {
+      const shard = this.shards[i];
 
       const globalStart = start + sliced;
-      const localStart = globalStart - range.start;
+      const localStart = globalStart - shard.start;
       const outputStart = sliced;
 
-      const globalEnd = Math.min(end, range.end);
-      const localEnd = globalEnd - range.start;
+      const globalEnd = Math.min(end, shard.end);
+      const localEnd = globalEnd - shard.start;
 
-      const outputSlice = new Uint8Array(range.buffer.slice(localStart,
+      const outputSlice = new Uint8Array(shard.buffer.slice(localStart,
                                                             localEnd));
       outputArray.set(outputSlice, outputStart);
       sliced += outputSlice.length;
 
-      if (end < range.end) {
+      if (end < shard.end) {
         break;
       }
     }
@@ -348,48 +348,48 @@ export class CompositeArrayBuffer {
   }
 
   /**
-   * Get the index of the range that contains the byte at `byteIndex`.
+   * Get the index of the shard that contains the byte at `byteIndex`.
    */
-  private findRangeForByte(byteIndex: number): number {
-    if (this.ranges.length === 0 || byteIndex < 0 ||
+  private findShardForByte(byteIndex: number): number {
+    if (this.shards.length === 0 || byteIndex < 0 ||
       byteIndex >= this.byteLength) {
       return -1;
     }
 
-    // If the buffers have a uniform size, compute the range directly.
+    // If the buffers have a uniform size, compute the shard directly.
     if (this.bufferUniformSize != null) {
-      this.previousRangeIndex = Math.floor(byteIndex / this.bufferUniformSize);
-      return this.previousRangeIndex;
+      this.previousShardIndex = Math.floor(byteIndex / this.bufferUniformSize);
+      return this.previousShardIndex;
     }
 
     // If the buffers don't have a uniform size, we need to search for the
-    // range. That means we need a function to check where the byteIndex lies
-    // relative to a given range.
-    function check(range: BufferRange) {
-      if (byteIndex < range.start) {
+    // shard. That means we need a function to check where the byteIndex lies
+    // relative to a given shard.
+    function check(shard: BufferShard) {
+      if (byteIndex < shard.start) {
         return -1;
       }
-      if (byteIndex >= range.end) {
+      if (byteIndex >= shard.end) {
         return 1;
       }
       return 0;
     }
 
-    // For efficiency, try the previous range first.
-    if (check(this.ranges[this.previousRangeIndex]) === 0) {
-      return this.previousRangeIndex;
+    // For efficiency, try the previous shard first.
+    if (check(this.shards[this.previousShardIndex]) === 0) {
+      return this.previousShardIndex;
     }
 
     // Otherwise, use a generic search function.
     // This should almost never end up being used in practice since the weight
     // entries should always be in order.
-    const index = search(this.ranges, check);
+    const index = search(this.shards, check);
     if (index === -1) {
       return -1;
     }
 
-    this.previousRangeIndex = index;
-    return this.previousRangeIndex;
+    this.previousShardIndex = index;
+    return this.previousShardIndex;
   }
 }
 
