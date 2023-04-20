@@ -242,6 +242,16 @@ type BufferRange = {
   buffer: ArrayBuffer,
 };
 
+/**
+ * Wraps a list of ArrayBuffers into a `slice()`-able object without allocating
+ * a large ArrayBuffer.
+ *
+ * Allocating large ArrayBuffers (~2GB) can be unstable on Chrome. TFJS loads
+ * its weights as a list of (usually) 4MB ArrayBuffers and then slices the
+ * weight tensors out of them. For small models, it's safe to concatenate all
+ * the weight buffers into a single ArrayBuffer and then slice the weight
+ * tensors out of it, but for large models, a different approach is needed.
+ */
 export class CompositeArrayBuffer {
   private ranges: BufferRange[] = [];
   private previousRangeIndex = 0;
