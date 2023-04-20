@@ -399,7 +399,7 @@ function search<T>(sortedArray: T[], compare: (t: T) => number): number {
   let max = sortedArray.length;
 
   while (min <= max) {
-    const middle = Math.floor((max - min) / 2);
+    const middle = Math.floor((max - min) / 2) + min;
     const side = compare(sortedArray[middle]);
 
     if (side === 0) {

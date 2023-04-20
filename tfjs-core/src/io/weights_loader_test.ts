@@ -597,6 +597,12 @@ describe('CompositeArrayBuffer', () => {
          expectArraysEqual(new Uint8Array(composite.slice(7, 1000)),
                            [7,8,9,10,11,12,13,14,15,16]);
        });
+
+    it(`${buffersType}: slices multiple ranges out of order`, () => {
+      expectArraysEqual(new Uint8Array(composite.slice(13, 15)), [13, 14]);
+      expectArraysEqual(new Uint8Array(composite.slice(0, 2)), [0, 1]);
+      expectArraysEqual(new Uint8Array(composite.slice(9, 13)), [9, 10, 11, 12]);
+    });
   }
 
   it('can be passed an empty arraybuffer', () => {
