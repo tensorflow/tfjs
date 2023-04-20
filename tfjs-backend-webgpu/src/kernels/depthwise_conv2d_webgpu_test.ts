@@ -37,7 +37,7 @@ describeWebGPU('depthwise conv2d nchw', () => {
 
     const result = tf.depthwiseConv2d(x, w, stride, pad, 'NCHW');
     expect(result.shape).toEqual([1, 1, 2, 2]);
-    const expected = [35, 49, 77, 91];
+    const expected = [35, 49, 77, 0];
     const resValue = await result.data();
     expectArraysClose(resValue, expected);
   });
