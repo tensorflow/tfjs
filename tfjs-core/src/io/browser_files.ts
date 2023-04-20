@@ -73,8 +73,7 @@ export class BrowserDownloads implements IOHandler {
 
     // TODO(mattsoulanille): Support saving models over 2GB that exceed
     // Chrome's ArrayBuffer size limit.
-    const weightBuffer = concatenateArrayBuffers(
-      [modelArtifacts.weightData].flat());
+    const weightBuffer = concatenateArrayBuffers(modelArtifacts.weightData)
 
     const weightsURL = window.URL.createObjectURL(new Blob(
         [weightBuffer], {type: 'application/octet-stream'}));

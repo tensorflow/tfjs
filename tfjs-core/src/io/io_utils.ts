@@ -102,8 +102,9 @@ export async function encodeWeights(
  *
  * This function is the reverse of `encodeWeights`.
  *
- * @param weightData A flat ArrayBuffer carrying the binary values of the
- *   tensors concatenated in the order specified in `specs`.
+ * @param weightData A flat ArrayBuffer or an array of ArrayBuffers carrying the
+ *   binary values of the tensors concatenated in the order specified in
+ *   `specs`.
  * @param specs Specifications of the names, dtypes and shapes of the tensors
  *   whose value are encoded by `buffer`.
  * @return A map from tensor name to tensor value, with the names corresponding
@@ -335,10 +336,15 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
 /**
  * Concatenate a number of ArrayBuffers into one.
  *
- * @param buffers A number of array buffers to concatenate.
+ * @param buffers An array of ArrayBuffers to concatenate, or a single
+ *     ArrayBuffer.
  * @returns Result of concatenating `buffers` in order.
  */
-export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+export function concatenateArrayBuffers(buffers: ArrayBuffer[]
+      | ArrayBuffer): ArrayBuffer {
+  if (!(buffers instanceof Array)) {
+    return buffers;
+  }
   if (buffers.length === 1) {
     return buffers[0];
   }

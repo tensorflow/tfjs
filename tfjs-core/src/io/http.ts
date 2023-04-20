@@ -112,8 +112,7 @@ export class HTTPRequest implements IOHandler {
     if (modelArtifacts.weightData != null) {
       // TODO(mattsoulanille): Support saving models over 2GB that exceed
       // Chrome's ArrayBuffer size limit.
-      const weightBuffer = concatenateArrayBuffers(
-        [modelArtifacts.weightData].flat());
+      const weightBuffer = concatenateArrayBuffers(modelArtifacts.weightData);
 
       init.body.append(
           'model.weights.bin',
