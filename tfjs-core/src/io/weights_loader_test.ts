@@ -18,7 +18,7 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {WeightsManifestConfig} from './types';
-import { CompositeArrayBuffer } from './weights_loader';
+import {CompositeArrayBuffer} from './weights_loader';
 
 describeWithFlags('loadWeights', BROWSER_ENVS, () => {
   const setupFakeWeightFiles = (fileBufferMap: {
