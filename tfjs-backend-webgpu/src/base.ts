@@ -46,8 +46,6 @@ if (isWebGPUSupported()) {
     console.error('stringify: ' + JSON.stringify(adapter));
     console.error('error: adapter ******************************** end');
 
-
-
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
     // Note that timestamp-query-inside-passes is not formally in spec as
@@ -93,7 +91,6 @@ if (isWebGPUSupported()) {
     console.error(adapterInfo.architecture);
     console.error(
         'error: adapterInfo kernel******************************** end');
-
 
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
