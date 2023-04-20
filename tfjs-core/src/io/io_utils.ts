@@ -291,7 +291,7 @@ const useNodeBuffer = typeof Buffer !== 'undefined' &&
  */
 export function stringByteLength(str: string): number {
   if (useNodeBuffer) {
-    return Buffer.byteLength(str);
+    return Buffer.byteLength(str, 'utf8');
   }
   return new Blob([str]).size;
 }
