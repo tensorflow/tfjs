@@ -18,6 +18,7 @@
 import {env} from '../environment';
 
 import {NamedTensorMap} from '../tensor_types';
+import {TypedArray} from '../types';
 import * as util from '../util';
 import {decodeWeights} from './io_utils';
 import {monitorPromisesProgress} from './progress';
@@ -247,10 +248,19 @@ export class CompositeArrayBuffer {
   private bufferUniformSize?: number;
   public readonly byteLength: number;
 
-  constructor(buffers: ArrayBuffer | ArrayBuffer[]) {
-    if (buffers instanceof ArrayBuffer) {
+  constructor(buffers: ArrayBuffer | ArrayBuffer[] | TypedArray | TypedArray[]) {
+    // Normalize the `buffers` input to be `ArrayBuffer[]`.
+    if (!(buffers instanceof Array)) {
       buffers = [buffers];
     }
+    buffers = buffers.map((bufferOrTypedArray) => {
+      if (util.isTypedArray(bufferOrTypedArray)) {
+        return bufferOrTypedArray.buffer;
+      }
+      return bufferOrTypedArray;
+    });
+
+    // Skip setting up ranges if there are no buffers.
     if (buffers.length === 0) {
       return;
     }

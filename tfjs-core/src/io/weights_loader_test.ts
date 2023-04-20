@@ -622,4 +622,12 @@ describe('CompositeArrayBuffer', () => {
     const composite = new CompositeArrayBuffer(array.buffer);
     expectArraysEqual(new Uint8Array(composite.slice(0, NaN)), []);
   });
+
+  it('supports TypedArray input', () => {
+    // This support is necessary for some tests in tfjs-converter. Maybe those
+    // tests are misconfigured?
+    const array = new Uint8Array([1,2,3]);
+    const composite = new CompositeArrayBuffer(array);
+    expectArraysEqual(new Uint8Array(composite.slice(0, 2)), [1,2]);
+  });
 });
