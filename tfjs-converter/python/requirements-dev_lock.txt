@@ -1011,8 +1011,8 @@ tensorflow-decision-forests==1.3.0 \
 tensorflow-estimator==2.12.0 \
     --hash=sha256:59b191bead4883822de3d63ac02ace11a83bfe6c10d64d0c4dfde75a50e60ca1
     # via tensorflow
-tensorflow-hub==0.12.0 ; python_version >= "3" \
-    --hash=sha256:822fe5f7338c95efcc3a534011c6689e4309ba2459def87194179c4de8a6e1fc
+tensorflow-hub==0.13.0 ; python_version >= "3" \
+    --hash=sha256:3544f4fd9fd99e4eeb6da1b5b5320e4a2dbdef7f9bb778f66f76d6790f32dd65
     # via -r tfjs-converter/python/requirements.txt
 tensorflow-io-gcs-filesystem==0.28.0 \
     --hash=sha256:00cf6a92f1f9f90b2ba2d728870bcd2a70b116316d0817ab0b91dd390c25b3fd \
