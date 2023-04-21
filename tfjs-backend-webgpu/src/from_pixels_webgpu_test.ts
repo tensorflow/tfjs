@@ -86,7 +86,7 @@ describeWebGPU('fromPixels', () => {
 
   // Failing on Linux
   // tslint:disable-next-line: ban
-  xit('should reuse textures when fromPixels have same input size', async () => {
+  xit('should reuse texture when fromPixels have same input size', async () => {
     const backend = tf.backend() as WebGPUBackend;
     const textureManager = backend.textureManager;
     textureManager.dispose();
