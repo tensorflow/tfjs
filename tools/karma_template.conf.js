@@ -97,7 +97,11 @@ const CUSTOM_LAUNCHERS = {
     os_version: '10',
     flags: [
       '--enable-unsafe-webgpu',
+      '--enable-features=vulkan',
+      '--use-angle=swiftshader',
+      '--use-vulkan=swiftshader',
       '--use-webgpu-adapter=swiftshader',
+      '--disable-vulkan-surface',
     ],
   },
   chrome_with_swift_shader: {
