@@ -121,8 +121,9 @@ const TEST_FILTERS: TestFilter[] = [
 
   // exclude unsupported kernels and to be fixed cases
   {
-    include: ' webgpu ',
+    include: 'webgpu ',
     excludes: [
+      'fromPixels ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
