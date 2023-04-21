@@ -1,5 +1,6 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,6 +22,17 @@ cc_binary(
 )
 
 wasm_cc_binary(
-    name = "sentencepiece_wasm",
+    name = "tfjs-sentencepiece",
     cc_target = ":sentencepiece",
+)
+
+ts_library(
+    name = "tfjs-sentencepiece_lib",
+    srcs = glob(
+        ["**/*.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-sentencepiece",
+    deps = [
+        "//tfjs-sentencepiece/wasm-out:wasm-out_lib",
+    ],
 )
