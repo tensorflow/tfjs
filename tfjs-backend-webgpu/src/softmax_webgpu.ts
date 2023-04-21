@@ -59,16 +59,17 @@ export class SoftmaxProgram implements WebGPUProgram {
       }
       workgroupBarrier();
 
-      let reduceSize = min(cols, blockSize);
-      for (var currSize = reduceSize >> 1;  currSize > 0; currSize = currSize >> 1) {
+      var reduceSize = min(cols, blockSize);
+      for (var currSize = reduceSize >> 1;  currSize > 0; currSize = reduceSize >> 1) {
+        reduceSize = currSize + (reduceSize & 1);
         if (tid < currSize) {
-          buf[tid] = max(buf[tid], buf[tid + currSize]);
+          buf[tid] = max(buf[tid], buf[tid + reduceSize]);
         }
         workgroupBarrier();
       }
 
       if (tid == 0) {
-        rowMaxShared = max(buf[0], buf[reduceSize - 1]);
+        rowMaxShared = buf[0];
       }
       workgroupBarrier();
 
