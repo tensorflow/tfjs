@@ -1,6 +1,9 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
-load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:defaults.bzl", "ts_library")
+load("//tools:get_extension.bzl", "get_extension")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -22,8 +25,47 @@ cc_binary(
 )
 
 wasm_cc_binary(
-    name = "tfjs-sentencepiece",
+    name = "sentencepiece_wasm",
     cc_target = ":sentencepiece",
+)
+
+get_extension(
+    name = "wasm_files",
+    srcs = [
+        ":sentencepiece_wasm",
+    ],
+    include = [
+        ".js",
+        ".cjs",
+        ".wasm",
+    ],
+    exclude = [
+        ".fetch.js",
+        ".debug.wasm",
+    ],
+)
+
+# Copy the wasm files out of their directory into dist/ because when the rollup
+# bundle is loaded by the browser, it will look for the .wasm file in the same
+# directory it's in.
+copy_to_dist(
+    name = "copy_wasm",
+    srcs = [
+        ":wasm_files",
+    ],
+    dest_dir = ".",
+    root = "sentencepiece_wasm",
+)
+
+js_library(
+    name = "sentencepiece_wasm_lib",
+    srcs = [
+        "sentencepiece.d.ts",
+        ":copy_wasm",
+    ],
+    deps = [
+        "@npm//@types/emscripten",
+    ],
 )
 
 ts_library(
@@ -33,6 +75,6 @@ ts_library(
     ),
     module_name = "@tensorflow/tfjs-sentencepiece",
     deps = [
-        "//tfjs-sentencepiece/wasm-out:wasm-out_lib",
+        ":sentencepiece_wasm_lib",
     ],
 )

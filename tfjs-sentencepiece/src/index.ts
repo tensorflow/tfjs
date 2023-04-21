@@ -1,4 +1,4 @@
-import * as wasm from '../wasm-out/sentencepiece';
+import * as wasm from './sentencepiece';
 
 export function hello() {
   console.log('hello!!!');
