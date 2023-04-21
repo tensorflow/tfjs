@@ -127,7 +127,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'sign ',
     excludes: [
-      // Failing lost on Linux
+      // Failing on Linux
       'basic',
       'does not propagate NaNs',
       'accepts a tensor-like object',
