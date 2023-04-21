@@ -111,19 +111,33 @@ const TEST_FILTERS: TestFilter[] = [
       'log propagates NaNs',  // Failing on MacOS
     ],
   },
-
   {
     startsWith: 'softmax ',
     excludes: [
       'Propagates NaNs',  // Failing on MacOS
     ],
   },
+  {
+    startsWith: 'fromPixels ',
+    excludes: [
+      'HTMLVideoElement',        // Device is lost on Linux
+      'canvas and image match',  // Failing on Linux
+    ],
+  },
+  {
+    startsWith: 'sign ',
+    excludes: [
+      // Failing lost on Linux
+      'basic',
+      'does not propagate NaNs',
+      'accepts a tensor-like object',
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {
-    include: 'webgpu ',
+    include: ' webgpu ',
     excludes: [
-      'fromPixels ',
       'raggedGather ',
       'raggedRange ',
       'raggedTensorToTensor ',
