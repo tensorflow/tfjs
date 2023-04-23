@@ -118,6 +118,12 @@ const TEST_FILTERS: TestFilter[] = [
       'Propagates NaNs',  // Failing on MacOS
     ],
   },
+  {
+    startsWith: 'sparseReshape ',
+    excludes: [
+      'throw error',
+    ]
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {
@@ -128,7 +134,6 @@ const TEST_FILTERS: TestFilter[] = [
       'raggedTensorToTensor ',
       'method otsu',  // round
       'sparseFillEmptyRows ',
-      'sparseReshape ',
       'sparseSegmentMean ',
       'sparseSegmentSum ',
       'staticRegexReplace ',
