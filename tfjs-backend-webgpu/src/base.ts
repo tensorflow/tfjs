@@ -17,23 +17,11 @@
 
 import './flags_webgpu';
 
-import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
-// @ts-ignore
-import nodeGPUBinding from 'bindings';
+import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
+import * as platform from './base_platform';
 import {isWebGPUSupported} from './webgpu_util';
-
-let nodeGPU: GPU = null;
-function getNodeGPU() {
-  if (nodeGPU) {
-    return nodeGPU;
-  }
-  const gpuProviderModule = nodeGPUBinding('dawn');
-  const gpuProviderFlags = ['disable-dawn-features=disallow_unsafe_apis'];
-  nodeGPU = gpuProviderModule.create(gpuProviderFlags);
-  return nodeGPU;
-}
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
@@ -43,9 +31,7 @@ if (isWebGPUSupported()) {
           'high-performance'
     };
 
-    const adapter = device_util.isBrowser() ?
-        await navigator.gpu.requestAdapter(gpuDescriptor) :
-        await getNodeGPU().requestAdapter(gpuDescriptor);
+    const adapter = await platform.requestAdapter(gpuDescriptor);
 
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
