@@ -38,9 +38,8 @@ export function matMulReadFnSource(
                                `value = getB(batch, row, col);`;
 
   return `
-  fn mm_readA(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
+  fn mm_readA(batch: i32, row: i32, col: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
-    let col = colIn * ${component};
     ${
       fitAOuter && fitInner ?
           sampleA :
@@ -56,8 +55,7 @@ export function matMulReadFnSource(
     return value;
   }
 
-  fn mm_readB(batch: i32, row: i32, colIn: i32) -> ${typeSnippet(component)} {
-    let col = colIn * ${component};
+  fn mm_readB(batch: i32, row: i32, col: i32) -> ${typeSnippet(component)} {
     var value = ${typeSnippet(component)}(0.0);
     ${sampleB}
     return value;
@@ -73,9 +71,8 @@ export function matMulReadWriteFnSource(
   ${
       matMulReadFnSource(
           transposeA, transposeB, fitAOuter, fitBOuter, fitInner, component)}
-  fn mm_write(batch: i32, row: i32, colIn: i32, valueIn: ${
+  fn mm_write(batch: i32, row: i32, col: i32, valueIn: ${
       typeSnippet(component)}) {
-    let col = colIn * ${component};
     ${
       fitAOuter && fitBOuter ?
           '' :
@@ -96,14 +93,14 @@ const writeDataToSubAVec4Snippet =
         return `
         mm_Asub[inputRow][inputCol] = mm_readA(batchA,
           kStart + inputRow,
-          globalRowStart / ${innerElementSize} + inputCol);
+          globalRowStart + inputCol * ${innerElementSize});
         `;
 
       } else {
         return `
         mm_Asub[inputRow][inputCol] = mm_readA(batchA,
-          globalRow + innerRow,
-          kStart / ${innerElementSize} + inputCol);
+          globalRowStart + inputRow,
+          kStart + inputCol * ${innerElementSize});
         `;
       }
     };
@@ -152,7 +149,6 @@ export function makeMatMulPackedVec4Source(
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   const innerElementSize = tileAWidth / workgroupSize[0];
-  const rowPerThreadB = tileInner / workgroupSize[1];
   const rowPerThread = workPerThread[1];
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
@@ -163,9 +159,7 @@ export function makeMatMulPackedVec4Source(
           innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
           Otherwise, innerElementSize ${innerElementSize} must be 3 or 4.
       tileAWidth ${tileAWidth} must be divisible by workgroupSize[0]${
-          workgroupSize[0]}. tileInner ${
-          tileInner} must be divisible by workgroupSize[1] ${
-          workgroupSize[1]}. colPerThread ${workPerThread[0]} must be 4.`);
+          workgroupSize[0]}. colPerThread ${workPerThread[0]} must be 4.`);
   return `
   var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
       tileAWidth / innerElementSize}>, ${tileAHight}>;
@@ -185,7 +179,7 @@ export function makeMatMulPackedVec4Source(
     let batchB = ${
       splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.bShape[0]'};
     let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-
+    let globalColStart = i32(workgroupId.x) * ${tileBOuter};
     let numTiles = ${
       splitK ? `${Math.ceil(splitedDimInner / tileInner)}` :
                `(uniforms.dimInner - 1) / ${tileInner} + 1`};
@@ -194,20 +188,24 @@ export function makeMatMulPackedVec4Source(
     var acc: array<vec4<f32>, ${rowPerThread}>;
 
     // Loop over shared dimension.
-    let tileRowB = localRow * ${rowPerThreadB};
     for (var t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileCol;
+        for (var tIndex = i32(localIndex); tIndex < ${
+      tileAWidth / innerElementSize *
+      tileAHight}; tIndex += ${workgroupSize[0] * workgroupSize[1]}) {
+            let inputRow = tIndex / ${tileAWidth / innerElementSize};
+            let inputCol = (tIndex % ${tileAWidth / innerElementSize});
             ${writeDataToSubAVec4Snippet(transposeA, innerElementSize)}
         }
 
         // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < ${rowPerThreadB}; innerRow++) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(batchB, kStart + inputRow, globalCol);
+        for (var tIndex = i32(localIndex); tIndex < ${
+      tileInner * tileBOuter /
+      workPerThread[0]}; tIndex += ${workgroupSize[0] * workgroupSize[1]}) {
+            let inputRow = tIndex / ${tileBOuter / workPerThread[0]};
+            let inputCol = (tIndex % ${tileBOuter / workPerThread[0]});
+            mm_Bsub[inputRow][inputCol] = mm_readB(batchB, kStart + inputRow, globalColStart + inputCol * ${
+      workPerThread[0]});
         }
         kStart = kStart + ${tileInner};
         workgroupBarrier();
@@ -230,7 +228,8 @@ export function makeMatMulPackedVec4Source(
     }
 
     for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
-        mm_write(batch, globalRow + innerRow, globalCol, acc[innerRow]);
+        mm_write(batch, globalRow + innerRow, globalCol * ${
+      workPerThread[0]}, acc[innerRow]);
     }
   }`;
 }
@@ -346,6 +345,7 @@ export function makeMatMulPackedSource(
   let globalRow = i32(globalId.y) * ${rowPerThread};
   let globalCol = i32(globalId.x) * ${colPerThread};
   let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+  let globalColStart = i32(workgroupId.x) * ${tileBOuter};
 
   let tileRowA = i32(localId.y) * ${rowPerThreadA};
   let tileColA = i32(localId.x) * ${colPerThreadA};
@@ -368,7 +368,7 @@ export function makeMatMulPackedSource(
         let inputCol = tileCol + innerCol;
         mm_Bsub[inputRow][inputCol] = mm_readB(batchB,
           kStart + inputRow,
-          globalCol + innerCol);
+          globalColStart + inputCol);
       }
     }
     kStart = kStart + ${tileInner};
