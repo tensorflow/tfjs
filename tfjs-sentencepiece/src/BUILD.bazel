@@ -9,16 +9,31 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "sentencepiece",
-    srcs = ["sentencepiece_wasm.cc"],
+    srcs = [
+        #TODO: Divide srcs to multiple targets
+        "base64.h",
+        "sentencepiece_wasm.cc",
+    ],
     copts = [
         "-frtti",
         "-fexceptions",
     ],
     linkopts = [
+        "-frtti",
+        "-fexceptions",
         "--bind",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=SentencePieceModule",
+        "-s NO_DISABLE_EXCEPTION_CATCHING",
+        "-s INITIAL_MEMORY=128MB",
+        "-s ALLOW_MEMORY_GROWTH",
     ],
     linkstatic = 1,
     deps = [
+        "@com_google_sentencepiece//:sentencepiece_cc_proto",
+        "@com_google_sentencepiece//:sentencepiece_model_cc_proto",
+        # "@com_google_sentencepiece//:sentencepiece_processor",
+        "@flatbuffers",
         "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_decoder",
         "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_encoder",
     ],

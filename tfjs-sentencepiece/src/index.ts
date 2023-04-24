@@ -1,7 +1,6 @@
-import * as wasm from './sentencepiece';
+import sentencePieceModuleFactory from './sentencepiece';
 
-export function hello() {
+export async function prepare() {
   console.log('hello!!!');
+  return await sentencePieceModuleFactory({});
 }
-console.log(wasm);
-hello();

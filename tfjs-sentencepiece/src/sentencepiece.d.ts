@@ -1,4 +1,4 @@
-export interface BackendWasmModule extends EmscriptenModule {
+export interface SentencePieceModule extends EmscriptenModule {
   NormalizeString: any;
 }
 
@@ -10,6 +10,6 @@ export interface WasmFactoryConfig {
   onAbort?: (msg: string) => void;
 }
 
-declare var moduleFactory: (settings: WasmFactoryConfig) =>
-    Promise<BackendWasmModule>;
-export {moduleFactory};
+declare var sentencePieceModuleFactory: (settings: WasmFactoryConfig) =>
+    Promise<SentencePieceModule>;
+export default sentencePieceModuleFactory;
