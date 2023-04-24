@@ -44,9 +44,9 @@ function conv2dCommonSnippet(
   const getWSnippet = (innerElementSize: number) => {
     switch (innerElementSize) {
       case 1:
-        return 'return W[row * uniforms.wShape[3] + colIn];';
+        return 'return W[row * uniforms.wShape[3] + col];';
       case 4:
-        return 'return W[row * uniforms.wShape[3] / 4 + colIn];';
+        return 'return W[(row * uniforms.wShape[3] + col) / 4];';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
@@ -101,19 +101,15 @@ function conv2dCommonSnippet(
       return resData;`;
 
   const sampleX = isChannelsLast ? (fitAOuter && fitInner ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
         ${readXSnippet}
       }
       return ${typeSnippet(innerElementSizeX)}(0.0);`) :
                                    (fitInner && fitBOuter ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
         ${readXSnippet}
       }
@@ -130,16 +126,15 @@ function conv2dCommonSnippet(
       ${
       activationFnSnippet(
           activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
+      fn mm_readA(batch: i32, row : i32, col : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
+      fn mm_readB(batch: i32, row : i32, col : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
-        let col = colIn * ${innerElementSize};
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : ${resType}) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
         var value = valueIn;
@@ -239,8 +234,12 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = Math.max(
-        this.workgroupSize[0] * this.innerElementSize, this.workgroupSize[1]);
+    this.tileInner = this.isVec4 ?
+        (dimInner < 32 ? dimInner :
+                         this.workgroupSize[0] * this.innerElementSize) :
+        Math.max(
+            this.workgroupSize[0] * this.innerElementSize,
+            this.workgroupSize[1]);
 
     this.fitAOuter = dimAOuter % this.tileAOuter === 0;
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
@@ -255,8 +254,11 @@ export class Conv2DMMProgram implements WebGPUProgram {
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
-            this.tileInner) :
+            [
+              this.elementsPerThread[0], this.elementsPerThread[1],
+              this.innerElementSize
+            ],
+            this.workgroupSize, !this.isChannelsLast, this.tileInner) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
             this.tileInner, false, null, this.sequentialAccessByThreads);

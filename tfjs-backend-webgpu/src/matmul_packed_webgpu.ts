@@ -148,18 +148,16 @@ export function makeMatMulPackedVec4Source(
   const tileBOuter = workgroupSize[0] * workPerThread[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
-  const innerElementSize = tileAWidth / workgroupSize[0];
+  const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
   const rowPerThread = workPerThread[1];
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
        (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&
-          tileAWidth % workgroupSize[0] === 0 &&
-          tileInner % workgroupSize[1] === 0 && workPerThread[0] === 4,
+          workPerThread[0] === 4,
       () => `If transposeA ${transposeA} is true, innerElementSize ${
           innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
           Otherwise, innerElementSize ${innerElementSize} must be 3 or 4.
-      tileAWidth ${tileAWidth} must be divisible by workgroupSize[0]${
-          workgroupSize[0]}. colPerThread ${workPerThread[0]} must be 4.`);
+      colPerThread ${workPerThread[0]} must be 4.`);
   return `
   var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
       tileAWidth / innerElementSize}>, ${tileAHight}>;
