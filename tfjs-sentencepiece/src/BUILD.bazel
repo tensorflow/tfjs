@@ -19,8 +19,6 @@ cc_binary(
         "-fexceptions",
     ],
     linkopts = [
-        "-frtti",
-        "-fexceptions",
         "--bind",
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=SentencePieceModule",
