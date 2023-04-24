@@ -49,22 +49,26 @@ class SentencePieceModel {
 std::unordered_map<std::string, std::unique_ptr<SentencePieceModel>>
     sp_model_pool;
 
-std::string RegisterModel(const std::string& model_base64) {
-  std::string key = std::to_string(std::hash<std::string>()(model_base64));
+std::string RegisterModel(const std::string& serialized_proto) {
+  std::string key = std::to_string(std::hash<std::string>()(serialized_proto));
 
   auto it = sp_model_pool.find(key);
   if (it != sp_model_pool.end()) {
     return key;
   }
 
-  sp_model_pool.insert({key, std::make_unique<SentencePieceModel>(
-                                 base64::Decode(model_base64))});
+  sp_model_pool.insert(
+      {key, std::make_unique<SentencePieceModel>(serialized_proto)});
   return key;
 }
 
+std::string RegisterModelBase64(const std::string& serialized_proto_base64) {
+  return RegisterModel(base64::Decode(serialized_proto_base64));
+}
+
 struct EncodeStringResult {
-  std::vector<int> output_values_flat;
-  std::vector<int> output_splits_flat;
+  std::vector<int> values_flat;
+  std::vector<int> splits_flat;
 };
 
 // REQUIRES:
@@ -91,16 +95,16 @@ EncodeStringResult EncodeString(
   }
   int splits_size = tokens.size() + 1;
   EncodeStringResult result{
-      .output_values_flat = std::vector<int>(total_tokens),
-      .output_splits_flat = std::vector<int>(splits_size),
+      .values_flat = std::vector<int>(total_tokens),
+      .splits_flat = std::vector<int>(splits_size),
   };
 
-  result.output_splits_flat[0] = 0;
+  result.splits_flat[0] = 0;
   for (int i = 0, row = 0; row < tokens.size(); ++row) {
     for (int col = 0; col < tokens[row].size(); ++col, ++i) {
-      result.output_values_flat[i] = tokens[row][col];
+      result.values_flat[i] = tokens[row][col];
     }
-    result.output_splits_flat[row + 1] = i;
+    result.splits_flat[row + 1] = i;
   }
   return result;
 }
@@ -109,15 +113,19 @@ EncodeStringResult EncodeString(
 // - Attr `out_type`: int32 type
 // - Attr `Tsplits`: int64/int32 type
 std::vector<std::string> DecodeString(const std::string& model_key,
-                                      const std::vector<int>& encoded_flat,
-                                      const std::vector<int>& splits_flat) {
+                                      const std::vector<int>& values_flat,
+                                      const std::vector<int>& splits_flat,
+                                      bool add_bos, bool add_eos,
+                                      bool reverse) {
   std::unique_ptr<SentencePieceModel>& model = sp_model_pool.at(model_key);
+  model->SetOptions(add_bos, add_eos, reverse);
+
   int num_of_sentences = static_cast<int>(splits_flat.size()) - 1;
 
   std::vector<std::string> output_flat;
   for (int i = 0; i < num_of_sentences; ++i) {
-    std::vector<int> pieces(&encoded_flat[splits_flat[i]],
-                            &encoded_flat[splits_flat[i + 1]]);
+    std::vector<int> pieces(&values_flat[splits_flat[i]],
+                            &values_flat[splits_flat[i + 1]]);
     std::string output_flat_str;
     AssertOk(model->processor.Decode(pieces, &output_flat_str));
     output_flat.push_back(std::move(output_flat_str));
@@ -132,10 +140,11 @@ EMSCRIPTEN_BINDINGS(tfjs_sentencepiece) {
   emscripten::register_vector<std::string>("VectorString");
 
   emscripten::value_object<EncodeStringResult>("EncodeStringResult")
-      .field("outputValuesFlat", &EncodeStringResult::output_values_flat)
-      .field("outputSplitsFlat", &EncodeStringResult::output_splits_flat);
+      .field("valuesFlat", &EncodeStringResult::values_flat)
+      .field("splitsFlat", &EncodeStringResult::splits_flat);
 
   emscripten::function("RegisterModel", &RegisterModel);
+  emscripten::function("RegisterModelBase64", &RegisterModelBase64);
   emscripten::function("EncodeString", &EncodeString);
   emscripten::function("DecodeString", &DecodeString);
 }

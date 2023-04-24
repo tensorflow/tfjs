@@ -14,11 +14,12 @@ tfjs_bundle(
         "fs",
     ],
     globals = {
+        "@tensorflow/tfjs-converter": "tf",
         "@tensorflow/tfjs-core": "tf",
         "fs": "fs",
         "path": "path",
     },
-    umd_name = "tfs",
+    umd_name = "tfsp",
     deps = [
         "//tfjs-sentencepiece/src:tfjs-sentencepiece_lib",
     ],
