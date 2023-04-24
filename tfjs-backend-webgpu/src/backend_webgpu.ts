@@ -136,7 +136,6 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
-  private isLittleEndian: boolean;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -183,16 +182,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-
-    this.isLittleEndian = (() => {
-      const uint32Data = new Uint32Array([0x11223344]);
-      const uint8Data = new Uint8Array(uint32Data.buffer);
-      if (uint8Data[0] === 0x44) {
-        return true;
-      } else {
-        return false;
-      }
-    })();
   }
 
   override floatPrecision(): 32 {
@@ -405,8 +394,6 @@ export class WebGPUBackend extends KernelBackend {
     return tensorData.values;
   }
 
-  // TODO: Remove once this is fixed:
-  // https://github.com/tensorflow/tfjs/issues/1595
   override readSync(dataId: object): BackendValues {
     const tensorData = this.tensorMap.get(dataId);
     const {values, complexTensorInfos} = tensorData;
@@ -427,30 +414,20 @@ export class WebGPUBackend extends KernelBackend {
       return complexVals;
     }
 
-    let channelMask: Partial<Record<GPUCanvasAlphaMode, number>>;
-    if (this.isLittleEndian) {
-      channelMask = {
-        opaque: 0x00ffffff,
-        premultiplied: 0xff000000,
-      };
-    } else {
-      channelMask = {
-        opaque: 0xffffff00,
-        premultiplied: 0x000000ff,
-      };
-    }
+    const alphaModes: GPUCanvasAlphaMode[] = ['opaque', 'premultiplied'];
 
     const bufferInfo = tensorData.resourceInfo as BufferInfo;
     const bufSize = bufferInfo.size;
-    util.assert(bufSize % 4 === 0, () => `Because there is 4 bytes for
-        one pixel, buffer size must be multiple of 4.`);
+    util.assert(
+        bufSize % 4 === 0,
+        () => 'Because there is 4 bytes for ' +
+            'one pixel, buffer size must be multiple of 4.');
     const pixelsSize = bufSize / 4;
     const valsGPU = new ArrayBuffer(bufSize);
     // TODO: adjust the reading window size according the `bufSize`.
     const canvasWidth = 256, canvasHeight = 256;
     const stagingDeviceStorage: OffscreenCanvas[] =
-        Object.keys(channelMask)
-            .map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
+        alphaModes.map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
     const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
 
     this.ensureComputePassEnded();
@@ -463,7 +440,7 @@ export class WebGPUBackend extends KernelBackend {
             device: this.device,
             format: 'bgra8unorm',
             usage: GPUTextureUsage.COPY_DST,
-            alphaMode: Object.keys(channelMask)[index] as GPUCanvasAlphaMode,
+            alphaMode: alphaModes[index],
           });
           return context.getCurrentTexture();
         })
@@ -492,23 +469,19 @@ export class WebGPUBackend extends KernelBackend {
                 });
                 context.clearRect(0, 0, width, height);
                 context.drawImage(stagingDeviceStorage[index], 0, 0);
-                const stagingValues = new Uint32Array(
-                    context.getImageData(0, 0, width, height).data.buffer);
-                const alphaMode =
-                    Object.keys(channelMask)[index] as GPUCanvasAlphaMode;
-                const span = new Uint32Array(valsGPU, offset, width * height);
-                for (let k = 0; k < span.length; ++k) {
+                const stagingValues =
+                    context.getImageData(0, 0, width, height).data;
+                const alphaMode = alphaModes[index];
+                const span =
+                    new Uint8ClampedArray(valsGPU, offset, width * height * 4);
+                for (let k = 0; k < span.length; k += 4) {
                   if (alphaMode === 'premultiplied') {
-                    span[k] |= stagingValues[k] & channelMask[alphaMode];
+                    span[k + 3] = stagingValues[k + 3];
                   } else {
-                    const val = stagingValues[k] & channelMask[alphaMode];
-                    if (this.isLittleEndian) {
-                      span[k] |= ((val >>> 16) & 0x000000ff) |
-                          (val & 0x0000ff00) | ((val << 16) & 0x00ff0000);
-                    } else {
-                      span[k] |= ((val >>> 16) & 0x0000ff00) |
-                          (val & 0x00ff0000) | ((val << 16) & 0xff000000);
-                    }
+                    const value = stagingValues[k];
+                    span[k] = stagingValues[k + 2];
+                    span[k + 1] = stagingValues[k + 1];
+                    span[k + 2] = value;
                   }
                 }
               };
@@ -552,7 +525,7 @@ export class WebGPUBackend extends KernelBackend {
     const {values} = tensorData;
 
     if (values != null) {
-      return this.convertAndCacheOnCPU(dataId, values);
+      return values;
     }
 
     // Download the values from the GPU.
