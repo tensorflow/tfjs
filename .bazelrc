@@ -9,9 +9,12 @@ build --symlink_prefix=dist/
 # These compile flags are active no matter which build mode we are in
 # (dbg vs opt). For flags specific to build mode, see cc_toolchain_config.bzl.
 build --cxxopt="-std=c++17"
-build --cxxopt="-fno-rtti"
+# build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
+
+build --copt="-Wno-deprecated-non-prototype"
+build --cxxopt="-Wno-deprecated-non-prototype"
 
 # Required by tensorflow
 common --experimental_repo_remote_exec
