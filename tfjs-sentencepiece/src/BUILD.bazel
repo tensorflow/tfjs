@@ -28,9 +28,7 @@ cc_binary(
     ],
     linkstatic = 1,
     deps = [
-        "@com_google_sentencepiece//:sentencepiece_cc_proto",
-        "@com_google_sentencepiece//:sentencepiece_model_cc_proto",
-        # "@com_google_sentencepiece//:sentencepiece_processor",
+        "@com_google_sentencepiece//:sentencepiece_processor",
         "@flatbuffers",
         "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_decoder",
         "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_encoder",

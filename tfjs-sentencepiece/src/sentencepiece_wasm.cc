@@ -6,7 +6,7 @@
 #include <utility>
 
 #include "base64.h"
-// #include "sentencepiece_processor.h"
+#include "sentencepiece_processor.h"
 #include "tensorflow_text/core/kernels/sentencepiece/encoder_config_generated.h"
 #include "tensorflow_text/core/kernels/sentencepiece/optimized_decoder.h"
 #include "tensorflow_text/core/kernels/sentencepiece/optimized_encoder.h"
@@ -16,12 +16,38 @@
 
 namespace tfjs::sentencepiece {
 
-using tensorflow::text::sentencepiece::DecoderResult;
-using tensorflow::text::sentencepiece::DecoderResultType;
-using tensorflow::text::sentencepiece::EncoderResult;
-using tensorflow::text::sentencepiece::EncoderResultType;
+namespace {
 
-static std::unordered_map<std::string, std::string> sp_model_pool;
+template <typename Status>
+void AssertOk(Status status) {
+  assert(status.ok());
+}
+
+class SentencePieceModel {
+ public:
+  SentencePieceModel() = delete;
+
+  SentencePieceModel(const SentencePieceModel&) = delete;
+  SentencePieceModel& operator=(const SentencePieceModel&) = delete;
+
+  explicit SentencePieceModel(const std::string& serialized_model_proto) {
+    processor.LoadFromSerializedProto(serialized_model_proto);
+  }
+
+  void SetOptions(bool add_bos, bool add_eos, bool reverse) {
+    std::string options;
+    if (add_bos) options += options.empty() ? "bos" : ":bos";
+    if (add_eos) options += options.empty() ? "eos" : ":eos";
+    if (reverse) options += options.empty() ? "reverse" : ":reverse";
+    AssertOk(processor.SetEncodeExtraOptions(options));
+    AssertOk(processor.SetDecodeExtraOptions(options));
+  }
+
+  ::sentencepiece::SentencePieceProcessor processor;
+};
+
+std::unordered_map<std::string, std::unique_ptr<SentencePieceModel>>
+    sp_model_pool;
 
 std::string RegisterModel(const std::string& model_base64) {
   std::string key = std::to_string(std::hash<std::string>()(model_base64));
@@ -31,93 +57,87 @@ std::string RegisterModel(const std::string& model_base64) {
     return key;
   }
 
-  std::string model = base64::Decode(model_base64);
-  sp_model_pool.insert({key, std::move(model)});
+  sp_model_pool.insert({key, std::make_unique<SentencePieceModel>(
+                                 base64::Decode(model_base64))});
   return key;
 }
 
-namespace {
+struct EncodeStringResult {
+  std::vector<int> output_values_flat;
+  std::vector<int> output_splits_flat;
+};
 
-using namespace tensorflow::text::sentencepiece;
-using namespace std;
-using namespace flatbuffers;
+// REQUIRES:
+// - Attr `out_type`: int32 type
+// - Attr `Tsplits`: int64/int32 type
+// - Attr `return_nbest`: false
+// - Input `nbest_size`: [0]
+// - Input `alpha`: 1
+EncodeStringResult EncodeString(
+    const std::string& model_key,
+    const std::vector<std::string>& input_values_flat, bool add_bos,
+    bool add_eos, bool reverse) {
+  std::unique_ptr<SentencePieceModel>& model = sp_model_pool.at(model_key);
+  model->SetOptions(add_bos, add_eos, reverse);
 
-void DebugModel(const std::string& model_base64) {
-  std::string model = base64::Decode(model_base64);
+  std::vector<std::vector<int>> tokens(input_values_flat.size());
+  for (size_t i = 0; i < input_values_flat.size(); ++i) {
+    AssertOk(model->processor.Encode(input_values_flat[i], &tokens[i]));
+  }
 
-  const EncoderConfig* config = GetEncoderConfig(model.c_str());
+  int total_tokens = 0;
+  for (const auto& tokens_row : tokens) {
+    total_tokens += tokens_row.size();
+  }
+  int splits_size = tokens.size() + 1;
+  EncodeStringResult result{
+      .output_values_flat = std::vector<int>(total_tokens),
+      .output_splits_flat = std::vector<int>(splits_size),
+  };
 
-  flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t*>(model.c_str()), model.size());
+  result.output_splits_flat[0] = 0;
+  for (int i = 0, row = 0; row < tokens.size(); ++row) {
+    for (int col = 0; col < tokens[row].size(); ++col, ++i) {
+      result.output_values_flat[i] = tokens[row][col];
+    }
+    result.output_splits_flat[row + 1] = i;
+  }
+  return result;
+}
 
-  cout << "Verify:: " << (config->Verify(verifier) ? "SUCCESS" : "FAIL")
-       << endl;
-  cout << config->start_code() << " " << config->end_code() << endl;
-  cout << config->normalized_replacements()->size() << endl;
+// REQUIRES:
+// - Attr `out_type`: int32 type
+// - Attr `Tsplits`: int64/int32 type
+std::vector<std::string> DecodeString(const std::string& model_key,
+                                      const std::vector<int>& encoded_flat,
+                                      const std::vector<int>& splits_flat) {
+  std::unique_ptr<SentencePieceModel>& model = sp_model_pool.at(model_key);
+  int num_of_sentences = static_cast<int>(splits_flat.size()) - 1;
+
+  std::vector<std::string> output_flat;
+  for (int i = 0; i < num_of_sentences; ++i) {
+    std::vector<int> pieces(&encoded_flat[splits_flat[i]],
+                            &encoded_flat[splits_flat[i + 1]]);
+    std::string output_flat_str;
+    AssertOk(model->processor.Decode(pieces, &output_flat_str));
+    output_flat.push_back(std::move(output_flat_str));
+  }
+  return output_flat;
 }
 
 }  // namespace
 
-EncoderResult EncodeString(const std::string& string,
-                           const std::string& config_key, bool add_bos,
-                           bool add_eos, bool reverse) {
-  auto it = sp_model_pool.find(config_key);
-  if (it == sp_model_pool.end()) {
-    auto error_message = "EncodeString error: Model not found";
-    std::cout << error_message << std::endl;
-    throw std::invalid_argument(error_message);
-  }
-
-  return tensorflow::text::sentencepiece::EncodeString(
-      string, it->second.c_str(), add_bos, add_eos, reverse);
-}
-
-DecoderResult DecodeString(const int* encoded, size_t encoded_size,
-                           const std::string& config_key) {
-  auto it = sp_model_pool.find(config_key);
-  if (it == sp_model_pool.end()) {
-    auto error_message = "EncodeString error: Model not found";
-    std::cout << error_message << std::endl;
-    throw std::invalid_argument(error_message);
-  }
-
-  std::vector<int> encoded_vec(encoded, encoded + encoded_size);
-  return tensorflow::text::sentencepiece::DecodeString(encoded_vec,
-                                                       it->second.c_str());
-}
-
 EMSCRIPTEN_BINDINGS(tfjs_sentencepiece) {
+  emscripten::register_vector<int>("VectorInt");
+  emscripten::register_vector<std::string>("VectorString");
+
+  emscripten::value_object<EncodeStringResult>("EncodeStringResult")
+      .field("outputValuesFlat", &EncodeStringResult::output_values_flat)
+      .field("outputSplitsFlat", &EncodeStringResult::output_splits_flat);
+
   emscripten::function("RegisterModel", &RegisterModel);
-  emscripten::value_array<std::vector<int>>("IntVector")
-      .element(emscripten::index<0>());
-
-  emscripten::enum_<EncoderResultType>("EncoderResultType")
-      .value("SUCCESS", EncoderResultType::SUCCESS)
-      .value("WRONG_CONFIG", EncoderResultType::WRONG_CONFIG);
-
-  emscripten::value_object<EncoderResult>("EncoderResult")
-      .field("type", &EncoderResult::type)
-      .field("codes", &EncoderResult::codes)
-      .field("offsets", &EncoderResult::offsets);
-
-  emscripten::enum_<DecoderResultType>("DecoderResultType")
-      .value("SUCCESS", DecoderResultType::SUCCESS)
-      .value("WRONG_CONFIG", DecoderResultType::WRONG_CONFIG)
-      .value("INVALID_INPUT", DecoderResultType::INVALID_INPUT);
-
-  emscripten::value_object<DecoderResult>("DecoderResult")
-      .field("decoded", &DecoderResult::decoded)
-      .field("type", &DecoderResult::type);
-
   emscripten::function("EncodeString", &EncodeString);
-  emscripten::function("DecodeString", &DecodeString,
-                       emscripten::allow_raw_pointers());
-
-  emscripten::function("DebugModel", &DebugModel);
+  emscripten::function("DecodeString", &DecodeString);
 }
-
-// EMSCRIPTEN_BINDINGS(sentencepiece) {
-
-// }
 
 }  // namespace tfjs::sentencepiece
