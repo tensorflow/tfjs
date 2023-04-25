@@ -228,6 +228,31 @@ describe('creation', () => {
         expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
+    describe('RandomUniformInt', () => {
+      it('should call tfOps.randomUniformInt', () => {
+        node.op = 'RandomUniformInt';
+        node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.attrParams['maxval'] = createNumberAttr(1);
+        node.attrParams['minval'] = createNumberAttr(0);
+        node.attrParams['seed'] = createNumberAttr(456);
+
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.randomUniformInt)
+            .toHaveBeenCalledWith([1, 2, 3], 0, 1, 456);
+      });
+      it('should match json def', () => {
+        node.op = 'RandomUniformInt';
+        node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.attrParams['maxval'] = createNumberAttr(1);
+        node.attrParams['minval'] = createNumberAttr(0);
+        node.attrParams['seed'] = createNumberAttr(456);
+
+        expect(validateParam(node, creation.json)).toBeTruthy();
+      });
+    });
     describe('TruncatedNormal', () => {
       it('should call tfOps.truncatedNormal', () => {
         node.op = 'TruncatedNormal';
