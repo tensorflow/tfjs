@@ -110,31 +110,15 @@ const calculateResultSnippet =
      tileWidth: number, blockSize: number) => {
       if (transposeA) {
         return `
+        // TODO. It's not easy to support transposeA = true for any output tile
         for (var i = 0; i < ${rowPerThread}; i++) {
           let tIndex = tileIndex + (i * ${blockSize});
           var tileRow = tIndex / ${tileWidth};
           var tileCol = tIndex % ${tileWidth};
-          let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
-          let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
-          let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
-          ${
-            innerElementSize === 3 ?
-                '' :
-                `let BCached3 = mm_Bsub[k * ${innerElementSize} + 3][tileCol];`}
-          let ACached0 = mm_Asub[k * ${innerElementSize}][tileRow / 4];
-          let ACached1 = mm_Asub[k * ${innerElementSize} + 1][tileRow / 4];
-          let ACached2 = mm_Asub[k * ${innerElementSize} + 2][tileRow / 4];
-          ${
-            innerElementSize === 3 ? '' :
-                                     `let ACached3 = mm_Asub[k * ${
-                                         innerElementSize} + 3][tileRow / 4];`}
+          let BCached = mm_Bsub[k * ${innerElementSize}][tileCol];
+          let ACached = mm_Asub[k * ${innerElementSize}][tileRow / ${
+            rowPerThread}];
           acc[i] = fma(BCached0, vec4<f32>(ACached0[i]), acc[i]);
-          acc[i] = fma(BCached1, vec4<f32>(ACached1[i]), acc[i]);
-          acc[i] = fma(BCached2, vec4<f32>(ACached2[i]), acc[i]);
-          ${
-            innerElementSize === 3 ?
-                '' :
-                'acc[i] = fma(BCached3, vec4<f32>(ACached3[i]), acc[i]);'}
         }`;
       } else {
         return `
@@ -164,14 +148,15 @@ const calculateResultSnippet =
 export function makeMatMulPackedVec4Source(
     workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
-    broadcastBatch = false): string {
-  const tileAOuter = workgroupSize[1] * workPerThread[1];
-  const tileBOuter = workgroupSize[0] * workPerThread[0];
+    broadcastBatch = false, tileAOuter = 32, tileBOuter = 32): string {
+  // const tileAOuter = workgroupSize[1] * workPerThread[1];
+  // const tileBOuter = workgroupSize[0] * workPerThread[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
-  const rowPerThread = tileAOuter * tileBOuter /
-      (workgroupSize[0] * workgroupSize[1] * workPerThread[0]);
+  const rowPerThread = Math.ceil(
+      tileAOuter * tileBOuter /
+      (workgroupSize[0] * workgroupSize[1] * workPerThread[0]));
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
        (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&

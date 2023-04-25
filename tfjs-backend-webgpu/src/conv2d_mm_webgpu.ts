@@ -20,7 +20,7 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
 import {typeSnippet, WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkgroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
+import {computeDispatch, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 function conv2dCommonSnippet(
     isChannelsLast: boolean, fitAOuter: boolean, fitBOuter: boolean,
@@ -188,14 +188,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
         convInfo.outChannels % 4 === 0;
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [2, 3], y: [1], z: [0]};
-    this.workgroupSize = computeWorkgroupSizeForConv2d(
-        this.dispatchLayout, this.outputShape, this.isVec4);
+    this.workgroupSize = [8, 8, 1];
     this.elementsPerThread = computeWorkPerThreadForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
-
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize,
-        this.elementsPerThread);
 
     if (this.isVec4) {
       this.outputComponent = 4;
@@ -232,8 +227,12 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
+    this.tileAOuter = this.isVec4 ?
+        (dimAOuter < 32 ? dimAOuter : 32) :
+        (this.workgroupSize[1] * this.elementsPerThread[1]);
+    this.tileBOuter = this.isVec4 ?
+        (dimBOuter < 32 ? dimBOuter : 32) :
+        this.workgroupSize[0] * this.elementsPerThread[0];
     this.tileInner = this.isVec4 ?
         (dimInner < 32 ? dimInner :
                          this.workgroupSize[0] * this.innerElementSize) :
@@ -245,10 +244,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
     this.fitInner = dimInner % this.tileInner === 0;
 
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape,
+        [this.tileBOuter, this.tileAOuter, 1]);
+
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
         this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${
         this.innerElementSize}_${this.isChannelsLast}_${
-        this.sequentialAccessByThreads}`;
+        this.sequentialAccessByThreads}_${this.tileAOuter}_${this.tileInner}_${
+        this.tileBOuter}`;
   }
 
   getUserCode(): string {
@@ -258,7 +262,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
               this.elementsPerThread[0], this.elementsPerThread[1],
               this.innerElementSize
             ],
-            this.workgroupSize, !this.isChannelsLast, this.tileInner) :
+            this.workgroupSize, !this.isChannelsLast, this.tileInner, false,
+            null, false, this.tileAOuter, this.tileBOuter) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
             this.tileInner, false, null, this.sequentialAccessByThreads);
