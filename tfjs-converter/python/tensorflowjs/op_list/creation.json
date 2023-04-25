@@ -215,6 +215,42 @@
     ]
   },
   {
+    "tfOpName": "RandomUniformInt",
+    "category": "creation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "shape",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "minval",
+        "name": "minval",
+        "type": "number"
+      },
+      {
+        "tfName": "maxval",
+        "name": "maxval",
+        "type": "number"
+      },
+      {
+        "tfName": "seed",
+        "name": "seed",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "tfName": "seed2",
+        "name": "seed2",
+        "type": "number",
+        "defaultValue": 0,
+        "notSupported": true
+      }
+    ]
+  },
+  {
     "tfOpName": "Range",
     "category": "creation",
     "inputs": [
