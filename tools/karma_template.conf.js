@@ -83,13 +83,11 @@ const CUSTOM_LAUNCHERS = {
     os_version: 'High Sierra',
     flags: [
       '--enable-unsafe-webgpu',
-      '--disable-vulkan-fallback-to-gl-for-testing',
+      '--enable-features=vulkan',
+      '--use-angle=swiftshader',
+      '--use-vulkan=swiftshader',
+      '--use-webgpu-adapter=swiftshader',
       '--disable-vulkan-surface',
-      '--disable-features=VaapiVideoDecoder',
-      '--ignore-gpu-blocklist',
-      // For some reason, the tests fail without this flag, even though macos
-      // does not use Vulkan.
-      '--use-angle=vulkan',
     ],
   },
   chrome_with_swift_shader: {
@@ -155,14 +153,16 @@ module.exports = function(config) {
     const username = process.env.BROWSERSTACK_USERNAME;
     const accessKey = process.env.BROWSERSTACK_KEY;
     if (!username) {
-      console.error('No browserstack username found. Please set the'
-                    + ' environment variable "BROWSERSTACK_USERNAME" to your'
-                    + ' browserstack username');
+      console.error(
+          'No browserstack username found. Please set the' +
+          ' environment variable "BROWSERSTACK_USERNAME" to your' +
+          ' browserstack username');
     }
     if (!accessKey) {
-      console.error('No browserstack access key found. Please set the'
-                    + ' environment variable "BROWSERSTACK_KEY" to your'
-                    + ' browserstack access key');
+      console.error(
+          'No browserstack access key found. Please set the' +
+          ' environment variable "BROWSERSTACK_KEY" to your' +
+          ' browserstack access key');
     }
     if (!username || !accessKey) {
       process.exit(1);
@@ -173,8 +173,7 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       timeout: 900,  // Seconds
-      tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     };
   }
 
@@ -201,7 +200,7 @@ module.exports = function(config) {
       args: TEMPLATE_args,
       jasmine: {
         random: TEMPLATE_jasmine_random,
-        seed: "TEMPLATE_jasmine_seed",
+        seed: 'TEMPLATE_jasmine_seed',
       },
     },
   });
