@@ -19,7 +19,8 @@ export declare interface EncodeStringResult {
 }
 
 export interface SentencePieceModule extends EmscriptenModule {
-  RegisterModel: (modelBase64: string) => string;
+  RegisterModel: (modelSerializedProto: string) => string;
+  RegisterModelBase64: (modelSerializedProtoBase64: string) => string;
   EncodeString:
       (modelKey: string, inputs: VectorString, addBos: boolean, addEos: boolean,
        reverse: boolean) => EncodeStringResult;

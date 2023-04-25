@@ -31,7 +31,7 @@ class SentencePieceModel {
   SentencePieceModel& operator=(const SentencePieceModel&) = delete;
 
   explicit SentencePieceModel(const std::string& serialized_model_proto) {
-    processor.LoadFromSerializedProto(serialized_model_proto);
+    AssertOk(processor.LoadFromSerializedProto(serialized_model_proto));
   }
 
   void SetOptions(bool add_bos, bool add_eos, bool reverse) {
