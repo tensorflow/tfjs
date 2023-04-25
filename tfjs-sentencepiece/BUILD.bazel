@@ -58,6 +58,9 @@ pkg_npm(
     name = "tfjs-sentencepiece_pkg",
     package_name = "@tensorflow/tfjs-sentencepiece",
     tags = ["ci"],
+    srcs = [
+        "package.json",
+    ],
     deps = [
         ":copy_bundles",
         ":copy_src_to_dist",

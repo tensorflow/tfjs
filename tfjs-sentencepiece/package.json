@@ -1,0 +1,38 @@
+{
+  "name": "@tensorflow/tfjs-sentencepiece",
+  "version": "0.0.1",
+  "description": "TensorFlow SentencePiece op for TensorFlow.js",
+  "main": "dist/tf-sentencepiece.node.js",
+  "module": "dist/tf-sentencepiece.fesm.js",
+  "jsdelivr": "dist/tf-sentencepiece.min.js",
+  "unpkg": "dist/tf-sentencepiece.min.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/tf-sentencepiece.fesm.js",
+      "require": "./dist/tf-sentencepiece.node.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-sentencepiece"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter"
+  },
+  "devDependencies": {
+    "@bazel/bazelisk": "^1.12.0"
+  },
+  "scripts": {
+    "build": "bazel build :tfjs-sentencepiece_pkg",
+    "bundle": "bazel build :tfjs-sentencepiece_pkg",
+    "build-npm": "bazel build :tfjs-sentencepiece_pkg",
+    "publish-npm": "bazel run :tfjs-sentencepiece_pkg.publish"
+  }
+}

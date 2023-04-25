@@ -9,4 +9,5 @@ export const BAZEL_PACKAGES = new Set([
   'tfjs-layers',
   'tfjs-data',
   'tfjs-backend-wasm',
+  'tfjs-sentencepiece',
 ]);
