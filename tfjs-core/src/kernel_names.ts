@@ -22,7 +22,7 @@ import {NamedTensorInfoMap} from './kernel_registry';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
 import {TensorInfo} from './tensor_info';
-import {DataType, PixelData} from './types';
+import {CanvasOptions, DataType, DrawOptions, PixelData} from './types';
 
 export const Abs = 'Abs';
 export type AbsInputs = UnaryInputs;
@@ -331,6 +331,14 @@ export type Dilation2DBackpropInputInputs =
 export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
+export const Draw = 'Draw';
+export type DrawInputs = Pick<NamedTensorInfoMap, 'image'>;
+export interface DrawAttrs {
+  canvas: HTMLCanvasElement;
+  canvasOptions?: CanvasOptions;
+  drawOptions?: DrawOptions;
+}
 
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;

@@ -69,6 +69,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {drawConfig} from './kernels/Draw';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -242,6 +243,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,

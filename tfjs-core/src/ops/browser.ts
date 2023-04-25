@@ -17,12 +17,12 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
+import {Draw, DrawAttrs, DrawInputs, FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {PixelData, TensorLike} from '../types';
+import {CanvasOptions, DrawOptions, PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
 import {op} from './operation';
@@ -145,9 +145,8 @@ function fromPixels_(
               'Reason: OffscreenCanvas Context2D rendering is not supported.');
         }
       } else {
-        fromPixels2DContext =
-            document.createElement('canvas').getContext(
-                '2d', {willReadFrequently: true});
+        fromPixels2DContext = document.createElement('canvas').getContext(
+            '2d', {willReadFrequently: true});
       }
     }
     fromPixels2DContext.canvas.width = width;
@@ -269,6 +268,26 @@ export async function fromPixelsAsync(
   return fromPixels_(inputs, numChannels);
 }
 
+function validateImgTensor(img: Tensor2D|Tensor3D) {
+  if (img.rank !== 2 && img.rank !== 3) {
+    throw new Error(
+        `toPixels only supports rank 2 or 3 tensors, got rank ${img.rank}.`);
+  }
+  const depth = img.rank === 2 ? 1 : img.shape[2];
+
+  if (depth > 4 || depth === 2) {
+    throw new Error(
+        `toPixels only supports depth of size ` +
+        `1, 3 or 4 but got ${depth}`);
+  }
+
+  if (img.dtype !== 'float32' && img.dtype !== 'int32') {
+    throw new Error(
+        `Unsupported type for toPixels: ${img.dtype}.` +
+        ` Please use float32 or int32 tensors.`);
+  }
+}
+
 /**
  * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
  * canvas.
@@ -299,25 +318,10 @@ export async function toPixels(
     $img = cast(originalImgTensor, 'int32');
     originalImgTensor.dispose();
   }
-  if ($img.rank !== 2 && $img.rank !== 3) {
-    throw new Error(
-        `toPixels only supports rank 2 or 3 tensors, got rank ${$img.rank}.`);
-  }
+  validateImgTensor($img);
+
   const [height, width] = $img.shape.slice(0, 2);
   const depth = $img.rank === 2 ? 1 : $img.shape[2];
-
-  if (depth > 4 || depth === 2) {
-    throw new Error(
-        `toPixels only supports depth of size ` +
-        `1, 3 or 4 but got ${depth}`);
-  }
-
-  if ($img.dtype !== 'float32' && $img.dtype !== 'int32') {
-    throw new Error(
-        `Unsupported type for toPixels: ${$img.dtype}.` +
-        ` Please use float32 or int32 tensors.`);
-  }
-
   const data = await $img.data();
   const multiplier = $img.dtype === 'float32' ? 255 : 1;
   const bytes = new Uint8ClampedArray(width * height * 4);
@@ -369,6 +373,45 @@ export async function toPixels(
     $img.dispose();
   }
   return bytes;
+}
+
+/**
+ * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
+ * canvas.
+ *
+ * When the dtype of the input is 'float32', we assume values in the range
+ * [0-1]. Otherwise, when input is 'int32', we assume values in the range
+ * [0-255].
+ *
+ * Returns a promise that resolves when the canvas has been drawn to.
+ *
+ * @param image A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
+ * of shape `[height, width, numChannels]`. If rank-2, draws grayscale. If
+ * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
+ * grayscale. When depth of 3, we draw with the first three components of
+ * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
+ * 4, all four components of the depth dimension correspond to r, g, b, a.
+ * @param canvas The canvas to draw to.
+ *
+ * @doc {heading: 'Browser', namespace: 'browser'}
+ */
+export function draw(
+    image: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
+    canvasOptions: CanvasOptions, drawOptions: DrawOptions): void {
+  let $img = convertToTensor(image, 'img', 'draw');
+  if (!(image instanceof Tensor)) {
+    // Assume int32 if user passed a native array.
+    const originalImgTensor = $img;
+    $img = cast(originalImgTensor, 'int32');
+    originalImgTensor.dispose();
+  }
+  validateImgTensor($img);
+
+  const inputs: DrawInputs = {image: $img};
+  const attrs: DrawAttrs = {canvas, canvasOptions, drawOptions};
+  ENGINE.runKernel(
+      Draw, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const fromPixels = /* @__PURE__ */ op({fromPixels_});
