@@ -76,3 +76,5 @@ e2e/custom_module/universal_sentence_encoder/custom_tfjs
 # User-specific .bazelrc
 .bazelrc.user
 **/.parcel-cache
+
+sp_nodes.json

@@ -241,7 +241,7 @@ http_archive(
     name = "com_google_sentencepiece",
     build_file = "@org_tensorflow_text//third_party/sentencepiece:BUILD",
     patch_args = ["-p1"],
-    patches = ["//third_party/sentencepiece:sp.patch"],
+    patches = ["@org_tensorflow_text//third_party/sentencepiece:sp.patch"],
     sha256 = "8409b0126ebd62b256c685d5757150cf7fcb2b92a2f2b98efb3f38fc36719754",
     strip_prefix = "sentencepiece-0.1.96",
     urls = [
@@ -256,4 +256,10 @@ http_archive(
     urls = [
         "https://github.com/tensorflow/text/archive/refs/tags/v2.12.1.tar.gz",
     ],
+)
+
+git_repository(
+    name = "flatbuffers",
+    commit = "3fda20d7c7fe1f8006210bddae8cb55bc7a74c3b",
+    remote = "https://github.com/google/flatbuffers.git",
 )

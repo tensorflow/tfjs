@@ -1,0 +1,66 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+
+package(default_visibility = ["//visibility:public"])
+
+tfjs_bundle(
+    name = "tf-sentencepiece",
+    entry_point = "//tfjs-sentencepiece/src:index.ts",
+    external = [
+        "@tensorflow/tfjs-core",
+        "@tensorflow/tfjs-converter",
+        "path",
+        "fs",
+    ],
+    globals = {
+        "@tensorflow/tfjs-converter": "tf",
+        "@tensorflow/tfjs-core": "tf",
+        "fs": "fs",
+        "path": "path",
+    },
+    umd_name = "tfsp",
+    deps = [
+        "//tfjs-sentencepiece/src:tfjs-sentencepiece_lib",
+    ],
+)
+
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        "//tfjs-sentencepiece/src:tfjs-sentencepiece_lib",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_wasm_to_dist",
+    srcs = [
+        "//tfjs-sentencepiece/src:copy_wasm",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-sentencepiece",
+        ":tf-sentencepiece.es2017",
+        ":tf-sentencepiece.es2017.min",
+        ":tf-sentencepiece.fesm",
+        ":tf-sentencepiece.fesm.min",
+        ":tf-sentencepiece.min",
+        ":tf-sentencepiece.node",
+    ],
+)
+
+pkg_npm(
+    name = "tfjs-sentencepiece_pkg",
+    package_name = "@tensorflow/tfjs-sentencepiece",
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_src_to_dist",
+        ":copy_wasm_to_dist",
+    ],
+)

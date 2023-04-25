@@ -1,0 +1,93 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:defaults.bzl", "ts_library")
+load("//tools:get_extension.bzl", "get_extension")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "sentencepiece",
+    srcs = [
+        #TODO: Divide srcs to multiple targets
+        "base64.h",
+        "sentencepiece_wasm.cc",
+    ],
+    copts = [
+        "-frtti",
+        "-fexceptions",
+    ],
+    linkopts = [
+        "--bind",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=SentencePieceModule",
+        "-s NO_DISABLE_EXCEPTION_CATCHING",
+        "-s INITIAL_MEMORY=128MB",
+        "-s ALLOW_MEMORY_GROWTH",
+    ],
+    linkstatic = 1,
+    deps = [
+        "@com_google_sentencepiece//:sentencepiece_processor",
+        "@flatbuffers",
+        "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_decoder",
+        "@org_tensorflow_text//tensorflow_text/core/kernels/sentencepiece:optimized_encoder",
+    ],
+)
+
+wasm_cc_binary(
+    name = "sentencepiece_wasm",
+    cc_target = ":sentencepiece",
+)
+
+get_extension(
+    name = "wasm_files",
+    srcs = [
+        ":sentencepiece_wasm",
+    ],
+    include = [
+        ".js",
+        ".cjs",
+        ".wasm",
+    ],
+    exclude = [
+        ".fetch.js",
+        ".debug.wasm",
+    ],
+)
+
+# Copy the wasm files out of their directory into dist/ because when the rollup
+# bundle is loaded by the browser, it will look for the .wasm file in the same
+# directory it's in.
+copy_to_dist(
+    name = "copy_wasm",
+    srcs = [
+        ":wasm_files",
+    ],
+    dest_dir = ".",
+    root = "sentencepiece_wasm",
+)
+
+js_library(
+    name = "sentencepiece_wasm_lib",
+    srcs = [
+        "sentencepiece.d.ts",
+        ":copy_wasm",
+    ],
+    deps = [
+        "@npm//@types/emscripten",
+    ],
+)
+
+ts_library(
+    name = "tfjs-sentencepiece_lib",
+    srcs = glob(
+        ["**/*.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-sentencepiece",
+    deps = [
+        ":sentencepiece_wasm_lib",
+        "//tfjs-converter/src:tfjs-converter_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+    ],
+)
