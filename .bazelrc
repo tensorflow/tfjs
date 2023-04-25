@@ -74,7 +74,7 @@ run --action_env=PYDEVD_RESOLVE_SYMLINKS=true
 
 # Platform specific DISPLAY environment variable for webgl and headless setting
 # for browser tests.
-test:linux --test_env=DISPLAY
+test:linux --test_env=DISPLAY --test_env=XAUTHORITY=/run/user/1001/.mutter-Xwaylandauth.ONEU31
 test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true --//:headless=false
 

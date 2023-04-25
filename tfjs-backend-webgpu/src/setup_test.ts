@@ -111,11 +111,26 @@ const TEST_FILTERS: TestFilter[] = [
       'log propagates NaNs',  // Failing on MacOS
     ],
   },
-
   {
     startsWith: 'softmax ',
     excludes: [
       'Propagates NaNs',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'fromPixels ',
+    excludes: [
+      'HTMLVideoElement',        // Device is lost on Linux
+      'canvas and image match',  // Failing on Linux
+    ],
+  },
+  {
+    startsWith: 'sign ',
+    excludes: [
+      // Failing on Linux
+      'basic',
+      'does not propagate NaNs',
+      'accepts a tensor-like object',
     ],
   },
 
