@@ -83,14 +83,15 @@ const CUSTOM_LAUNCHERS = {
     os_version: 'High Sierra',
     flags: [
       // mandatory flags
-      '--enable-unsafe-webgpu', '--enable-features=Vulkan',
+      '--enable-unsafe-webgpu',
+      '--enable-features=Vulkan',
       '--use-webgpu-adapter=swiftshader',
 
-      '--use-angle=swiftshader', '--use-vulkan=swiftshader',
+      //'--use-angle=swiftshader',
+      //'--use-vulkan=swiftshader',
 
       // more tests
       '--disable-vulkan-fallback-to-gl-for-testing',
-      //'--disable-features=VaapiVideoDecoder',
 
     ],
   },
