@@ -77,12 +77,12 @@ export function combineRaggedTensorToTensorShapes(
 
 export function getRowPartitionTypesHelper(rowPartitionTypeStrings: string[]) {
   const stringToType = {
-    'FIRST_DIM_SIZE': RowPartitionType.FIRST_DIM_SIZE,
-    'VALUE_ROWIDS': RowPartitionType.VALUE_ROWIDS,
-    'ROW_LENGTHS': RowPartitionType.ROW_LENGTHS,
-    'ROW_SPLITS': RowPartitionType.ROW_SPLITS,
-    'ROW_LIMITS': RowPartitionType.ROW_LIMITS,
-    'ROW_STARTS': RowPartitionType.ROW_STARTS
+    'first_dim_size': RowPartitionType.FIRST_DIM_SIZE,
+    'value_rowids': RowPartitionType.VALUE_ROWIDS,
+    'row_lengths': RowPartitionType.ROW_LENGTHS,
+    'row_splits': RowPartitionType.ROW_SPLITS,
+    'row_limits': RowPartitionType.ROW_LIMITS,
+    'row_starts': RowPartitionType.ROW_STARTS
   };
 
   const result: RowPartitionType[] = [];

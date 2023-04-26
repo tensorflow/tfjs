@@ -40,6 +40,7 @@ import * as sparse from './op_list/sparse';
 import * as spectral from './op_list/spectral';
 import * as string from './op_list/string';
 import * as transformation from './op_list/transformation';
+import * as ragged from './op_list/ragged';
 import {Graph, InputParamValue, Node, OpMapper, ParamValue} from './types';
 
 export class OperationMapper {
@@ -57,7 +58,7 @@ export class OperationMapper {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
       evaluation, graph, hashTable, image, logical, matrices, normalization,
-      reduction, sliceJoin, sparse, spectral, string, transformation
+      reduction, sliceJoin, sparse, spectral, string, transformation, ragged,
     ];
     const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
@@ -455,7 +456,7 @@ export function parseStringParam(s: []|string, keepCase: boolean): string {
 
 export function getStringParam(
     attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string,
-    keepCase = false): string {
+    keepCase = true): string {
   const param = attrs[name];
   if (param != null) {
     return parseStringParam(param.s, keepCase);

@@ -3,16 +3,10 @@
   "version": "0.0.1",
   "description": "TensorFlow SentencePiece op for TensorFlow.js",
   "main": "dist/tf-sentencepiece.node.js",
-  "module": "dist/tf-sentencepiece.fesm.js",
+  "module": "dist/index.js",
   "jsdelivr": "dist/tf-sentencepiece.min.js",
   "unpkg": "dist/tf-sentencepiece.min.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/tf-sentencepiece.fesm.js",
-      "require": "./dist/tf-sentencepiece.node.js"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git",

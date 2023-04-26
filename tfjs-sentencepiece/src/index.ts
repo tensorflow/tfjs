@@ -32,7 +32,7 @@ function vectorToArray<T>(vec: Vector<T>): T[] {
  */
 export async function registerModel(modelSerializedProto: string):
     Promise<string> {
-  return (await modulePromise).RegisterModelBase64(atob(modelSerializedProto));
+  return (await modulePromise).RegisterModelBase64(btoa(modelSerializedProto));
 }
 
 /**
@@ -54,8 +54,8 @@ export async function encodeString(
   const stringsVec = vectorPush(new m.VectorString(), stringValues);
   const result = m.EncodeString(modelKey, stringsVec, addBos, addEos, reverse);
 
-  const tokens = tensor1d(vectorToArray(result.valuesFlat));
-  const splits = tensor1d(vectorToArray(result.splitsFlat));
+  const tokens = tensor1d(vectorToArray(result.valuesFlat), 'int32');
+  const splits = tensor1d(vectorToArray(result.splitsFlat), 'int32');
 
   result.valuesFlat.delete();
   result.splitsFlat.delete();

@@ -105,7 +105,7 @@ class RaggedTensorToTensorOp {
       t: TypedArray, tShape: number[], isPartial = true) {
     if (tShape.length === 0) {
       if (t[0] === -1) {
-        return [];
+        return null;
       }
       throw new Error(
           `The only valid scalar shape tensor is the fully unknown shape specified as -1.`);
