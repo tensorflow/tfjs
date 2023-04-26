@@ -133,6 +133,19 @@ const TEST_FILTERS: TestFilter[] = [
       'accepts a tensor-like object',
     ],
   },
+  {
+    startsWith: 'broadcastArgs ',
+    excludes: [
+      'error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
+  },
+  {
+    startsWith: 'tensor.data ',
+    excludes: [
+      '.data() postpones disposal of tensor',
+      'calling .data() twice works',
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {
