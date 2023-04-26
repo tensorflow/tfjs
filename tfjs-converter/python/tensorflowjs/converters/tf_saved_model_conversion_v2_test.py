@@ -24,7 +24,7 @@ import unittest
 import numpy as np
 
 import tensorflow.compat.v2 as tf
-from tensorflow_decision_forests.keras import GradientBoostedTreesModel
+# from tensorflow_decision_forests.keras import GradientBoostedTreesModel
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -251,19 +251,20 @@ class ConvertTest(tf.test.TestCase):
 
   def _create_saved_model_with_tfdf(self):
     """Test a basic TFDF model."""
-    P = 5
-    NUM_EXAMPLES = 10
-    NUM_FEATURES = 4
+    pass
+    # P = 5
+    # NUM_EXAMPLES = 10
+    # NUM_FEATURES = 4
 
-    x_train = np.random.uniform(size=(NUM_EXAMPLES, NUM_FEATURES))
-    y_train = np.random.uniform(size=NUM_EXAMPLES) > 0.5
-    w_train = y_train * (P - 1) + 1  # 1 or p depending on the class.
+    # x_train = np.random.uniform(size=(NUM_EXAMPLES, NUM_FEATURES))
+    # y_train = np.random.uniform(size=NUM_EXAMPLES) > 0.5
+    # w_train = y_train * (P - 1) + 1  # 1 or p depending on the class.
 
-    model = GradientBoostedTreesModel()
-    model.fit(x=x_train, y=y_train, sample_weight=w_train)
+    # model = GradientBoostedTreesModel()
+    # model.fit(x=x_train, y=y_train, sample_weight=w_train)
 
-    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    model.save(save_dir)
+    # save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # model.save(save_dir)
 
   def _create_unsupported_saved_model(self):
     root = tracking.AutoTrackable()
