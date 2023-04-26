@@ -89,7 +89,7 @@ const CUSTOM_LAUNCHERS = {
       '--use-angle=swiftshader', '--use-vulkan=swiftshader',
 
       // more tests
-      //'--disable-vulkan-fallback-to-gl-for-testing',
+      '--disable-vulkan-fallback-to-gl-for-testing',
       //'--disable-features=VaapiVideoDecoder',
 
     ],
