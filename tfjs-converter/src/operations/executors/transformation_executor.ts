@@ -26,8 +26,8 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Cast': {
           return [ops.cast(
@@ -50,6 +50,11 @@ export const executeOp: InternalOpExecutor =
 
         case 'Reshape': {
           return [ops.reshape(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('shape', node, tensorMap, context) as number[])];
+        }
+        case 'EnsureShape': {
+          return [ops.ensureShape(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('shape', node, tensorMap, context) as number[])];
         }

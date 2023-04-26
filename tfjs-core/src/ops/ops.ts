@@ -71,6 +71,7 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {einsum} from './einsum';
 export {elu} from './elu';
+export {ensureShape} from './ensure_shape';
 export {equal} from './equal';
 export {erf} from './erf';
 export {euclideanNorm} from './euclidean_norm';
