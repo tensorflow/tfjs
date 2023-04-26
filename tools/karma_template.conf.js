@@ -82,15 +82,17 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra',
     flags: [
+      // mandatory flags
       '--enable-unsafe-webgpu',
-      '--disable-vulkan-surface',
+      '--enable-features=Vulkan',
+      '--use-webgpu-adapter=swiftshader',
 
-      '--ignore-gpu-blocklist',
-
-      '--enable-features=vulkan',
+      // more tests
       '--use-angle=swiftshader',
       '--use-vulkan=swiftshader',
-      '--use-webgpu-adapter=swiftshader',
+
+      '--disable-vulkan-fallback-to-gl-for-testing',
+      '--disable-features=VaapiVideoDecoder',
 
     ],
   },
