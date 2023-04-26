@@ -82,17 +82,12 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra',
     flags: [
-      // mandatory flags
-      '--enable-unsafe-webgpu',
+      '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
       '--enable-features=Vulkan',
       '--use-webgpu-adapter=swiftshader',
 
-      //'--use-angle=swiftshader',
-      //'--use-vulkan=swiftshader',
-
-      // more tests
+      // https://github.com/tensorflow/tfjs/issues/7631
       '--disable-vulkan-fallback-to-gl-for-testing',
-
     ],
   },
   chrome_with_swift_shader: {
