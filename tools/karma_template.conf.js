@@ -85,8 +85,6 @@ const CUSTOM_LAUNCHERS = {
       '--enable-unsafe-webgpu',
       '--disable-vulkan-surface',
 
-      '--disable-vulkan-fallback-to-gl-for-testing',
-      '--disable-features=VaapiVideoDecoder',
       '--ignore-gpu-blocklist',
 
       '--enable-features=vulkan',
