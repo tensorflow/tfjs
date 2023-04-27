@@ -26,11 +26,9 @@ import {GOLDEN, KARMA_SERVER} from './constants';
 import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
 import {GraphModeGoldenData, TensorDetail} from './types';
 
-
 /** Directory that stores the model golden data. */
 const DATA_URL = 'graph_model_golden_data';
 const INTERMEDIATE_NODE_TESTS_NUM = 5;
-
 
 describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
   let originalTimeout: number;

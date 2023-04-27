@@ -60,7 +60,8 @@ describe(`${SMOKE} load_predict`, () => {
       -0.18349379301071167
     ];
 
-    beforeEach(() => {
+    beforeEach(async () => {
+      await tfc.setBackend(env.name);
       a = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
     });
 
@@ -69,7 +70,6 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     it(`predict for old model.`, async () => {
-      await tfc.setBackend(env.name);
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
@@ -77,7 +77,6 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     it(`predict for new model.`, async () => {
-      await tfc.setBackend(env.name);
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model_new.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;

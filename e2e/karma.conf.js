@@ -111,6 +111,13 @@ const browserstackConfig = {
   port: 9876
 };
 
+const chromeWebgpuFlags = [
+  '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
+  '--use-webgpu-adapter=swiftshader',
+  // https://github.com/tensorflow/tfjs/issues/7631
+  '--disable-vulkan-fallback-to-gl-for-testing',
+];
+
 module.exports = function(config) {
   const args = [];
 
@@ -157,16 +164,7 @@ module.exports = function(config) {
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra',
-        flags: [
-          '--enable-unsafe-webgpu',
-          '--disable-vulkan-fallback-to-gl-for-testing',
-          '--disable-vulkan-surface',
-          '--disable-features=VaapiVideoDecoder',
-          '--ignore-gpu-blocklist',
-          // For some reason, the tests fail without this flag, even though
-          // macos does not use Vulkan.
-          '--use-angle=vulkan',
-        ],
+        flags: chromeWebgpuFlags,
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
@@ -201,7 +199,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: '101.0',
         os: 'Windows',
-        os_version: '10'
+        os_version: '10',
+        flags: chromeWebgpuFlags,
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},
