@@ -397,7 +397,7 @@ export async function toPixels(
  */
 export function draw(
     image: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
-    canvasOptions: CanvasOptions, drawOptions: DrawOptions): void {
+    canvasOptions?: CanvasOptions, drawOptions?: DrawOptions): void {
   let $img = convertToTensor(image, 'img', 'draw');
   if (!(image instanceof Tensor)) {
     // Assume int32 if user passed a native array.
