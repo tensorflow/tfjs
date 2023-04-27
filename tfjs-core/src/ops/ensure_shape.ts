@@ -35,8 +35,10 @@ import {op} from './operation';
  * ```js
  * const x = tf.tensor1d([1, 2, 3, 4]);
  * const y = tf.tensor1d([1, null, 3, 4]);
+ * const z = tf.tensor2d([1, 2, 3, 4], [2,2]);
  * tf.ensureShape(x, [4]).print();
  * tf.ensureShape(y, [4]).print();
+ * tf.ensureShape(z, [null, 2]).print();
  * ```
  *
  * @param x The input tensor to be ensured.
