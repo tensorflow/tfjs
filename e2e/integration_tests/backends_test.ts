@@ -24,7 +24,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
-
+import {setBackend} from './test_util';
 /**
  *  This file tests backend switching scenario.
  */
@@ -38,7 +38,7 @@ describeWithFlags(
 
     (env) => {
       it(`from ${env.name} to cpu.`, async () => {
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
 
         const backendBefore = tfc.engine().backend.numDataIds();
 
@@ -94,7 +94,7 @@ describeWithFlags(
 
         expect(cpuAfter).toEqual(cpuBefore + 1);
 
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
 
         const backendBefore = tfc.engine().backend.numDataIds();
 
@@ -133,7 +133,7 @@ describeWithFlags(
         // This scalar lives in cpu.
         const a = tfc.scalar(5);
 
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
         // This scalar lives in webgl or webgpu.
         const b = tfc.scalar(3);
 
@@ -145,7 +145,7 @@ describeWithFlags(
         tfc.test_util.expectArraysClose(await result.data(), [8]);
         expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds + 3);
 
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
         tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
         expect(tfc.findBackend(env.name).numDataIds())
             .toBe(backendNumDataIds + 3);
@@ -172,7 +172,7 @@ describeWithFlags(
         const imag1 = tfc.tensor1d([2]);
         const complex1 = tfc.complex(real1, imag1);
 
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
 
         const real2 = tfc.tensor1d([3]);
         const imag2 = tfc.tensor1d([4]);
@@ -185,7 +185,7 @@ describeWithFlags(
 
       // tslint:disable-next-line: ban
       xit(`can move complex tensor from ${env.name} to cpu.`, async () => {
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
 
         const real1 = tfc.tensor1d([1]);
         const imag1 = tfc.tensor1d([2]);

@@ -25,7 +25,7 @@ import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_ut
 import {GOLDEN, KARMA_SERVER} from './constants';
 import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
 import {GraphModeGoldenData, TensorDetail} from './types';
-
+import {setBackend} from './test_util';
 
 /** Directory that stores the model golden data. */
 const DATA_URL = 'graph_model_golden_data';
@@ -42,7 +42,7 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
     // https://jasmine.github.io/2.0/introduction.html#section-42
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
-    await tfc.setBackend(env.name);
+    await setBackend(env.name);
   });
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);

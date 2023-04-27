@@ -24,6 +24,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
+import {setBackend} from './test_util';
 
 /**
  *  This file tests cpu forwarding from webgl backend.
@@ -42,7 +43,7 @@ describeWithFlags(
         tfc.env().set('WEBGL_CPU_FORWARD', true);
         webgpuCpuForwardFlagSaved = tfc.env().getBool('WEBGPU_CPU_FORWARD');
         tfc.env().set('WEBGPU_CPU_FORWARD', true);
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
       });
 
       afterAll(() => {
