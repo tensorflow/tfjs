@@ -23,7 +23,7 @@ set -e
 TAGS="#SMOKE,#REGRESSION"
 TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
-# Test mac os with smoke/regression/golden tests.
+# Test macOS with smoke/regression/golden tests.
 COMMANDS+=("yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS_WITH_GOLDEN'")
 
 # Test windows 10 with smoke/regression/golden tests.
