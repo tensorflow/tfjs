@@ -35,10 +35,10 @@ describeWithFlags('ensureShape', ALL_ENVS, () => {
     const x = tf.tensor1d([1, 2, 3, 4]);
     expect(() => ensureShape(x, [1, 3]))
         .toThrowError(/Invalid argument error./);
-  })
+  });
 
   it('null shape', () => {
     const x = tf.tensor2d([1, null, 3, 4], [2, 2]);
     expect(ensureShape(x, [2, 2])).toEqual(x);
-  })
+  });
 });
