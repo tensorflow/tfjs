@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {ensureShape} from './ensure_shape';
 
-describeWithFlags('ensure_shape', ALL_ENVS, () => {
+describeWithFlags('ensureShape', ALL_ENVS, () => {
   it('basic', () => {
     const x = tf.ones([2, 3]);
     expect(ensureShape(x, [2, 3])).toEqual(x);
@@ -30,4 +30,15 @@ describeWithFlags('ensure_shape', ALL_ENVS, () => {
     expect(() => ensureShape(x, [5, 3]))
         .toThrowError(/Invalid argument error./);
   });
+
+  it('different length', () => {
+    const x = tf.tensor1d([1, 2, 3, 4]);
+    expect(() => ensureShape(x, [1, 3]))
+        .toThrowError(/Invalid argument error./);
+  })
+
+  it('null shape', () => {
+    const x = tf.tensor2d([1, null, 3, 4], [2, 2]);
+    expect(ensureShape(x, [2, 2])).toEqual(x);
+  })
 });

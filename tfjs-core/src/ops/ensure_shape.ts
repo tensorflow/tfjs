@@ -17,7 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank, ShapeMap, TensorLike} from '../types';
+import {Rank, ShapeMap} from '../types';
 import {arraysEqualWithNull} from '../util_base';
 
 import {op} from './operation';
@@ -47,15 +47,13 @@ import {op} from './operation';
  *
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-function ensureShape_<R extends Rank>(
-    x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor {
-  const $x = convertToTensor(x, 'x', 'ensure_shape', 'string_or_numeric');
-
+function ensureShape_<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor {
+  const $x = convertToTensor(x, 'x', 'ensureShape', 'string_or_numeric');
   if (!arraysEqualWithNull($x.shape, shape)) {
     throw new Error(`Invalid argument error. Shape of tensor ${
         $x.shape} is not compatible with expected shape ${shape}`);
   }
 
-  return $x;
+  return x;
 }
 export const ensureShape = /* @__PURE__ */ op({ensureShape_});
