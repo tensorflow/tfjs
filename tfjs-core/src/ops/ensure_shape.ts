@@ -40,8 +40,8 @@ import {op} from './operation';
  * ```
  *
  * @param x The input tensor to be ensured.
- * @param shape A TensorShape representing the shape of this tensor, a list, a
- *     tuple, or None.
+ * @param shape A TensorShape representing the shape of this tensor, an array
+ *     and null.
  *
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
