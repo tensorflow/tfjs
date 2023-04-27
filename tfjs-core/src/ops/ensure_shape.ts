@@ -31,7 +31,9 @@ import {op} from './operation';
  *
  * ```js
  * const x = tf.tensor1d([1, 2, 3, 4]);
+ * const y = tf.tensor1d([1, null, 3, 4]);
  * tf.ensureShape(x, [4]).print();
+ * tf.ensureShape(y, [4]).print();
  * ```
  *
  * @param x The input tensor to be ensured.
@@ -46,7 +48,7 @@ function ensureShape_<R extends Rank>(
 
   if (!arraysEqualWithNull($x.shape, shape)) {
     throw new Error(`Invalid argument error. Shape of tensor ${
-        x} is not compatible with expected shape ${shape}`);
+        $x.shape} is not compatible with expected shape ${shape}`);
   }
 
   return $x;

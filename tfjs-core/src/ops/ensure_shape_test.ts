@@ -27,6 +27,7 @@ describeWithFlags('ensure_shape', ALL_ENVS, () => {
 
   it('different shape', () => {
     const x = tf.ones([2, 3]);
-    expect(() => ensureShape(x, [5, 3])).toThrowError();
+    expect(() => ensureShape(x, [5, 3]))
+        .toThrowError(/Invalid argument error./);
   });
 });
