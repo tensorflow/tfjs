@@ -394,7 +394,7 @@ export async function toPixels(
  * [0-255].
  *
  * @param image A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
- * of shape `[height, width, numChannels]`. If rank-2, draws grayscale. If
+ * of shape `[height, width, numChannels]`. If rank-2, draws in grayscale. If
  * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
  * grayscale. When depth of 3, we draw with the first three components of
  * the depth dimension corresponding to r, g, b and alpha would be 1 (opaque) or

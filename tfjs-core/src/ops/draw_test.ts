@@ -70,7 +70,7 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     expectArraysEqual(actualData, expectedData);
   });
 
-  it('draw 2D image as gray scale', async () => {
+  it('draw 2D image in grayscale', async () => {
     const data = [1, 2, 3, 4];
     const img = tf.tensor2d(data, [2, 2], 'int32');
     const canvas = new MockCanvas(2, 2);
