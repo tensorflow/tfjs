@@ -24,7 +24,15 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
-import {setBackend} from './test_util';
+
+async function setBackend(backendName: string) {
+  await tfc.setBackend(backendName);
+  if (backendName === 'webgpu' || backendName === 'wasm') {
+    // TODO: investigate why tfc.ready is required on windows but not macOS.
+    // https://github.com/tensorflow/tfjs/issues/7636
+    await tfc.ready();
+  }
+}
 
 /**
  *  This file tests cpu forwarding from webgl backend.

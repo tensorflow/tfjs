@@ -47,6 +47,8 @@ export function createInputTensors(
 export async function setBackend(backendName: string) {
   await tfc.setBackend(backendName);
   if (backendName === 'webgpu') {
+    // TODO: investigate why tfc.ready is required on windows but not macOS.
+    // https://github.com/tensorflow/tfjs/issues/7636
     await tfc.ready();
   }
 }
