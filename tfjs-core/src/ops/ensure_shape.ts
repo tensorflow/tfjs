@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,10 +23,13 @@ import {arraysEqualWithNull} from '../util_base';
 import {op} from './operation';
 
 /**
- * Updates a tensor and checks at runtime that the shape holds.
+ * Checks the input tensor mathes the given shape.
  *
  * Given an input tensor, returns a new tensor with the same values as the
  * input tensor with shape `shape`.
+ *
+ * The method supports the null value in tensor. It will still check the shapes,
+ * and null is a placeholder.
  *
  *
  * ```js
