@@ -24,5 +24,5 @@ registerTestEnv({
   flags: {
     'WEBGPU_CPU_FORWARD': false,
   },
-  isDataSync: false
+  isDataSync: true
 });

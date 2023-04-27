@@ -92,6 +92,13 @@ export const executeOp: InternalOpExecutor =
               getParamValue('maxval', node, tensorMap, context) as number,
               getParamValue('dtype', node, tensorMap, context) as DataType)];
         }
+        case 'RandomUniformInt': {
+          return [ops.randomUniformInt(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('minval', node, tensorMap, context) as number,
+              getParamValue('maxval', node, tensorMap, context) as number,
+              getParamValue('seed', node, tensorMap, context) as number)];
+        }
         case 'Range': {
           const start =
               getParamValue('start', node, tensorMap, context) as number;
