@@ -22,7 +22,6 @@ const {expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, NODE_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-
 class MockContext {
   data: ImageData;
 
@@ -49,7 +48,7 @@ class MockCanvas {
 }
 
 describeWithFlags('Draw', NODE_ENVS, () => {
-  fit('draw image with 4 channels and int values', async () => {
+  it('draw image with 4 channels and int values', async () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const img = tf.tensor3d(data, [2, 2, 4], 'int32');
     const canvas = new MockCanvas(2, 2);
