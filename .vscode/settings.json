@@ -12,7 +12,7 @@
     "**/bazel-out/**/*": true,
     "**/bazel-genfiles/**/*": true,
     "**/bazel-testlogs/**/*": true,
-    "**/bazel-tfjs*/**/*": true,
+    "**/bazel-tfjs*/**/*": true
   },
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
@@ -141,5 +141,8 @@
     "hash_map": "cpp",
     "__refstring": "cpp"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "[starlark]": {
+    "editor.defaultFormatter": "BazelBuild.vscode-bazel"
+  }
 }
