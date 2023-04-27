@@ -322,17 +322,23 @@ export class WebGPUBackend extends KernelBackend {
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
+    const tensorDataDisposals: DataId[] = [];
     this.tensorDataPendingDisposal.forEach(d => {
-      this.releaseResource(d);
-      this.tensorMap.delete(d);
+      tensorDataDisposals.push(d);
     });
+    this.tensorDataPendingDisposal = [];
+    tensorDataDisposals.forEach(d => {
+      if (this.disposeData(d)) {
+        engine().removeDataId(d, this);
+      }
+    });
+
     this.uniformPendingDisposal.forEach(
         b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
     this.stagingPendingDisposal.forEach(
         b =>
             this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage, false));
 
-    this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
     this.stagingPendingDisposal = [];
   }
