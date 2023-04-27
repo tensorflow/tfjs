@@ -35,6 +35,9 @@ export function draw(
   }
   const ctx = canvas.getContext(contextType,
     canvasOptions?.contextAttributes || {}) as CanvasRenderingContext2D ;
+  if (ctx == null) {
+    throw new Error(`Could not get the context with ${contextType} type.`);
+  }
 
   const [height, width] = image.shape.slice(0, 2);
   const depth = image.shape.length === 2 ? 1 : image.shape[2];

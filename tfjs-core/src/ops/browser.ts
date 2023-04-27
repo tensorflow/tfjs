@@ -370,6 +370,10 @@ export async function toPixels(
   }
 
   if (canvas != null) {
+    console.warn(
+        'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
+        'Please try tf.browser.draw instead.');
+
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
