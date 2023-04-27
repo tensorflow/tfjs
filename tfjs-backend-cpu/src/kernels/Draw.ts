@@ -33,9 +33,6 @@ export function draw(
     throw new Error(`Context type ${
         canvasOptions.contextType} is not supported by the CPU backend.`);
   }
-  if (alpha > 1 || alpha < 0) {
-    throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
-  }
   const ctx = canvas.getContext(contextType,
     canvasOptions?.contextAttributes || {}) as CanvasRenderingContext2D ;
 

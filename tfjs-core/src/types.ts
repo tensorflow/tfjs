@@ -213,10 +213,22 @@ export function isWebGPUData(values: unknown): values is WebGPUData {
 }
 
 export interface DrawOptions {
-  alpha: number;
+  /**
+   * Optional. A number in range [0-1]. If the image is a 2D tensor or a 3D
+   * tensor with 1 or 3 channels, the alpha channels would set as its value;
+   * otherwise, it would not make effects.
+   */
+  alpha?: number;
 }
 
 export interface CanvasOptions {
+  /**
+   * Optional. If it is not set, it would be variable based on the current
+   * backend.
+   */
   contextType?: string;
-  contextAttributes?: string;
+  /**
+   * Optional.
+   */
+  contextAttributes?: WebGLContextAttributes;
 }

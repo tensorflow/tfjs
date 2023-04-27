@@ -22,7 +22,7 @@ import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {CanvasOptions, DrawOptions, PixelData, TensorLike} from '../types';
+import {CanvasOptions as ContextOptions, DrawOptions, PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
 import {op} from './operation';
@@ -288,6 +288,13 @@ function validateImgTensor(img: Tensor2D|Tensor3D) {
   }
 }
 
+function validateDrawOptions(drawOptions: DrawOptions) {
+  const alpha = drawOptions ?.alpha || 1;
+  if (alpha > 1 || alpha < 0) {
+    throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
+  }
+}
+
 /**
  * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
  * canvas.
@@ -376,28 +383,30 @@ export async function toPixels(
 }
 
 /**
- * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
- * canvas.
+ * Draws a `tf.Tensor` to a canvas.
  *
  * When the dtype of the input is 'float32', we assume values in the range
  * [0-1]. Otherwise, when input is 'int32', we assume values in the range
  * [0-255].
  *
- * Returns a promise that resolves when the canvas has been drawn to.
- *
  * @param image A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
  * of shape `[height, width, numChannels]`. If rank-2, draws grayscale. If
  * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
  * grayscale. When depth of 3, we draw with the first three components of
- * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
- * 4, all four components of the depth dimension correspond to r, g, b, a.
+ * the depth dimension corresponding to r, g, b and alpha would be 1 (opaque) or
+ * customized. When depth of 4, all four components of the depth dimension
+ * correspond to r, g, b, a.
  * @param canvas The canvas to draw to.
+ * @param contextOptions A object with options to get the context from the
+ *     canvas. If the canvas has created context, contextOptions would not make
+ * effects.
+ * @param drawOptions A object of options to customize drawing.
  *
  * @doc {heading: 'Browser', namespace: 'browser'}
  */
 export function draw(
     image: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
-    canvasOptions?: CanvasOptions, drawOptions?: DrawOptions): void {
+    contextOptions?: ContextOptions, drawOptions?: DrawOptions): void {
   let $img = convertToTensor(image, 'img', 'draw');
   if (!(image instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -406,9 +415,10 @@ export function draw(
     originalImgTensor.dispose();
   }
   validateImgTensor($img);
+  validateDrawOptions(drawOptions);
 
   const inputs: DrawInputs = {image: $img};
-  const attrs: DrawAttrs = {canvas, canvasOptions, drawOptions};
+  const attrs: DrawAttrs = {canvas, canvasOptions: contextOptions, drawOptions};
   ENGINE.runKernel(
       Draw, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
