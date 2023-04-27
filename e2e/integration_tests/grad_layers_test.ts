@@ -25,6 +25,7 @@ import {Constraints, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {SMOKE} from './constants';
+import {setBackend} from './test_util';
 
 // TODO(#6518): Test against wasm as well.
 const NOT_WASM: Constraints = {
@@ -37,7 +38,7 @@ const NOT_WASM: Constraints = {
 describe(`${SMOKE} tf.grad for layers models`, () => {
   describeWithFlags(`layers_model`, NOT_WASM, (env) => {
     it(`can compute grad of prediction`, async () => {
-      await tfc.setBackend(env.name);
+      await setBackend(env.name);
       const model = tfl.sequential();
       model.add(tfl.layers.dense({inputShape: [1], units: 1}));
       const forward = (x: tfc.Tensor) => model.predict(x) as tfc.Tensor;

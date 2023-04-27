@@ -35,7 +35,7 @@ import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_ut
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
-import {createInputTensors} from './test_util';
+import {createInputTensors, setBackend} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
@@ -62,7 +62,7 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, (env) => {
         continue;
       }
       it(`${model}.`, async () => {
-        await tfc.setBackend(env.name);
+        await setBackend(env.name);
         let inputsNames: string[];
         let inputsData: tfc.TypedArray[];
         let inputsShapes: number[][];
