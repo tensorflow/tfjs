@@ -96,12 +96,11 @@ const CUSTOM_LAUNCHERS = {
     os: 'Windows',
     os_version: '10',
     flags: [
-      '--enable-unsafe-webgpu',
-      '--enable-features=vulkan',
-      '--use-angle=swiftshader',
-      '--use-vulkan=swiftshader',
+      '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
       '--use-webgpu-adapter=swiftshader',
-      '--disable-vulkan-surface',
+
+      // https://github.com/tensorflow/tfjs/issues/7631
+      '--disable-vulkan-fallback-to-gl-for-testing',
     ],
   },
   chrome_with_swift_shader: {
