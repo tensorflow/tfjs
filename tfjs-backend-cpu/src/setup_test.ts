@@ -26,6 +26,8 @@ import '@tensorflow/tfjs-core/dist/register_all_gradients';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
+setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
+
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
   return true;
