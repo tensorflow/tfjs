@@ -216,7 +216,10 @@ export function makeMatMulPackedVec4Source(
             ${
       calculateResultSnippet(
           transposeA, innerElementSize, rowPerThread,
-          tileBOuter / workPerThread[0], workgroupSize[0] * workgroupSize[1])}
+          tileBOuter / workPerThread[0],
+          Math.min(
+              workgroupSize[0] * workgroupSize[1],
+              tileAOuter * tileBOuter / workPerThread[0]))}
         }
 
         workgroupBarrier();
@@ -509,6 +512,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
   fitBOuter: boolean;
   fitInner: boolean;
   tileInner: number;
+  tileAOuter: number;
+  tileBOuter: number;
   isVectorA: boolean;
   isVec4: boolean;
   outputComponent: number;
@@ -534,15 +539,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
       this.elementsPerThread = [1, 1, 1];
       this.workgroupSize = [32, 1, 1];
     } else {
-      const workgroupInfo = computeWorkgroupInfoForMatMul(
-          outputShape[1], dimInner, outputShape[2], transposeA);
-      this.workgroupSize = workgroupInfo.workgroupSize;
-      this.elementsPerThread = workgroupInfo.elementsPerThread;
+      if (this.isVec4) {
+        this.workgroupSize = [8, 8, 1];
+        this.elementsPerThread = [4, 4, 1];
+      } else {
+        const workgroupInfo = computeWorkgroupInfoForMatMul(
+            outputShape[1], dimInner, outputShape[2], transposeA);
+        this.workgroupSize = workgroupInfo.workgroupSize;
+        this.elementsPerThread = workgroupInfo.elementsPerThread;
+      }
     }
-
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize,
-        this.elementsPerThread);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -565,23 +571,38 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.shaderKey = `matMulPacked_${this.elementsPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
         this.fitInner}_${this.isVec4}_${this.isVectorA}_${
-        this.sequentialAccessByThreads}`;
+        this.sequentialAccessByThreads}_${this.tileInner}_${this.tileAOuter}_${
+        this.tileBOuter}`;
+    if (this.isVec4) {
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape,
+          [this.tileBOuter, this.tileAOuter, 1]);
+    } else {
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workgroupSize,
+          this.elementsPerThread);
+    }
   }
 
   getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
       boolean[] {
-    const tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
-    const tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
+    if (this.isVec4) {
+      this.tileAOuter = dimAOuter < 32 ? dimAOuter : 32;
+      this.tileBOuter = dimBOuter < 32 ? dimBOuter : 32;
+      this.tileInner = dimInner < 32 ? dimInner : 32;
+    } else {
+      this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
+      this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
+      this.tileInner = this.tileBOuter;
+    }
 
     if (!this.isVec4 && this.isVectorA) {
       // For makeVectorMatrixProductSource
       this.tileInner = this.workgroupSize[0] * 4;
-    } else {
-      this.tileInner = tileBOuter;
     }
 
-    const fitAOuter = dimAOuter % tileAOuter === 0;
-    const fitBOuter = dimBOuter % tileBOuter === 0;
+    const fitAOuter = dimAOuter % this.tileAOuter === 0;
+    const fitBOuter = dimBOuter % this.tileBOuter === 0;
     const fitInner = dimInner % this.tileInner === 0;
     return [fitAOuter, fitBOuter, fitInner];
   }
@@ -601,7 +622,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
         this.isVec4 ?
             makeMatMulPackedVec4Source(
                 this.elementsPerThread, this.workgroupSize, this.transposeA,
-                this.tileInner, false, null, true) :
+                this.tileInner, false, null, true, this.tileAOuter,
+                this.tileBOuter) :
             (this.isVectorA ? makeVectorMatrixProductSource(
                                   this.workgroupSize, this.transposeA) :
                               makeMatMulPackedSource(
