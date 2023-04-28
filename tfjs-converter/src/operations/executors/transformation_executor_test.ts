@@ -126,11 +126,12 @@ describe('transformation', () => {
       it('should call tfOps.ensureShape', () => {
         node.op = 'EnsureShape';
         node.inputParams.shape = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
+        node.inputNames = ['input2', 'input3'];
+        const input3 = [tfOps.tensor1d([2])];
 
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        executeOp(node, {input2, input3}, context, spyOpsAsTfOps);
 
-        expect(spyOps.ensureShape).toHaveBeenCalledWith(input1[0], [1, 1]);
+        expect(spyOps.ensureShape).toHaveBeenCalledWith(input2[0], [2]);
       });
     });
     describe('Squeeze', () => {

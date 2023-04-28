@@ -50,7 +50,7 @@ import {op} from './operation';
 function ensureShape_<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor {
   const $x = convertToTensor(x, 'x', 'ensureShape', 'string_or_numeric');
   if (!arraysEqualWithNull($x.shape, shape)) {
-    throw new Error(`Invalid argument error. Shape of tensor ${
+    throw new Error(`EnsureShape: Shape of tensor ${
         $x.shape} is not compatible with expected shape ${shape}`);
   }
 

@@ -27,14 +27,12 @@ describeWithFlags('ensureShape', ALL_ENVS, () => {
 
   it('different shape', () => {
     const x = tf.ones([2, 3]);
-    expect(() => ensureShape(x, [5, 3]))
-        .toThrowError(/Invalid argument error./);
+    expect(() => ensureShape(x, [5, 3])).toThrowError(/EnsureShape:/);
   });
 
   it('different length', () => {
     const x = tf.tensor1d([1, 2, 3, 4]);
-    expect(() => ensureShape(x, [1, 3]))
-        .toThrowError(/Invalid argument error./);
+    expect(() => ensureShape(x, [1, 3])).toThrowError(/EnsureShape:/);
   });
 
   it('null shape', () => {
