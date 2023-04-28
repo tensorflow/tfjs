@@ -19,9 +19,10 @@ import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
+
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr} from './test_helper';
 import {executeOp} from './transformation_executor';
-import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 
 describe('transformation', () => {
   let node: Node;
@@ -119,6 +120,18 @@ describe('transformation', () => {
         executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
         expect(spyOps.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
+      });
+    });
+    describe('EnsureShape', () => {
+      it('should call tfOps.ensureShape', () => {
+        node.op = 'EnsureShape';
+        node.inputParams.shape = createNumericArrayAttrFromIndex(1);
+        node.inputNames = ['input2', 'input3'];
+        const input3 = [tfOps.tensor1d([2])];
+
+        executeOp(node, {input2, input3}, context, spyOpsAsTfOps);
+
+        expect(spyOps.ensureShape).toHaveBeenCalledWith(input2[0], [2]);
       });
     });
     describe('Squeeze', () => {
