@@ -207,6 +207,10 @@ export class WebGPUBackend extends KernelBackend {
       return true;
     }
 
+    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
+      return false;
+    }
+
     const tensorData = this.tensorMap.get(dataId);
     this.decRef(dataId);
     if (!force && tensorData.refCount > 0) {
@@ -239,7 +243,7 @@ export class WebGPUBackend extends KernelBackend {
     } as WebGPUMemoryInfo;
   }
 
-  releaseResource(dataId: DataId) {
+  private releaseResource(dataId: DataId) {
     const tensorData = this.tensorMap.get(dataId);
     if (!tensorData || !tensorData.resourceInfo) {
       return;
@@ -320,12 +324,13 @@ export class WebGPUBackend extends KernelBackend {
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
-    this.tensorDataPendingDisposal.forEach(d => {
-      if (this.disposeData(d)) {
-        engine().removeDataId(d, this);
+    const disposeLength = this.tensorDataPendingDisposal.length;
+    for (var i = 0; i < disposeLength; i++) {
+      const item = this.tensorDataPendingDisposal.pop();
+      if (this.disposeData(item)) {
+        engine().removeDataId(item, this);
       }
-    });
-    this.tensorDataPendingDisposal = [];
+    }
 
     this.uniformPendingDisposal.forEach(
         b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
