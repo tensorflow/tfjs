@@ -60,7 +60,7 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(40);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(64);
 
     expectArraysClose(dData, new Float32Array([9, 12, 15, 19, 26, 33]));
   });

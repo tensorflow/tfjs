@@ -202,9 +202,7 @@ export class WebGPUBackend extends KernelBackend {
    * @oaram force Optional, remove the data regardless of refCount
    */
   override disposeData(dataId: DataId, force = false): boolean {
-    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-      return false;
-    }
+    // No-op if already disposed.
     if (!this.tensorMap.has(dataId)) {
       return true;
     }
@@ -215,7 +213,7 @@ export class WebGPUBackend extends KernelBackend {
       return false;
     }
 
-    // complex is never in commandQueueOwnedIds
+    // Delay to dispose data of tensor in commandQueueOwnedIds.
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.tensorDataPendingDisposal.push(dataId);
       return false;
@@ -322,16 +320,12 @@ export class WebGPUBackend extends KernelBackend {
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
-    const tensorDataDisposals: DataId[] = [];
     this.tensorDataPendingDisposal.forEach(d => {
-      tensorDataDisposals.push(d);
-    });
-    this.tensorDataPendingDisposal = [];
-    tensorDataDisposals.forEach(d => {
       if (this.disposeData(d)) {
         engine().removeDataId(d, this);
       }
     });
+    this.tensorDataPendingDisposal = [];
 
     this.uniformPendingDisposal.forEach(
         b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
@@ -415,7 +409,6 @@ export class WebGPUBackend extends KernelBackend {
   private convertAndCacheOnCPU(dataId: DataId, data: BackendValues):
       BackendValues {
     const tensorData = this.tensorMap.get(dataId);
-    this.releaseResource(dataId);
     tensorData.values = data;
     return tensorData.values;
   }
