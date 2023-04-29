@@ -394,12 +394,12 @@ export async function toPixels(
  * [0-255].
  *
  * @param image A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
- * of shape `[height, width, numChannels]`. If rank-2, draws in grayscale. If
- * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
- * grayscale. When depth of 3, we draw with the first three components of
- * the depth dimension corresponding to r, g, b and alpha would be 1 (opaque) or
- * customized. When depth of 4, all four components of the depth dimension
- * correspond to r, g, b, a.
+ * with shape `[height, width, depth]`. Rank-2 tensor would be drawn in
+ * grayscale. For rank-3 tensor, the depth must be 1, 3 or 4: if depth is 1, it
+ * would be drawn in grayscale; if the depth is 3, the three values of a pixel
+ * would be corresponding to R, G and B channels and alpha would be 1 (opaque)
+ * or customized in drawOptions; if the depth is 4, the four values of a pixel
+ * would be corresponding to R, G, B and A (alpha) channels.
  * @param canvas The canvas to draw to.
  * @param contextOptions A object with options to get the context from the
  *     canvas. If the canvas has created context, contextOptions would not make
