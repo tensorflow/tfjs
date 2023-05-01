@@ -29,6 +29,7 @@ import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
 let fromPixels2DContext: CanvasRenderingContext2D;
+let hasToPixelsWarned: boolean = false;
 
 /**
  * Creates a `tf.Tensor` from an image.
@@ -370,9 +371,12 @@ export async function toPixels(
   }
 
   if (canvas != null) {
-    console.warn(
-        'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
-        'Please try tf.browser.draw instead.');
+    if (!hasToPixelsWarned) {
+      console.warn(
+          'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
+          'Please try tf.browser.draw instead.');
+      hasToPixelsWarned = true;
+    }
 
     canvas.width = width;
     canvas.height = height;
@@ -396,6 +400,7 @@ export async function toPixels(
  * @param image The tensor to draw on the canvas. Must match one of
  * these shapes:
  *   - Rank-2 with shape `[height, width`]: Drawn as grayscale.
+ *   - Rank-3 with shape `[height, width, 1]`: Drawn as grayscale.
  *   - Rank-3 with shape `[height, width, 3]`: Drawn as RGB with alpha set in
  *     `drawOptions` (defaults to 1, which is opaque).
  *   - Rank-3 with shape `[height, width, 4]`: Drawn as RGBA.
