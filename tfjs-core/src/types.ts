@@ -223,12 +223,13 @@ export interface DrawOptions {
 
 export interface CanvasOptions {
   /**
-   * Optional. If it is not set, it would be variable based on the current
-   * backend.
+   * Optional.  If the canvas has created a context, it would not make effects.
+   * If it is not set, it would be variable based on the current backend.
    */
   contextType?: string;
   /**
-   * Optional.
+   * Optional. A WebGLContextAttributes configuration. If the canvas has created
+   * a context, it would not make effects.
    */
   contextAttributes?: WebGLContextAttributes;
 }

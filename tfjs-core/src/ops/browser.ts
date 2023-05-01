@@ -22,7 +22,7 @@ import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {CanvasOptions as ContextOptions, DrawOptions, PixelData, TensorLike} from '../types';
+import {CanvasOptions as CanvasOptions, DrawOptions, PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
 import {op} from './operation';
@@ -401,16 +401,14 @@ export async function toPixels(
  * or customized in drawOptions; if the depth is 4, the four values of a pixel
  * would be corresponding to R, G, B and A (alpha) channels.
  * @param canvas The canvas to draw to.
- * @param contextOptions A object with options to get the context from the
- *     canvas. If the canvas has created context, contextOptions would not make
- * effects.
+ * @param canvasOptions A object to configure the canvas to draw to.
  * @param drawOptions A object of options to customize drawing.
  *
  * @doc {heading: 'Browser', namespace: 'browser'}
  */
 export function draw(
     image: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
-    contextOptions?: ContextOptions, drawOptions?: DrawOptions): void {
+    canvasOptions?: CanvasOptions, drawOptions?: DrawOptions): void {
   let $img = convertToTensor(image, 'img', 'draw');
   if (!(image instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -422,7 +420,7 @@ export function draw(
   validateDrawOptions(drawOptions);
 
   const inputs: DrawInputs = {image: $img};
-  const attrs: DrawAttrs = {canvas, canvasOptions: contextOptions, drawOptions};
+  const attrs: DrawAttrs = {canvas, canvasOptions: canvasOptions, drawOptions};
   ENGINE.runKernel(
       Draw, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
