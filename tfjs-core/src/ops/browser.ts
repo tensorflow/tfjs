@@ -393,13 +393,12 @@ export async function toPixels(
  * [0-1]. Otherwise, when input is 'int32', we assume values in the range
  * [0-255].
  *
- * @param image A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
- * with shape `[height, width, depth]`. Rank-2 tensor would be drawn in
- * grayscale. For rank-3 tensor, the depth must be 1, 3 or 4: if depth is 1, it
- * would be drawn in grayscale; if the depth is 3, the three values of a pixel
- * would be corresponding to R, G and B channels and alpha would be 1 (opaque)
- * or customized in drawOptions; if the depth is 4, the four values of a pixel
- * would be corresponding to R, G, B and A (alpha) channels.
+ * @param image The tensor to draw on the canvas. Must match one of
+ * these shapes:
+ *   - Rank-2 with shape `[height, width`]: Drawn as grayscale.
+ *   - Rank-3 with shape `[height, width, 3]`: Drawn as RGB with alpha set in
+ *     `drawOptions` (defaults to 1, which is opaque).
+ *   - Rank-3 with shape `[height, width, 4]`: Drawn as RGBA.
  * @param canvas The canvas to draw to.
  * @param canvasOptions A object to configure the canvas to draw to.
  * @param drawOptions A object of options to customize drawing.
