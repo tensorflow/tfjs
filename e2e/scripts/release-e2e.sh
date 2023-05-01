@@ -58,16 +58,19 @@ e2e_root_path=$PWD
 # Load functions for working with local NPM registry (Verdaccio)
 source "$e2e_root_path"/scripts/local-registry.sh
 
-# Start the local NPM registry
-startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
-
-# Publish the monorepo and update package.json tfjs dependency to the
-# published version.
-"$e2e_root_path"/scripts/publish-tfjs-ci.sh
+# Publish the monorepo to the local NPM registry. Note this publish script will
+# automatically start and stop the registry while it publishes.
+cd "$e2e_root_path"/../
+yarn publish-npm --release-this-branch --dry 'tfjs-core' 'tfjs-backend-cpu' \
+  'tfjs-backend-webgl' 'tfjs-backend-wasm' 'tfjs-layers' 'tfjs-converter' \
+  'tfjs-data' 'tfjs' 'tfjs-node' 'tfjs-node-gpu'
+cd "$e2e_root_path"
 
 # ****************************************************************************
 # Second, install the packages from local registry and fetch golden data for testing.
 # ****************************************************************************
+# Start the local NPM registry
+startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 # First make sure npm install succeeds.
 npm install
 rm -rf node_modules
