@@ -29,7 +29,7 @@ import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
 let fromPixels2DContext: CanvasRenderingContext2D;
-let hasToPixelsWarned: boolean = false;
+let hasToPixelsWarned = false;
 
 /**
  * Creates a `tf.Tensor` from an image.
@@ -424,7 +424,7 @@ export function draw(
   validateDrawOptions(drawOptions);
 
   const inputs: DrawInputs = {image: $img};
-  const attrs: DrawAttrs = {canvas, canvasOptions: canvasOptions, drawOptions};
+  const attrs: DrawAttrs = {canvas, canvasOptions, drawOptions};
   ENGINE.runKernel(
       Draw, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
