@@ -15,74 +15,79 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import { Tensor } from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
-import {NamedTensorsMap} from '../../data/types';
-import {ExecutionContext} from '../../executor/execution_context';
-import {InternalOpExecutor, Node} from '../types';
+import { NamedTensorsMap } from '../../data/types';
+import { ExecutionContext } from '../../executor/execution_context';
+import { InternalOpExecutor, Node } from '../types';
 
-import {getParamValue} from './utils';
+import { getParamValue } from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
-      switch (node.op) {
-        case 'Equal': {
-          return [ops.equal(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'NotEqual': {
-          return [ops.notEqual(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'Greater': {
-          return [ops.greater(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'GreaterEqual': {
-          return [ops.greaterEqual(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'Less': {
-          return [ops.less(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'LessEqual': {
-          return [ops.lessEqual(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'LogicalAnd': {
-          return [ops.logicalAnd(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'LogicalNot': {
-          return [ops.logicalNot(
-              getParamValue('a', node, tensorMap, context) as Tensor)];
-        }
-        case 'LogicalOr': {
-          return [ops.logicalOr(
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        case 'Select':
-        case 'SelectV2': {
-          return [ops.where(
-              getParamValue('condition', node, tensorMap, context) as Tensor,
-              getParamValue('a', node, tensorMap, context) as Tensor,
-              getParamValue('b', node, tensorMap, context) as Tensor)];
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
+  (node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext, ops = tfOps): Tensor[] => {
+    switch (node.op) {
+      case 'Equal': {
+        return [ops.equal(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
       }
-    };
+      case 'NotEqual': {
+        return [ops.notEqual(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'Greater': {
+        return [ops.greater(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'GreaterEqual': {
+        return [ops.greaterEqual(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'Less': {
+        return [ops.less(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'LessEqual': {
+        return [ops.lessEqual(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'LogicalAnd': {
+        return [ops.logicalAnd(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'LogicalNot': {
+        return [ops.logicalNot(
+          getParamValue('a', node, tensorMap, context) as Tensor)];
+      }
+      case 'LogicalOr': {
+        return [ops.logicalOr(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'Select':
+      case 'SelectV2': {
+        return [ops.where(
+          getParamValue('condition', node, tensorMap, context) as Tensor,
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      case 'BitwiseAnd': {
+        return [ops.bitwiseAnd(
+          getParamValue('a', node, tensorMap, context) as Tensor,
+          getParamValue('b', node, tensorMap, context) as Tensor)];
+      }
+      default:
+        throw TypeError(`Node type ${node.op} is not implemented`);
+    }
+  };
 
 export const CATEGORY = 'logical';
