@@ -250,13 +250,14 @@ describeWebGPU('keeping data on gpu ', () => {
     const a = tf.tensor(data, [1, 3, 4]);
     const b = tf.add(a, 0);
     const res = b.dataToGPU();
-    expectArraysEqual(res.bufSize, size);
+    expectArraysEqual(res.buffer.size, size);
     if (res.tensorRef.dtype !== 'float32') {
       throw new Error(
           `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
           `Expected: float32`);
     }
-    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const resData =
+        await webGPUBackend.getBufferData(res.buffer, res.buffer.size);
     const values = tf.util.convertBackendValuesAndArrayBuffer(
         resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
@@ -270,13 +271,14 @@ describeWebGPU('keeping data on gpu ', () => {
     const b = tf.tensor([0], [1], 'int32');
     const c = tf.add(a, b);
     const res = c.dataToGPU();
-    expectArraysEqual(res.bufSize, size);
+    expectArraysEqual(res.buffer.size, size);
     if (res.tensorRef.dtype !== 'int32') {
       throw new Error(
           `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
           `Expected: float32`);
     }
-    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const resData =
+        await webGPUBackend.getBufferData(res.buffer, res.buffer.size);
     const values = tf.util.convertBackendValuesAndArrayBuffer(
         resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
@@ -322,7 +324,8 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
 
     const res = result as unknown as GPUData;
-    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const resData =
+        await webGPUBackend.getBufferData(res.buffer, res.buffer.size);
     const values = tf.util.convertBackendValuesAndArrayBuffer(
         resData, res.tensorRef.dtype);
     expectArraysEqual(values, data);
