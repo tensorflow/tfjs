@@ -20,7 +20,7 @@ import {BitwiseAnd, BitwiseAndInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank, TensorLike} from '../types';
+import {Rank} from '../types';
 import {arraysEqual} from '../util_base';
 
 import {op} from './operation';
@@ -31,12 +31,12 @@ import {op} from './operation';
  * Given two input tensors, returns a new tensor
  * with the `AND` calculated values.
  *
- * The method supports float32 values
+ * The method supports int32 values
  *
  *
  * ```js
- * const x = tf.tensor1d([0, 5, 3, 14]);
- * const y = tf.tensor1d([5, 0, 7, 11]);
+ * const x = tf.tensor1d([0, 5, 3, 14], 'int32');
+ * const y = tf.tensor1d([5, 0, 7, 11], 'int32');
  * tf.bitwiseAnd(x, y).print();
  * ```
  *
@@ -45,8 +45,7 @@ import {op} from './operation';
  *
  * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-function bitwiseAnd_<R extends Rank>(
-    x: Tensor|TensorLike, y: Tensor|TensorLike): Tensor<R> {
+function bitwiseAnd_<R extends Rank>(x: Tensor, y: Tensor): Tensor<R> {
   const $x = convertToTensor(x, 'x', 'bitwiseAnd');
   const $y = convertToTensor(y, 'y', 'bitwiseAnd');
 
@@ -54,9 +53,9 @@ function bitwiseAnd_<R extends Rank>(
     throw new Error(`BitwiseAnd: Tensors must have the same shape. x: ${
         $x.shape}, y: ${$y.shape}`);
   }
-  if ($x.dtype !== 'float32' || $y.dtype !== 'float32') {
+  if ($x.dtype !== 'int32' || $y.dtype !== 'int32') {
     throw new Error(
-        `BitwiseAnd: Only supports 'float32' values in tensor, found type of x: ${
+        `BitwiseAnd: Only supports 'int32' values in tensor, found type of x: ${
             $x.dtype} and type of y: ${$y.dtype}`);
   }
 

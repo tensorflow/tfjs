@@ -21,12 +21,13 @@ import {bitwiseAnd} from './bitwise_and';
 
 describeWithFlags('bitwiseAnd', ALL_ENVS, () => {
   it('a bitwiseAnd b', async () => {
-    const a = tf.tensor1d([0, 5, 3, 14]);
-    const b = tf.tensor1d([5, 0, 7, 11]);
+    const a = tf.tensor1d([0, 5, 3, 14], 'int32');
+    const b = tf.tensor1d([5, 0, 7, 11], 'int32');
 
     const res = bitwiseAnd(a, b);
     expectArraysClose(await res.data(), [0, 0, 3, 10]);
   });
+
   it('different shape', () => {
     const a = tf.tensor1d([0, 5, 3, 14]);
     const b = tf.tensor1d([5, 0, 7]);
@@ -36,10 +37,10 @@ describeWithFlags('bitwiseAnd', ALL_ENVS, () => {
   });
 
   it('wrong type', () => {
-    const a = tf.tensor1d([0, 1, 3, 14], 'int32');
-    const b = tf.tensor1d([5, 0, 7, 12], 'int32');
+    const a = tf.tensor1d([0, 1, 3, 14], 'float32');
+    const b = tf.tensor1d([5, 0, 7, 12], 'float32');
 
     expect(() => bitwiseAnd(a, b))
-        .toThrowError(/BitwiseAnd: Only supports 'float32' values in tensor/);
+        .toThrowError(/BitwiseAnd: Only supports 'int32' values in tensor/);
   });
 });

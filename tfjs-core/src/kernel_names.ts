@@ -138,7 +138,7 @@ export interface BincountAttrs {
   size: number;
 }
 
-export const BitwiseAnd = 'BinwiseAnd';
+export const BitwiseAnd = 'BitwiseAnd';
 export type BitwiseAndInputs = BinaryInputs;
 
 export const BroadcastTo = 'BroadcastTo';
