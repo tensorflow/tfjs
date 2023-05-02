@@ -21,15 +21,7 @@ import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const bitwiseAndImpl =
-    createSimpleBinaryKernelImpl(((a: number, b: number) => {
-      let res = 0;
-      for (let i = 0; i < 32; i++) {
-        if ((a & (1 << i)) && (b & (1 << i))) {
-          res |= (1 << i);
-        }
-      }
-      return res;
-    }));
+    createSimpleBinaryKernelImpl(((a: number, b: number) => a & b));
 
 export const bitwiseAnd = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
 

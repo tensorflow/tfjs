@@ -56,7 +56,7 @@ function bitwiseAnd_<R extends Rank>(
   }
   if ($x.dtype !== 'float32' || $y.dtype !== 'float32') {
     throw new Error(
-        `BitwiseAnd: Only support 'float32' values in tensor, found type of x: ${
+        `BitwiseAnd: Only supports 'float32' values in tensor, found type of x: ${
             $x.dtype} and type of y: ${$y.dtype}`);
   }
 

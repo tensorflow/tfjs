@@ -17,12 +17,12 @@
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
-import { ExecutionContext } from '../../executor/execution_context';
-import { Node } from '../types';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node} from '../types';
 
-import { executeOp } from './logical_executor';
-import { RecursiveSpy, spyOnAllFunctions } from './spy_ops';
-import { createTensorAttr, uncapitalize } from './test_helper';
+import {executeOp} from './logical_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createTensorAttr, uncapitalize} from './test_helper';
 
 describe('logical', () => {
   let node: Node;
@@ -37,7 +37,7 @@ describe('logical', () => {
       category: 'logical',
       inputNames: ['input1', 'input2'],
       inputs: [],
-      inputParams: { a: createTensorAttr(0), b: createTensorAttr(1) },
+      inputParams: {a: createTensorAttr(0), b: createTensorAttr(1)},
       attrParams: {},
       children: []
     };
@@ -55,23 +55,23 @@ describe('logical', () => {
     ([
       'Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
       'LogicalAnd', 'LogicalOr', 'BitwiseAnd'
-    ] as const)
-      .forEach(op => {
-        it('should call tfOps.' + op, () => {
-          node.op = op;
-          spyOps[uncapitalize(op)].and.returnValue({});
-          executeOp(node, { input1, input2 }, context, spyOpsAsTfOps);
+    ] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            spyOps[uncapitalize(op)].and.returnValue({});
+            executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-          expect(spyOps[uncapitalize(op)])
-            .toHaveBeenCalledWith(input1[0], input2[0]);
+            expect(spyOps[uncapitalize(op)])
+                .toHaveBeenCalledWith(input1[0], input2[0]);
+          });
         });
-      });
     describe('LogicalNot', () => {
       it('should call tfOps.logicalNot', () => {
         node.op = 'LogicalNot';
         spyOps.logicalNot.and.returnValue({});
 
-        executeOp(node, { input1 }, context, spyOpsAsTfOps);
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
 
         expect(spyOps.logicalNot).toHaveBeenCalledWith(input1[0]);
       });
@@ -84,10 +84,10 @@ describe('logical', () => {
         node.inputParams.condition = createTensorAttr(2);
         const input3 = [tfOps.scalar(1)];
         spyOps.where.and.returnValue({});
-        executeOp(node, { input1, input2, input3 }, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
         expect(spyOps.where)
-          .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+            .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
 
@@ -98,10 +98,10 @@ describe('logical', () => {
         node.inputParams.condition = createTensorAttr(2);
         const input3 = [tfOps.scalar(1)];
         spyOps.where.and.returnValue({});
-        executeOp(node, { input1, input2, input3 }, context, spyOpsAsTfOps);
+        executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps);
 
         expect(spyOps.where)
-          .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+            .toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
   });

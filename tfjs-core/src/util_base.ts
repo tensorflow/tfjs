@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData } from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -31,8 +31,8 @@ import { BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, Tens
  * @doc {heading: 'Util', namespace: 'util'}
  */
 // tslint:disable-next-line:no-any
-export function shuffle(array: any[] | Uint32Array | Int32Array |
-  Float32Array): void {
+export function shuffle(array: any[]|Uint32Array|Int32Array|
+                        Float32Array): void {
   let counter = array.length;
   let index = 0;
   // While there are elements in the array
@@ -63,15 +63,15 @@ export function shuffle(array: any[] | Uint32Array | Int32Array |
  * @doc {heading: 'Util', namespace: 'util'}
  */
 export function shuffleCombo(
-  // tslint:disable-next-line:no-any
-  array: any[] | Uint32Array | Int32Array | Float32Array,
-  // tslint:disable-next-line:no-any
-  array2: any[] | Uint32Array | Int32Array | Float32Array): void {
+    // tslint:disable-next-line:no-any
+    array: any[]|Uint32Array|Int32Array|Float32Array,
+    // tslint:disable-next-line:no-any
+    array2: any[]|Uint32Array|Int32Array|Float32Array): void {
   if (array.length !== array2.length) {
     throw new Error(
-      `Array sizes must match to be shuffled together ` +
-      `First array length was ${array.length}` +
-      `Second array length was ${array2.length}`);
+        `Array sizes must match to be shuffled together ` +
+        `First array length was ${array.length}` +
+        `Second array length was ${array2.length}`);
   }
   let counter = array.length;
   let index = 0;
@@ -97,7 +97,7 @@ export function nearestLargerEven(val: number): number {
 }
 
 export function swap<T>(
-  object: { [index: number]: T }, left: number, right: number) {
+    object: {[index: number]: T}, left: number, right: number) {
   const temp = object[left];
   object[left] = object[right];
   object[right] = temp;
@@ -155,16 +155,16 @@ export function assert(expr: boolean, msg: () => string) {
 }
 
 export function assertShapesMatch(
-  shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
+    shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
   assert(
-    arraysEqual(shapeA, shapeB),
-    () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
+      arraysEqual(shapeA, shapeB),
+      () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
 }
 
 export function assertNonNull(a: TensorLike): void {
   assert(
-    a != null,
-    () => `The input to the tensor constructor must be a non-null value.`);
+      a != null,
+      () => `The input to the tensor constructor must be a non-null value.`);
 }
 
 /**
@@ -288,10 +288,10 @@ export function rightPad(a: string, size: number): string {
 }
 
 export function repeatedTry(
-  checkFn: () => boolean, delayFn = (counter: number) => 0,
-  maxCounter?: number,
-  scheduleFn?: (functionRef: Function, delay: number) =>
-    void): Promise<void> {
+    checkFn: () => boolean, delayFn = (counter: number) => 0,
+    maxCounter?: number,
+    scheduleFn?: (functionRef: Function, delay: number) =>
+        void): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -333,7 +333,7 @@ export function repeatedTry(
  * @return The inferred shape where -1 is replaced with the inferred size.
  */
 export function inferFromImplicitShape(
-  shape: number[], size: number): number[] {
+    shape: number[], size: number): number[] {
   let shapeProd = 1;
   let implicitIdx = -1;
 
@@ -343,8 +343,8 @@ export function inferFromImplicitShape(
     } else if (shape[i] === -1) {
       if (implicitIdx !== -1) {
         throw Error(
-          `Shapes can only have 1 implicit size. ` +
-          `Found -1 at dim ${implicitIdx} and dim ${i}`);
+            `Shapes can only have 1 implicit size. ` +
+            `Found -1 at dim ${implicitIdx} and dim ${i}`);
       }
       implicitIdx = i;
     } else if (shape[i] < 0) {
@@ -361,13 +361,13 @@ export function inferFromImplicitShape(
 
   if (shapeProd === 0) {
     throw Error(
-      `Cannot infer the missing size in [${shape}] when ` +
-      `there are 0 elements`);
+        `Cannot infer the missing size in [${shape}] when ` +
+        `there are 0 elements`);
   }
   if (size % shapeProd !== 0) {
     throw Error(
-      `The implicit shape can't be a fractional number. ` +
-      `Got ${size} / ${shapeProd}`);
+        `The implicit shape can't be a fractional number. ` +
+        `Got ${size} / ${shapeProd}`);
   }
 
   const newShape = shape.slice();
@@ -376,7 +376,7 @@ export function inferFromImplicitShape(
 }
 
 export function parseAxisParam(
-  axis: number | number[], shape: number[]): number[] {
+    axis: number|number[], shape: number[]): number[] {
   const rank = shape.length;
 
   // Normalize input
@@ -384,35 +384,36 @@ export function parseAxisParam(
 
   // Check for valid range
   assert(
-    axis.every(ax => ax >= -rank && ax < rank),
-    () =>
-      `All values in axis param must be in range [-${rank}, ${rank}) but ` +
-      `got axis ${axis}`);
+      axis.every(ax => ax >= -rank && ax < rank),
+      () =>
+          `All values in axis param must be in range [-${rank}, ${rank}) but ` +
+          `got axis ${axis}`);
 
   // Check for only integers
   assert(
-    axis.every(ax => isInt(ax)),
-    () => `All values in axis param must be integers but ` +
-      `got axis ${axis}`);
+      axis.every(ax => isInt(ax)),
+      () => `All values in axis param must be integers but ` +
+          `got axis ${axis}`);
 
   // Handle negative axis.
   return axis.map(a => a < 0 ? rank + a : a);
 }
 
 /** Reduces the shape by removing all dimensions of shape 1. */
-export function squeezeShape(shape: number[], axis?: number[]): { newShape: number[], keptDims: number[] } {
+export function squeezeShape(shape: number[], axis?: number[]):
+    {newShape: number[], keptDims: number[]} {
   const newShape: number[] = [];
   const keptDims: number[] = [];
   const isEmptyArray = axis != null && Array.isArray(axis) && axis.length === 0;
   const axes = (axis == null || isEmptyArray) ?
-    null :
-    parseAxisParam(axis, shape).sort();
+      null :
+      parseAxisParam(axis, shape).sort();
   let j = 0;
   for (let i = 0; i < shape.length; ++i) {
     if (axes != null) {
       if (axes[j] === i && shape[i] !== 1) {
         throw new Error(
-          `Can't squeeze axis ${i} since its dim '${shape[i]}' is not 1`);
+            `Can't squeeze axis ${i} since its dim '${shape[i]}' is not 1`);
       }
       if ((axes[j] == null || axes[j] > i) && shape[i] === 1) {
         newShape.push(shape[i]);
@@ -427,16 +428,16 @@ export function squeezeShape(shape: number[], axis?: number[]): { newShape: numb
       keptDims.push(i);
     }
   }
-  return { newShape, keptDims };
+  return {newShape, keptDims};
 }
 
 export function getTypedArrayFromDType<D extends NumericDataType>(
-  dtype: D, size: number): DataTypeMap[D] {
+    dtype: D, size: number): DataTypeMap[D] {
   return getArrayFromDType<D>(dtype, size);
 }
 
 export function getArrayFromDType<D extends DataType>(
-  dtype: D, size: number): DataTypeMap[D] {
+    dtype: D, size: number): DataTypeMap[D] {
   let values = null;
   if (dtype == null || dtype === 'float32') {
     values = new Float32Array(size);
@@ -453,7 +454,7 @@ export function getArrayFromDType<D extends DataType>(
 }
 
 export function checkConversionForErrors<D extends DataType>(
-  vals: DataTypeMap[D] | number[], dtype: D): void {
+    vals: DataTypeMap[D]|number[], dtype: D): void {
   for (let i = 0; i < vals.length; i++) {
     const num = vals[i] as number;
     if (isNaN(num) || !isFinite(num)) {
@@ -465,7 +466,7 @@ export function checkConversionForErrors<D extends DataType>(
 /** Returns true if the dtype is valid. */
 export function isValidDtype(dtype: DataType): boolean {
   return dtype === 'bool' || dtype === 'complex64' || dtype === 'float32' ||
-    dtype === 'int32' || dtype === 'string';
+      dtype === 'int32' || dtype === 'string';
 }
 
 /**
@@ -528,15 +529,15 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike | WebGLData | WebGPUData): DataType {
+export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
   if (values instanceof Float32Array) {
     return 'float32';
   } else if (
-    values instanceof Int32Array || values instanceof Uint8Array ||
-    values instanceof Uint8ClampedArray) {
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';
@@ -578,7 +579,7 @@ export function computeStrides(shape: number[]): number[] {
 }
 
 function createNestedArray(
-  offset: number, shape: number[], a: TypedArray, isComplex = false) {
+    offset: number, shape: number[], a: TypedArray, isComplex = false) {
   const ret = new Array();
   if (shape.length === 1) {
     const d = shape[0] * (isComplex ? 2 : 1);
@@ -598,7 +599,7 @@ function createNestedArray(
 
 // Provide a nested array of TypedArray in given shape.
 export function toNestedArray(
-  shape: number[], a: TypedArray, isComplex = false) {
+    shape: number[], a: TypedArray, isComplex = false) {
   if (shape.length === 0) {
     // Scalar type should return a single number.
     return a[0];
@@ -609,14 +610,15 @@ export function toNestedArray(
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size ${a.length}${isComplex ? ' for a complex tensor' : ''}.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}${
+        isComplex ? ' for a complex tensor' : ''}.`);
   }
 
   return createNestedArray(0, shape, a, isComplex);
 }
 
 export function convertBackendValuesAndArrayBuffer(
-  data: BackendValues | ArrayBuffer, dtype: DataType) {
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
   // If is type Uint8Array[], return it directly.
   if (Array.isArray(data)) {
     return data;
@@ -633,7 +635,7 @@ export function convertBackendValuesAndArrayBuffer(
 }
 
 export function makeOnesTypedArray<D extends DataType>(
-  size: number, dtype: D): DataTypeMap[D] {
+    size: number, dtype: D): DataTypeMap[D] {
   const array = makeZerosTypedArray(size, dtype);
   for (let i = 0; i < array.length; i++) {
     array[i] = 1;
@@ -642,7 +644,7 @@ export function makeOnesTypedArray<D extends DataType>(
 }
 
 export function makeZerosTypedArray<D extends DataType>(
-  size: number, dtype: D): DataTypeMap[D] {
+    size: number, dtype: D): DataTypeMap[D] {
   if (dtype == null || dtype === 'float32' || dtype === 'complex64') {
     return new Float32Array(size) as DataTypeMap[D];
   } else if (dtype === 'int32') {
@@ -660,7 +662,7 @@ export function makeZerosTypedArray<D extends DataType>(
  * @param dtype dtype of the array element.
  */
 export function makeZerosNestedTypedArray<D extends DataType>(
-  shape: number[], dtype: D) {
+    shape: number[], dtype: D) {
   const size = shape.reduce((prev, curr) => prev * curr, 1);
   if (dtype == null || dtype === 'float32') {
     return toNestedArray(shape, new Float32Array(size));
@@ -676,10 +678,10 @@ export function makeZerosNestedTypedArray<D extends DataType>(
 export function assertNonNegativeIntegerDimensions(shape: number[]) {
   shape.forEach(dimSize => {
     assert(
-      Number.isInteger(dimSize) && dimSize >= 0,
-      () =>
-        `Tensor must have a shape comprised of positive integers but got ` +
-        `shape [${shape}].`);
+        Number.isInteger(dimSize) && dimSize >= 0,
+        () =>
+            `Tensor must have a shape comprised of positive integers but got ` +
+            `shape [${shape}].`);
   });
 }
 
@@ -692,7 +694,7 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
  * @param strides Tensor strides.
  */
 export function locToIndex(
-  locs: number[], rank: number, strides: number[]): number {
+    locs: number[], rank: number, strides: number[]): number {
   if (rank === 0) {
     return 0;
   } else if (rank === 1) {
@@ -714,7 +716,7 @@ export function locToIndex(
  * @param strides Strides of tensor.
  */
 export function indexToLoc(
-  index: number, rank: number, strides: number[]): number[] {
+    index: number, rank: number, strides: number[]): number[] {
   if (rank === 0) {
     return [];
   } else if (rank === 1) {

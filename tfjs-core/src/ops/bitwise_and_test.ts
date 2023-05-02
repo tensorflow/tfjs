@@ -19,7 +19,6 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 import {bitwiseAnd} from './bitwise_and';
 
-
 describeWithFlags('bitwiseAnd', ALL_ENVS, () => {
   it('a bitwiseAnd b', async () => {
     const a = tf.tensor1d([0, 5, 3, 14]);
@@ -41,6 +40,6 @@ describeWithFlags('bitwiseAnd', ALL_ENVS, () => {
     const b = tf.tensor1d([5, 0, 7, 12], 'int32');
 
     expect(() => bitwiseAnd(a, b))
-        .toThrowError(/BitwiseAnd: Only support 'float32' values in tensor/);
+        .toThrowError(/BitwiseAnd: Only supports 'float32' values in tensor/);
   });
 });
