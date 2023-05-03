@@ -47,7 +47,7 @@ export class CompositeArrayBuffer {
    *     ArrayBuffer.
    * @returns Result of concatenating `buffers` in order.
    */
-  static concatenateArrayBuffers(buffers?: ArrayBuffer[] | ArrayBuffer) {
+  static join(buffers?: ArrayBuffer[] | ArrayBuffer) {
     return new CompositeArrayBuffer(buffers).slice();
   }
 

@@ -340,11 +340,11 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  *     ArrayBuffer.
  * @returns Result of concatenating `buffers` in order.
  *
- * @deprecated Use tf.io.CompositeArrayBuffer.concatenateArrayBuffers instead.
+ * @deprecated Use tf.io.CompositeArrayBuffer.join() instead.
  */
 export function concatenateArrayBuffers(buffers: ArrayBuffer[]
       | ArrayBuffer): ArrayBuffer {
-  return CompositeArrayBuffer.concatenateArrayBuffers(buffers);
+  return CompositeArrayBuffer.join(buffers);
 }
 
 /**
