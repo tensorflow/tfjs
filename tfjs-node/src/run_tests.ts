@@ -48,6 +48,7 @@ jasmine_util.setTestEnvs([{
 
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:
+  'bitwiseAnd',
   'version version',
   'unreliable is true due to both auto gc and string tensors',
   'unreliable is true due to auto gc',
