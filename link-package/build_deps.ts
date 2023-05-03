@@ -85,7 +85,7 @@ async function main() {
       // Use spawnSync intead of exec for prettier printing.
       const bazelArgs = ['bazel', 'build'];
       if (args.bazel_options) {
-        bazelArgs.push(...args.bazel_options.split(' '));
+        bazelArgs.push(args.bazel_options);
       }
       bazelArgs.push(...targets);
       spawnSync('yarn', bazelArgs, {stdio:'inherit'});
