@@ -632,7 +632,7 @@ export class WebGPUBackend extends KernelBackend {
     tensorData
         .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
 
-    return {tensorRef, buffer, bufSize: size};
+    return {tensorRef, buffer};
   }
 
   bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
