@@ -19,7 +19,8 @@ import '../flags';
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {arrayBufferToBase64String, base64StringToArrayBuffer, concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, SaveResult} from './types';
 
@@ -176,7 +177,7 @@ export class BrowserLocalStorage implements IOHandler {
 
       // TODO(mattsoulanille): Support saving models over 2GB that exceed
       // Chrome's ArrayBuffer size limit.
-      const weightBuffer = concatenateArrayBuffers(modelArtifacts.weightData);
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
 
       try {
         this.LS.setItem(this.keys.info, JSON.stringify(modelArtifactsInfo));
