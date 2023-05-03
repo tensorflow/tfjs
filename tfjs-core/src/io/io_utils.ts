@@ -339,28 +339,12 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  * @param buffers An array of ArrayBuffers to concatenate, or a single
  *     ArrayBuffer.
  * @returns Result of concatenating `buffers` in order.
+ *
+ * @deprecated Use tf.io.CompositeArrayBuffer.concatenateArrayBuffers instead.
  */
 export function concatenateArrayBuffers(buffers: ArrayBuffer[]
       | ArrayBuffer): ArrayBuffer {
-  if (!(buffers instanceof Array)) {
-    return buffers;
-  }
-  if (buffers.length === 1) {
-    return buffers[0];
-  }
-
-  let totalByteLength = 0;
-  buffers.forEach((buffer: ArrayBuffer) => {
-    totalByteLength += buffer.byteLength;
-  });
-
-  const temp = new Uint8Array(totalByteLength);
-  let offset = 0;
-  buffers.forEach((buffer: ArrayBuffer) => {
-    temp.set(new Uint8Array(buffer), offset);
-    offset += buffer.byteLength;
-  });
-  return temp.buffer;
+  return CompositeArrayBuffer.concatenateArrayBuffers(buffers);
 }
 
 /**
