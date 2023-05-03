@@ -19,6 +19,7 @@
 export {simpleAbsImpl} from './kernels/Abs';
 export {addImpl} from './kernels/Add';
 export {bincountImpl, bincountReduceImpl} from './kernels/Bincount_impl';
+export {bitwiseAndImpl} from './kernels/BitwiseAnd';
 export {castImpl} from './kernels/Cast';
 export {ceilImpl} from './kernels/Ceil';
 export {concatImpl} from './kernels/Concat_impl';
