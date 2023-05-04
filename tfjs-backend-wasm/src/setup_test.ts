@@ -291,12 +291,6 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'logicalOr '},
   {startsWith: 'logicalXor '},
   {
-    startsWith: 'bitwiseAnd',
-    excludes: [
-      'bitwiseAnd',
-    ]
-  },
-  {
     startsWith: 'tile ',
     excludes: [
       'gradient',      // Gradient not yet implemented.
