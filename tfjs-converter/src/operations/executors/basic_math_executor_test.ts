@@ -24,7 +24,7 @@ import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
@@ -104,24 +104,6 @@ describe('basic math', () => {
         node.op = 'ClipByValue';
         node.inputParams['clipValueMin'] = createNumberAttrFromIndex(1);
         node.inputParams['clipValueMax'] = createNumberAttrFromIndex(2);
-
-        expect(validateParam(node, basic_math.json)).toBeTruthy();
-      });
-    });
-    describe('Prod', () => {
-      it('should call tfOps.prod', () => {
-        node.op = 'Prod';
-        node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
-        const input2 = [tfOps.tensor1d([2])];
-        spyOps.prod.and.returnValue({});
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
-
-        expect(spyOps.prod).toHaveBeenCalledWith(input1[0], [2]);
-      });
-      it('should match op def', () => {
-        node.op = 'Prod';
-        node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
 
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
