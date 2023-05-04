@@ -13,7 +13,8 @@
 # limitations under the License.
 # =============================================================================
 
-load("//tools:defaults.bzl", "ts_library")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:enumerate_tests.bzl", "enumerate_tests")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -21,6 +22,23 @@ TEST_SRCS = [
     "**/*_test.ts",
     "run_tests.ts",
 ]
+
+filegroup(
+    name = "all_test_entrypoints",
+    srcs = glob(
+        ["**/*_test.ts"],
+        exclude = [
+            "setup_test.ts",
+        ],
+    ),
+)
+
+# Generates the 'tests.ts' file that imports all test entrypoints.
+enumerate_tests(
+    name = "tests",
+    srcs = [":all_test_entrypoints"],
+    root_path = "tfjs-backend-cpu/src",
+)
 
 ts_library(
     name = "tfjs-backend-cpu_src_lib",
@@ -48,7 +66,9 @@ ts_library(
 ts_library(
     name = "tfjs-backend-cpu_test_lib",
     testonly = True,
-    srcs = glob(TEST_SRCS),
+    srcs = glob(TEST_SRCS) + [
+        ":tests",
+    ],
     module_name = "@tensorflow/tfjs-backend-cpu/dist",
     deps = [
         ":tfjs-backend-cpu_lib",
@@ -58,5 +78,24 @@ ts_library(
         "//tfjs-core/src:tfjs-core_test_lib",
         "@npm//@types/jasmine",
         "@npm//jasmine",
+    ],
+)
+
+esbuild(
+    name = "tfjs-backend-cpu_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-backend-cpu_lib",
+        ":tfjs-backend-cpu_test_lib",
     ],
 )
