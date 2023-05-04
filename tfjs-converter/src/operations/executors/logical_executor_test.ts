@@ -54,7 +54,7 @@ describe('logical', () => {
 
     ([
       'Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
-      'LogicalAnd', 'LogicalOr'
+      'LogicalAnd', 'LogicalOr', 'BitwiseAnd'
     ] as const )
         .forEach(op => {
           it('should call tfOps.' + op, () => {

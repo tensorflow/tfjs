@@ -75,10 +75,7 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_webgpu: {
         base: 'ChromeCanary',
-        flags: [
-          '--enable-unsafe-webgpu',
-          '--disable-dawn-features=disallow_unsafe_apis'
-        ],
+        flags: ['--disable-dawn-features=disallow_unsafe_apis'],
       }
     },
     client: {jasmine: {random: false}, args: args}

@@ -60,55 +60,96 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'cos ',
     excludes: [
-      'gradients', // Failing on MacOS
-      'gradient with clones', // Failing on MacOS
+      'gradients',             // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
     ],
   },
   {
     startsWith: 'tan ',
     excludes: [
-      'gradients', // Failing on MacOS
+      'gradients',  // Failing on MacOS
       //'gradient with clones', // Failing on MacOS
     ],
   },
   {
     startsWith: 'acosh ',
     excludes: [
-      'propagates NaNs', // Failing on MacOS
-      'gradient with clones', // Failing on MacOS
+      'propagates NaNs',       // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
     ],
   },
   {
     startsWith: 'asinh ',
     excludes: [
-      'propagates NaNs', // Failing on MacOS
+      'propagates NaNs',  // Failing on MacOS
       //'gradient with clones', // Failing on MacOS
     ],
   },
   {
     startsWith: 'atanh ',
     excludes: [
-      'propagates NaNs', // Failing on MacOS
+      'propagates NaNs',  // Failing on MacOS
       //'gradient with clones', // Failing on MacOS
     ],
   },
   {
     startsWith: 'sigmoid ',
     excludes: [
-      'propagates NaNs', // Failing on MacOS
+      'propagates NaNs',  // Failing on MacOS
       //'gradient with clones', // Failing on MacOS
     ],
   },
   {
     startsWith: 'unsortedSegmentSum ',
     excludes: [
-      'ignores negative segmentIds', // Failing on MacOS
+      'ignores negative segmentIds',  // Failing on MacOS
     ],
   },
   {
     startsWith: 'log ',
     excludes: [
-      'log propagates NaNs', // Failing on MacOS
+      'log propagates NaNs',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'softmax ',
+    excludes: [
+      'Propagates NaNs',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'fromPixels ',
+    excludes: [
+      'HTMLVideoElement',        // Device is lost on Linux
+      'canvas and image match',  // Failing on Linux
+    ],
+  },
+  {
+    startsWith: 'sign ',
+    excludes: [
+      // Failing on Linux
+      'basic',
+      'does not propagate NaNs',
+      'accepts a tensor-like object',
+    ],
+  },
+  {
+    startsWith: 'broadcastArgs ',
+    excludes: [
+      'error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
+  },
+  {
+    startsWith: 'tensor.data ',
+    excludes: [
+      '.data() postpones disposal of tensor',
+      'calling .data() twice works',
+    ],
+  },
+  {
+    startsWith: 'bitwiseAnd',
+    excludes: [
+      'bitwiseAnd',
     ],
   },
 

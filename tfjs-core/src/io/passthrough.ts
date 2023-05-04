@@ -19,7 +19,7 @@
  * IOHandlers that pass through the in-memory ModelArtifacts format.
  */
 
-import {IOHandler, IOHandlerSync, LoadHandler, ModelArtifacts, SaveHandler, SaveResult, TrainingConfig, WeightsManifestEntry} from './types';
+import {IOHandler, IOHandlerSync, LoadHandler, ModelArtifacts, SaveHandler, SaveResult, TrainingConfig, WeightData, WeightsManifestEntry} from './types';
 
 class PassthroughLoader implements IOHandlerSync {
   constructor(private readonly modelArtifacts?: ModelArtifacts) {}
@@ -76,7 +76,7 @@ class PassthroughAsync implements IOHandler {
  */
 export function fromMemory(
     modelArtifacts: {}|ModelArtifacts, weightSpecs?: WeightsManifestEntry[],
-    weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandler {
+    weightData?: WeightData, trainingConfig?: TrainingConfig): IOHandler {
 
   const args = arguments as unknown as Parameters<typeof fromMemory>;
   return new PassthroughAsync(fromMemorySync(...args));
@@ -105,7 +105,7 @@ export function fromMemory(
  */
 export function fromMemorySync(
     modelArtifacts: {}|ModelArtifacts, weightSpecs?: WeightsManifestEntry[],
-    weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandlerSync {
+    weightData?: WeightData, trainingConfig?: TrainingConfig): IOHandlerSync {
   if (arguments.length === 1) {
     const isModelArtifacts =
         (modelArtifacts as ModelArtifacts).modelTopology != null ||

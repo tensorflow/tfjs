@@ -394,18 +394,126 @@ export class WebGPUBackend extends KernelBackend {
     return tensorData.values;
   }
 
-  // TODO: Remove once this is fixed:
-  // https://github.com/tensorflow/tfjs/issues/1595
   override readSync(dataId: object): BackendValues {
     const tensorData = this.tensorMap.get(dataId);
-    const {values} = tensorData;
+    const {values, complexTensorInfos} = tensorData;
 
-    if (values == null) {
-      throw new Error(
-          'WebGPU readSync is only available for CPU-resident tensors.');
+    if (values != null || tensorData.dtype === 'string') {
+      return values;
     }
 
-    return values;
+    if (tensorData.dtype === 'complex64') {
+      const realValues =
+          this.readSync(complexTensorInfos.real.dataId) as Float32Array;
+      const imagValues =
+          this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
+      const complexVals = util.convertBackendValuesAndArrayBuffer(
+          backend_util.mergeRealAndImagArrays(realValues, imagValues).buffer,
+          'float32');
+      this.convertAndCacheOnCPU(dataId, complexVals);
+      return complexVals;
+    }
+
+    const alphaModes: GPUCanvasAlphaMode[] = ['opaque', 'premultiplied'];
+
+    const bufferInfo = tensorData.resourceInfo as BufferInfo;
+    const bufSize = bufferInfo.size;
+    util.assert(
+        bufSize % 4 === 0,
+        () => 'Because there is 4 bytes for ' +
+            'one pixel, buffer size must be multiple of 4.');
+    const pixelsSize = bufSize / 4;
+    const valsGPU = new ArrayBuffer(bufSize);
+    // TODO: adjust the reading window size according the `bufSize`.
+    const canvasWidth = 256, canvasHeight = 256;
+    const stagingDeviceStorage: OffscreenCanvas[] =
+        alphaModes.map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
+    const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
+
+    this.ensureComputePassEnded();
+    stagingDeviceStorage
+        .map((storage, index) => {
+          const context = storage.getContext('webgpu');
+          // TODO: use rgba8unorm format when this format is supported on Mac.
+          // https://bugs.chromium.org/p/chromium/issues/detail?id=1298618
+          context.configure({
+            device: this.device,
+            format: 'bgra8unorm',
+            usage: GPUTextureUsage.COPY_DST,
+            alphaMode: alphaModes[index],
+          });
+          return context.getCurrentTexture();
+        })
+        .map((texture, index) => {
+          const bytesPerRow = canvasWidth * 4;
+          const readDataGPUToCPU =
+              (width: number, height: number, offset: number) => {
+                this.ensureCommandEncoderReady();
+                this.currentCommandEncoder.copyBufferToTexture(
+                    {
+                      buffer: bufferInfo.buffer,
+                      bytesPerRow,
+                      offset,
+                    },
+                    {
+                      texture,
+                    },
+                    {
+                      width,
+                      height,
+                    });
+                this.submitQueue();
+
+                const context = stagingHostStorage.getContext('2d', {
+                  willReadFrequently: true,
+                });
+                context.clearRect(0, 0, width, height);
+                context.drawImage(stagingDeviceStorage[index], 0, 0);
+                const stagingValues =
+                    context.getImageData(0, 0, width, height).data;
+                const alphaMode = alphaModes[index];
+                const span =
+                    new Uint8ClampedArray(valsGPU, offset, width * height * 4);
+                for (let k = 0; k < span.length; k += 4) {
+                  if (alphaMode === 'premultiplied') {
+                    span[k + 3] = stagingValues[k + 3];
+                  } else {
+                    const value = stagingValues[k];
+                    span[k] = stagingValues[k + 2];
+                    span[k + 1] = stagingValues[k + 1];
+                    span[k + 2] = value;
+                  }
+                }
+              };
+
+          const fullyReadCount =
+              Math.floor(pixelsSize / (canvasWidth * canvasHeight));
+          let width = canvasWidth, height = canvasHeight, offset = 0;
+          for (let i = 0; i < fullyReadCount; i++) {
+            // Read the buffer data, which fully fill the whole canvas.
+            readDataGPUToCPU(width, height, offset);
+            offset += canvasWidth * canvasHeight * 4;
+          }
+
+          const remainSize = pixelsSize % (canvasWidth * canvasHeight);
+          height = Math.floor(remainSize / canvasWidth);
+          if (height > 0) {
+            // Read the buffer data, which fully fill certain rows of canvas.
+            readDataGPUToCPU(width, height, offset);
+            offset += height * (canvasWidth * 4);
+          }
+
+          width = remainSize % canvasWidth;
+          if (width > 0) {
+            // Read the buffer data, which not fully fill one row of canvas.
+            readDataGPUToCPU(width, 1, offset);
+          }
+        });
+
+    const vals =
+        util.convertBackendValuesAndArrayBuffer(valsGPU, tensorData.dtype);
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
   }
 
   override async read(dataId: object): Promise<BackendValues> {
@@ -417,7 +525,7 @@ export class WebGPUBackend extends KernelBackend {
     const {values} = tensorData;
 
     if (values != null) {
-      return this.convertAndCacheOnCPU(dataId, values);
+      return values;
     }
 
     // Download the values from the GPU.
@@ -524,7 +632,7 @@ export class WebGPUBackend extends KernelBackend {
     tensorData
         .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
 
-    return {tensorRef, buffer, bufSize: size};
+    return {tensorRef, buffer};
   }
 
   bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
@@ -679,11 +787,8 @@ export class WebGPUBackend extends KernelBackend {
         buffer.unmap();
       }
 
-      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
-      // So it will report error when switching backend from WebGPU to others.
-      // There are two situations: 1) swithcing the backend after running a
-      // model; 2) swithcing the backend within the model. Temporarilly keep
-      // the values on CPU to solve the first issue. tensorData.values = null;
+      // Once uploaded, don't store the values on cpu.
+      tensorData.values = null;
     } else {
       buffer =
           this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());

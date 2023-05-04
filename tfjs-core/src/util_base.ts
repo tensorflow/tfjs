@@ -194,6 +194,27 @@ export function isScalarShape(shape: number[]): boolean {
   return shape.length === 0;
 }
 
+export function arraysEqualWithNull(n1: number[], n2: number[]) {
+  if (n1 === n2) {
+    return true;
+  }
+
+  if (n1 == null || n2 == null) {
+    return false;
+  }
+
+  if (n1.length !== n2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < n1.length; i++) {
+    if (n1[i] !== null && n2[i] !== null && n1[i] !== n2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function arraysEqual(n1: FlatVector, n2: FlatVector) {
   if (n1 === n2) {
     return true;

@@ -1016,6 +1016,8 @@ limitations under the License.
     }
 
     function updateModelsDropdown(newValues) {
+      modelController._names = newValues;
+      modelController._values = newValues;
       const tfliteBenchmarksHtml = newValues.map(name => `<option value="${name}">${name}</option>`);
       modelController.domElement.children[1].children[0].innerHTML = tfliteBenchmarksHtml;
     }
