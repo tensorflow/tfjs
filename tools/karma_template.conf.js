@@ -82,7 +82,6 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra',
     flags: [
-      '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
       '--use-webgpu-adapter=swiftshader',
 
       // https://github.com/tensorflow/tfjs/issues/7631
@@ -101,12 +100,11 @@ const CUSTOM_LAUNCHERS = {
     ],
   },
   chrome_webgpu_linux: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
       // See https://bugs.chromium.org/p/chromium/issues/detail?id=765284
       '--enable-features=Vulkan,UseSkiaRenderer',
       '--use-vulkan=native',
-      '--enable-unsafe-webgpu',
       '--disable-vulkan-fallback-to-gl-for-testing',
       '--disable-vulkan-surface',
       '--disable-features=VaapiVideoDecoder',
@@ -115,13 +113,9 @@ const CUSTOM_LAUNCHERS = {
     ]
   },
   chrome_webgpu: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
-      '--flag-switches-begin',
-      '--enable-unsafe-webgpu',
-      '--flag-switches-end',
-      '--no-sandbox',
     ]
   },
   chrome_debugging: {

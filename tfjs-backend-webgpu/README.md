@@ -15,8 +15,7 @@ the following models:
 - Speech commands
 
 Note that WebGPU hasn't been officially supported by browsers. Only Google
-Chrome is well tested, and its Canary Channel is highly recommended for your
-trial. Specify option "--enable-unsafe-webgpu" before you start the Chrome.
+Chrome is well tested (WebGPU is now available by default in Chrome 113).
 
 
 ## Importing the backend
@@ -81,9 +80,10 @@ yarn build
 ```
 
 ## Testing
-Currently the Canary channel of Chrome is used for testing of the WebGPU
+Currently the Google Chrome is used for testing of the WebGPU. Please make sure
+the chrome version >= 113.
 backend:
 
 ```sh
-yarn test  # --test_env=CHROME_CANARY_BIN=/path/to/chrome
+yarn test # --test_env=CHROME_BIN=/path/to/chrome
 ```
