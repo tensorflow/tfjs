@@ -216,40 +216,5 @@
         "type": "tensor"
       }
     ]
-  },
-  {
-    "tfOpName": "SparseToDense",
-    "category": "normalization",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "sparseIndices",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "outputShape",
-        "type": "number[]"
-      },
-      {
-        "start": 2,
-        "name": "sparseValues",
-        "type": "tensor"
-      },
-      {
-        "start": 3,
-        "name": "defaultValue",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "validate_indices",
-        "name": "validateIndices",
-        "type": "bool",
-        "defaultValue": true,
-        "notSupported": true
-      }
-    ]
   }
 ]
