@@ -31,6 +31,7 @@ if (isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
+    console.log(`setBE adapter = ${adapter}`);
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
     // Note that timestamp-query-inside-passes is not formally in spec as
@@ -58,6 +59,8 @@ if (isWebGPUSupported()) {
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
     const adapterInfo = await adapter.requestAdapterInfo();
+    console.log(
+        `setBE adapterInfo = ${adapterInfo.device}, ${adapterInfo.vendor}`);
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }
