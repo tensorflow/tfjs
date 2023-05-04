@@ -82,6 +82,7 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra',
     flags: [
+      '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
       '--use-webgpu-adapter=swiftshader',
 
       // https://github.com/tensorflow/tfjs/issues/7631
