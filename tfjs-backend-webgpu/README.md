@@ -14,8 +14,7 @@ the following models:
 - AutoML Object detection
 - Speech commands
 
-Note that WebGPU hasn't been officially supported by browsers. Only Google
-Chrome is well tested (WebGPU is now available by default in Chrome 113).
+Google Chrome started to support WebGPU by default in M113 on May 2, 2023.
 
 
 ## Importing the backend
@@ -80,10 +79,9 @@ yarn build
 ```
 
 ## Testing
-Currently the Google Chrome is used for testing of the WebGPU. Please make sure
-the chrome version >= 113.
+Currently the Canary channel of Chrome is used for testing of the WebGPU
 backend:
 
 ```sh
-yarn test # --test_env=CHROME_BIN=/path/to/chrome
+yarn test # --test_env=CHROME_CANARY_BIN=/path/to/chrome
 ```
