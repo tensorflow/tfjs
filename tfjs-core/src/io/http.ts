@@ -24,9 +24,10 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
+import {getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
@@ -110,9 +111,13 @@ export class HTTPRequest implements IOHandler {
         'model.json');
 
     if (modelArtifacts.weightData != null) {
+      // TODO(mattsoulanille): Support saving models over 2GB that exceed
+      // Chrome's ArrayBuffer size limit.
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
+
       init.body.append(
           'model.weights.bin',
-          new Blob([modelArtifacts.weightData], {type: OCTET_STREAM_MIME_TYPE}),
+          new Blob([weightBuffer], {type: OCTET_STREAM_MIME_TYPE}),
           'model.weights.bin');
     }
 
@@ -182,7 +187,7 @@ export class HTTPRequest implements IOHandler {
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
-      Promise<[WeightsManifestEntry[], ArrayBuffer]> {
+    Promise<[WeightsManifestEntry[], WeightData]> {
     const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
@@ -210,7 +215,7 @@ export class HTTPRequest implements IOHandler {
       fetchFunc: this.fetch,
       onProgress: this.onProgress
     });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
+    return [weightSpecs, buffers];
   }
 }
 
