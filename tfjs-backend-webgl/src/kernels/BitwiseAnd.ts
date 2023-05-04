@@ -15,22 +15,59 @@
  * =============================================================================
  */
 
-import {BitwiseAnd, KernelConfig} from '@tensorflow/tfjs-core';
-
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BitwiseAnd, BitwiseAndInputs, env, KernelConfig, KernelFunc, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {MathBackendWebGL} from '../backend_webgl';
+import {BinaryOpProgram} from '../binaryop_gpu';
+import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {bitwiseAndImplCPU as cpuBitwiseAnd} from '../kernel_utils/shared';
 
-const BITWISEAND = 'return a & b;';
+export const BITWISEAND = `
+  int r = int(a.r) & int(b.r);
+  int g = int(a.g) & int(b.g);
+  int rb = int(a.b) & int(b.b);
+  int ra = int(a.a) & int(b.a);
+  return vec4(r, g, rb, ra);
+`;
 
-export const addKernelFunc = binaryKernelFunc({
-  opSnippet: BITWISEAND,
-  packedOpSnippet: BITWISEAND,
-  supportsComplex: true,
-  cpuKernelImpl: cpuBitwiseAnd
-});
+export const BITWISEAND_UNPACKED = `
+  return float(int(a.r) & int(b.r));
+`;
 
-export const addConfig: KernelConfig = {
+export function bitwiseAnd(args: {
+  inputs: BitwiseAndInputs,
+  backend: MathBackendWebGL,
+}): TensorInfo {
+  const {inputs, backend} = args;
+  const {a, b} = inputs;
+  const shouldUsePackedProgram = env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
+  const versionNumber = env().getNumber('WEBGL_VERSION');
+
+  // The type of a and b are ensured to be `int32` in core, therefore no need to
+  // consider other type situations.
+  if ((backend.shouldExecuteOnCPU([a, b])) || versionNumber === 1) {
+    const aVals = backend.texData.get(a.dataId).values as TypedArray;
+    const bVals = backend.texData.get(b.dataId).values as TypedArray;
+    const [outValues, outShape] =
+        cpuBitwiseAnd(a.shape, b.shape, aVals, bVals, a.dtype);
+
+    const out = backend.makeTensorInfo(outShape, a.dtype);
+    const outData = backend.texData.get(out.dataId);
+    outData.values = outValues;
+    return out;
+  }
+
+  let program: BinaryOpProgram|BinaryOpPackedProgram;
+  if (shouldUsePackedProgram) {
+    program = new BinaryOpPackedProgram(BITWISEAND, a.shape, b.shape, false);
+  } else {
+    program = new BinaryOpProgram(BITWISEAND_UNPACKED, a.shape, b.shape);
+  }
+
+  return backend.runWebGLProgram(program, [a, b], a.dtype);
+}
+
+export const bitwiseAndConfig: KernelConfig = {
   kernelName: BitwiseAnd,
   backendName: 'webgl',
-  kernelFunc: addKernelFunc
+  kernelFunc: bitwiseAnd as unknown as KernelFunc
 };
