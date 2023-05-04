@@ -620,6 +620,8 @@ describeWithFlags(
     });
 
 describe('concatenateArrayBuffers', () => {
+  // TODO(mattSoulanille): Move these tests to CompositeArrayBuffer.join when
+  // concatenateArrayBuffers is removed.
   it('Concatenate 3 non-empty ArrayBuffers', () => {
     const buffer1 = new Uint8Array([1, 2, 3]);
     const buffer2 = new Uint8Array([11, 22, 33, 44]);

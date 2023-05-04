@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {CHROME_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {deleteDatabase} from './indexed_db';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {purgeLocalStorageArtifacts} from './local_storage';
 
 // Disabled for non-Chrome browsers due to:
@@ -268,7 +269,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                       .then(loaded => {
                         expect(loaded.modelTopology).toEqual(modelTopology1);
                         expect(loaded.weightSpecs).toEqual(weightSpecs1);
-                        expect(new Uint8Array(loaded.weightData))
+                        expect(loaded.weightData).toBeDefined();
+                        expect(new Uint8Array(
+                          CompositeArrayBuffer.join(loaded.weightData)))
                             .toEqual(new Uint8Array(weightData1));
                         done();
                       })
@@ -311,7 +314,8 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                       .then(loaded => {
                         expect(loaded.modelTopology).toEqual(modelTopology1);
                         expect(loaded.weightSpecs).toEqual(weightSpecs1);
-                        expect(new Uint8Array(loaded.weightData))
+                        expect(new Uint8Array(
+                          CompositeArrayBuffer.join(loaded.weightData)))
                             .toEqual(new Uint8Array(weightData1));
                         done();
                       })
