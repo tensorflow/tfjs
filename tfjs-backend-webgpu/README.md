@@ -83,5 +83,5 @@ Currently the Canary channel of Chrome is used for testing of the WebGPU
 backend:
 
 ```sh
-yarn test # --test_env=CHROME_CANARY_BIN=/path/to/chrome
+yarn test  # --test_env=CHROME_CANARY_BIN=/path/to/chrome
 ```
