@@ -274,7 +274,10 @@ describe('completeness check', () => {
         };
         convertedGraph = mapper.transformGraph(graph);
         expect(Object.keys(convertedGraph.nodes)).toEqual([tfOp.tfOpName]);
-        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.tfOpName);
+        const node = convertedGraph.nodes[tfOp.tfOpName];
+        expect(node.op).toEqual(tfOp.tfOpName);
+        expect(node.category).withContext(`Op: ${node.op}, category`)
+          .toEqual(tfOp.category);
       });
     });
   });

@@ -797,36 +797,6 @@
     ]
   },
   {
-    "tfOpName": "Prod",
-    "category": "basic_math",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "x",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "axes",
-        "type": "number[]"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "keep_dims",
-        "name": "keepDims",
-        "type": "bool",
-        "notSupported": true
-      },
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
     "tfOpName": "LeakyRelu",
     "category": "basic_math",
     "inputs": [

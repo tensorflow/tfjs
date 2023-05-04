@@ -238,6 +238,12 @@
         "tfName": "keep_dims",
         "name": "keepDims",
         "type": "bool"
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
       }
     ]
   },

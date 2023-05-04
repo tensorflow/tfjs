@@ -23,7 +23,7 @@ import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
-import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('reduction', () => {
   let node: Node;
@@ -154,6 +154,15 @@ describe('reduction', () => {
 
         expect(validateParam(node, reduction.json, 'DenseBincount'))
             .toBeTruthy();
+      });
+    });
+    describe('Prod', () => {
+      it('should match op def', () => {
+        node.op = 'Prod';
+        node.inputParams['axis'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['keepDims'] = createBoolAttr(true);
+
+        expect(validateParam(node, reduction.json)).toBeTruthy();
       });
     });
   });
