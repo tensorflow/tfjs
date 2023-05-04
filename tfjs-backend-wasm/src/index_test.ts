@@ -65,8 +65,9 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     test_util.expectArraysClose(await t.data(), view);
   });
 
+  // TODO(mattSoulanille): Re-enable this once it's working on iOS.
+  // tslint:disable-next-line: ban
   xit('allocates more than two gigabytes', async () => {
-    // TODO(mattSoulanille): Re-enable this once it's working on iOS.
     const size = 2**30 / 4; // 2**30 bytes (4 bytes per number) = 1GB
 
     // Allocate 3 gigabytes.
