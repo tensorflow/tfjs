@@ -188,34 +188,5 @@ describe('normalization', () => {
         expect(validateParam(node, normalization.json)).toBeTruthy();
       });
     });
-    describe('SparseToDense', () => {
-      it('should call tfOps.sparseToDense', () => {
-        node.op = 'SparseToDense';
-        node.inputParams.sparseIndices = createTensorAttr(0);
-        node.inputParams.outputShape = createNumericArrayAttrFromIndex(1);
-        node.inputParams.sparseValues = createTensorAttr(2);
-        node.inputParams.defaultValue = createTensorAttr(3);
-        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
-        const input2 = [tfOps.tensor1d([1], 'int32')];
-        const input3 = [tfOps.scalar(2)];
-        const input4 = [tfOps.scalar(3)];
-        spyOps.sparseToDense.and.returnValue({});
-        executeOp(node, {input1, input2, input3, input4}, context,
-                  spyOpsAsTfOps);
-
-        expect(spyOps.sparseToDense)
-            .toHaveBeenCalledWith(input1[0], [1], input3[0], input4[0]);
-      });
-      it('should match json def', () => {
-        node.op = 'SparseToDense';
-        delete node.inputParams.x;
-        node.inputParams.sparseIndices = createTensorAttr(0);
-        node.inputParams.outputShape = createNumericArrayAttrFromIndex(1);
-        node.inputParams.sparseValues = createTensorAttr(2);
-        node.inputParams.defaultValue = createTensorAttr(3);
-
-        expect(validateParam(node, normalization.json)).toBeTruthy();
-      });
-    });
   });
 });

@@ -20,6 +20,7 @@ import {env} from '../environment';
 
 import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, SaveResult} from './types';
 
@@ -174,13 +175,17 @@ export class BrowserLocalStorage implements IOHandler {
       const modelArtifactsInfo: ModelArtifactsInfo =
           getModelArtifactsInfoForJSON(modelArtifacts);
 
+      // TODO(mattsoulanille): Support saving models over 2GB that exceed
+      // Chrome's ArrayBuffer size limit.
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
+
       try {
         this.LS.setItem(this.keys.info, JSON.stringify(modelArtifactsInfo));
         this.LS.setItem(this.keys.topology, topology);
         this.LS.setItem(this.keys.weightSpecs, weightSpecs);
         this.LS.setItem(
             this.keys.weightData,
-            arrayBufferToBase64String(modelArtifacts.weightData));
+            arrayBufferToBase64String(weightBuffer));
 
         // Note that JSON.stringify doesn't write out keys that have undefined
         // values, so for some keys, we set undefined instead of a null-ish

@@ -23,6 +23,7 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {expectArrayBuffersEqual} from '../test_util';
 import {browserIndexedDB, BrowserIndexedDB, BrowserIndexedDBManager, deleteDatabase, indexedDBRouter} from './indexed_db';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
   // Test data.
@@ -121,8 +122,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
        expect(loadedArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
        expect(loadedArtifacts.convertedBy).toEqual(null);
        expect(loadedArtifacts.modelInitializer).toEqual({});
-       expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
-     }));
+       expectArrayBuffersEqual(CompositeArrayBuffer.join(
+           loadedArtifacts.weightData), weightData1);
+  }));
 
   it('Save two models and load one', runWithLock(async () => {
        const weightData2 = new ArrayBuffer(24);
@@ -160,7 +162,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
        const loadedArtifacts = await handler1.load();
        expect(loadedArtifacts.modelTopology).toEqual(modelTopology1);
        expect(loadedArtifacts.weightSpecs).toEqual(weightSpecs1);
-       expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
+       expect(loadedArtifacts.weightData).toBeDefined();
+       expectArrayBuffersEqual(CompositeArrayBuffer.join(
+           loadedArtifacts.weightData), weightData1);
      }));
 
   it('Loading nonexistent model fails', runWithLock(async () => {
