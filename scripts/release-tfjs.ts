@@ -30,7 +30,7 @@ import * as fs from 'fs';
 import * as shell from 'shelljs';
 import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE, getReleaseBlockers, getNightlyVersion} from './release-util';
 import * as path from 'path';
-import { findDeps } from './graph_utils';
+import {findDeps} from './graph_utils';
 
 const parser = new argparse.ArgumentParser({
   description: 'Create a release PR for the tfjs monorepo.',
@@ -140,8 +140,9 @@ async function main() {
   }
 
   // Guess release version from tfjs-core's latest version, with a minor update.
-  const newVersion = await getNewVersion('tfjs-core',
-      incrementVersion ?? getMinorUpdateVersion, !args.guess_version);
+  const newVersion = await getNewVersion(
+      'tfjs-core', incrementVersion ?? getMinorUpdateVersion,
+      !args.guess_version);
 
   // Populate the versions map with new versions for monorepo packages.
   const versions = new Map<string /* package name */, string /* version */>();
@@ -155,8 +156,9 @@ async function main() {
   // version as the other monorepo packages.
   for (const phase of ALPHA_RELEASE_UNIT.phases) {
     for (const packageName of phase.packages) {
-      const newVersion = await getNewVersion(packageName,
-          incrementVersion ?? getPatchUpdateVersion, !args.guess_version);
+      const newVersion = await getNewVersion(
+          packageName, incrementVersion ?? getPatchUpdateVersion,
+          !args.guess_version);
       versions.set(packageName, newVersion);
     }
   }
@@ -225,26 +227,19 @@ async function main() {
       // Update dependency versions of all package.json files found in the
       // package to use the new verison numbers (except ones in node_modules).
       const subpackages =
-            $(`find ${packagePath} -name package.json -not -path \'*/node_modules/*\'`)
-            .split('\n');
+          $(`find ${
+                packagePath} -name package.json -not -path \'*/node_modules/*\'`)
+              .split('\n');
       for (const packageJsonPath of subpackages) {
         const pkg = fs.readFileSync(packageJsonPath, 'utf8');
         console.log(chalk.magenta.bold(
             `~~~ Update dependency versions for ${packageJsonPath} ~~~`));
 
-        // // Subpackages may depend on the package itself, so add the package to
-        // // the list of deps.
-        // const depsWithPackage = [...(phase.deps ?? [])];
-        // if (versions.has(packageName)) {
-        //   // Some packages, like e2e, are never published to npm.
-        //   depsWithPackage.push(packageName);
-        // }
-
         // Only update versions that are a (possibly transitive) dependency of
         // the package and are listed in the phase deps (we throw an error
         // if we find a dependency that doesn't satisfy these conditions).
-        const transitiveDeps = [...findDeps([packageName])]
-                                 .filter(dep => phase.deps.includes(dep));
+        const transitiveDeps = [...findDeps([packageName])].filter(
+            dep => phase.deps.includes(dep));
 
         // Also add the package itself so subpackages can use it.
         // Some packages, like e2e, are never published to npm, so check first.
@@ -252,12 +247,12 @@ async function main() {
           transitiveDeps.push(packageName);
         }
 
-        const packageDependencyVersions = new Map(transitiveDeps.map(dep =>
-          [dep, versions.get(dep)!]));
+        const packageDependencyVersions =
+            new Map(transitiveDeps.map(dep => [dep, versions.get(dep)!]));
 
         try {
-          const updated = updateTFJSDependencyVersions(pkg,
-            packageDependencyVersions);
+          const updated =
+              updateTFJSDependencyVersions(pkg, packageDependencyVersions);
 
           fs.writeFileSync(packageJsonPath, updated);
         } catch (e) {
