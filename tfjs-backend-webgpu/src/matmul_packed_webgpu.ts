@@ -73,10 +73,7 @@ export function matMulReadWriteFnSource(
           transposeA, transposeB, fitAOuter, fitBOuter, fitInner, component)}
   fn mm_write(batch: i32, row: i32, col: i32, valueIn: ${
       typeSnippet(component)}) {
-    ${
-      fitAOuter && fitBOuter ?
-          '' :
-          'if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)'}
+    if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
     {
       var value = valueIn;
       let coords = vec3<i32>(batch, row, col);
@@ -216,10 +213,7 @@ export function makeMatMulPackedVec4Source(
             ${
       calculateResultSnippet(
           transposeA, innerElementSize, rowPerThread,
-          tileBOuter / workPerThread[0],
-          Math.min(
-              workgroupSize[0] * workgroupSize[1],
-              tileAOuter * tileBOuter / workPerThread[0]))}
+          tileBOuter / workPerThread[0], workgroupSize[0] * workgroupSize[1])}
         }
 
         workgroupBarrier();
