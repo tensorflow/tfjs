@@ -385,9 +385,9 @@ describeMathCPUAndGPU('Container', () => {
 
   it('getLayer works by index', () => {
     const [container, layers] = createSimpleTwoLayerContainer();
-    expect(container.getLayer(null, 0)).toEqual(layers[0]);
-    expect(container.getLayer(null, 1)).toEqual(layers[1]);
-    expect(container.getLayer(null, 2)).toEqual(layers[2]);
+    expect(container.getLayer(0)).toEqual(layers[0]);
+    expect(container.getLayer(1)).toEqual(layers[1]);
+    expect(container.getLayer(2)).toEqual(layers[2]);
   });
 
   it('getLayer throws error for nonexistent layer name', () => {
@@ -400,7 +400,7 @@ describeMathCPUAndGPU('Container', () => {
 
   it('getLayer throws error for index out of bound', () => {
     const container = createSimpleTwoLayerContainer()[0];
-    expect(() => container.getLayer(null, 3)).toThrowError(/only has 3 layer/);
+    expect(() => container.getLayer(3)).toThrowError(/only has 3 layer/);
   });
 
   it('getLayer throws error when neither name or index is specified', () => {
