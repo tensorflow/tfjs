@@ -972,7 +972,7 @@ export abstract class Container extends Layer {
    *    subclasses: ['LayersModel']
    * }
    */
-  getLayer(name?: string, index?: number): Layer {
+  getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
       if (this.layers.length <= index) {
         throw new ValueError(
@@ -982,17 +982,17 @@ export abstract class Container extends Layer {
         return this.layers[index];
       }
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
       }
     }
 
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
   }
 
   /**
