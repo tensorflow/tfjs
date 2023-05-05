@@ -325,7 +325,7 @@ export class WebGPUBackend extends KernelBackend {
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
     const disposeLength = this.tensorDataPendingDisposal.length;
-    for (var i = 0; i < disposeLength; i++) {
+    for (let i = 0; i < disposeLength; i++) {
       const item = this.tensorDataPendingDisposal.pop();
       if (this.disposeData(item)) {
         engine().removeDataId(item, this);
