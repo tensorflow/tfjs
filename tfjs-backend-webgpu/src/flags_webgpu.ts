@@ -89,3 +89,6 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * etc.). 'unary,conv2d' to print both unary and conv2d.
  */
 ENV.registerFlag('WEBGPU_PRINT_SHADER', () => '');
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('WEBGPU_ENGINE_COMPILE_ONLY', () => false);
