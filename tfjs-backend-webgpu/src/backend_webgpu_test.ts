@@ -362,12 +362,12 @@ async function parallelCompilationCommon(webGPUBackend: WebGPUBackend) {
   const b1 = tf.tensor1d([1, 1, 1]);
 
   // Parallel compile.
-  tf.env().set('ENGINE_COMPILE_ONLY', true);
+  tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', true);
   const c1 = tf.add(a1, b1);
   await webGPUBackend.checkCompileCompletionAsync();
 
   // Actual inference.
-  tf.env().set('ENGINE_COMPILE_ONLY', false);
+  tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', false);
   const c2 = tf.add(a1, b1);
   expectArraysEqual(await c2.data(), [2, 2, 2]);
 
@@ -406,14 +406,15 @@ describeWebGPU('parallel compilation', () => {
     tf.setBackend('test-parallel');
 
     savedWebGPUCPUForward = tf.env().get('WEBGPU_CPU_FORWARD') as boolean;
-    savedEngineCompileOnly = tf.env().get('ENGINE_COMPILE_ONLY') as boolean;
+    savedEngineCompileOnly =
+        tf.env().get('WEBGPU_ENGINE_COMPILE_ONLY') as boolean;
     tf.env().set('WEBGPU_CPU_FORWARD', false);
     await tf.ready();
   });
 
   afterEach(() => {
     tf.env().set('WEBGPU_CPU_FORWARD', savedWebGPUCPUForward);
-    tf.env().set('ENGINE_COMPILE_ONLY', savedEngineCompileOnly);
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', savedEngineCompileOnly);
     tf.setBackend(prevBackend);
     tf.removeBackend(customWebGPUBackendName);
   });
@@ -451,11 +452,11 @@ describeWebGPU('parallel compilation', () => {
 
     // Parallel compile but not call await (tf.backend() as
     // WebGPUBackend).checkCompileCompletionAsync().
-    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', true);
     tf.add(a1, b1);
 
     // Actual inference.
-    tf.env().set('ENGINE_COMPILE_ONLY', false);
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', false);
     expect(() => tf.add(a1, b1))
         .toThrowError(
             'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
@@ -466,7 +467,7 @@ describeWebGPU('parallel compilation', () => {
     const b1 = tf.tensor1d([1, 1, 1]);
 
     // Parallel compile.
-    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', true);
     const c1 = tf.add(a1, b1);
     await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
     // Read data is invalid.
@@ -478,7 +479,7 @@ describeWebGPU('parallel compilation', () => {
        const a1 = tf.tensor1d([1, 1, 1]);
        const b1 = tf.tensor1d([1, 1, 1]);
        // If parallel compilation is false, checkCompileCompletionAsync is nop.
-       tf.env().set('ENGINE_COMPILE_ONLY', false);
+       tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', false);
        const c1 = tf.add(a1, b1);
        await (tf.backend() as WebGPUBackend).checkCompileCompletionAsync();
        expectArraysClose(await c1.data(), [2, 2, 2]);

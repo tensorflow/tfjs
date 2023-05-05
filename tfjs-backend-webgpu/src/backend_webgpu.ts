@@ -373,9 +373,9 @@ export class WebGPUBackend extends KernelBackend {
 
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<ArrayBuffer> {
-    if (env().getBool('ENGINE_COMPILE_ONLY')) {
+    if (env().getBool('WEBGPU_ENGINE_COMPILE_ONLY')) {
       console.warn(
-          'The data may be invalid since ENGINE_COMPILE_ONLY is true, this can only be called when ENGINE_COMPILE_ONLY is false');
+          'The data may be invalid since WEBGPU_ENGINE_COMPILE_ONLY is true, this can only be called when WEBGPU_ENGINE_COMPILE_ONLY is false');
       return null;
     }
     const staging = this.bufferManager.acquireBuffer(
@@ -929,7 +929,7 @@ export class WebGPUBackend extends KernelBackend {
     program.shaderKey =
         webgpu_program.makeShaderKey(program, inputsData, output);
 
-    const parallelCompilation = env().getBool('ENGINE_COMPILE_ONLY');
+    const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
     if (!(program.shaderKey in this.pipelineCache)) {
       this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
           this.device, program, inputsData, output, parallelCompilation);

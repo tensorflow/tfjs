@@ -91,4 +91,4 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
 ENV.registerFlag('WEBGPU_PRINT_SHADER', () => '');
 
 /** Experimental flag, whether enter compile only phase. */
-ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
+ENV.registerFlag('WEBGPU_ENGINE_COMPILE_ONLY', () => false);
