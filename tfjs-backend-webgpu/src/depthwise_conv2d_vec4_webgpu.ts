@@ -91,7 +91,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
       }
 
       ${main('index')} {
-      if (index < uniforms.size) {
+      if (index * ${this.workPerThread} < uniforms.size) {
         let width0 = uniforms.outShape[3] / 4;
         let d1 = (index % width0) * 4;
         var index1 = index / width0;
