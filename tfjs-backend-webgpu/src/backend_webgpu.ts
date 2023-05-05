@@ -129,7 +129,8 @@ export class WebGPUBackend extends KernelBackend {
   private dummyContext: GPUCanvasContext;
   private tensorDataPendingDisposal: DataId[] = [];
   private static nextDataId = 0;
-  private pipelineCache: {[key: string]: GPUComputePipeline};
+  private pipelineCache:
+      {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
   private stagingPendingDisposal: BufferInfo[] = [];
@@ -356,8 +357,27 @@ export class WebGPUBackend extends KernelBackend {
     return this.currentComputePass;
   }
 
+  // Check if parallel compilation is done.
+  async checkCompileCompletionAsync() {
+    let pipelines: GPUComputePipeline[];
+    try {
+      pipelines = await Promise.all(Object.values(this.pipelineCache));
+    } catch (e) {
+      // TODO: Add test case to catch this exception.
+      throw new Error(e.message);
+    }
+    Object.keys(this.pipelineCache).map((key, i) => {
+      this.pipelineCache[key] = pipelines[i];
+    });
+  }
+
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<ArrayBuffer> {
+    if (env().getBool('WEBGPU_ENGINE_COMPILE_ONLY')) {
+      console.warn(
+          'The data may be invalid since WEBGPU_ENGINE_COMPILE_ONLY is true, this can only be called when WEBGPU_ENGINE_COMPILE_ONLY is false');
+      return null;
+    }
     const staging = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -888,6 +908,47 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
+    const inputsData = inputs.map((input: TensorInfo, i: number) => {
+      if (input.dtype === 'complex64') {
+        throw new Error(
+            `GPGPUProgram does not support complex64 input. For complex64 ` +
+            `dtypes, please separate the program into real and imaginary ` +
+            `parts.`);
+      }
+      this.uploadToGPU(input.dataId);
+
+      return {
+        // Returning dtype from tensorMap because it reflects dtype
+        // of underlying buffer, rather than abstract dtype.
+        dtype: this.tensorMap.get(input.dataId).dtype,
+        shape: input.shape,
+        name: program.variableNames[i]
+      };
+    });
+
+    program.shaderKey =
+        webgpu_program.makeShaderKey(program, inputsData, output);
+
+    const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
+    if (!(program.shaderKey in this.pipelineCache)) {
+      this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
+          this.device, program, inputsData, output, parallelCompilation);
+    }
+    program.pipeline = this.pipelineCache[program.shaderKey];
+
+    if (!parallelCompilation) {
+      this.recordAndSubmit(program, output, inputs, programDefinedUniform);
+    }
+    return output;
+  }
+
+  private recordAndSubmit(
+      program: webgpu_program.WebGPUProgram, output: TensorInfo,
+      inputs: TensorInfo[], programDefinedUniform?: ProgramUniform) {
+    if (program.pipeline instanceof Promise<GPUComputePipeline>) {
+      throw new Error(
+          'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
+    }
     // There are six kinds of uniforms: NAN, INFINITY, shapes, shape strides,
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
@@ -912,36 +973,6 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
 
-    const inputsData = inputs.map((input: TensorInfo, i: number) => {
-      if (input.dtype === 'complex64') {
-        throw new Error(
-            `GPGPUProgram does not support complex64 input. For complex64 ` +
-            `dtypes, please separate the program into real and imaginary ` +
-            `parts.`);
-      }
-      this.uploadToGPU(input.dataId);
-
-      return {
-        // Returning dtype from tensorMap because it reflects dtype
-        // of underlying buffer, rather than abstract dtype.
-        dtype: this.tensorMap.get(input.dataId).dtype,
-        shape: input.shape,
-        name: program.variableNames[i]
-      };
-    });
-
-    const shaderKey =
-        webgpu_program.makeShaderKey(program, bufferShapes, inputsData, output);
-
-    let pipeline;
-    if (shaderKey in this.pipelineCache) {
-      pipeline = this.pipelineCache[shaderKey];
-    } else {
-      pipeline = webgpu_program.compileProgram(
-          this.device, program, inputsData, output, shaderKey);
-      this.pipelineCache[shaderKey] = pipeline;
-    }
-
     if (programDefinedUniform) {
       programUniform = [...programUniform, ...programDefinedUniform];
     }
@@ -950,49 +981,45 @@ export class WebGPUBackend extends KernelBackend {
       this.makeUniforms(programUniform)
     ];
 
-    const bindGroup = this.device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
-      entries: bindings.map((b, i) => ({binding: i, resource: b})),
-    });
-
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
-    const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 0);
-      }
-    }
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(
-        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 1);
-      }
-    }
-    this.dispatchNumberInEncoder++;
-
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
+    const bindGroup = this.device.createBindGroup({
+      layout: program.pipeline.getBindGroupLayout(0),
+      entries: bindings.map((b, i) => ({binding: i, resource: b})),
+    });
+    this.ensureCommandEncoderReady();
+    const pass = this.getComputePass();
+
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      // tslint:disable-next-line:no-any
+      (pass as any).writeTimestamp(this.querySet, 0);
+    }
+
+    pass.setPipeline(program.pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatchWorkgroups(
+        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+
+    if (shouldTimeProgram && this.supportTimeQuery) {
+      // tslint:disable-next-line:no-any
+      (pass as any).writeTimestamp(this.querySet, 1);
+    }
+    this.dispatchNumberInEncoder++;
+
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
-
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
         query: this.getQueryTime(this.querySet)
       });
     }
-    return output;
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
