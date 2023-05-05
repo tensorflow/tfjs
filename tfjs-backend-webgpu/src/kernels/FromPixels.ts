@@ -19,7 +19,7 @@ import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {TextureInfo, WebGPUBackend} from '../backend_webgpu';
+import {WebGPUBackend} from '../backend_webgpu';
 import {FromPixelsProgram} from '../from_pixels_webgpu';
 
 export const fromPixelsConfig: KernelConfig = {
@@ -69,16 +69,10 @@ export function fromPixels(args: {
       false && env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
-    let textureInfo: TextureInfo;
+    let resource;
     if (importVideo) {
-      textureInfo = {
-        width,
-        height,
-        format: null,
-        usage: null,
-        texture: backend.device.importExternalTexture(
-            {source: pixels as HTMLVideoElement})
-      };
+      resource = backend.device.importExternalTexture(
+          {source: pixels as HTMLVideoElement});
     } else {
       if (isVideoOrImage) {
         const newWillReadFrequently =
@@ -104,7 +98,7 @@ export function fromPixels(args: {
       backend.queue.copyExternalImageToTexture(
           {source: pixels as HTMLCanvasElement | ImageBitmap}, {texture},
           [outputShape[1], outputShape[0]]);
-      textureInfo = {width, height, format, usage, texture};
+      resource = texture;
     }
 
     const size = util.sizeFromShape(outputShape);
@@ -118,7 +112,7 @@ export function fromPixels(args: {
     ];
     const input = backend.makeTensorInfo([height, width], 'int32');
     const info = backend.tensorMap.get(input.dataId);
-    info.resourceInfo = textureInfo;
+    info.resource = resource;
 
     const result =
         backend.runWebGPUProgram(program, [input], 'int32', uniformData);
