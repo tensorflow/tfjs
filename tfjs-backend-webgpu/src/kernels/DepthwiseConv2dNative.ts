@@ -55,8 +55,7 @@ export function depthwiseConv2dNative(args: {
     program = new DepthwiseConv2DNCHWSharedProgram(
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
   } else if (
-      isChannelsLast && convInfo.outHeight > 4 && convInfo.outWidth > 4 &&
-      convInfo.strideWidth <= 2 &&
+      isChannelsLast && convInfo.strideWidth <= 2 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.inChannels % 4 === 0) {

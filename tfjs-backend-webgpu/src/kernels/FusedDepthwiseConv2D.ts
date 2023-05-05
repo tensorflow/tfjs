@@ -64,8 +64,7 @@ export function fusedDepthwiseConv2D(args: {
   ];
 
   let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program;
-  if (convInfo.outHeight > 4 && convInfo.outWidth > 4 &&
-      convInfo.strideWidth <= 2 &&
+  if (convInfo.strideWidth <= 2 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.inChannels % 4 === 0) {
