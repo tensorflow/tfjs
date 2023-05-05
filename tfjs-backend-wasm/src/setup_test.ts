@@ -291,12 +291,6 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'logicalOr '},
   {startsWith: 'logicalXor '},
   {
-    startsWith: 'bitwiseAnd',
-    excludes: [
-      'bitwiseAnd',
-    ]
-  },
-  {
     startsWith: 'tile ',
     excludes: [
       'gradient',      // Gradient not yet implemented.
@@ -390,12 +384,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'reciprocal'},
   {include: 'isNaN'},
   {include: 'atan '},
-  {include: 'acos '},
-  {include: 'acosh '},
-  {include: 'asin '},
-  {include: 'asinh '},
-  {include: 'diag '},
-  {include: 'denseBincount '},
+  {include: 'bitwiseAnd'},
   {include: 'broadcastArgs '},
   {include: 'searchSorted '},
   {include: 'avgPool3d '},
