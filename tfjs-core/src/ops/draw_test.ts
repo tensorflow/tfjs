@@ -52,7 +52,7 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     const ctx = canvas.getContext('2d');
 
     // tslint:disable-next-line:no-any
-    tf.browser.draw(img, canvas as any, {contextType: '2d'});
+    tf.browser.draw(img, canvas as any, {contextOptions: {contextType: '2d'}});
     expectArraysEqual(ctx.getImageData().data, data);
   });
 
@@ -64,9 +64,9 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     const ctx = canvas.getContext('2d');
 
     // tslint:disable-next-line:no-any
-    tf.browser.draw(img, canvas as any, {contextType: '2d'});
+    tf.browser.draw(img, canvas as any, {contextOptions: {contextType: '2d'}});
     const actualData = ctx.getImageData().data;
-    const expectedData = data.map(e => Math.floor(e * 255));
+    const expectedData = data.map(e => Math.round(e * 255));
     expectArraysEqual(actualData, expectedData);
   });
 
@@ -77,7 +77,7 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     const ctx = canvas.getContext('2d');
 
     // tslint:disable-next-line:no-any
-    tf.browser.draw(img, canvas as any, {contextType: '2d'});
+    tf.browser.draw(img, canvas as any, {contextOptions: {contextType: '2d'}});
     const actualData = ctx.getImageData().data;
     const expectedData =
         [1, 1, 1, 255, 2, 2, 2, 255, 3, 3, 3, 255, 4, 4, 4, 255];
@@ -91,9 +91,12 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     const ctx = canvas.getContext('2d');
 
     // tslint:disable-next-line:no-any
-    tf.browser.draw(img, canvas as any, {contextType: '2d'}, {alpha: 0.5});
+    tf.browser.draw(
+        img, canvas as any,
+        {contextOptions: {contextType: '2d'}, imageOptions: {alpha: 0.5}});
     const actualData = ctx.getImageData().data;
-    const expectedData = [1, 1, 1, 63, 2, 2, 2, 63, 3, 3, 3, 63, 4, 4, 4, 63];
+    const expectedData =
+        [1, 1, 1, 128, 2, 2, 2, 128, 3, 3, 3, 128, 4, 4, 4, 128];
     expectArraysEqual(actualData, expectedData);
   });
 });
