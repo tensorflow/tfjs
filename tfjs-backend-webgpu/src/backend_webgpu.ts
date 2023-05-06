@@ -196,8 +196,8 @@ export class WebGPUBackend extends KernelBackend {
 
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
-   * is released or memory is not managed in this backend, false if memory is
-   * not cleared.
+   * is released or delayed in this backend, false if there are still
+   * references.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
@@ -207,20 +207,22 @@ export class WebGPUBackend extends KernelBackend {
       return true;
     }
 
-    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-      return false;
-    }
+    if (!force) {
+      if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
+        return true;
+      }
 
-    const tensorData = this.tensorMap.get(dataId);
-    this.decRef(dataId);
-    if (!force && tensorData.refCount > 0) {
-      return false;
-    }
+      const tensorData = this.tensorMap.get(dataId);
+      this.decRef(dataId);
+      if (tensorData.refCount > 0) {
+        return false;
+      }
 
-    // Delay to dispose data of tensor in commandQueueOwnedIds.
-    if (this.commandQueueOwnedIds.has(dataId)) {
-      this.tensorDataPendingDisposal.push(dataId);
-      return false;
+      // Delay to dispose data of tensor in commandQueueOwnedIds.
+      if (this.commandQueueOwnedIds.has(dataId)) {
+        this.tensorDataPendingDisposal.push(dataId);
+        return true;
+      }
     }
 
     const {complexTensorInfos} = this.tensorMap.get(dataId);
@@ -327,9 +329,7 @@ export class WebGPUBackend extends KernelBackend {
     const disposeLength = this.tensorDataPendingDisposal.length;
     for (let i = 0; i < disposeLength; i++) {
       const item = this.tensorDataPendingDisposal.pop();
-      if (this.disposeData(item)) {
-        engine().removeDataId(item, this);
-      }
+      this.disposeData(item, true);
     }
 
     this.uniformPendingDisposal.forEach(
