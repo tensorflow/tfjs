@@ -212,7 +212,7 @@ export function isWebGPUData(values: unknown): values is WebGPUData {
       values.buffer instanceof GPUBuffer;
 }
 
-export interface DrawOptions {
+export interface ImageOptions {
   /**
    * Optional. A number in range [0-1]. If the image is a 2D tensor or a 3D
    * tensor with 1 or 3 channels, the alpha channels would set as its value;
@@ -221,7 +221,7 @@ export interface DrawOptions {
   alpha?: number;
 }
 
-export interface CanvasOptions {
+export interface contextOptions {
   /**
    * Optional.  If the canvas has created a context, it would not make effects.
    * If it is not set, it would be variable based on the current backend.
@@ -232,4 +232,15 @@ export interface CanvasOptions {
    * a context, it would not make effects.
    */
   contextAttributes?: WebGLContextAttributes;
+}
+
+export interface DrawOptions {
+  /**
+   * Optional. An object of options to customize the values of image tensor.
+   */
+  imageOptions?: ImageOptions;
+  /**
+   * Optional. An object to configure the context of the canvas to draw to.
+   */
+  contextOptions?: contextOptions;
 }

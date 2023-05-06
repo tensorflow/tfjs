@@ -22,7 +22,7 @@ import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {CanvasOptions as CanvasOptions, DrawOptions, PixelData, TensorLike} from '../types';
+import {CanvasOptions as CanvasOptions, DrawOptions, ImageOptions, PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
 import {op} from './operation';
@@ -289,8 +289,8 @@ function validateImgTensor(img: Tensor2D|Tensor3D) {
   }
 }
 
-function validateDrawOptions(drawOptions: DrawOptions) {
-  const alpha = drawOptions ?.alpha || 1;
+function validateImageOptions(imageOptions: ImageOptions) {
+  const alpha = imageOptions ?.alpha || 1;
   if (alpha > 1 || alpha < 0) {
     throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
   }
@@ -402,17 +402,17 @@ export async function toPixels(
  *   - Rank-2 with shape `[height, width`]: Drawn as grayscale.
  *   - Rank-3 with shape `[height, width, 1]`: Drawn as grayscale.
  *   - Rank-3 with shape `[height, width, 3]`: Drawn as RGB with alpha set in
- *     `drawOptions` (defaults to 1, which is opaque).
+ *     `imageOptions` (defaults to 1, which is opaque).
  *   - Rank-3 with shape `[height, width, 4]`: Drawn as RGBA.
  * @param canvas The canvas to draw to.
- * @param canvasOptions A object to configure the canvas to draw to.
- * @param drawOptions A object of options to customize drawing.
+ * @param options The configuration arguments for image to be drawn and the
+ *     canvas to draw to.
  *
  * @doc {heading: 'Browser', namespace: 'browser'}
  */
 export function draw(
     image: Tensor2D|Tensor3D|TensorLike, canvas: HTMLCanvasElement,
-    canvasOptions?: CanvasOptions, drawOptions?: DrawOptions): void {
+    options?: DrawOptions): void {
   let $img = convertToTensor(image, 'img', 'draw');
   if (!(image instanceof Tensor)) {
     // Assume int32 if user passed a native array.
@@ -421,10 +421,10 @@ export function draw(
     originalImgTensor.dispose();
   }
   validateImgTensor($img);
-  validateDrawOptions(drawOptions);
+  validateImageOptions(options?.imageOptions);
 
   const inputs: DrawInputs = {image: $img};
-  const attrs: DrawAttrs = {canvas, canvasOptions, drawOptions};
+  const attrs: DrawAttrs = {canvas, options};
   ENGINE.runKernel(
       Draw, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);

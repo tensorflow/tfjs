@@ -336,8 +336,7 @@ export const Draw = 'Draw';
 export type DrawInputs = Pick<NamedTensorInfoMap, 'image'>;
 export interface DrawAttrs {
   canvas: HTMLCanvasElement;
-  canvasOptions?: CanvasOptions;
-  drawOptions?: DrawOptions;
+  options?: DrawOptions;
 }
 
 export const RealDiv = 'RealDiv';

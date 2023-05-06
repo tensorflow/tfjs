@@ -25,16 +25,17 @@ export function draw(
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {image} = inputs;
-  const {canvas, canvasOptions, drawOptions} = attrs;
-  const alpha = drawOptions ?.alpha || 1;
+  const {canvas, options} = attrs;
+  const {contextOptions, imageOptions} = options || {};
+  const alpha = imageOptions ?.alpha || 1;
 
-  const contextType = canvasOptions ?.contextType || '2d';
+  const contextType = contextOptions ?.contextType || '2d';
   if (contextType !== '2d') {
     throw new Error(`Context type ${
-        canvasOptions.contextType} is not supported by the CPU backend.`);
+        contextOptions.contextType} is not supported by the CPU backend.`);
   }
   const ctx = canvas.getContext(contextType,
-    canvasOptions?.contextAttributes || {}) as CanvasRenderingContext2D ;
+    contextOptions?.contextAttributes || {}) as CanvasRenderingContext2D ;
   if (ctx == null) {
     throw new Error(`Could not get the context with ${contextType} type.`);
   }
