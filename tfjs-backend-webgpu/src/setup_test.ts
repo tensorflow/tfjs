@@ -152,6 +152,12 @@ const TEST_FILTERS: TestFilter[] = [
       'calling .data() twice works',
     ],
   },
+  {
+    startsWith: 'bitwiseAnd',
+    excludes: [
+      'bitwiseAnd',
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {

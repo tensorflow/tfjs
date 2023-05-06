@@ -159,10 +159,6 @@ export const executeOp: InternalOpExecutor =
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Rsqrt':
           return [ops.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
-        case 'Prod':
-          return [ops.prod(
-              getParamValue('x', node, tensorMap, context) as Tensor,
-              getParamValue('axes', node, tensorMap, context) as number[])];
         case 'LeakyRelu':
           return [ops.leakyRelu(
               getParamValue('x', node, tensorMap, context) as Tensor,

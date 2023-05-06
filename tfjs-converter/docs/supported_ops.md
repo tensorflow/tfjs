@@ -201,6 +201,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BitwiseAnd|bitwiseAnd|
 |Equal|equal|
 |Greater|greater|
 |GreaterEqual|greaterEqual|

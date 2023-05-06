@@ -64,6 +64,32 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     // Tensor values should match.
     test_util.expectArraysClose(await t.data(), view);
   });
+
+  // TODO(mattSoulanille): Re-enable this once it's working on iOS.
+  // tslint:disable-next-line: ban
+  xit('allocates more than two gigabytes', async () => {
+    const size = 2**30 / 4; // 2**30 bytes (4 bytes per number) = 1GB
+
+    // Allocate 3 gigabytes.
+    const t0 = tf.zeros([size], 'float32');
+    const t1 = tf.ones([size], 'float32');
+    const t2 = t1.mul(2);
+
+    // Helper function to check if all the values in a tensor equal an expected
+    // value.
+    async function check(tensor: tf.Tensor, name: string, val: number) {
+      const arr = await tensor.data();
+      for (let i = 0; i < size; i++) {
+        if (arr[i] !== val) {
+          throw new Error(`${name}[${i}] == ${arr[i]} but should be ${val}`);
+        }
+      }
+    }
+
+    await check(t0, 't0', 0);
+    await check(t1, 't1', 1);
+    await check(t2, 't2', 2);
+  });
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
