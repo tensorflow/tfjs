@@ -221,7 +221,7 @@ export interface ImageOptions {
   alpha?: number;
 }
 
-export interface contextOptions {
+export interface ContextOptions {
   /**
    * Optional.  If the canvas has created a context, it would not make effects.
    * If it is not set, it would be variable based on the current backend.
@@ -242,5 +242,5 @@ export interface DrawOptions {
   /**
    * Optional. An object to configure the context of the canvas to draw to.
    */
-  contextOptions?: contextOptions;
+  contextOptions?: ContextOptions;
 }
