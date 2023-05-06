@@ -22,7 +22,7 @@ import {NamedTensorInfoMap} from './kernel_registry';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
 import {TensorInfo} from './tensor_info';
-import {CanvasOptions, DataType, DrawOptions, PixelData} from './types';
+import {DataType, DrawOptions, PixelData} from './types';
 
 export const Abs = 'Abs';
 export type AbsInputs = UnaryInputs;

@@ -22,7 +22,7 @@ import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {CanvasOptions as CanvasOptions, DrawOptions, ImageOptions, PixelData, TensorLike} from '../types';
+import {DrawOptions, ImageOptions, PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
 import {op} from './operation';

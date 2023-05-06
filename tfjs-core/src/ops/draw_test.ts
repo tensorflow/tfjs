@@ -90,10 +90,12 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     const canvas = new MockCanvas(2, 2);
     const ctx = canvas.getContext('2d');
 
+    const drawOptions = {
+      contextOptions: {contextType: '2d'},
+      imageOptions: {alpha: 0.5}
+    };
     // tslint:disable-next-line:no-any
-    tf.browser.draw(
-        img, canvas as any,
-        {contextOptions: {contextType: '2d'}, imageOptions: {alpha: 0.5}});
+    tf.browser.draw(img, canvas as any, drawOptions);
     const actualData = ctx.getImageData().data;
     const expectedData =
         [1, 1, 1, 128, 2, 2, 2, 128, 3, 3, 3, 128, 4, 4, 4, 128];
