@@ -66,7 +66,7 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     // tslint:disable-next-line:no-any
     tf.browser.draw(img, canvas as any, {contextOptions: {contextType: '2d'}});
     const actualData = ctx.getImageData().data;
-    const expectedData = data.map(e => Math.round(e * 2515));
+    const expectedData = data.map(e => Math.round(e * 255));
     expectArraysClose(actualData, expectedData, 1);
   });
 
