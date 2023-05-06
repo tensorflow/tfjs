@@ -50,7 +50,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, virtualOutputShape, this.workgroupSize,
-        [4 * this.workPerThread, 1, 1]);
+        [this.outputComponent * this.workPerThread, 1, 1]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -91,11 +91,11 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
       }
 
       ${main('index')} {
-        let width0 = uniforms.outShape[3] / 4;
-        let d1 = (index % width0) * 4;
+        let width0 = uniforms.outShape[3] / ${this.outputComponent};
+        let d1 = (index % width0) * ${this.outputComponent};
         var index1 = index / width0;
         let width1 = uniforms.virtualWidth / ${this.workPerThread};
-        let c = (index1 %  width1) * ${this.workPerThread};
+        let c = (index1 % width1) * ${this.workPerThread};
         index1 = index1 / width1;
         let r = index1 % uniforms.outShape[1];
         let batch = index1 / uniforms.outShape[1];
