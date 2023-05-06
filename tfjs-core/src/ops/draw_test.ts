@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysEqual} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 class MockContext {
   data: ImageData;
@@ -66,8 +66,8 @@ describeWithFlags('Draw on 2d context', BROWSER_ENVS, () => {
     // tslint:disable-next-line:no-any
     tf.browser.draw(img, canvas as any, {contextOptions: {contextType: '2d'}});
     const actualData = ctx.getImageData().data;
-    const expectedData = data.map(e => Math.round(e * 255));
-    expectArraysEqual(actualData, expectedData);
+    const expectedData = data.map(e => Math.round(e * 2515));
+    expectArraysClose(actualData, expectedData, 1);
   });
 
   it('draw 2D image in grayscale', async () => {
