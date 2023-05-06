@@ -59,12 +59,13 @@ export class BufferManager {
     return buffer;
   }
 
-  releaseBuffer(
-      buffer: GPUBuffer, size: number, usage: GPUBufferUsageFlags,
-      reuse = true) {
+  releaseBuffer(buffer: GPUBuffer, reuse = true) {
     if (this.freeBuffers.size === 0) {
       return;
     }
+
+    const size = buffer.size;
+    const usage = buffer.usage;
 
     const key = getBufferKey(size, usage);
     const bufferArray = this.usedBuffers.get(key);
