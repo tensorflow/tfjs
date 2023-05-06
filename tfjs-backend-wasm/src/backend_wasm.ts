@@ -92,7 +92,11 @@ export class BackendWasm extends KernelBackend {
 
     const size = util.sizeFromShape(shape);
     const numBytes = size * util.bytesPerElement(dtype);
-    const memoryOffset = this.wasm._malloc(numBytes);
+
+    // `>>> 0` is needed for above 2GB allocations because wasm._malloc returns
+    // a signed int32 instead of an unsigned int32.
+    // https://v8.dev/blog/4gb-wasm-memory
+    const memoryOffset = this.wasm._malloc(numBytes) >>> 0;
 
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount});
 

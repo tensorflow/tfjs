@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
-
 /**
  * Convert an ArrayBuffer to a Buffer.
  */
@@ -50,31 +48,4 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
     // A single Buffer. Return a copy of the underlying ArrayBuffer slice.
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
   }
-}
-
-// TODO(cais): Use explicit tf.io.ModelArtifactsInfo return type below once it
-// is available.
-/**
- * Populate ModelArtifactsInfo fields for a model with JSON topology.
- * @param modelArtifacts
- * @returns A ModelArtifactsInfo object.
- */
-export function getModelArtifactsInfoForJSON(
-    modelArtifacts: tf.io.ModelArtifacts) {
-  if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
-    throw new Error('Expected JSON model topology, received ArrayBuffer.');
-  }
-  return {
-    dateSaved: new Date(),
-    modelTopologyType: 'JSON',
-    modelTopologyBytes: modelArtifacts.modelTopology == null ?
-        0 :
-        Buffer.byteLength(JSON.stringify(modelArtifacts.modelTopology), 'utf8'),
-    weightSpecsBytes: modelArtifacts.weightSpecs == null ?
-        0 :
-        Buffer.byteLength(JSON.stringify(modelArtifacts.weightSpecs), 'utf8'),
-    weightDataBytes: modelArtifacts.weightData == null ?
-        0 :
-        modelArtifacts.weightData.byteLength,
-  };
 }

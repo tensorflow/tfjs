@@ -78,7 +78,6 @@ const uniformBindGroup = device.createBindGroup({
       binding: 1,
       resource: {
         buffer: data.buffer,
-        size: data.bufSize,
       },
     },
     ...

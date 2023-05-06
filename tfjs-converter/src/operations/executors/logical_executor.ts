@@ -26,8 +26,8 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext, ops = tfOps): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Equal': {
           return [ops.equal(
@@ -77,6 +77,11 @@ export const executeOp: InternalOpExecutor =
         case 'SelectV2': {
           return [ops.where(
               getParamValue('condition', node, tensorMap, context) as Tensor,
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'BitwiseAnd': {
+          return [ops.bitwiseAnd(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
