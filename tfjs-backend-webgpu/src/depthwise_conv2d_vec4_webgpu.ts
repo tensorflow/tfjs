@@ -26,7 +26,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'pads : vec2<i32>, inDims : vec2<i32>,';
+  uniforms = 'pads : vec2<i32>, inDims : vec2<i32>, virtualWidth : i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
@@ -34,22 +34,22 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
   outputComponent = 4;
-  size = true;
+  virtualWidth: number;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    if (this.outputShape[2] % 4 === 0) {
-      this.workPerThread = 4;
-    } else if (this.outputShape[2] % 2 === 0) {
-      this.workPerThread = 2;
-    } else {
-      this.workPerThread = 1;
-    }
+    this.virtualWidth = Math.ceil(this.outputShape[2] / this.workPerThread) *
+        this.workPerThread;
+    const virtualOutputShape = [
+      this.outputShape[0], this.outputShape[1], this.virtualWidth,
+      this.outputShape[3]
+    ];
+    this.dispatchLayout = flatDispatchLayout(virtualOutputShape);
+
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize,
+        this.dispatchLayout, virtualOutputShape, this.workgroupSize,
         [4 * this.workPerThread, 1, 1]);
 
     util.assert(
@@ -91,11 +91,10 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
       }
 
       ${main('index')} {
-      if (index * ${this.workPerThread} < uniforms.size) {
         let width0 = uniforms.outShape[3] / 4;
         let d1 = (index % width0) * 4;
         var index1 = index / width0;
-        let width1 = uniforms.outShape[2] / ${this.workPerThread};
+        let width1 = uniforms.virtualWidth / ${this.workPerThread};
         let c = (index1 %  width1) * ${this.workPerThread};
         index1 = index1 / width1;
         let r = index1 % uniforms.outShape[1];
@@ -131,12 +130,13 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
 
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let coords = vec4<i32>(batch, r, c + i, d1);
-          var value = dotProd[i];
-          ${biasActivationSnippet(this.addBias, this.activation)}
-          setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
+          if (coordsInBounds4D(coords, uniforms.outShape)) {
+            var value = dotProd[i];
+            ${biasActivationSnippet(this.addBias, this.activation)}
+            setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
+          }
         }
       }
-    }
     `;
     return userCode;
   }
