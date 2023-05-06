@@ -63,12 +63,15 @@ export class TextureManager {
     return newTexture;
   }
 
-  releaseTexture(
-      texture: GPUTexture, width: number, height: number,
-      format: GPUTextureFormat, usage: GPUTextureUsageFlags) {
+  releaseTexture(texture: GPUTexture) {
     if (this.freeTextures.size === 0) {
       return;
     }
+
+    const width = texture.width;
+    const height = texture.height;
+    const format = texture.format;
+    const usage = texture.usage;
 
     const key = getTextureKey(width, height, format, usage);
     if (!this.freeTextures.has(key)) {
