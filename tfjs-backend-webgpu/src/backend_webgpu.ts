@@ -207,28 +207,29 @@ export class WebGPUBackend extends KernelBackend {
       return true;
     }
 
-    if (!force) {
-      if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-        return true;
-      }
-
-      const tensorData = this.tensorMap.get(dataId);
-      this.decRef(dataId);
-      if (tensorData.refCount > 0) {
-        return false;
-      }
-
-      // Delay to dispose data of tensor in commandQueueOwnedIds.
-      if (this.commandQueueOwnedIds.has(dataId)) {
-        this.tensorDataPendingDisposal.push(dataId);
-        return true;
-      }
+    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
+      return true;
     }
 
-    const {complexTensorInfos} = this.tensorMap.get(dataId);
-    if (complexTensorInfos != null) {
-      this.disposeData(complexTensorInfos.real.dataId, force);
-      this.disposeData(complexTensorInfos.imag.dataId, force);
+    const tensorData = this.tensorMap.get(dataId);
+    if (force) {
+      tensorData.refCount = 0;
+    } else {
+      tensorData.refCount--;
+    }
+
+    if (tensorData.refCount > 0) {
+      return false;
+    }
+
+    if (tensorData.complexTensorInfos != null) {
+      this.disposeData(tensorData.complexTensorInfos.real.dataId, force);
+      this.disposeData(tensorData.complexTensorInfos.imag.dataId, force);
+    }
+
+    if (this.commandQueueOwnedIds.has(dataId)) {
+      this.tensorDataPendingDisposal.push(dataId);
+      return true;
     }
 
     this.releaseResource(dataId);
@@ -326,11 +327,10 @@ export class WebGPUBackend extends KernelBackend {
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
-    const disposeLength = this.tensorDataPendingDisposal.length;
-    for (let i = 0; i < disposeLength; i++) {
-      const item = this.tensorDataPendingDisposal.pop();
-      this.disposeData(item, true);
-    }
+    this.tensorDataPendingDisposal.forEach(d => {
+      this.releaseResource(d);
+      this.tensorMap.delete(d);
+    });
 
     this.uniformPendingDisposal.forEach(
         b => this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage));
@@ -338,6 +338,7 @@ export class WebGPUBackend extends KernelBackend {
         b =>
             this.bufferManager.releaseBuffer(b.buffer, b.size, b.usage, false));
 
+    this.tensorDataPendingDisposal = [];
     this.uniformPendingDisposal = [];
     this.stagingPendingDisposal = [];
   }
