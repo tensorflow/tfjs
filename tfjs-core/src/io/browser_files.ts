@@ -23,9 +23,10 @@
 import '../flags';
 import {env} from '../environment';
 
-import {basename, concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
+import {basename, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelJSON, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 const DEFAULT_FILE_NAME_PREFIX = 'model';
 const DEFAULT_JSON_EXTENSION_NAME = '.json';
@@ -73,7 +74,7 @@ export class BrowserDownloads implements IOHandler {
 
     // TODO(mattsoulanille): Support saving models over 2GB that exceed
     // Chrome's ArrayBuffer size limit.
-    const weightBuffer = concatenateArrayBuffers(modelArtifacts.weightData);
+    const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
 
     const weightsURL = window.URL.createObjectURL(new Blob(
         [weightBuffer], {type: 'application/octet-stream'}));

@@ -80,7 +80,7 @@ describe('CompositeArrayBuffer', () => {
     });
   }
 
-  it('can be passed an empty arraybuffer', () => {
+  it('can be created from an empty arraybuffer', () => {
     const array = new Uint8Array([]);
     const singleComposite = new CompositeArrayBuffer(array.buffer);
     expectArraysEqual(new Uint8Array(singleComposite.slice()), []);
@@ -90,6 +90,18 @@ describe('CompositeArrayBuffer', () => {
     const array = new Uint8Array([1,2,3]);
     const singleComposite = new CompositeArrayBuffer(array.buffer);
     expectArraysEqual(new Uint8Array(singleComposite.slice()), array);
+  });
+
+  it('can be created from zero arrays', () => {
+    const singleComposite = new CompositeArrayBuffer([]);
+    expectArraysEqual(new Uint8Array(singleComposite.slice()),
+                      new Uint8Array());
+  });
+
+  it('can be created from undefined input', () => {
+    const singleComposite = new CompositeArrayBuffer();
+    expectArraysEqual(new Uint8Array(singleComposite.slice()),
+                      new Uint8Array());
   });
 
   it('treats NaN as zero when passed as the start of slice', () => {

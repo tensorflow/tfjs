@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line: no-imports-from-dist
-import {registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {BitwiseAnd, KernelConfig} from '@tensorflow/tfjs-core';
 
-registerTestEnv({
-  name: 'webgpu',
-  backendName: 'webgpu',
-  flags: {
-    'WEBGPU_CPU_FORWARD': false,
-  },
-  isDataSync: true
-});
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {binaryKernelFunc} from '../utils/binary_utils';
+
+export const bitwiseAndImpl =
+    createSimpleBinaryKernelImpl(((a: number, b: number) => a & b));
+
+export const bitwiseAnd = binaryKernelFunc(BitwiseAnd, bitwiseAndImpl);
+
+export const bitwiseAndConfig: KernelConfig = {
+  kernelName: BitwiseAnd,
+  backendName: 'cpu',
+  kernelFunc: bitwiseAnd
+};

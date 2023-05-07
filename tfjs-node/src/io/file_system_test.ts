@@ -150,7 +150,7 @@ describe('File system IOHandler', () => {
                 expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
                 expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
 
-                expect(new Float32Array(tf.io.concatenateArrayBuffers(
+                expect(new Float32Array(tf.io.CompositeArrayBuffer.join(
                   modelArtifacts.weightData)))
                     .toEqual(new Float32Array([0, 0, 0, 0]));
                 done();
@@ -217,7 +217,7 @@ describe('File system IOHandler', () => {
         }
       ]);
       tf.test_util.expectArraysClose(
-        new Float32Array(tf.io.concatenateArrayBuffers(
+        new Float32Array(tf.io.CompositeArrayBuffer.join(
           modelArtifacts.weightData)),
         new Float32Array([-1.1, -3.3, -3.3, -7.7]));
     });
@@ -343,7 +343,7 @@ describe('File system IOHandler', () => {
         }
       ]);
       tf.test_util.expectArraysClose(
-        new Float32Array(tf.io.concatenateArrayBuffers(
+        new Float32Array(tf.io.CompositeArrayBuffer.join(
           modelArtifacts.weightData)),
         new Float32Array([-1.1, -3.3, -3.3, -7.7]));
     });
