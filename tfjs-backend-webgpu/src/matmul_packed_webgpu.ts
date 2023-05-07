@@ -119,18 +119,15 @@ const calculateResultSnippet =
         }`;
       } else {
         return `
-        for (var i = 0; i < ${rowPerThread}; i++) {
-          let tIndex = tileIndex + (i * ${blockSize});
-          var tileRow = tIndex / ${tileWidth};
-          var tileCol = tIndex % ${tileWidth};
-          let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
-          let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
-          let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
-          ${
+        let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
+        let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
+        let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
+        ${
             innerElementSize === 3 ?
                 '' :
                 `let BCached3 = mm_Bsub[k * ${innerElementSize} + 3][tileCol];`}
-          let ACached = mm_Asub[tileRow][k];
+        for (var i = 0; i < ${rowPerThread}; i++) {
+          let ACached = mm_Asub[tileRow + i][k];
           acc[i] = fma(BCached0, vec4<f32>(ACached.x), acc[i]);
           acc[i] = fma(BCached1, vec4<f32>(ACached.y), acc[i]);
           acc[i] = fma(BCached2, vec4<f32>(ACached.z), acc[i]);
@@ -151,9 +148,10 @@ export function makeMatMulPackedVec4Source(
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
-  const rowPerThread = Math.ceil(
+  const rowPerThreadRaw = Math.ceil(
       tileAOuter * tileBOuter /
       (workgroupSize[0] * workgroupSize[1] * workPerThread[0]));
+  const rowPerThread = rowPerThreadRaw === 3 ? 4 : rowPerThreadRaw;
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
        (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&
@@ -170,7 +168,8 @@ export function makeMatMulPackedVec4Source(
 
   ${main()} {
     let tileIndex = i32(localIndex);
-
+    let tileRow = tileIndex / ${tileBOuter / 4} * ${rowPerThread};
+    let tileCol = tileIndex % ${tileBOuter / 4};
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
     let batchA = ${
       splitK || !broadcastBatch ? 'batch' : 'batch % uniforms.aShape[0]'};
@@ -220,12 +219,10 @@ export function makeMatMulPackedVec4Source(
     }
 
     for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
-      let tIndex = tileIndex + (innerRow * ${
-      workgroupSize[0] * workgroupSize[1]});
-      var tileRow = tIndex / ${tileBOuter / workPerThread[0]};
-      var tileCol = tIndex % ${tileBOuter / workPerThread[0]};
-        mm_write(batch, globalRowStart + tileRow, globalColStart + tileCol * ${
+      if(tileRow + innerRow < ${tileAOuter}) {
+        mm_write(batch, globalRowStart + tileRow + innerRow, globalColStart + tileCol * ${
       workPerThread[0]}, acc[innerRow]);
+      }
     }
   }`;
 }
