@@ -153,8 +153,8 @@ export const E2E_PHASE: Phase = {
 export const TFJS_RELEASE_UNIT: ReleaseUnit = {
   name: 'tfjs',
   phases: [
-    CORE_PHASE, CPU_PHASE, WEBGL_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE,
-    UNION_PHASE, NODE_PHASE, WASM_PHASE
+    CORE_PHASE, CPU_PHASE, WEBGL_PHASE, WEBGPU_PHASE, LAYERS_CONVERTER_PHASE,
+    DATA_PHASE, UNION_PHASE, NODE_PHASE, WASM_PHASE
   ]
 };
 
@@ -167,7 +167,7 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 // replace 'link' dependencies with the new monorepo version.
 export const ALPHA_RELEASE_UNIT: ReleaseUnit = {
   name: 'alpha-monorepo-packages',
-  phases: [TFDF_PHASE, WEBGPU_PHASE],
+  phases: [TFDF_PHASE],
 };
 
 export const VIS_RELEASE_UNIT: ReleaseUnit = {
