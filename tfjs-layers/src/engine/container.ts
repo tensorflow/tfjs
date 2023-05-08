@@ -974,14 +974,11 @@ export abstract class Container extends Layer {
    */
   getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-            `Was asked to retrieve layer at index ${index}, but model only ` +
-            `has ${this.layers.length} layer(s).`);
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
+      if (nameOrIndex != null && typeof nameOrIndex === 'number') {
+        return this.findLayer(nameOrIndex);
+      }
       if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
       }
@@ -993,6 +990,16 @@ export abstract class Container extends Layer {
       }
     }
     throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+
+  findLayer(index: number): Layer {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+          `Was asked to retrieve layer at index ${index}, but model only ` +
+          `has ${this.layers.length} layer(s).`);
+    } else {
+      return this.layers[index];
+    }
   }
 
   /**
