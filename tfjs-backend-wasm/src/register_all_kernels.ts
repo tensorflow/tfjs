@@ -191,6 +191,7 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   avgPool3DConfig,
   avgPool3DGradConfig,
   batchMatMulConfig,
