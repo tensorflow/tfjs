@@ -20,4 +20,4 @@ import {KernelConfig, Mod} from '@tensorflow/tfjs-core';
 import {createBinaryKernelConfig} from './binary_kernel';
 
 export const modConfig: KernelConfig =
-    createBinaryKernelConfig(Mod, /*supportsFullBroadcast=*/false);
+    createBinaryKernelConfig(Mod, /*supportsFullBroadcast=*/true);

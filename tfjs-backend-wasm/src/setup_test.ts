@@ -413,13 +413,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'multinomial'},
   {include: 'unique'},
   {include: 'conv3d'},
-  {
-    include: 'mod',
-    excludes: [
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
-                                                  // dims not supported yet.
-    ]
-  }
+  {include: 'mod '},
 ];
 
 const customInclude = (testName: string) => {

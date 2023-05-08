@@ -28,7 +28,7 @@ namespace wasm {
 namespace {
 
 template <typename T>
-inline T ModInt(T, a, T b) {
+inline T ModInt(T a, T b) {
   T rem = a % b;
   if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
     return rem;
@@ -58,12 +58,12 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
          const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id, ModFloat<float>) {
-
-      });
+      binary_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, ModFloat<float>);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, ModInt<int32_t>);
+      binary_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, ModInt<int32_t>);
       break;
     default:
       util::warn("Mod for tensor ids %d and %d failed. Unsupported dtype %d",
