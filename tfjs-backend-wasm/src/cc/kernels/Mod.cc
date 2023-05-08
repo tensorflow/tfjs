@@ -19,46 +19,55 @@
 #include <cmath>
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
+
+namespace {
+
+template <typename T>
+inline T ModInt(T, a, T b) {
+  T rem = a % b;
+  if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
+    return rem;
+  }
+  return (rem + b) % b;
+}
+
+template <typename T>
+inline T ModFloat(T a, T b) {
+  T rem = std::fmod(a, b);
+  if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
+    return rem;
+  }
+  return std::fmod(rem + b, b);
+}
+
+}  // namespace
+
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Mod(const size_t a_id, const size_t* a_shape_ptr,
-         const size_t a_shape_len, const size_t b_id,
-         const size_t* b_shape_ptr, const size_t b_shape_len,
+void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
+         const size_t b_id, const size_t* b_shape_ptr, const size_t b_shape_len,
          const DType dtype, const size_t out_id) {
-  auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id, [](float a, float b) {
-        float rem = fmod(a, b);
-        if ((a < 0 && b < 0) || (a >= 0 && b >= 0))
-          return rem;
-        else
-          return fmod(rem + b, b);
+      binary_f32(a_id, b_id, out_id, ModFloat<float>) {
+
       });
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        float rem = fmod(a, b);
-        if ((a < 0 && b < 0) || (a >= 0 && b >= 0))
-          return static_cast<int32_t>(rem);
-        else
-          return static_cast<int32_t>(fmod(rem + b, b));
-      });
+      binary_i32(a_id, b_id, out_id, ModInt<int32_t>);
       break;
     default:
-      util::warn(
-          "Mod for tensor ids %d and %d failed. Unsupported dtype %d",
-          a_id, b_id, dtype);
+      util::warn("Mod for tensor ids %d and %d failed. Unsupported dtype %d",
+                 a_id, b_id, dtype);
   }
 }
 

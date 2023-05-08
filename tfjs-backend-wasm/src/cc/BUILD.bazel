@@ -408,6 +408,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Mod",
         ":Multinomial",
         ":Multiply",
         ":Neg",
@@ -1240,6 +1241,15 @@ tfjs_cc_library(
     srcs = ["kernels/MirrorPad.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
+    deps = [
+        ":binary",
         ":util",
     ],
 )
