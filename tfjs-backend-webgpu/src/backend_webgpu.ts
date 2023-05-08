@@ -391,8 +391,8 @@ export class WebGPUBackend extends KernelBackend {
     if (!this.hasReadSyncWarned) {
       this.hasReadSyncWarned = true;
       console.warn(
-          `The performance of 'readSync' is poor on the webgpu backend,` +
-          `please use asynchronous APIs to read data from GPU to CPU.`);
+          `The performance of synchronously reading data from GPU to CPU is ` +
+          `poor on the webgpu backend, please use asynchronous APIs instead.`);
     }
 
     const tensorData = this.tensorMap.get(dataId);
