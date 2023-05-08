@@ -16,22 +16,38 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
+
+namespace {
+template <typename T>
+inline T ErfImpl(T n) {
+  return static_cast<T>(std::erff(static_cast<float>(n)));
+}
+}  // namespace
+
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Erf(const int x_id, const int out_id) { unary(x_id, out_id, erf); }
+
+void Erf(const int x_id, const DType dtype, const int out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_f32(x_id, out_id, ErfImpl<float>);
+      break;
+    default:
+      util::warn("Erf for tensor id %d failed. Unsupported dtype %d", x_id,
+                 dtype);
+  }
+}
 
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
-
