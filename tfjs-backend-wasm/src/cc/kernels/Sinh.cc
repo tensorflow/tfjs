@@ -15,7 +15,7 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 
 #include "tfjs-backend-wasm/src/cc/unary.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
