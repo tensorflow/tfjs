@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, buffer, KernelConfig, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, broadcast_util, buffer, KernelConfig, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -48,17 +48,8 @@ export function batchMatMul(args: {
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
-  util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
   const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
@@ -102,12 +93,14 @@ export function batchMatMul(args: {
   const blockSize = backend.blockSize;
 
   for (let bi = 0; bi < batchDim; bi++) {
+    const batchIndexA = bi % batchDimA;
+    const batchIndexB = bi % batchDimB;
     for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
+      // for when blockSize doesn't evenly divide the input
+      const iBlock = Math.min(i0 + blockSize, leftDim);
       for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
+        const jBlock = Math.min(j0 + blockSize, rightDim);
         for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
-          // for when blockSize doesn't evenly divide the input
-          const iBlock = Math.min(i0 + blockSize, leftDim);
-          const jBlock = Math.min(j0 + blockSize, rightDim);
           const kBlock = Math.min(k0 + blockSize, sharedDim);
 
           for (let i = i0; i < iBlock; i++) {
@@ -115,12 +108,12 @@ export function batchMatMul(args: {
               let sum = 0.0;
 
               for (let k = k0; k < kBlock; k++) {
-                const batchOffsetA = Math.min(bi, batchDimA - 1) * aBatch;
-                const batchOffsetB = Math.min(bi, batchDimB - 1) * bBatch;
                 const aVal =
-                    a3dValues[batchOffsetA + i * aOuterStep + k * aInnerStep];
+                    // tslint:disable-next-line: max-line-length
+                    a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep];
                 const bVal =
-                    b3dValues[k * bInnerStep + j * bOuterStep + batchOffsetB];
+                    // tslint:disable-next-line: max-line-length
+                    b3dValues[k * bInnerStep + j * bOuterStep + batchIndexB * bBatch];
                 sum += aVal * bVal;
               }
               resVals[bi * size + (i * rightDim + j)] += sum;
@@ -142,5 +135,5 @@ export function batchMatMul(args: {
 export const batchMatMulConfig: KernelConfig = {
   kernelName: BatchMatMul,
   backendName: 'cpu',
-  kernelFunc: batchMatMul as {} as KernelFunc,
+  kernelFunc: batchMatMul as unknown as KernelFunc,
 };

@@ -46,8 +46,8 @@ export function maxPool3DGrad(args: {
   return result;
 }
 
-export const maxPoolGrad3DConfig: KernelConfig = {
+export const maxPool3DGradConfig: KernelConfig = {
   kernelName: MaxPool3DGrad,
   backendName: 'webgl',
-  kernelFunc: maxPool3DGrad as {} as KernelFunc
+  kernelFunc: maxPool3DGrad as unknown as KernelFunc
 };

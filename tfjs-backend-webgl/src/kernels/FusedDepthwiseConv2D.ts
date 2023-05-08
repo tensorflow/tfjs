@@ -70,7 +70,8 @@ export function fusedDepthwiseConv2D(args: {
   if (hasLeakyreluAlpha) {
     const $leakyreluAlpha = backend.makeTensorInfo(
         [], 'float32',
-        util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+        util.createScalarValue(leakyreluAlpha as unknown as 'float32',
+                               'float32'));
     programInputs.push($leakyreluAlpha);
     intermediates.push($leakyreluAlpha);
   }
@@ -85,8 +86,14 @@ export function fusedDepthwiseConv2D(args: {
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);
   }
-
-  const result = backend.runWebGLProgram(program, programInputs, 'float32');
+  const customValues = [
+    [convInfo.padInfo.top, convInfo.padInfo.left],
+    [convInfo.strideHeight, convInfo.strideWidth],
+    [convInfo.dilationHeight, convInfo.dilationWidth],
+    [convInfo.inHeight, convInfo.inWidth]
+  ];
+  const result =
+      backend.runWebGLProgram(program, programInputs, 'float32', customValues);
 
   intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
 
@@ -96,5 +103,5 @@ export function fusedDepthwiseConv2D(args: {
 export const fusedDepthwiseConv2DConfig: KernelConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: 'webgl',
-  kernelFunc: fusedDepthwiseConv2D as {} as KernelFunc,
+  kernelFunc: fusedDepthwiseConv2D as unknown as KernelFunc,
 };

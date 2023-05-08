@@ -25,6 +25,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {cast} from './cast';
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -53,8 +54,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1*1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
@@ -85,23 +86,20 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool3d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  util.assert(
+      (typeof strides === 'number' && strides > 0) ||
+          (Array.isArray(strides) && strides[0] > 0 && strides[1] > 0 &&
+           strides[2] > 0),
+      () => `Error in avgPool3d: Stride must be > 0, but got '${strides}'`);
+  checkPadOnDimRoundingMode('avgPool3d', pad, dimRoundingMode);
   const inputs: AvgPool3DInputs = {x: x5D};
-
   const attrs:
       AvgPool3DAttrs = {filterSize, strides, pad, dimRoundingMode, dataFormat};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
-                AvgPool3D, inputs as {} as NamedTensorMap,
-                attrs as {} as NamedAttrMap) as T;
+                AvgPool3D, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, x5D.dtype);
 
@@ -114,4 +112,4 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const avgPool3d = op({avgPool3d_});
+export const avgPool3d = /* @__PURE__ */ op({avgPool3d_});

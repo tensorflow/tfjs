@@ -104,30 +104,21 @@ export const esmImportProvider: ImportProvider = {
   },
 
   importKernelStr(kernelName: string, backend: SupportedBackend) {
-    // TODO(yassogba) validate whether the target file referenced by
-    // importStatement exists and warn the user if it doesn't. That could happen
-    // here or in an earlier validation phase that uses this function
-
     const backendPkg = getBackendPath(backend);
     const kernelConfigId = `${kernelName}_${backend}`;
+    const importPath = `${backendPkg}/dist/kernels/${kernelName}`;
     const importStatement =
         `import {${kernelNameToVariableName(kernelName)}Config as ${
-            kernelConfigId}} from '${backendPkg}/dist/kernels/${kernelName}';`;
-
-    return {importStatement, kernelConfigId};
+            kernelConfigId}} from '${importPath}';`;
+    return {importPath, importStatement, kernelConfigId};
   },
 
   importGradientConfigStr(kernelName: string) {
-    // TODO(yassogba) validate whether the target file referenced by
-    // importStatement exists and warn the user if it doesn't. That could happen
-    // here or in an earlier validation phase that uses this function
-
     const gradConfigId = `${kernelNameToVariableName(kernelName)}GradConfig`;
-    const importStatement =
-        `import {${gradConfigId}} from '@tensorflow/tfjs-core/dist/gradients/${
-            kernelName}_grad';`;
-
-    return {importStatement, gradConfigId};
+    const importPath =
+        `@tensorflow/tfjs-core/dist/gradients/${kernelName}_grad`;
+    const importStatement = `import {${gradConfigId}} from '${importPath}';`;
+    return {importPath, importStatement, gradConfigId};
   },
 
   importOpForConverterStr(opSymbol) {
@@ -155,6 +146,15 @@ export const esmImportProvider: ImportProvider = {
     result.push(`};`);
 
     return result.join('\n');
+  },
+
+  validateImportPath(importPath: string): boolean {
+    try {
+      require.resolve(importPath);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 };
 

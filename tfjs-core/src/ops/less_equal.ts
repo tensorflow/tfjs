@@ -42,15 +42,15 @@ import {op} from './operation';
  */
 function lessEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'lessEqual');
-  let $b = convertToTensor(b, 'b', 'lessEqual');
+  let $a = convertToTensor(a, 'a', 'lessEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'lessEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   const inputs: LessEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(LessEqual, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(LessEqual, inputs as unknown as NamedTensorMap);
 }
 
-export const lessEqual = op({lessEqual_});
+export const lessEqual = /* @__PURE__ */ op({lessEqual_});

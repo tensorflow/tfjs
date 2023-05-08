@@ -90,6 +90,32 @@ describe('ESM Module Provider', () => {
     expect(res).toBe(`export {add} from '@tensorflow/tfjs-core/dist/ops/add';`);
   });
 
+  it('importOpForConverterStr gatherND', () => {
+    const res = esmImportProvider.importOpForConverterStr('gatherND');
+    expect(res).toBe(
+        `export {gatherND} from '@tensorflow/tfjs-core/dist/ops/gather_nd';`);
+  });
+
+  it('importOpForConverterStr batchToSpaceND', () => {
+    const res = esmImportProvider.importOpForConverterStr('batchToSpaceND');
+    expect(res).toBe(
+        // tslint:disable-next-line:max-line-length
+        `export {batchToSpaceND} from '@tensorflow/tfjs-core/dist/ops/batch_to_space_nd';`);
+  });
+
+  it('importOpForConverterStr concat1d', () => {
+    const res = esmImportProvider.importOpForConverterStr('concat1d');
+    expect(res).toBe(
+        `export {concat1d} from '@tensorflow/tfjs-core/dist/ops/concat_1d';`);
+  });
+
+  it('importOpForConverterStr avgPool3d', () => {
+    const res = esmImportProvider.importOpForConverterStr('avgPool3d');
+    expect(res).toBe(
+        // tslint:disable-next-line:max-line-length
+        `export {avgPool3d} from '@tensorflow/tfjs-core/dist/ops/avg_pool_3d';`);
+  });
+
   it('importOpForConverterStr stridedSlice', () => {
     const res = esmImportProvider.importOpForConverterStr('stridedSlice');
     expect(res).toBe(

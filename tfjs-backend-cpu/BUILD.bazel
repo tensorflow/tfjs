@@ -1,0 +1,110 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+
+package(default_visibility = ["//visibility:public"])
+
+nodejs_test(
+    name = "tfjs-backend-cpu_test",
+    data = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_test_lib",
+    ],
+    entry_point = "//tfjs-backend-cpu/src:run_tests.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+tfjs_web_test(
+    name = "tfjs-backend-cpu_browser_test",
+    srcs = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_test_bundle",
+    ],
+    args = [],
+    browsers = [
+        "bs_chrome_mac",
+    ],
+    headless = False,
+    presubmit_browsers = [
+        "bs_chrome_mac",
+    ],
+)
+
+tfjs_bundle(
+    name = "tf-backend-cpu",
+    entry_point = "//tfjs-backend-cpu/src:index.ts",
+    external = [
+        "@tensorflow/tfjs-core",
+        "crypto",
+        "node-fetch",
+        "seedrandom",
+        "util",
+    ],
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+        "seedrandom": "seedrandom",
+    },
+    umd_name = "tf",
+    deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+    ],
+)
+
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-backend-cpu",
+        ":tf-backend-cpu.es2017",
+        ":tf-backend-cpu.es2017.min",
+        ":tf-backend-cpu.fesm",
+        ":tf-backend-cpu.fesm.min",
+        ":tf-backend-cpu.min",
+        ":tf-backend-cpu.node",
+    ],
+)
+
+pkg_npm(
+    name = "tfjs-backend-cpu_pkg",
+    package_name = "@tensorflow/tfjs-backend-cpu",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_src_to_dist",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-cpu_test",
+    ],
+)

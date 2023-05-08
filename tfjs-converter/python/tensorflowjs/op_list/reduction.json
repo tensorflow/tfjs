@@ -238,6 +238,40 @@
         "tfName": "keep_dims",
         "name": "keepDims",
         "type": "bool"
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "Cumprod",
+    "category": "reduction",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "axis",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "exclusive",
+        "name": "exclusive",
+        "type": "bool"
+      },
+      {
+        "tfName": "reverse",
+        "name": "reverse",
+        "type": "bool"
       }
     ]
   },

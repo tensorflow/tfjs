@@ -19,6 +19,7 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
+import {Conv2DPackedProgram} from '../conv_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
@@ -49,6 +50,53 @@ export function fusedConv2d(args: {
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
+  const hasBias = bias != null;
+  const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
+
+  const prepareInputs = (): TensorInfo[] => {
+    const inputs: TensorInfo[] = [x, filter];
+
+    // If the input is a 1-D tensor, align it with the channels.
+    //
+    // For fusedConv2d, the inputs (x, W, bias, preluActivationWeights) are
+    // supposed to be aligned with the dataFormat. The 4-D tensor inputs or
+    // scalar inputs are originally aligned, but the 1-D tensor inputs are
+    // supposed to be aligned with the channels (only bias and PReLU activation
+    // weights could be a 1-D tensor).
+    const alignInputWithDataFormat =
+        (input: TensorInfo, dataFormat: 'NHWC'|'NCHW'): TensorInfo => {
+          if (dataFormat === 'NCHW' && input.shape.length === 1 &&
+              input.shape[0] !== 1) {
+            const alignedInput = reshape({
+              inputs: {x: input},
+              backend,
+              attrs: {shape: [input.shape[0], 1, 1]}
+            });
+            intermediates.push(alignedInput);
+            return alignedInput;
+          }
+          return input;
+        };
+
+    if (hasBias) {
+      inputs.push(alignInputWithDataFormat(bias, dataFormat));
+    }
+
+    if (hasPreluActivationWeights) {
+      inputs.push(alignInputWithDataFormat(preluActivationWeights, dataFormat));
+    }
+
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as unknown as 'float32', 'float32'));
+      inputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
+    }
+    return inputs;
+  };
+
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
@@ -63,7 +111,23 @@ export function fusedConv2d(args: {
       preluActivationWeights,
       leakyreluAlpha
     });
-  } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+  } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
+    && env().getBool('WEBGL_EXP_CONV')
+    ) {
+      const fusedActivation =
+          activation ? mapActivationToShaderProgram(activation, true) : null;
+    const program = new Conv2DPackedProgram(
+      convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+      hasLeakyreluAlpha);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    const inputs = prepareInputs();
+    out = backend.runWebGLProgram(program, inputs, 'float32', customValues);
+  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({
       x,
       filter,
@@ -75,28 +139,13 @@ export function fusedConv2d(args: {
       leakyreluAlpha
     });
   } else {
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const hasLeakyreluAlpha = activation === 'leakyrelu';
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, false) : null;
     const program = new Conv2DProgram(
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);
-    const inputs: TensorInfo[] = [x, filter];
-    if (bias) {
-      inputs.push(bias);
-    }
-    if (preluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-    if (hasLeakyreluAlpha) {
-      const $leakyreluAlpha = backend.makeTensorInfo(
-          [], 'float32',
-          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
-      inputs.push($leakyreluAlpha);
-      intermediates.push($leakyreluAlpha);
-    }
+
+    const inputs = prepareInputs();
     out = backend.runWebGLProgram(program, inputs, 'float32');
   }
 
@@ -112,5 +161,5 @@ export function fusedConv2d(args: {
 export const fusedConv2DConfig: KernelConfig = {
   kernelName: FusedConv2D,
   backendName: 'webgl',
-  kernelFunc: fusedConv2d as {} as KernelFunc,
+  kernelFunc: fusedConv2d as unknown as KernelFunc,
 };

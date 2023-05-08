@@ -18,7 +18,7 @@
 import {Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {FillProgram} from './fill_webgpu';
+import {FillProgram} from '../fill_webgpu';
 
 export function fill(args: {backend: WebGPUBackend, attrs: FillAttrs}):
     TensorInfo {
@@ -35,7 +35,7 @@ export function fill(args: {backend: WebGPUBackend, attrs: FillAttrs}):
     return backend.makeTensorInfo(shape, dtype, values);
   } else {
     const program = new FillProgram(shape);
-    const uniformData = new Float32Array([value as number]);
+    const uniformData = [{type: 'float32', data: [value as number]}];
     return backend.runWebGPUProgram(program, [], dtype, uniformData);
   }
 }
@@ -43,5 +43,5 @@ export function fill(args: {backend: WebGPUBackend, attrs: FillAttrs}):
 export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'webgpu',
-  kernelFunc: fill as {} as KernelFunc
+  kernelFunc: fill as unknown as KernelFunc
 };

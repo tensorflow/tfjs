@@ -1,0 +1,185 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
+load("//tools:get_extension.bzl", "get_extension")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+
+package(default_visibility = ["//visibility:public"])
+
+tfjs_bundle(
+    name = "tf-backend-wasm",
+    entry_point = "//tfjs-backend-wasm/src:index.ts",
+    # When updating external, also update rollup_wechat.config.mjs
+    external = [
+        "crypto",
+        "@tensorflow/tfjs-core",
+        "fs",
+        "path",
+        "worker_threads",
+        "perf_hooks",
+    ],
+    # When updating globals, also update rollup_wechat.config.mjs
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+        "fs": "fs",
+        "path": "path",
+        "perf_hooks": "perf_hooks",
+        "worker_threads": "worker_threads",
+    },
+    leave_as_require = [
+        "crypto",
+        "node-fetch",
+        "util",
+    ],
+    umd_name = "tf.wasm",
+    deps = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
+    ],
+)
+
+rollup_bundle(
+    name = "tf-backend-wasm-miniprogram.min",
+    args = ["--output.name=tf"],
+    config_file = "rollup_wechat.config.mjs",
+    entry_point = "//tfjs-backend-wasm/src:index.ts",
+    format = "umd",
+    sourcemap = "true",
+    deps = [
+        "//tfjs-backend-wasm/scripts:patch_wechat_webassembly",
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
+        "//tools:make_rollup_config",
+        "@npm//tslib",
+    ],
+)
+
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-backend-wasm",
+        ":tf-backend-wasm.es2017",
+        ":tf-backend-wasm.es2017.min",
+        ":tf-backend-wasm.fesm",
+        ":tf-backend-wasm.fesm.min",
+        ":tf-backend-wasm.min",
+        ":tf-backend-wasm.node",
+    ],
+)
+
+get_extension(
+    name = "wasm_files",
+    srcs = [
+        "//tfjs-backend-wasm/wasm-out",
+    ],
+    include = [
+        ".wasm",
+    ],
+)
+
+copy_to_dist(
+    name = "copy_wasm_files",
+    srcs = [
+        ":wasm_files",
+    ],
+    root = "wasm-out",
+)
+
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-backend-wasm-miniprogram.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-backend-wasm-miniprogram.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+
+pkg_npm(
+    name = "tfjs-backend-wasm_pkg",
+    package_name = "@tensorflow/tfjs-backend-wasm",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
+        ":copy_src_to_dist",
+        ":copy_wasm_files",
+        "//tfjs-backend-wasm/wasm-out",
+    ],
+)
+
+# TODO(mattsoulanille): This test uses the default chrome flags and tests
+# the simd implementation. We should also test the non-simd implementation and
+# the threaded implementation. When writing those tests, also try to depend on
+# only the required wasm outputs, since it takes a long time to compile them.
+tfjs_web_test(
+    name = "tfjs-backend-wasm_test",
+    srcs = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
+    ],
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        "bs_ios_12",
+        # TODO(mattsoulanille): Fix clipByValue on Android.
+        # "bs_android_10",
+        "win_10_chrome",
+    ],
+    static_files = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
+        "//tfjs-backend-wasm/wasm-out",
+    ],
+)
+
+nodejs_test(
+    name = "tfjs-backend-wasm_node_test",
+    data = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_lib",
+        "//tfjs-backend-wasm/wasm-out",
+    ],
+    entry_point = "//tfjs-backend-wasm/src:test_node.ts",
+    tags = ["ci"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-wasm_node_test",
+        ":tfjs-backend-wasm_test",
+        "//tfjs-backend-wasm/src/cc:cc_tests",
+    ],
+)

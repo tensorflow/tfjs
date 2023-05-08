@@ -31,6 +31,7 @@
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';
+import * as broadcast_util from './ops/broadcast_util';
 import * as browser from './ops/browser';
 import * as gather_util from './ops/gather_nd_util';
 import * as scatter_util from './ops/scatter_nd_util';
@@ -42,18 +43,19 @@ import * as util from './util';
 import {version} from './version';
 
 export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefEntry, SignatureDefInfo} from './model_types';
-// Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
 export {AdamOptimizer} from './optimizers/adam_optimizer';
 export {AdamaxOptimizer} from './optimizers/adamax_optimizer';
 export {MomentumOptimizer} from './optimizers/momentum_optimizer';
 export {Optimizer} from './optimizers/optimizer';
+// Optimizers.
+export {OptimizerConstructors} from './optimizers/optimizer_constructors';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
-export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
+export {DataToGPUOptions, DataToGPUWebGLOption, GPUData, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
+export {BackendValues, DataType, DataTypeMap, DataTypeFor, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType, WebGLData, WebGPUData} from './types';
 
 export * from './ops/ops';
 export {Reduction} from './ops/loss_ops_utils';
@@ -61,6 +63,7 @@ export {Reduction} from './ops/loss_ops_utils';
 export * from './train';
 export * from './globals';
 export * from './kernel_registry';
+export {TensorInfo, DataId} from './tensor_info';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
@@ -83,6 +86,7 @@ export {
   test_util,
   util,
   backend_util,
+  broadcast_util,
   tensor_util,
   slice_util,
   gather_util,

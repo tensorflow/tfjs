@@ -35,12 +35,12 @@ let targetDir = process.argv[3];
 // This file is Windows only - the libraries must be placed in the correct
 // directory to work.
 if (os.platform() !== 'win32') {
-  throw new Exception('Dep staging is only supported on Windows');
+  throw new Error('Dep staging is only supported on Windows');
 }
 
 // Some windows machines contain a trailing " char:
 if (targetDir != undefined && targetDir.endsWith('"')) {
-  targetDir = targetDir.substr(0, targetDir.length - 1);
+  targetDir = targetDir.slice(0, -1);
 }
 
 // Setup dest binary paths:

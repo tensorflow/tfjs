@@ -65,8 +65,9 @@ export function lRNGrad(
   return backend.makeTensorInfo(dy.shape, x.dtype, result);
 }
 
-export const lRNGradConfig: KernelConfig = {
+// tslint:disable-next-line: variable-name
+export const LRNGradConfig: KernelConfig = {
   kernelName: LRNGrad,
   backendName: 'cpu',
-  kernelFunc: lRNGrad as {} as KernelFunc
+  kernelFunc: lRNGrad as unknown as KernelFunc
 };

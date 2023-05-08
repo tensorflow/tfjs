@@ -37,7 +37,7 @@ import {reshape} from './reshape';
  * Mean, variance, scale, and offset can be of two shapes:
  *   - The same shape as the input.
  *   - In the common case, the depth dimension is the last dimension of x, so
- *     the values would be an `tf.Tensor1D` of shape [depth].
+ *     the values would be a `tf.Tensor1D` of shape [depth].
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that parameters passed are of given rank
@@ -102,10 +102,10 @@ function batchNorm_<R extends Rank>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  FusedBatchNorm, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as Tensor<R>;
+                  FusedBatchNorm, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as Tensor<R>;
 
   return reshape(res, $x.shape);
 }
 
-export const batchNorm = op({batchNorm_});
+export const batchNorm = /* @__PURE__ */ op({batchNorm_});

@@ -127,7 +127,10 @@ export function maxPoolPositions(
             const wR = xR - xRCorner;
             for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
               const wC = xC - xCCorner;
-              const pixel = xBuf.get(b, xR, xC, d);
+              // For some reason, disable-next-line is not working
+              // TODO(mattsoulanille): Remove this when switching to TS5.
+              /* tslint:disable: no-unnecessary-type-assertion */
+              const pixel = xBuf.get(b, xR, xC, d) as number;
               if (pixel > maxValue) {
                 maxValue = pixel as number;
                 if (flattenPositions) {
@@ -245,8 +248,9 @@ export function pool3d(
               }
             }
             const outputOffset = outputColOffset + channel;
-            outputVals[outputOffset] =
-                poolType === 'avg' ? avgValue / count : minMaxValue;
+            outputVals[outputOffset] = poolType === 'avg' ?
+                avgValue / Math.max(count, 1) :
+                minMaxValue;
           }
         }
       }
@@ -312,7 +316,8 @@ export function maxPool3dPositions(
                 for (let xCol = xColMin; xCol < xColMax;
                      xCol += dilationWidth) {
                   const wCol = xCol - xColCorner;
-                  const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                  const pixel = xBuf.get(batch, xDepth, xRow, xCol,
+                                         channel) as number;
                   if (pixel >= maxValue) {
                     maxValue = pixel as number;
                     maxPosition =

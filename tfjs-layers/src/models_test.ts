@@ -15,9 +15,9 @@ import * as tfl from './index';
 import {PyJsonDict} from './keras_format/types';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
-import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
+import {loadLayersModel, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 const OCTET_STREAM_TYPE = 'application/octet-stream';
@@ -653,7 +653,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadLayersModelInternal('model/model.json');
+    const model = await loadLayersModel('model/model.json');
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 32]);
@@ -948,7 +948,7 @@ describeMathCPU('loadLayersModel from URL', () => {
          });
        });
 
-       const model = await loadLayersModelInternal('model/model.json');
+       const model = await loadLayersModel('model/model.json');
        expect(model.layers.length).toEqual(2);
        expect(model.inputs.length).toEqual(1);
        expect(model.inputs[0].shape).toEqual([null, 10]);
@@ -1017,7 +1017,7 @@ describeMathCPU('loadLayersModel from URL', () => {
       });
     });
 
-    const model = await loadLayersModelInternal('model/model.json');
+    const model = await loadLayersModel('model/model.json');
     expect(model.name.indexOf('Foo123Sequential')).toEqual(0);
     expect(model.layers.length).toEqual(2);
     expect(model.inputs.length).toEqual(1);
@@ -1080,7 +1080,7 @@ describeMathCPU('loadLayersModel from URL', () => {
              });
            });
 
-       const model = await loadLayersModelInternal(
+       const model = await loadLayersModel(
            io.browserHTTPRequest('model/model.json', {
              requestInit: {
                headers: {'header_key_1': 'header_value_1'},
@@ -1153,7 +1153,7 @@ describeMathCPU('loadLayersModel from URL', () => {
            });
          });
 
-         const model = await loadLayersModelInternal(
+         const model = await loadLayersModel(
              `${protocol}localhost:8888/models/model.json`);
          expect(model.layers.length).toEqual(2);
          expect(model.inputs.length).toEqual(1);
@@ -1259,7 +1259,7 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 });
 
-describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
+describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
   it('SGD', async () => {
     const model1 = tfl.sequential();
     model1.add(tfl.layers.dense(
@@ -1293,7 +1293,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 * 8 + 4 * 1 + 4);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 * 8 + 4 * 1 + 4);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1352,7 +1353,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+    expect(new io.CompositeArrayBuffer(weightData)
+      .byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1411,7 +1413,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1468,7 +1471,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1530,7 +1534,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1588,7 +1593,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1645,7 +1651,8 @@ describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(weightData.byteLength).toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+      .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1880,7 +1887,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   }
 
   it('load topology and weights', async () => {
-    const model = await loadLayersModelInternal(new IOHandlerForTest(true));
+    const model = await loadLayersModel(new IOHandlerForTest(true));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1893,7 +1900,7 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
   });
 
   it('load topology only', async () => {
-    const model = await loadLayersModelInternal(new IOHandlerForTest(false));
+    const model = await loadLayersModel(new IOHandlerForTest(false));
     expect(model.layers.length).toEqual(1);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 4]);
@@ -1901,16 +1908,15 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
     expect(model.outputs[0].shape).toEqual([null, 1]);
   });
 
-  it('IOHandler without load method causes error', async done => {
-    loadLayersModelInternal(new IOHandlerWithoutLoad())
+  it('IOHandler without load method causes error', async () => {
+    loadLayersModel(new IOHandlerWithoutLoad())
         .then(model => {
-          done.fail(
+          fail(
               'Loading with an IOHandler without load method succeeded ' +
               'unexpectedly.');
         })
         .catch(err => {
           expect(err.message).toMatch(/does not have .*load.* method/);
-          done();
         });
   });
 });
@@ -2119,8 +2125,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
-    expect(history.history['loss'][0]).toBeCloseTo(121);
-    expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
+    expectTensorsClose(
+        history.history['loss'] as number[], [121, 0.015178224071860313]);
   });
 
   it('calling fit twice in a row leads to error', async () => {

@@ -32,15 +32,15 @@ import {op} from './operation';
  *
  * x.cos().print();  // or tf.cos(x)
  * ```
- * @param x The input tensor.
+ * @param x The input tensor. Must be float32 type.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function cos_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'cos');
+  const $x = convertToTensor(x, 'x', 'cos', 'float32');
 
   const inputs: CosInputs = {x: $x};
 
-  return ENGINE.runKernel(Cos, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Cos, inputs as unknown as NamedTensorMap);
 }
-export const cos = op({cos_});
+export const cos = /* @__PURE__ */ op({cos_});

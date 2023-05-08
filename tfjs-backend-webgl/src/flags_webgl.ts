@@ -62,8 +62,7 @@ ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
 ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack the depthwise conv op. */
-// TODO: https://github.com/tensorflow/tfjs/issues/1679
-ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => false);
+ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack binary ops. */
 ENV.registerFlag(
@@ -200,7 +199,7 @@ ENV.registerFlag(
 ENV.registerFlag(
     'WEBGL_FLUSH_THRESHOLD',
     () => {
-      return device_util.isMobile() && ENV.getBool('IS_CHROME') ? 1 : -1;
+      return device_util.isMobile() ? 1 : -1;
     },
     threshold => {
       if (threshold < 0 && threshold !== -1) {
@@ -209,3 +208,72 @@ ENV.registerFlag(
             `manual flush) or at least 0, but got ${threshold}.`);
       }
     });
+
+/**
+ * Threshold for input tensor size that determines whether WebGL backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+
+/** Whether we will use shapes uniforms. */
+ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
+
+/**
+ * Threshold for last dimension of input tensor that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If input
+ * is smaller than threshold then CPU will be used
+ *
+ * Default value is 100000.
+ */
+ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
+
+/**
+ * Threshold for K that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If k
+ * is larger than threshold then CPU will be used
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
+
+/** Whether we will use the experimental conv op. */
+ENV.registerFlag('WEBGL_EXP_CONV', () => false);
+
+/**
+ * If the device performance is low or if no hardware GPU is available, whether
+ * software WebGL will be used.
+ */
+ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
+
+/**
+ * For narrow texture (physical height or physical width is 1), if the length of
+ * any texture edges exceed the threshold, the texture will be reshaped to be
+ * more squarish.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
+ */
+ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
+
+/**
+ * If the flag is set to true, the max size of the narrow texture will be auto
+ * computed and it will be considerred as a threshold to reshape the narrow
+ * texture to be more squarish.
+ *
+ * This flag is used to help some GPUs that could not provide correct
+ * interpolations for long skinny triangles. We found Mali GPU probably has this
+ * problem: https://github.com/tensorflow/tfjs/issues/6775.
+ */
+ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
+
+/**
+ * Whether to use the customized isnan. It's only useful for webgl2 since webgl1
+ * doesn't have the builtin isnan.
+ */
+ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);

@@ -31,6 +31,7 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
+
 import {deserialize} from './serialization';
 
 /**
@@ -167,7 +168,7 @@ export function rnn(
     }
 
     if (mask != null) {
-      mask = mask.asType('bool').asType('float32');
+      mask = tfc.cast(tfc.cast(mask, 'bool'), 'float32');
       if (mask.rank === ndim - 1) {
         mask = tfc.expandDims(mask, -1);
       }
@@ -211,12 +212,15 @@ export function rnn(
       } else {
         const maskedOutputs = tfc.tidy(() => {
           const stepMask = perStepMasks[t];
-          const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
+          const negStepMask = tfc.sub(tfc.onesLike(stepMask), stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output =
-              stepOutputs[0].mul(stepMask).add(states[0].mul(negStepMask));
+          const output = tfc.add(
+              tfc.mul(stepOutputs[0], stepMask),
+              tfc.mul(states[0], negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask).add(state.mul(negStepMask));
+            return tfc.add(
+                tfc.mul(stepOutputs[1][i], stepMask),
+                tfc.mul(state, negStepMask));
           });
           return {output, newStates};
         });
@@ -249,7 +253,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     Porting Node: PyKeras overrides the `call()` signature of RNN cells,
    *       which are Layer subtypes, to accept two arguments. tfjs-layers does
    *       not do such overriding. Instead we preseve the `call()` signature,
-   *       which due to its `Tensor|Tensor[]` argument and return value, is
+   *       which due to its `Tensor|Tensor[]` argument and return value is
    *       flexible enough to handle the inputs and states.
    *   - a `stateSize` attribute. This can be a single integer (single state)
    *     in which case it is the size of the recurrent state (which should be
@@ -311,8 +315,8 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
 
   /**
    * If `true`, the network will be unrolled, else a symbolic loop will be
-   * used. Unrolling can speed-up a RNN, although it tends to be more memory-
-   * intensive. Unrolling is only suitable for short sequences (default:
+   * used. Unrolling can speed up a RNN, although it tends to be more
+   * memory-intensive. Unrolling is only suitable for short sequences (default:
    * `false`).
    * Porting Note: tfjs-layers has an imperative backend. RNNs are executed with
    *   normal TypeScript control flow. Hence this property is inapplicable and
@@ -413,7 +417,7 @@ export class RNN extends Layer {
     this.states_ = states;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     if (isArrayOfShapes(inputShape)) {
       inputShape = (inputShape as Shape[])[0];
     }
@@ -443,7 +447,7 @@ export class RNN extends Layer {
     }
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
       |Tensor[] {
     return tfc.tidy(() => {
       if (Array.isArray(mask)) {
@@ -484,7 +488,7 @@ export class RNN extends Layer {
     this.states_ = s;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     // Note inputShape will be an Array of Shapes of initial states and
     // constants if these are passed in apply().
     const constantShape: Shape[] = null;
@@ -555,7 +559,7 @@ export class RNN extends Layer {
    *   that subsequent backpropgataion through time (BPTT) may work properly.
    *   Else, the old states will be discarded.
    */
-  resetStates(states?: Tensor|Tensor[], training = false): void {
+  override resetStates(states?: Tensor|Tensor[], training = false): void {
     tidy(() => {
       if (!this.stateful) {
         throw new AttributeError(
@@ -634,7 +638,7 @@ export class RNN extends Layer {
     });
   }
 
-  apply(
+  override apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     // TODO(cais): Figure out whether initialState is in kwargs or inputs.
@@ -695,7 +699,7 @@ export class RNN extends Layer {
   }
 
   // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // Input shape: `[samples, time (padded with zeros), input_dim]`.
     // Note that the .build() method of subclasses **must** define
     // this.inputSpec and this.stateSpec owith complete input shapes.
@@ -783,7 +787,7 @@ export class RNN extends Layer {
     });
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     if (!this.trainable) {
       return [];
     }
@@ -791,7 +795,7 @@ export class RNN extends Layer {
     return this.cell.trainableWeights;
   }
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     // Porting Note: In TypeScript, `this` is always an instance of `Layer`.
     if (!this.trainable) {
       return this.cell.weights;
@@ -799,14 +803,14 @@ export class RNN extends Layer {
     return this.cell.nonTrainableWeights;
   }
 
-  setFastWeightInitDuringBuild(value: boolean) {
+  override setFastWeightInitDuringBuild(value: boolean) {
     super.setFastWeightInitDuringBuild(value);
     if (this.cell != null) {
       this.cell.setFastWeightInitDuringBuild(value);
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const baseConfig = super.getConfig();
 
     const config: serialization.ConfigDict = {
@@ -835,7 +839,7 @@ export class RNN extends Layer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict): T {
@@ -927,7 +931,7 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraintfunction applied to the bias vector.
+   * Constraint function applied to the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
@@ -942,6 +946,11 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 export class SimpleRNNCell extends RNNCell {
@@ -965,6 +974,7 @@ export class SimpleRNNCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
 
@@ -1008,12 +1018,13 @@ export class SimpleRNNCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     // TODO(cais): Use regularizer.
     this.kernel = this.addWeight(
@@ -1040,7 +1051,7 @@ export class SimpleRNNCell extends RNNCell {
   //   Similarly, PyKeras' equivalent of this method returns two values:
   //    `output` and `[output]`. Here the two are combined into one length-2
   //    `Tensor[]`, consisting of `output` repeated.
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = inputs as Tensor[];
       if (inputs.length !== 2) {
@@ -1055,7 +1066,8 @@ export class SimpleRNNCell extends RNNCell {
         this.dropoutMask = generateDropoutMask({
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
-                             training
+                             training,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor;
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1063,7 +1075,8 @@ export class SimpleRNNCell extends RNNCell {
         this.recurrentDropoutMask = generateDropoutMask({
                                       ones: () => tfc.onesLike(prevOutput),
                                       rate: this.recurrentDropout,
-                                      training
+                                      training,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor;
       }
       let h: Tensor;
@@ -1090,7 +1103,7 @@ export class SimpleRNNCell extends RNNCell {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const baseConfig = super.getConfig();
 
     const config: serialization.ConfigDict = {
@@ -1194,6 +1207,11 @@ export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 /**
@@ -1207,14 +1225,14 @@ export declare interface RNNLayerArgs extends BaseRNNLayerArgs {
 
 export class SimpleRNN extends RNN {
   /** @nocollapse */
-  static className = 'SimpleRNN';
+  static override className = 'SimpleRNN';
   constructor(args: SimpleRNNLayerArgs) {
     args.cell = new SimpleRNNCell(args);
     super(args as RNNLayerArgs);
     // TODO(cais): Add activityRegularizer.
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       if (this.cell.dropoutMask != null) {
         tfc.dispose(this.cell.dropoutMask);
@@ -1233,7 +1251,7 @@ export class SimpleRNN extends RNN {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
     return new cls(config);
@@ -1298,6 +1316,7 @@ export class GRUCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
   readonly implementation: number;
@@ -1353,13 +1372,14 @@ export class GRUCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
@@ -1381,7 +1401,7 @@ export class GRUCell extends RNNCell {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = inputs as Tensor[];
       if (inputs.length !== 2) {
@@ -1402,7 +1422,8 @@ export class GRUCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 3
+                             count: 3,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1411,7 +1432,8 @@ export class GRUCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 3
+                                      count: 3,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
@@ -1453,7 +1475,7 @@ export class GRUCell extends RNNCell {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const baseConfig = super.getConfig();
 
     const config: serialization.ConfigDict = {
@@ -1512,7 +1534,7 @@ export declare interface GRULayerArgs extends SimpleRNNLayerArgs {
 
 export class GRU extends RNN {
   /** @nocollapse */
-  static className = 'GRU';
+  static override className = 'GRU';
   constructor(args: GRULayerArgs) {
     if (args.implementation === 0) {
       console.warn(
@@ -1524,7 +1546,7 @@ export class GRU extends RNN {
     // TODO(cais): Add activityRegularizer.
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       if (this.cell.dropoutMask != null) {
         tfc.dispose(this.cell.dropoutMask);
@@ -1543,7 +1565,7 @@ export class GRU extends RNN {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
     if (config['implmentation'] === 0) {
@@ -1571,7 +1593,7 @@ export declare interface LSTMCellLayerArgs extends SimpleRNNCellLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1614,6 +1636,7 @@ export class LSTMCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number[];
   readonly implementation: number;
@@ -1667,13 +1690,14 @@ export class LSTMCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = [this.units, this.units];
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
@@ -1715,7 +1739,7 @@ export class LSTMCell extends RNNCell {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const training = kwargs['training'] == null ? false : kwargs['training'];
       inputs = inputs as Tensor[];
@@ -1732,7 +1756,8 @@ export class LSTMCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 4
+                             count: 4,
+                             dropoutFunc: this.dropoutFunc
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1741,7 +1766,8 @@ export class LSTMCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 4
+                                      count: 4,
+                                      dropoutFunc: this.dropoutFunc
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
@@ -1780,7 +1806,7 @@ export class LSTMCell extends RNNCell {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const baseConfig = super.getConfig();
 
     const config: serialization.ConfigDict = {
@@ -1826,7 +1852,7 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf)
    */
   unitForgetBias?: boolean;
 
@@ -1846,7 +1872,7 @@ export declare interface LSTMLayerArgs extends SimpleRNNLayerArgs {
 
 export class LSTM extends RNN {
   /** @nocollapse */
-  static className = 'LSTM';
+  static override className = 'LSTM';
   constructor(args: LSTMLayerArgs) {
     if (args.implementation === 0) {
       console.warn(
@@ -1858,7 +1884,7 @@ export class LSTM extends RNN {
     // TODO(cais): Add activityRegularizer.
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       if (this.cell.dropoutMask != null) {
         tfc.dispose(this.cell.dropoutMask);
@@ -1877,7 +1903,7 @@ export class LSTM extends RNN {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict): T {
     if (config['implmentation'] === 0) {
@@ -1890,7 +1916,7 @@ serialization.registerClass(LSTM);
 
 export declare interface StackedRNNCellsArgs extends LayerArgs {
   /**
-   * A `Array` of `RNNCell` instances.
+   * An `Array` of `RNNCell` instances.
    */
   cells: RNNCell[];
 }
@@ -1921,7 +1947,7 @@ export class StackedRNNCells extends RNNCell {
     return stateSize;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = inputs as Tensor[];
       let states = inputs.slice(1);
@@ -1962,7 +1988,7 @@ export class StackedRNNCells extends RNNCell {
     });
   }
 
-  public build(inputShape: Shape|Shape[]): void {
+  public override build(inputShape: Shape|Shape[]): void {
     if (isArrayOfShapes(inputShape)) {
       // TODO(cais): Take care of input constants.
       // const constantShape = inputShape.slice(1);
@@ -1986,7 +2012,7 @@ export class StackedRNNCells extends RNNCell {
     this.built = true;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const baseConfig = super.getConfig();
 
     const getCellConfig = (cell: RNNCell) => {
@@ -2004,7 +2030,7 @@ export class StackedRNNCells extends RNNCell {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict): T {
@@ -2015,7 +2041,7 @@ export class StackedRNNCells extends RNNCell {
     return new cls({cells});
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     if (!this.trainable) {
       return [];
     }
@@ -2026,7 +2052,7 @@ export class StackedRNNCells extends RNNCell {
     return weights;
   }
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     const weights: LayerVariable[] = [];
     for (const cell of this.cells) {
       weights.push(...cell.nonTrainableWeights);
@@ -2046,7 +2072,7 @@ export class StackedRNNCells extends RNNCell {
    *
    * @returns A flat `Array` of `tf.Tensor`s.
    */
-  getWeights(): Tensor[] {
+  override getWeights(): Tensor[] {
     const weights: LayerVariable[] = [];
     for (const cell of this.cells) {
       weights.push(...cell.weights);
@@ -2060,7 +2086,7 @@ export class StackedRNNCells extends RNNCell {
    * @param weights An `Array` of `tf.Tensor`s with shapes and types matching
    *     the output of `getWeights()`.
    */
-  setWeights(weights: Tensor[]): void {
+  override setWeights(weights: Tensor[]): void {
     const tuples: Array<[LayerVariable, Tensor]> = [];
     for (const cell of this.cells) {
       const numParams = cell.weights.length;
@@ -2081,10 +2107,12 @@ export function generateDropoutMask(args: {
   rate: number,
   training?: boolean,
   count?: number,
+  dropoutFunc?: Function,
 }): tfc.Tensor|tfc.Tensor[] {
-  const {ones, rate, training = false, count = 1} = args;
+  const {ones, rate, training = false, count = 1, dropoutFunc} = args;
 
-  const droppedInputs = () => K.dropout(ones(), rate);
+  const droppedInputs = () =>
+      dropoutFunc != null ? dropoutFunc(ones(), rate) : K.dropout(ones(), rate);
 
   const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
 

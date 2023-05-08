@@ -15,12 +15,17 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {MatMulPackedProgram} from '../matmul_packed_webgpu';
+import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
+import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
+import {BiasActivationProgram, MatMulSplitKProgram} from '../matmul_splitK_webgpu';
+import {WebGPUProgram} from '../webgpu_program';
+import {MatMulProgramType} from '../webgpu_util';
 
-import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
+import {fill} from './Fill';
 import {reshape} from './Reshape';
 
 type BatchMatMulConfig = {
@@ -61,17 +66,8 @@ export function batchMatMulImpl({
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
-  util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
   const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
@@ -95,36 +91,123 @@ export function batchMatMulImpl({
 
   const batchDim = Math.max(batchDimA, batchDimB);
 
-  const hasBias = bias != null;
-  const hasPreluActivationWeights = preluActivationWeights != null;
-  const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
-      !transposeB;
-  const fusedActivation = activation ?
-      backend.mapActivationToShaderProgram(activation, useVec4) :
-      null;
-  let program: MatMulPackedProgram|MatMulPackedVec4Program;
-  if (useVec4) {
-    // TODO: Currently we need to make sure that a.shape[2] and b.shape[2]
-    // are divisible by 4 since we use vec4 to get data. In future, we can
-    // remove this limitation by insert 0 to pack data.
-    program = new MatMulPackedVec4Program(
-        a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, hasBias,
-        fusedActivation, hasPreluActivationWeights);
-  } else {
-    program = new MatMulPackedProgram(
-        a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
-  }
   const inputs: TensorInfo[] = [a3d, b3d];
+  const dimensions = [
+    {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
+    {type: 'int32', data: [innerShapeA]}
+  ];
+
+  let program: WebGPUProgram;
+  let out: TensorInfo;
+  const outputShape: [number, number, number] =
+      [batchDim, outerShapeA, outerShapeB];
+  let matmulProgramType = env().get('WEBGPU_MATMUL_PROGRAM_TYPE') as number;
+  if (matmulProgramType < 0) {
+    // Usually increasing workgroups is a good way to gain more performance for
+    // few workgroups by tiling 32x32 (default matmul algorithm). Currently,
+    // there are three ways to increase workgroups. 1) MatMulReduceProgram,
+    // which is used only when the output size is very small (128 for now). 2)
+    // MatMulSplitKProgram, increasing workgroups by spliting K. 3)
+    // MatMulSmallOutputSizeProgram, increasing workgroups by small tile size.
+    // For different devices, the minimum optimal workgroups may be different.
+    // So here we set a |thresholdToIncreaseWorkgroups| to indicate whether we
+    // need to increase workgroups. And the literal number is an empirical
+    // value.
+    const thresholdFlagValue =
+        env().getNumber('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+    const thresholdToIncreaseWorkgroups = thresholdFlagValue > 0 ?
+        thresholdFlagValue :
+        backend.thresholdToIncreaseWorkgroups;
+    const workgroupsBy32x32 =
+        batchDim * Math.ceil(outerShapeA / 32) * Math.ceil(outerShapeB / 32);
+    const hasFewWorkgroups =
+        workgroupsBy32x32 <= thresholdToIncreaseWorkgroups ||
+        (outerShapeA <= 8 &&
+         workgroupsBy32x32 <= thresholdToIncreaseWorkgroups * 2);
+    if (hasFewWorkgroups) {
+      if (batchDim * outerShapeA * outerShapeB <= 128) {
+        matmulProgramType = MatMulProgramType.MatMulReduceProgram;
+      } else if (batchDim === 1 && innerShapeB >= 2000) {
+        matmulProgramType = MatMulProgramType.MatMulSplitKProgram;
+      } else {
+        matmulProgramType = MatMulProgramType.MatMulSmallOutputSizeProgram;
+      }
+    } else {
+      matmulProgramType = MatMulProgramType.MatMulPackedProgram;
+    }
+  }
+
+  switch (matmulProgramType) {
+    case MatMulProgramType.MatMulReduceProgram:
+      program = new MatMulReduceProgram(
+          outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights);
+      break;
+    case MatMulProgramType.MatMulSplitKProgram: {
+      // The output buffer must be initailzed to zero before using since we
+      // use atomicAdd in MatMulSplitKProgram.
+      out = fill(
+          {backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
+      program = new MatMulSplitKProgram(
+          outputShape, innerShapeB, transposeA, transposeB);
+      if (bias || activation) {
+        out =
+            backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
+        const biasActivationProgram = new BiasActivationProgram(
+            out.shape, bias, activation, preluActivationWeights);
+        let uniformData = null;
+        const activationInputs: TensorInfo[] = [out];
+        if (bias) {
+          activationInputs.push(bias);
+        }
+        if (preluActivationWeights) {
+          activationInputs.push(preluActivationWeights);
+        }
+        if (activation === 'leakyrelu') {
+          uniformData = [{type: 'float32', data: [leakyreluAlpha]}];
+          biasActivationProgram.uniforms += ' alpha : f32,';
+        }
+        const outActivated = backend.runWebGPUProgram(
+            biasActivationProgram, activationInputs, out.dtype, uniformData);
+        intermediates.push(out);
+        const outReshaped = reshape(
+            {inputs: {x: outActivated}, backend, attrs: {shape: outShape}});
+        intermediates.push(outActivated);
+        for (const i of intermediates) {
+          backend.disposeData(i.dataId);
+        }
+        return outReshaped;
+      }
+      break;
+    }
+    case MatMulProgramType.MatMulSmallOutputSizeProgram:
+      program = new MatMulSmallOutputSizeProgram(
+          a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
+          activation, preluActivationWeights);
+      break;
+    case MatMulProgramType.MatMulPackedProgram:
+      // Experiments show that sequential access is more friendly for Intel
+      // GPUs.
+      const sequentialAccessByThreads = backend.adapterInfo.isIntel();
+      program = new MatMulPackedProgram(
+          a3dShape, outputShape, transposeA, transposeB, bias, activation,
+          preluActivationWeights, sequentialAccessByThreads);
+      break;
+    default:
+      throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
+  }
+
   if (bias) {
     inputs.push(bias);
   }
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
   }
-  const out = backend.runWebGPUProgram(program, inputs, a.dtype);
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
+  out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
   intermediates.push(out);

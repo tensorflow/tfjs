@@ -60,7 +60,7 @@ function pow_<T extends Tensor>(
 
   const inputs: PowInputs = {a: $base, b: $exp};
 
-  return ENGINE.runKernel(Pow, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Pow, inputs as unknown as NamedTensorMap);
 }
 
-export const pow = op({pow_});
+export const pow = /* @__PURE__ */ op({pow_});

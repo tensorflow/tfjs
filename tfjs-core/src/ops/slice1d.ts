@@ -36,4 +36,4 @@ function slice1d_(
           `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, [begin], [size]);
 }
-export const slice1d = op({slice1d_});
+export const slice1d = /* @__PURE__ */ op({slice1d_});

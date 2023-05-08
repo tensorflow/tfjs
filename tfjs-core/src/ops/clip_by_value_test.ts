@@ -30,6 +30,16 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2]);
   });
 
+  it('basic vec4', async () => {
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2, 5, NaN]);
+    const min = -1;
+    const max = 50;
+
+    const result = tf.clipByValue(a, min, max);
+
+    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, NaN]);
+  });
+
   it('propagates NaNs', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2, NaN]);
     const min = -1;
@@ -129,6 +139,14 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     const res = await tf.clipByValue([0, 1], min, max).data();
     expect(res[0]).toBeGreaterThan(0);
     expect(res[1]).toBeCloseTo(max);
+  });
+
+  it('clip min = max', async () => {
+    const min = 2;
+    const max = 2;
+    const tensor = tf.tensor([1, 2, 3, 4, 5], [5], 'float32');
+    const result = tf.clipByValue(tensor, min, max);
+    expectArraysClose(await result.data(), [2, 2, 2, 2, 2]);
   });
 
   it('throws for string tensor', () => {

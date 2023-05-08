@@ -31,7 +31,9 @@ import * as matrices from '../src/operations/op_list/matrices';
 import * as normalization from '../src/operations/op_list/normalization';
 import * as reduction from '../src/operations/op_list/reduction';
 import * as sliceJoin from '../src/operations/op_list/slice_join';
+import * as sparse from '../src/operations/op_list/sparse';
 import * as spectral from '../src/operations/op_list/spectral';
+import * as string from '../src/operations/op_list/string';
 import * as transformation from '../src/operations/op_list/transformation';
 import {OpMapper} from '../src/operations/types';
 
@@ -39,11 +41,10 @@ import {OpMapper} from '../src/operations/types';
 // manually copied over before running this script.
 const JSON_DIR = './tfjs-core.json';
 const DOC_DIR = './docs/';
-
 const ops = [
   arithmetic, basicMath, control, convolution, creation, dynamic, evaluation,
-  logical, image, graph, matrices, normalization, reduction, sliceJoin,
-  spectral, transformation
+  graph, hashtable, image, logical, matrices, normalization, reduction,
+  sliceJoin, sparse, spectral, string, transformation
 ];
 
 async function genDoc() {
@@ -87,13 +88,15 @@ async function genDoc() {
       'Tensorflow', 'Graph', (graph.json as {}) as OpMapper[], output,
       coreApis);
   generateTable(
-      'Operations', 'Logical', (logical.json as {}) as OpMapper[], output,
-      coreApis);
-  generateTable(
       'Operations', 'Hashtable', (hashtable.json as {}) as OpMapper[], output,
       coreApis);
   generateTable(
       'Operations', 'Images', (image.json as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Linear Algebra', [] as OpMapper[], output, coreApis);
+  generateTable(
+      'Operations', 'Logical', (logical.json as {}) as OpMapper[], output,
       coreApis);
   generateTable(
       'Operations', 'Matrices', (matrices.json as {}) as OpMapper[], output,
@@ -109,15 +112,19 @@ async function genDoc() {
   generateTable('Tensors', 'RNN', [] as OpMapper[], output, coreApis);
   generateTable('Operations', 'Scan', [] as OpMapper[], output, coreApis);
   generateTable('Operations', 'Segment', [] as OpMapper[], output, coreApis);
+  generateTable('Operations', 'Signal', [] as OpMapper[], output, coreApis);
   generateTable(
       'Tensors', 'Slicing and Joining', (sliceJoin.json as {}) as OpMapper[],
       output, coreApis);
   generateTable(
+      'Operations', 'Sparse', (sparse.json as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
       'Operations', 'Spectral', (spectral.json as {}) as OpMapper[], output,
       coreApis);
-  generateTable('Operations', 'Signal', [] as OpMapper[], output, coreApis);
   generateTable(
-      'Operations', 'Linear Algebra', [] as OpMapper[], output, coreApis);
+      'Operations', 'String', (string.json as {}) as OpMapper[], output,
+      coreApis);
   generateTable(
       'Tensors', 'Transformations', (transformation.json as {}) as OpMapper[],
       output, coreApis);

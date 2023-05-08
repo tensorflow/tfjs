@@ -48,14 +48,15 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  */
 function maxPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'maxPool');
   const dilations = 1;
@@ -74,21 +75,14 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in maxPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('maxPool', pad, dimRoundingMode);
   const inputs: MaxPoolInputs = {x: x4D};
-
   const attrs: MaxPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  MaxPool, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  MaxPool, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -96,4 +90,4 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const maxPool = op({maxPool_});
+export const maxPool = /* @__PURE__ */ op({maxPool_});

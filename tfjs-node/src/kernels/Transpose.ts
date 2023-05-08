@@ -25,7 +25,7 @@ export const transposeConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as TransposeInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {perm} = args.attrs as {} as TransposeAttrs;
+    const {perm} = args.attrs as unknown as TransposeAttrs;
 
     const permTensor = tensor1d(perm, 'int32');
     const opAttrs = [

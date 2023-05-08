@@ -18,10 +18,12 @@
 import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
+import {Conv2DNaiveProgram} from '../conv2d_naive_webgpu';
+import {Im2ColProgram} from '../im2col_webgpu';
+import {WebGPUProgram} from '../webgpu_program';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
-import {Im2ColProgram} from './im2col_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
 import {reshape} from './Reshape';
 
 type Conv2DConfig = {
@@ -35,10 +37,37 @@ type Conv2DConfig = {
   activation?: backend_util.Activation
 };
 
+// conv2dByMatMul fuses height and width into one dimension to compute
+// batchMatMul, so bias and activation weights are also supposed to fuse the two
+// dimensions into one.
+//
+// This function computes the target shape for fusing height and width
+// dimensions. Returning null means the shape is already compatible.
+function getShapeForBatchMatMul(
+    shape: number[], isChannelsLast: boolean): number[] {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ?
+        [
+          ...shape.slice(0, -3) /* batch */,
+          shape[length - 3] * shape[length - 2] /* height * width */,
+          shape[length - 1] /* channel */
+        ] :
+        [
+          ...shape.slice(0, -3) /* batch */, shape[length - 3] /* channel */,
+          shape[length - 2] * shape[length - 1] /* height * width */
+        ];
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+}
+
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
 // remapping).
-export function conv2dByMatMul({
+function conv2dByMatMul({
   x,
   filter,
   convInfo,
@@ -48,27 +77,80 @@ export function conv2dByMatMul({
   leakyreluAlpha = 0,
   activation = null
 }: Conv2DConfig) {
-  const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  const transposeA = false;
+  const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
 
-  const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                       xShape[0] * xShape[2] * xShape[3];
-  const xReshaped = reshape({
-    inputs: {x},
-    backend,
-    attrs: {shape: [1, targetShape, convInfo.inChannels]}
-  });
-  const filterReshaped = reshape({
-    inputs: {x: filter},
-    backend,
-    attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
-  });
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
+      convInfo.filterWidth === convInfo.inWidth &&
+      convInfo.padInfo.type === 'VALID';
+  const intermediates: TensorInfo[] = [];
+  let xReshaped;
+  let filterReshaped;
+
+  if (sameSize) {
+    const sharedDim =
+        convInfo.inHeight * convInfo.inWidth * convInfo.inChannels;
+    xReshaped = reshape({
+      inputs: {x},
+      backend,
+      attrs: {shape: [1, convInfo.batchSize, sharedDim]}
+    });
+    filterReshaped = reshape({
+      inputs: {x: filter},
+      backend,
+      attrs: {shape: [1, sharedDim, convInfo.outChannels]}
+    });
+  } else {
+    xReshaped = reshape({
+      inputs: {x},
+      backend,
+      attrs: {
+        shape: isChannelsLast ?
+            [
+              convInfo.batchSize, convInfo.inHeight * convInfo.inWidth,
+              convInfo.inChannels
+            ] :
+            [
+              convInfo.batchSize, convInfo.inChannels,
+              convInfo.inHeight * convInfo.inWidth
+            ]
+      }
+    });
+    filterReshaped = reshape({
+      inputs: {x: filter},
+      backend,
+      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+    });
+  }
+  intermediates.push(xReshaped);
+  intermediates.push(filterReshaped);
+
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
+  }
 
   const result = batchMatMulImpl({
-    a: xReshaped,
-    b: filterReshaped,
+    a: isChannelsLast ? xReshaped : filterReshaped,
+    b: isChannelsLast ? filterReshaped : xReshaped,
     transposeA,
     transposeB,
     backend,
@@ -79,17 +161,18 @@ export function conv2dByMatMul({
   });
   const out = reshape(
       {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+  intermediates.push(result);
 
-  backend.disposeData(xReshaped.dataId);
-  backend.disposeData(filterReshaped.dataId);
-  backend.disposeData(result.dataId);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
 
   return out;
 }
 
-// Implements the im2row algorithm as outlined in "High Performance
+// Implements the im2col algorithm as outlined in "High Performance
 // Convolutional Neural Networks for Document Processing" (Suvisoft, 2006)
-export function conv2dWithIm2Col({
+function conv2dWithIm2Col({
   x,
   filter,
   convInfo,
@@ -100,17 +183,22 @@ export function conv2dWithIm2Col({
   activation = null
 }: Conv2DConfig) {
   // Rearranges conv2d input so each block to be convolved over forms the
-  // column of a new matrix with shape [filterWidth * filterHeight *
-  // inChannels, outHeight * outWidth]. The filter is also rearranged so each
-  // output channel forms a row of a new matrix with shape [outChannels,
-  // filterWidth * filterHeight * inChannels]. The convolution is then
-  // computed by multiplying these matrices and reshaping the result.
+  // row of a new matrix with shape [outHeight * outWidth,
+  // filterWidth * filterHeight * inChannels]. The filter is also rearranged so
+  // each output channel forms a col of a new matrix with shape [
+  // filterWidth * filterHeight * inChannels, outChannels]. The convolution is
+  // then computed by multiplying these matrices and reshaping the result.
   const {
     filterWidth,
     filterHeight,
     inChannels,
+    strideWidth,
+    strideHeight,
+    padInfo,
     outWidth,
     outHeight,
+    dilationWidth,
+    dilationHeight,
     dataFormat
   } = convInfo;
 
@@ -118,48 +206,188 @@ export function conv2dWithIm2Col({
 
   const sharedDim = filterWidth * filterHeight * inChannels;
   const numCols = outHeight * outWidth;
-  const x2ColShape = [numCols, sharedDim];
-  const transposeA = false;
-  const transposeB = false;
+  const x2ColShape = isChannelsLast ? [convInfo.batchSize, numCols, sharedDim] :
+                                      [convInfo.batchSize, sharedDim, numCols];
+
+  const im2ColProgram = new Im2ColProgram(x2ColShape, isChannelsLast);
+  const dimensions = [
+    {type: 'int32', data: [padInfo.top, padInfo.left]},      // Padding.
+    {type: 'int32', data: [strideHeight, strideWidth]},      // Stride.
+    {type: 'int32', data: [dilationHeight, dilationWidth]},  // Dilation.
+    {type: 'int32', data: [outWidth]},
+    {type: 'int32', data: [inChannels * filterWidth]},  // itemsPerBlockRow.
+    {type: 'int32', data: [inChannels]}
+  ];
+  const x2Col =
+      backend.runWebGPUProgram(im2ColProgram, [x], x.dtype, dimensions);
 
   const intermediates: TensorInfo[] = [];
+  intermediates.push(x2Col);
 
-  const xSqueezed =
-      reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
-  const w2Row = reshape(
+  const filterReshaped = reshape(
       {inputs: {x: filter}, backend, attrs: {shape: [1, sharedDim, -1]}});
+  intermediates.push(filterReshaped);
 
-  intermediates.push(xSqueezed);
-  intermediates.push(w2Row);
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
 
-  const im2ColProgram =
-      new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-  const im2Col =
-      backend.runWebGPUProgram(im2ColProgram, [xSqueezed], xSqueezed.dtype);
-  const im2Col3D = reshape({
-    inputs: {x: im2Col},
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
+  }
+
+  const transposeA = isChannelsLast ? false : true;
+  const transposeB = false;
+  const result = batchMatMulImpl({
+    a: isChannelsLast ? x2Col : filterReshaped,
+    b: isChannelsLast ? filterReshaped : x2Col,
+    transposeA,
+    transposeB,
     backend,
-    attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
+    bias,
+    activation,
+    preluActivationWeights,
+    leakyreluAlpha
   });
-  intermediates.push(im2Col);
-  intermediates.push(im2Col3D);
-
-  const matMulProgram = new MatMulPackedProgram(
-      [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
-      env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-      transposeB);
-  const result: TensorInfo = backend.runWebGPUProgram(
-      matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype);
-
-  const outShape = isChannelsLast ?
-      [1, outHeight, outWidth, convInfo.outChannels] :
-      [1, convInfo.outChannels, outHeight, outWidth];
-  const out = reshape({inputs: {x: result}, backend, attrs: {shape: outShape}});
-
+  const out = reshape(
+      {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
   intermediates.push(result);
   for (const i of intermediates) {
     backend.disposeData(i.dataId);
   }
 
+  return out;
+}
+
+export function conv2DImpl({
+  x,
+  filter,
+  convInfo,
+  backend,
+  bias = null,
+  preluActivationWeights = null,
+  leakyreluAlpha = 0,
+  activation = null
+}: Conv2DConfig) {
+  const hasBias = bias != null;
+  const hasPreluActivationWeights = preluActivationWeights != null;
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
+      convInfo.filterWidth === convInfo.inWidth &&
+      convInfo.padInfo.type === 'VALID';
+  const useNaiveConv2d = env().getBool('WEBGPU_USE_NAIVE_CONV2D_DEBUG');
+
+  if (!useNaiveConv2d &&
+      (sameSize ||
+       (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')))) {
+    return conv2dByMatMul({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  }
+
+  const thresholdFlagValue = env().getNumber(
+    'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+  const thresholdToIncreaseWorkgroups =  thresholdFlagValue > 0 ?
+      thresholdFlagValue : backend.thresholdToIncreaseWorkgroups;
+  const workgroupsBy32x32 = convInfo.batchSize *
+      Math.ceil((convInfo.outHeight * convInfo.outWidth) / 32) *
+      Math.ceil(convInfo.outChannels / 32);
+  if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') ||
+      workgroupsBy32x32 <= thresholdToIncreaseWorkgroups) {
+    return conv2dWithIm2Col({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      preluActivationWeights,
+      leakyreluAlpha,
+      activation
+    });
+  }
+
+  let program: WebGPUProgram;
+  const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
+  const dimensions = [
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [...padInfo]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
+  ];
+  if (useNaiveConv2d) {
+    program = new Conv2DNaiveProgram(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+  } else {
+    const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
+                                       convInfo.outChannels;
+    const dimBOuter = isChannelsLast ? convInfo.outChannels :
+                                       convInfo.outHeight * convInfo.outWidth;
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+    dimensions.push(
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
+
+    // Experiments show that sequential access is more friendly for Intel GPUs.
+    const sequentialAccessByThreads = backend.adapterInfo.isIntel();
+    program = new Conv2DMMProgram(
+        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
+        hasPreluActivationWeights, sequentialAccessByThreads);
+  }
+
+  const intermediates: TensorInfo[] = [];
+  const inputVar: TensorInfo[] = [x, filter];
+  if (hasBias) {
+    if (!isChannelsLast && bias.shape.length === 1) {
+      bias = reshape(
+          {inputs: {x: bias}, backend, attrs: {shape: [bias.shape[0], 1, 1]}});
+      intermediates.push(bias);
+    }
+    inputVar.push(bias);
+  }
+  if (hasPreluActivationWeights) {
+    if (!isChannelsLast && preluActivationWeights.shape.length === 1) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: [preluActivationWeights.shape[0], 1, 1]}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+    inputVar.push(preluActivationWeights);
+  }
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
+  const out = backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
   return out;
 }

@@ -19,7 +19,7 @@ import {AddN, AddNInputs, KernelConfig, KernelFunc, TensorInfo, upcastType} from
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {AddNPackedProgram} from './addn_packed_webgpu';
+import {AddNPackedProgram} from '../addn_packed_webgpu';
 import {identity} from './Identity';
 
 export function addN(args: {inputs: AddNInputs, backend: WebGPUBackend}):
@@ -41,5 +41,5 @@ export function addN(args: {inputs: AddNInputs, backend: WebGPUBackend}):
 export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'webgpu',
-  kernelFunc: addN as {} as KernelFunc
+  kernelFunc: addN as unknown as KernelFunc
 };

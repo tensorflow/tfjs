@@ -101,6 +101,7 @@ div[id*='trendline-container'] path {
   padding: 7px;
   position: absolute;
   top: 15px;
+  z-index: 100;
 }
 
 .table {
@@ -141,12 +142,20 @@ th:first-child {
   padding-left: 16px;
 }
 
+#gui input{
+  text-align:center;
+}
+
 #gui select {
   width: 100%;
 }
 
+#gui .display {
+  width: 100%;
+  text-align:center;
+}
+
 #gui input[type=checkbox] {
-  margin: 7 auto;
   width: 100%;
 }
 

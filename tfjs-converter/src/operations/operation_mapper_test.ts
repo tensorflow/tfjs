@@ -25,21 +25,24 @@ import * as creation from './op_list/creation';
 import * as dynamic from './op_list/dynamic';
 import * as evaluation from './op_list/evaluation';
 import * as graph from './op_list/graph';
+import * as hashTable from './op_list/hash_table';
 import * as image from './op_list/image';
 import * as logical from './op_list/logical';
 import * as matrices from './op_list/matrices';
 import * as normalization from './op_list/normalization';
 import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
+import * as sparse from './op_list/sparse';
 import * as spectral from './op_list/spectral';
+import * as string from './op_list/string';
 import * as transformation from './op_list/transformation';
 import {OperationMapper} from './operation_mapper';
 import {Graph} from './types';
 
 const ops = [
   arithmetic, basicMath, control, convolution, creation, dynamic, evaluation,
-  logical, image, graph, matrices, normalization, reduction, sliceJoin,
-  spectral, transformation
+  graph, hashTable, image, logical, matrices, normalization, reduction,
+  sliceJoin, sparse, spectral, string, transformation
 ];
 const mapper: OperationMapper = OperationMapper.Instance;
 let convertedGraph: Graph;
@@ -53,8 +56,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         dtype: {
           type: tensorflow.DataType.DT_FLOAT,
         },
-        shape:
-            {shape: {dim: [{size: '3'}, {size: 3}, {size: '3'}, {size: 1}]}}
+        shape: {shape: {dim: [{size: '3'}, {size: 3}, {size: '3'}, {size: 1}]}}
       }
     },
     {
@@ -107,10 +109,8 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       name: 'BiasAdd',
       op: 'BiasAdd',
       input: ['Conv2D', 'Shape'],
-      attr: {
-        T: {type: tensorflow.DataType.DT_FLOAT},
-        dataFormat: {s: 'TkhXQw=='}
-      }
+      attr:
+          {T: {type: tensorflow.DataType.DT_FLOAT}, dataFormat: {s: 'TkhXQw=='}}
     },
     {
       name: 'Cast',
@@ -148,6 +148,12 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       op: 'Cast',
       input: ['BiasAdd'],
       attr: {DstT: {type: tensorflow.DataType.DT_UINT8}}
+    },
+    {
+      name: 'Cast3',
+      op: 'Cast',
+      input: ['BiasAdd'],
+      attr: {DstT: {type: tensorflow.DataType.DT_HALF}}
     },
   ],
   library: {
@@ -254,11 +260,8 @@ const SIGNATURE: tensorflow.ISignatureDef = {
     }
   },
   outputs: {
-    squeeze: {
-      name: 'Squeeze',
-      dtype: tensorflow.DataType.DT_FLOAT,
-      tensorShape: {}
-    }
+    squeeze:
+        {name: 'Squeeze', dtype: tensorflow.DataType.DT_FLOAT, tensorShape: {}}
   }
 };
 
@@ -271,9 +274,23 @@ describe('completeness check', () => {
         };
         convertedGraph = mapper.transformGraph(graph);
         expect(Object.keys(convertedGraph.nodes)).toEqual([tfOp.tfOpName]);
-        expect(convertedGraph.nodes[tfOp.tfOpName].op).toEqual(tfOp.tfOpName);
+        const node = convertedGraph.nodes[tfOp.tfOpName];
+        expect(node.op).toEqual(tfOp.tfOpName);
+        expect(node.category).withContext(`Op: ${node.op}, category`)
+          .toEqual(tfOp.category);
       });
     });
+  });
+  it('should convert op with outputs field', () => {
+    const name = 'string split';
+    const op = 'StringSplit';
+    const graph = {node: [{name, op: 'StringSplit', attr: {}}]};
+    convertedGraph = mapper.transformGraph(graph);
+    expect(Object.keys(convertedGraph.nodes)).toEqual([name]);
+    expect(convertedGraph.nodes[name].op).toEqual(op);
+    expect(convertedGraph.nodes[name].outputs).toEqual([
+      'indices', 'values', 'shape'
+    ]);
   });
 });
 describe('operationMapper without signature', () => {
@@ -293,7 +310,7 @@ describe('operationMapper without signature', () => {
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
           'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
 
@@ -307,7 +324,7 @@ describe('operationMapper without signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
     });
@@ -372,8 +389,7 @@ describe('operationMapper without signature', () => {
                 }
               },
               outputs: {
-                identity:
-                    {name: 'Less:z:0', dtype: tensorflow.DataType.DT_BOOL}
+                identity: {name: 'Less:z:0', dtype: tensorflow.DataType.DT_BOOL}
               }
             });
       });
@@ -470,7 +486,7 @@ describe('operationMapper with signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm', 'Cast2'
+          'FusedBatchNorm', 'Cast2', 'Cast3'
         ]);
       });
     });
@@ -531,6 +547,10 @@ describe('operationMapper with signature', () => {
       it('should map params with uint8 dtype', () => {
         expect(convertedGraph.nodes['Cast2'].attrParams['dtype'].value)
             .toEqual('int32');
+      });
+      it('should map params with half dtype', () => {
+        expect(convertedGraph.nodes['Cast3'].attrParams['dtype'].value)
+            .toEqual('float32');
       });
     });
   });

@@ -35,13 +35,13 @@ export function fill(args: {backend: MathBackendWebGL, attrs: FillAttrs}):
     return backend.makeTensorInfo(shape, dtype, values);
   } else {
     const program = new FillProgram(shape, value as number);
-    const customSetup = program.getCustomSetupFunc(value as number);
-    return backend.runWebGLProgram(program, [], dtype, customSetup);
+    const customValues = [[value as number]];
+    return backend.runWebGLProgram(program, [], dtype, customValues);
   }
 }
 
 export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'webgl',
-  kernelFunc: fill as {} as KernelFunc
+  kernelFunc: fill as unknown as KernelFunc
 };

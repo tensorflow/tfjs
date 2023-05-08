@@ -19,7 +19,7 @@ import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig,
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {BatchNormProgram} from './batchnorm_webgpu';
+import {BatchNormProgram} from '../batchnorm_webgpu';
 
 export const fusedBatchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
@@ -40,8 +40,9 @@ export const fusedBatchNormConfig: KernelConfig = {
       batchNormInputs.push(scale as Tensor);
     }
     const program = new BatchNormProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-    return webGPUBackend.runWebGPUProgram(program, batchNormInputs, x.dtype);
+        x.shape, mean.shape, variance.shape, offsetShape, scaleShape);
+    const uniformData = [{type: 'float32', data: [varianceEpsilon]}];
+    return webGPUBackend.runWebGPUProgram(
+        program, batchNormInputs, x.dtype, uniformData);
   }
 };

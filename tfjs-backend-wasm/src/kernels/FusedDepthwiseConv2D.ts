@@ -82,7 +82,8 @@ function fusedDepthwiseConv2d(args: {
       pad, dimRoundingMode, true /* depthwise */);
 
   const fusedActivation =
-      FusableActivation[activation as {} as keyof typeof FusableActivation];
+      FusableActivation[activation as unknown as
+                        keyof typeof FusableActivation];
   if (fusedActivation == null) {
     throw new Error(
         `${activation} activation not yet supported for FusedDepthwiseConv2D ` +
@@ -151,5 +152,5 @@ export const fusedDepthwiseConv2DConfig: KernelConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedDepthwiseConv2d as {} as KernelFunc
+  kernelFunc: fusedDepthwiseConv2d as unknown as KernelFunc
 };

@@ -23,7 +23,7 @@ import {mul} from '../ops/mul';
 import {sqrt} from '../ops/ops';
 import {square} from '../ops/square';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
 import {Optimizer, OptimizerVariable} from './optimizer';
@@ -31,7 +31,12 @@ import {Optimizer, OptimizerVariable} from './optimizer';
 /** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
   /** @nocollapse */
-  static className = 'Adadelta';  // Name matters for Python compatibility.
+  static get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Adadelta';
+  }
   private accumulatedGrads: OptimizerVariable[] = [];
   private accumulatedUpdates: OptimizerVariable[] = [];
 
@@ -100,14 +105,14 @@ export class AdadeltaOptimizer extends Optimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     if (this.accumulatedUpdates != null) {
       dispose(this.accumulatedGrads.map(v => v.variable));
       dispose(this.accumulatedUpdates.map(v => v.variable));
     }
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     const variables: OptimizerVariable[] =
         [...this.accumulatedGrads, ...this.accumulatedUpdates];
@@ -115,7 +120,7 @@ export class AdadeltaOptimizer extends Optimizer {
         variables.map(v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const variableCount = weightValues.length / 2;
     const trainable = false;
@@ -142,9 +147,8 @@ export class AdadeltaOptimizer extends Optimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(config['learningRate'], config['rho'], config['epsilon']);
   }
 }
-registerClass(AdadeltaOptimizer);

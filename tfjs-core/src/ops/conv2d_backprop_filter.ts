@@ -81,21 +81,15 @@ function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
       outDepth === filterShape[3],
       () => `Error in conv2dDerFilter: depth of dy (${outDepth}) must ` +
           `match output depth for filter (${filterShape[3]}).`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv2dDerFilter: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv2dDerFilter', pad, dimRoundingMode);
   const inputs: Conv2DBackpropFilterInputs = {x: x4D, dy: dy4D};
   const attrs: Conv2DBackpropFilterAttrs =
       {strides, pad, dataFormat, dimRoundingMode, filterShape};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             Conv2DBackpropFilter, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+             Conv2DBackpropFilter, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const conv2DBackpropFilter = op({conv2DBackpropFilter_});
+export const conv2DBackpropFilter = /* @__PURE__ */ op({conv2DBackpropFilter_});

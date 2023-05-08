@@ -66,7 +66,8 @@ function sum_<T extends Tensor>(
   const attrs: SumAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      Sum, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Sum, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const sum = op({sum_});
+export const sum = /* @__PURE__ */ op({sum_});

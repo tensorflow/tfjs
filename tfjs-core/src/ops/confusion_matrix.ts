@@ -93,4 +93,4 @@ export function confusionMatrix_(
   return cast(product, 'int32');
 }
 
-export const confusionMatrix = op({confusionMatrix_});
+export const confusionMatrix = /* @__PURE__ */ op({confusionMatrix_});

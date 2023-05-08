@@ -66,7 +66,7 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
 
   const inputs: AddNInputs = $tensors;
 
-  return ENGINE.runKernel(AddN, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(AddN, inputs as unknown as NamedTensorMap);
 }
 
-export const addN = op({addN_});
+export const addN = /* @__PURE__ */ op({addN_});

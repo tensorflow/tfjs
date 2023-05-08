@@ -18,7 +18,8 @@
 import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
+import {DepthwiseConv2DVec4Program} from '../depthwise_conv2d_vec4_webgpu';
+import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 
 export function fusedDepthwiseConv2D(args: {
   inputs: FusedDepthwiseConv2DInputs,
@@ -27,7 +28,8 @@ export function fusedDepthwiseConv2D(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dimRoundingMode, activation} = attrs;
+  const {strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha} =
+      attrs;
 
   let $dilations = dilations;
   if ($dilations == null) {
@@ -44,8 +46,6 @@ export function fusedDepthwiseConv2D(args: {
       filter.shape as [number, number, number, number], strides, $dilations,
       pad, dimRoundingMode, true /* depthwise */);
 
-  const fusedActivation =
-      activation ? backend.mapActivationToShaderProgram(activation) : null;
   const programInputs: TensorInfo[] = [x, filter];
 
   const hasBias = bias != null;
@@ -58,17 +58,36 @@ export function fusedDepthwiseConv2D(args: {
     programInputs.push(preluActivationWeights);
   }
 
-  const program = new DepthwiseConv2DProgram(
-      convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
   const dimensions = [
-    convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
-    convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
-    convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
-    convInfo.inWidth
+    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]},
   ];
-  const uniformData = new Int32Array(dimensions);
+
+  let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program;
+  if (convInfo.outHeight > 4 && convInfo.outWidth > 4 &&
+      convInfo.strideWidth <= 2 &&
+      convInfo.inChannels === convInfo.outChannels &&
+      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+      convInfo.inChannels % 4 === 0) {
+    program = new DepthwiseConv2DVec4Program(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+  } else {
+    program = new DepthwiseConv2DProgram(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+    dimensions.push(
+        {type: 'int32', data: [convInfo.filterHeight]},
+        {type: 'int32', data: [convInfo.filterWidth]},
+        {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
+          type: 'int32',
+          data: [convInfo.dilationHeight, convInfo.dilationWidth]
+        });
+  }
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
   const result =
-      backend.runWebGPUProgram(program, programInputs, 'float32', uniformData);
+      backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
 
   return result;
 }
@@ -76,5 +95,5 @@ export function fusedDepthwiseConv2D(args: {
 export const fusedDepthwiseConv2DConfig: KernelConfig = {
   kernelName: FusedDepthwiseConv2D,
   backendName: 'webgpu',
-  kernelFunc: fusedDepthwiseConv2D as {} as KernelFunc,
+  kernelFunc: fusedDepthwiseConv2D as unknown as KernelFunc,
 };

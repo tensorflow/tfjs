@@ -28,13 +28,13 @@ export const oneHot = (args: {
 }): TensorInfo => {
   const {inputs, backend, attrs} = args;
   const {indices} = inputs;
-  const {depth, onValue, offValue} = attrs;
+  const {dtype, depth, onValue, offValue} = attrs;
 
   const indicesSize = util.sizeFromShape(indices.shape);
   const program = new OneHotProgram(indicesSize, depth, onValue, offValue);
   const reshaped =
       reshape({inputs: {x: indices}, backend, attrs: {shape: [indicesSize]}});
-  const result = backend.runWebGLProgram(program, [reshaped], indices.dtype);
+  const result = backend.runWebGLProgram(program, [reshaped], dtype);
   backend.disposeIntermediateTensorInfo(reshaped);
 
   const outShape = [...indices.shape, depth];
@@ -46,5 +46,5 @@ export const oneHot = (args: {
 export const oneHotConfig: KernelConfig = {
   kernelName: OneHot,
   backendName: 'webgl',
-  kernelFunc: oneHot as {} as KernelFunc
+  kernelFunc: oneHot as unknown as KernelFunc
 };

@@ -28,6 +28,7 @@ export const eluGradConfig: GradConfig = {
 
     const inputs: EluGradInputs = {dy, y};
 
-    return {x: () => ENGINE.runKernel(EluGrad, inputs as {} as NamedTensorMap)};
+    return {x: () => ENGINE.runKernel(EluGrad,
+                                      inputs as unknown as NamedTensorMap)};
   }
 };

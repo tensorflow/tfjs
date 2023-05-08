@@ -25,7 +25,7 @@ export const scatterNdConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {indices, updates} = args.inputs as ScatterNdInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {shape} = args.attrs as {} as ScatterNdAttrs;
+    const {shape} = args.attrs as unknown as ScatterNdAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', updates.dtype),

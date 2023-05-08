@@ -37,10 +37,10 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function tan_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tan');
+  const $x = convertToTensor(x, 'x', 'tan', 'float32');
 
   const inputs: TanInputs = {x: $x};
 
-  return ENGINE.runKernel(Tan, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Tan, inputs as unknown as NamedTensorMap);
 }
-export const tan = op({tan_});
+export const tan = /* @__PURE__ */ op({tan_});

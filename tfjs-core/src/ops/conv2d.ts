@@ -43,8 +43,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
@@ -66,8 +66,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $x = convertToTensor(x, 'x', 'conv2d');
-  const $filter = convertToTensor(filter, 'filter', 'conv2d');
+  const $x = convertToTensor(x, 'x', 'conv2d', 'float32');
+  const $filter = convertToTensor(filter, 'filter', 'conv2d', 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;
@@ -84,13 +84,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       $filter.rank === 4,
       () => `Error in conv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv2d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv2d', pad, dimRoundingMode);
   const inDepth = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
       inDepth === $filter.shape[2],
@@ -100,6 +94,12 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(dilations),
+      () => 'Error in conv2D: Dilated rates should be larger than 0.');
+  util.assert(
+      conv_util.stridesOrDilationsArePositive(strides),
+      () => 'Error in conv2D: Strides should be larger than 0.');
 
   const inputs: Conv2DInputs = {x: x4D, filter: $filter};
   const attrs:
@@ -107,8 +107,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Conv2D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  Conv2D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -116,4 +116,4 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2d = op({conv2d_});
+export const conv2d = /* @__PURE__ */ op({conv2d_});

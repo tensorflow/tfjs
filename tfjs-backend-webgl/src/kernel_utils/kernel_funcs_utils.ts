@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import { backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -32,23 +32,11 @@ import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
-export const CHECK_NAN_SNIPPET_BINARY = `
-  if (isnan(a)) return a;
-  if (isnan(b)) return b;
-`;
-
-export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
-`;
-
 type UnaryKernelFuncConfig = {
   opSnippet: string,
   packedOpSnippet?: string,
   cpuKernelImpl?: SimpleUnaryKernelImplCPU,
-  dtype?: DataType
+  dtype?: DataType,
 };
 
 /**
@@ -155,12 +143,22 @@ export function binaryKernelFunc({
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webglBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
-      const aData = webglBackend.texData.get(a.dataId);
-      const bData = webglBackend.texData.get(b.dataId);
-      const [outValues, outShape] = cpuKernelImpl(
-          a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, $dtype);
+    if ((a.dtype === 'string' || b.dtype === 'string' ||
+         webglBackend.shouldExecuteOnCPU([a, b])) &&
+        cpuKernelImpl != null) {
+      const aVals = webglBackend.texData.get(a.dataId).values as TypedArray;
+      const bVals = webglBackend.texData.get(b.dataId).values as TypedArray;
+
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
+          aVals;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
+          bVals;
+      const [outValues, outShape] =
+          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       const out = webglBackend.makeTensorInfo(outShape, $dtype);
       const outData = webglBackend.texData.get(out.dataId);
@@ -215,6 +213,11 @@ export function mapActivationToShaderProgram(
       return LEAKYRELU_PACKED;
     }
     return LEAKYRELU;
+  } else if (activation === 'sigmoid') {
+    if (packed) {
+      return unary_packed_op.SIGMOID;
+    }
+    return unary_op.SIGMOID;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);

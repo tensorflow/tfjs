@@ -31,5 +31,5 @@ export const range =
 export const rangeConfig: KernelConfig = {
   kernelName: Range,
   backendName: 'webgl',
-  kernelFunc: range as {} as KernelFunc
+  kernelFunc: range as unknown as KernelFunc
 };

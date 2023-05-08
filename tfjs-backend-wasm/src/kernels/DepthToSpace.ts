@@ -47,10 +47,6 @@ export function depthToSpace(args: {
   const {x} = inputs;
   const {blockSize, dataFormat} = attrs;
 
-  util.assert(
-      blockSize > 1,
-      () => `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
-
   const batchSize = x.shape[0];
   const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
   const inputWidth = (dataFormat === 'NHWC') ? x.shape[2] : x.shape[3];
@@ -88,5 +84,5 @@ export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: depthToSpace as {} as KernelFunc
+  kernelFunc: depthToSpace as unknown as KernelFunc
 };

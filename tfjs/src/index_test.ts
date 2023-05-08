@@ -60,4 +60,12 @@ describe('Union package', () => {
     const backend = tf.findBackend('webgl');
     expect(backend).not.toBeNull();
   });
+
+  it('cpu backend constructor is exposed', () => {
+    expect(tf.MathBackendCPU).not.toBeNull();
+  });
+
+  it('webgl backend constructor is exposed', () => {
+    expect(tf.MathBackendWebGL).not.toBeNull();
+  });
 });

@@ -36,7 +36,13 @@ export const fusedConv2DConfig: KernelConfig = {
       dimRoundingMode,
       activation,
       leakyreluAlpha
-    } = args.attrs as {} as FusedConv2DAttrs;
+    } = args.attrs as unknown as FusedConv2DAttrs;
+
+    if (dataFormat !== 'NHWC') {
+      throw new Error(
+          `Node backend FusedConv2D does not support dataFormat:'` +
+          `${dataFormat}'. Please use 'NHWC'.`);
+    }
 
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(

@@ -92,22 +92,15 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
       outDepth === filter.shape[3],
       () => `Error in conv2dDerInput: depth of output (${outDepth}) must ` +
           `match output depth for filter ${filter.shape[3]}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in conv2dDerInput: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('conv2dDerInput', pad, dimRoundingMode);
   const inputs: Conv2DBackpropInputInputs = {dy: dy4D, filter};
-
   const attrs: Conv2DBackpropInputAttrs =
       {strides, pad, dataFormat, dimRoundingMode, inputShape: xShape4D};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Conv2DBackpropInput, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  Conv2DBackpropInput, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -115,4 +108,4 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const conv2DBackpropInput = op({conv2DBackpropInput_});
+export const conv2DBackpropInput = /* @__PURE__ */ op({conv2DBackpropInput_});

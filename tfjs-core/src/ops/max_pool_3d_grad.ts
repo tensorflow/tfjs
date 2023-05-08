@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -87,22 +88,15 @@ function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
       output5D.rank === 5,
       () => `Error in maxPool3dGrad: output must be rank 5 but got rank ` +
           `${output5D.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPool3dGrad: pad must be an integer when ` +
-            `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  checkPadOnDimRoundingMode('maxPool3dGrad', pad, dimRoundingMode);
   const inputs:
       MaxPool3DGradInputs = {dy: dy5D, input: input5D, output: output5D};
-
   const attrs: MaxPool3DGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  MaxPool3DGrad, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  MaxPool3DGrad, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -113,4 +107,4 @@ function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const maxPool3dGrad = op({maxPool3dGrad_});
+export const maxPool3dGrad = /* @__PURE__ */ op({maxPool3dGrad_});

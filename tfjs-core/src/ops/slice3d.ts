@@ -37,4 +37,4 @@ function slice3d_(
           `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
-export const slice3d = op({slice3d_});
+export const slice3d = /* @__PURE__ */ op({slice3d_});

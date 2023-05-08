@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {DepthToSpaceProgram} from '../depth_to_space_gpu';
@@ -28,10 +28,6 @@ export function depthToSpace(args: {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {blockSize, dataFormat} = attrs;
-
-  util.assert(
-      blockSize > 1,
-      () => `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
 
   const batchSize = x.shape[0];
   const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
@@ -53,5 +49,5 @@ export function depthToSpace(args: {
 export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
   backendName: 'webgl',
-  kernelFunc: depthToSpace as {} as KernelFunc
+  kernelFunc: depthToSpace as unknown as KernelFunc
 };

@@ -20,10 +20,33 @@ function _isNavigatorDefined(): boolean {
   return typeof navigator !== 'undefined' && navigator != null;
 }
 
-export function isMobile(): boolean {
-  if (_isNavigatorDefined()) {
-    // tslint:disable-next-line:no-any
-    const a = navigator.userAgent || navigator.vendor || (window as any).opera;
+let isMobileMockValue: boolean|undefined;
+
+export function mockIsMobile(value: boolean|undefined) {
+  isMobileMockValue = value;
+}
+
+export function isMobile(nav?: Navigator): boolean {
+  if (isMobileMockValue !== undefined) {
+    return isMobileMockValue;
+  }
+  if (nav || _isNavigatorDefined()) {
+    if (!nav) {
+      nav = navigator;
+    }
+    if (nav.product === 'ReactNative') {
+      return true;
+    }
+
+    const a = nav.userAgent || nav.vendor ||
+        // tslint:disable-next-line:no-any
+        (typeof window !== 'undefined' ? (window as any).opera : '');
+    // Use `navigator.userAgentData.mobile` as fallback.
+    if (!a) {
+      // tslint:disable-next-line:no-any
+      const navAny = nav as any;
+      return navAny.userAgentData && navAny.userAgentData.mobile;
+    }
     // tslint:disable-next-line:max-line-length
     return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i
                .test(a) ||

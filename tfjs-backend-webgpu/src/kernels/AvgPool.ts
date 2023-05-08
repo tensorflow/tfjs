@@ -14,13 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {identity} from './Identity';
-import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
-import {Pool2DProgram} from './pool2d_webgpu';
+import {poolImpl} from './Pool_impl';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):
@@ -32,32 +29,12 @@ export function avgPool(
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-    return identity({inputs: {x}, backend});
-  }
 
-  let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-    program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
-  } else {
-    program = new Pool2DProgram(convInfo, 'avg');
-  }
-
-  const dimensions = [
-    convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-    convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-    convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-    convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-    convInfo.effectiveFilterWidth,
-    convInfo.effectiveFilterHeight  // Filter dims.
-  ];
-  const uniformData = new Int32Array(dimensions);
-  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+  return poolImpl(x, convInfo, 'avg', backend);
 }
 
 export const avgPoolConfig: KernelConfig = {
   kernelName: AvgPool,
   backendName: 'webgpu',
-  kernelFunc: avgPool as {} as KernelFunc
+  kernelFunc: avgPool as unknown as KernelFunc
 };

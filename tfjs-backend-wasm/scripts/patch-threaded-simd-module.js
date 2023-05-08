@@ -44,13 +44,24 @@
  * https://github.com/emscripten-core/emscripten/pull/12832
  */
 const fs = require('fs');
+const {ArgumentParser} = require('argparse');
 
-const BASE_PATH = '../wasm-out/';
-const JS_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.js`;
+const parser = new ArgumentParser();
 
-let content = fs.readFileSync(JS_PATH, 'utf8');
+parser.addArgument('jsFile', {
+  type: String,
+  help: 'The input js file to transform.',
+});
+
+parser.addArgument('outFile', {
+  type: String,
+  help: 'The output file path.',
+});
+
+const args = parser.parseArgs();
+
+let content = fs.readFileSync(args.jsFile, 'utf8');
 content = content.replace(
     /if\s*\(\s*_scriptDir\s*\)/g,
     'if(typeof _scriptDir !== "undefined" && _scriptDir)');
-fs.chmodSync(JS_PATH, 0o644);
-fs.writeFileSync(JS_PATH, content);
+fs.writeFileSync(args.outFile, content);

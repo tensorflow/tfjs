@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, Rank, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {GatherNDProgram} from '../gather_nd_gpu';
+import {gatherNdImplCPU} from '../kernel_utils/shared';
+
 import {reshape} from './Reshape';
 
 export function gatherNd(
@@ -28,6 +30,7 @@ export function gatherNd(
 
   const indicesShape = indices.shape;
   const sliceRank = indicesShape[indicesShape.length - 1];
+  const paramsSize = util.sizeFromShape(params.shape);
 
   const [resultShape, numSlices, sliceSize, strides] =
       backend_util.prepareAndValidate(params, indices);
@@ -40,8 +43,19 @@ export function gatherNd(
     attrs: {shape: [(util.sizeFromShape(params.shape) / sliceSize), sliceSize]}
   });
 
+  if (backend.shouldExecuteOnCPU([params, indices]) ||
+      params.dtype === 'string') {
+    const indicesData = backend.readSync(indices.dataId) as TypedArray;
+    const paramsBuf = backend.bufferSync<Rank, 'float32'>(params);
+    const outValue = gatherNdImplCPU(
+        indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
+        strides, params.shape, paramsSize);
+
+    return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
+  }
   const program =
-      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], 
+        params.shape);
   const res = backend.runWebGLProgram(
       program, [flattenX, flattenIndices], flattenX.dtype);
 
@@ -58,5 +72,5 @@ export function gatherNd(
 export const gatherNdConfig: KernelConfig = {
   kernelName: GatherNd,
   backendName: 'webgl',
-  kernelFunc: gatherNd as {} as KernelFunc
+  kernelFunc: gatherNd as unknown as KernelFunc
 };

@@ -32,19 +32,26 @@ export function getParamValue(
         undefined :
         (inputParam.inputIndexEnd === undefined ? start + 1 :
                                                   inputParam.inputIndexEnd);
+    const shiftedStart = start < 0 ? node.inputNames.length + start : start;
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
-          resourceManager);
+          node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     }
     if (inputParam.type === 'tensors') {
-      const inputs = node.inputNames.slice(start, end);
+      // TODO(mattSoulanille): This filters out NoOp nodes during execution, but
+      // these should really never be in the execution graph in the first place.
+      // They're necessary for ordering the graph, but should not be visible
+      // during execution. Perhaps have different sets of children, one for
+      // control dependencies and another for real dependencies.
+      const inputs = node.inputs.slice(start, end);
+      const inputNames = node.inputNames.slice(start, end)
+        .filter((_name, index) => inputs[index]?.op !== 'NoOp');
 
-      return inputs.map(
+      return inputNames.map(
           name => getTensor(name, tensorMap, context, resourceManager));
     }
     const tensor = getTensor(
-        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
+        node.inputNames[shiftedStart], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
@@ -64,7 +71,7 @@ export function getParamValue(
 export function getTensor(
     name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
     resourceManager?: ResourceManager): Tensor {
-  const [nodeName, index] = parseNodeName(name);
+  const [nodeName, index] = parseNodeName(name, context);
 
   if (resourceManager != null) {
     const tensor = resourceManager.getHashTableHandleByName(nodeName);
@@ -87,25 +94,27 @@ export function getTensor(
  * @param name Node input name
  * @param tensorsMap Tensors map keyed by the node
  */
-export function getTensorsForCurrentContenxt(
+export function getTensorsForCurrentContext(
     name: string, tensorsMap: NamedTensorsMap,
     context: ExecutionContext): Tensor[] {
   return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
 }
 
 /**
- * Returns the node name and index from the Node input name.
+ * Returns the node name, outputName and index from the Node input name.
  * @param inputName The input name of the node, in format of
  * node_name:output_index, i.e. MatMul:0, if the output_index is not set, it is
  * default to 0.
+ * If the input name contains output name i.e. StringSplit:indices:0, it will
+ * return ['StringSplit', 0, 'indices'].
  */
 export function getNodeNameAndIndex(
-    inputName: string, context?: ExecutionContext): [string, number] {
-  const [nodeName, index] = parseNodeName(inputName);
+    inputName: string, context?: ExecutionContext): [string, number, string] {
+  const [nodeName, index, outputName] = parseNodeName(inputName, context);
 
   return [
     getNodeNameWithContextId(nodeName, context && context.currentContextId),
-    index
+    index, outputName
   ];
 }
 
@@ -113,14 +122,33 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
   return !!contextId ? `${name}-${contextId}` : name;
 }
 
-export function parseNodeName(name: string): [string, number] {
-  const parts = name.split(':');
-  if (parts.length === 1) {
-    return [name, 0];
+export function parseNodeName(
+    name: string, context?: ExecutionContext): [string, number, string?] {
+  if (name === '') {
+    return ['', 0, undefined];
   }
 
-  const nodeName = parts[0];
-  return [nodeName, Number(parts[parts.length - 1])];
+  const isCacheEnabled = context != null && context.parseNodeNameCache != null;
+  if (isCacheEnabled) {
+    const cachedResult = context.parseNodeNameCache.get(name);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+  }
+  const parts = name.split(':');
+  let result: [string, number, string?];
+  if (parts.length === 1) {
+    result = [name, 0, undefined];
+  } else {
+    const nodeName = parts[0];
+    const outputName = parts.length === 3 ? parts[1] : undefined;
+    const index = Number(parts[parts.length - 1]);
+    result = [nodeName, index, outputName];
+  }
+  if (isCacheEnabled) {
+    context.parseNodeNameCache.set(name, result);
+  }
+  return result;
 }
 
 export function split(arr: number[], size: number) {

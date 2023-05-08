@@ -22,6 +22,7 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {clone} from './clone';
 import {op} from './operation';
@@ -31,7 +32,7 @@ import {reshape} from './reshape';
  * Broadcast an array to a compatible shape NumPy-style.
  *
  * The tensor's shape is compared to the broadcast shape from end to beginning.
- * Ones are prepended to the tensor's shape until is has the same length as
+ * Ones are prepended to the tensor's shape until it has the same length as
  * the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
  * already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
  * the input tensor is tiled N times along that axis (using tf.tile).
@@ -46,9 +47,7 @@ function broadcastTo_<R extends Rank>(
   let input = convertToTensor(x, 'broadcastTo', 'x');
   const xShape = input.shape;
 
-  if (shape.some(d => !(d > 0) || d % 1 !== 0)) {
-    throw new Error(`broadcastTo(): Invalid broadcast shape [${shape}].`);
-  }
+  assertNonNegativeIntegerDimensions(shape);
 
   if (shape.length < input.rank) {
     throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${
@@ -83,7 +82,8 @@ function broadcastTo_<R extends Rank>(
   const inputs: TileInputs = {x: input};
   const attrs: TileAttrs = {reps};
   return ENGINE.runKernel(
-      Tile, inputs as {} as NamedTensorMap, attrs as unknown as NamedAttrMap);
+      Tile, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const broadcastTo = op({broadcastTo_});
+export const broadcastTo = /* @__PURE__ */ op({broadcastTo_});

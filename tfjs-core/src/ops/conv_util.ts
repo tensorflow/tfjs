@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as util from '../util';
+
 type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
 
 // For NHWC should be in the following form:
@@ -87,8 +89,8 @@ export type Conv2DInfo = {
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1*1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat The data format of the input and output data.
  *     Defaults to 'NHWC'.
  * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`.
@@ -117,7 +119,8 @@ export function computeDilation2DInfo(
 export function computePool2DInfo(
     inShape: [number, number, number, number],
     filterSize: [number, number]|number, strides: number|[number, number],
-    dilations: number|[number, number], pad: 'same'|'valid'|number,
+    dilations: number|[number, number],
+    pad: 'same'|'valid'|number|ExplicitPadding,
     roundingMode?: 'floor'|'round'|'ceil',
     dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   const [filterHeight, filterWidth] = parseTupleParam(filterSize);
@@ -362,24 +365,23 @@ function computeOutputShape2D(
 }
 
 function computeOutputShape4D(
-    inShape: [number, number, number, number], fieldSize: number,
-    outChannels: number, stride: number, zeroPad?: number,
+    inShape: [number, number, number, number],
+    filterShape: [number, number, number], outChannels: number,
+    strides: [number, number, number], zeroPad?: number,
     roundingMode?: 'floor'|'round'|'ceil'): [number, number, number, number] {
   if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inShape, fieldSize, stride);
+    zeroPad = computeDefaultPad(inShape, filterShape[0], strides[0]);
   }
-  const inputDepth = inShape[0];
-  const inputRows = inShape[1];
-  const inputCols = inShape[2];
-
-  const outputDepths =
-      round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputRows =
-      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols =
-      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-
-  return [outputDepths, outputRows, outputCols, outChannels];
+  const outShape: [number, number, number, number] = [0, 0, 0, outChannels];
+  for (let index = 0; index < 3; index++) {
+    if (inShape[index] + 2 * zeroPad >= filterShape[index]) {
+      outShape[index] = round(
+          (inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] +
+              1,
+          roundingMode);
+    }
+  }
+  return outShape;
 }
 
 export function computeDefaultPad(
@@ -493,6 +495,10 @@ function get3DPadAndOutInfo(
   let outHeight: number;
   let outWidth: number;
 
+  if (pad === 'valid') {
+    pad = 0;
+  }
+
   if (typeof pad === 'number') {
     const padType = (pad === 0) ? 'VALID' : 'NUMBER';
     padInfo = {
@@ -505,8 +511,9 @@ function get3DPadAndOutInfo(
       type: padType
     };
     const outShape = computeOutputShape4D(
-        [inDepth, inHeight, inWidth, 1], filterDepth, 1, strideDepth, pad,
-        roundingMode);
+        [inDepth, inHeight, inWidth, 1],
+        [filterDepth, filterHeight, filterWidth], 1,
+        [strideDepth, strideHeight, strideWidth], pad, roundingMode);
     outDepth = outShape[0];
     outHeight = outShape[1];
     outWidth = outShape[2];
@@ -526,19 +533,6 @@ function get3DPadAndOutInfo(
     const right = padAlongWidth - left;
 
     padInfo = {top, bottom, left, right, front, back, type: 'SAME'};
-  } else if (pad === 'valid') {
-    padInfo = {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      front: 0,
-      back: 0,
-      type: 'VALID'
-    };
-    outDepth = Math.ceil((inDepth - filterDepth + 1) / strideDepth);
-    outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
-    outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }
@@ -579,6 +573,11 @@ export function eitherStridesOrDilationsAreOne(
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
 }
 
+export function stridesOrDilationsArePositive(values: number|
+                                              number[]): boolean {
+  return parseTupleParam(values).every(value => value > 0);
+}
+
 /**
  * Convert Conv2D dataFormat from 'NHWC'|'NCHW' to
  *    'channelsLast'|'channelsFirst'
@@ -594,5 +593,48 @@ export function convertConv2DDataFormat(dataFormat: 'NHWC'|'NCHW'):
     return 'channelsFirst';
   } else {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+}
+
+/**
+ * Check validity of pad when using dimRoundingMode.
+ * @param opDesc A string of op description
+ * @param pad The type of padding algorithm.
+ *   - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *   - `valid` output will be smaller than input if filter is larger
+ *       than 1x1.
+ *   - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
+ * @throws unknown padding parameter
+ */
+export function checkPadOnDimRoundingMode(
+    opDesc: string, pad: 'valid'|'same'|number|ExplicitPadding,
+    dimRoundingMode?: 'floor'|'round'|'ceil') {
+  if (dimRoundingMode != null) {
+    if (typeof pad === 'string') {
+      throw Error(
+          `Error in ${opDesc}: pad must be an integer when using ` +
+          `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'number') {
+      util.assert(
+          util.isInt(pad),
+          () => `Error in ${opDesc}: pad must be an integer when using ` +
+              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'object') {
+      (pad as ExplicitPadding).forEach(p => {
+        p.forEach(v => {
+          util.assert(
+              util.isInt(v),
+              () => `Error in ${opDesc}: pad must be an integer when using ` +
+                  `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Error in ${opDesc}: Unknown padding parameter: ${pad}`);
+    }
   }
 }

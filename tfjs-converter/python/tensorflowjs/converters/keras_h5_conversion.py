@@ -16,7 +16,7 @@
 
 Used primarily to convert saved weights, or saved_models from their
 hdf5 format to a JSON + binary weights format that the TS codebase can use.
-."""
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -120,7 +120,7 @@ def _initialize_output_dictionary(h5file):
 
 def _ensure_h5file(h5file):
   if not isinstance(h5file, h5py.File):
-    return h5py.File(h5file)
+    return h5py.File(h5file, "r")
   else:
     return h5file
 
@@ -183,7 +183,11 @@ def h5_merged_saved_model_to_tfjs_format(h5file, split_by_layer=False):
     ValueError: If the Keras version of the HDF5 file is not supported.
   """
   h5file = _ensure_h5file(h5file)
-  _check_version(h5file)
+  try:
+    _check_version(h5file)
+  except ValueError:
+    print("""failed to lookup keras version from the file,
+    this is likely a weight only file""")
   model_json = _initialize_output_dictionary(h5file)
 
   model_json['model_config'] = _ensure_json_dict(
@@ -230,7 +234,11 @@ def h5_weights_to_tfjs_format(h5file, split_by_layer=False):
     ValueError: If the Keras version of the HDF5 file is not supported
   """
   h5file = _ensure_h5file(h5file)
-  _check_version(h5file)
+  try:
+    _check_version(h5file)
+  except ValueError:
+    print("""failed to lookup keras version from the file,
+    this is likely a weight only file""")
 
   groups = [] if split_by_layer else [[]]
 

@@ -1,0 +1,22 @@
+{
+  "name": "tfjs-tflite-demo",
+  "version": "0.0.1",
+  "main": "script.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@tensorflow/tfjs-backend-cpu": "3.14.0",
+    "@tensorflow/tfjs-core": "3.14.0",
+    "@tensorflow/tfjs-tflite": "0.0.1-alpha.8"
+  },
+  "devDependencies": {
+    "clang-format": "~1.5.0",
+    "cross-env": "^7.0.3",
+    "parcel": "^2.3.2",
+    "typescript": "4.9.4"
+  },
+  "scripts": {
+    "build-deps": "cd ../../link-package && yarn build",
+    "watch": "cross-env NODE_ENV=development parcel src/index.html --no-hmr --open",
+    "build": "NODE_ENV=production parcel build src/index.html --public-url ./"
+  }
+}

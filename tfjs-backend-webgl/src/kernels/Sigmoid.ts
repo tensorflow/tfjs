@@ -16,11 +16,30 @@
  */
 
 import {KernelConfig, Sigmoid} from '@tensorflow/tfjs-core';
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {sigmoidImplCPU} from '../kernel_utils/shared';
 
-export const sigmoid = unaryKernelFunc({opSnippet: SIGMOID});
+const SIGMOID = CHECK_NAN_SNIPPET_UNARY + `
+  return 1.0 / (1.0 + exp(-1.0 * x));
+`;
+
+const SIGMOID_PACKED = `
+  vec4 result = 1.0 / (1.0 + exp(-1.0 * x));
+  bvec4 isNaN = isnan(x);
+
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
+export const sigmoid = unaryKernelFunc({
+  opSnippet: SIGMOID,
+  packedOpSnippet: SIGMOID_PACKED,
+  cpuKernelImpl: sigmoidImplCPU
+});
 
 export const sigmoidConfig: KernelConfig = {
   kernelName: Sigmoid,

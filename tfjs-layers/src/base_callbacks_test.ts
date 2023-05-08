@@ -215,7 +215,7 @@ class FakeCallback1 extends BaseCallback {
     super();
     fake1Epochs = [];
   }
-  async onEpochEnd(epoch: number, logs: Logs) {
+  override async onEpochEnd(epoch: number, logs: Logs) {
     fake1Epochs.push(epoch);
   }
 }
@@ -226,7 +226,7 @@ class FakeCallback2 extends BaseCallback {
     super();
     fake2Epochs = [];
   }
-  async onEpochEnd(epoch: number, logs: Logs) {
+  override async onEpochEnd(epoch: number, logs: Logs) {
     fake2Epochs.push(epoch);
   }
 }
@@ -314,6 +314,10 @@ describe('CallbackConstructorRegistry', () => {
 });
 
 describeMathCPUAndGPU('CallbackConstructorRegistry initialization', () => {
+  beforeEach(() => {
+    // tslint:disable-next-line:no-any
+    (CallbackConstructorRegistry as any).clear();
+  });
   it('CallbackConstructorRegistry is initialized properly', () => {
     expect(CallbackConstructorRegistry.createCallbacks(1)).toEqual([]);
   });

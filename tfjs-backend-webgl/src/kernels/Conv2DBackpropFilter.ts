@@ -42,5 +42,5 @@ export function conv2DBackpropFilter(args: {
 export const conv2DBackpropFilterConfig: KernelConfig = {
   kernelName: Conv2DBackpropFilter,
   backendName: 'webgl',
-  kernelFunc: conv2DBackpropFilter as {} as KernelFunc,
+  kernelFunc: conv2DBackpropFilter as unknown as KernelFunc,
 };

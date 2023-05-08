@@ -1,0 +1,35 @@
+{
+  "name": "@tensorflow/tfjs-tflite",
+  "version": "0.0.0",
+  "description": "TFLite support for TensorFlow.js",
+  "main": "dist/tf-tflite.node.js",
+  "module": "dist/index.js",
+  "jsdelivr": "dist/tf-tflite.min.js",
+  "unpkg": "dist/tf-tflite.min.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-tflite"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
+  },
+  "devDependencies": {
+    "@bazel/bazelisk": "^1.12.0"
+  },
+  "scripts": {
+    "build": "bazel build :tfjs-tflite_pkg",
+    "publish-npm": "bazel run :tfjs-tflite_pkg.publish",
+    "test": "bazel test :tests --test_output=all",
+    "test-dev": "ibazel test :tests --test_output=all",
+    "test-debug": "bazel run :tfjs-tflite_test"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
+  }
+}

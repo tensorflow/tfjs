@@ -1,0 +1,227 @@
+steps:
+  - name: gcr.io/learnjs-174218/release
+    entrypoint: yarn
+    id: yarn-common
+    args:
+      - install
+  - name: gcr.io/learnjs-174218/release
+    dir: scripts
+    id: test-generate-cloudbuild
+    entrypoint: yarn
+    args:
+      - test-generate-cloudbuild
+    waitFor:
+      - yarn-common
+  - name: gcr.io/learnjs-174218/release
+    id: test-run-flaky
+    entrypoint: yarn
+    args:
+      - test-run-flaky
+    waitFor:
+      - yarn-common
+  - name: gcr.io/learnjs-174218/release
+    id: buildifier
+    entrypoint: yarn
+    args:
+      - buildifier-ci
+    waitFor:
+      - yarn-common
+  - name: gcr.io/learnjs-174218/release
+    id: tslint
+    entrypoint: yarn
+    args:
+      - lint
+    waitFor:
+      - yarn-common
+  - name: gcr.io/learnjs-174218/release
+    id: bazel-tests
+    waitFor:
+      - yarn-common
+    entrypoint: bash
+    args:
+      - ./scripts/run_bazel_ci_tests.sh
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: gcr.io/learnjs-174218/release
+    dir: link-package
+    entrypoint: yarn
+    id: yarn-link-package
+    args:
+      - install
+    waitFor:
+      - bazel-tests
+  - name: gcr.io/learnjs-174218/release
+    dir: link-package
+    entrypoint: yarn
+    id: yarn-link-package-build
+    args:
+      - build
+      - '--bazel_options=--config=ci'
+    waitFor:
+      - yarn-link-package
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs
+    entrypoint: yarn
+    id: yarn-tfjs
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs
+    entrypoint: yarn
+    id: build-tfjs
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs
+      - yarn-common
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs
+    entrypoint: yarn
+    id: lint-tfjs
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs
+      - yarn-common
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-node
+    entrypoint: yarn
+    id: yarn-tfjs-node
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-node
+    entrypoint: yarn
+    id: build-addon-tfjs-node
+    args:
+      - build-addon-from-source
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-node
+    entrypoint: yarn
+    id: build-tfjs-node
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-node
+    entrypoint: yarn
+    id: lint-tfjs-node
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-node
+    entrypoint: yarn
+    id: ensure-cpu-gpu-packages-align-tfjs-node
+    args:
+      - ensure-cpu-gpu-packages-align
+    waitFor:
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: yarn-e2e
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: fetch-graph-model-golden-data-e2e
+    args:
+      - fetch-graph-model-golden-data-ci
+    waitFor:
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: test-e2e
+    args:
+      - test-ci
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - fetch-graph-model-golden-data-e2e
+      - yarn-common
+      - yarn-link-package-build
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+secrets:
+  - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+    secretEnv:
+      BROWSERSTACK_KEY: >-
+        CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 7200s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: STREAM_ON
+  machineType: E2_HIGHCPU_32
+  substitution_option: ALLOW_LOOSE

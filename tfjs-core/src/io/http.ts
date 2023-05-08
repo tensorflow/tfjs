@@ -24,9 +24,10 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
+import {getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
@@ -99,24 +100,8 @@ export class HTTPRequest implements IOHandler {
       paths: ['./model.weights.bin'],
       weights: modelArtifacts.weightSpecs,
     }];
-    const modelTopologyAndWeightManifest: ModelJSON = {
-      modelTopology: modelArtifacts.modelTopology,
-      format: modelArtifacts.format,
-      generatedBy: modelArtifacts.generatedBy,
-      convertedBy: modelArtifacts.convertedBy,
-      weightsManifest
-    };
-    if (modelArtifacts.signature != null) {
-      modelTopologyAndWeightManifest.signature = modelArtifacts.signature;
-    }
-    if (modelArtifacts.userDefinedMetadata != null) {
-      modelTopologyAndWeightManifest.userDefinedMetadata =
-          modelArtifacts.userDefinedMetadata;
-    }
-    if (modelArtifacts.modelInitializer != null) {
-      modelTopologyAndWeightManifest.modelInitializer =
-          modelArtifacts.modelInitializer;
-    }
+    const modelTopologyAndWeightManifest: ModelJSON =
+        getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
 
     init.body.append(
         'model.json',
@@ -126,9 +111,13 @@ export class HTTPRequest implements IOHandler {
         'model.json');
 
     if (modelArtifacts.weightData != null) {
+      // TODO(mattsoulanille): Support saving models over 2GB that exceed
+      // Chrome's ArrayBuffer size limit.
+      const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
+
       init.body.append(
           'model.weights.bin',
-          new Blob([modelArtifacts.weightData], {type: OCTET_STREAM_MIME_TYPE}),
+          new Blob([weightBuffer], {type: OCTET_STREAM_MIME_TYPE}),
           'model.weights.bin');
     }
 
@@ -163,9 +152,9 @@ export class HTTPRequest implements IOHandler {
           `${modelConfigRequest.status}. Please verify this URL points to ` +
           `the model JSON of the model to load.`);
     }
-    let modelConfig: ModelJSON;
+    let modelJSON: ModelJSON;
     try {
-      modelConfig = await modelConfigRequest.json();
+      modelJSON = await modelConfigRequest.json();
     } catch (e) {
       let message = `Failed to parse model JSON of response from ${this.path}.`;
       // TODO(nsthorat): Remove this after some time when we're comfortable that
@@ -183,62 +172,27 @@ export class HTTPRequest implements IOHandler {
       }
       throw new Error(message);
     }
-    const modelTopology = modelConfig.modelTopology;
-    const weightsManifest = modelConfig.weightsManifest;
-    const generatedBy = modelConfig.generatedBy;
-    const convertedBy = modelConfig.convertedBy;
-    const format = modelConfig.format;
-    const signature = modelConfig.signature;
-    const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
     if (modelTopology == null && weightsManifest == null) {
       throw new Error(
           `The JSON from HTTP path ${this.path} contains neither model ` +
           `topology or manifest for weights.`);
     }
 
-    let weightSpecs: WeightsManifestEntry[];
-    let weightData: ArrayBuffer;
-    if (weightsManifest != null) {
-      const results = await this.loadWeights(weightsManifest);
-      [weightSpecs, weightData] = results;
-    }
-
-    const artifacts: ModelArtifacts = {
-      modelTopology,
-      weightSpecs,
-      weightData,
-      generatedBy,
-      convertedBy,
-      format
-    };
-
-    if (signature != null) {
-      artifacts.signature = signature;
-    }
-    if (userDefinedMetadata != null) {
-      artifacts.userDefinedMetadata = userDefinedMetadata;
-    }
-
-    const initializer = modelConfig.modelInitializer;
-    if (initializer) {
-      artifacts.modelInitializer = initializer;
-    }
-
-    return artifacts;
+    return getModelArtifactsForJSON(
+        modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
-      Promise<[WeightsManifestEntry[], ArrayBuffer]> {
+    Promise<[WeightsManifestEntry[], WeightData]> {
     const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
 
-    const weightSpecs = [];
-    for (const entry of weightsManifest) {
-      weightSpecs.push(...entry.weights);
-    }
+    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
     const urlPromises: Array<Promise<string>> = [];
@@ -261,7 +215,7 @@ export class HTTPRequest implements IOHandler {
       fetchFunc: this.fetch,
       onProgress: this.onProgress
     });
-    return [weightSpecs, concatenateArrayBuffers(buffers)];
+    return [weightSpecs, buffers];
   }
 }
 
@@ -349,7 +303,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  * https://gist.github.com/dsmilkov/1b6046fd6132d7408d5257b0976f7864
  * implements a server based on [flask](https://github.com/pallets/flask) that
  * can receive the request. Upon receiving the model artifacts via the requst,
- * this particular server reconsistutes instances of [Keras
+ * this particular server reconstitutes instances of [Keras
  * Models](https://keras.io/models/model/) in memory.
  *
  *

@@ -227,12 +227,12 @@ export class BaseLogger extends BaseCallback {
     super();
   }
 
-  async onEpochBegin(epoch: number) {
+  override async onEpochBegin(epoch: number) {
     this.seen = 0;
     this.totals = {};
   }
 
-  async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
+  override async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -262,7 +262,7 @@ export class BaseLogger extends BaseCallback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs != null) {
       for (const key of this.params['metrics'] as string[]) {
         if (this.totals[key] == null) {
@@ -292,12 +292,12 @@ export class History extends BaseCallback {
   epoch: number[];
   history: {[key: string]: Array<number|Tensor>};
 
-  async onTrainBegin(logs?: UnresolvedLogs) {
+  override async onTrainBegin(logs?: UnresolvedLogs) {
     this.epoch = [];
     this.history = {};
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -345,6 +345,9 @@ export interface CustomCallbackArgs {
   onBatchBegin?: (batch: number, logs?: Logs) => void | Promise<void>;
   onBatchEnd?: (batch: number, logs?: Logs) => void | Promise<void>;
   onYield?: (epoch: number, batch: number, logs: Logs) => void | Promise<void>;
+  // Used for test DI mocking.
+  nowFunc?: Function;
+  nextFrameFunc?: Function;
 }
 
 /**
@@ -366,9 +369,13 @@ export class CustomCallback extends BaseCallback {
 
   private yieldEvery: YieldEveryOptions;
   private currentEpoch = 0;
+  public nowFunc: Function;
+  public nextFrameFunc: Function;
 
   constructor(args: CustomCallbackArgs, yieldEvery?: YieldEveryOptions) {
     super();
+    this.nowFunc = args.nowFunc;
+    this.nextFrameFunc = args.nextFrameFunc || nextFrame;
     this.yieldEvery = yieldEvery || 'auto';
     if (this.yieldEvery === 'auto') {
       this.yieldEvery = DEFAULT_YIELD_EVERY_MS;
@@ -382,7 +389,7 @@ export class CustomCallback extends BaseCallback {
       // Decorate `maybeWait` so it will be called at most once every
       // `yieldEvery` ms.
       this.maybeWait = generic_utils.debounce(
-          this.maybeWait.bind(this), this.yieldEvery as number);
+          this.maybeWait.bind(this), this.yieldEvery as number, this.nowFunc);
     }
     this.trainBegin = args.onTrainBegin;
     this.trainEnd = args.onTrainEnd;
@@ -399,11 +406,12 @@ export class CustomCallback extends BaseCallback {
       await resolveScalarsInLogs(logs);
       ps.push(this.yield(epoch, batch, logs as Logs));
     }
-    ps.push(nextFrame());
+    ps.push(this.nextFrameFunc());
     await Promise.all(ps);
   }
 
-  async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochBegin(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     this.currentEpoch = epoch;
     if (this.epochBegin != null) {
       await resolveScalarsInLogs(logs);
@@ -411,47 +419,50 @@ export class CustomCallback extends BaseCallback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.epochEnd != null) {
       await resolveScalarsInLogs(logs);
       ps.push(this.epochEnd(epoch, logs as Logs));
     }
     if (this.yieldEvery === 'epoch') {
-      ps.push(nextFrame());
+      ps.push(this.nextFrameFunc());
     }
     await Promise.all(ps);
   }
 
-  async onBatchBegin(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchBegin(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     if (this.batchBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.batchBegin(batch, logs as Logs);
     }
   }
 
-  async onBatchEnd(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchEnd(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.batchEnd != null) {
       await resolveScalarsInLogs(logs);
       ps.push(this.batchEnd(batch, logs as Logs));
     }
     if (this.yieldEvery === 'batch') {
-      ps.push(nextFrame());
+      ps.push(this.nextFrameFunc());
     } else if (util.isNumber(this.yieldEvery)) {
       ps.push(this.maybeWait(this.currentEpoch, batch, logs));
     }
     await Promise.all(ps);
   }
 
-  async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
+  override async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.trainBegin(logs as Logs);
     }
   }
 
-  async onTrainEnd(logs?: UnresolvedLogs): Promise<void> {
+  override async onTrainEnd(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainEnd != null) {
       await resolveScalarsInLogs(logs);
       await this.trainEnd(logs as Logs);

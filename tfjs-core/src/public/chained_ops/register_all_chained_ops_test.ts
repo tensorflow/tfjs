@@ -59,6 +59,7 @@ const CHAINED_OPS = [
   'conv2dTranspose',
   'cos',
   'cosh',
+  'cumprod',
   'cumsum',
   'depthToSpace',
   'depthwiseConv2d',

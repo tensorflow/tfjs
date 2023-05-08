@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
   variableNames = ['x', 'W'];
@@ -25,34 +25,39 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
+  customUniforms = [
+    {name: 'pads', type: 'ivec2' as const },
+    {name: 'strides', type: 'ivec2' as const },
+    {name: 'dilations', type: 'ivec2' as const },
+    {name: 'inDims', type: 'ivec2' as const },
+  ];
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: string = null, hasPreluActivation = false,
       hasLeakyReluAlpha = false) {
     this.outputShape = convInfo.outShape;
-
-    const xNumRows = convInfo.inHeight;
-    const xNumCols = convInfo.inWidth;
-    const padTop = convInfo.padInfo.top;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    const channelMul = convInfo.outChannels / convInfo.inChannels;
     const padLeft = convInfo.padInfo.left;
-    const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
     const dilationWidth = convInfo.dilationWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const texelsAcross = filterWidth;
 
-    let mainLoop = `int xR; int xC; int xCOffset;`;
+    let mainLoop = `
+      int xR; int xC; int xCOffset;
+      vec4 wTexel; vec4 previous; vec4 final;`;
 
-    for (let r = 0; r < filterHeight; r++) {
-      for (let c = 0; c < filterWidth; c++) {
-        mainLoop += `
-          vec4 xTexelR${r}C${c * 2} = vec4(0.);
-          vec4 wR${r}C${c} = vec4(0.);
-          vec4 xR${r}C${c} = vec4(0.);`;
-      }
+    for (let c = 0; c < filterWidth; c++) {
+      mainLoop += `
+          vec4 xTexelC${c * 2};
+          int xTexelC${c * 2}Ready;
+          vec4 xTexelC${c * 2 + 1};
+          int xTexelC${c * 2 + 1}Ready;
+          vec4 xC${c};`;
     }
 
     /**
@@ -63,219 +68,279 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
      * number of texture2D calls, which means making use of all four returned
      * values from a texture2D call at once.
      */
-    for (let r = 0; r < filterHeight; r++) {
-      for (let texelC = 0; texelC < texelsAcross; texelC++) {
-        const c = texelC * 2;
+    mainLoop += `
+    for (int r = 0; r < ${filterHeight}; r++) {
+      `;
+    for (let c = 0; c < filterWidth; c++) {
+      mainLoop += `
+          xTexelC${c * 2} = vec4(0.0);
+          xTexelC${c * 2}Ready = 0;
+          xTexelC${c * 2 + 1} = vec4(0.0);
+          xTexelC${c * 2 + 1}Ready = 0;
+          xC${c} = vec4(0.0);`;
+    }
+    mainLoop += `
+        xR = xRCorner + r * dilations[0];
+        if (xR >=0 && xR < inDims[0]) {
+      `;
 
-        mainLoop += `
-          xR = xRCorner + ${r * dilationHeight};
-          xC = xCCorner + ${c * dilationWidth};
-        `;
+    for (let texelC = 0; texelC < (texelsAcross + 1) / 2; texelC++) {
+      const colIndex = texelC * 2;
 
-        if (strideWidth === 1) {
-          if (c < filterWidth) {
-            // If padding is odd, the outer texels have to be composed.
-            if (padLeft % 2 === 1) {
-              // TODO: Ensure vec4 previous does not result in redundant sample,
-              // and avoid setting xTexelRC's that exceed the boundary in the
-              // first place rather than resetting them to vec4(0)).
-
-              // To compute xCOffset:
-              // - If padding is odd, we must add 1 to ensure we ask for an
-              // even-numbered row.
-              // - We subtract 2 to access the previous texel.
-
-              mainLoop += `
-                xCOffset = xC + 1;
-                if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
-                  xNumCols}) {
-                  xTexelR${r}C${c} = getX(batch, xR, xCOffset, d1);
-
-                  // Need to manually clear unused channels in case
-                  // we're reading from recycled texture.
-                  if(xCOffset + 1 >= ${xNumCols}) {
-                    xTexelR${r}C${c}.zw = vec2(0.);
-                  }
-                } else {
-                  xTexelR${r}C${c} = vec4(0.);
-                }
-
-                xCOffset = xC + 1 - 2;
-                if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
-                  xNumCols}) {
-                  vec4 previous = getX(batch, xR, xCOffset, d1);
-
-                  // Need to manually clear unused channels in case
-                  // we're reading from recycled texture.
-                  if(xCOffset + 1 >= ${xNumCols}) {
-                    previous.zw = vec2(0.);
-                  }
-
-                  xR${r}C${c} = vec4(previous.zw, xTexelR${r}C${c}.xy);
-                } else {
-                  xR${r}C${c} = vec4(0, 0, xTexelR${r}C${c}.xy);
-                }
-              `;
-            } else {
-              // Padding is even, so xRC corresponds to a single texel.
-              mainLoop += `
-                if(xR >= 0 && xR < ${xNumRows} && xC >= 0 && xC < ${xNumCols}) {
-                  xTexelR${r}C${c} = getX(batch, xR, xC, d1);
-                } else {
-                  xTexelR${r}C${c} = vec4(0.);
-                }
-
-                xR${r}C${c} = xTexelR${r}C${c};
-              `;
-            }
-
-            if (c + 1 < filterWidth) {
-              // If dilation is even, the second entry should match the first
-              // (either both are composed or both are single samples). But if
-              // dilation is odd, then the second entry should be the opposite
-              // of the first (if the first is composed, the second is a single
-              // sample, and vice versa.)
-
-              const nextTexelOffset = padLeft % 2 === 0 ?
-                  util.nearestLargerEven(dilationWidth) :
-                  dilationWidth;
-
-              if ((dilationWidth % 2 === 0 && padLeft % 2 === 1) ||
-                  (dilationWidth % 2 !== 0 && padLeft % 2 !== 1)) {
-                mainLoop += `
-                  xCOffset = xC + ${padLeft % 2} + ${nextTexelOffset};
-
-                  if(xR >= 0 && xR < ${xNumRows} &&
-                    xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                    xTexelR${r}C${c + 2} = getX(batch, xR, xCOffset, d1);
-                  }
-                `;
-
-                // If dilation > 1 then the xRC's will not be able to share any
-                // values, so each xRC will require two unique calls to getX.
-                if (dilationWidth > 1) {
-                  mainLoop += `
-                    xCOffset -= 2;
-                    if(xR >= 0 && xR < ${xNumRows} &&
-                      xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                      xTexelR${r}C${c} = getX(batch, xR, xCOffset, d1);
-                    } else {
-                      xTexelR${r}C${c} = vec4(0.);
-                    }
-                  `;
-                }
-
-                mainLoop += `
-                  xR${r}C${c + 1} = vec4(
-                    xTexelR${r}C${c}.zw, xTexelR${r}C${c + 2}.xy);
-                `;
-              } else {
-                mainLoop += `
-                  xCOffset = xC + ${nextTexelOffset};
-
-                  if(xR >= 0 && xR < ${xNumRows} &&
-                    xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                    xTexelR${r}C${c + 2} = getX(batch, xR, xCOffset, d1);
-                  }
-
-                  xR${r}C${c + 1} = xTexelR${r}C${c + 2};
-                `;
-              }
-            }
-          }
-        } else {  // stride > 1
-          if (c < filterWidth) {
-            mainLoop += `
-              if(xR >= 0 && xR < ${xNumRows}) {
-            `;
-
-            // Depending on whether padLeft is even or odd, we want either the
-            // xy or zw channels from X texels for xR${r}C${c}. If padLeft is
-            // even, xR${r}C${c + 1} is simply the zw channels of texels we've
-            // already sampled. But if padLeft is odd, xR${r}C{$c + 1}.zw will
-            // need to come from the xy channels of a new texel, hence the `vec4
-            // final` initialized below.
-            if (padLeft % 2 === 1) {
-              mainLoop += `
-                xCOffset = xC + 1 - ${strideWidth};
-                if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                  xTexelR${r}C${c} = getX(batch, xR, xCOffset, d1);
-                } else {
-                  xTexelR${r}C${c} = vec4(0.);
-                }
-
-                if(xC + 1 >= 0 && xC + 1 < ${xNumCols}) {
-                  xTexelR${r}C${c + 2} = getX(batch, xR, xC + 1, d1);
-                } else {
-                  xTexelR${r}C${c + 2} = vec4(0.);
-                }
-
-                xR${r}C${c} = vec4(
-                  xTexelR${r}C${c}.zw, xTexelR${r}C${c + 2}.zw);
-              `;
-
-              if (c + 1 < filterWidth) {
-                mainLoop += `
-                  vec4 final = vec4(0.);
-                  xCOffset = xC + 1 + ${strideWidth};
-                  if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                    final = getX(batch, xR, xCOffset, d1);
-                  }
-                  xR${r}C${c + 1} = vec4(xTexelR${r}C${c + 2}.xy, final.xy);
-                `;
-              }
-            } else {
-              mainLoop += `
-                if(xC >= 0 && xC < ${xNumCols}) {
-                  xTexelR${r}C${c} = getX(batch, xR, xC, d1);
-                } else {
-                  xTexelR${r}C${c} = vec4(0.);
-                }
-
-                xCOffset = xC + ${strideWidth};
-                if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
-                  xTexelR${r}C${c + 2} = getX(batch, xR, xCOffset, d1);
-                } else {
-                  xTexelR${r}C${c + 2} = vec4(0.);
-                }
-
-                xR${r}C${c} = vec4(
-                  xTexelR${r}C${c}.xy, xTexelR${r}C${c + 2}.xy);
-              `;
-
-              if (c + 1 < filterWidth) {
-                mainLoop += `
-                  xR${r}C${c + 1} = vec4(
-                    xTexelR${r}C${c}.zw, xTexelR${r}C${c + 2}.zw);
-                `;
-              }
-            }
-
-            mainLoop += `}`;
-          }
-        }
-
-        if (c < filterWidth) {
-          mainLoop += `
-            vec4 wTexelR${r}C${c} = getW(${r}, ${c}, d1, q);
-            wR${r}C${c} = vec4(wTexelR${r}C${c}.xz, wTexelR${r}C${c}.xz);
+      mainLoop += `
+          xC = xCCorner + ${colIndex * dilationWidth};
           `;
 
-          if (c + 1 < filterWidth) {
+      if (strideWidth === 1) {
+        if (colIndex < filterWidth) {
+          // If padding is odd, the outer texels have to be composed.
+          if (padLeft % 2 === 1) {
+            // TODO: Ensure vec4 previous does not result in redundant sample,
+            // and avoid setting xTexelRC's that exceed the boundary in the
+            // first place rather than resetting them to vec4(0)).
+
+            // To compute xCOffset:
+            // - If padding is odd, we must add 1 to ensure we ask for an
+            // even-numbered row.
+            // - We subtract 2 to access the previous texel.
+
             mainLoop += `
-              vec4 wTexelR${r}C${c + 1} = getW(${r}, ${c + 1}, d1, q);
-              wR${r}C${c + 1} =
-                vec4(wTexelR${r}C${c + 1}.xz, wTexelR${r}C${c + 1}.xz);`;
+                xCOffset = xC + 1;
+                if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
+                colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
+
+                  // Need to manually clear unused channels in case
+                  // we're reading from recycled texture.
+                  if (xCOffset + 1 >= inDims[1]) {
+                    xTexelC${colIndex}.zw = vec2(0.0);
+                  }
+                  xTexelC${colIndex}Ready = 1;
+                }
+              `;
+            // This texel has been read in previous iteration if the dilation
+            // is 1.
+            if (dilationWidth === 1 && colIndex > 0) {
+              mainLoop += `
+                xC${colIndex} = vec4(xTexelC${colIndex - 2}.zw, xTexelC${
+                  colIndex}.xy);
+                `;
+            } else {
+              mainLoop += `
+                  xCOffset = xC + 1 - 2;
+
+                  if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                    previous = getX(batch, xR, xCOffset, d1);
+
+                    // Need to manually clear unused channels in case
+                    // we're reading from recycled texture.
+                    if (xCOffset + 1 >= inDims[1]) {
+                      previous.zw = vec2(0.0);
+                    }
+
+                    xC${colIndex} = vec4(previous.zw, xTexelC${colIndex}.xy);
+                  } else {
+                    xC${colIndex} = vec4(0.0, 0.0, xTexelC${colIndex}.xy);
+                  }
+                  `;
+            }
+          } else {
+            // Padding is even, so xRC corresponds to a single texel.
+            mainLoop += `
+                if (xC >= 0 && xC < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xC, d1);
+                  if (xC + 1 >= inDims[1]) {
+                    xTexelC${colIndex}.zw = vec2(0.0);
+                  }
+                  xTexelC${colIndex}Ready = 1;
+                }
+
+                xC${colIndex} = xTexelC${colIndex};
+                `;
+          }
+
+          if (colIndex + 1 < filterWidth) {
+            // If dilation is even, the second entry should match the first
+            // (either both are composed or both are single samples). But if
+            // dilation is odd, then the second entry should be the opposite
+            // of the first (if the first is composed, the second is a single
+            // sample, and vice versa.)
+
+            const nextTexelOffset = padLeft % 2 === 0 ?
+                util.nearestLargerEven(dilationWidth) :
+                dilationWidth;
+
+            if ((dilationWidth % 2 === 0 && padLeft % 2 === 1) ||
+                (dilationWidth % 2 !== 0 && padLeft % 2 !== 1)) {
+              mainLoop += `
+                  xCOffset = xC + imod(pads[1], 2) + ${nextTexelOffset};
+
+                  if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
+                  colIndex + 1}Ready == 0) {
+                    xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+
+                    // Need to manually clear unused channels in case
+                    // we're reading from recycled texture.
+                    if (xCOffset + 1 >= inDims[1]) {
+                      xTexelC${colIndex + 1}.zw = vec2(0.0);
+                    }
+                    xTexelC${colIndex + 1}Ready = 1;
+                  }
+                  `;
+
+              // If dilation > 1 then the xRC's will not be able to share any
+              // values, so each xRC will require two unique calls to getX.
+              if (dilationWidth > 1) {
+                mainLoop += `
+                    xCOffset -= 2;
+                    if (xCOffset >= 0 && xCOffset < inDims[1]) {
+                     previous = getX(batch, xR, xCOffset, d1);
+                     xC${colIndex + 1} = vec4(previous.zw, xTexelC${
+                       colIndex + 1}.xy);
+                    } else {
+                     xC${colIndex + 1} = vec4(0.0, 0.0, xTexelC${
+                       colIndex + 1}.xy);
+                    }
+                    `;
+              } else {
+                mainLoop += `
+                    xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                    colIndex + 1}.xy);
+                    `;
+              }
+            } else {
+              // If dilation is 1 and padding is odd, we have already read the
+              // texel when constructing the previous x value. Here we can
+              // simply skip the texture read.
+              if (nextTexelOffset === 1) {
+                mainLoop += `
+                    xC${colIndex + 1} = xTexelC${colIndex};
+                    `;
+              } else {
+                mainLoop += `
+                    xCOffset = xC + ${nextTexelOffset};
+
+                    if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
+                    colIndex + 1}Ready == 0) {
+                      xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+                      if (xCOffset + 1 >= inDims[1]) {
+                        xTexelC${colIndex + 1}.zw = vec2(0.0);
+                      }
+                      xTexelC${colIndex + 1}Ready = 1;
+                    }
+
+                    xC${colIndex + 1} = xTexelC${colIndex + 1};
+                    `;
+              }
+            }
+          }
+        }
+      } else {  // stride === 2
+        if (colIndex < filterWidth) {
+          // Depending on whether padLeft is even or odd, we want either the
+          // xy or zw channels from X texels for xC${colIndex}. If padLeft is
+          // even, xC${colIndex +1} is simply the zw channels of texels we've
+          // already sampled. But if padLeft is odd, xC{$c + 1}.zw will
+          // need to come from the xy channels of a new texel, hence the `
+          // vec4
+          // final` initialized below.
+          if (padLeft % 2 === 1) {
+            mainLoop += `
+                xCOffset = xC + 1 - strides[1];
+                if(xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
+                colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
+                  // Need to manually clear unused channels in case
+                  // we're reading from recycled texture.
+                  if (xCOffset + 1 >= inDims[1]) {
+                    xTexelC${colIndex}.zw = vec2(0.0);
+                  }
+                  xTexelC${colIndex}Ready = 1;
+                }
+
+                if(xC + 1 >= 0 && xC + 1 < inDims[1] && xTexelC${
+                colIndex + 1}Ready == 0) {
+                  xTexelC${colIndex + 1} = getX(batch, xR, xC + 1, d1);
+                  // Need to manually clear unused channels in case
+                  // we're reading from recycled texture.
+                  if (xC + 2 >= inDims[1]) {
+                    xTexelC${colIndex + 1}.zw = vec2(0.0);
+                  }
+                  xTexelC${colIndex + 1}Ready = 1;
+                }
+
+                xC${colIndex} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                colIndex + 1}.zw);
+              `;
+
+            if (colIndex + 1 < filterWidth) {
+              mainLoop += `
+                  final = vec4(0.0);
+                  xCOffset = xC + 1 + strides[1];
+                  if(xCOffset >= 0 && xCOffset < inDims[1]) {
+                    final = getX(batch, xR, xCOffset, d1);
+                  }
+                  xC${colIndex + 1} = vec4(xTexelC${colIndex + 1}.xy, final.xy);
+                `;
+            }
+          } else {
+            mainLoop += `
+                if(xC >= 0 && xC < inDims[1] && xTexelC${colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xC, d1);
+                  if (xC + 1 >= inDims[1]) {
+                    xTexelC${colIndex}.zw = vec2(0.0);
+                  }
+                  xTexelC${colIndex}Ready = 1;
+                }
+
+                xCOffset = xC + strides[1];
+                if(xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
+                colIndex + 1}Ready == 0) {
+                  xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
+                  if (xCOffset + 1 >= inDims[1]) {
+                    xTexelC${colIndex + 1}.zw = vec2(0.);
+                  }
+                  xTexelC${colIndex + 1}Ready = 1;
+                }
+
+                xC${colIndex} = vec4(
+                  xTexelC${colIndex}.xy, xTexelC${colIndex + 1}.xy);
+              `;
+
+            if (colIndex + 1 < filterWidth) {
+              mainLoop += `
+                  xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                  colIndex + 1}.zw);
+                `;
+            }
           }
         }
       }
-    }
 
-    for (let r = 0; r < filterHeight; r++) {
-      for (let c = 0; c < filterWidth; c++) {
-        mainLoop += `dotProd += xR${r}C${c} * wR${r}C${c};`;
+      // localize the dotProd accumulation within the loop, the theory is for
+      // GPU with limited cache, accumulate sum across large amount of
+      // veriables will cause lots of cache misses. (i.e. 5x5 filter will have
+      // 50 variables)
+      if (colIndex < filterWidth) {
+        mainLoop += `
+            wTexel = getW(r, ${colIndex}, d1, q);
+            dotProd += xC${colIndex} * vec4(wTexel.xz, wTexel.xz);
+          `;
+
+        if (colIndex + 1 < filterWidth) {
+          mainLoop += `
+              wTexel = getW(r, ${colIndex + 1}, d1, q);
+              dotProd += xC${colIndex + 1} * vec4(wTexel.xz, wTexel.xz);
+            `;
+        }
       }
     }
+    mainLoop += `
+    }
+  `;
+    mainLoop += `
+      }
+    `;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
@@ -313,25 +378,22 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
     this.userCode = `
       ${activationSnippet}
 
-      const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
-      const ivec2 pads = ivec2(${padTop}, ${padLeft});
-
       void main() {
-
         ivec4 coords = getOutputCoords();
         int batch = coords.x;
         ivec2 xRCCorner = coords.yz * strides - pads;
         int d2 = coords.w;
-        int d1 = d2;
-        int q = 0;
+        int d1 = d2 / ${channelMul};
+        int q = d2 - d1 * ${channelMul};
         int xRCorner = xRCCorner.x;
         int xCCorner = xRCCorner.y;
 
-        vec4 dotProd = vec4(0.);
+        //intialize dotProd with a small epsilon seems to reduce GPU accuracy loss.
+        vec4 dotProd = vec4(0.000000000000001);
 
         ${mainLoop}
 
-        vec4 result = dotProd;
+        vec4 result = dotProd - vec4(0.000000000000001);
         ${addBiasSnippet}
         ${applyActivationSnippet}
         setOutput(result);

@@ -1554,6 +1554,20 @@ describeWithFlags('tensor dataSync', SYNC_BACKEND_ENVS, () => {
   });
 });
 
+describeWithFlags('tensor arraySync', SYNC_BACKEND_ENVS, () => {
+  it('.arraySync() with a non-complex tensor', () => {
+    const a = tf.tensor([1, 2, 3, 4, 5, 6], [2, 3]);
+    expect(a.arraySync()).toEqual([[1, 2, 3], [4, 5, 6]]);
+  });
+
+  it('.arraySync() with a complex tensor', () => {
+    const a = tf.complex([[1, 2], [3, 4]], [[11, 12], [13, 14]]);
+    expect(a.arraySync()).toEqual([[1, 11, 2, 12], [3, 13, 4, 14]]);
+  });
+
+  // The other cases should be covered by toNestedArray tests in util_test.ts.
+});
+
 describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
   it('scalar verbose', () => {
     const verbose = true;
@@ -1589,6 +1603,30 @@ describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
         '  shape: []\n' +
         '  values:\n' +
         '    true');
+  });
+
+  it('2D 0 shaped tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([0, 1]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 2\n' +
+        '  shape: [0,1]\n' +
+        '  values:\n' +
+        '     []');
+  });
+
+  it('3D 0 shaped tensor verbose', () => {
+    const verbose = true;
+    const str = tf.zeros([1, 0, 1]).toString(verbose);
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 3\n' +
+        '  shape: [1,0,1]\n' +
+        '  values:\n' +
+        '     [ []]');
   });
 
   it('1d tensor verbose', () => {

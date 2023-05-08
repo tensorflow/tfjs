@@ -121,7 +121,7 @@ export class Pool2DProgram implements GPGPUProgram {
     let returnValue = `${poolType}(${poolType}(${poolType}(` +
         'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
     if (poolType === 'avg') {
-      returnValue = `avgValue / count`;
+      returnValue = `avgValue / max(count, 1.0)`;
     }
 
     const filterWidthNearestVec4 = Math.floor(filterWidth / 4) * 4;
@@ -342,7 +342,10 @@ export class Pool3DProgram implements GPGPUProgram {
     let returnValue = `${poolType}(${poolType}(${poolType}(` +
         'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
     if (poolType === 'avg') {
-      returnValue = `avgValue / count`;
+      // Use `max(count, 1.0)` instead of `count` in case count === 0.0.
+      // If count === 0.0, `avgValue` is always 0.0 and we change `count`'s
+      // value to avoid dividing zero.
+      returnValue = `avgValue / max(count, 1.0)`;
     }
 
     const filterWidthNearestVec4 = Math.floor(filterWidth / 4) * 4;
@@ -448,8 +451,8 @@ export class Pool3DProgram implements GPGPUProgram {
               ${updateSnippet}
             }
           }
-          setOutput(${returnValue});
         }
+        setOutput(${returnValue});
       }
     `;
   }

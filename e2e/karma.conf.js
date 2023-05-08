@@ -20,7 +20,6 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   bundlerOptions: {
     sourceMap: true,
-    acornOptions: {ecmaVersion: 8},
     transforms: [
       require('karma-typescript-es6-transform')({
         presets: [
@@ -31,6 +30,14 @@ const karmaTypescriptConfig = {
     ]
   }
 };
+
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
 
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
@@ -68,7 +75,23 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    // Serve wasm files
+    {
+      pattern: 'node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/*.wasm',
+      watched: true,
+      included: false,
+      served: true,
+    },
   ],
+  basePath: '',
+  proxies: {
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-threaded-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm',
+  },
   exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
@@ -80,10 +103,20 @@ const devConfig = {
 
 const browserstackConfig = {
   ...devConfig,
-  hostname: 'bs-local.com',
+  // TODONT: do not use `hostname: 'bs-local.com'. This is automatically changed
+  // by BrowserStack when necessary (i.e. on ios safari). Setting it manually
+  // breaks WASM file serving.
+  // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9816
+  port: 9876
 };
+
+const chromeWebgpuFlags = [
+  '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
+  '--use-webgpu-adapter=swiftshader',
+  // https://github.com/tensorflow/tfjs/issues/7631
+  '--disable-vulkan-fallback-to-gl-for-testing',
+];
 
 module.exports = function(config) {
   const args = [];
@@ -130,7 +163,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'High Sierra',
+        flags: chromeWebgpuFlags,
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
@@ -146,28 +180,27 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
         os_version: '11.0',
         real_mobile: true
       },
-      bs_android_9: {
+      bs_android_10: {
         base: 'BrowserStack',
-        device: 'Google Pixel 3 XL',
+        device: 'Google Pixel 4 XL',
         os: 'android',
-        os_version: '9.0',
+        os_version: '10.0',
         real_mobile: true
       },
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Windows has WebGL problems:
-        // https://github.com/tensorflow/tfjs/issues/2272
-        browser_version: '77.0',
+        browser_version: '101.0',
         os: 'Windows',
-        os_version: '10'
+        os_version: '10',
+        flags: chromeWebgpuFlags,
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},

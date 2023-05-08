@@ -23,6 +23,11 @@
 #include <set>
 #include <string>
 #include "napi_auto_ref.h"
+#include "tensorflow/c/eager/c_api.h"
+#include "tensorflow/c/tf_datatype.h"
+#include "tensorflow/c/tf_status.h"
+#include "tensorflow/c/tf_tensor.h"
+#include "tensorflow/core/platform/ctstring_internal.h"
 #include "tf_auto_tensor.h"
 #include "tfe_auto_op.h"
 #include "utils.h"
@@ -191,8 +196,11 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
   nstatus = napi_get_array_length(env, array_value, &array_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  size_t offsets_size = array_length * sizeof(uint64_t);
-  size_t data_size = offsets_size;
+  TF_AutoTensor tensor(TF_AllocateTensor(TF_DataType::TF_STRING, shape,
+                                         shape_length,
+                                         array_length * sizeof(TF_TString)));
+
+  TF_TString *t = reinterpret_cast<TF_TString *>(TF_TensorData(tensor.tensor));
 
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
@@ -200,51 +208,26 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
     ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, cur_value, nullptr);
 
-    size_t cur_array_length;
     napi_typedarray_type array_type;
+    size_t cur_array_length;
+    void *buffer = nullptr;
+
     nstatus =
         napi_get_typedarray_info(env, cur_value, &array_type, &cur_array_length,
-                                 nullptr, nullptr, nullptr);
+                                 &buffer, nullptr, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
     // Only Uint8 typed arrays are supported.
     if (array_type != napi_uint8_array) {
       NAPI_THROW_ERROR(env, "Unsupported array type - expecting Uint8Array");
       return nullptr;
     }
 
-    data_size += TF_StringEncodedSize(cur_array_length);
+    TF_TString_Init(t);
+    TF_TString_Copy(t, reinterpret_cast<char *>(buffer), cur_array_length);
+    t += 1;
   }
 
   TF_AutoStatus tf_status;
-  TF_AutoTensor tensor(
-      TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
-
-  void *tensor_data = TF_TensorData(tensor.tensor);
-  uint64_t *offsets = (uint64_t *)tensor_data;
-
-  char *str_data_start = (char *)tensor_data + offsets_size;
-  char *cur_str_data = str_data_start;
-
-  for (uint32_t i = 0; i < array_length; ++i) {
-    napi_value cur_value;
-    nstatus = napi_get_element(env, array_value, i, &cur_value);
-    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
-    size_t cur_array_length;
-    void *buffer = nullptr;
-    nstatus = napi_get_typedarray_info(
-        env, cur_value, nullptr, &cur_array_length, &buffer, nullptr, nullptr);
-    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
-    size_t encoded_size =
-        TF_StringEncode(reinterpret_cast<char *>(buffer), cur_array_length,
-                        cur_str_data, data_size, tf_status.status);
-    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-
-    offsets[i] = cur_str_data - str_data_start;
-    cur_str_data += encoded_size;
-  }
 
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
@@ -335,63 +318,36 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
     return;
   }
 
-  void *tensor_data = TF_TensorData(tensor.tensor);
-  ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
+  size_t num_elements = TF_TensorElementCount(tensor.tensor);
 
-  size_t byte_length = TF_TensorByteSize(tensor.tensor);
-  const char *limit = static_cast<const char *>(tensor_data) + byte_length;
-
-  size_t num_elements = GetTensorNumElements(tensor.tensor);
-
-  // String values are stored in offsets.
-  const uint64_t *offsets = static_cast<const uint64_t *>(tensor_data);
-  const size_t offsets_size = sizeof(uint64_t) * num_elements;
-
-  // Skip passed the offsets and find the first string:
-  const char *data = static_cast<const char *>(tensor_data) + offsets_size;
-
+  TF_TString *ts = static_cast<TF_TString *>(TF_TensorData(tensor.tensor));
   TF_AutoStatus status;
 
   // Create a JS string to stash strings into
   napi_status nstatus;
   nstatus = napi_create_array_with_length(env, num_elements, result);
 
-  const size_t expected_tensor_size =
-      (limit - static_cast<const char *>(tensor_data));
-  if (expected_tensor_size != byte_length) {
-    NAPI_THROW_ERROR(env,
-                     "Invalid/corrupt TF_STRING tensor. Expected size: %zu, "
-                     "byte_length: %zu",
-                     expected_tensor_size, byte_length);
-    return;
-  }
-
   for (uint64_t i = 0; i < num_elements; i++) {
-    const char *start = data + offsets[i];
-    const char *str_ptr = nullptr;
-    size_t str_len = 0;
-
-    TF_StringDecode(start, limit - start, &str_ptr, &str_len, status.status);
-    ENSURE_TF_OK(env, tf_status);
-
     napi_value array_buffer_value;
+
+    const char *raw_string = TF_TString_GetDataPointer(ts);
+    size_t raw_string_size = TF_TString_GetSize(ts);
     void *array_buffer_data;
-    nstatus = napi_create_arraybuffer(env, str_len, &array_buffer_data,
+    nstatus = napi_create_arraybuffer(env, raw_string_size, &array_buffer_data,
                                       &array_buffer_value);
     ENSURE_NAPI_OK(env, nstatus);
 
-    // TF_StringDecode returns a const char pointer that can not be used
-    // directly because of const rules in napi_create_arraybuffer. Simply memcpy
-    // the buffers here.
-    memcpy(array_buffer_data, str_ptr, str_len);
+    memcpy(array_buffer_data, raw_string, raw_string_size);
 
     napi_value typed_array_value;
-    nstatus = napi_create_typedarray(env, napi_uint8_array, str_len,
+    nstatus = napi_create_typedarray(env, napi_uint8_array, raw_string_size,
                                      array_buffer_value, 0, &typed_array_value);
     ENSURE_NAPI_OK(env, nstatus);
 
     nstatus = napi_set_element(env, *result, i, typed_array_value);
     ENSURE_NAPI_OK(env, nstatus);
+
+    ts += 1;
   }
 }
 
@@ -791,7 +747,6 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   int32_t dtype_int32;
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
   TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromJSValues(
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), array_value);
@@ -831,8 +786,31 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
     return;
   }
 
+  TFE_TensorHandle *tensor_handle = tensor_entry->second;
+  if (TFE_TensorHandleDataType(tensor_handle) == TF_STRING) {
+    TF_AutoStatus tf_status;
+    TF_AutoTensor tensor(
+        TFE_TensorHandleResolve(tensor_handle, tf_status.status));
+    ENSURE_TF_OK(env, tf_status);
+    size_t num_elements = GetTensorNumElements(tensor.tensor);
+    TF_TString *data = reinterpret_cast<TF_TString *>(TF_TensorData(tensor.tensor));
+
+    // Deallocate each string
+    for (size_t i = 0; i < num_elements; i++) {
+      TF_TString_Dealloc(data + i);
+    }
+  };
   TFE_DeleteTensorHandle(tensor_entry->second);
   tfe_handle_map_.erase(tensor_entry);
+}
+
+napi_value TFJSBackend::GetNumOfTensors(napi_env env) {
+  napi_status nstatus;
+  napi_value num_of_tensors;
+  nstatus =
+      napi_create_int32(env, tfe_handle_map_.size(), &num_of_tensors);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return num_of_tensors;
 }
 
 napi_value TFJSBackend::GetTensorData(napi_env env,
@@ -1023,6 +1001,11 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   nstatus = napi_create_int32(env, InsertSavedModel(session, graph),
                               &output_session_id);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  // clean up the tags strings.
+  for (uint32_t i = 0; i < tags_ptrs.size(); i++) {
+    delete tags_ptrs[i];
+  }
   return output_session_id;
 }
 
@@ -1211,11 +1194,15 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     // Push into output array
     nstatus = napi_set_element(env, output_tensor_infos, i, tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    // delete output op name string
+    delete output_op_name_array[i];
   }
 
   for (uint32_t i = 0; i < num_input_ids; i++) {
     // Deallocate input TF_Tensor in C++.
     TF_DeleteTensor(input_values[i]);
+    // delete input op name string
+    delete input_op_name_array[i];
   }
 
   return output_tensor_infos;

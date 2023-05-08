@@ -48,5 +48,5 @@ export function complex(args: {inputs: ComplexInputs, backend: WebGPUBackend}):
 export const complexConfig: KernelConfig = {
   kernelName: Complex,
   backendName: 'webgpu',
-  kernelFunc: complex as {} as KernelFunc
+  kernelFunc: complex as unknown as KernelFunc
 };

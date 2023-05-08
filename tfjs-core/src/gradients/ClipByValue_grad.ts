@@ -29,7 +29,7 @@ export const clipByValueGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const {clipValueMin, clipValueMax} = attrs as {} as ClipByValueAttrs;
+    const {clipValueMin, clipValueMax} = attrs as unknown as ClipByValueAttrs;
     return {
       x: () => where(
           logicalAnd(greaterEqual(x, clipValueMin), lessEqual(x, clipValueMax)),

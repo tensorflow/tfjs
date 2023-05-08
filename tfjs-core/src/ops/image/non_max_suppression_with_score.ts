@@ -30,7 +30,7 @@ import {op} from '../operation';
  * Performs non maximum suppression of bounding boxes based on
  * iou (intersection over union).
  *
- * This op also supports a Soft-NMS mode (c.f.
+ * This op also supports a Soft-NMS mode (cf.
  * Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
  * of other overlapping boxes, therefore favoring different regions of the image
  * with high scores. To enable this Soft-NMS mode, set the `softNmsSigma`
@@ -77,10 +77,10 @@ function nonMaxSuppressionWithScore_(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
-                     NonMaxSuppressionV5, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+                     NonMaxSuppressionV5, inputs as unknown as NamedTensorMap,
+                     attrs as unknown as NamedAttrMap) as Tensor[];
 
   return {selectedIndices: result[0], selectedScores: result[1]};
 }
 
-export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
+export const nonMaxSuppressionWithScore = /* @__PURE__ */ op({nonMaxSuppressionWithScore_});

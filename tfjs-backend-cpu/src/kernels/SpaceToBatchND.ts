@@ -85,5 +85,5 @@ export function spaceToBatchND(args: {
 export const spaceToBatchNDConfig: KernelConfig = {
   kernelName: SpaceToBatchND,
   backendName: 'cpu',
-  kernelFunc: spaceToBatchND as {} as KernelFunc
+  kernelFunc: spaceToBatchND as unknown as KernelFunc
 };

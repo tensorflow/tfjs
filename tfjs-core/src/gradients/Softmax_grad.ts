@@ -27,7 +27,7 @@ export const softmaxGradConfig: GradConfig = {
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [y] = saved;
-    const {dim} = attrs as {} as SoftmaxAttrs;
+    const {dim} = attrs as unknown as SoftmaxAttrs;
     const keepDims = true;
 
     const dyTimesY = mul(dy, y);

@@ -23,7 +23,7 @@ const karmaTypescriptConfig = {
   bundlerOptions: {
     sourceMap: true,  // Process any non es5 code through
                       // karma-typescript-es6-transform (babel)
-    acornOptions: {ecmaVersion: 8},
+    acornOptions: {ecmaVersion: 11},
     transforms: [
       require('karma-typescript-es6-transform')({
         presets: [
@@ -34,6 +34,18 @@ const karmaTypescriptConfig = {
     ]
   }
 };
+
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = [
+    /test_browser\.ts/,
+    /test_util\.ts/,
+    /_test\.ts/
+  ];
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
 
 module.exports = function(config) {
   const args = [];
@@ -66,12 +78,16 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 900,  // Seconds
       tunnelIdentifier:
           `tfjs_automl_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 180000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',
@@ -92,9 +108,9 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Big Sur'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',

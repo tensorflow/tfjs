@@ -56,7 +56,8 @@ function cumsum_<T extends Tensor>(
   const attrs: CumsumAttrs = {axis, exclusive, reverse};
 
   return ENGINE.runKernel(
-      Cumsum, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Cumsum, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const cumsum = op({cumsum_});
+export const cumsum = /* @__PURE__ */ op({cumsum_});

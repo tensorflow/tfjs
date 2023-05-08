@@ -68,7 +68,7 @@ function maximum_<T extends Tensor>(
 
   const inputs: MaximumInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Maximum, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Maximum, inputs as unknown as NamedTensorMap);
 }
 
-export const maximum = op({maximum_});
+export const maximum = /* @__PURE__ */ op({maximum_});

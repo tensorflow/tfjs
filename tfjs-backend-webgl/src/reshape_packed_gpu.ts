@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
 export class ReshapePackedProgram implements GPGPUProgram {
@@ -24,11 +24,14 @@ export class ReshapePackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
+  customUniforms = [{name: 'inputShape', type: 'ivec3' as const }];
 
   constructor(outputShape: [number, number, number], inputShape: [
     number, number, number
   ]) {
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     let mainLoop = ``;
     for (let i = 0; i < 4; i++) {
@@ -55,8 +58,10 @@ export class ReshapePackedProgram implements GPGPUProgram {
     }
 
     this.userCode = `
-      ${getReshapedInputCoords(inputShape)}
-      ${shader_util.getFlatIndexFrom3D(outputShape)}
+      ${getReshapedInputCoords(inputShape, this.enableShapeUniforms)}
+      ${
+        this.enableShapeUniforms ? shader_util.getFlatIndexFrom3DOutput() :
+                                   shader_util.getFlatIndexFrom3D(outputShape)}
 
       void main() {
         ivec3 rc = getOutputCoords();
@@ -64,8 +69,8 @@ export class ReshapePackedProgram implements GPGPUProgram {
         vec4 result = vec4(0.);
 
         ivec3 thisRC;
-        int rows = ${outputShape[1]};
-        int cols = ${outputShape[2]};
+        int rows = ${this.enableShapeUniforms ? 'outShape[1]' : outputShape[1]};
+        int cols = ${this.enableShapeUniforms ? 'outShape[2]' : outputShape[2]};
 
         ${mainLoop}
 
@@ -75,8 +80,11 @@ export class ReshapePackedProgram implements GPGPUProgram {
   }
 }
 
-function getReshapedInputCoords(shape: [number, number, number]): string {
-  const coordsFromIndexSnippet =
+function getReshapedInputCoords(
+    shape: [number, number, number], enableShapeUniforms: boolean): string {
+  const coordsFromIndexSnippet = enableShapeUniforms ?
+      shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+          ['r', 'c', 'd'], 'inputShape') :
       shader_util.getLogicalCoordinatesFromFlatIndex(['r', 'c', 'd'], shape);
 
   return `

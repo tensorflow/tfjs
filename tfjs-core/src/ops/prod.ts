@@ -69,7 +69,8 @@ function prod_<T extends Tensor>(
   const attrs: ProdAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      Prod, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Prod, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const prod = op({prod_});
+export const prod = /* @__PURE__ */ op({prod_});

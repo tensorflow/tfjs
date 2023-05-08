@@ -37,10 +37,10 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function sqrt_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sqrt');
+  const $x = convertToTensor(x, 'x', 'sqrt', 'float32');
 
   const inputs: SqrtInputs = {x: $x};
 
-  return ENGINE.runKernel(Sqrt, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Sqrt, inputs as unknown as NamedTensorMap);
 }
-export const sqrt = op({sqrt_});
+export const sqrt = /* @__PURE__ */ op({sqrt_});

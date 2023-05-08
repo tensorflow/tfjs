@@ -19,7 +19,10 @@
 #include <cstddef>
 #include <limits>
 
+#include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/clamp_impl.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -29,10 +32,23 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Relu(const size_t x_id, const size_t out_id) {
-  const float min = 0;
-  const float max = std::numeric_limits<float>::infinity();
-  xnn_clamp(x_id, out_id, min, max);
+void Relu(const size_t x_id, const DType dtype, const size_t out_id) {
+  switch (dtype) {
+    case DType::float32: {
+      const float min = 0;
+      const float max = std::numeric_limits<float>::infinity();
+      xnn_clamp(x_id, out_id, min, max);
+      break;
+    }
+    case DType::int32:
+      unary_i32(x_id, out_id, [](int a) { return (a > 0) ? a : 0; });
+      break;
+    default:
+      util::warn(
+          "Relu for tensor ids %d failed. "
+          "Unknown dtype %d",
+          x_id, dtype);
+  }
 }
 
 }  // extern "C"

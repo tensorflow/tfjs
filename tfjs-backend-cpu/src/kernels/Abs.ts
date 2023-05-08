@@ -38,11 +38,11 @@ export const abs = (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
   const values = cpuBackend.data.get(x.dataId).values as TypedArray;
   resultValues = simpleAbsImpl(values);
 
-  return cpuBackend.makeOutput(resultValues, x.shape, 'float32');
+  return cpuBackend.makeOutput(resultValues, x.shape, x.dtype);
 };
 
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'cpu',
-  kernelFunc: abs as {} as KernelFunc,
+  kernelFunc: abs as unknown as KernelFunc,
 };

@@ -12,7 +12,7 @@ import {InputLayer, InputLayerArgs} from './engine/input_layer';
 import {Layer, LayerArgs} from './engine/topology';
 import {input} from './exports';
 import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
-import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs} from './layers/convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs, Conv3DTranspose} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
 import {ConvLSTM2D, ConvLSTM2DArgs, ConvLSTM2DCell, ConvLSTM2DCellArgs} from './layers/convolutional_recurrent';
 import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, FlattenLayerArgs, Masking, MaskingArgs, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs, SpatialDropout1D, SpatialDropout1DLayerConfig} from './layers/core';
@@ -24,6 +24,11 @@ import {ZeroPadding2D, ZeroPadding2DLayerArgs} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerArgs, MaxPooling1D, MaxPooling2D, MaxPooling3D, Pooling1DLayerArgs, Pooling2DLayerArgs, Pooling3DLayerArgs} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs, StackedRNNCells, StackedRNNCellsArgs} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs} from './layers/wrappers';
+import {Rescaling, RescalingArgs} from './layers/preprocessing/image_preprocessing';
+import {CenterCrop, CenterCropArgs} from './layers/preprocessing/center_crop';
+import {CategoryEncoding, CategoryEncodingArgs} from './layers/preprocessing/category_encoding';
+import {Resizing, ResizingArgs} from './layers/preprocessing/image_resizing';
+import {RandomWidth, RandomWidthArgs} from './layers/preprocessing/random_width';
 
 // TODO(cais): Add doc string to all the public static functions in this
 //   class; include exectuable JavaScript code snippets where applicable
@@ -33,7 +38,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
 /**
  * An input layer is an entry point into a `tf.LayersModel`.
  *
- * `InputLayer` is generated automatically for `tf.Sequential`` models by
+ * `InputLayer` is generated automatically for `tf.Sequential` models by
  * specifying the `inputshape` or `batchInputShape` for the first layer.  It
  * should not be specified explicitly. However, it can be useful sometimes,
  * e.g., when constructing a sequential model from a subset of another
@@ -71,7 +76,7 @@ export function inputLayer(args: InputLayerArgs) {
 // Advanced Activation Layers.
 
 /**
- * Exponetial Linear Unit (ELU).
+ * Exponential Linear Unit (ELU).
  *
  * It follows:
  * `f(x) =  alpha * (exp(x) - 1.) for x < 0`,
@@ -283,7 +288,7 @@ export function conv2d(args: ConvLayerArgs) {
  *   4D tensor with shape:
  *   `[batch, channels, rows, cols]` if `dataFormat` is `'channelsFirst'`.
  *   or 4D tensor with shape
- *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast`.
+ *   `[batch, rows, cols, channels]` if `dataFormat` is `'channelsLast'`.
  *
  * Output shape:
  *   4D tensor with shape:
@@ -323,6 +328,10 @@ export function conv2dTranspose(args: ConvLayerArgs) {
  */
 export function conv3d(args: ConvLayerArgs) {
   return new Conv3D(args);
+}
+
+export function conv3dTranspose(args: ConvLayerArgs): Layer {
+  return new Conv3DTranspose(args);
 }
 
 /**
@@ -428,7 +437,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs) {
  *
  * Depthwise Separable convolutions consists in performing just the first step
  * in a depthwise spatial convolution (which acts on each input channel
- * separately). The `depthMultplier` argument controls how many output channels
+ * separately). The `depthMultiplier` argument controls how many output channels
  * are generated per input channel in the depthwise step.
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
@@ -591,7 +600,7 @@ export function flatten(args?: FlattenLayerArgs) {
  *  const model = tf.sequential();
  *  model.add(tf.layers.repeatVector({n: 4, inputShape: [2]}));
  *  const x = tf.tensor2d([[10, 20]]);
- *  // Use the model to do inference on a data point the model hasn't see
+ *  // Use the model to do inference on a data point the model hasn't seen
  *  model.predict(x).print();
  *  // output shape is now [batch, 2, 4]
  * ```
@@ -663,7 +672,7 @@ export function permute(args: PermuteLayerArgs) {
 
 /**
  * Maps positive integers (indices) into dense vectors of fixed size.
- * eg. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
+ * E.g. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
  *
  * **Input shape:** 2D tensor with shape: `[batchSize, sequenceLength]`.
  *
@@ -749,9 +758,9 @@ export function concatenate(args?: ConcatenateLayerArgs) {
 }
 
 /**
- * Layer that computes the element-wise maximum an `Array` of inputs.
+ * Layer that computes the element-wise maximum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -773,7 +782,7 @@ export function maximum(args?: LayerArgs) {
 /**
  * Layer that computes the element-wise minimum of an `Array` of inputs.
  *
- * It takes as input a list of tensors, all of the same shape and returns a
+ * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
  *
  * ```js
@@ -873,8 +882,8 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs) {
  *
  * Normalizes the activations of the previous layer for each given example in a
  * batch independently, instead of across a batch like in `batchNormalization`.
- * In other words, this layer applies a transformation that maintanis the mean
- * activation within each example close to0 and activation variance close to 1.
+ * In other words, this layer applies a transformation that maintains the mean
+ * activation within each example close to 0 and activation variance close to 1.
  *
  * Input shape:
  *   Arbitrary. Use the argument `inputShape` when using this layer as the first
@@ -959,10 +968,10 @@ export function avgPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *  - If `dataFormat === CHANNEL_LAST`:
  *      4D tensor with shape:
- *      `[batchSize, pooleRows, pooledCols, channels]`
+ *      `[batchSize, pooledRows, pooledCols, channels]`
  *  - If `dataFormat === CHANNEL_FIRST`:
  *      4D tensor with shape:
- *      `[batchSize, channels, pooleRows, pooledCols]`
+ *      `[batchSize, channels, pooledRows, pooledCols]`
  *
  * `tf.avgPool2d` is an alias.
  *
@@ -1018,7 +1027,7 @@ export function avgPooling3d(args: Pooling3DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1049,7 +1058,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs) {
  *
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
- * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ * Output Shape: 2D tensor with shape: `[batchSize, features]`.
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1102,10 +1111,10 @@ export function maxPooling1d(args: Pooling1DLayerArgs) {
  * Output shape
  *   - If `dataFormat=CHANNEL_LAST`:
  *       4D tensor with shape:
- *       `[batchSize, pooleRows, pooledCols, channels]`
+ *       `[batchSize, pooledRows, pooledCols, channels]`
  *   - If `dataFormat=CHANNEL_FIRST`:
  *       4D tensor with shape:
- *       `[batchSize, channels, pooleRows, pooledCols]`
+ *       `[batchSize, channels, pooledRows, pooledCols]`
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
@@ -1372,7 +1381,7 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs) {
 /**
  * Convolutional LSTM layer - Xingjian Shi 2015.
  *
- * This is an `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
+ * This is a `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
  * unlike the underlying `ConvLSTM2DCell`, the `apply` method of `ConvLSTM2D`
  * operates on a sequence of inputs. The shape of the input (not including the
  * first, batch dimension) needs to be 4-D, with the first dimension being time
@@ -1492,8 +1501,8 @@ export function convLstm2dCell(args: ConvLSTM2DCellArgs) {
  *   You can pass "external" constants to the cell using the `constants`
  *   keyword argument of `RNN.call` method. This requires that the `cell.call`
  *   method accepts the same keyword argument `constants`. Such constants
- *   can be used to conditon the cell transformation on additional static inputs
- *   (not changing over time), a.k.a an attention mechanism.
+ *   can be used to condition the cell transformation on additional static
+ *   inputs (not changing over time), a.k.a. an attention mechanism.
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
@@ -1588,15 +1597,15 @@ export {Layer, RNN, RNNCell, input /* alias for tf.input */};
  * for real valued inputs.
  *
  * # Arguments
- *     stddev: float, standard deviation of the noise distribution.
+ * stddev: float, standard deviation of the noise distribution.
  *
  * # Input shape
- *         Arbitrary. Use the keyword argument `input_shape`
- *         (tuple of integers, does not include the samples axis)
- *         when using this layer as the first layer in a model.
+ * Arbitrary. Use the keyword argument `input_shape`
+ * (tuple of integers, does not include the samples axis)
+ * when using this layer as the first layer in a model.
  *
  * # Output shape
- *         Same shape as input.
+ * Same shape as input.
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
@@ -1693,3 +1702,188 @@ export function alphaDropout(args: AlphaDropoutArgs) {
 export function masking(args?: MaskingArgs) {
   return new Masking(args);
 }
+
+/**
+ * A preprocessing layer which rescales input values to a new range.
+ *
+ * This layer rescales every value of an input (often an image) by multiplying
+ * by `scale` and adding `offset`.
+ *
+ * For instance:
+ * 1. To rescale an input in the ``[0, 255]`` range
+ * to be in the `[0, 1]` range, you would pass `scale=1/255`.
+ * 2. To rescale an input in the ``[0, 255]`` range to be in the `[-1, 1]`
+ * range, you would pass `scale=1./127.5, offset=-1`.
+ * The rescaling is applied both during training and inference. Inputs can be
+ * of integer or floating point dtype, and by default the layer will output
+ * floats.
+ *
+ * Arguments:
+ *   - `scale`: Float, the scale to apply to the inputs.
+ *   - `offset`: Float, the offset to apply to the inputs.
+ *
+ * Input shape:
+ *   Arbitrary.
+ *
+ * Output shape:
+ *   Same as input.
+ *
+ * @doc {heading: 'Layers', subheading: 'Rescaling', namespace: 'layers'}
+ */
+export function rescaling(args?: RescalingArgs) {
+  return new Rescaling(args);
+}
+
+/**
+ *  A preprocessing layer which center crops images.
+ *
+ *   This layers crops the central portion of the images to a target size. If an
+ *   image is smaller than the target size, it will be resized and cropped so as
+ *   to return the largest possible window in the image that matches the target
+ *   aspect ratio.
+ *
+ *   Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+ *   of integer or floating point dtype.
+ *
+ *   If the input height/width is even and the target height/width is odd (or
+ *   inversely), the input image is left-padded by 1 pixel.
+ *
+ *   Arguments:
+ *     `height`: Integer, the height of the output shape.
+ *     `width`: Integer, the width of the output shape.
+ *
+ *   Input shape:
+ *     3D (unbatched) or 4D (batched) tensor with shape:
+ *     `(..., height, width, channels)`, in `channelsLast` format.
+ *
+ *   Output shape:
+ *     3D (unbatched) or 4D (batched) tensor with shape:
+ *     `(..., targetHeight, targetWidth, channels)`.
+ *
+ *
+ *  @doc {heading: 'Layers', subheading: 'CenterCrop', namespace: 'layers'}
+ */
+export function centerCrop(args?: CenterCropArgs) {
+   return new CenterCrop(args);
+  }
+
+/**
+ * A preprocessing layer which resizes images.
+ * This layer resizes an image input to a target height and width. The input
+ * should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
+ * format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
+ * 255]`) and of interger or floating point dtype. By default, the layer will
+ * output floats.
+ *
+ * Arguments:
+ *   - `height`: number, the height for the output tensor.
+ *   - `width`: number, the width for the output tensor.
+ *   - `interpolation`: string, the method for image resizing interpolation.
+ *   - `cropToAspectRatio`: boolean, whether to keep image aspect ratio.
+ *
+ * Input shape:
+ *   Arbitrary.
+ *
+ * Output shape:
+ *   height, width, num channels.
+ *
+ * @doc {heading: 'Layers', subheading: 'Resizing', namespace: 'layers'}
+ */
+export function resizing(args?: ResizingArgs) {
+  return new Resizing(args);
+}
+
+/**
+ * A preprocessing layer which encodes integer features.
+ *
+ * This layer provides options for condensing data into a categorical encoding
+ * when the total number of tokens are known in advance. It accepts integer
+ * values as inputs, and it outputs a dense representation of those
+ * inputs.
+ *
+ * Arguments:
+ *
+ * numTokens: The total number of tokens the layer should support. All
+ *  inputs to the layer must integers in the range `0 <= value <
+ *  numTokens`, or an error will be thrown.
+ *
+ * outputMode: Specification for the output of the layer.
+ *  Defaults to `multiHot`. Values can be `oneHot`, `multiHot` or
+ *  `count`, configuring the layer as follows:
+ *
+ *    oneHot: Encodes each individual element in the input into an
+ *      array of `numTokens` size, containing a 1 at the element index. If
+ *      the last dimension is size 1, will encode on that dimension. If the
+ *      last dimension is not size 1, will append a new dimension for the
+ *      encoded output.
+ *
+ *    multiHot: Encodes each sample in the input into a single array
+ *     of `numTokens` size, containing a 1 for each vocabulary term
+ *     present in the sample. Treats the last dimension as the sample
+ *     dimension, if input shape is `(..., sampleLength)`, output shape
+ *     will be `(..., numTokens)`.
+ *
+ *    count: Like `multiHot`, but the int array contains a count of
+ *     the number of times the token at that index appeared in the sample.
+ *
+ *  For all output modes, currently only output up to rank 2 is supported.
+ *   Call arguments:
+ *    inputs: A 1D or 2D tensor of integer inputs.
+ *    countWeights: A tensor in the same shape as `inputs` indicating the
+ *    weight for each sample value when summing up in `count` mode. Not used
+ *    in `multiHot` or `oneHot` modes.
+ *
+ *
+ * @doc {heading: 'Layers', subheading: 'CategoryEncoding', namespace: 'layers'}
+ */
+export function categoryEncoding(args: CategoryEncodingArgs) {
+  return new CategoryEncoding(args);
+}
+
+ /**
+  * A preprocessing layer which randomly varies image width during training.
+  *
+  * This layer will randomly adjusts the width of a batch of images of a batch
+  * of images by a random factor.
+  *
+  * The input should be a 3D (unbatched) or 4D (batched) tensor in
+  * the `"channels_last"` image data format. Input pixel values can be of any
+  * range (e.g. `[0., 1.)` or `[0, 255]`) and of integer or floating point
+  * dtype. By default, the layer will output floats. By default, this layer is
+  * inactive during inference. For an overview and full list of preprocessing
+  * layers, see the preprocessing [guide]
+  * (https://www.tensorflow.org/guide/keras/preprocessing_layers).
+  *
+  * Arguments:
+  *
+  * factor:
+  *   A positive float (fraction of original width), or a tuple of size 2
+  *   representing lower and upper bound for resizing vertically.
+  *   When represented as a single float, this value is used for both the upper
+  *   and lower bound. For instance, `factor=(0.2, 0.3)` results in an output
+  *   with width changed by a random amount in the range `[20%, 30%]`.
+  *   `factor=(-0.2, 0.3)` results in an output with width changed by a random
+  *   amount in the range `[-20%, +30%]`. `factor=0.2` results in an output
+  *   with width changed by a random amount in the range `[-20%, +20%]`.
+  * interpolation:
+  *   String, the interpolation method.
+  *   Defaults to `bilinear`.
+  *   Supports `"bilinear"`, `"nearest"`.
+  *   The tf methods `"bicubic"`, `"area"`, `"lanczos3"`, `"lanczos5"`,
+  *   `"gaussian"`, `"mitchellcubic"` are unimplemented in tfjs.
+  * seed:
+  *   Integer. Used to create a random seed.
+  *
+  * Input shape:
+  *     3D (unbatched) or 4D (batched) tensor with shape:
+  *     `(..., height, width, channels)`, in `"channels_last"` format.
+  * Output shape:
+  *     3D (unbatched) or 4D (batched) tensor with shape:
+  *     `(..., height, random_width, channels)`.
+  *
+  *
+  * @doc {heading: 'Layers', subheading: 'RandomWidth', namespace: 'layers'}
+  */
+  export function randomWidth(args: RandomWidthArgs) {
+    return new RandomWidth(args);
+  }

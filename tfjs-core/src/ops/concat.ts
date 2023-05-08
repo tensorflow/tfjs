@@ -62,7 +62,7 @@ import {op} from './operation';
  * tf.concat([a, b], axis).print();
  * ```
  * @param tensors A list of tensors to concatenate.
- * @param axis The axis to concate along. Defaults to 0 (the first dim).
+ * @param axis The axis to concatenate along. Defaults to 0 (the first dim).
  *
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
@@ -89,7 +89,8 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   const attr: ConcatAttrs = {axis};
 
   return ENGINE.runKernel(
-      Concat, inputs as {} as NamedTensorMap, attr as {} as NamedAttrMap);
+      Concat, inputs as unknown as NamedTensorMap,
+      attr as unknown as NamedAttrMap);
 }
 
-export const concat = op({concat_});
+export const concat = /* @__PURE__ */ op({concat_});

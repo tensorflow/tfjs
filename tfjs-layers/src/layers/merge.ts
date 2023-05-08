@@ -85,7 +85,7 @@ export abstract class Merge extends Layer {
     return outputShape;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     // Used purely for shape validation.
     if (Array.isArray(inputShape) && !Array.isArray(inputShape[0])) {
       // Make sure that inputShape is an Array of shape.
@@ -130,7 +130,7 @@ export abstract class Merge extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = inputs as Tensor[];
       if (this.reshapeRequired) {
@@ -158,10 +158,10 @@ export abstract class Merge extends Layer {
               const xShape = x.shape;
               const batchSize = xShape[0];
               const newShape = xShape.slice(1).concat([batchSize]);
-              let xTransposed = x.reshape(
-                  [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
+              let xTransposed = tfc.reshape(
+                  x, [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
               xTransposed = tfc.transpose(xTransposed, [1, 0]);
-              xTransposed = xTransposed.reshape(newShape);
+              xTransposed = tfc.reshape(xTransposed, newShape);
               reshapedInputs.push(xTransposed);
               transposed = true;
             } else if (xNDim > 1) {
@@ -184,8 +184,9 @@ export abstract class Merge extends Layer {
               const batchSize = yShape[yNDim - 1];
               const newShape =
                   [batchSize].concat(yShape.slice(0, yShape.length - 1));
-              y = tfc.transpose(y.reshape([-1, batchSize]), [1, 0])
-                      .reshape(newShape);
+              y = tfc.reshape(
+                  tfc.transpose(tfc.reshape(y, [-1, batchSize]), [1, 0]),
+                  newShape);
             } else if (yNDim > 1) {
               const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
               y = tfc.transpose(y, dims);
@@ -199,7 +200,7 @@ export abstract class Merge extends Layer {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = inputShape as Shape[];
     let outputShape: Shape;
     if (inputShape[0] == null) {
@@ -227,7 +228,8 @@ export abstract class Merge extends Layer {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return tfc.tidy(() => {
       if (mask == null) {
         return null;
@@ -264,7 +266,7 @@ export class Add extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -339,7 +341,7 @@ export class Multiply extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -414,7 +416,7 @@ export class Average extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0].clone();
       for (let i = 1; i < inputs.length; ++i) {
@@ -490,7 +492,7 @@ export class Maximum extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0];
       for (let i = 1; i < inputs.length; ++i) {
@@ -565,7 +567,7 @@ export class Minimum extends Merge {
     super(args);
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       let output = inputs[0];
       for (let i = 1; i < inputs.length; ++i) {
@@ -656,7 +658,7 @@ export class Concatenate extends Merge {
     this.reshapeRequired = false;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     // Used purely for shape validation.]
     if (!(Array.isArray(inputShape) && Array.isArray(inputShape[0])) ||
         inputShape.length === 1) {
@@ -700,13 +702,13 @@ export class Concatenate extends Merge {
     }
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     return tidy(() => {
       return K.concatenate(inputs, this.axis);
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     if (!(Array.isArray(inputShape) && Array.isArray(inputShape[0]))) {
       throw new ValueError(
           'A `Concatenate` layer should be called on a list of inputs.');
@@ -726,7 +728,8 @@ export class Concatenate extends Merge {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     if (mask == null) {
       return null;
     }
@@ -756,7 +759,7 @@ export class Concatenate extends Merge {
       for (let i = 0; i < inputs.length; ++i) {
         if (mask[i] == null) {
           // Input is unmasked. Append all 1's to masks.
-          outputMasks.push(tfc.onesLike(inputs[i]).asType('bool'));
+          outputMasks.push(tfc.cast(tfc.onesLike(inputs[i]), 'bool'));
         } else if (mask[i].rank < inputs[i].rank) {
           // Mask is smaller than the input, expand it.
           outputMasks.push(tfc.expandDims(mask[i], -1));
@@ -769,7 +772,7 @@ export class Concatenate extends Merge {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'axis': this.axis,
     };
@@ -850,7 +853,7 @@ export declare interface DotLayerArgs extends LayerArgs {
    * Whether to L2-normalize samples along the dot product axis
    * before taking the dot product.
    *
-   * If set to `true`, the output of the dot product isthe cosine
+   * If set to `true`, the output of the dot product is the cosine
    * proximity between the two samples.
    */
   normalize?: boolean;
@@ -911,14 +914,14 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
       for (let i = 0; i < diff; ++i) {
         diffShape.push(1);
       }
-      y = y.reshape(y.shape.concat(diffShape));
+      y = tfc.reshape(y, y.shape.concat(diffShape));
     } else if (yNDim > xNDim) {
       diff = yNDim - xNDim;
       const diffShape: Shape = [];
       for (let i = 0; i < diff; ++i) {
         diffShape.push(1);
       }
-      x = x.reshape(x.shape.concat(diffShape));
+      x = tfc.reshape(x, x.shape.concat(diffShape));
     } else {
       diff = 0;
     }
@@ -926,14 +929,14 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
     let out: Tensor;
     if (x.shape.length === 2 && y.shape.length === 2) {
       if (axesArray[0] === axesArray[1]) {
-        out = x.mul(y).sum(axesArray[0]);
+        out = tfc.sum(tfc.mul(x, y), axesArray[0]);
       } else {
-        out = x.transpose([1, 0]).mul(y).sum(axesArray[1]);
+        out = tfc.sum(tfc.mul(tfc.transpose(x, [1, 0]), y), axesArray[1]);
       }
     } else {
       const adjX = axesArray[0] !== x.shape.length - 1;
       const adjY = axesArray[1] === y.shape.length - 1;
-      out = x.matMul(y, adjX, adjY);
+      out = tfc.matMul(x, y, adjX, adjY);
     }
 
     if (diff > 0) {
@@ -947,10 +950,10 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
       for (let i = idx; i < idx + diff; ++i) {
         squeezeAxes.push(i);
       }
-      out = out.squeeze(squeezeAxes);
+      out = tfc.squeeze(out, squeezeAxes);
     }
     if (out.shape.length === 1) {
-      out = out.expandDims(1);
+      out = tfc.expandDims(out, 1);
     }
     return out;
   });
@@ -971,7 +974,7 @@ export class Dot extends Merge {
     this.reshapeRequired = false;
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
@@ -991,7 +994,7 @@ export class Dot extends Merge {
     }
   }
 
-  protected mergeFunction(inputs: Tensor[]): Tensor {
+  protected override mergeFunction(inputs: Tensor[]): Tensor {
     if (inputs.length !== 2) {
       throw new ValueError(
           'A `Dot` layer must be called on exactly 2 inputs, ' +
@@ -1033,7 +1036,7 @@ export class Dot extends Merge {
     return axes;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     tfc.util.assert(
         Array.isArray(inputShape) && inputShape.length === 2 &&
             Array.isArray(inputShape[0]) && Array.isArray(inputShape[1]),
@@ -1056,11 +1059,12 @@ export class Dot extends Merge {
     return outputShape;
   }
 
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]):
+      Tensor {
     return null;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'axes': this.axes,
       'normalize': this.normalize

@@ -39,4 +39,5 @@ export type FusedBatchMatMulConfig = {
   leakyreluAlpha?: number
 };
 
-export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6'|'leakyrelu';
+export type Activation =
+    'linear'|'relu'|'prelu'|'elu'|'relu6'|'leakyrelu'|'sigmoid';

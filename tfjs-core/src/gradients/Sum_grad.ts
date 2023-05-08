@@ -29,7 +29,7 @@ export const sumGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
     const expandedDyShape = x.shape.slice();
-    const {axis} = attrs as {} as SumAttrs;
+    const {axis} = attrs as unknown as SumAttrs;
 
     const axes = parseAxisParam(axis, x.shape);
     axes.forEach(axis => {

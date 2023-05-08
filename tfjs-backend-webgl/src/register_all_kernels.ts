@@ -33,12 +33,14 @@ import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPool3DConfig} from './kernels/AvgPool3D';
-import {avgPoolGrad3DConfig} from './kernels/AvgPool3DGrad';
+import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {bitwiseAndConfig} from './kernels/BitwiseAnd';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -54,6 +56,7 @@ import {conv3DBackpropInputConfig} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
@@ -62,6 +65,7 @@ import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -102,7 +106,7 @@ import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
-import {maxPoolGrad3DConfig} from './kernels/MaxPool3DGrad';
+import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
@@ -124,6 +128,9 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {raggedGatherConfig} from './kernels/RaggedGather';
+import {raggedRangeConfig} from './kernels/RaggedRange';
+import {raggedTensorToTensorConfig} from './kernels/RaggedTensorToTensor';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
@@ -140,6 +147,7 @@ import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {searchSortedConfig} from './kernels/SearchSorted';
 import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -150,17 +158,26 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
+import {sparseReshapeConfig} from './kernels/SparseReshape';
+import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
+import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {staticRegexReplaceConfig} from './kernels/StaticRegexReplace';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
+import {stringNGramsConfig} from './kernels/StringNGrams';
+import {stringSplitConfig} from './kernels/StringSplit';
+import {stringToHashBucketFastConfig} from './kernels/StringToHashBucketFast';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
@@ -172,8 +189,6 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  LRNConfig,
-  LRNGradConfig,
   _fusedMatMulConfig,
   absConfig,
   acosConfig,
@@ -186,40 +201,44 @@ const kernelConfigs: KernelConfig[] = [
   argMinConfig,
   asinConfig,
   asinhConfig,
-  atan2Config,
   atanConfig,
+  atan2Config,
   atanhConfig,
-  avgPool3DConfig,
   avgPoolConfig,
-  avgPoolGrad3DConfig,
+  avgPool3DConfig,
+  avgPool3DGradConfig,
   avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
-  complexAbsConfig,
   complexConfig,
+  complexAbsConfig,
   concatConfig,
+  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv2DConfig,
+  conv3DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputConfig,
-  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   denseBincountConfig,
   depthToSpaceConfig,
+  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
-  depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
+  einsumConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -249,18 +268,20 @@ const kernelConfigs: KernelConfig[] = [
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
-  log1pConfig,
   logConfig,
+  log1pConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  LRNConfig,
+  LRNGradConfig,
   maxConfig,
-  maxPool3DConfig,
+  maximumConfig,
   maxPoolConfig,
-  maxPoolGrad3DConfig,
+  maxPool3DConfig,
+  maxPool3DGradConfig,
   maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
-  maximumConfig,
   meanConfig,
   minConfig,
   minimumConfig,
@@ -280,12 +301,15 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  raggedGatherConfig,
+  raggedRangeConfig,
+  raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
   reciprocalConfig,
-  relu6Config,
   reluConfig,
+  relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,
@@ -296,6 +320,7 @@ const kernelConfigs: KernelConfig[] = [
   roundConfig,
   rsqrtConfig,
   scatterNdConfig,
+  searchSortedConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,
@@ -306,17 +331,26 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  sparseFillEmptyRowsConfig,
+  sparseReshapeConfig,
+  sparseSegmentMeanConfig,
+  sparseSegmentSumConfig,
   sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
+  stringNGramsConfig,
+  stringSplitConfig,
+  stringToHashBucketFastConfig,
   subConfig,
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,

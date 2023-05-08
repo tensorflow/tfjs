@@ -85,7 +85,8 @@ function mirrorPad_<T extends Tensor>(
   const attrs: MirrorPadAttrs = {paddings, mode};
   const inputs: MirrorPadInputs = {x: $x};
   return ENGINE.runKernel(
-      MirrorPad, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      MirrorPad, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const mirrorPad = op({mirrorPad_});
+export const mirrorPad = /* @__PURE__ */ op({mirrorPad_});

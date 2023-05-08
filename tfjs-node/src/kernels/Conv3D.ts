@@ -25,7 +25,7 @@ export const conv3DConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x, filter} = args.inputs as Conv3DInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {strides, pad, dilations} = args.attrs as {} as Conv3DAttrs;
+    const {strides, pad, dilations} = args.attrs as unknown as Conv3DAttrs;
 
     const convInfo = backend_util.computeConv3DInfo(
         x.shape as [number, number, number, number, number],

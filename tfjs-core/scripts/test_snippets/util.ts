@@ -122,9 +122,7 @@ async function visit(
         }
 
         const srcCode = evalLines.join('\n');
-
-        const evalString = '(async function runner() { try { ' + srcCode +
-            '} catch (e) { reportError(e); } })()';
+        const evalString = `(async () => {${srcCode}})()`;
 
         const oldLog = console.log;
         const oldWarn = console.warn;
@@ -166,7 +164,12 @@ function getJSDocTag(symbol: ts.Symbol): JSDoc {
   for (let i = 0; i < tags.length; i++) {
     const jsdocTag = tags[i];
     if (jsdocTag.name === 'doc' && jsdocTag.text != null) {
-      const json = convertDocStringToDocInfoObject(jsdocTag.text.trim());
+      if (jsdocTag.text.length !== 1) {
+        throw new Error('Expected exactly one jsdoc SymbolDisplayPart but got'
+          + ` ${jsdocTag.text.length} instead: ${jsdocTag.text}`);
+      }
+      const text = jsdocTag.text[0].text.trim();
+      const json = convertDocStringToDocInfoObject(text);
       return json;
     }
   }

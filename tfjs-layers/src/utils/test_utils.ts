@@ -14,20 +14,9 @@
 
 import {memory, Tensor, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
-import {ValueError} from '../errors';
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-// Register backends.
-registerTestEnv({name: 'cpu', backendName: 'cpu'});
-registerTestEnv({
-  name: 'webgl2',
-  backendName: 'webgl',
-  flags: {
-    'WEBGL_VERSION': 2,
-    'WEBGL_CPU_FORWARD': false,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-  }
-});
+import {ValueError} from '../errors';
 
 /**
  * Expect values are close between a Tensor or number array.
@@ -88,6 +77,22 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
 }
 
 /**
+ * Describe tests to be run on CPU and GPU WebGL2.
+ * @param testName
+ * @param tests
+ */
+export function describeMathCPUAndWebGL2(testName: string, tests: () => void) {
+  describeWithFlags(
+      testName, {
+        predicate: testEnv =>
+            (testEnv.flags == null || testEnv.flags['WEBGL_VERSION'] === 2)
+      },
+      () => {
+        tests();
+      });
+}
+
+/**
  * Describe tests to be run on CPU only.
  * @param testName
  * @param tests
@@ -107,6 +112,23 @@ export function describeMathCPU(testName: string, tests: () => void) {
 export function describeMathGPU(testName: string, tests: () => void) {
   describeWithFlags(
       testName, {predicate: testEnv => testEnv.backendName === 'webgl'}, () => {
+        tests();
+      });
+}
+
+/**
+ * Describe tests to be run on WebGL2 GPU only.
+ * @param testName
+ * @param tests
+ */
+export function describeMathWebGL2(testName: string, tests: () => void) {
+  describeWithFlags(
+      testName, {
+        predicate: testEnv => testEnv.backendName === 'webgl' &&
+            (testEnv.flags == null || testEnv.flags['WEBGL_VERSION'] === 2)
+
+      },
+      () => {
         tests();
       });
 }

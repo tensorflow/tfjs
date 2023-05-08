@@ -143,6 +143,7 @@ export class TensorList {
     const outputElementShape =
         inferElementShape(this.elementShape, this.tensors, elementShape);
     const tensor = this.tensors.pop();
+    tensor.kept = false;
 
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
@@ -184,7 +185,14 @@ export class TensorList {
       throw new Error(`TensorListResize input size ${
           size} is greater maxNumElement ${this.maxNumElements}.`);
     }
-    this.tensors.length = size;
+
+    const destTensorList: TensorList = new TensorList(
+        [], this.elementShape, this.elementDtype, this.maxNumElements);
+    destTensorList.tensors.length = size;
+    for (let i = 0; i < Math.min(this.tensors.length, size); ++i) {
+      destTensorList.tensors[i] = this.tensors[i];
+    }
+    return destTensorList;
   }
 
   /**
@@ -236,6 +244,12 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensor.shape, 'TensorList shape mismatch: ');
     keep(tensor);
+
+    // dispose the previous value if it is replacing.
+    if (this.tensors[elementIndex] != null) {
+      this.tensors[elementIndex].kept = false;
+    }
+
     this.tensors[elementIndex] = tensor;
   }
 
@@ -326,10 +340,12 @@ export function fromTensor(
  * @param elementShape the shape of the future elements of the list
  * @param elementDtype the desired type of elements in the list
  * @param numElements the number of elements to reserve
+ * @param maxNumElements the maximum number of elements in th list
  */
 export function reserve(
-    elementShape: number[], elementDtype: DataType, numElements: number) {
-  return new TensorList([], elementShape, elementDtype, numElements);
+    elementShape: number[], elementDtype: DataType, numElements: number,
+    maxNumElements: number) {
+  return new TensorList([], elementShape, elementDtype, maxNumElements);
 }
 
 /**

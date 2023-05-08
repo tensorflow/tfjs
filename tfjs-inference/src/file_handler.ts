@@ -75,6 +75,10 @@ export class FileHandler implements tf.io.IOHandler {
         modelArtifacts.modelInitializer = modelJSON.modelInitializer;
       }
 
+      if (modelJSON.initializerSignature != null) {
+        modelArtifacts.initializerSignature = modelJSON.initializerSignature;
+      }
+
       if (modelJSON.weightsManifest != null) {
         const [weightSpecs, weightData] =
             this.loadWeights(modelJSON.weightsManifest, path);

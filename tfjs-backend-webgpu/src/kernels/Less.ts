@@ -16,13 +16,13 @@
  */
 
 import {KernelConfig, Less} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {BinaryOpType} from './binary_ops';
 
-export const less = binaryKernelFunc({
-  opSnippet: BinaryOpType.LESS,
-  dtype: 'bool',
-});
+import {BinaryOpType} from '../binary_op_util';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {lessImplCPU as cpuLess} from '../kernel_utils/shared';
+
+export const less = binaryKernelFunc(
+    {opType: BinaryOpType.LESS, dtype: 'bool', cpuKernelImpl: cpuLess});
 
 export const lessConfig: KernelConfig = {
   kernelName: Less,

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -90,5 +89,5 @@ setTestEnvs([{
 
 const runner = new jasmine();
 
-runner.loadConfig({spec_files: ['dist/**/**_test.js'], random: false});
+runner.loadConfig({spec_files: ['tfjs-core/src/**/**_test.js'], random: false});
 runner.execute();

@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, Minimum} from '@tensorflow/tfjs-core';
 
 import {CHECK_NAN_SNIPPET} from '../binaryop_gpu';
-import {CHECK_NAN_SNIPPET as CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {minimumImplCPU} from '../kernel_utils/shared';
 
@@ -28,7 +28,9 @@ const MINIMUM = CHECK_NAN_SNIPPET + `
 
 const MINIMUM_PACKED = `
   vec4 result = vec4(min(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  bvec4 isNaNA = isnan(a);
+  bvec4 isNaNB = isnan(b);
+  bvec4 isNaN = bvec4(isNaNA.x || isNaNB.x, isNaNA.y || isNaNB.y, isNaNA.z || isNaNB.z, isNaNA.w || isNaNB.w);
   ` +
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
@@ -43,5 +45,5 @@ export const minimum = binaryKernelFunc({
 export const minimumConfig: KernelConfig = {
   kernelName: Minimum,
   backendName: 'webgl',
-  kernelFunc: minimum as {} as KernelFunc
+  kernelFunc: minimum as unknown as KernelFunc
 };

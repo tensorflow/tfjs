@@ -67,9 +67,9 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
-|Not mapped|isFinite|
-|Not mapped|isInf|
-|Not mapped|isNaN|
+|IsFinite|isFinite|
+|IsInf|isInf|
+|IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
 
@@ -97,12 +97,15 @@
 |TensorArrayV3|TensorArrayV3|
 |TensorArrayWriteV3|TensorArrayWriteV3|
 |TensorListConcat|TensorListConcat|
+|TensorListConcatV2|TensorListConcatV2|
 |TensorListFromTensor|TensorListFromTensor|
 |TensorListGather|TensorListGather|
 |TensorListGetItem|TensorListGetItem|
+|TensorListLength|TensorListLength|
 |TensorListPopBack|TensorListPopBack|
 |TensorListPushBack|TensorListPushBack|
 |TensorListReserve|TensorListReserve|
+|TensorListResize|TensorListResize|
 |TensorListScatter|TensorListScatter|
 |TensorListScatterV2|TensorListScatterV2|
 |TensorListSetItem|TensorListSetItem|
@@ -143,6 +146,7 @@
 |OneHot|oneHot|
 |Ones|ones|
 |OnesLike|onesLike|
+|RandomStandardNormal|RandomStandardNormal|
 |RandomUniform|RandomUniform|
 |Range|range|
 |TruncatedNormal|truncatedNormal|
@@ -165,9 +169,11 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|LowerBound|LowerBound|
 |TopKV2|TopKV2|
 |Unique|Unique|
 |UniqueV2|UniqueV2|
+|UpperBound|UpperBound|
 |Not mapped|confusionMatrix|
 |Not mapped|inTopKAsync|
 |Not mapped|topk|
@@ -195,6 +201,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BitwiseAnd|bitwiseAnd|
 |Equal|equal|
 |Greater|greater|
 |GreaterEqual|greaterEqual|
@@ -230,6 +237,7 @@
 |ResizeNearestNeighbor|resizeNearestNeighbor|
 |Not mapped|flipLeftRight|
 |Not mapped|rotateWithOffset|
+|ImageProjectiveTransformV3|transform|
 
 ## Operations - Matrices
 
@@ -238,8 +246,10 @@
 |_FusedMatMul|_FusedMatMul|
 |BatchMatMul|BatchMatMul|
 |BatchMatMulV2|BatchMatMulV2|
+|Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
+|MatrixBandPart|MatrixBandPart|
 |Not mapped|dot|
 |Not mapped|norm|
 |Not mapped|outerProduct|
@@ -254,6 +264,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EuclideanNorm|EuclideanNorm|
 |FusedBatchNorm|FusedBatchNorm|
 |FusedBatchNormV2|FusedBatchNormV2|
 |FusedBatchNormV3|FusedBatchNormV3|
@@ -290,6 +301,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|Cumprod|cumprod|
 |Cumsum|cumsum|
 
 ## Operations - Segment
@@ -353,6 +365,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
+|BroadcastArgs|broadcastArgs|
 |BroadcastTo|broadcastTo|
 |Cast|cast|
 |DepthToSpace|depthToSpace|
@@ -361,6 +374,7 @@
 |Pad|pad|
 |PadV2|PadV2|
 |Reshape|reshape|
+|EnsureShape|ensureShape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
 |Not mapped|setdiff1dAsync|

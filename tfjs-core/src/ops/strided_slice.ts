@@ -62,7 +62,7 @@ function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  const $x = convertToTensor(x, 'x', 'stridedSlice');
+  const $x = convertToTensor(x, 'x', 'stridedSlice', 'string_or_numeric');
 
   const inputs: StridedSliceInputs = {x: $x};
   const attrs: StridedSliceAttrs = {
@@ -77,8 +77,8 @@ function stridedSlice_(
   };
 
   return ENGINE.runKernel(
-      StridedSlice, inputs as {} as NamedTensorMap,
-      attrs as {} as NamedAttrMap);
+      StridedSlice, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const stridedSlice = op({stridedSlice_});
+export const stridedSlice = /* @__PURE__ */ op({stridedSlice_});

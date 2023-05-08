@@ -62,7 +62,8 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
   const attrs: SoftmaxAttrs = {dim};
 
   return ENGINE.runKernel(
-      Softmax, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Softmax, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const softmax = op({softmax_});
+export const softmax = /* @__PURE__ */ op({softmax_});
