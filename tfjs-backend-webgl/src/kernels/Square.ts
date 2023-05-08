@@ -21,7 +21,7 @@ import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const SQUARE = `return x * x;`;
 
-export const square = unaryKernelFunc(SQUARE);
+export const square = unaryKernelFunc({opSnippet: SQUARE});
 
 export const squareConfig: KernelConfig = {
   kernelName: Square,

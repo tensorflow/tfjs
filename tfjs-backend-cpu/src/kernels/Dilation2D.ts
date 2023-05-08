@@ -19,12 +19,12 @@ import {backend_util, Dilation2D, Dilation2DAttrs, Dilation2DInputs, KernelConfi
 
 import {MathBackendCPU} from '../backend_cpu';
 
-export const dilation2dConfig: KernelConfig = {
+export const dilation2DConfig: KernelConfig = {
   kernelName: Dilation2D,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter} = inputs as Dilation2DInputs;
-    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as unknown as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;

@@ -18,15 +18,16 @@
 /**
  *  This file is used to load a saved model and perform inference.
  *  Run this script in console:
- *   ts-node inference.ts --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+ *   ts-node index.ts --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
  *   --outputs_dir=OUTPUTS_DIR
  *
  *  For help, run:
  *   ts-node inference.ts -h
  */
 
-import '@tensorflow/tfjs-backend-wasm'
-import '@tensorflow/tfjs-backend-cpu'
+import '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-cpu';
+
 import * as tfconv from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
@@ -34,6 +35,9 @@ import * as path from 'path';
 import * as yargs from 'yargs';
 
 import {FileHandler} from './file_handler';
+
+
+// Placeholder for g3 import.
 
 // Following cmd options casing tradition.
 // tslint:disable-next-line:enforce-name-casing
@@ -56,7 +60,7 @@ interface Options {
 async function main() {
   const argParser = yargs.options({
     model_path: {
-      description: 'Directory to a tfjs model json file.',
+      description: 'Path to the tfjs model json file.',
       type: 'string',
       demandOption: true
     },
@@ -69,7 +73,8 @@ async function main() {
     outputs_dir: {
       description:
           'Directory to write the output files. Output files include: ' +
-          'data.json, shape.json and dtype.json. The order of the output ' +
+          'data.json, shape.json and dtype.json. Additionally, name.json is ' +
+          'written if the model returns a map. The order of the output ' +
           'tensors follow the same order as the tf_output_name_file. If the ' +
           'file is not provided, the default outputs of the model would be ' +
           'used.',
@@ -113,9 +118,10 @@ async function main() {
     }
   });
 
-  const options = argParser.argv as {} as Options;
+  const options = argParser.argv as unknown as Options;
 
   if (options.backend === 'wasm') {
+    // Placeholder for g3 specific code.
     await tfc.setBackend('wasm');
   } else if (options.backend === 'cpu') {
     await tfc.setBackend('cpu');
@@ -144,7 +150,7 @@ async function main() {
       path.join(options.inputs_dir, options.tf_input_name_file), 'utf8');
   const inputName = JSON.parse(tfInputNameString);
 
-  let outputName;
+  let outputName = null;
   if (options.tf_output_name_file) {
     const tfOutputNameString = fs.readFileSync(
         path.join(options.inputs_dir, options.tf_output_name_file), 'utf8');
@@ -154,12 +160,26 @@ async function main() {
   const namedInputs =
       createInputTensors(inputsData, inputsShape, inputsDtype, inputName);
 
-  const result = await model.executeAsync(namedInputs, outputName);
+  const result = outputName == null ? await model.predictAsync(namedInputs) :
+                                      await model.executeAsync(namedInputs, outputName);
 
-  // executeAsync can return a single tensor or an
-  // array of tensors. We wrap the single tensor in an array so that later
-  // operation can always assume to operate on an iterable result.
-  const ys = (model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
+  // execute can return a single tensor or an
+  // array of tensors. predict can return a map as well.
+  // We wrap the single tensor in an array, and flatten the map, so that
+  // later operation can always assume to operate on an iterable result.
+  let ys: tfc.Tensor[];
+  if (Array.isArray(result)) {
+    ys = result;
+  } else if (result instanceof tfc.Tensor) {
+    ys = [result];
+  } else {
+    const outputNames = model.modelStructuredOutputKeys as string[];
+    fs.writeFileSync(
+        path.join(options.outputs_dir, 'name.json'),
+        JSON.stringify(outputNames));
+
+    ys = outputNames.map(outputName => result[outputName]);
+  }
 
   // Write out results to file.
   const ysData = [];
@@ -190,7 +210,7 @@ async function main() {
  * @private
  * @param inputsData An array with each element being the value to
  *    create a tensor.
- * @param inputsShapes An array with each element being
+ * @param inputsShape An array with each element being
  *    the shape to create a tensor.
  * @param inputsDtype An array with each element being the
  *    dtype to create a tensor.
@@ -199,11 +219,11 @@ async function main() {
  * @return An array of tensors.
  */
 function createInputTensors(
-    inputsData: tfc.TypedArray[], inputsShapes: number[][],
+    inputsData: tfc.TypedArray[], inputsShape: number[][],
     inputsDtype: tfc.DataType[], inputName: string[]): tfc.NamedTensorMap {
   const xs: tfc.Tensor[] = [];
   for (let i = 0; i < inputsData.length; i++) {
-    const input = tfc.tensor(inputsData[i], inputsShapes[i], inputsDtype[i]);
+    const input = tfc.tensor(inputsData[i], inputsShape[i], inputsDtype[i]);
     xs.push(input);
   }
 
@@ -213,4 +233,7 @@ function createInputTensors(
   }, {});
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

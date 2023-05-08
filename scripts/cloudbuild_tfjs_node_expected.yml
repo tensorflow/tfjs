@@ -1,291 +1,68 @@
 steps:
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     entrypoint: yarn
     id: yarn-common
     args:
       - install
-  - name: 'node:10'
-    dir: tfjs-core
-    id: yarn-tfjs-core
+  - name: gcr.io/learnjs-174218/release
+    dir: scripts
+    id: test-generate-cloudbuild
     entrypoint: yarn
     args:
-      - install
+      - test-generate-cloudbuild
     waitFor:
       - yarn-common
-  - name: 'node:10'
-    dir: tfjs-core
-    id: build-deps-always-tfjs-core
+  - name: gcr.io/learnjs-174218/release
+    id: test-run-flaky
     entrypoint: yarn
     args:
-      - build-deps-ci
+      - test-run-flaky
     waitFor:
-      - yarn-tfjs-core
       - yarn-common
-  - name: 'node:10'
-    dir: tfjs-core
-    id: build-tfjs-core
+  - name: gcr.io/learnjs-174218/release
+    id: buildifier
     entrypoint: yarn
     args:
-      - build-ci
+      - buildifier-ci
     waitFor:
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - yarn-common
-  - name: 'node:10'
-    dir: tfjs-core
-    id: lint-tfjs-core
+  - name: gcr.io/learnjs-174218/release
+    id: tslint
     entrypoint: yarn
     args:
       - lint
     waitFor:
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - yarn-common
-  - name: 'node:10'
-    dir: tfjs-backend-cpu
-    id: yarn-tfjs-backend-cpu
+  - name: gcr.io/learnjs-174218/release
+    id: bazel-tests
+    waitFor:
+      - yarn-common
+    entrypoint: bash
+    args:
+      - ./scripts/run_bazel_ci_tests.sh
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: gcr.io/learnjs-174218/release
+    dir: link-package
     entrypoint: yarn
+    id: yarn-link-package
     args:
       - install
     waitFor:
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:10'
-    dir: tfjs-backend-cpu
-    id: build-tfjs-backend-cpu
+      - bazel-tests
+  - name: gcr.io/learnjs-174218/release
+    dir: link-package
     entrypoint: yarn
+    id: yarn-link-package-build
     args:
-      - build-ci
+      - build
+      - '--bazel_options=--config=ci'
     waitFor:
-      - yarn-tfjs-backend-cpu
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:10'
-    dir: tfjs-backend-cpu
-    id: lint-tfjs-backend-cpu
-    entrypoint: yarn
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-backend-cpu
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:10'
-    dir: tfjs-converter
-    entrypoint: yarn
-    id: yarn-tfjs-converter
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-converter
-    entrypoint: yarn
-    id: build-tfjs-converter
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-converter
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-converter
-    entrypoint: yarn
-    id: lint-tfjs-converter
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-converter
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: yarn-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: build-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-backend-webgl
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: lint-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-backend-webgl
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: yarn-tfjs-layers
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: build-tfjs-layers
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: lint-tfjs-layers
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-data
-    entrypoint: yarn
-    id: yarn-tfjs-data
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-  - name: 'node:10'
-    dir: tfjs-data
-    entrypoint: yarn
-    id: build-tfjs-data
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-data
-      - yarn-common
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-  - name: 'node:10'
-    dir: tfjs-data
-    entrypoint: yarn
-    id: lint-tfjs-data
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-data
-      - yarn-common
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-  - name: 'node:10'
+      - yarn-link-package
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: yarn-tfjs
@@ -293,26 +70,8 @@ steps:
       - install
     waitFor:
       - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: build-tfjs
@@ -321,26 +80,8 @@ steps:
     waitFor:
       - yarn-tfjs
       - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: lint-tfjs
@@ -349,26 +90,8 @@ steps:
     waitFor:
       - yarn-tfjs
       - yarn-common
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:12'
+      - yarn-link-package-build
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: yarn-tfjs-node
@@ -376,14 +99,11 @@ steps:
       - install
     waitFor:
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:12'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: build-addon-tfjs-node
@@ -392,14 +112,11 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:12'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: build-tfjs-node
@@ -408,14 +125,11 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:12'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: lint-tfjs-node
@@ -424,14 +138,11 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:12'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: test-tfjs-node
@@ -441,14 +152,11 @@ steps:
       - yarn-tfjs-node
       - lint-tfjs-node
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-  - name: 'node:12'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
     id: ensure-cpu-gpu-packages-align-tfjs-node
@@ -456,13 +164,10 @@ steps:
       - ensure-cpu-gpu-packages-align
     waitFor:
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
@@ -471,28 +176,10 @@ steps:
       - install
     waitFor:
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
       - build-tfjs-node
@@ -501,33 +188,15 @@ steps:
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
-    id: build-node-e2e
+    id: fetch-graph-model-golden-data-e2e
     args:
-      - build-node-ci
+      - fetch-graph-model-golden-data-ci
     waitFor:
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
       - build-tfjs-node
@@ -546,29 +215,12 @@ steps:
       - BROWSERSTACK_KEY
     waitFor:
       - yarn-e2e
+      - fetch-graph-model-golden-data-e2e
       - yarn-common
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-      - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
-      - yarn-tfjs-core
-      - build-deps-always-tfjs-core
-      - build-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-data
-      - build-tfjs-data
-      - lint-tfjs-data
-      - yarn-tfjs-layers
-      - build-tfjs-layers
-      - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
       - build-tfjs-node
@@ -579,11 +231,11 @@ secrets:
     secretEnv:
       BROWSERSTACK_KEY: >-
         CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 3600s
+timeout: 7200s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: STREAM_ON
-  machineType: N1_HIGHCPU_32
+  machineType: E2_HIGHCPU_32
   substitution_option: ALLOW_LOOSE

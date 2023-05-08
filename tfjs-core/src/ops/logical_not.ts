@@ -39,9 +39,7 @@ import {op} from './operation';
 function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
   const inputs: LogicalNotInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.logicalNot($x), inputs as {} as NamedTensorMap,
-      null /* grad */, LogicalNot);
+  return ENGINE.runKernel(LogicalNot, inputs as unknown as NamedTensorMap);
 }
 
-export const logicalNot = op({logicalNot_});
+export const logicalNot = /* @__PURE__ */ op({logicalNot_});

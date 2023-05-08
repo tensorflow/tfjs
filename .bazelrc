@@ -1,0 +1,98 @@
+# Bazel will create symlinks from the workspace directory to output artifacts.
+# Build results will be placed in a directory called "dist/bin"
+# Other directories will be created like "dist/testlogs"
+# Be aware that this will still create a bazel-out symlink in
+# your project directory, which you must exclude from version control and your
+# editor's search path.
+build --symlink_prefix=dist/
+
+# These compile flags are active no matter which build mode we are in
+# (dbg vs opt). For flags specific to build mode, see cc_toolchain_config.bzl.
+build --cxxopt="-std=c++17"
+build --cxxopt="-fno-rtti"
+build --cxxopt="-fno-exceptions"
+build --cxxopt="-fomit-frame-pointer"
+
+# The following --define=EXECUTOR=remote will be able to be removed
+# once https://github.com/bazelbuild/bazel/issues/7254 is fixed
+build:rbe --define=EXECUTOR=remote
+
+build:rbe --jobs=100
+
+# Remote cache config. Users can add credentials in their .bazelrc.user files.
+build:remote --remote_cache=remotebuildexecution.googleapis.com
+build:rbe --remote_executor=remotebuildexecution.googleapis.com
+
+# Force remote exeuctions to consider the entire run as linux
+build:rbe --cpu=k8
+build:rbe --host_cpu=k8
+
+# Toolchain and platform related flags
+build:rbe --crosstool_top=@//remote-execution/cpp:cc_toolchain_suite
+build:rbe --extra_toolchains=@//remote-execution/cpp:cc_toolchain
+build:rbe --extra_execution_platforms=@//remote-execution:platform
+build:rbe --host_platform=@//remote-execution:platform
+build:rbe --platforms=@//remote-execution:platform
+
+build:remote --remote_instance_name=projects/learnjs-174218/instances/default_instance
+build:remote --bes_instance_name=learnjs-174218
+build:remote --google_default_credentials
+build:remote --remote_timeout=180s
+
+# Stream build results to the results UI
+build:bes --config=remote --bes_backend="buildeventservice.googleapis.com" --bes_timeout=60s --bes_results_url="https://source.cloud.google.com/results/invocations/"
+build:rbe --config=remote
+
+# Config for Google Cloud continuous integration that uses default credentials.
+build:ci --config=bes
+
+# This flag is needed to prevent the bazel cache from being invalidated when
+# running bazel via `yarn bazel`.
+# See https://github.com/angular/angular/issues/27514.
+build --incompatible_strict_action_env
+run --incompatible_strict_action_env
+test --incompatible_strict_action_env
+
+# Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
+# Remote builds are sandboxed.
+# TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
+common --enable_platform_specific_config
+build:linux --spawn_strategy=dynamic,remote,sandboxed,worker,local --internal_spawn_scheduler
+build:macos --spawn_strategy=remote,sandboxed,worker,local
+build:windows --spawn_strategy=remote,worker,local
+
+# Use dynamic execution to improve remote build performance when the autoscaling
+# build pool has few machines available. https://bazel.build/remote/dynamic
+build:rbe --dynamic_local_strategy=sandboxed
+
+# Pass BrowserStack credentials
+build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+
+# Make python debugging refer to the real files instead of symlinks
+build --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+run --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+test --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+
+# Platform specific DISPLAY environment variable for webgl and headless setting
+# for browser tests.
+test:linux --test_env=DISPLAY --test_env=XAUTHORITY=/run/user/1001/.mutter-Xwaylandauth.ONEU31
+test:macos --define DISPLAY=true
+test:windows --define DISPLAY=true --//:headless=false
+
+# Enable debugging tests with --config=debug
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
+test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
+
+test:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+run:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+
+# Load any settings specific to the current user.
+# .bazelrc.user should appear in .gitignore so that settings are not shared with
+# team members. This needs to be last statement in this config, as the user
+# configuration should be able to overwrite flags from this file.
+# See https://docs.bazel.build/versions/master/best-practices.html#bazelrc
+# (Note that we use .bazelrc.user so the file appears next to .bazelrc in
+# directory listing, rather than user.bazelrc as suggested in the Bazel docs).
+try-import %workspace%/.bazelrc.user

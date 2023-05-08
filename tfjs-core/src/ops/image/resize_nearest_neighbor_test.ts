@@ -34,6 +34,64 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [2, 2, 2, 4, 4, 4, 4, 4, 4]);
   });
 
+  it('5x2To2x2 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4, 5, 1, 2, 3, 4, 5], [1, 2, 5, 1]);
+    const output = input.resizeNearestNeighbor([2, 2], false, true);
+
+    expectArraysClose(await output.data(), [2, 4, 2, 4]);
+  });
+
+  it('2x2To1x1 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const output = input.resizeNearestNeighbor([1, 1], false, true);
+
+    expectArraysClose(await output.data(), [4]);
+  });
+
+  it('2x2To3x3 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const output = input.resizeNearestNeighbor([3, 3], false, true);
+
+    expectArraysClose(await output.data(), [1, 2, 2, 3, 4, 4, 3, 4, 4]);
+  });
+
+  it('3x3To2x2 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, 1]);
+    const output = input.resizeNearestNeighbor([2, 2], false, true);
+
+    expectArraysClose(await output.data(), [1, 3, 7, 9]);
+  });
+
+  it('2x2To2x5 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const output = input.resizeNearestNeighbor([2, 5], false, true);
+
+    expectArraysClose(await output.data(), [1, 1, 2, 2, 2, 3, 3, 4, 4, 4]);
+  });
+
+  it('4x4To3x3 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 4, 1]);
+    const output = input.resizeNearestNeighbor([3, 3], false, true);
+
+    expectArraysClose(await output.data(), [1, 3, 4, 9, 11, 12, 13, 15, 16]);
+  });
+
+  it('2x2To5x2 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const output = input.resizeNearestNeighbor([5, 2], false, true);
+
+    expectArraysClose(await output.data(), [1, 2, 1, 2, 3, 4, 3, 4, 3, 4]);
+  });
+
+  it('2x2To4x4 alignCorners=false halfPixelCenters=true', async () => {
+    const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const output = input.resizeNearestNeighbor([4, 4], false, true);
+
+    expectArraysClose(
+        await output.data(), [1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 4, 4]);
+  });
+
   it('matches tensorflow w/ random numbers alignCorners=false', async () => {
     const input = tf.tensor3d(
         [

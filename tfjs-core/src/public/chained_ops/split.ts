@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {split} from '../../ops/split';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.split = function<T extends Tensor>(
+getGlobalTensorClass().prototype.split = function<T extends Tensor>(
     numOrSizeSplits: number[]|number, axis?: number): T[] {
   this.throwIfDisposed();
   return split(this, numOrSizeSplits, axis);

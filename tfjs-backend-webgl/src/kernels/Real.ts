@@ -32,5 +32,5 @@ export function real(args: {inputs: RealInputs, backend: MathBackendWebGL}):
 export const realConfig: KernelConfig = {
   kernelName: Real,
   backendName: 'webgl',
-  kernelFunc: real as {} as KernelFunc
+  kernelFunc: real as unknown as KernelFunc
 };

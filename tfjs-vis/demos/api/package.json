@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "browserslist": "> 0.25%, not dead",
   "scripts": {
     "watch": "NODE_ENV=development parcel index.html --no-hmr --open --no-autoinstall",
     "debug": "NODE_ENV=development parcel debug.html --no-hmr --open --no-autoinstall",
@@ -12,14 +13,18 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@babel/core": "^7.0.0-0",
-    "@babel/plugin-transform-runtime": "^7.1.0",
-    "babel-preset-env": "~1.6.1",
-    "parcel-bundler": "1.12.3",
-    "rimraf": "^2.6.2"
+    "@babel/core": "^7.21.0",
+    "@babel/plugin-transform-runtime": "^7.21.0",
+    "babel-preset-env": "~1.7.0",
+    "parcel": "2.8.3",
+    "rimraf": "^4.1.2"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "2.0.0",
-    "@tensorflow/tfjs-vis": "link:../../../tfjs-vis"
+    "@tensorflow/tfjs": "4.2.0",
+    "@tensorflow/tfjs-vis": "link:../.."
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }

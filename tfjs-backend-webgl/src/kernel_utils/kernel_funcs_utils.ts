@@ -15,44 +15,62 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import { backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
+import {LEAKYRELU, LEAKYRELU_PACKED} from '../kernels/LeakyRelu';
+import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
-import {SimpleBinaryKernelImplCPU} from './shared';
+import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
-export const CHECK_NAN_SNIPPET_BINARY = `
-  if (isnan(a)) return a;
-  if (isnan(b)) return b;
-`;
-
-export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
-`;
+type UnaryKernelFuncConfig = {
+  opSnippet: string,
+  packedOpSnippet?: string,
+  cpuKernelImpl?: SimpleUnaryKernelImplCPU,
+  dtype?: DataType,
+};
 
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippets Op snippet to create `UnaryOpProgram`.
+ * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param packedOpSnippet Op snippet to create `UnaryOpPackedProgram`.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function unaryKernelFunc(opSnippet: string): KernelFunc {
+export function unaryKernelFunc(
+    {opSnippet, packedOpSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
+    KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, opSnippet);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+
+    const $dtype = dtype || x.dtype;
+    if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
+      const xData = webglBackend.texData.get(x.dataId);
+      const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
+      return webglBackend.makeTensorInfo(x.shape, $dtype, outValues);
+    }
+
+    const shouldUsePackedProgram =
+        env().getBool('WEBGL_PACK_UNARY_OPERATIONS') && packedOpSnippet != null;
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (shouldUsePackedProgram) {
+      program = new UnaryOpPackedProgram(x.shape, packedOpSnippet);
+    } else {
+      program = new UnaryOpProgram(x.shape, opSnippet);
+    }
+
+    return webglBackend.runWebGLProgram(program, [x], $dtype);
   };
 }
 
@@ -125,12 +143,22 @@ export function binaryKernelFunc({
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webglBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
-      const aData = webglBackend.texData.get(a.dataId);
-      const bData = webglBackend.texData.get(b.dataId);
-      const [outValues, outShape] = cpuKernelImpl(
-          a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, $dtype);
+    if ((a.dtype === 'string' || b.dtype === 'string' ||
+         webglBackend.shouldExecuteOnCPU([a, b])) &&
+        cpuKernelImpl != null) {
+      const aVals = webglBackend.texData.get(a.dataId).values as TypedArray;
+      const bVals = webglBackend.texData.get(b.dataId).values as TypedArray;
+
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
+          aVals;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
+          bVals;
+      const [outValues, outShape] =
+          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       const out = webglBackend.makeTensorInfo(outShape, $dtype);
       const outData = webglBackend.texData.get(out.dataId);
@@ -177,9 +205,19 @@ export function mapActivationToShaderProgram(
     return unary_op.RELU6;
   } else if (activation === 'prelu') {
     if (packed) {
-      return binaryop_packed_gpu.PRELU;
+      return PRELU_PACKED;
     }
-    return binaryop_gpu.PRELU;
+    return PRELU;
+  } else if (activation === 'leakyrelu') {
+    if (packed) {
+      return LEAKYRELU_PACKED;
+    }
+    return LEAKYRELU;
+  } else if (activation === 'sigmoid') {
+    if (packed) {
+      return unary_packed_op.SIGMOID;
+    }
+    return unary_op.SIGMOID;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);

@@ -25,7 +25,7 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 
 /**
- * RReturns which elements of x are NaN.
+ * Returns which elements of x are NaN.
  *
  * ```js
  * const x = tf.tensor1d([NaN, Infinity, -Infinity, 0, 1]);
@@ -40,8 +40,6 @@ function isNaN_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'isNaN');
   const inputs: IsNanInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.isNaN($x), inputs as {} as NamedTensorMap,
-      null /* grad */, IsNan);
+  return ENGINE.runKernel(IsNan, inputs as unknown as NamedTensorMap);
 }
-export const isNaN = op({isNaN_});
+export const isNaN = /* @__PURE__ */ op({isNaN_});

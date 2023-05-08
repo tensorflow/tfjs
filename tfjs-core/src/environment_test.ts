@@ -23,21 +23,18 @@ describe('initializes flags from the url', () => {
   beforeAll(() => spyOn(console, 'warn').and.returnValue(null));
 
   it('no overrides one registered flag', () => {
-    spyOn(environment, 'getQueryParams').and.returnValue({});
-
     const global = {location: {search: ''}};
     const env = new Environment(global);
+    spyOn(env, 'getQueryParams').and.returnValue({});
+
     env.registerFlag('FLAG1', () => false);
     expect(env.get('FLAG1')).toBe(false);
   });
 
   it('one unregistered flag', () => {
-    spyOn(environment, 'getQueryParams').and.returnValue({
-      'tfjsflags': 'FLAG1:true'
-    });
-
     const global = {location: {search: ''}};
     const env = new Environment(global);
+    spyOn(env, 'getQueryParams').and.returnValue({'tfjsflags': 'FLAG1:true'});
     expect(env.features).toEqual({});
   });
 
@@ -66,6 +63,23 @@ describe('initializes flags from the url', () => {
     expect(env.get('FLAG1')).toBe(true);
     expect(env.get('FLAG2')).toBe(200);
   });
+
+  it('one registered flag string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:FlagString'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+
+    expect(env.get('FLAG1')).toBe('FlagString');
+    expect(env.get('FLAG1')).not.toBe('flagstring');
+  });
+
+  it('one registered flag empty string', () => {
+    const global = {location: {search: '?tfjsflags=FLAG1:'}};
+    const env = new Environment(global);
+    env.registerFlag('FLAG1', () => 'FlagString');
+
+    expect(env.get('FLAG1')).toBe('');
+  });
 });
 
 describe('flag registration and evaluation', () => {
@@ -83,6 +97,17 @@ describe('flag registration and evaluation', () => {
     // Multiple calls to get do not call the evaluation function again.
     expect(env.get('FLAG1')).toBe(true);
     expect(spy.calls.count()).toBe(1);
+  });
+
+  it('one string flag registered', () => {
+    const env = new Environment({});
+
+    env.registerFlag('FLAG1', () => '');
+
+    // Set to a non empty string, this is case sensitive.
+    env.set('FLAG1', 'FlagString');
+    expect(env.get('FLAG1')).toBe('FlagString');
+    expect(env.get('FLAG1')).not.toBe('flagString');
   });
 
   it('multiple flags registered', () => {

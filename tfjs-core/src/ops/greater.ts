@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Greater, GreaterInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -42,19 +42,15 @@ import {op} from './operation';
  */
 function greater_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'greater');
-  let $b = convertToTensor(b, 'b', 'greater');
+  let $a = convertToTensor(a, 'a', 'greater', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'greater', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = backend => backend.greater($a, $b);
-
   const inputs: GreaterInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             Greater) as T;
+  return ENGINE.runKernel(Greater, inputs as unknown as NamedTensorMap);
 }
 
-export const greater = op({greater_});
+export const greater = /* @__PURE__ */ op({greater_});

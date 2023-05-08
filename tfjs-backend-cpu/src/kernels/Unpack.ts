@@ -26,7 +26,11 @@ export function unpack(
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {value} = inputs;
-  const {axis} = attrs;
+  let {axis} = attrs;
+
+  if (axis < 0) {
+    axis += value.shape.length;
+  }
 
   const valueRank = value.shape.length;
 
@@ -56,5 +60,5 @@ export function unpack(
 export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
   backendName: 'cpu',
-  kernelFunc: unpack as {} as KernelFunc
+  kernelFunc: unpack as unknown as KernelFunc
 };

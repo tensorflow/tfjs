@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -34,7 +34,6 @@ import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, Tens
 export function shuffle(array: any[]|Uint32Array|Int32Array|
                         Float32Array): void {
   let counter = array.length;
-  let temp = 0;
   let index = 0;
   // While there are elements in the array
   while (counter > 0) {
@@ -43,9 +42,48 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
     // Decrease counter by 1
     counter--;
     // And swap the last element with it
-    temp = array[counter];
-    array[counter] = array[index];
-    array[index] = temp;
+    swap(array, counter, index);
+  }
+}
+
+/**
+ * Shuffles two arrays in-place the same way using Fisher-Yates algorithm.
+ *
+ * ```js
+ * const a = [1,2,3,4,5];
+ * const b = [11,22,33,44,55];
+ * tf.util.shuffleCombo(a, b);
+ * console.log(a, b);
+ * ```
+ *
+ * @param array The first array to shuffle in-place.
+ * @param array2 The second array to shuffle in-place with the same permutation
+ *     as the first array.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
+ */
+export function shuffleCombo(
+    // tslint:disable-next-line:no-any
+    array: any[]|Uint32Array|Int32Array|Float32Array,
+    // tslint:disable-next-line:no-any
+    array2: any[]|Uint32Array|Int32Array|Float32Array): void {
+  if (array.length !== array2.length) {
+    throw new Error(
+        `Array sizes must match to be shuffled together ` +
+        `First array length was ${array.length}` +
+        `Second array length was ${array2.length}`);
+  }
+  let counter = array.length;
+  let index = 0;
+  // While there are elements in the array
+  while (counter > 0) {
+    // Pick a random index
+    index = (Math.random() * counter) | 0;
+    // Decrease counter by 1
+    counter--;
+    // And swap the last element of each array with it
+    swap(array, counter, index);
+    swap(array2, counter, index);
   }
 }
 
@@ -56,6 +94,13 @@ export function clamp(min: number, x: number, max: number): number {
 
 export function nearestLargerEven(val: number): number {
   return val % 2 === 0 ? val : val + 1;
+}
+
+export function swap<T>(
+    object: {[index: number]: T}, left: number, right: number) {
+  const temp = object[left];
+  object[left] = object[right];
+  object[right] = temp;
 }
 
 export function sum(arr: number[]): number {
@@ -122,41 +167,6 @@ export function assertNonNull(a: TensorLike): void {
       () => `The input to the tensor constructor must be a non-null value.`);
 }
 
-// NOTE: We explicitly type out what T extends instead of any so that
-// util.flatten on a nested array of number doesn't try to infer T as a
-// number[][], causing us to explicitly type util.flatten<number>().
-/**
- *  Flattens an arbitrarily nested array.
- *
- * ```js
- * const a = [[1, 2], [3, 4], [5, [6, [7]]]];
- * const flat = tf.util.flatten(a);
- * console.log(flat);
- * ```
- *
- *  @param arr The nested array to flatten.
- *  @param result The destination array which holds the elements.
- *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
- *      to false.
- *
- * @doc {heading: 'Util', namespace: 'util'}
- */
-export function
-flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
-    arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
-  if (result == null) {
-    result = [];
-  }
-  if (Array.isArray(arr) || isTypedArray(arr) && !skipTypedArray) {
-    for (let i = 0; i < arr.length; ++i) {
-      flatten(arr[i], result, skipTypedArray);
-    }
-  } else {
-    result.push(arr as T);
-  }
-  return result;
-}
-
 /**
  * Returns the size (number of elements) of the tensor given its shape.
  *
@@ -182,6 +192,27 @@ export function sizeFromShape(shape: number[]): number {
 
 export function isScalarShape(shape: number[]): boolean {
   return shape.length === 0;
+}
+
+export function arraysEqualWithNull(n1: number[], n2: number[]) {
+  if (n1 === n2) {
+    return true;
+  }
+
+  if (n1 == null || n2 == null) {
+    return false;
+  }
+
+  if (n1.length !== n2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < n1.length; i++) {
+    if (n1[i] !== null && n2[i] !== null && n1[i] !== n2[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function arraysEqual(n1: FlatVector, n2: FlatVector) {
@@ -229,14 +260,14 @@ export function sizeToSquarishShape(size: number): [number, number] {
 }
 
 /**
- * Creates a new array with randomized indicies to a given quantity.
+ * Creates a new array with randomized indices to a given quantity.
  *
  * ```js
  * const randomTen = tf.util.createShuffledIndices(10);
  * console.log(randomTen);
  * ```
  *
- * @param number Quantity of how many shuffled indicies to create.
+ * @param number Quantity of how many shuffled indices to create.
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
@@ -258,7 +289,9 @@ export function rightPad(a: string, size: number): string {
 
 export function repeatedTry(
     checkFn: () => boolean, delayFn = (counter: number) => 0,
-    maxCounter?: number): Promise<void> {
+    maxCounter?: number,
+    scheduleFn?: (functionRef: Function, delay: number) =>
+        void): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -276,7 +309,14 @@ export function repeatedTry(
         reject();
         return;
       }
-      setTimeout(tryFn, nextBackoff);
+
+      if (scheduleFn != null) {
+        scheduleFn(tryFn, nextBackoff);
+      } else {
+        // google3 does not allow assigning another variable to setTimeout.
+        // Don't refactor this so scheduleFn has a default value of setTimeout.
+        setTimeout(tryFn, nextBackoff);
+      }
     };
 
     tryFn();
@@ -393,17 +433,7 @@ export function squeezeShape(shape: number[], axis?: number[]):
 
 export function getTypedArrayFromDType<D extends NumericDataType>(
     dtype: D, size: number): DataTypeMap[D] {
-  let values = null;
-  if (dtype == null || dtype === 'float32') {
-    values = new Float32Array(size);
-  } else if (dtype === 'int32') {
-    values = new Int32Array(size);
-  } else if (dtype === 'bool') {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-  return values as DataTypeMap[D];
+  return getArrayFromDType<D>(dtype, size);
 }
 
 export function getArrayFromDType<D extends DataType>(
@@ -416,7 +446,7 @@ export function getArrayFromDType<D extends DataType>(
   } else if (dtype === 'bool') {
     values = new Uint8Array(size);
   } else if (dtype === 'string') {
-    values = new Array<'string'>(size);
+    values = new Array<string>(size);
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
@@ -459,11 +489,6 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array {
-  return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array;
-}
-
 export function bytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32') {
     return 4;
@@ -478,9 +503,9 @@ export function bytesPerElement(dtype: DataType): number {
 
 /**
  * Returns the approximate number of bytes allocated in the string array - 2
- * bytes per character. Computing the exact bytes for a native string in JS is
- * not possible since it depends on the encoding of the html page that serves
- * the website.
+ * bytes per character. Computing the exact bytes for a native string in JS
+ * is not possible since it depends on the encoding of the html page that
+ * serves the website.
  */
 export function bytesFromStringArray(arr: Uint8Array[]): number {
   if (arr == null) {
@@ -504,13 +529,15 @@ export function isNumber(value: {}): boolean {
   return typeof value === 'number';
 }
 
-export function inferDtype(values: TensorLike): DataType {
+export function inferDtype(values: TensorLike|WebGLData|WebGPUData): DataType {
   if (Array.isArray(values)) {
     return inferDtype(values[0]);
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array || values instanceof Uint8Array) {
+  } else if (
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';
@@ -551,40 +578,60 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
-function createNestedArray(offset: number, shape: number[], a: TypedArray) {
+function createNestedArray(
+    offset: number, shape: number[], a: TypedArray, isComplex = false) {
   const ret = new Array();
   if (shape.length === 1) {
-    const d = shape[0];
+    const d = shape[0] * (isComplex ? 2 : 1);
     for (let i = 0; i < d; i++) {
       ret[i] = a[offset + i];
     }
   } else {
     const d = shape[0];
     const rest = shape.slice(1);
-    const len = rest.reduce((acc, c) => acc * c);
+    const len = rest.reduce((acc, c) => acc * c) * (isComplex ? 2 : 1);
     for (let i = 0; i < d; i++) {
-      ret[i] = createNestedArray(offset + i * len, rest, a);
+      ret[i] = createNestedArray(offset + i * len, rest, a, isComplex);
     }
   }
   return ret;
 }
 
 // Provide a nested array of TypedArray in given shape.
-export function toNestedArray(shape: number[], a: TypedArray) {
+export function toNestedArray(
+    shape: number[], a: TypedArray, isComplex = false) {
   if (shape.length === 0) {
     // Scalar type should return a single number.
     return a[0];
   }
-  const size = shape.reduce((acc, c) => acc * c);
+  const size = shape.reduce((acc, c) => acc * c) * (isComplex ? 2 : 1);
   if (size === 0) {
     // A tensor with shape zero should be turned into empty list.
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size ${a.length}.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}${
+        isComplex ? ' for a complex tensor' : ''}.`);
   }
 
-  return createNestedArray(0, shape, a);
+  return createNestedArray(0, shape, a, isComplex);
+}
+
+export function convertBackendValuesAndArrayBuffer(
+    data: BackendValues|ArrayBuffer, dtype: DataType) {
+  // If is type Uint8Array[], return it directly.
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (dtype === 'float32') {
+    return data instanceof Float32Array ? data : new Float32Array(data);
+  } else if (dtype === 'int32') {
+    return data instanceof Int32Array ? data : new Int32Array(data);
+  } else if (dtype === 'bool' || dtype === 'string') {
+    return Uint8Array.from(new Int32Array(data));
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }
 
 export function makeOnesTypedArray<D extends DataType>(
@@ -661,8 +708,8 @@ export function locToIndex(
 }
 
 /**
- * Computes the location (multidimensional index) in a tensor/multidimentional
- * array for a given flat index.
+ * Computes the location (multidimensional index) in a
+ * tensor/multidimentional array for a given flat index.
  *
  * @param index Index in flat array.
  * @param rank Rank of tensor.
@@ -689,12 +736,12 @@ export function indexToLoc(
  * @param object
  */
 // tslint:disable-next-line: no-any
-export function isPromise(object: any) {
+export function isPromise(object: any): object is Promise<unknown> {
   //  We chose to not use 'obj instanceOf Promise' for two reasons:
   //  1. It only reliably works for es6 Promise, not other Promise
   //  implementations.
-  //  2. It doesn't work with framework that uses zone.js. zone.js monkey patch
-  //  the async calls, so it is possible the obj (patched) is comparing to a
-  //  pre-patched Promise.
+  //  2. It doesn't work with framework that uses zone.js. zone.js monkey
+  //  patch the async calls, so it is possible the obj (patched) is
+  //  comparing to a pre-patched Promise.
   return object && object.then && typeof object.then === 'function';
 }

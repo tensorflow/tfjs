@@ -15,7 +15,12 @@
  * =============================================================================
  */
 
+// Workaround for: https://github.com/bazelbuild/rules_nodejs/issues/1265
+/// <reference types="@webgpu/types/dist" />
+
+import {getGlobal} from './global_util';
 import {tensorToString} from './tensor_format';
+import {DataId, TensorInfo} from './tensor_info';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
@@ -155,6 +160,19 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
   }
 }
 
+export interface DataToGPUWebGLOption {
+  customTexShape?: [number, number];
+}
+
+export type DataToGPUOptions = DataToGPUWebGLOption;
+
+export interface GPUData {
+  tensorRef: Tensor;
+  texture?: WebGLTexture;
+  buffer?: GPUBuffer;
+  texShape?: [number, number];
+}
+
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
@@ -167,6 +185,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
 /**
@@ -219,27 +238,23 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
   deprecationWarningFn = fn;
 }
 
-/**
- * We wrap data id since we use weak map to avoid memory leaks.
- * Since we have our own memory management, we have a reference counter
- * mapping a tensor to its data, so there is always a pointer (even if that
- * data is otherwise garbage collectable).
- * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
- * Global_Objects/WeakMap
- */
-export type DataId = object;  // object instead of {} to force non-primitive.
-
 // Declare this namespace to make Tensor class augmentation work in google3.
 export declare namespace Tensor {}
 /**
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
  *
+ * For performance reasons, functions that create tensors do not necessarily
+ * perform a copy of the data passed to them (e.g. if the data is passed as a
+ * `Float32Array`), and changes to the data will change the tensor. This is not
+ * a feature and is not supported. To avoid this behavior, use the tensor before
+ * changing the input data or create a copy with `copy = tf.add(yourTensor, 0)`.
+ *
  * See `tf.tensor` for details on how to create a `tf.Tensor`.
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-export class Tensor<R extends Rank = Rank> {
+export class Tensor<R extends Rank = Rank> implements TensorInfo {
   /** Unique id of this tensor. */
   readonly id: number;
   /**
@@ -308,7 +323,8 @@ export class Tensor<R extends Rank = Rank> {
    */
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
-    return toNestedArray(this.shape, vals) as ArrayMap[R];
+    return toNestedArray(this.shape, vals, this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
@@ -318,7 +334,9 @@ export class Tensor<R extends Rank = Rank> {
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   arraySync(): ArrayMap[R] {
-    return toNestedArray(this.shape, this.dataSync()) as ArrayMap[R];
+    return toNestedArray(
+               this.shape, this.dataSync(), this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
@@ -341,6 +359,45 @@ export class Tensor<R extends Rank = Rank> {
       }
     }
     return data as Promise<DataTypeMap[D]>;
+  }
+
+  /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use a user-defined size to create the buffer.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *     }
+   *
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
+  dataToGPU(options?: DataToGPUOptions): GPUData {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
   }
 
   /**
@@ -441,6 +498,7 @@ export class Tensor<R extends Rank = Rank> {
         Variable<R>;
   }
 }
+
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
     // Implementation note: we should use properties of the object that will be
@@ -453,10 +511,23 @@ Object.defineProperty(Tensor, Symbol.hasInstance, {
   }
 });
 
+export function getGlobalTensorClass() {
+  // Use getGlobal so that we can augment the Tensor class across package
+  // boundaries becase the node resolution alg may result in different modules
+  // being returned for this file depending on the path they are loaded from.
+  return getGlobal('Tensor', () => {
+    return Tensor;
+  });
+}
+
+// Global side effect. Cache global reference to Tensor class
+getGlobalTensorClass();
+
 export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
   data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
+  dataToGPU(options?: DataToGPUOptions): GPUData;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {
@@ -520,7 +591,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     trackerFn().incRef(this, null /* backend */);
   }
 
-  dispose(): void {
+  override dispose(): void {
     trackerFn().disposeVariable(this);
     this.isDisposedInternal = true;
   }

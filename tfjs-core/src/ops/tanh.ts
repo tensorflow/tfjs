@@ -37,14 +37,10 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function tanh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tanh');
+  const $x = convertToTensor(x, 'x', 'tanh', 'float32');
 
   const inputs: TanhInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.tanh($x);
-    save([y]);
-    return y;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Tanh);
+  return ENGINE.runKernel(Tanh, inputs as unknown as NamedTensorMap);
 }
-export const tanh = op({tanh_});
+export const tanh = /* @__PURE__ */ op({tanh_});

@@ -39,8 +39,6 @@ import {op} from './operation';
 function sign_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sign');
   const inputs: SignInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.sign($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Sign);
+  return ENGINE.runKernel(Sign, inputs as unknown as NamedTensorMap);
 }
-export const sign = op({sign_});
+export const sign = /* @__PURE__ */ op({sign_});

@@ -18,14 +18,23 @@
 import {ENGINE} from './engine';
 import {env} from './environment';
 import {Tensor} from './tensor';
-import {DataType, TensorLike} from './types';
+import {DataType, isWebGLData, isWebGPUData, TensorLike, WebGLData, WebGPUData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
+import {bytesPerElement} from './util_base';
 
-export function inferShape(val: TensorLike, dtype?: DataType): number[] {
+export function inferShape(
+    val: TensorLike|WebGLData|WebGPUData, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
     return dtype === 'string' ? [] : [val.length];
+  }
+
+  if (isWebGLData(val)) {
+    const usedChannels = val.channels || 'RGBA';
+    return [val.height, val.width * usedChannels.length];
+  } else if (isWebGPUData(val)) {
+    return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
@@ -70,10 +79,13 @@ function deepAssertShapeConsistency(
 }
 
 function assertDtype(
-    expectedDtype: DataType|'numeric', actualDType: DataType, argName: string,
-    functionName: string) {
-  if (expectedDtype == null) {
+    expectedDtype: DataType|'numeric'|'string_or_numeric',
+    actualDType: DataType, argName: string, functionName: string) {
+  if (expectedDtype === 'string_or_numeric') {
     return;
+  }
+  if (expectedDtype == null) {
+    throw new Error(`Expected dtype cannot be null.`);
   }
   if (expectedDtype !== 'numeric' && expectedDtype !== actualDType ||
       expectedDtype === 'numeric' && actualDType === 'string') {
@@ -85,7 +97,7 @@ function assertDtype(
 
 export function convertToTensor<T extends Tensor>(
     x: T|TensorLike, argName: string, functionName: string,
-    parseAsDtype: DataType|'numeric' = 'numeric'): T {
+    parseAsDtype: DataType|'numeric'|'string_or_numeric' = 'numeric'): T {
   if (x instanceof Tensor) {
     assertDtype(parseAsDtype, x.dtype, argName, functionName);
     return x;
@@ -120,7 +132,7 @@ export function convertToTensor<T extends Tensor>(
 
 export function convertToTensorArray<T extends Tensor>(
     arg: Array<T|TensorLike>, argName: string, functionName: string,
-    parseAsDtype: DataType|'numeric' = 'numeric'): T[] {
+    parseAsDtype: DataType|'numeric'|'string_or_numeric' = 'numeric'): T[] {
   if (!Array.isArray(arg)) {
     throw new Error(
         `Argument ${argName} passed to ${functionName} must be a ` +
@@ -128,6 +140,6 @@ export function convertToTensorArray<T extends Tensor>(
   }
   const tensors = arg as T[];
   return tensors.map(
-      (t, i) => convertToTensor(t, `${argName}[${i}]`, functionName),
-      parseAsDtype);
+      (t, i) =>
+          convertToTensor(t, `${argName}[${i}]`, functionName, parseAsDtype));
 }

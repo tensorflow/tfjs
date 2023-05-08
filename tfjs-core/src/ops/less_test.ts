@@ -16,7 +16,7 @@
  */
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('less', ALL_ENVS, () => {
   it('Tensor1D - int32', async () => {
@@ -340,5 +340,14 @@ describeWithFlags('less', ALL_ENVS, () => {
     const res = tf.less(a, b);
     expect(res.dtype).toBe('bool');
     expectArraysClose(await res.data(), [1, 0, 0]);
+  });
+
+  it('should support string comparison', async () => {
+    const tensorA = tf.tensor('a', [], 'string');
+    const tensorB = tf.tensor(['a', 'b', ''], [3], 'string');
+    const result = await tf.less(tensorA, tensorB);
+
+    expectArraysEqual(result.shape, [3]);
+    expectArraysEqual(await result.data(), [0, 1, 0]);
   });
 });

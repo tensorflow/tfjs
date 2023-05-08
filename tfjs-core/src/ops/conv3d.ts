@@ -14,17 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Conv3D, Conv3DAttrs, Conv3DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
-import {eitherStridesOrDilationsAreOne} from './conv_util';
+import {eitherStridesOrDilationsAreOne, stridesOrDilationsArePositive} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -45,8 +44,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat: An optional string from: "NDHWC", "NCDHW". Defaults to
  *     "NDHWC". Specify the data format of the input and output data. With the
  *     default format "NDHWC", the data is stored in the order of: [batch,
@@ -94,31 +93,28 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in conv3d: got dataFormat of ${
           dataFormat} but only NDHWC is currently supported.`);
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const convInfo = conv_util.computeConv3DInfo(
-        x5D.shape, $filter.shape, strides, dilations, pad);
-    const res = backend.conv3d(x5D, $filter, convInfo);
-
-    save([x5D, $filter]);
-
-    return res;
-  };
+  util.assert(
+      stridesOrDilationsArePositive(dilations),
+      () => 'Error in conv3D: Dilated rates should be larger than 0.');
+  util.assert(
+      stridesOrDilationsArePositive(strides),
+      () => 'Error in conv3D: Strides should be larger than 0.');
 
   const inputs: Conv3DInputs = {x: x5D, filter: $filter};
 
   const attrs: Conv3DAttrs = {strides, pad, dataFormat, dilations};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Conv3D,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Conv3D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
                res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]) as
         T;
   }
-  return res as T;
+  return res;
 }
 
-export const conv3d = op({conv3d_});
+export const conv3d = /* @__PURE__ */ op({conv3d_});

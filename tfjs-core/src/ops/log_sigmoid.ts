@@ -60,4 +60,4 @@ function logSigmoid_<T extends Tensor>(x: T|TensorLike): T {
 
   return customOp($x) as T;
 }
-export const logSigmoid = op({logSigmoid_});
+export const logSigmoid = /* @__PURE__ */ op({logSigmoid_});

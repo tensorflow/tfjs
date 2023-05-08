@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {lessEqual} from '../../ops/less_equal';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.lessEqual = function<T extends Tensor>(b: Tensor|
-                                                        TensorLike): T {
+getGlobalTensorClass().prototype.lessEqual = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return lessEqual(this, b);
 };

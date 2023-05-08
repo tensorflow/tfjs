@@ -27,7 +27,7 @@ import {cast} from './cast';
 import {op} from './operation';
 
 /**
- * Computes gause error function of the input `tf.Tensor` element-wise:
+ * Computes Gauss error function of the input `tf.Tensor` element-wise:
  * `erf(x)`
  *
  * ```js
@@ -50,10 +50,6 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
   }
 
   const inputs: ErfInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.erf($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Erf);
+  return ENGINE.runKernel(Erf, inputs as unknown as NamedTensorMap);
 }
-export const erf = op({erf_});
+export const erf = /* @__PURE__ */ op({erf_});

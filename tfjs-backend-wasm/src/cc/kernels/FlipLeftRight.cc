@@ -21,8 +21,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -51,8 +51,7 @@ void FlipLeftRight(const size_t image_id, const size_t batch,
         const size_t col_offset = col * num_channels;
 
         for (size_t channel = 0; channel < num_channels; ++channel) {
-          const size_t x = col;
-          const size_t coord_x = image_width - x;
+          const size_t coord_x = image_width - col - 1;
           const size_t image_idx =
               batch_offset + row_offset + col_offset + channel;
 

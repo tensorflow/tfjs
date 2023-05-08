@@ -40,10 +40,6 @@ function sinh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sinh');
   const inputs: SinhInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sinh($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sinh);
+  return ENGINE.runKernel(Sinh, inputs as unknown as NamedTensorMap);
 }
-export const sinh = op({sinh_});
+export const sinh = /* @__PURE__ */ op({sinh_});

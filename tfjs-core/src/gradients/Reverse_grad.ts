@@ -23,7 +23,7 @@ import {parseAxisParam} from '../util';
 export const reverseGradConfig: GradConfig = {
   kernelName: Reverse,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {dims} = attrs as {} as ReverseAttrs;
+    const {dims} = attrs as unknown as ReverseAttrs;
     const axes = parseAxisParam(dims, dy.shape);
     return {x: () => reverse(dy, axes)};
   }

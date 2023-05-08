@@ -16,7 +16,7 @@
  */
 
 import {reshape} from '../../ops/reshape';
-import {Scalar, Tensor} from '../../tensor';
+import {getGlobalTensorClass, Scalar, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 import {assert} from '../../util';
 
@@ -26,10 +26,12 @@ declare module '../../tensor' {
   }
 }
 
-/** Converts a size-1 `tf.Tensor` to a `tf.Scalar`.
+/**
+ * Converts a size-1 `tf.Tensor` to a `tf.Scalar`.
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-Tensor.prototype.asScalar = function<T extends Tensor>(this: T): Scalar {
+getGlobalTensorClass().prototype.asScalar = function<T extends Tensor>(this: T):
+    Scalar {
   this.throwIfDisposed();
   assert(this.size === 1, () => 'The array must have only 1 element.');
   return reshape(this, []);

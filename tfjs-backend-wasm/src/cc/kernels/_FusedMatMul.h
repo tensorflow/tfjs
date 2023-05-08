@@ -26,7 +26,8 @@ void _FusedMatMul(const size_t a_id, const size_t* a_shape_ptr,
                   const size_t* b_shape_ptr, const size_t b_shape_len,
                   const bool transpose_a, const bool transpose_b,
                   const FusableActivation activation, const size_t bias_id,
-                  const size_t prelu_weights_id, const size_t out_id);
+                  const size_t prelu_weights_id, const float leakyrelu_alpha,
+                  const size_t out_id);
 }
 
 }  // namespace wasm

@@ -269,14 +269,25 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
-    case 'TensorListReserve': {
+    case 'TensorListReserve':
+    case 'EmptyTensorList': {
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
           getParamValue('elementDType', node, tensorMap, context) as DataType;
+      let numElementsParam;
+
+      if (node.op === 'TensorListReserve') {
+        numElementsParam = 'numElements';
+      } else {
+        numElementsParam = 'maxNumElements';
+      }
+
       const numElements =
-          getParamValue('numElements', node, tensorMap, context) as number;
-      const tensorList = reserve(elementShape, elementDtype, numElements);
+          getParamValue(numElementsParam, node, tensorMap, context) as number;
+      const maxNumElements = node.op === 'TensorListReserve' ? -1 : numElements;
+      const tensorList =
+          reserve(elementShape, elementDtype, numElements, maxNumElements);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
@@ -315,7 +326,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
-    case 'TensorListConcat': {
+    case 'TensorListConcat':
+    case 'TensorListConcatV2': {
       const concatId =
           getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(concatId.id);
@@ -355,6 +367,22 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const tensorList = split(splitTensor, lengths, elementShape);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
+    }
+    case 'TensorListLength': {
+      const idTensor =
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
+      const tensorList = context.getTensorList(idTensor.id);
+      return [scalar(tensorList.size(), 'int32')];
+    }
+    case 'TensorListResize': {
+      const idTensor =
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
+      const size = getParamValue('size', node, tensorMap, context) as number;
+
+      const srcTensorList = context.getTensorList(idTensor.id);
+      const destTensorList = srcTensorList.resize(size);
+      context.addTensorList(destTensorList);
+      return [destTensorList.idTensor];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

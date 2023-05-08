@@ -19,6 +19,7 @@ import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFun
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {concatImpl} from './Concat_impl';
+import {identity} from './Identity';
 
 export function concat(
     args:
@@ -28,6 +29,10 @@ export function concat(
   const {axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
+
+  const shapes = inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, $axis);
+
   const outShape =
       backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
@@ -38,11 +43,8 @@ export function concat(
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
   if ($inputs.length === 1) {
-    return $inputs[0];
+    return identity({inputs: {x: $inputs[0]}, backend});
   }
-
-  const shapes = $inputs.map(t => t.shape);
-  backend_util.assertParamsConsistent(shapes, $axis);
 
   return concatImpl($inputs, $axis, backend);
 }
@@ -50,5 +52,5 @@ export function concat(
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'webgl',
-  kernelFunc: concat as {} as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc
 };

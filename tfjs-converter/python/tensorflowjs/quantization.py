@@ -157,7 +157,10 @@ def dequantize_weights(data, metadata, original_dtype=np.float32):
           'Missing metadata min or scale for dtype %s' % dtype.name)
     scale = metadata['scale']
     min_val = metadata['min']
-    return np.round(data * scale + min_val).astype(original_dtype)
+    if original_dtype == np.int32:
+      return np.round(data * scale + min_val).astype(original_dtype)
+    else:
+      return (data * scale + min_val).astype(original_dtype)
   elif dtype == np.float16:
     if original_dtype != np.float32:
       raise ValueError(

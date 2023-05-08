@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
 import {complex} from './Complex';
+import {concatImpl} from './Concat_impl';
+import {identity} from './Identity';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
@@ -31,6 +33,10 @@ export function concat(
   const {axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
+
+  const shapes = inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, $axis);
+
   let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
   if (util.sizeFromShape(outShape) === 0) {
@@ -40,11 +46,8 @@ export function concat(
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
   if ($inputs.length === 1) {
-    return $inputs[0];
+    return identity({inputs: {x: $inputs[0]}, backend});
   }
-
-  const shapes = $inputs.map(t => t.shape);
-  backend_util.assertParamsConsistent(shapes, $axis);
 
   if ($inputs[0].dtype === 'complex64') {
     const reals = $inputs.map((t) => real({inputs: {input: t}, backend}));
@@ -77,41 +80,16 @@ export function concat(
     return reshape({inputs: {x: t}, backend, attrs: {shape}});
   });
 
+  const inputsValShapes = inputs2D.map(t => {
+    return {vals: backend.data.get(t.dataId).values, shape: t.shape};
+  });
+
   // Concats 2d tensors along axis=1.
   outShape =
       backend_util.computeOutShape(inputs2D.map(t => t.shape), 1 /* axis */);
-
-  const outVals = util.getTypedArrayFromDType(
-      $inputs[0].dtype as 'float32', util.sizeFromShape(outShape));
-
-  if (inputs2D[0].shape[0] === 1) {
-    // Use built-in TypedArray.set() method for speed.
-    let offset = 0;
-    inputs2D.forEach(t => {
-      const val = backend.data.get(t.dataId).values as TypedArray;
-      const size = util.sizeFromShape(t.shape);
-
-      outVals.set(val, offset);
-      offset += size;
-    });
-  } else {
-    let colOffset = 0;
-
-    inputs2D.forEach(t => {
-      const tVals = backend.data.get(t.dataId).values as TypedArray;
-
-      let tIdx = 0;
-
-      for (let row = 0; row < t.shape[0]; ++row) {
-        const resIdx = row * outShape[1] + colOffset;
-        for (let col = 0; col < t.shape[1]; ++col) {
-          outVals[resIdx + col] = tVals[tIdx++];
-        }
-      }
-
-      colOffset += t.shape[1];
-    });
-  }
+  const simplyConcat = inputs2D[0].shape[0] === 1;
+  const outVals =
+      concatImpl(inputsValShapes, outShape, inputs[0].dtype, simplyConcat);
 
   const finalOutShape =
       backend_util.computeOutShape($inputs.map(t => t.shape), $axis);
@@ -127,5 +105,5 @@ export function concat(
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'cpu',
-  kernelFunc: concat as {} as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc
 };

@@ -40,10 +40,6 @@ function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'reciprocal');
 
   const inputs: ReciprocalInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.reciprocal($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Reciprocal);
+  return ENGINE.runKernel(Reciprocal, inputs as unknown as NamedTensorMap);
 }
-export const reciprocal = op({reciprocal_});
+export const reciprocal = /* @__PURE__ */ op({reciprocal_});

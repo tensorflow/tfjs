@@ -75,7 +75,7 @@ describe('File Handler', () => {
   });
 
   describe('load json model', () => {
-    it('load: two weight files', async done => {
+    it('load: two weight files', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -98,6 +98,10 @@ describe('File Handler', () => {
       const modelJSON: tf.io.ModelJSON = {
         modelTopology: modelTopology1,
         weightsManifest,
+        signature: {},
+        userDefinedMetadata: {},
+        modelInitializer: {},
+        initializerSignature: {}
       };
 
       // Write model.json file.
@@ -119,6 +123,10 @@ describe('File Handler', () => {
       const modelArtifacts = await handler.load();
 
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+      expect(modelArtifacts.signature).toEqual({});
+      expect(modelArtifacts.userDefinedMetadata).toEqual({});
+      expect(modelArtifacts.modelInitializer).toEqual({});
+      expect(modelArtifacts.initializerSignature).toEqual({});
       expect(modelArtifacts.weightSpecs).toEqual([
         {
           name: 'dense/kernel',
@@ -134,24 +142,20 @@ describe('File Handler', () => {
       tf.test_util.expectArraysClose(
           new Float32Array(modelArtifacts.weightData),
           new Float32Array([-1.1, -3.3, -3.3, -7.7]));
-
-      done();
     });
-    it('loading from nonexistent model.json path fails', async done => {
+    it('loading from nonexistent model.json path fails', async () => {
       const modelJSONPath = path.join(testDir, 'foo', 'model.json');
       const handler = new FileHandler(modelJSONPath);
 
       try {
         await handler.load();
-        done.fail('Loading from nonexistent file succeeded unexpectedly.');
+        fail('Loading from nonexistent file succeeded unexpectedly.');
       } catch (err) {
         expect(err.message).toMatch(/.*no such file or directory.*/);
       }
-
-      done();
     });
 
-    it('loading from missing weights path fails', async done => {
+    it('loading from missing weights path fails', async () => {
       const weightsManifest = [
         {
           paths: ['weights.1.bin'],
@@ -192,12 +196,11 @@ describe('File Handler', () => {
         const handler = new FileHandler(modelJSONPath);
         await handler.load();
 
-        done.fail(
+        fail(
             'Loading with missing weights file succeeded ' +
             'unexpectedly.');
       } catch (err) {
         expect(err.message).toMatch(/.*no such file or directory.*/);
-        done();
       }
     });
   });

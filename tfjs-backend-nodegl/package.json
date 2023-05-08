@@ -7,12 +7,18 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node src/run_tests.ts"
+    "test": "yarn && yarn build && ts-node --transpile-only src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only src/run_tests.ts"
   },
   "author": "",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-backend-nodegl"
+  },
   "dependencies": {
-    "@tensorflow/tfjs-core": "1.2.2",
+    "@tensorflow/tfjs-core": "^3.3.0",
     "node-gles": "^0.0.13"
   },
   "devDependencies": {
@@ -27,6 +33,7 @@
     "typescript": "3.5.3"
   },
   "resolutions": {
-    "minimist": "0.2.1"
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }

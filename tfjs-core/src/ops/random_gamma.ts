@@ -17,6 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {buffer} from './buffer';
 import {op} from './operation';
@@ -41,6 +42,7 @@ import {RandGamma} from './rand_util';
 function randomGamma_<R extends Rank>(
     shape: ShapeMap[R], alpha: number, beta = 1,
     dtype: 'float32'|'int32' = 'float32', seed?: number): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   if (beta == null) {
     beta = 1;
   }
@@ -58,4 +60,4 @@ function randomGamma_<R extends Rank>(
   return res.toTensor();
 }
 
-export const randomGamma = op({randomGamma_});
+export const randomGamma = /* @__PURE__ */ op({randomGamma_});

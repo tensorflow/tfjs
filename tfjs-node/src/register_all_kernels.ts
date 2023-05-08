@@ -17,7 +17,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
@@ -40,9 +40,13 @@ import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
+import {complexConfig} from './kernels/Complex';
+import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
@@ -53,6 +57,7 @@ import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
@@ -62,13 +67,17 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
+import {FFTConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
+import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
@@ -78,9 +87,13 @@ import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {identityConfig} from './kernels/Identity';
+import {IFFTConfig} from './kernels/IFFT';
+import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
 import {isNanConfig} from './kernels/IsNan';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {linSpaceConfig} from './kernels/LinSpace';
@@ -97,6 +110,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
+import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -110,10 +124,13 @@ import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
+import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
@@ -142,21 +159,26 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {staticRegexReplaceConfig} from './kernels/StaticRegexReplace';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  FFTConfig,
+  IFFTConfig,
   LRNConfig,
   LRNGradConfig,
   _fusedMatMulConfig,
@@ -180,9 +202,12 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolGradConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
+  complexAbsConfig,
+  complexConfig,
   concatConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
@@ -193,7 +218,9 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
+  bincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
@@ -204,11 +231,14 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dConfig,
   eluConfig,
   eluGradConfig,
+  einsumConfig,
   equalConfig,
   erfConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
+  flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
   fusedBatchNormConfig,
@@ -218,9 +248,12 @@ const kernelConfigs: KernelConfig[] = [
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
+  identityConfig,
+  imagConfig,
   isFiniteConfig,
   isInfConfig,
   isNanConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
@@ -235,6 +268,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolConfig,
   maxPoolGradConfig,
   maximumConfig,
+  meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
@@ -248,10 +282,13 @@ const kernelConfigs: KernelConfig[] = [
   notEqualConfig,
   oneHotConfig,
   onesLikeConfig,
+  packConfig,
   padV2Config,
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
+  realConfig,
   realDivConfig,
   reciprocalConfig,
   relu6Config,
@@ -280,15 +317,18 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
   subConfig,
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
   zerosLikeConfig

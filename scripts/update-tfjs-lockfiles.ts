@@ -22,10 +22,11 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 
+import chalk from 'chalk';
 import * as argparse from 'argparse';
 import * as shell from 'shelljs';
 
-import {$, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch} from './release-util';
+import {$, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch, createPR} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -49,6 +50,21 @@ async function main() {
 
   shell.cd(TMP_DIR);
 
+  // ========== Delete a possible prior lockfiles branch from a failed run =====
+  const lockfilesBranch = `${releaseBranch}_lockfiles`;
+  console.log(chalk.magenta.bold(
+      `~~~ Creating new lockfiles branch ${lockfilesBranch} ~~~`));
+
+  // Delete possible branch from a prior execution of this script
+  const branchCmd = `git branch -D ${lockfilesBranch}`;
+  const result = shell.exec(branchCmd, {silent: true});
+  const okErrCode = `error: branch '${lockfilesBranch}' not found.`;
+  if (result.code > 0 && result.stderr.trim() !== okErrCode) {
+    console.log('$', branchCmd);
+    console.log(result.stderr);
+    process.exit(1);
+  }
+
   // ========== Run yarn to update yarn.lock file for each package. ============
   // Yarn in the top-level.
   $('yarn');
@@ -70,20 +86,9 @@ async function main() {
     }
   }
 
-  // ========== Push to release branch. ========================================
-  const message = `Update release branch ${releaseBranch} lock files.`;
-
-  $(`git add .`);
-  $(`git commit -a -m "${message}"`);
-  $(`git push`);
-
-  // ========== Tag version. ========================================
-  console.log('~~~ Tag version ~~~');
-
-  // The releaseBranch format is tfjs_x.x.x, we only need the version part.
-  const version = releaseBranch.split('_')[1];
-  const tag = `tfjs-v${version}`;
-  $(`git tag ${tag} && git push --tags`);
+  // ========== Send a PR to the release branch =====================
+  const message = `Update lockfiles branch ${lockfilesBranch} lock files.`;
+  createPR(lockfilesBranch, releaseBranch, message);
 
   console.log('Done.');
 

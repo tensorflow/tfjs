@@ -26,7 +26,7 @@ export class ScatterProgram implements GPGPUProgram {
   constructor(
       updateSize: number, sliceDim: number, indicesRank: number,
       updatesRank: number, strides: number[], shape: number[],
-      summingDupeIndex = true) {
+      summingDupeIndex = true, defaultIsTensor = false) {
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
@@ -45,6 +45,12 @@ export class ScatterProgram implements GPGPUProgram {
       updatesString = 'i, coords[1]';
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
+
+    let defaultValuesString = '';
+    if (defaultIsTensor) {
+      defaultValuesString = 'coords[0], coords[1]';
+    }
+    const defaultValueSnippet = `getDefaultValue(${defaultValuesString})`;
 
     const strideString = sliceDim > 1 ? 'strides[j]' : 'strides';
     this.userCode = `
@@ -65,7 +71,7 @@ export class ScatterProgram implements GPGPUProgram {
               found = true;
             }
           }
-          setOutput(mix(getDefaultValue(), sum, float(found)));
+          setOutput(mix(${defaultValueSnippet}, sum, float(found)));
         }
       `;
   }

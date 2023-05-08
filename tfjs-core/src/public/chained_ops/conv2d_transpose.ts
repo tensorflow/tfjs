@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {conv2dTranspose} from '../../ops/conv2d_transpose';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike4D} from '../../types';
 
 declare module '../../tensor' {
@@ -28,11 +28,12 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.conv2dTranspose = function<T extends Tensor3D|Tensor4D>(
-    filter: Tensor4D|TensorLike4D,
-    outputShape: [number, number, number, number]|[number, number, number],
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+getGlobalTensorClass().prototype.conv2dTranspose =
+    function<T extends Tensor3D|Tensor4D>(
+        filter: Tensor4D|TensorLike4D,
+        outputShape: [number, number, number, number]|[number, number, number],
+        strides: [number, number]|number, pad: 'valid'|'same'|number,
+        dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   this.throwIfDisposed();
   return conv2dTranspose(
              this, filter, outputShape, strides, pad, dimRoundingMode) as T;

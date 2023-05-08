@@ -24,7 +24,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     [filename: string]: Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(tf.env().platform, 'fetch').and.callFake((path: string) => {
+    spyOn(tf.env().platform, 'fetch').and.callFake(async (path: string) => {
       return new Response(
           fileBufferMap[path],
           {headers: {'Content-type': 'application/octet-stream'}});
@@ -384,7 +384,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     expect(weight3.dtype).toEqual('float32');
   });
 
-  it('throws if requested weight not found', async done => {
+  it('throws if requested weight not found', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
 
     const manifest: WeightsManifestConfig = [{
@@ -395,15 +395,14 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weightsNamesToFetch = ['doesntexist'];
     try {
       await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
-      done.fail();
+      fail();
     } catch (e) {
-      done();
+      expect(e.message).toContain('Could not find weights');
     }
   });
 
-  it('throws if requested weight has unknown dtype', async done => {
+  it('throws if requested weight has unknown dtype', async () => {
     setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
-
     const manifest: WeightsManifestConfig = [{
       'paths': ['weightfile0'],
       'weights': [{
@@ -417,9 +416,9 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     const weightsNamesToFetch = ['weight0'];
     try {
       await tf.io.loadWeights(manifest, './', weightsNamesToFetch);
-      done.fail();
+      fail();
     } catch (e) {
-      done();
+      expect(e.message).toContain('Unsupported dtype');
     }
   });
 

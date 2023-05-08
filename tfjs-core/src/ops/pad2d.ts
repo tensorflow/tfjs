@@ -33,4 +33,4 @@ function pad2d_(
   return pad(x, paddings, constantValue);
 }
 
-export const pad2d = op({pad2d_});
+export const pad2d = /* @__PURE__ */ op({pad2d_});

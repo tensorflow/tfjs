@@ -16,20 +16,21 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 
 template <typename T>
 void gather_impl(const T* x_ptr, const std::vector<size_t>& x_strides,
-                 const int32_t* indices_ptr, const size_t axis,
-                 const size_t out_size, const std::vector<size_t>& out_strides,
-                 T* out_buf_ptr) {
+                 const int32_t* indices_ptr, const size_t out_size,
+                 const size_t batch_size,
+                 const std::vector<size_t>& out_strides, T* out_buf_ptr) {
   for (size_t i = 0; i < out_size; ++i) {
     auto loc = tfjs::util::offset_to_loc(i, out_strides);
-    const size_t new_loc = loc[axis];
-    loc[axis] = indices_ptr[new_loc];
+    const size_t batch_loc = loc[0];
+    const size_t indices_loc = loc[2];
+    loc[2] = indices_ptr[batch_loc * batch_size + indices_loc];
 
     const size_t original_index = tfjs::util::loc_to_offset(loc, x_strides);
 
@@ -49,7 +50,7 @@ EMSCRIPTEN_KEEPALIVE
 
 void Gather(const size_t x_id, const DType dtype, const int32_t* x_strides_ptr,
             const size_t strides_size, const size_t indices_id,
-            const size_t axis, const int32_t* out_strides_ptr,
+            const size_t batch_size, const int32_t* out_strides_ptr,
             const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& indices_info = backend::get_tensor_info(indices_id);
@@ -65,16 +66,16 @@ void Gather(const size_t x_id, const DType dtype, const int32_t* x_strides_ptr,
 
   switch (dtype) {
     case DType::float32:
-      gather_impl<float>(x_info.f32(), x_strides, indices_buf, axis, out_size,
-                         out_strides, out_info.f32_write());
+      gather_impl<float>(x_info.f32(), x_strides, indices_buf, out_size,
+                         batch_size, out_strides, out_info.f32_write());
       break;
     case DType::int32:
-      gather_impl<int32_t>(x_info.i32(), x_strides, indices_buf, axis, out_size,
-                           out_strides, out_info.i32_write());
+      gather_impl<int32_t>(x_info.i32(), x_strides, indices_buf, out_size,
+                           batch_size, out_strides, out_info.i32_write());
       break;
     case DType::boolean:
-      gather_impl<bool>(x_info.b(), x_strides, indices_buf, axis, out_size,
-                        out_strides, out_info.b_write());
+      gather_impl<bool>(x_info.b(), x_strides, indices_buf, out_size,
+                        batch_size, out_strides, out_info.b_write());
       break;
     default:
       util::warn("Gather for tensor id %d failed. Unknown dtype %d", x_id,

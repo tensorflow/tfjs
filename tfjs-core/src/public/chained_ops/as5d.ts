@@ -16,7 +16,7 @@
  */
 
 import {reshape} from '../../ops/reshape';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -38,7 +38,7 @@ declare module '../../tensor' {
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-Tensor.prototype.as5D = function<T extends Tensor>(
+getGlobalTensorClass().prototype.as5D = function<T extends Tensor>(
     rows: number, columns: number, depth: number, depth2: number,
     depth3: number): T {
   this.throwIfDisposed();

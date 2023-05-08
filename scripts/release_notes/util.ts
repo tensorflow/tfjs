@@ -20,8 +20,17 @@ import * as shell from 'shelljs';
 import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
-  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri',
-  'annxingyuan', 'Kangyi Zhang', 'lina128'
+  'dsmilkov',
+  'kainino0x',
+  'davidsoergel',
+  'pyu10055',
+  'nkreeger',
+  'tafsiri',
+  'annxingyuan',
+  'Kangyi Zhang',
+  'lina128',
+  'mattsoulanille',
+  'jinjingforever',
 ];
 
 const rl =

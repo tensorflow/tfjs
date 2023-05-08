@@ -26,6 +26,7 @@
  */
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -38,12 +39,30 @@ import {createInputTensors} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
-describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
+describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, (env) => {
+  let originalTimeout: number;
+
+  beforeAll(() => {
+    // This test needs more time to finish the async fetch, adjusting
+    // jasmine timeout for this test to avoid flakiness. See jasmine
+    // documentation for detail:
+    // https://jasmine.github.io/2.0/introduction.html#section-42
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
   for (const modelType in CONVERT_PREDICT_MODELS) {
     const models =
         (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];
-    models.forEach(model => {
-      describe(`${model}`, () => {
+    for (const model of models) {
+      if (env.backendName === 'wasm' && model.includes('complex')) {
+        // WASM does not support complex
+        continue;
+      }
+      it(`${model}.`, async () => {
+        await tfc.setBackend(env.name);
         let inputsNames: string[];
         let inputsData: tfc.TypedArray[];
         let inputsShapes: number[][];
@@ -53,101 +72,86 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
         let tfOutputShapes: number[][];
         let tfOutputDtypes: tfc.DataType[];
 
-        let originalTimeout: number;
+        const fetches = [
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
+              .then(response => response.json()),
+          fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
+              .then(response => response.json())
+        ];
+        if (modelType === 'graph_model') {
+          fetches.push(
+              ...[fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
+                      .then(response => response.json()),
+                  fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
+                      .then(response => response.json())]);
+        }
+        [inputsData, inputsShapes, tfOutputData, tfOutputShapes, inputsNames,
+         inputsDtypes, tfOutputNames, tfOutputDtypes] =
+            await Promise.all(fetches);
 
-        beforeAll(async () => {
-          // This test needs more time to finish the async fetch, adjusting
-          // jasmine timeout for this test to avoid flakiness. See jasmine
-          // documentation for detail:
-          // https://jasmine.github.io/2.0/introduction.html#section-42
-          originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-          jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
-          const fetches = [
-            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
-                .then(response => response.json()),
-            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
-                .then(response => response.json()),
-            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
-                .then(response => response.json()),
-            fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
-                .then(response => response.json())
-          ];
-          if (modelType === 'graph_model') {
-            fetches.push(
-                ...[fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
-                        .then(response => response.json()),
-                    fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
-                        .then(response => response.json()),
-                    fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
-                        .then(response => response.json()),
-                    fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
-                        .then(response => response.json())]);
+        if (modelType === 'graph_model') {
+          const numTensors = tfc.memory().numTensors;
+
+          const $model = await tfconverter.loadGraphModel(
+              `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+
+          const namedInputs = createInputTensors(
+                                  inputsData, inputsShapes, inputsDtypes,
+                                  inputsNames) as tfc.NamedTensorMap;
+
+          const result = await $model.executeAsync(namedInputs, tfOutputNames);
+
+          const ys =
+              ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
+
+          // Validate outputs with tf results.
+          for (let i = 0; i < ys.length; i++) {
+            const y = ys[i];
+            expect(y.shape).toEqual(tfOutputShapes[i]);
+            expect(y.dtype).toEqual(tfOutputDtypes[i]);
+            tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
           }
-          [inputsData, inputsShapes, tfOutputData, tfOutputShapes, inputsNames,
-           inputsDtypes, tfOutputNames, tfOutputDtypes] =
-              await Promise.all(fetches);
-        });
 
-        afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+          // Dispose all tensors;
+          Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
+          ys.forEach(tensor => tensor.dispose());
+          $model.dispose();
 
-        it(`.`, async () => {
-          if (modelType === 'graph_model') {
-            const numTensors = tfc.memory().numTensors;
+          expect(tfc.memory().numTensors).toEqual(numTensors);
+        }
+        if (modelType === 'layers_model') {
+          const $model = await tfl.loadLayersModel(
+              `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-            const $model = await tfconverter.loadGraphModel(
-                `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+          const xs =
+              createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
 
-            const namedInputs = createInputTensors(
-                                    inputsData, inputsShapes, inputsDtypes,
-                                    inputsNames) as tfc.NamedTensorMap;
+          const result = $model.predict(xs);
 
-            const result =
-                await $model.executeAsync(namedInputs, tfOutputNames);
+          const ys =
+              ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
 
-            const ys = ($model.outputs.length === 1 ? [result] : result) as
-                tfc.Tensor[];
-
-            // Validate outputs with tf results.
-            for (let i = 0; i < ys.length; i++) {
-              const y = ys[i];
-              expect(y.shape).toEqual(tfOutputShapes[i]);
-              expect(y.dtype).toEqual(tfOutputDtypes[i]);
-              tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
-            }
-
-            // Dispose all tensors;
-            Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
-            ys.forEach(tensor => tensor.dispose());
-            $model.dispose();
-
-            expect(tfc.memory().numTensors).toEqual(numTensors);
+          // Validate outputs with keras results.
+          for (let i = 0; i < ys.length; i++) {
+            const y = ys[i];
+            expect(y.shape).toEqual(tfOutputShapes[i]);
+            tfc.test_util.expectArraysClose(
+                await y.data(), tfOutputData[i], 0.005);
           }
-          if (modelType === 'layers_model') {
-            const $model = await tfl.loadLayersModel(
-                `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-            const xs =
-                createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
-
-            const result = $model.predict(xs);
-
-            const ys = ($model.outputs.length === 1 ? [result] : result) as
-                tfc.Tensor[];
-
-            // Validate outputs with keras results.
-            for (let i = 0; i < ys.length; i++) {
-              const y = ys[i];
-              expect(y.shape).toEqual(tfOutputShapes[i]);
-              tfc.test_util.expectArraysClose(
-                  await y.data(), tfOutputData[i], 0.005);
-            }
-
-            // Dispose all tensors;
-            xs.forEach(tensor => tensor.dispose());
-            ys.forEach(tensor => tensor.dispose());
-          }
-        });
+          // Dispose all tensors;
+          xs.forEach(tensor => tensor.dispose());
+          ys.forEach(tensor => tensor.dispose());
+        }
       });
-    });
+    }
   }
 });

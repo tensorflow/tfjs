@@ -26,7 +26,7 @@ export const LRNConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as LRNInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {depthRadius, bias, alpha, beta} = args.attrs as {} as LRNAttrs;
+    const {depthRadius, bias, alpha, beta} = args.attrs as unknown as LRNAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),

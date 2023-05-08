@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import '@tensorflow/tfjs-backend-cpu';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -32,5 +32,6 @@ process.on('unhandledRejection', e => {
 setTestEnvs([{name: 'node', backendName: 'cpu'}]);
 
 const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({spec_files: ['src/**/*_test.ts'], jsLoader: 'require',
+                   random: false});
 runner.execute();

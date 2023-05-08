@@ -20,6 +20,7 @@ import {Tensor1D, Tensor2D} from '../../tensor';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import {nonMaxSuppSanityCheck} from '../nonmax_util';
+import {tensor1d} from '../tensor1d';
 
 /**
  * Performs non maximum suppression of bounding boxes based on
@@ -61,7 +62,7 @@ async function nonMaxSuppressionAsync_(
   // We call a cpu based impl directly with the typedarray data  here rather
   // than a kernel because all kernels are synchronous (and thus cannot await
   // .data()).
-  const res = nonMaxSuppressionV3Impl(
+  const {selectedIndices} = nonMaxSuppressionV3Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
     $boxes.dispose();
@@ -69,7 +70,8 @@ async function nonMaxSuppressionAsync_(
   if ($scores !== scores) {
     $scores.dispose();
   }
-  return res;
+
+  return tensor1d(selectedIndices, 'int32');
 }
 
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;

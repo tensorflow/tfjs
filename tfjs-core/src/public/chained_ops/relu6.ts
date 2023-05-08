@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {relu6} from '../../ops/relu6';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.relu6 = function<T extends Tensor>(this: T): T {
+getGlobalTensorClass().prototype.relu6 = function<T extends Tensor>(this: T):
+    T {
   this.throwIfDisposed();
   return relu6(this);
 };

@@ -14,19 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {DepthwiseConv2dNativeBackpropInput, DepthwiseConv2dNativeBackpropInputAttrs, DepthwiseConv2dNativeBackpropInputInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
-import * as conv_util from './conv_util';
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number], dy: T, filter: Tensor4D,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   let dy4D = dy as Tensor4D;
@@ -36,25 +37,21 @@ function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
     dy4D = reshape(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
   }
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computeConv2DInfo(
-        xShape, filter.shape, strides, dilations, pad, dimRoundingMode,
-        true /* depthwise */);
-
-    return backend.depthwiseConv2DDerInput(dy4D, filter, convInfo);
-  };
-
   const inputs: DepthwiseConv2dNativeBackpropInputInputs = {dy: dy4D, filter};
   const attrs: DepthwiseConv2dNativeBackpropInputAttrs =
       {strides, pad, dimRoundingMode, dilations, inputShape: xShape};
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null,
-      DepthwiseConv2dNativeBackpropInput, attrs as {} as NamedAttrMap);
+
+  const res =
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      ENGINE.runKernel(
+          DepthwiseConv2dNativeBackpropInput,
+          inputs as unknown as NamedTensorMap,
+          attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const depthwiseConv2dNativeBackpropInput =

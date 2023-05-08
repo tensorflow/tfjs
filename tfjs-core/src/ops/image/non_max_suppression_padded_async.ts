@@ -20,6 +20,8 @@ import {NamedTensorMap} from '../../tensor_types';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import {nonMaxSuppSanityCheck} from '../nonmax_util';
+import {scalar} from '../scalar';
+import {tensor1d} from '../tensor1d';
 
 /**
  * Asynchronously performs non maximum suppression of bounding boxes based on
@@ -35,7 +37,7 @@ import {nonMaxSuppSanityCheck} from '../nonmax_util';
  *     Defaults to 0.5 (50% box overlap).
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
- * @param padToMaxOutputSize Defalts to false. If true, size of output
+ * @param padToMaxOutputSize Defaults to false. If true, size of output
  *     `selectedIndices` is padded to maxOutputSize.
  * @return A map with the following properties:
  *     - selectedIndices: A 1D tensor with the selected box indices.
@@ -65,7 +67,7 @@ async function nonMaxSuppressionPaddedAsync_(
   // We call a cpu based impl directly with the typedarray data here rather
   // than a kernel because all kernels are synchronous (and thus cannot await
   // .data()).
-  const res = nonMaxSuppressionV4Impl(
+  const {selectedIndices, validOutputs} = nonMaxSuppressionV4Impl(
       boxesVals, scoresVals, $maxOutputSize, $iouThreshold, $scoreThreshold,
       padToMaxOutputSize);
 
@@ -75,7 +77,11 @@ async function nonMaxSuppressionPaddedAsync_(
   if ($scores !== scores) {
     $scores.dispose();
   }
-  return res;
+
+  return {
+    selectedIndices: tensor1d(selectedIndices, 'int32'),
+    validOutputs: scalar(validOutputs, 'int32')
+  };
 }
 
 export const nonMaxSuppressionPaddedAsync = nonMaxSuppressionPaddedAsync_;

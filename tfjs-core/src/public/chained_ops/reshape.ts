@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {reshape} from '../../ops/reshape';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.reshape = function<T extends Tensor>(shape: number[]): T {
+getGlobalTensorClass().prototype.reshape = function<T extends Tensor>(
+    shape: number[]): T {
   this.throwIfDisposed();
   return reshape(this, shape) as T;
 };

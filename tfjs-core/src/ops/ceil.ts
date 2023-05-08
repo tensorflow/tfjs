@@ -37,11 +37,9 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function ceil_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'ceil');
+  const $x = convertToTensor(x, 'x', 'ceil', 'float32');
 
   const inputs: CeilInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.ceil($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Ceil);
+  return ENGINE.runKernel(Ceil, inputs as unknown as NamedTensorMap);
 }
-export const ceil = op({ceil_});
+export const ceil = /* @__PURE__ */ op({ceil_});

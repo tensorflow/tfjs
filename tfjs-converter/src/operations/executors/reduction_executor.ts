@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -27,14 +27,14 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Max': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.max(
+          return [ops.max(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
@@ -43,7 +43,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.mean(
+          return [ops.mean(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
@@ -52,7 +52,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.min(
+          return [ops.min(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
@@ -61,7 +61,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.sum(
+          return [ops.sum(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
@@ -70,7 +70,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.all(
+          return [ops.all(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
@@ -79,20 +79,20 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.any(
+          return [ops.any(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
         case 'ArgMax': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number;
-          return [tfOps.argMax(
+          return [ops.argMax(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
         }
         case 'ArgMin': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number;
-          return [tfOps.argMin(
+          return [ops.argMin(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
         }
         case 'Prod': {
@@ -100,9 +100,20 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number[];
           const keepDims =
               getParamValue('keepDims', node, tensorMap, context) as boolean;
-          return [tfOps.prod(
+          return [ops.prod(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
+        }
+        case 'Cumprod': {
+          const axis =
+              getParamValue('axis', node, tensorMap, context) as number;
+          const exclusive =
+              getParamValue('exclusive', node, tensorMap, context) as boolean;
+          const reverse =
+              getParamValue('reverse', node, tensorMap, context) as boolean;
+          return [ops.cumprod(
+              getParamValue('x', node, tensorMap, context) as Tensor, axis,
+              exclusive, reverse)];
         }
         case 'Cumsum': {
           const axis =
@@ -111,9 +122,32 @@ export const executeOp: InternalOpExecutor =
               getParamValue('exclusive', node, tensorMap, context) as boolean;
           const reverse =
               getParamValue('reverse', node, tensorMap, context) as boolean;
-          return [tfOps.cumsum(
+          return [ops.cumsum(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               exclusive, reverse)];
+        }
+        case 'Bincount':
+          const x = getParamValue('x', node, tensorMap, context) as Tensor1D;
+          const weights =
+              getParamValue('weights', node, tensorMap, context) as Tensor1D;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number;
+
+          return [ops.bincount(x, weights, size)];
+        case 'DenseBincount': {
+          const x = getParamValue('x', node, tensorMap, context) as Tensor1D |
+              Tensor2D;
+          const weights =
+              getParamValue('weights', node, tensorMap, context) as Tensor1D |
+              Tensor2D;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number;
+
+          const binaryOutput =
+              getParamValue('binaryOutput', node, tensorMap, context) as
+              boolean;
+
+          return [ops.denseBincount(x, weights, size, binaryOutput)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

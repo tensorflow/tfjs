@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {dispose, maximum, scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs';
+import {dispose, maximum, scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs-core';
 
 import {HistogramStats, TypedArray} from '../types';
 
@@ -108,8 +108,7 @@ export async function tensorStats(input: Tensor): Promise<HistogramStats> {
     return [min, max, numZeros];
   });
 
-  return Promise
-      .all([input.data(), min.data(), max.data(), numZeros.data()])
+  return Promise.all([input.data(), min.data(), max.data(), numZeros.data()])
       .then(([tensorVal, minVal, maxVal, numZerosVal]) => {
         // We currently need to count NaNs on CPU.
         const numVals = tensorVal.length;
@@ -188,12 +187,12 @@ export async function confusionMatrix(
   const predictionsInt = predictions.cast('int32');
 
   if (numClasses == null) {
-    numClasses =
-        tidy(() => {
-          const max =
-              maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
-          return max.dataSync()[0] + 1;
-        });
+    const maximumTensor = tidy(() => {
+      return maximum(labelsInt.max(), predictionsInt.max()).cast('int32');
+    });
+    const maximumArray = await maximumTensor.data();
+    numClasses = maximumArray[0] + 1;
+    maximumTensor.dispose();
   }
 
   let weightsPromise: Promise<null|TypedArray> = Promise.resolve(null);
@@ -289,9 +288,12 @@ export async function perClassAccuracy(
       'labels and predictions must be the same length');
 
   if (numClasses == null) {
-    numClasses = tidy(() => {
-      return maximum(labels.max(), predictions.max()).dataSync()[0] + 1;
+    const maximumTensor = tidy(() => {
+      return maximum(labels.max(), predictions.max());
     });
+    const maximumArray = await maximumTensor.data();
+    numClasses = maximumArray[0] + 1;
+    maximumTensor.dispose();
   }
 
   return Promise.all([labels.data(), predictions.data()])

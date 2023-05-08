@@ -12,15 +12,15 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
 
 #include <xnnpack.h>
 #include <cstddef>
 #include <limits>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // Maps an `xnn_create_*_nc_f32` function pointer to an instantiated operator.

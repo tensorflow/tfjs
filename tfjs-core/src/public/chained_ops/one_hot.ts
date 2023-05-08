@@ -16,7 +16,7 @@
  */
 
 import {oneHot} from '../../ops/one_hot';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.oneHot = function(
+getGlobalTensorClass().prototype.oneHot = function(
     depth: number, onValue = 1, offValue = 0): Tensor {
   this.throwIfDisposed();
   return oneHot(this, depth, onValue, offValue);

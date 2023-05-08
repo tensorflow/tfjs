@@ -21,6 +21,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
+import {Rotation} from './types';
 
 interface Dimensions {
   width: number;
@@ -149,9 +150,10 @@ export function uploadTextureData(
  */
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
-    dims: {width: number, height: number}, flipHorizontal: boolean) {
+    dims: {width: number, height: number}, flipHorizontal: boolean,
+    rotation: Rotation) {
   const {program, vao, vertices, uniformLocations} =
-      drawTextureProgram(gl, flipHorizontal);
+      drawTextureProgram(gl, flipHorizontal, false, rotation);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
@@ -176,9 +178,11 @@ export function drawTexture(
 export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
     inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean,
-    interpolation: 'nearest_neighbor'|'bilinear') {
-  const {program, vao, vertices, uniformLocations} =
-      resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
+    useCustomShadersToResize: boolean,
+    interpolation: 'nearest_neighbor'|'bilinear', rotation: Rotation) {
+  const {program, vao, vertices, uniformLocations} = useCustomShadersToResize ?
+      resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation) :
+      drawTextureProgram(gl, false, true, rotation);
   gl.useProgram(program);
   // Set up geometry
   webgl_util.callAndCheck(gl, () => {
@@ -191,6 +195,12 @@ export function runResizeProgram(
   gl.uniform1i(uniformLocations.get('inputTexture'), 1);
   gl.activeTexture(gl.TEXTURE0 + 1);
   gl.bindTexture(gl.TEXTURE_2D, inputTexture);
+  if (!useCustomShadersToResize) {
+    const textureFilter =
+        interpolation === 'nearest_neighbor' ? gl.NEAREST : gl.LINEAR;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, textureFilter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, textureFilter);
+  }
 
   //
   // Set up output texture.
@@ -295,17 +305,18 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
   return fb;
 }
 
-function drawTextureProgram(
-    gl: WebGL2RenderingContext, flipHorizontal: boolean): ProgramObjects {
+export function drawTextureProgram(
+    gl: WebGL2RenderingContext, flipHorizontal: boolean, flipVertical: boolean,
+    rotation: Rotation): ProgramObjects {
   if (!programCacheByContext.has(gl)) {
     programCacheByContext.set(gl, new Map());
   }
   const programCache = programCacheByContext.get(gl);
 
-  const cacheKey = `drawTexture_${flipHorizontal}`;
+  const cacheKey = `drawTexture_${flipHorizontal}_${flipVertical}_${rotation}`;
   if (!programCache.has(cacheKey)) {
-    const vertSource =
-        drawTextureProgramInfo.vertexShaderSource(flipHorizontal);
+    const vertSource = drawTextureProgramInfo.vertexShaderSource(
+        flipHorizontal, flipVertical, rotation);
     const fragSource = drawTextureProgramInfo.fragmentShaderSource();
 
     const vertices = drawTextureProgramInfo.vertices();

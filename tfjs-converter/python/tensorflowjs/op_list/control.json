@@ -1,5 +1,28 @@
 [
   {
+    "tfOpName": "EmptyTensorList",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "elementShape",
+        "type": "shape"
+      },
+      {
+        "start": 1,
+        "name": "maxNumElements",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "element_dtype",
+        "name": "elementDType",
+        "type": "dtype"
+      }
+    ]
+  },
+  {
     "tfOpName": "LoopCond",
     "category": "control",
     "inputs": [
@@ -743,6 +766,29 @@
     ]
   },
   {
+    "tfOpName": "TensorListConcatV2",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "element_shape",
+        "name": "elementShape",
+        "type": "shape"
+      },
+      {
+        "tfName": "element_dtype",
+        "name": "elementDType",
+        "type": "dtype"
+      }
+    ]
+  },
+  {
     "tfOpName": "TensorListPopBack",
     "category": "control",
     "inputs": [
@@ -785,6 +831,33 @@
         "tfName": "element_dtype",
         "name": "elementDType",
         "type": "dtype"
+      }
+    ]
+  },
+  {
+    "tfOpName": "TensorListLength",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "TensorListResize",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "size",
+        "type": "number"
       }
     ]
   }

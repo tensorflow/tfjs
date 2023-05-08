@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {tidy} from '../globals';
 import {Transpose, TransposeAttrs, TransposeInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -23,8 +24,11 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
+import {complex} from './complex';
+import {imag} from './imag';
+import {neg} from './neg';
 import {op} from './operation';
+import {real} from './real';
 
 /**
  * Transposes the `tf.Tensor`. Permutes the dimensions according to `perm`.
@@ -42,10 +46,12 @@ import {op} from './operation';
  *
  * @param x The tensor to transpose.
  * @param perm The permutation of the dimensions of a.
+ * @param conjugate Will conjugate complex input if true.
  *
  * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
+function transpose_<T extends Tensor>(
+    x: T|TensorLike, perm?: number[], conjugate?: boolean): T {
   const $x = convertToTensor(x, 'x', 'transpose');
 
   if (perm == null) {
@@ -69,9 +75,26 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
   const inputs: TransposeInputs = {x: $x};
   const attrs: TransposeAttrs = {perm};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.transpose($x, perm), inputs as {} as NamedTensorMap,
-      null /* gradient */, Transpose, attrs as {} as NamedAttrMap);
+  if ($x.dtype === 'complex64') {
+    return tidy(() => {
+      let $real = real($x);
+      let $imag = imag($x);
+      $real = ENGINE.runKernel(
+          Transpose, {x: $real} as unknown as NamedTensorMap,
+          attrs as unknown as NamedAttrMap);
+      $imag = ENGINE.runKernel(
+          Transpose, {x: $imag} as unknown as NamedTensorMap,
+          attrs as unknown as NamedAttrMap);
+      if (conjugate) {
+        $imag = neg($imag);
+      }
+      return complex($real, $imag);
+    });
+  }
+
+  return ENGINE.runKernel(
+      Transpose, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const transpose = op({transpose_});
+export const transpose = /* @__PURE__ */ op({transpose_});

@@ -32,11 +32,11 @@ export const dilation2dGradConfig: GradConfig = {
 
     return {
       x: () => ENGINE.runKernel(
-                   Dilation2DBackpropInput, inputInputs as {} as NamedTensorMap,
-                   attrs) as Tensor,
+          Dilation2DBackpropInput,
+          inputInputs as unknown as NamedTensorMap, attrs),
       filter: () => ENGINE.runKernel(
-                        Dilation2DBackpropFilter,
-                        filterInputs as {} as NamedTensorMap, attrs) as Tensor
+          Dilation2DBackpropFilter,
+          filterInputs as unknown as NamedTensorMap, attrs)
     };
   }
 };

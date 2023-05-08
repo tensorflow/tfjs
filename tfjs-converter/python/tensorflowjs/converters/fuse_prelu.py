@@ -87,7 +87,6 @@ def fuse_ops_for_prelu(input_graph_def):
       continue
 
     alpha_tensor_name = neg_alpha_op.name
-    _create_alpha_node(neg_alpha_op, updated_alpha)
 
     relu_neg_input_op = None
     for name in mul_op.input:
@@ -120,6 +119,7 @@ def fuse_ops_for_prelu(input_graph_def):
     node.op = 'Identity'
     del node.input[:]
     node.input.append(relu_input_op.name)
+    _create_alpha_node(neg_alpha_op, updated_alpha)
 
     nodes_to_skip[mul_op.name] = True
     nodes_to_skip[relu_neg_input_op.name] = True
@@ -189,4 +189,3 @@ def fuse_prelu_with_fused_conv2d_or_matmul(input_graph_def):
 
   return graph_rewrite_util.cleanup_graph_def(
       input_graph_def, nodes_to_skip, inputs_to_remove)
-      

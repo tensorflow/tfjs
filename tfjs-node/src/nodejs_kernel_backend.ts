@@ -22,11 +22,15 @@ import {isArray, isNullOrUndefined} from 'util';
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
+// tslint:disable-next-line:no-require-imports
+const messages = require('./proto/api_pb');
+
 type TensorData = {
   shape: number[],
   dtype: number,
   values: backend_util.BackendValues,
-  id: number
+  id: number,
+  refCount: number;
 };
 
 export class NodeJSKernelBackend extends KernelBackend {
@@ -72,7 +76,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       shape: metadata.shape,
       dtype: metadata.dtype,
       id: metadata.id,
-      values: null
+      values: null,
+      refCount: 1
     });
 
     let dtype: DataType;
@@ -81,6 +86,11 @@ export class NodeJSKernelBackend extends KernelBackend {
         dtype = 'float32';
         break;
       case this.binding.TF_INT32:
+        dtype = 'int32';
+        break;
+      case this.binding.TF_INT64:
+        console.warn('INT64 output tensor will be stored as BigInt64Array.');
+        // INT64 is not supported in TFJS yet, cast it to int32.
         dtype = 'int32';
         break;
       case this.binding.TF_BOOL:
@@ -110,7 +120,9 @@ export class NodeJSKernelBackend extends KernelBackend {
     // We can then change the return type from Tensor to TensorInfo.
     // return {dataId: newId, shape: metadata.shape, dtype};
 
-    return tf.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
+    const tensorInfo:
+        TensorInfo = {dataId: newId, shape: metadata.shape, dtype};
+    return tf.engine().makeTensorFromTensorInfo(tensorInfo);
   }
 
   // Prepares Tensor instances for Op execution.
@@ -219,34 +231,58 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  disposeData(dataId: DataId): void {
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
+  disposeData(dataId: DataId, force = false): boolean {
     // No-op if already disposed.
-    if (!this.tensorMap.has(dataId)) {
-      return;
+    if (this.tensorMap.has(dataId)) {
+      const id = this.tensorMap.get(dataId).id;
+      this.tensorMap.get(dataId).refCount--;
+      if (!force && this.tensorMap.get(dataId).refCount > 0) {
+        return false;
+      }
+
+      if (id != null && id >= 0) {
+        this.binding.deleteTensor(id);
+      }
+      this.tensorMap.delete(dataId);
     }
-    const id = this.tensorMap.get(dataId).id;
-    if (id != null && id >= 0) {
-      this.binding.deleteTensor(id);
+    return true;
+  }
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
     }
-    this.tensorMap.delete(dataId);
+    return 0;
+  }
+
+  incRef(dataId: DataId) {
+    this.tensorMap.get(dataId).refCount++;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount});
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
     const dataId = {};
-    this.move(dataId, values, shape, dtype);
+    this.move(dataId, values, shape, dtype, 1);
     return dataId;
   }
 
   applyActivation<T extends Tensor>(
-      input: T, activation: string, preluActivationWeights?: Tensor): T {
+      input: T, activation: string, preluActivationWeights?: Tensor,
+      leakyreluAlpha?: number): T {
     let result = input;
     if (activation != null) {
       if (activation === 'linear') {
@@ -255,10 +291,14 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = tf.relu(result);
       } else if (activation === 'prelu') {
         result = tf.prelu(result, preluActivationWeights) as T;
+      } else if (activation === 'leakyrelu') {
+        result = tf.leakyRelu(result, leakyreluAlpha);
       } else if (activation === 'elu') {
         result = tf.elu(result);
       } else if (activation === 'relu6') {
         result = tf.relu6(result);
+      } else if (activation === 'sigmoid') {
+        result = tf.sigmoid(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -293,67 +333,6 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   int<T extends Tensor>(x: T): T {
     throw new Error('Method not implemented.');
-  }
-
-  // todo(yassogba) consider removing. core does not call this directly
-  complexAbs<T extends Tensor>(x: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tout', 'float32')
-    ];
-    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
-  }
-
-  ifft(x: Tensor2D): Tensor2D {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
-  }
-
-  complex<T extends Tensor>(real: T, imag: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', real),
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-    ];
-    const inputs = [real, imag];
-    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
-  }
-
-  real<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', input), {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
-  }
-
-  imag<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
   }
 
   decodeJpeg(
@@ -414,6 +393,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         this.binding.createTensor(imageShape, this.binding.TF_UINT8, imageData);
     const outputMetadata =
         this.binding.executeOp(name, opAttrs, [inputTensorId], 1);
+    this.binding.deleteTensor(inputTensorId);
     const outputTensorInfo = outputMetadata[0];
     // prevent the tensor data from being converted to a UTF8 string, since
     // the encoded data is not valid UTF8
@@ -479,6 +459,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   private getMappedInputTensorIds(
       inputs: Tensor[], inputTensorInfos: ModelTensorInfo[]) {
     const tensorIds = this.getInputTensorIds(inputs);
+    const newTensors = [];
     for (let i = 0; i < inputs.length; i++) {
       if (inputTensorInfos[i] != null) {
         if (inputTensorInfos[i].tfDtype === 'DT_UINT8') {
@@ -486,25 +467,33 @@ export class NodeJSKernelBackend extends KernelBackend {
           const inputTensorId = this.binding.createTensor(
               inputs[i].shape, this.binding.TF_UINT8, data);
           tensorIds[i] = inputTensorId;
+          newTensors.push(i);
         } else if (inputTensorInfos[i].tfDtype === 'DT_INT64') {
           const data =
               encodeInt32ArrayAsInt64(inputs[i].dataSync() as Int32Array);
           const inputTensorId = this.binding.createTensor(
               inputs[i].shape, this.binding.TF_INT64, data);
           tensorIds[i] = inputTensorId;
+          newTensors.push(i);
         }
       }
     }
-    return tensorIds;
+    return {tensorIds, newTensors};
   }
 
   runSavedModel(
       id: number, inputs: Tensor[], inputTensorInfos: ModelTensorInfo[],
       outputOpNames: string[]): Tensor[] {
+    const {tensorIds, newTensors} =
+        this.getMappedInputTensorIds(inputs, inputTensorInfos);
     const outputMetadata = this.binding.runSavedModel(
-        id, this.getMappedInputTensorIds(inputs, inputTensorInfos),
-        inputTensorInfos.map(info => info.name).join(','),
+        id, tensorIds, inputTensorInfos.map(info => info.name).join(','),
         outputOpNames.join(','));
+    for (let i = 0; i < tensorIds.length; i++) {
+      if (newTensors.includes(i)) {
+        this.binding.deleteTensor(tensorIds[i]);
+      }
+    }
     return outputMetadata.map(m => this.createOutputTensor(m));
   }
 
@@ -562,15 +551,126 @@ export class NodeJSKernelBackend extends KernelBackend {
       }
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteScalarSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
+    });
+  }
 
-      this.binding.executeOp(
-          'WriteScalarSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+  writeHistogramSummary(
+      resourceHandle: Tensor, step: number, name: string, data: Tensor,
+      bucketCount: number|undefined, description: string|undefined): void {
+    tidy(() => {
+      util.assert(
+          Number.isInteger(step),
+          () => `step is expected to be an integer, but is instead ${step}`);
+
+      // We use the WriteSummary op, and not WriteHistogramSummary. The
+      // difference is that WriteHistogramSummary takes a tensor of any shape,
+      // and places the values in 30 buckets, while WriteSummary expects a
+      // tensor which already describes the bucket widths and counts.
+      //
+      // If we were to use WriteHistogramSummary, we wouldn't have to
+      // implement the "bucketization" of the input tensor, but we also
+      // wouldn't have control over the number of buckets, or the description
+      // of the graph.
+      //
+      // Therefore, we instead use WriteSummary, which makes it possible to
+      // support these features. However, the trade-off is that we have to
+      // implement our own "bucketization", and have to write the summary as a
+      // protobuf message.
+      const content = new messages.HistogramPluginData().setVersion(0);
+      const pluginData = new messages.SummaryMetadata.PluginData()
+                             .setPluginName('histograms')
+                             .setContent(content.serializeBinary());
+      const summary = new messages.SummaryMetadata()
+                          .setPluginData(pluginData)
+                          .setDisplayName(null)
+                          .setSummaryDescription(description);
+      const summaryTensor = scalar(summary.serializeBinary(), 'string');
+      const nameTensor = scalar(name, 'string');
+      const stepScalar = new Int64Scalar(step);
+      const buckets = this.buckets(data, bucketCount);
+      util.assert(
+          buckets.rank === 2 && buckets.shape[1] === 3,
+          () => `Expected buckets to have shape [k, 3], but they had shape ${
+              buckets.shape}`);
+      util.assert(
+          buckets.dtype === 'float32',
+          () => `Expected buckets to have dtype float32, but they had dtype ${
+              buckets.dtype}`);
+      const inputArgs: Array<Tensor|Int64Scalar> =
+          [resourceHandle, stepScalar, buckets, nameTensor, summaryTensor];
+      const typeAttr = this.typeAttributeFromTensor(buckets);
+      const opAttrs: TFEOpAttr[] =
+          [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
+      const ids = this.getInputTensorIds(inputArgs);
+      this.binding.executeOp('WriteSummary', opAttrs, ids, 0);
+      // release the tensorflow tensor for Int64Scalar value of step
+      this.binding.deleteTensor(ids[1]);
     });
   }
 
   flushSummaryWriter(resourceHandle: Tensor): void {
     const inputArgs: Tensor[] = [resourceHandle];
     this.executeMultipleOutputs('FlushSummaryWriter', [], inputArgs, 0);
+  }
+
+  /**
+   * Group data into histogram buckets.
+   *
+   * @param data A `Tensor` of any shape. Must be castable to `float32`
+   * @param bucketCount Optional positive `number`
+   * @returns A `Tensor` of shape `[k, 3]` and type `float32`. The `i`th row
+   *     is
+   *   a triple `[leftEdge, rightEdge, count]` for a single bucket. The value
+   * of `k` is either `bucketCount`, `1` or `0`.
+   */
+  private buckets(data: Tensor, bucketCount?: number): Tensor<tf.Rank> {
+    if (data.size === 0) {
+      return tf.tensor([], [0, 3], 'float32');
+    }
+
+    // 30 is the default number of buckets in the TensorFlow Python
+    // implementation. See
+    // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
+    bucketCount = bucketCount !== undefined ? bucketCount : 30;
+    util.assert(
+        Number.isInteger(bucketCount) && bucketCount > 0,
+        () =>
+            `Expected bucket count to be a strictly positive integer, but it was ` +
+            `${bucketCount}`);
+    data = data.flatten();
+    data = data.cast('float32');
+    const min: Scalar = data.min();
+    const max: Scalar = data.max();
+    const range: Scalar = max.sub(min);
+    const isSingular = range.equal(0).arraySync() !== 0;
+
+    if (isSingular) {
+      const center = min;
+      const bucketStart: Scalar = center.sub(0.5);
+      const bucketEnd: Scalar = center.add(0.5);
+      const bucketCounts = tf.scalar(data.size, 'float32');
+      return tf.concat([bucketStart, bucketEnd, bucketCounts]).reshape([1, 3]);
+    }
+
+    const bucketWidth = range.div(bucketCount);
+    const offsets = data.sub(min);
+    const bucketIndices = offsets.floorDiv(bucketWidth).cast('int32');
+    const clampedIndices =
+        tf.minimum(bucketIndices, bucketCount - 1).cast('int32');
+    const oneHots = tf.oneHot(clampedIndices, bucketCount);
+    const bucketCounts = oneHots.sum(0).cast('int32');
+    let edges = tf.linspace(min.arraySync(), max.arraySync(), bucketCount + 1);
+    // Ensure last value in edges is max (TF's linspace op doesn't do this)
+    edges = tf.concat([edges.slice(0, bucketCount), max.reshape([1])], 0) as
+        tf.Tensor1D;
+    const leftEdges = edges.slice(0, bucketCount);
+    const rightEdges = edges.slice(1, bucketCount);
+    return tf.stack([leftEdges, rightEdges, bucketCounts.cast('float32')])
+        .transpose();
   }
 
   // ~ TensorBoard-related (tfjs-node-specific) backend kernels.
@@ -594,6 +694,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   getNumOfSavedModels() {
     return this.binding.getNumOfSavedModels();
+  }
+
+  getNumOfTFTensors() {
+    return this.binding.getNumOfTensors();
   }
 }
 

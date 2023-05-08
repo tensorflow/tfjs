@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Less, LessInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -41,19 +41,15 @@ import {op} from './operation';
  */
 function less_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'less');
-  let $b = convertToTensor(b, 'b', 'less');
+  let $a = convertToTensor(a, 'a', 'less', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'less', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = backend => backend.less($a, $b);
-
   const inputs: LessInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Less) as
-      T;
+  return ENGINE.runKernel(Less, inputs as unknown as NamedTensorMap);
 }
 
-export const less = op({less_});
+export const less = /* @__PURE__ */ op({less_});

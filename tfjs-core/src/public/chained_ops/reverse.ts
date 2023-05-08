@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {reverse} from '../../ops/reverse';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.reverse = function<T extends Tensor>(
+getGlobalTensorClass().prototype.reverse = function<T extends Tensor>(
     this: T, axis?: number|number[]): T {
   this.throwIfDisposed();
   return reverse(this, axis);

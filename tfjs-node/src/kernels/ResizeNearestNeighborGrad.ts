@@ -25,7 +25,8 @@ export const resizeNearestNeighborGradConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {images, dy} = args.inputs as ResizeNearestNeighborGradInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alignCorners} = args.attrs as {} as ResizeNearestNeighborGradAttrs;
+    const {alignCorners} =
+        args.attrs as unknown as ResizeNearestNeighborGradAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype), {

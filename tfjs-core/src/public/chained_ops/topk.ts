@@ -16,7 +16,7 @@
  */
 
 import {topk} from '../../ops/topk';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.topk = function<T extends Tensor>(
+getGlobalTensorClass().prototype.topk = function<T extends Tensor>(
     this: T, k?: number, sorted?: boolean): {values: T, indices: T} {
   this.throwIfDisposed();
   return topk(this, k, sorted) as {values: T, indices: T};

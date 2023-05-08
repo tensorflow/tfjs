@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
 
 #include <xnnpack.h>
 #include <cmath>
@@ -24,8 +24,8 @@
 #include <limits>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // The operator cache maps the weights id to the xnn_operator_t instantiated for

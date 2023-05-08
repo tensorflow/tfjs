@@ -16,7 +16,7 @@
  */
 
 import {divNoNan} from '../../ops/div_no_nan';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -25,8 +25,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.divNoNan = function<T extends Tensor>(b: Tensor|
-                                                       TensorLike): T {
+getGlobalTensorClass().prototype.divNoNan = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return divNoNan(this, b);
 };

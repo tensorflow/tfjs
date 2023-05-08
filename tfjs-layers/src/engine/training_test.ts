@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, util, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackArgs, DEFAULT_YIELD_EVERY_MS, Params} from '../base_callbacks';
@@ -23,7 +23,7 @@ import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {pyListRepeat, stringsEqual, unique} from '../utils/generic_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
@@ -121,6 +121,11 @@ describeMathCPU('standardizeInputData', () => {
     expect(() => standardizeInputData({'Foo': getX()}, ['Foo', 'Bar']))
         .toThrowError(/No data provided for \"Bar\"/);
   });
+  it('Shape mismatch: input shape [1,1] vs expected shape [*,2]', () => {
+    expect(() => standardizeInputData(getX(), ['Foo'], [[null, 2]]))
+        .toThrowError(
+            / expected a batch of elements where each example has shape \[2\]/);
+  });
 });
 
 describeMathCPU('checkArrayLengths', () => {
@@ -145,7 +150,7 @@ describeMathCPU('checkArrayLengths', () => {
   });
 });
 
-describeMathCPUAndGPU('collectMetrics', () => {
+describeMathCPUAndWebGL2('collectMetrics', () => {
   it('shortcut strings name', () => {
     const metrics = 'mse';
     const outputNames = ['output'];
@@ -438,8 +443,103 @@ describeMathCPUAndGPU('LayersModel.predict', () => {
             /batchSize is required to be a positive integer, but got a/);
   });
 });
+describeMathCPUAndWebGL2('LayersModel.fit long', () => {
+  let originalTimeout: number;
 
-describeMathCPUAndGPU('LayersModel.fit', () => {
+  beforeEach(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterEach(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+  it('Return sequences; Fit with metric', async () => {
+    // The golden values for history used in the assertion below can be obtained
+    // with the following Python Keras code.
+    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
+    // 1.7.0-dev20180226.
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // sequenceLength = 3
+    // inputSize = 4
+    // dataSize = 16
+    // validationSplit = 0.5
+    // batchSize = 3
+    // outputSize = 2
+    //
+    // model = keras.Sequential()
+    //
+    // model.add(keras.layers.SimpleRNN(
+    //     outputSize,
+    //     kernel_initializer='ones',
+    //     recurrent_initializer='ones',
+    //     use_bias=False,
+    //     return_sequences=True,
+    //     input_shape=[sequenceLength, inputSize]))
+    // model.add(keras.layers.TimeDistributed(
+    //     keras.layers.Dense(
+    //         outputSize,
+    //         kernel_initializer='ones',
+    //         use_bias=False)))
+    //
+    // model.compile(optimizer='sgd',
+    //               loss='categorical_crossentropy',
+    //               metrics=['accuracy'])
+    // history = model.fit(np.ones([dataSize, sequenceLength, inputSize]),
+    //                     np.ones([dataSize, sequenceLength, outputSize]),
+    //                     batch_size=batchSize,
+    //                     epochs=2,
+    //                     validation_split=validationSplit)
+    // print(history.history)
+    // ```
+    const sequenceLength = 3;
+    const inputSize = 4;
+    const dataSize = 16;
+    const validationSplit = 0.5;
+    const batchSize = 3;
+    // So there are 8 examples for train and validation, respectivly. The actual
+    // batches during training and validation will be 3, 3 and 2. This tests the
+    // correct averaging of the loss values happens without broadcasting.
+    const outputSize = 2;
+    const simpleRNN = tfl.layers.simpleRNN({
+      units: outputSize,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      useBias: false,
+      returnSequences: true,
+    });
+    const timeDistributed = tfl.layers.timeDistributed({
+      layer: tfl.layers.dense(
+          {units: outputSize, kernelInitializer: 'ones', useBias: false})
+    });
+    const input = tfl.layers.input({shape: [sequenceLength, inputSize]});
+    const output =
+        timeDistributed.apply(simpleRNN.apply(input)) as tfl.SymbolicTensor;
+    const model = new tfl.LayersModel({inputs: input, outputs: output});
+    model.compile({
+      optimizer: 'sgd',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy'],
+    });
+    const history = await model.fit(
+        ones([dataSize, sequenceLength, inputSize]),
+        ones([dataSize, sequenceLength, outputSize]), {
+          batchSize,
+          epochs: 1,
+          validationSplit,
+        });
+    expectTensorsClose(
+        history.history['loss'] as number[], [1.3862943649291992]);
+    expectTensorsClose(
+        history.history['val_loss'] as number[], [1.3862943649291992]);
+    expectTensorsClose(history.history['acc'] as number[], [1.0]);
+    expectTensorsClose(history.history['val_acc'] as number[], [1.0]);
+  });
+});
+describeMathCPUAndWebGL2('LayersModel.fit', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const inputSize1 = 3;  // 1st input vector size for model with two inputs.
   const inputSize2 = 4;  // 2nd input vector size for model with two inputs.
@@ -784,92 +884,6 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
        expectTensorsClose(
            valLosses as number[], [7.617599964141846, 6.447536945343018]);
      });
-
-  it('Return sequences; Fit with metric', async () => {
-    // The golden values for history used in the assertion below can be obtained
-    // with the following Python Keras code.
-    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
-    // 1.7.0-dev20180226.
-    // ```python
-    // import keras
-    // import numpy as np
-    //
-    // sequenceLength = 3
-    // inputSize = 4
-    // dataSize = 16
-    // validationSplit = 0.5
-    // batchSize = 3
-    // outputSize = 2
-    //
-    // model = keras.Sequential()
-    //
-    // model.add(keras.layers.SimpleRNN(
-    //     outputSize,
-    //     kernel_initializer='ones',
-    //     recurrent_initializer='ones',
-    //     use_bias=False,
-    //     return_sequences=True,
-    //     input_shape=[sequenceLength, inputSize]))
-    // model.add(keras.layers.TimeDistributed(
-    //     keras.layers.Dense(
-    //         outputSize,
-    //         kernel_initializer='ones',
-    //         use_bias=False)))
-    //
-    // model.compile(optimizer='sgd',
-    //               loss='categorical_crossentropy',
-    //               metrics=['accuracy'])
-    // history = model.fit(np.ones([dataSize, sequenceLength, inputSize]),
-    //                     np.ones([dataSize, sequenceLength, outputSize]),
-    //                     batch_size=batchSize,
-    //                     epochs=2,
-    //                     validation_split=validationSplit)
-    // print(history.history)
-    // ```
-
-    const sequenceLength = 3;
-    const inputSize = 4;
-    const dataSize = 16;
-    const validationSplit = 0.5;
-    const batchSize = 3;
-    // So there are 8 examples for train and validation, respectivly. The actual
-    // batches during training and validation will be 3, 3 and 2. This tests the
-    // correct averaging of the loss values happens without broadcasting.
-    const outputSize = 2;
-    const simpleRNN = tfl.layers.simpleRNN({
-      units: outputSize,
-      kernelInitializer: 'ones',
-      recurrentInitializer: 'ones',
-      useBias: false,
-      returnSequences: true,
-    });
-    const timeDistributed = tfl.layers.timeDistributed({
-      layer: tfl.layers.dense(
-          {units: outputSize, kernelInitializer: 'ones', useBias: false})
-    });
-    const input = tfl.layers.input({shape: [sequenceLength, inputSize]});
-    const output =
-        timeDistributed.apply(simpleRNN.apply(input)) as tfl.SymbolicTensor;
-    const model = new tfl.LayersModel({inputs: input, outputs: output});
-    model.compile({
-      optimizer: 'sgd',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy'],
-    });
-    const history = await model.fit(
-        ones([dataSize, sequenceLength, inputSize]),
-        ones([dataSize, sequenceLength, outputSize]), {
-          batchSize,
-          epochs: 1,
-          validationSplit,
-        });
-    expectTensorsClose(
-        history.history['loss'] as number[], [1.3862943649291992]);
-    expectTensorsClose(
-        history.history['val_loss'] as number[], [1.3862943649291992]);
-    expectTensorsClose(history.history['acc'] as number[], [1.0]);
-    expectTensorsClose(history.history['val_acc'] as number[], [1.0]);
-  });
 
   // TODO(cais): Test metric as a "dict", for models with >1 outputs.
 
@@ -1445,7 +1459,7 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
       this.epochsToTrain = epochsToTrain;
     }
 
-    async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+    override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
       if (epoch === this.epochsToTrain - 1) {
         this.model.stopTraining = true;
       }
@@ -1472,7 +1486,7 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
       this.batchesToTrain = batchesToTrain;
     }
 
-    async onBatchEnd(batch: number, logs?: Logs) {
+    override async onBatchEnd(batch: number, logs?: Logs) {
       if (batch === this.batchesToTrain - 1) {
         this.model.stopTraining = true;
       }
@@ -1724,48 +1738,50 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fit with training-sensitive layers', () => {
-  it('Correct training arg during fit/evaluate/predict', async () => {
-    const inputTensor =
-        tfl.layers.input({shape: [1], name: 'inputLayer1', dtype: 'float32'});
-    const layer1 = tfl.layers.dense({units: 1});
-    const layer2 = tfl.layers.dropout({rate: 0.5});
+describeMathCPUAndWebGL2(
+    'LayersModel.fit with training-sensitive layers', () => {
+      it('Correct training arg during fit/evaluate/predict', async () => {
+        const inputTensor = tfl.layers.input(
+            {shape: [1], name: 'inputLayer1', dtype: 'float32'});
+        const layer1 = tfl.layers.dense({units: 1});
+        const layer2 = tfl.layers.dropout({rate: 0.5});
 
-    // Hook the dropout layer to observe the training arg values during the
-    // fit(), evaluate() and predict() calls.
-    const dropoutLayerTrainingFlags: boolean[] = [];
-    const recordDropoutTrainingArgHook =
-        (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
-          dropoutLayerTrainingFlags.push(kwargs.training as boolean);
-        };
-    layer2.setCallHook(recordDropoutTrainingArgHook);
+        // Hook the dropout layer to observe the training arg values during the
+        // fit(), evaluate() and predict() calls.
+        const dropoutLayerTrainingFlags: boolean[] = [];
+        const recordDropoutTrainingArgHook =
+            (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
+              dropoutLayerTrainingFlags.push(kwargs.training as boolean);
+            };
+        layer2.setCallHook(recordDropoutTrainingArgHook);
 
-    const output =
-        layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
-    const model =
-        new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
-    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const xs = ones([4, 1]);
-    const ys = ones([4, 1]);
+        const output =
+            layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
+        const model =
+            new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
+        model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+        const xs = ones([4, 1]);
+        const ys = ones([4, 1]);
 
-    // 1. Call fit: Dropout layer should be called twice, with training as
-    // true.
-    await model.fit(xs, ys, {epochs: 2, batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true]);
+        // 1. Call fit: Dropout layer should be called twice, with training as
+        // true.
+        await model.fit(xs, ys, {epochs: 2, batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true]);
 
-    // 2. Call evaluate, Dropout layer should be called once, without
-    // training defined.
-    model.evaluate(xs, ys, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
+        // 2. Call evaluate, Dropout layer should be called once, without
+        // training defined.
+        model.evaluate(xs, ys, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
 
-    // 3. Call predict, Dropout layer should be called once, without training
-    //   defined.
-    model.predict(xs, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([
-      true, true, undefined, undefined
-    ]);
-  });
-});
+        // 3. Call predict, Dropout layer should be called once, without
+        // training
+        //   defined.
+        model.predict(xs, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([
+          true, true, undefined, undefined
+        ]);
+      });
+    });
 
 describeMathCPUAndGPU(
     'LayersModel.predict and LayersModel.evaluate: No memory leak', () => {
@@ -1875,7 +1891,7 @@ describeMathCPUAndGPU(
       });
     });
 
-describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
+describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const numSamples = 5;  // Number of samples in a batch.
 
@@ -1903,7 +1919,7 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
   }
 
   it('Repeated fit calls leads to no memory leak: no validation or metrics',
-     async (done) => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
@@ -1914,18 +1930,17 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
          await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=1, ' +
          'no validation or metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
@@ -1936,16 +1951,15 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
          await model.fit(inputs, targets, {batchSize, epochs: 1});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
-  it('Repeated fit calls leads to no memory leak: with metrics', async done => {
+  it('Repeated fit calls leads to no memory leak: with metrics', async () => {
     createDenseModelAndData();
 
     model.compile(
@@ -1957,17 +1971,16 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
       await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
       const numTensorsNow = memory().numTensors;
       if (numTensorsNow > numTensors0) {
-        done.fail(
+        fail(
             `Memory leak detected during fit(): Leaked ` +
             `${numTensorsNow - numTensors0} tensor(s) after the ` +
             `${i + 1}-th fit() call.`);
       }
     }
-    done();
   });
 
   it('Repeated fit calls leads to no memory leak: validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -1983,17 +1996,42 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationSplit});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
+     });
+
+  it('Repeated fit calls of 1d target leads to no memory leak: validationSplit',
+     async () => {
+       createDenseModelAndData();
+
+       const validationSplit = 0.4;
+       targets = ones([numSamples]);
+       model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+       const numTensors0 = memory().numTensors;
+       // Use batchSize === numSamples to get exactly one batch.
+       await model.fit(
+           inputs, targets,
+           {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
+       for (let i = 0; i < 2; ++i) {
+         await model.fit(
+             inputs, targets,
+             {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
+         const numTensorsNow = memory().numTensors;
+         if (numTensorsNow > numTensors0) {
+           fail(
+               `Memory leak detected during fit(): Leaked ` +
+               `${numTensorsNow - numTensors0} tensor(s) after the ` +
+               `${i + 1}-th fit() call.`);
+         }
+       }
      });
 
   it('Repeated fit calls leads to no memory leak: validationData',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationData: [Tensor, Tensor] = [valInputs, valTargets];
@@ -2008,17 +2046,16 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationData});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: metrics & validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -2035,18 +2072,17 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationSplit});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=2, ' +
          'metrics & validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -2067,17 +2103,16 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
          expect(history.history['val_mse'].length).toEqual(epochsPerIter);
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Fit with onEpochEnd callback: no memory leak: validation & metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile(
@@ -2106,23 +2141,22 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
          });
          expect(tensorCounts.length).toEqual(4);
          if (unique(tensorCounts).length !== 1) {
-           done.fail(
+           fail(
                `Detected WebGL memory leak during fit() call with ` +
                `onEpochEnd callback: tensor counts: ${tensorCounts}.`);
          }
          const numTensors1 = memory().numTensors;
          if (numTensors1 > numTensors0) {
-           done.fail(
+           fail(
                `Detected memory leak of ${numTensors1 - numTensors0} ` +
                `tensor(s) after fit() call ${n + 1} of ${numFitCalls} ` +
                `with onEpochEnd callback.`);
          }
        }
-       done();
      });
 
   it('Fit with onBatchEnd callback: no memory leak: validation & metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile(
@@ -2166,7 +2200,7 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
            const inEpochTensorCounts =
                tensorCounts.slice(beginBatch, endBatch - 1);
            if (unique(inEpochTensorCounts).length !== 1) {
-             done.fail(
+             fail(
                  `Detected WebGL memory leak within epoch ${epochIndex + 1} ` +
                  `of ${epochs} of the fit() call with ` +
                  `onBatchEnd callback: tensor counts: ${inEpochTensorCounts}.`);
@@ -2175,12 +2209,11 @@ describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
          expect(tensorCounts.length).toEqual(batchesPerEpoch * epochs);
          const numTensors1 = memory().numTensors;
          if (numTensors1 > numTensors0) {
-           done.fail(
+           fail(
                `Detected memory leak of ${numTensors1 - numTensors0} ` +
                `tensor(s) after fit() call with callback.`);
          }
        }
-       done();
      });
 });
 
@@ -2207,14 +2240,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 2;
     const numExamples = 10;
@@ -2228,6 +2262,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       epochs,
       batchSize: numExamples,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2257,14 +2293,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 2;
     const numExamples = 10;
@@ -2278,6 +2315,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       epochs,
       batchSize: numExamples / 2,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2303,15 +2342,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
-
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
     const inputSize = 2;
     const numExamples = 10;
     const epochs = 5;
@@ -2325,6 +2364,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       batchSize: numExamples,
       yieldEvery,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2339,7 +2380,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     expect(onYieldBatchesIds).toEqual([0, 0, 0]);
   });
 
-  it('fails when onYield is provided, but yieldEvery is never', async done => {
+  it('fails when onYield is provided, but yieldEvery is never', async () => {
     const inputSize = 2;
     const numExamples = 10;
     const epochs = 5;
@@ -2353,20 +2394,22 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
         yieldEvery: 'never',
         callbacks: {onYield: async (_epoch, _batch, _logs) => {}}
       });
-      done.fail('Model.fit should fail');
+      fail('Model.fit should fail');
     } catch {
-      done();
+
     }
   });
 
   it('batch: uneven 9 batches per epoch; 2 epochs', async () => {
     const presetBatchTimestamps = [0, 2, 4, 6, 8, 10];
     let counter = 0;
-    spyOn(util, 'now').and.callFake(() => presetBatchTimestamps[counter++]);
+    const nowFunc = jasmine.createSpy('now').and.callFake(
+        () => presetBatchTimestamps[counter++]);
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 1;
     const numExamples = 10;
@@ -2374,8 +2417,12 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history =
-        await model.fit(xs, ys, {epochs, batchSize: 4, yieldEvery: 'batch'});
+    const history = await model.fit(xs, ys, {
+      epochs,
+      batchSize: 4,
+      yieldEvery: 'batch',
+      callbacks: {nowFunc, nextFrameFunc}
+    });
     expect(history.history.loss.length).toEqual(epochs);
     // There are `ceil(10 / 4)` batches per epoch.
     expect(nextFrameCallCount).toEqual(Math.ceil(10 / 4) * epochs);
@@ -2383,9 +2430,10 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
 
   it('epoch: 10 batches per epoch; 2 epochs', async () => {
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 5;
     const numExamples = 10;
@@ -2393,17 +2441,22 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history = await model.fit(
-        xs, ys, {epochs, batchSize: numExamples / 10, yieldEvery: 'epoch'});
+    const history = await model.fit(xs, ys, {
+      callbacks: {nextFrameFunc},
+      epochs,
+      batchSize: numExamples / 10,
+      yieldEvery: 'epoch'
+    });
     expect(history.history.loss.length).toEqual(epochs);
     expect(nextFrameCallCount).toEqual(epochs);
   });
 
   it('never: 2 batches per epoch; 20 epochs', async () => {
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 5;
     const numExamples = 10;
@@ -2411,15 +2464,23 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history = await model.fit(
-        xs, ys, {epochs, batchSize: numExamples / 2, yieldEvery: 'never'});
+    const history = await model.fit(xs, ys, {
+      callbacks: {nextFrameFunc},
+      epochs,
+      batchSize: numExamples / 2,
+      yieldEvery: 'never'
+    });
     expect(history.history.loss.length).toEqual(epochs);
     // Due to yieldEvery = 'never', no `await nextFrame()` call should have
     // happened.
     expect(nextFrameCallCount).toEqual(0);
   });
 
-  it('resolveScalarInLogs is not called if no custom callbacks', async () => {
+  // TODO: disabled the test, since it will be very hard to inject dependency of
+  // resolveScalarsInLogs, it will be better to test result instead of internal
+  // code structure.
+  // tslint:disable-next-line: ban
+  xit('resolveScalarInLogs is not called if no custom callbacks', async () => {
     const inputSize = 1;
     const numExamples = 10;
     const batchSize = 2;
@@ -2434,7 +2495,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.trainOnBatch', () => {
+describeMathCPUAndWebGL2('LayersModel.trainOnBatch', () => {
   // Reference Python Keras code:
   // ```py
   // import keras

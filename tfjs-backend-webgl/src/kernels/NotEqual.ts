@@ -18,10 +18,12 @@
 import {NotEqual} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {notEqualImplCPU} from '../kernel_utils/shared';
 
 const NOT_EQUAL = `return float(a != b);`;
 
-export const notEqual = binaryKernelFunc({opSnippet: NOT_EQUAL, dtype: 'bool'});
+export const notEqual = binaryKernelFunc(
+    {opSnippet: NOT_EQUAL, cpuKernelImpl: notEqualImplCPU, dtype: 'bool'});
 
 export const notEqualConfig: KernelConfig = {
   kernelName: NotEqual,

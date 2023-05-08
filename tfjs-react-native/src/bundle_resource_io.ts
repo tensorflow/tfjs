@@ -171,13 +171,13 @@ export function bundleResourceIO(
   if (typeof modelJson !== 'object') {
     throw new Error(
         'modelJson must be a JavaScript object (and not a string).\n' +
-        'Have you wrapped yor asset path in a require() statment?');
+        'Have you wrapped your asset path in a require() statement?');
   }
 
   if (typeof modelWeightsId === 'string') {
     throw new Error(
         'modelWeightsID must be a number or number array.\n' +
-        'Have you wrapped yor asset paths in a require() statements?');
+        'Have you wrapped your asset paths in a require() statements?');
   }
   const modelWeightsIdArr =
       Array.isArray(modelWeightsId) ? modelWeightsId : [modelWeightsId];

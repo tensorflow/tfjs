@@ -14,17 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {SplitV, SplitVAttrs, SplitVInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
 import {op} from './operation';
-import {prepareSplitSize} from './split_util';
 
 /**
  * Splits a `tf.Tensor` into sub tensors.
@@ -65,18 +63,12 @@ function split_<T extends Tensor>(
     x: Tensor|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
   const $x = convertToTensor(x, 'x', 'split');
 
-  const forward: ForwardFunc<Tensor> = (backend, _) => {
-    const $axis = parseAxisParam(axis, $x.shape)[0];
-    const splitSizes = prepareSplitSize($x, numOrSizeSplits, $axis);
-    return backend.split($x, splitSizes, $axis) as {} as T;
-  };
-
   const inputs: SplitVInputs = {x: $x};
   const attr: SplitVAttrs = {numOrSizeSplits, axis};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, SplitV,
-             attr as {} as NamedAttrMap) as {} as T[];
+  return ENGINE.runKernel(
+             SplitV, inputs as unknown as NamedTensorMap,
+             attr as unknown as NamedAttrMap) as unknown as T[];
 }
 
-export const split = op({split_});
+export const split = /* @__PURE__ */ op({split_});

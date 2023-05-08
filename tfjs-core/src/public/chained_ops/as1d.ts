@@ -16,7 +16,7 @@
  */
 
 import {reshape} from '../../ops/reshape';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,10 +25,11 @@ declare module '../../tensor' {
   }
 }
 
-/** Converts a `tf.Tensor` to a `tf.Tensor1D`.
+/**
+ * Converts a `tf.Tensor` to a `tf.Tensor1D`.
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-Tensor.prototype.as1D = function<T extends Tensor>(): T {
+getGlobalTensorClass().prototype.as1D = function<T extends Tensor>(): T {
   this.throwIfDisposed();
   return reshape(this, [this.size]) as T;
 };

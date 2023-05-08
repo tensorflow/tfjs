@@ -28,6 +28,7 @@ describeWithFlags('Reshape.', ALL_ENVS, () => {
 
     const x = tf.tensor1d([1, 1, 1, 1]);
     const res =
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel('Reshape', {x}, {shape: [2, 2]}) as Tensor;
 
     expectArraysClose(await res.data(), [1, 1, 1, 1]);
@@ -51,12 +52,14 @@ describeWithFlags('Reshape.', ALL_ENVS, () => {
 
     // Does not add new dataId;
     const res =
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel('Reshape', {x}, {shape: [2, 2]}) as Tensor;
 
     expectArraysEqual(res.shape, [2, 2]);
 
     // Does not add new dataId.
     const res2 =
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel('Reshape', {x: res}, {shape: [1, 4]}) as Tensor;
     expectArraysEqual(res2.shape, [1, 4]);
 

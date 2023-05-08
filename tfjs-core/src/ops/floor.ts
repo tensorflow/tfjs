@@ -36,11 +36,9 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function floor_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'floor');
+  const $x = convertToTensor(x, 'x', 'floor', 'float32');
 
   const inputs: FloorInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.floor($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Floor);
+  return ENGINE.runKernel(Floor, inputs as unknown as NamedTensorMap);
 }
-export const floor = op({floor_});
+export const floor = /* @__PURE__ */ op({floor_});

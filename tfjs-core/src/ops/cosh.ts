@@ -32,18 +32,14 @@ import {op} from './operation';
  *
  * x.cosh().print();  // or tf.cosh(x)
  * ```
- * @param x The input tensor.
+ * @param x The input tensor. Must be float32 type.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function cosh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'cosh');
+  const $x = convertToTensor(x, 'x', 'cosh', 'float32');
   const inputs: CoshInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.cosh($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Cosh);
+  return ENGINE.runKernel(Cosh, inputs as unknown as NamedTensorMap);
 }
-export const cosh = op({cosh_});
+export const cosh = /* @__PURE__ */ op({cosh_});

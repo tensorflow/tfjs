@@ -31,15 +31,24 @@ export const executeOp: InternalOpAsyncExecutor = async(
   switch (node.op) {
     case 'HashTable':
     case 'HashTableV2': {
-      const keyDType =
-          getParamValue('keyDType', node, tensorMap, context) as DataType;
-      const valueDType =
-          getParamValue('valueDType', node, tensorMap, context) as DataType;
+      const existingTableHandle =
+          resourceManager.getHashTableHandleByName(node.name);
+      // Table is shared with initializer.
+      if (existingTableHandle != null) {
+        return [existingTableHandle];
+      } else {
+        const keyDType =
+            getParamValue('keyDType', node, tensorMap, context) as DataType;
+        const valueDType =
+            getParamValue('valueDType', node, tensorMap, context) as DataType;
 
-      const hashTable = new HashTable(keyDType, valueDType);
-      resourceManager.addHashTable(node.name, hashTable);
-      return [hashTable.handle];
+        const hashTable = new HashTable(keyDType, valueDType);
+        resourceManager.addHashTable(node.name, hashTable);
+        return [hashTable.handle];
+      }
     }
+    case 'InitializeTable':
+    case 'InitializeTableV2':
     case 'LookupTableImport':
     case 'LookupTableImportV2': {
       const handle = getParamValue(
@@ -64,6 +73,15 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const hashTable = resourceManager.getHashTableById(handle.id);
       return [await hashTable.find(keys, defaultValue)];
+    }
+    case 'LookupTableSize':
+    case 'LookupTableSizeV2': {
+      const handle = getParamValue(
+                         'tableHandle', node, tensorMap, context,
+                         resourceManager) as Tensor;
+
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [hashTable.tensorSize()];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

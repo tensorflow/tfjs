@@ -40,8 +40,8 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(await r.data(), 1);
   });
 
-  it('ignores NaNs', async () => {
-    expectArraysClose(await tf.max([3, NaN, 2]).data(), 3);
+  it('return NaNs', async () => {
+    expectArraysClose(await tf.max([3, NaN, 2]).data(), NaN);
   });
 
   it('2D', async () => {
@@ -116,6 +116,12 @@ describeWithFlags('max', ALL_ENVS, () => {
   it('accepts a tensor-like object', async () => {
     const r = tf.max([3, -1, 0, 100, -7, 2]);
     expectArraysClose(await r.data(), 100);
+  });
+
+  it('accepts int32 tensor', async () => {
+    const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3], 'int32');
+    expect(a.dtype).toEqual('int32');
+    expectArraysClose(await tf.max(a).data(), 100);
   });
 
   it('max gradient: Scalar', async () => {

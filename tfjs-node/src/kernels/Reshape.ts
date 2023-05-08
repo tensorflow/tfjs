@@ -25,7 +25,7 @@ export const reshapeConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as ReshapeInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {shape} = args.attrs as {} as ReshapeAttrs;
+    const {shape} = args.attrs as unknown as ReshapeAttrs;
 
     const shapeTensor = tensor1d(shape, 'int32');
 

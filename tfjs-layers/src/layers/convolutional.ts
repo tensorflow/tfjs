@@ -13,18 +13,18 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {fused, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
+import {fused, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, tidy} from '@tensorflow/tfjs-core';
 
 import {Activation, getActivation, serializeActivation} from '../activations';
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, checkPaddingMode} from '../common';
+import {checkDataFormat, checkInterpolationFormat, checkPaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
+import {DataFormat, InterpolationFormat, PaddingMode, Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';
@@ -483,7 +483,7 @@ export abstract class BaseConv extends Layer {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       kernelSize: this.kernelSize,
       strides: this.strides,
@@ -532,7 +532,7 @@ export abstract class Conv extends BaseConv {
     this.kernelRegularizer = getRegularizer(args.kernelRegularizer);
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     const channelAxis =
         this.dataFormat === 'channelsFirst' ? 1 : inputShape.length - 1;
@@ -558,13 +558,13 @@ export abstract class Conv extends BaseConv {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
       const fusedActivationName = generic_utils.mapActivationToFusedKernel(
-                                            this.activation.getClassName());
+          this.activation.getClassName());
 
       if (fusedActivationName != null && this.rank === 2) {
         outputs = conv2dWithBiasActivation(
@@ -599,7 +599,7 @@ export abstract class Conv extends BaseConv {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const newSpace: number[] = [];
     const space = (this.dataFormat === 'channelsLast') ?
@@ -624,7 +624,7 @@ export abstract class Conv extends BaseConv {
     return outputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {
       filters: this.filters,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
@@ -636,7 +636,7 @@ export abstract class Conv extends BaseConv {
     return config;
   }
 
-  protected static verifyArgs(args: ConvLayerArgs) {
+  protected static override verifyArgs(args: ConvLayerArgs) {
     // Check config.filters type, shape, and value.
     if (!('filters' in args) || typeof args.filters !== 'number' ||
         args.filters < 1) {
@@ -655,13 +655,13 @@ export class Conv2D extends Conv {
     Conv2D.verifyArgs(args);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
     return config;
   }
 
-  protected static verifyArgs(args: ConvLayerArgs) {
+  protected static override verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
     if ((typeof args.kernelSize !== 'number') &&
         !generic_utils.checkArrayTypeAndLength(
@@ -682,13 +682,13 @@ export class Conv3D extends Conv {
     Conv3D.verifyArgs(args);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
     return config;
   }
 
-  protected static verifyArgs(args: ConvLayerArgs) {
+  protected static override verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
     if (typeof args.kernelSize !== 'number') {
       if (!(Array.isArray(args.kernelSize) &&
@@ -705,8 +705,7 @@ serialization.registerClass(Conv3D);
 
 export class Conv2DTranspose extends Conv2D {
   /** @nocollapse */
-  static className = 'Conv2DTranspose';
-  inputSpec: InputSpec[];
+  static override className = 'Conv2DTranspose';
 
   constructor(args: ConvLayerArgs) {
     super(args);
@@ -719,7 +718,7 @@ export class Conv2DTranspose extends Conv2D {
     }
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
 
     if (inputShape.length !== 4) {
@@ -753,7 +752,7 @@ export class Conv2DTranspose extends Conv2D {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tfc.tidy(() => {
       let input = getExactlyOneTensor(inputs);
       if (input.shape.length !== 4) {
@@ -814,7 +813,7 @@ export class Conv2DTranspose extends Conv2D {
     });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
 
@@ -844,13 +843,173 @@ export class Conv2DTranspose extends Conv2D {
     return outputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     delete config['dilationRate'];
     return config;
   }
 }
 serialization.registerClass(Conv2DTranspose);
+
+export class Conv3DTranspose extends Conv3D {
+  /** @nocollapse */
+  static override className = 'Conv3DTranspose';
+
+  constructor(args: ConvLayerArgs) {
+    super(args);
+    this.inputSpec = [new InputSpec({ndim: 5})];
+
+    if (this.padding !== 'same' && this.padding !== 'valid') {
+      throw new ValueError(
+          `Conv3DTranspose currently supports only padding modes 'same' ` +
+          `and 'valid', but received padding mode ${this.padding}`);
+    }
+  }
+
+  override build(inputShape: Shape|Shape[]): void {
+    inputShape = getExactlyOneShape(inputShape);
+
+    if (inputShape.length !== 5) {
+      throw new ValueError(
+          'Input should have rank 5; Received input shape: ' +
+          JSON.stringify(inputShape));
+    }
+
+    const channelAxis =
+        this.dataFormat === 'channelsFirst' ? 1 : inputShape.length - 1;
+    if (inputShape[channelAxis] == null) {
+      throw new ValueError(
+          'The channel dimension of the inputs should be defined. ' +
+          'Found `None`.');
+    }
+    const inputDim = inputShape[channelAxis];
+    const kernelShape = this.kernelSize.concat([this.filters, inputDim]);
+
+    this.kernel = this.addWeight(
+        'kernel', kernelShape, 'float32', this.kernelInitializer,
+        this.kernelRegularizer, true, this.kernelConstraint);
+    if (this.useBias) {
+      this.bias = this.addWeight(
+          'bias', [this.filters], 'float32', this.biasInitializer,
+          this.biasRegularizer, true, this.biasConstraint);
+    }
+
+    // Set input spec.
+    this.inputSpec =
+        [new InputSpec({ndim: 5, axes: {[channelAxis]: inputDim}})];
+    this.built = true;
+  }
+
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    return tfc.tidy<tfc.Tensor5D>(() => {
+      let input = getExactlyOneTensor(inputs);
+      if (input.shape.length !== 5) {
+        throw new ValueError(
+            `Conv3DTranspose.call() expects input tensor to be rank-4, but ` +
+            `received a tensor of rank-${input.shape.length}`);
+      }
+
+      const inputShape = input.shape;
+      const batchSize = inputShape[0];
+
+      let hAxis: number;
+      let wAxis: number;
+      let dAxis: number;
+
+      if (this.dataFormat === 'channelsFirst') {
+        dAxis = 2;
+        hAxis = 3;
+        wAxis = 4;
+      } else {
+        dAxis = 1;
+        hAxis = 2;
+        wAxis = 3;
+      }
+
+      const depth = inputShape[dAxis];
+      const height = inputShape[hAxis];
+      const width = inputShape[wAxis];
+      const kernelD = this.kernelSize[0];
+      const kernelH = this.kernelSize[1];
+      const kernelW = this.kernelSize[2];
+      const strideD = this.strides[0];
+      const strideH = this.strides[1];
+      const strideW = this.strides[2];
+
+      // Infer the dynamic output shape.
+      const outDepth = deconvLength(depth, strideD, kernelD, this.padding);
+      const outHeight = deconvLength(height, strideH, kernelH, this.padding);
+      const outWidth = deconvLength(width, strideW, kernelW, this.padding);
+
+      // Same as `conv2dTranspose`. We always assumes channelsLast.
+      const outputShape: [number, number, number, number, number] =
+          [batchSize, outDepth, outHeight, outWidth, this.filters];
+      if (this.dataFormat !== 'channelsLast') {
+        input = tfc.transpose(input, [0, 2, 3, 4, 1]);
+      }
+      let outputs = tfc.conv3dTranspose(
+          input as Tensor5D, this.kernel.read() as Tensor5D, outputShape,
+          this.strides as [number, number, number],
+          this.padding as 'same' | 'valid');
+      if (this.dataFormat !== 'channelsLast') {
+        outputs = tfc.transpose(outputs, [0, 4, 1, 2, 3]);
+      }
+
+      if (this.bias !== null) {
+        outputs =
+            K.biasAdd(outputs, this.bias.read(), this.dataFormat) as Tensor5D;
+      }
+      if (this.activation !== null) {
+        outputs = this.activation.apply(outputs) as Tensor5D;
+      }
+      return outputs;
+    });
+  }
+
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+    inputShape = getExactlyOneShape(inputShape);
+    const outputShape = inputShape.slice();
+
+    let channelAxis: number;
+    let depthAxis: number;
+    let heightAxis: number;
+    let widthAxis: number;
+    if (this.dataFormat === 'channelsFirst') {
+      channelAxis = 1;
+      depthAxis = 2;
+      heightAxis = 3;
+      widthAxis = 4;
+    } else {
+      channelAxis = 4;
+      depthAxis = 1;
+      heightAxis = 2;
+      widthAxis = 3;
+    }
+
+    const kernelD = this.kernelSize[0];
+    const kernelH = this.kernelSize[1];
+    const kernelW = this.kernelSize[2];
+    const strideD = this.strides[0];
+    const strideH = this.strides[1];
+    const strideW = this.strides[2];
+
+    outputShape[channelAxis] = this.filters;
+    outputShape[depthAxis] =
+        deconvLength(outputShape[depthAxis], strideD, kernelD, this.padding);
+    outputShape[heightAxis] =
+        deconvLength(outputShape[heightAxis], strideH, kernelH, this.padding);
+    outputShape[widthAxis] =
+        deconvLength(outputShape[widthAxis], strideW, kernelW, this.padding);
+    return outputShape;
+  }
+
+  override getConfig(): serialization.ConfigDict {
+    const config = super.getConfig();
+    delete config['dilationRate'];
+    return config;
+  }
+}
+serialization.registerClass(Conv3DTranspose);
 
 export declare interface SeparableConvLayerArgs extends ConvLayerArgs {
   /**
@@ -948,7 +1107,7 @@ export class SeparableConv extends Conv {
     this.pointwiseConstraint = getConstraint(config.pointwiseConstraint);
   }
 
-  build(inputShape: Shape|Shape[]): void {
+  override build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);
     if (inputShape.length < this.rank + 2) {
       throw new ValueError(
@@ -995,7 +1154,7 @@ export class SeparableConv extends Conv {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
 
@@ -1029,7 +1188,7 @@ export class SeparableConv extends Conv {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
     delete config['kernelInitializer'];
@@ -1053,7 +1212,7 @@ export class SeparableConv extends Conv {
 
 export class SeparableConv2D extends SeparableConv {
   /** @nocollapse */
-  static className = 'SeparableConv2D';
+  static override className = 'SeparableConv2D';
   constructor(args?: SeparableConvLayerArgs) {
     super(2, args);
   }
@@ -1069,14 +1228,14 @@ export class Conv1D extends Conv {
     this.inputSpec = [{ndim: 3}];
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
     delete config['dataFormat'];
     return config;
   }
 
-  protected static verifyArgs(args: ConvLayerArgs) {
+  protected static override verifyArgs(args: ConvLayerArgs) {
     // config.kernelSize must be a number or array of numbers.
     if (typeof args.kernelSize !== 'number' &&
         !generic_utils.checkArrayTypeAndLength(
@@ -1098,7 +1257,7 @@ export declare interface Cropping2DLayerArgs extends LayerArgs {
    *   interpreted as two different
    *   symmetric cropping values for height and width:
    *   `[symmetric_height_crop, symmetric_width_crop]`.
-   * - If a list of 2 list of 2 integers:
+   * - If a list of 2 lists of 2 integers:
    *   interpreted as
    *   `[[top_crop, bottom_crop], [left_crop, right_crop]]`
    */
@@ -1143,7 +1302,7 @@ export class Cropping2D extends Layer {
     this.inputSpec = [{ndim: 4}];
   }
 
-  computeOutputShape(inputShape: Shape): Shape {
+  override computeOutputShape(inputShape: Shape): Shape {
     if (this.dataFormat === 'channelsFirst') {
       return [
         inputShape[0], inputShape[1],
@@ -1159,7 +1318,7 @@ export class Cropping2D extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
 
@@ -1181,7 +1340,7 @@ export class Cropping2D extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config = {cropping: this.cropping, dataFormat: this.dataFormat};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -1210,6 +1369,11 @@ export declare interface UpSampling2DLayerArgs extends LayerArgs {
    * Defaults to `"channelsLast"`.
    */
   dataFormat?: DataFormat;
+  /**
+   * The interpolation mechanism, one of `"nearest"` or `"bilinear"`, default
+   * to `"nearest"`.
+   */
+  interpolation?: InterpolationFormat;
 }
 
 export class UpSampling2D extends Layer {
@@ -1218,6 +1382,7 @@ export class UpSampling2D extends Layer {
   protected readonly DEFAULT_SIZE = [2, 2];
   protected readonly size: number[];
   protected readonly dataFormat: DataFormat;
+  protected readonly interpolation: InterpolationFormat;
 
   constructor(args: UpSampling2DLayerArgs) {
     super(args);
@@ -1225,9 +1390,13 @@ export class UpSampling2D extends Layer {
     this.size = args.size == null ? this.DEFAULT_SIZE : args.size;
     this.dataFormat =
         args.dataFormat == null ? 'channelsLast' : args.dataFormat;
+    checkDataFormat(this.dataFormat);
+    this.interpolation =
+        args.interpolation == null ? 'nearest' : args.interpolation;
+    checkInterpolationFormat(this.interpolation);
   }
 
-  computeOutputShape(inputShape: Shape): Shape {
+  override computeOutputShape(inputShape: Shape): Shape {
     if (this.dataFormat === 'channelsFirst') {
       const height =
           inputShape[2] == null ? null : this.size[0] * inputShape[2];
@@ -1241,7 +1410,7 @@ export class UpSampling2D extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tfc.tidy(() => {
       let input = getExactlyOneTensor(inputs) as Tensor4D;
       const inputShape = input.shape;
@@ -1250,18 +1419,27 @@ export class UpSampling2D extends Layer {
         input = tfc.transpose(input, [0, 2, 3, 1]);
         const height = this.size[0] * inputShape[2];
         const width = this.size[1] * inputShape[3];
-        const resized = input.resizeNearestNeighbor([height, width]);
+
+        const resized = this.interpolation === 'nearest' ?
+            tfc.image.resizeNearestNeighbor(input, [height, width]) :
+            tfc.image.resizeBilinear(input, [height, width]);
         return tfc.transpose(resized, [0, 3, 1, 2]);
       } else {
         const height = this.size[0] * inputShape[1];
         const width = this.size[1] * inputShape[2];
-        return input.resizeNearestNeighbor([height, width]);
+        return this.interpolation === 'nearest' ?
+            tfc.image.resizeNearestNeighbor(input, [height, width]) :
+            tfc.image.resizeBilinear(input, [height, width]);
       }
     });
   }
 
-  getConfig(): serialization.ConfigDict {
-    const config = {size: this.size, dataFormat: this.dataFormat};
+  override getConfig(): serialization.ConfigDict {
+    const config = {
+        size: this.size,
+        dataFormat: this.dataFormat,
+        interpolation: this.interpolation
+    };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;

@@ -29,6 +29,10 @@ class TestBackendTimer implements BackendTimer {
       private delayMs: number, private queryTimeMs: number,
       private extraInfo: string) {}
 
+  timerAvailable() {
+    return true;
+  }
+
   async time(query: () => void): Promise<BackendTimingInfo> {
     query();
     const kernelMs = await new Promise<number>(
@@ -39,7 +43,7 @@ class TestBackendTimer implements BackendTimer {
 }
 
 class TestLogger extends Logger {
-  logKernelProfile(
+  override logKernelProfile(
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 

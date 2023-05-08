@@ -44,6 +44,20 @@ describeWithFlags('pad 1d', ALL_ENVS, () => {
     a = tf.tensor1d([1, 2, 3, 4]);
     b = tf.pad1d(a, [2, 1], 1);
     expectArraysClose(await b.data(), [1, 1, 1, 2, 3, 4, 1]);
+
+    a = tf.tensor1d([1, 2, 3, 4]);
+    b = tf.pad1d(a, [2, 1], Number.NEGATIVE_INFINITY);
+    expectArraysClose(await b.data(), [
+      Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, 1, 2, 3, 4,
+      Number.NEGATIVE_INFINITY
+    ]);
+
+    a = tf.tensor1d([1, 2, 3, 4]);
+    b = tf.pad1d(a, [2, 1], Number.POSITIVE_INFINITY);
+    expectArraysClose(await b.data(), [
+      Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, 1, 2, 3, 4,
+      Number.POSITIVE_INFINITY
+    ]);
   });
 
   it('Should handle NaNs with 1D arrays', async () => {
@@ -59,6 +73,14 @@ describeWithFlags('pad 1d', ALL_ENVS, () => {
       tf.pad1d(a, [2, 2, 2] as any);
     };
     expect(f).toThrowError();
+  });
+
+  it('Should handle empty tensor with meaningful dims', async () => {
+    const a = tf.tensor([], [0, 1]);
+    const b = tf.pad(a, [[0, 4], [0, 0]], 2);
+
+    expectArraysClose(await b.data(), [2, 2, 2, 2]);
+    expectArraysClose(b.shape, [4, 1]);
   });
 
   it('grad', async () => {

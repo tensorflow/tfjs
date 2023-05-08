@@ -20,12 +20,13 @@ import {NamedTensorMap} from '../../tensor_types';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import {nonMaxSuppSanityCheck} from '../nonmax_util';
+import {tensor1d} from '../tensor1d';
 
 /**
  * Asynchronously performs non maximum suppression of bounding boxes based on
  * iou (intersection over union).
  *
- * This op also supports a Soft-NMS mode (c.f.
+ * This op also supports a Soft-NMS mode (cf.
  * Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
  * of other overlapping boxes, therefore favoring different regions of the image
  * with high scores. To enable this Soft-NMS mode, set the `softNmsSigma`
@@ -73,7 +74,7 @@ async function nonMaxSuppressionWithScoreAsync_(
   // We call a cpu based impl directly with the typedarray data  here rather
   // than a kernel because all kernels are synchronous (and thus cannot await
   // .data()).
-  const res = nonMaxSuppressionV5Impl(
+  const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
 
@@ -83,7 +84,11 @@ async function nonMaxSuppressionWithScoreAsync_(
   if ($scores !== scores) {
     $scores.dispose();
   }
-  return res;
+
+  return {
+    selectedIndices: tensor1d(selectedIndices, 'int32'),
+    selectedScores: tensor1d(selectedScores)
+  };
 }
 
 export const nonMaxSuppressionWithScoreAsync = nonMaxSuppressionWithScoreAsync_;

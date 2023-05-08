@@ -38,10 +38,6 @@ function acos_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'acos');
   const inputs: AcosInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.acos($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Acos);
+  return ENGINE.runKernel(Acos, inputs as unknown as NamedTensorMap);
 }
-export const acos = op({acos_});
+export const acos = /* @__PURE__ */ op({acos_});

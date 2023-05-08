@@ -106,6 +106,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     quantization_dtype_map=None,
     skip_op_check=False,
     strip_debug_ops=False,
+    use_structured_outputs_names=False,
     weight_shard_size_bytes=1024 * 1024 * 4,
     control_flow_v2=False,
     experiments=False,
@@ -122,6 +123,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       to weights. The weight mapping supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
+    use_structured_outputs_names: Bool whether output of graph model will follow
+      the structured_outputs format.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
@@ -149,6 +152,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       quantization_dtype_map=quantization_dtype_map,
       skip_op_check=skip_op_check,
       strip_debug_ops=strip_debug_ops,
+      use_structured_outputs_names=use_structured_outputs_names,
       weight_shard_size_bytes=weight_shard_size_bytes,
       control_flow_v2=control_flow_v2,
       experiments=experiments,
@@ -506,6 +510,7 @@ def _dispatch_converter(input_format,
         quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
+        use_structured_outputs_names=args.use_structured_outputs_names,
         weight_shard_size_bytes=weight_shard_size_bytes,
         control_flow_v2=args.control_flow_v2,
         experiments=args.experiments,
@@ -527,6 +532,7 @@ def _dispatch_converter(input_format,
         quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
+        use_structured_outputs_names=args.use_structured_outputs_names,
         weight_shard_size_bytes=weight_shard_size_bytes,
         control_flow_v2=args.control_flow_v2,
         experiments=args.experiments,
@@ -540,6 +546,7 @@ def _dispatch_converter(input_format,
         quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
+        use_structured_outputs_names=args.use_structured_outputs_names,
         weight_shard_size_bytes=weight_shard_size_bytes,
         control_flow_v2=args.control_flow_v2,
         experiments=args.experiments,
@@ -703,6 +710,13 @@ def get_arg_parser():
       type=bool,
       default=True,
       help='Strip debug ops (Print, Assert, CheckNumerics) from graph.')
+  parser.add_argument(
+      '--%s' % common.USE_STRUCTURED_OUTPUTS_NAMES,
+      type=bool,
+      default=False,
+      help='TFJS graph outputs become a tensor map with the same structure as '
+      'the TF graph structured_outputs (only supported for structured_outputs '
+      'of the form {key1: tensor1, key2: tensor2...})')
   parser.add_argument(
       '--%s' % common.WEIGHT_SHARD_SIZE_BYTES,
       type=int,

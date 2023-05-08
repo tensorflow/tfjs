@@ -16,12 +16,13 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {registerBackend, removeBackend, test_util, util} from '@tensorflow/tfjs-core';
+import {registerBackend, removeBackend, test_util, env} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath, setWasmPaths} from './index';
+import {VALID_PREFIX, setupCachedWasmPaths} from './test_util';
 
 /**
  * Tests specific to the wasm backend. The name of these tests must start with
@@ -63,10 +64,37 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     // Tensor values should match.
     test_util.expectArraysClose(await t.data(), view);
   });
+
+  // TODO(mattSoulanille): Re-enable this once it's working on iOS.
+  // tslint:disable-next-line: ban
+  xit('allocates more than two gigabytes', async () => {
+    const size = 2**30 / 4; // 2**30 bytes (4 bytes per number) = 1GB
+
+    // Allocate 3 gigabytes.
+    const t0 = tf.zeros([size], 'float32');
+    const t1 = tf.ones([size], 'float32');
+    const t2 = t1.mul(2);
+
+    // Helper function to check if all the values in a tensor equal an expected
+    // value.
+    async function check(tensor: tf.Tensor, name: string, val: number) {
+      const arr = await tensor.data();
+      for (let i = 0; i < size; i++) {
+        if (arr[i] !== val) {
+          throw new Error(`${name}[${i}] == ${arr[i]} but should be ${val}`);
+        }
+      }
+    }
+
+    await check(t0, 't0', 0);
+    await check(t1, 't1', 1);
+    await check(t2, 't2', 2);
+  });
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setupCachedWasmPaths();
     registerBackend('wasm-test', async () => {
       const {wasm} = await init();
       return new BackendWasm(wasm);
@@ -77,18 +105,20 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     spyOn(console, 'log');
   });
 
-  afterEach(() => {
-    resetWasmPath();
+  afterEach(async () => {
     removeBackend('wasm-test');
   });
 
+  afterAll(setupCachedWasmPaths);
+
   it('backend init fails when the path is invalid', async () => {
+    resetWasmPath();
     setWasmPath('invalid/path');
     let wasmPath: string;
-    const realFetch = fetch;
     spyOn(self, 'fetch').and.callFake((path: string) => {
       wasmPath = path;
-      return realFetch(path);
+      return Promise.reject(
+        new TypeError('Failed to fetch because invalid path'));
     });
     expect(await tf.setBackend('wasm-test')).toBe(false);
     expect(wasmPath).toBe('invalid/path');
@@ -97,12 +127,13 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid prefix',
      async () => {
+       resetWasmPath();
        setWasmPaths('invalid/prefix/');
        let wasmPath: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPath = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid prefix'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPath).toContain('invalid/prefix');
@@ -111,16 +142,17 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid fileMap',
      async () => {
+       resetWasmPath();
        setWasmPaths({
          'tfjs-backend-wasm.wasm': 'invalid/path',
          'tfjs-backend-wasm-simd.wasm': 'invalid/path',
          'tfjs-backend-wasm-threaded-simd.wasm': 'invalid/path'
        });
        let wasmPathPrefix: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPathPrefix = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid paths'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPathPrefix).toBe('invalid/path');
@@ -136,75 +168,89 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        }).toThrow();
      });
 
-  it('backend init works when the path is valid and use platform fetch',
-     async () => {
-       const usePlatformFetch = true;
-       const validPrefix = '/base/wasm-out/';
-       setWasmPaths(validPrefix, usePlatformFetch);
-       let wasmPath: string;
-       const realFetch = util.fetch;
-       spyOn(util, 'fetch').and.callFake((path: string) => {
-         wasmPath = path;
-         return realFetch(path);
-       });
-       expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
-     });
+  describe('platform fetch', () => {
+    let fetchSpy: jasmine.Spy;
+    let realFetch: typeof fetch;
 
-  it('backend init works when the wasm paths overrides map is valid and ' +
-         'using platform fetch',
-     async () => {
-       const usePlatformFetch = true;
-       const validPrefix = '/base/wasm-out/';
-       setWasmPaths(
-           {
-             'tfjs-backend-wasm.wasm': '/base/wasm-out/tfjs-backend-wasm.wasm',
-             'tfjs-backend-wasm-simd.wasm':
-                 '/base/wasm-out/tfjs-backend-wasm.wasm',
-             'tfjs-backend-wasm-threaded-simd.wasm':
-                 '/base/wasm-out/tfjs-backend-wasm.wasm'
-           },
-           usePlatformFetch);
-       let wasmPath: string;
-       const realFetch = util.fetch;
-       spyOn(util, 'fetch').and.callFake((path: string) => {
-         wasmPath = path;
-         return realFetch(path);
-       });
-       expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
-     });
+    beforeEach(() => {
+      realFetch = env().platform.fetch;
+      fetchSpy = spyOn(env().platform, 'fetch');
+    });
 
-  it('backend init works when the path is valid and use platform fetch',
-     async () => {
-       const usePlatformFetch = true;
-       const validPath = '/base/wasm-out/tfjs-backend-wasm.wasm';
-       setWasmPath(validPath, usePlatformFetch);
-       let wasmPath: string;
-       const realFetch = util.fetch;
-       spyOn(util, 'fetch').and.callFake((path: string) => {
-         wasmPath = path;
-         return realFetch(path);
-       });
-       expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPath).toBe(validPath);
-     });
+    afterEach(() => {
+      env().platform.fetch = realFetch;
+    });
 
-  // Disabling this test because it intermittently times out on CI.
-  // tslint:disable-next-line: ban
-  xit('backend init fails when the path is invalid and use platform fetch',
-      async () => {
-        const usePlatformFetch = true;
-        setWasmPath('invalid/path', usePlatformFetch);
-        let wasmPath: string;
-        const realFetch = util.fetch;
-        spyOn(util, 'fetch').and.callFake((path: string) => {
-          wasmPath = path;
-          return realFetch(path);
-        });
-        expect(await tf.setBackend('wasm-test')).toBe(false);
-        expect(wasmPath).toBe('invalid/path');
+    it('backend init works when the path is valid', async () => {
+      const usePlatformFetch = true;
+      resetWasmPath();
+      setWasmPaths(VALID_PREFIX, usePlatformFetch);
+      let wasmPath: string;
+      fetchSpy.and.callFake((path: string) => {
+        wasmPath = path;
+        return realFetch(path);
       });
+      expect(await tf.setBackend('wasm-test')).toBe(true);
+      const validPaths = new Set([
+        VALID_PREFIX + 'tfjs-backend-wasm.wasm',
+        VALID_PREFIX + 'tfjs-backend-wasm-simd.wasm',
+        VALID_PREFIX + 'tfjs-backend-wasm-threaded-simd.wasm',
+      ]);
+      expect(validPaths).toContain(wasmPath);
+    });
+
+    it('backend init works when the wasm paths overrides map is valid',
+        async () => {
+          const usePlatformFetch = true;
+          setWasmPaths({
+            'tfjs-backend-wasm.wasm': `${VALID_PREFIX}tfjs-backend-wasm.wasm`,
+            'tfjs-backend-wasm-simd.wasm':
+            `${VALID_PREFIX}tfjs-backend-wasm-simd.wasm`,
+            'tfjs-backend-wasm-threaded-simd.wasm':
+            `${VALID_PREFIX}tfjs-backend-wasm-threaded-simd.wasm`,
+          }, usePlatformFetch);
+          let wasmPath: string;
+          fetchSpy.and.callFake((path: string) => {
+            wasmPath = path;
+            return realFetch(path);
+          });
+          expect(await tf.setBackend('wasm-test')).toBe(true);
+          const validPaths = new Set([
+            VALID_PREFIX + 'tfjs-backend-wasm.wasm',
+            VALID_PREFIX + 'tfjs-backend-wasm-simd.wasm',
+            VALID_PREFIX + 'tfjs-backend-wasm-threaded-simd.wasm',
+          ]);
+          expect(validPaths).toContain(wasmPath);
+        });
+
+    it('backend init works when the path is valid', async () => {
+      const usePlatformFetch = true;
+      const validPath = VALID_PREFIX + 'tfjs-backend-wasm.wasm';
+      setWasmPath(validPath, usePlatformFetch);
+      let wasmPath: string;
+      fetchSpy.and.callFake((path: string) => {
+        wasmPath = path;
+        return realFetch(path);
+      });
+      expect(await tf.setBackend('wasm-test')).toBe(true);
+      expect(wasmPath).toBe(validPath);
+    });
+
+    // Disabling this test because it intermittently times out on CI.
+    // tslint:disable-next-line: ban
+    xit('backend init fails when the path is invalid', async () => {
+      const usePlatformFetch = true;
+      setWasmPath('invalid/path', usePlatformFetch);
+      let wasmPath: string;
+      fetchSpy.and.callFake((path: string) => {
+        wasmPath = path;
+        return Promise.reject(
+          new TypeError('Failed to fetch because invalid path'));
+      });
+      expect(await tf.setBackend('wasm-test')).toBe(false);
+      expect(wasmPath).toBe('invalid/path');
+    });
+  });
 
   it('backend init succeeds with default path', async () => {
     expect(await tf.setBackend('wasm-test')).toBe(true);

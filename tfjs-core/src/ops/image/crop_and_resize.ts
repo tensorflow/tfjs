@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor1D, Tensor2D, Tensor4D} from '../../tensor';
@@ -36,7 +36,7 @@ import {op} from '../operation';
  *     batch of images from which to take crops
  * @param boxes 2d float32 tensor of shape `[numBoxes, 4]`. Each entry is
  *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the normalized
- *     coordinates of the box in the boxInd[i]'th image in the batch
+ *     coordinates of the box in the `boxInd[i]`th image in the batch
  * @param boxInd 1d int32 tensor of shape `[numBoxes]` with values in range
  *     `[0, batch)` that specifies the image that the `i`-th box refers to.
  * @param cropSize 1d int32 tensor of 2 elements `[cropHeigh, cropWidth]`
@@ -54,14 +54,12 @@ function cropAndResize_(
     boxes: Tensor2D|TensorLike,
     boxInd: Tensor1D|TensorLike,
     cropSize: [number, number],
-    method?: 'bilinear'|'nearest',
-    extrapolationValue?: number,
+    method: 'bilinear'|'nearest' = 'bilinear',
+    extrapolationValue = 0,
     ): Tensor4D {
   const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
-  method = method || 'bilinear';
-  extrapolationValue = extrapolationValue || 0;
 
   const numBoxes = $boxes.shape[0];
 
@@ -88,16 +86,13 @@ function cropAndResize_(
       method === 'bilinear' || method === 'nearest',
       () => `method must be bilinear or nearest, but was ${method}`);
 
-  const forward: ForwardFunc<Tensor4D> = (backend) => backend.cropAndResize(
-      $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
-
   const inputs:
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};
   const attrs: CropAndResizeAttrs = {method, extrapolationValue, cropSize};
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, CropAndResize,
-      attrs as {} as NamedAttrMap);
-  return res;
+  const res = ENGINE.runKernel(
+      CropAndResize, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
+  return res as Tensor4D;
 }
 
-export const cropAndResize = op({cropAndResize_});
+export const cropAndResize = /* @__PURE__ */ op({cropAndResize_});

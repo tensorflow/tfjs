@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {leakyRelu} from '../../ops/leaky_relu';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.leakyRelu = function<T extends Tensor>(
+getGlobalTensorClass().prototype.leakyRelu = function<T extends Tensor>(
     this: T, alpha: number): T {
   this.throwIfDisposed();
   return leakyRelu(this, alpha);

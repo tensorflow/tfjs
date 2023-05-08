@@ -16,9 +16,11 @@
 #include <emscripten.h>
 #endif
 #include <xnnpack.h>
+#include <stdlib.h>
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -28,8 +30,22 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Abs(const size_t x_id, const size_t out_id) {
-  unary_xnn_f32(x_id, out_id, xnn_create_abs_nc_f32, xnn_setup_abs_nc_f32);
+void Abs(const size_t x_id, const DType dtype, const size_t out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_xnn_f32(x_id, out_id, xnn_create_abs_nc_f32, xnn_setup_abs_nc_f32);
+      break;
+    case DType::int32:
+      unary_i32(x_id, out_id, [](int a) {
+        return static_cast<int32_t>(abs(static_cast<float>(a)));
+      });
+      break;
+    default:
+      util::warn(
+          "Abs for tensor ids %d failed. "
+          "Unknown dtype %d",
+          x_id, dtype);
+  }
 }
 
 }  // extern "C"

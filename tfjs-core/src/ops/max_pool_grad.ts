@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D} from '../tensor';
+import {Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -41,17 +41,18 @@ import {op} from './operation';
  *     `filterSize` is a single number, then `filterHeight == filterWidth`.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
+ * @param pad The type of padding algorithm used in the forward prop of the op.
+ *     'same', 'valid', for more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   const $dy = convertToTensor(dy, 'dy', 'maxPoolGrad');
   const $input = convertToTensor(input, 'input', 'maxPoolGrad');
@@ -70,28 +71,14 @@ function maxPoolGrad_(
       $input.rank === 4,
       () => `Error in maxPoolGrad: input must be rank 4 but got rank ` +
           `${$input.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPoolGrad: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computePool2DInfo(
-        $input.shape, filterSize, strides, 1 /* dilations */, pad,
-        dimRoundingMode);
-
-    return backend.maxPoolBackprop($dy, $input, $output, convInfo);
-  };
-
+  conv_util.checkPadOnDimRoundingMode('maxPoolGrad', pad, dimRoundingMode);
   const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
-
   const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null, MaxPoolGrad,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             MaxPoolGrad, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const maxPoolGrad = op({maxPoolGrad_});
+export const maxPoolGrad = /* @__PURE__ */ op({maxPoolGrad_});

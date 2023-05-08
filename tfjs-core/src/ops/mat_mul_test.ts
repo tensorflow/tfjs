@@ -894,6 +894,15 @@ describeWithFlags('matmulBatch', ALL_ENVS, () => {
     ]);
   });
 
+  it('A has more batch dimensions than B', async () => {
+    const a = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [2, 2, 2, 2]);
+    const b = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+
+    const c = tf.matMul(a, b);
+    expectArraysClose(await c.data(), [5, 11, 39, 53, 29, 35, 95, 109]);
+  });
+
   it('batch dimensions do not match', () => {
     const a = tf.tensor3d(
         [
@@ -1256,6 +1265,17 @@ describeWithFlags('dot', ALL_ENVS, () => {
     expectArraysClose(cData, [9, 12, 15, 19, 26, 33]);
   });
 
+  it('broadcast batch shape', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4], [1, 2, 2]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+
+    const c = tf.matMul(a, b);
+    const cData = await c.data();
+
+    expect(c.shape).toEqual([1, 2, 3]);
+    expectArraysClose(cData, [9, 12, 15, 19, 26, 33]);
+  });
+
   it('throws error on incompatible dimensions', () => {
     expect(() => tf.dot(c, f)).toThrowError();
   });
@@ -1275,5 +1295,26 @@ describeWithFlags('dot', ALL_ENVS, () => {
   it('throws error for string tensors', () => {
     expect(() => tf.dot('a', 'b'))
         .toThrowError(/Argument 't1' passed to 'dot' must be numeric tensor/);
+  });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.matMul(a, b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
+
+    a.dispose();
+    b.dispose();
+    c.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

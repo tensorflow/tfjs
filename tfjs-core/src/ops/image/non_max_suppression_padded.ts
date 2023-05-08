@@ -40,7 +40,7 @@ import {op} from '../operation';
  *     Defaults to 0.5 (50% box overlap).
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
- * @param padToMaxOutputSize Defalts to false. If true, size of output
+ * @param padToMaxOutputSize Defaults to false. If true, size of output
  *     `selectedIndices` is padded to maxOutputSize.
  * @return A map with the following properties:
  *     - selectedIndices: A 1D tensor with the selected box indices.
@@ -72,11 +72,12 @@ function nonMaxSuppressionPadded_(
     padToMaxOutputSize
   };
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
-                     NonMaxSuppressionV4, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+                     NonMaxSuppressionV4, inputs as unknown as NamedTensorMap,
+                     attrs as unknown as NamedAttrMap) as Tensor[];
 
   return {selectedIndices: result[0], validOutputs: result[1]};
 }
 
-export const nonMaxSuppressionPadded = op({nonMaxSuppressionPadded_});
+export const nonMaxSuppressionPadded = /* @__PURE__ */ op({nonMaxSuppressionPadded_});

@@ -67,6 +67,30 @@ const RN_REPO: Repo = {
   path: 'tfjs-react-native',
 };
 
+const TFDF_REPO: Repo = {
+  name: 'tfjs-tfdf',
+  identifier: 'tfjs-tfdf',
+  path: 'tfjs-tfdf',
+};
+
+const TFLITE_REPO: Repo = {
+  name: 'tfjs-tflite',
+  identifier: 'tfjs-tflite',
+  path: 'tfjs-tflite',
+};
+
+const WEBGPU_REPO: Repo = {
+  name: 'tfjs-backend-webgpu',
+  identifier: 'tfjs-backend-webgpu',
+  path: 'tfjs-backend-webgpu',
+};
+
+const AUTOML_REPO: Repo = {
+  name: 'tfjs-automl',
+  identifier: 'tfjs-automl',
+  path: 'tfjs-automl',
+};
+
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
@@ -148,7 +172,7 @@ async function generateReactNativeNotes() {
   const {startVersion, endVersion} =
       await askUserForVersions(versions, 'tfjs-react-native');
 
-  // Get tfjs-vis start version and end version.
+  // Get tfjs-react-native start version and end version.
   RN_REPO.startVersion = startVersion;
   RN_REPO.endVersion = endVersion;
   RN_REPO.startCommit = $(`git rev-list -n 1 ${
@@ -157,6 +181,65 @@ async function generateReactNativeNotes() {
   await generateNotes([RN_REPO]);
 }
 
+async function generateTfdfNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tfdf');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tfdf');
+
+  // Get tfjs-tfdf start version and end version.
+  TFDF_REPO.startVersion = startVersion;
+  TFDF_REPO.endVersion = endVersion;
+  TFDF_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFDF_REPO.identifier, TFDF_REPO.startVersion)}`);
+
+  await generateNotes([TFDF_REPO]);
+}
+
+async function generateTfliteNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tflite');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tflite');
+
+  // Get tfjs-tflite start version and end version.
+  TFLITE_REPO.startVersion = startVersion;
+  TFLITE_REPO.endVersion = endVersion;
+  TFLITE_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFLITE_REPO.identifier, TFLITE_REPO.startVersion)}`);
+
+  await generateNotes([TFLITE_REPO]);
+}
+
+async function generateWebgpuNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-backend-webgpu');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-backend-webgpu');
+
+  // Get tfjs-webgpu start version and end version.
+  WEBGPU_REPO.startVersion = startVersion;
+  WEBGPU_REPO.endVersion = endVersion;
+  WEBGPU_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(WEBGPU_REPO.identifier, WEBGPU_REPO.startVersion)}`);
+
+  await generateNotes([WEBGPU_REPO]);
+}
+
+async function generateAutomlNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-automl');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-automl');
+
+  // Get tfjs-automl start version and end version.
+  AUTOML_REPO.startVersion = startVersion;
+  AUTOML_REPO.endVersion = endVersion;
+  AUTOML_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(AUTOML_REPO.identifier, AUTOML_REPO.startVersion)}`);
+
+  await generateNotes([AUTOML_REPO]);
+}
 
 async function generateNotes(repositories: util.Repo[]) {
   const repoCommits: RepoCommits[] = [];
@@ -238,9 +321,9 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tfdf|tflite|webgpu|automl. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn']
+  choices: ['union', 'vis', 'rn', 'tfdf', 'tflite', 'webgpu', 'automl']
 });
 
 const args = parser.parseArgs();
@@ -251,4 +334,12 @@ if (args.project === 'union') {
   generateVisNotes();
 } else if (args.project === 'rn') {
   generateReactNativeNotes();
+} else if (args.project === 'tfdf') {
+  generateTfdfNotes();
+} else if (args.project === 'tflite') {
+  generateTfliteNotes();
+} else if (args.project === 'webgpu') {
+  generateWebgpuNotes();
+} else if (args.project === 'automl') {
+  generateAutomlNotes();
 }

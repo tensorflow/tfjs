@@ -77,7 +77,7 @@ export class MicrophoneIterator extends LazyIterator<TensorContainer> {
 
   // Construct a MicrophoneIterator and start the audio stream.
   static async create(microphoneConfig: MicrophoneConfig = {}) {
-    if (env().get('IS_NODE')) {
+    if (!env().get('IS_BROWSER')) {
       throw new Error(
           'microphone API is only supported in browser environment.');
     }
@@ -208,7 +208,7 @@ export class MicrophoneIterator extends LazyIterator<TensorContainer> {
   }
 
   // Override toArray() function to prevent collecting.
-  toArray(): Promise<Tensor[]> {
+  override toArray(): Promise<Tensor[]> {
     throw new Error('Can not convert infinite audio stream to array.');
   }
 

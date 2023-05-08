@@ -33,4 +33,4 @@ function concat4d_(
   return concat(tensors, axis);
 }
 
-export const concat4d = op({concat4d_});
+export const concat4d = /* @__PURE__ */ op({concat4d_});

@@ -17,6 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 import {buffer} from './buffer';
 import {op} from './operation';
@@ -45,6 +46,7 @@ import {MPRandGauss} from './rand_util';
 function truncatedNormal_<R extends Rank>(
     shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
     seed?: number): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
   if (dtype != null && (dtype as DataType) === 'bool') {
     throw new Error(`Unsupported data type $ { dtype }`);
   }
@@ -57,4 +59,4 @@ function truncatedNormal_<R extends Rank>(
   return res.toTensor();
 }
 
-export const truncatedNormal = op({truncatedNormal_});
+export const truncatedNormal = /* @__PURE__ */ op({truncatedNormal_});

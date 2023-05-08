@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {slice} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -27,7 +27,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.slice = function<T extends Tensor>(
+getGlobalTensorClass().prototype.slice = function<T extends Tensor>(
     this: T, begin: number|number[], size?: number|number[]): T {
   this.throwIfDisposed();
   return slice(this, begin, size);

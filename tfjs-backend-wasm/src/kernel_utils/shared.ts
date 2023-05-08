@@ -18,6 +18,26 @@
 // Import shared functionality from tfjs-backend-cpu without triggering
 // side effects.
 // tslint:disable-next-line: no-imports-from-dist
+import {concatImpl as concatImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
 import {sliceImpl as sliceImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {rangeImpl as rangeImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {stringNGramsImpl as stringNGramsImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {stringSplitImpl as stringSplitImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {stringToHashBucketFastImpl as stringToHashBucketFastImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {uniqueImpl as uniqueImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
-export {sliceImplCPU};
+export {
+  concatImplCPU,
+  rangeImplCPU,
+  sliceImplCPU,
+  stringNGramsImplCPU,
+  stringSplitImplCPU,
+  stringToHashBucketFastImplCPU,
+  uniqueImplCPU,
+};

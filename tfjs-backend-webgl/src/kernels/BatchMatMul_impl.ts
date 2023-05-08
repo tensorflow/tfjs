@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, broadcast_util, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -39,6 +39,7 @@ type BatchMatMulConfig = {
   backend: MathBackendWebGL,
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
+  leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
 
@@ -50,6 +51,7 @@ export function batchMatMulImpl({
   backend,
   bias = null,
   preluActivationWeights = null,
+  leakyreluAlpha = 0,
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   const aRank = a.shape.length;
@@ -67,17 +69,8 @@ export function batchMatMulImpl({
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
-  util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
   const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
@@ -105,11 +98,12 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;
-  const containsFusedOps =
-      hasBias || hasPreluActivationWeights || fusedActivation != null;
+  const containsFusedOps = hasBias || hasPreluActivationWeights ||
+      hasLeakyreluAlpha || fusedActivation != null;
   let out: TensorInfo;
 
   // Since the matrices are vectors, it is faster to call mul().sum()
@@ -162,14 +156,22 @@ export function batchMatMulImpl({
 
     const program = new MatMulPackedProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
 
     const inputs: TensorInfo[] = [a3d, b3d];
     if (bias != null) {
       inputs.push(bias);
     }
-    if (preluActivationWeights != null) {
+    if (hasPreluActivationWeights) {
       inputs.push(preluActivationWeights);
+    }
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as unknown as 'float32', 'float32'));
+      inputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
     }
 
     out = backend.runWebGLProgram(program, inputs, dtype);

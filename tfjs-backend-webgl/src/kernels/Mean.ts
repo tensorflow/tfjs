@@ -27,7 +27,7 @@ export const meanConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MeanInputs;
-    const {keepDims, axis} = attrs as {} as MeanAttrs;
+    const {keepDims, axis} = attrs as unknown as MeanAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const xRank = x.shape.length;

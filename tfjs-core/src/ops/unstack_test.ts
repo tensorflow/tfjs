@@ -218,6 +218,19 @@ describeWithFlags('unstack', ALL_ENVS, () => {
     expectArraysClose(await res[1].data(), [5, 6, 7, 8]);
   });
 
+  it('accepts string', async () => {
+    const x =
+        [['one', 'two', 'three', 'four'], ['five', 'six', 'seven', 'eight']];
+    const res = tf.unstack(x);
+    expect(res.length).toEqual(2);
+    expect(res[0].rank).toEqual(1);
+    expect(res[0].shape).toEqual([4]);
+    expectArraysClose(await res[0].data(), ['one', 'two', 'three', 'four']);
+    expect(res[1].rank).toEqual(1);
+    expect(res[1].shape).toEqual([4]);
+    expectArraysClose(await res[1].data(), ['five', 'six', 'seven', 'eight']);
+  });
+
   it('grad of unstack axis=0', async () => {
     const x = tf.tensor([[1, 2, 3], [4, 5, 6]]);
     const dx1 = tf.grad(x => tf.unstack(x)[0])(x);

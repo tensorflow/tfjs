@@ -26,7 +26,7 @@ export const sliceGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const {begin, size} = attrs as {} as SliceAttrs;
+    const {begin, size} = attrs as unknown as SliceAttrs;
 
     const inputShape = x.shape;
     const [begin_, size_] = parseSliceParams(x, begin, size);

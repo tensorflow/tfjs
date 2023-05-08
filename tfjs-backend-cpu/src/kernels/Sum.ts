@@ -46,7 +46,7 @@ export function sum(
   const permutation = backend_util.getAxesPermutation(axes, xRank);
 
   let reductionAxes = axes;
-  let permutedX = identity({inputs: {x: $x}, backend});
+  let permutedX = $x;
   if (permutation != null) {
     permutedX =
         transpose({inputs: {x: $x}, backend, attrs: {perm: permutation}});
@@ -81,7 +81,10 @@ export function sum(
   }
 
   backend.disposeIntermediateTensorInfo($x);
-  backend.disposeIntermediateTensorInfo(permutedX);
+
+  if (permutation != null) {
+    backend.disposeIntermediateTensorInfo(permutedX);
+  }
 
   return result;
 }
@@ -89,5 +92,5 @@ export function sum(
 export const sumConfig: KernelConfig = {
   kernelName: Sum,
   backendName: 'cpu',
-  kernelFunc: sum as {} as KernelFunc
+  kernelFunc: sum as unknown as KernelFunc
 };

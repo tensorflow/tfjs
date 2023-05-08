@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {logicalXor} from '../../ops/logical_xor';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.logicalXor = function<T extends Tensor>(b: Tensor|
-                                                         TensorLike): T {
+getGlobalTensorClass().prototype.logicalXor = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return logicalXor(this, b);
 };

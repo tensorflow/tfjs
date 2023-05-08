@@ -24,11 +24,14 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/elu_impl.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
-#include "src/cc/batch_mat_mul_impl.h"
+#include "tfjs-backend-wasm/src/cc/batch_mat_mul_impl.h"
 
 const size_t kBlockSize = 48;
 
@@ -171,7 +174,7 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const size_t shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
   const size_t left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
   const size_t right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
-  const size_t batch_dim = a_shape_ptr[0];
+  const size_t batch_dim = std::max(a_shape_ptr[0], b_shape_ptr[0]);
 
   std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_shape_len);
   std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_shape_len);
@@ -219,12 +222,14 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
   std::fill(out_buf, out_buf + batch_dim * size, 0);
 
   for (size_t b = 0; b < batch_dim; ++b) {
+    const size_t batch_index_a = b % a_shape[0];
+    const size_t batch_index_b = b % b_shape[0];
     for (size_t i0 = 0; i0 < left_dim; i0 += kBlockSize) {
+      // for when kBlockSize doesn't evenly divide the input
+      const size_t i_block = std::min(i0 + kBlockSize, left_dim);
       for (size_t j0 = 0; j0 < right_dim; j0 += kBlockSize) {
+        const size_t j_block = std::min(j0 + kBlockSize, right_dim);
         for (size_t k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
-          // for when kBlockSize doesn't evenly divide the input
-          const size_t i_block = std::min(i0 + kBlockSize, left_dim);
-          const size_t j_block = std::min(j0 + kBlockSize, right_dim);
           const size_t k_block = std::min(k0 + kBlockSize, shared_dim);
 
           for (size_t i = i0; i < i_block; ++i) {
@@ -232,14 +237,10 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               float sum = 0.0;
 
               for (size_t k = k0; k < k_block; ++k) {
-                const size_t batch_offset_a =
-                    std::min(b, a_shape[0] - 1) * a_batch;
-                const size_t batch_offset_b =
-                    std::min(b, b_shape[0] - 1) * b_batch;
-                sum +=
-                    a_buf[batch_offset_a + i * a_outer_step +
-                          k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + batch_offset_b];
+                sum += a_buf[batch_index_a * a_batch + i * a_outer_step +
+                             k * a_inner_step] *
+                       b_buf[k * b_inner_step + j * b_outer_step +
+                             batch_index_b * b_batch];
               }
               size_t innermost_dim = i * right_dim + j;
               size_t out_buf_index = b * size + innermost_dim;
@@ -272,9 +273,10 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
                          const bool transpose_a, const bool transpose_b,
                          const FusableActivation activation,
                          const size_t bias_id, const size_t prelu_weights_id,
-                         const size_t out_id) {
+                         const float leakyrelu_alpha, const size_t out_id) {
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 
@@ -302,6 +304,12 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
   float* out_buf = out_info.f32_write();
   if (activation == FusableActivation::PRELU) {
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+  } else if (activation == FusableActivation::LEAKYRELU) {
+    leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
+  } else if (activation == FusableActivation::SIGMOID) {
+    sigmoid(out_buf, out_info.size, out_id);
+  } else if (activation == FusableActivation::ELU) {
+    EluImpl(out_buf, out_info.size, out_buf);
   }
 }
 }  // namespace wasm

@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {AvgPool, AvgPoolAttrs, AvgPoolInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -44,15 +44,17 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function avgPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'avgPool', 'float32');
   const dilations = 1;
@@ -72,36 +74,14 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   util.assert(
       x4D.rank === 4,
       () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const convInfo = conv_util.computePool2DInfo(
-        x4D.shape, filterSize, strides, 1 /* dilations */, pad,
-        dimRoundingMode);
-
-    save([x4D]);
-
-    if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-        util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-      return x4D.clone();
-    }
-
-    return backend.avgPool(x4D, convInfo);
-  };
-
+  conv_util.checkPadOnDimRoundingMode('avgPool', pad, dimRoundingMode);
   const inputs: AvgPoolInputs = {x: x4D};
-
   const attrs: AvgPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
-  let res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, AvgPool,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  let res = ENGINE.runKernel(
+                AvgPool, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, $x.dtype);
 
@@ -109,7 +89,7 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
 
-  return res as T;
+  return res;
 }
 
-export const avgPool = op({avgPool_});
+export const avgPool = /* @__PURE__ */ op({avgPool_});

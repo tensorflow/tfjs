@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HeatmapData, HeatmapOptions} from '../types';
@@ -170,13 +170,13 @@ export async function heatmap(
         'field': 'x',
         'type': options.xType,
         'title': options.xLabel,
-        'sort': 'x',
+        'sort': null,
       },
       'y': {
         'field': 'y',
         'type': options.yType,
         'title': options.yLabel,
-        'sort': 'y',
+        'sort': null,
       },
       'fill': {
         'field': 'value',

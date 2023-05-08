@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {PadV2, PadV2Attrs, PadV2Inputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -29,7 +29,7 @@ import {op} from './operation';
  * Pads a `tf.Tensor` with a given value and paddings.
  *
  * This operation implements `CONSTANT` mode. For `REFLECT` and `SYMMETRIC`,
- * refer to `tf.mirrorPad`
+ * refer to `tf.mirrorPad`.
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that `paddings` is of given length.
@@ -56,16 +56,12 @@ function pad_<T extends Tensor>(
   if ($x.rank === 0) {
     throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
   }
-  const forward: ForwardFunc<T> = (backend, save) => {
-    save([$x]);
-    return backend.pad($x, paddings, constantValue);
-  };
 
   const attrs: PadV2Attrs = {paddings, constantValue};
   const inputs: PadV2Inputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      forward, inputs as unknown as NamedTensorMap, null /* grad */, PadV2,
+  return ENGINE.runKernel(
+      PadV2, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
 }
 
-export const pad = op({pad_});
+export const pad = /* @__PURE__ */ op({pad_});

@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Noise Layers.
  */
 
-import {greaterEqual, randomUniform, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {add, greaterEqual, mul, randomUniform, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerArgs} from '../engine/topology';
@@ -36,23 +36,23 @@ export class GaussianNoise extends Layer {
     this.stddev = args.stddev;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {stddev: this.stddev};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
       const noised = () =>
-          K.randomNormal(input.shape, 0, this.stddev).add(input);
+          add(K.randomNormal(input.shape, 0, this.stddev), input);
       const output =
           K.inTrainPhase(noised, () => input, kwargs['training'] || false);
       return output;
@@ -77,25 +77,25 @@ export class GaussianDropout extends Layer {
     this.rate = args.rate;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {rate: this.rate};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const input = getExactlyOneTensor(inputs);
       if (this.rate > 0 && this.rate < 1) {
         const noised = () => {
           const stddev = Math.sqrt(this.rate / (1 - this.rate));
-          return input.mul(K.randomNormal(input.shape, 1, stddev));
+          return mul(input, K.randomNormal(input.shape, 1, stddev));
         };
         return K.inTrainPhase(noised, () => input, kwargs['training'] || false);
       }
@@ -161,18 +161,18 @@ export class AlphaDropout extends Layer {
     return this.noiseShape || getExactlyOneTensor(inputs).shape;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig() {
+  override getConfig() {
     const baseConfig = super.getConfig();
     const config = {rate: this.rate};
     Object.assign(config, baseConfig);
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       if (this.rate < 1 && this.rate > 0) {
         const noiseShape = this._getNoiseShape(inputs);
@@ -194,9 +194,9 @@ export class AlphaDropout extends Layer {
           const b = -a * alphaP * this.rate;
 
           // Apply mask.
-          const x = input.mul(keptIdx).add(keptIdx.add(-1).mul(alphaP));
+          const x = add(mul(input, keptIdx), mul(add(keptIdx, -1), alphaP));
 
-          return x.mul(a).add(b);
+          return add(mul(x, a), b);
         };
         return K.inTrainPhase(
             droppedInputs, () => getExactlyOneTensor(inputs),

@@ -37,14 +37,10 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sigmoid');
+  const $x = convertToTensor(x, 'x', 'sigmoid', 'float32');
 
   const inputs: SigmoidInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sigmoid($x);
-    save([res]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sigmoid);
+  return ENGINE.runKernel(Sigmoid, inputs as unknown as NamedTensorMap);
 }
-export const sigmoid = op({sigmoid_});
+export const sigmoid = /* @__PURE__ */ op({sigmoid_});

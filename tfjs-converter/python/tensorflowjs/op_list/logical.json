@@ -267,5 +267,21 @@
         "notSupported": true
       }
     ]
+  },
+  {
+    "tfOpName": "BitwiseAnd",
+    "category": "logical",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "y",
+        "type": "tensor"
+      }
+    ]
   }
 ]

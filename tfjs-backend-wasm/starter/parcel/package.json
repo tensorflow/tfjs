@@ -7,22 +7,24 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-wasm": "2.0.1",
-    "@tensorflow/tfjs-core": "2.0.1"
+    "@tensorflow/tfjs-backend-wasm": "3.14.0",
+    "@tensorflow/tfjs-core": "3.14.0"
   },
   "browserslist": [
     "defaults"
   ],
   "staticFiles": {
     "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
-    "excludeGlob": ["**/!(*.wasm)"]
+    "excludeGlob": [
+      "**/!(*.wasm)"
+    ]
   },
   "devDependencies": {
-    "@babel/core": "7.7.5",
-    "@babel/plugin-transform-runtime": "^7.7.6",
-    "@babel/preset-env": "^7.7.6",
-    "parcel-bundler": "^1.12.4",
-    "parcel-plugin-static-files-copy": "^2.2.1"
+    "parcel": "^2.3.2",
+    "parcel-reporter-static-files-copy": "^1.3.4"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   },
   "keywords": []
 }

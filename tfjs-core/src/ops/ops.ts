@@ -38,6 +38,9 @@ export {batchNorm} from './batchnorm';
 export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
+export {bincount} from './bincount';
+export {bitwiseAnd} from './bitwise_and';
+export {broadcastArgs} from './broadcast_args';
 export {broadcastTo} from './broadcast_to';
 export {buffer} from './buffer';
 export {cast} from './cast';
@@ -57,7 +60,9 @@ export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
 export {cos} from './cos';
 export {cosh} from './cosh';
+export {cumprod} from './cumprod';
 export {cumsum} from './cumsum';
+export {denseBincount} from './dense_bincount';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
@@ -65,9 +70,12 @@ export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
+export {einsum} from './einsum';
 export {elu} from './elu';
+export {ensureShape} from './ensure_shape';
 export {equal} from './equal';
 export {erf} from './erf';
+export {euclideanNorm} from './euclidean_norm';
 export {exp} from './exp';
 export {expandDims} from './expand_dims';
 export {expm1} from './expm1';
@@ -96,6 +104,7 @@ export {logicalAnd} from './logical_and';
 export {logicalNot} from './logical_not';
 export {logicalOr} from './logical_or';
 export {logicalXor} from './logical_xor';
+export {lowerBound} from './lower_bound';
 export {matMul} from './mat_mul';
 export {max} from './max';
 export {maxPool} from './max_pool';
@@ -103,6 +112,7 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {mean} from './mean';
+export {meshgrid} from './meshgrid';
 export {min} from './min';
 export {minimum} from './minimum';
 export {mirrorPad} from './mirror_pad';
@@ -127,10 +137,15 @@ export {pow} from './pow';
 export {prelu} from './prelu';
 export {print} from './print';
 export {prod} from './prod';
+export {raggedGather} from './ragged_gather';
+export {raggedRange} from './ragged_range';
+export {raggedTensorToTensor} from './ragged_tensor_to_tensor';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
+export {randomStandardNormal} from './random_standard_normal';
 export {randomUniform} from './random_uniform';
+export {randomUniformInt} from './random_uniform_int';
 export {range} from './range';
 export {real} from './real';
 export {reciprocal} from './reciprocal';
@@ -183,12 +198,14 @@ export {tensor3d} from './tensor3d';
 export {tensor4d} from './tensor4d';
 export {tensor5d} from './tensor5d';
 export {tensor6d} from './tensor6d';
+export {tensorScatterUpdate} from './tensor_scatter_update';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
 export {unique} from './unique';
 export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
+export {upperBound} from './upper_bound';
 export {variable} from './variable';
 export {where} from './where';
 export {whereAsync} from './where_async';
@@ -196,12 +213,11 @@ export {zeros} from './zeros';
 export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
-export * from './compare';
-export * from './binary_ops';
 export * from './transpose';
 export * from './norm';
 export * from './moving_average';
 export * from './scatter_nd';
+export * from './search_sorted';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
@@ -237,6 +253,7 @@ const signal = {
 // Image Ops namespace
 import {cropAndResize} from './image/crop_and_resize';
 import {flipLeftRight} from './image/flip_left_right';
+import {grayscaleToRGB} from './image/grayscale_to_rgb';
 import {rotateWithOffset} from './image/rotate_with_offset';
 import {nonMaxSuppression} from './image/non_max_suppression';
 import {nonMaxSuppressionAsync} from './image/non_max_suppression_async';
@@ -246,8 +263,11 @@ import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
 import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
 import {resizeBilinear} from './image/resize_bilinear';
 import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
+import {threshold} from './image/threshold';
+import {transform} from './image/transform';
 const image = {
   flipLeftRight,
+  grayscaleToRGB,
   resizeNearestNeighbor,
   resizeBilinear,
   rotateWithOffset,
@@ -257,7 +277,9 @@ const image = {
   nonMaxSuppressionWithScore,
   nonMaxSuppressionWithScoreAsync,
   nonMaxSuppressionPadded,
-  nonMaxSuppressionPaddedAsync
+  nonMaxSuppressionPaddedAsync,
+  threshold,
+  transform
 };
 
 // linalg namespace
@@ -292,5 +314,28 @@ const losses = {
   softmaxCrossEntropy
 };
 
+import {sparseFillEmptyRows} from './sparse/sparse_fill_empty_rows';
+import {sparseReshape} from './sparse/sparse_reshape';
+import {sparseSegmentMean} from './sparse/sparse_segment_mean';
+import {sparseSegmentSum} from './sparse/sparse_segment_sum';
+const sparse = {
+  sparseFillEmptyRows,
+  sparseReshape,
+  sparseSegmentMean,
+  sparseSegmentSum
+};
+
+import {stringNGrams} from './string/string_n_grams';
+import {stringSplit} from './string/string_split';
+import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
+import {staticRegexReplace} from './string/static_regex_replace';
+// tslint:disable-next-line:variable-name
+const string = {
+  stringNGrams,
+  stringSplit,
+  stringToHashBucketFast,
+  staticRegexReplace,
+};
+
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse, string};

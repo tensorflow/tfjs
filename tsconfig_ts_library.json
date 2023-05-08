@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/*": [
+        "./dist/bin/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": [
+          "check-return-value",
+          "must-use-promises",
+          "must-type-assert-json-parse",
+          "ban-promise-as-condition"
+        ]
+      }
+    ]
+  },
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/"
+  ]
+}

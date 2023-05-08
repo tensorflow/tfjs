@@ -51,8 +51,8 @@ import {op} from './operation';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param includeBatchIndex Defaults to False. Whether to include batch
  *    dimension in flattened index of argmax.
  *
@@ -68,11 +68,12 @@ function maxPoolWithArgmax_<T extends Tensor4D>(
   const attrs:
       MaxPoolWithArgmaxAttrs = {filterSize, strides, pad, includeBatchInIndex};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
-                     MaxPoolWithArgmax, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+                     MaxPoolWithArgmax, inputs as unknown as NamedTensorMap,
+                     attrs as unknown as NamedAttrMap) as Tensor[];
 
   return {result: result[0], indexes: result[1]};
 }
 
-export const maxPoolWithArgmax = op({maxPoolWithArgmax_});
+export const maxPoolWithArgmax = /* @__PURE__ */ op({maxPoolWithArgmax_});

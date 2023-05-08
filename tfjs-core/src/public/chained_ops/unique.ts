@@ -16,7 +16,7 @@
  */
 
 import {unique} from '../../ops/unique';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.unique = function<T extends Tensor>(
+getGlobalTensorClass().prototype.unique = function<T extends Tensor>(
     this: T, axis?: number): {values: T, indices: T} {
   this.throwIfDisposed();
   return unique(this, axis) as {values: T, indices: T};
