@@ -359,6 +359,7 @@ tfjs_cc_library(
         ":AvgPool3DGrad",
         ":BatchMatMul",
         ":Bincount",
+        ":BitwiseAnd",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
@@ -644,6 +645,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":bincount_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "BitwiseAnd",
+    srcs = ["kernels/BitwiseAnd.cc"],
+    deps = [
+        ":backend",
+        ":binary",
         ":util",
     ],
 )
