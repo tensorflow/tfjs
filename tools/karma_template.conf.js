@@ -103,24 +103,15 @@ const CUSTOM_LAUNCHERS = {
   chrome_webgpu_linux: {
     base: 'ChromeCanary',
     flags: [
-      // See https://bugs.chromium.org/p/chromium/issues/detail?id=765284
-      '--enable-features=Vulkan,UseSkiaRenderer',
-      '--use-vulkan=native',
+      '--enable-features=Vulkan',
       '--enable-unsafe-webgpu',
-      '--disable-vulkan-fallback-to-gl-for-testing',
-      '--disable-vulkan-surface',
-      '--disable-features=VaapiVideoDecoder',
-      '--ignore-gpu-blocklist',
-      '--use-angle=vulkan',
+      '--disable-dawn-features=disallow_unsafe_apis',
     ]
   },
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
-      '--flag-switches-begin',
-      '--enable-unsafe-webgpu',
-      '--flag-switches-end',
       '--no-sandbox',
     ]
   },

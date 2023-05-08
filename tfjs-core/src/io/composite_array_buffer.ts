@@ -40,8 +40,22 @@ export class CompositeArrayBuffer {
   private bufferUniformSize?: number;
   public readonly byteLength: number;
 
-  constructor(buffers: ArrayBuffer | ArrayBuffer[] | TypedArray |
+  /**
+   * Concatenate a number of ArrayBuffers into one.
+   *
+   * @param buffers An array of ArrayBuffers to concatenate, or a single
+   *     ArrayBuffer.
+   * @returns Result of concatenating `buffers` in order.
+   */
+  static join(buffers?: ArrayBuffer[] | ArrayBuffer) {
+    return new CompositeArrayBuffer(buffers).slice();
+  }
+
+  constructor(buffers?: ArrayBuffer | ArrayBuffer[] | TypedArray |
     TypedArray[]) {
+    if (buffers == null) {
+      return;
+    }
     // Normalize the `buffers` input to be `ArrayBuffer[]`.
     if (!(buffers instanceof Array)) {
       buffers = [buffers];
@@ -85,6 +99,12 @@ export class CompositeArrayBuffer {
   }
 
   slice(start = 0, end = this.byteLength): ArrayBuffer {
+    // If there are no shards, then the CompositeArrayBuffer was initialized
+    // with no data.
+    if (this.shards.length === 0) {
+      return new ArrayBuffer(0);
+    }
+
     // NaN is treated as zero for slicing. This matches ArrayBuffer's behavior.
     start = isNaN(Number(start)) ? 0 : start;
     end = isNaN(Number(end)) ? 0 : end;
@@ -117,8 +137,8 @@ export class CompositeArrayBuffer {
       const globalEnd = Math.min(end, shard.end);
       const localEnd = globalEnd - shard.start;
 
-      const outputSlice = new Uint8Array(shard.buffer.slice(localStart,
-        localEnd));
+      const outputSlice = new Uint8Array(shard.buffer, localStart,
+                                         localEnd - localStart);
       outputArray.set(outputSlice, outputStart);
       sliced += outputSlice.length;
 

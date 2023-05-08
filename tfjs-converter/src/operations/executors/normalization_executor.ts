@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Scalar, Tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -69,16 +69,6 @@ export const executeOp: InternalOpExecutor =
         case 'LogSoftmax': {
           return [ops.logSoftmax(
               getParamValue('x', node, tensorMap, context) as Tensor)];
-        }
-        case 'SparseToDense': {
-          return [ops.sparseToDense(
-              getParamValue('sparseIndices', node, tensorMap, context) as
-                  Tensor,
-              getParamValue('outputShape', node, tensorMap, context) as Tensor,
-              getParamValue('sparseValues', node, tensorMap, context) as
-                  number[],
-              getParamValue('defaultValue', node, tensorMap, context) as
-                  Scalar)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

@@ -42,6 +42,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {bitwiseAndConfig} from './kernels/BitwiseAnd';
 import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -69,6 +70,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {drawConfig} from './kernels/Draw';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -215,6 +217,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -242,6 +245,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
