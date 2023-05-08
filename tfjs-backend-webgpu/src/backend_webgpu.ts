@@ -123,6 +123,7 @@ export class WebGPUBackend extends KernelBackend {
   private supportTimeQuery: boolean;
   private uniformPendingDisposal: GPUBuffer[] = [];
   private uploadWaitMs = 0;
+  private hasReadSyncWarned = false;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -387,6 +388,13 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   override readSync(dataId: object): BackendValues {
+    if (!this.hasReadSyncWarned) {
+      this.hasReadSyncWarned = true;
+      console.warn(
+          `The performance of 'readSync' is poor on the webgpu backend,` +
+          `please use asynchronous APIs to read data from GPU to CPU.`);
+    }
+
     const tensorData = this.tensorMap.get(dataId);
     const {values, complexTensorInfos} = tensorData;
 
