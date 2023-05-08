@@ -73,11 +73,11 @@ function multinomial_(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Multinomial, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as Tensor2D;
+                  Multinomial, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as Tensor2D;
 
   // tslint:disable-next-line:no-unnecessary-type-assertion
   return origRank === 1 ? reshape(res, [res.size]) as Tensor1D : res;
 }
 
-export const multinomial = op({multinomial_});
+export const multinomial = /* @__PURE__ */ op({multinomial_});

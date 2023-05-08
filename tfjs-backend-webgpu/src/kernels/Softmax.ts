@@ -15,16 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {SoftmaxProgram} from '../softmax_webgpu';
 
-import {exp} from './Exp';
-import {max} from './Max';
-import {realDiv} from './RealDiv';
 import {reshape} from './Reshape';
-import {sub} from './Sub';
-import {sum} from './Sum';
 
 export function softmax(
     args: {inputs: SoftmaxInputs, backend: WebGPUBackend, attrs: SoftmaxAttrs}):
@@ -33,40 +29,26 @@ export function softmax(
   const {logits} = inputs;
   const {dim} = attrs;
 
-  const axes = util.parseAxisParam([dim], logits.shape);
-
-  const maxLogit = max({
+  const logitsReshaped = reshape({
     inputs: {x: logits},
     backend,
-    attrs: {reductionIndices: axes, keepDims: false}
+    attrs: {
+      shape: [
+        util.sizeFromShape(logits.shape) / logits.shape[dim], logits.shape[dim]
+      ]
+    }
   });
-
-  const expandedShape = backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-
-  const maxLogitsReshaped =
-      reshape({inputs: {x: maxLogit}, backend, attrs: {shape: expandedShape}});
-  const a =
-      sub({inputs: {a: logits, b: maxLogitsReshaped}, backend}) as TensorInfo;
-  const b = exp({inputs: {x: a}, backend}) as TensorInfo;
-  const sumExp =
-      sum({inputs: {x: b}, backend, attrs: {axis: axes, keepDims: false}});
-  const sumExpReshaped =
-      reshape({inputs: {x: sumExp}, backend, attrs: {shape: expandedShape}});
-  const res =
-      realDiv({inputs: {a: b, b: sumExpReshaped}, backend}) as TensorInfo;
-
-  backend.disposeData(maxLogit.dataId);
-  backend.disposeData(maxLogitsReshaped.dataId);
-  backend.disposeData(a.dataId);
-  backend.disposeData(b.dataId);
-  backend.disposeData(sumExp.dataId);
-  backend.disposeData(sumExpReshaped.dataId);
-
-  return res;
+  const program = new SoftmaxProgram(logitsReshaped.shape);
+  const res = backend.runWebGPUProgram(program, [logitsReshaped], logits.dtype);
+  const resReshaped =
+      reshape({inputs: {x: res}, backend, attrs: {shape: logits.shape}});
+  backend.disposeData(logitsReshaped.dataId);
+  backend.disposeData(res.dataId);
+  return resReshaped;
 }
 
 export const softmaxConfig: KernelConfig = {
   kernelName: Softmax,
   backendName: 'webgpu',
-  kernelFunc: softmax as {} as KernelFunc
+  kernelFunc: softmax as unknown as KernelFunc
 };

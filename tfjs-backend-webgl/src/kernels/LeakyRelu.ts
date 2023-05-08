@@ -37,12 +37,12 @@ export function leakyRelu(args: {
 
   const $alpha = backend.makeTensorInfo(
       [], 'float32',
-      util.createScalarValue(alpha as {} as 'float32', 'float32'));
+      util.createScalarValue(alpha as unknown as 'float32', 'float32'));
 
   const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
       new BinaryOpPackedProgram(LEAKYRELU_PACKED, x.shape, $alpha.shape) :
       new BinaryOpProgram(LEAKYRELU, x.shape, $alpha.shape);
-  const result = backend.runWebGLProgram(program, [x, $alpha], x.dtype);
+  const result = backend.runWebGLProgram(program, [x, $alpha], 'float32');
 
   backend.disposeIntermediateTensorInfo($alpha);
 
@@ -52,5 +52,5 @@ export function leakyRelu(args: {
 export const leakyReluConfig: KernelConfig = {
   kernelName: LeakyRelu,
   backendName: 'webgl',
-  kernelFunc: leakyRelu as {} as KernelFunc
+  kernelFunc: leakyRelu as unknown as KernelFunc
 };

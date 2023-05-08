@@ -17,8 +17,34 @@
 #endif
 
 #include <cstddef>
+#include <cstdio>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
+
+namespace {
+
+template <typename T>
+void sum(const T* x_buf, const size_t out_size, const size_t reduce_size,
+         T* out_buf) {
+  const T* x_offset = x_buf;
+
+  for (size_t i = 0; i < out_size; ++i) {
+    T sum = 0;
+
+    const T* x_iter_end = x_offset + reduce_size;
+
+    for (const T* x = x_offset; x < x_iter_end; ++x) {
+      sum += *x;
+    }
+
+    x_offset += reduce_size;
+
+    out_buf[i] = sum;
+  }
+}
+
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -29,29 +55,22 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sum(const size_t x_id, const size_t reduce_size, const size_t out_id) {
+void Sum(const size_t x_id, const size_t reduce_size, const DType dtype,
+         const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* x_buf = x_info.f32();
-
-  float* out_buf = out_info.f32_write();
   const size_t out_size = out_info.size;
 
-  const float* x_offset = x_buf;
-
-  for (size_t i = 0; i < out_size; ++i) {
-    float sum = 0;
-
-    const float* x_iter_end = x_offset + reduce_size;
-
-    for (const float* x = x_offset; x < x_iter_end; ++x) {
-      sum += *x;
-    }
-
-    x_offset += reduce_size;
-
-    out_buf[i] = sum;
+  switch (dtype) {
+    case DType::float32:
+      sum<float>(x_info.f32(), out_size, reduce_size, out_info.f32_write());
+      break;
+    case DType::int32:
+      sum<int32_t>(x_info.i32(), out_size, reduce_size, out_info.i32_write());
+      break;
+    default:
+      util::warn("Sum failed. Unknown dtype %d", dtype);
   }
 }
 

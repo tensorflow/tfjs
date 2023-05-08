@@ -9,19 +9,19 @@ This package will work on Linux, Windows, and Mac platforms where TensorFlow is 
 TensorFlow.js for Node currently supports the following platforms:
 - Mac OS X CPU (10.12.6 Siera or higher)
 - Linux CPU (Ubuntu 14.04 or higher)
-- Linux GPU (Ubuntu 14.04 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
+- Linux GPU (Ubuntu 14.04 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
 - Windows CPU (Win 7 or higher)
-- Windows GPU (Win 7 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
+- Windows GPU (Win 7 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
 
 For GPU support, tfjs-node-gpu@1.2.4 or later requires the following NVIDIA® software installed on your system:
 
 | Name | Version |
 | ------------- | ------------- |
-| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >410.x  |
-| [CUDA® Toolkit](https://developer.nvidia.com/cuda-10.0-download-archive)  | 10.0  |
-| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | >=7.4.1  |
+| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >450.x  |
+| [CUDA® Toolkit](https://developer.nvidia.com/cuda-toolkit-archive)  | 11.2  |
+| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | 8.1.0  |
 
-*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
+*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/source).*
 
 #### Installing CPU TensorFlow.js for Node:
 
@@ -57,6 +57,19 @@ For Mac OS Catalina please follow [this guide](https://github.com/nodejs/node-gy
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
+
+#### Mac OS X with M1 chip
+For Mac with M1 chip, tfjs-node only support arm64 build.
+To install tfjs-node, you need to ensure rosetta has been turned off on your terminal app.
+Start your terminal and verify following command shows `arm64` as response:
+```
+uname -m
+```
+Install your node version with arm64 binary. You can verify that with following command also shows `arm64`:
+```
+node -e 'console.log(os.arch())'
+```
+Now you can install tfjs-node as described before.
 
 #### Rebuild the package on Raspberry Pi
 

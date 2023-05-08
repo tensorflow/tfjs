@@ -31,6 +31,8 @@ or [announcement](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs-
 
 #### Failing tests (click details for information):
 
+Click "Details", and then "View more details on Google Cloud Build" for information about the failure.
+
 <img src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" data-canonical-src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" width=500/>
 
 #### Passing tests:
@@ -70,7 +72,8 @@ implementation in [backend.ts](/tfjs-core/src/backends/backend.ts),
 be sure to check out the TensorFlow ops list [here](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/ops/ops.pbtxt).
 This list shows the kernels available for the TensorFlow C API. To ensure that
 we can bind to this with node.js, we should ensure that our backend.ts
-interface matches ops in the TensorFlow C API.
+interface matches ops in the TensorFlow C API. For detailed instructions on
+how to add a new op, see [CONTRIBUTING_MISSING_OP.md](/CONTRIBUTING_MISSING_OP.md).
 
 ## Code reviews
 

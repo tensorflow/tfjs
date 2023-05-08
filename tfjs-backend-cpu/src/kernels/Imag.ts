@@ -36,5 +36,5 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendCPU}):
 export const imagConfig: KernelConfig = {
   kernelName: Imag,
   backendName: 'cpu',
-  kernelFunc: imag as {} as KernelFunc
+  kernelFunc: imag as unknown as KernelFunc
 };

@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {env, KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {PadProgram} from '../pad_gpu';
 import {PadPackedProgram} from '../pad_packed_gpu';
+import {fill} from './Fill';
 
 export const padV2 =
     (args: {inputs: PadV2Inputs, backend: MathBackendWebGL, attrs: PadV2Attrs}):
@@ -28,15 +29,27 @@ export const padV2 =
           const {x} = inputs;
           const {paddings, constantValue} = attrs;
 
+          if (util.sizeFromShape(x.shape) === 0) {
+            // Short-circuit the computation, since x doesn't have value, only
+            // the shape is used to compute output shape to pad.
+            const outputShape = paddings.map(
+                (p, i) =>
+                    p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+            return fill({
+              backend,
+              attrs: {shape: outputShape, value: constantValue, dtype: x.dtype}
+            });
+          }
+
           const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
               new PadPackedProgram(x.shape, paddings, constantValue) :
               new PadProgram(x.shape, paddings, constantValue);
-          const customSetup = program.getCustomSetupFunc(constantValue);
-          return backend.runWebGLProgram(program, [x], x.dtype, customSetup);
+          const customValues = [[constantValue]];
+          return backend.runWebGLProgram(program, [x], x.dtype, customValues);
         };
 
 export const padV2Config: KernelConfig = {
   kernelName: PadV2,
   backendName: 'webgl',
-  kernelFunc: padV2 as {} as KernelFunc
+  kernelFunc: padV2 as unknown as KernelFunc
 };

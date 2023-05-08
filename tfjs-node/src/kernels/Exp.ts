@@ -26,7 +26,11 @@ export const expConfig: KernelConfig = {
     const {x} = args.inputs as ExpInputs;
     const backend = args.backend as NodeJSKernelBackend;
 
-    const xTensor = x.dtype === 'int32' ? (x as Tensor).toFloat() : x;
+    let xTensor = x;
+    if (x.dtype === 'int32') {
+      xTensor = (x as Tensor).toFloat();
+      (x as Tensor).dispose();
+    }
     return backend.executeSingleInput(Exp, xTensor);
   }
 };

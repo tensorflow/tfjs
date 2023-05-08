@@ -39,6 +39,12 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     expectArraysClose(await y.data(), [0.5, 0.5]);
   });
 
+  it('odd number of inputs', async () => {
+    const y = tf.softmax(tf.tensor1d([-400, -400, 0, -400, -400, -400, -400]));
+
+    expectArraysClose(await y.data(), [0, 0, 1, 0, 0, 0, 0]);
+  });
+
   it('Huge difference between probabilities', async () => {
     const y = tf.softmax(tf.tensor1d([-1000, +1000]));
 
@@ -129,6 +135,11 @@ describeWithFlags('softmax', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.softmax({} as tf.Tensor))
         .toThrowError(/Argument 'logits' passed to 'softmax' must be a Tensor/);
+  });
+
+  it('throws when passed an int32 tensor', async () => {
+    expect(() => tf.softmax(tf.tensor1d([2, 1, 3], 'int32')))
+        .toThrowError(/Argument 'logits' passed to 'softmax' must be float32/);
   });
 
   it('accepts a tensor-like object', async () => {

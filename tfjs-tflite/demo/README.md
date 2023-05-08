@@ -12,34 +12,19 @@ the "WebAssembly SIMD support" and "WebAssembly threads support" in
 
 ## Run the demo locally
 
-cd into the `tfjs-tflite` folder:
+Build the dependencies.
 
 ```sh
-$ cd tfjs/tfjs-tflite
-```
-
-Build the `tfjs-tflite` package locally.
-```sh
+$ yarn build-deps
 $ yarn
-# This script will download the TFLite web API WASM module files and JS client
-# to deps/.
-$ ./script/download-tflite-web-api.sh
-# This will bundle and copy everything needed to tfjs-tflite/dist/ which will
-# be used by the local demo.
-$ yarn build-npm
 ```
 
-cd into the `demo` folder
+Run the demo locally
 ```sh
-$ cd demo
-```
-
-Build and run the demo locally
-```sh
-$ yarn
 $ yarn watch
 ```
 
 
 [blog]: https://blog.tensorflow.org/2020/09/how-to-create-cartoonizer-with-tf-lite.html
 [live demo]: https://storage.googleapis.com/tfweb/demos/cartoonizer/index.html
+[gsutil]: https://cloud.google.com/storage/docs/gsutil_install

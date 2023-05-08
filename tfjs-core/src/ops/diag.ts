@@ -24,7 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {op} from './operation';
 
 /**
- * Returns a diagonal tensor with a given diagonal values.
+ * Returns a diagonal tensor with given diagonal values.
  *
  * Given a diagonal, this operation returns a tensor with the diagonal and
  * everything else padded with zeros.
@@ -38,18 +38,20 @@ import {op} from './operation';
  * tf.diag(x).print()
  * ```
  * ```js
- * const x = tf.tensor1d([1, 2, 3, 4, 5, 6, 6, 8], [4, 2])
+ * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [4, 2])
  *
  * tf.diag(x).print()
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag');
 
   const inputs: DiagInputs = {x: $x};
 
-  return ENGINE.runKernel(Diag, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Diag, inputs as unknown as NamedTensorMap);
 }
 
-export const diag = op({diag_});
+export const diag = /* @__PURE__ */ op({diag_});

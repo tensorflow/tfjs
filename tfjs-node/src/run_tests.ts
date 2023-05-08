@@ -48,6 +48,7 @@ jasmine_util.setTestEnvs([{
 
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:
+  'bitwiseAnd',
   'version version',
   'unreliable is true due to both auto gc and string tensors',
   'unreliable is true due to auto gc',
@@ -66,14 +67,36 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should sum the duplicated indices',
   'scatterND test-tensorflow {} should work for tensorLike input',
   // https://github.com/tensorflow/tfjs/issues/1077
+  // tslint:disable-next-line:max-line-length
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'avgPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'avgPool test-tensorflow {} gradient x=[3,3,1] f=[3,3] s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'avgPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
+  // https://github.com/tensorflow/tensorflow/issues/58758
+  'avgPool3d test-tensorflow {} x=[1,1,1,1,1] f=[1,1,3] s=1 p=valid',
+  // Node backend which uses TF 2.11.0 doesn't support number padding
+  'avgPool3d test-tensorflow {} x=[1,1,1,1,1] f=[2,2,2] s=1 p=2',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'maxPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
+  'maxPoolBackprop test-tensorflow {} gradient x=[3,3,1] f=3 s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'argmax test-tensorflow {} 6D, axis=0', 'diag test-tensorflow {} complex',
+  'argmax test-tensorflow {} 6D, axis=0',
+  'diag test-tensorflow {} complex',
   'diag test-tensorflow {} bool',
   // See https://github.com/tensorflow/tfjs/issues/1891
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
@@ -83,27 +106,74 @@ const IGNORE_LIST: string[] = [
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
   'conv2d test-tensorflow {} gradient x=[1,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
   'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
-  'maxPoolWithArgmax', 'rotate', 'flipLeftRight', 'unique',
-  // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'conv2dTranspose test-tensorflow {} input=8x8x8,output=4x4x8,f=8,s=1,inDepth=8,p=same vec4',
+  // tslint:disable-next-line:max-line-length
+  'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
+  'fused conv2d test-tensorflow {} basic in NCHW',
+  'fused conv2d test-tensorflow {} im2row in NCHW',
+  'fused conv2d test-tensorflow {} batch in NCHW',
+  'maxPoolWithArgmax',
+  'rotate',
+  // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
+  'unique test-tensorflow {} 1d tensor with NaN and Infinity',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
   'image.transform',
-  // Breaking change in NaN processing
-  // See https://github.com/tensorflow/tfjs/issues/4883
-  'max test-tensorflow {} ignores NaNs',
-  'min test-tensorflow {} ignores NaNs',
   'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
-  // Node kernel for einsum is yet to be implemented.
-  // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum'
+  'einsum test-tensorflow {} 2d matrix calculate trace: duplicate axes not implemented yet',
+  'einsum test-tensorflow {} nonexistent dimension throws error',
+  'raggedGather',
+  'raggedRange',
+  'raggedTensorToTensor',
+  'searchSorted',
+  'sparseFillEmptyRows',
+  'sparseReshape',
+  'sparseSegmentMean',
+  'sparseSegmentSum',
+  'stringNGrams',
+  'stringSplit',
+  'stringToHashBucketFast',
+  'greaterEqual test-tensorflow {} should support string comparison',
+  'greater test-tensorflow {} should support string comparison',
+  'lessEqual test-tensorflow {} should support string comparison',
+  'less test-tensorflow {} should support string comparison',
+  // int32 input for the following ops not supported by TF 2.4.0.
+  'leakyrelu test-tensorflow {} int32',
+  'step kernel test-tensorflow {} with int32 tensor',
+  // upperBound and lowerBound use SearchSorted, which is unsupported
+  'upperBound',
+  'lowerBound',
+  'multinomial test-tensorflow {} creates the same data given the same seed',
 ];
 
 if (process.platform === 'win32') {
@@ -119,8 +189,13 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
+const grepRegex = new RegExp(argv.grep as string);
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({
+  spec_files: ['src/**/*_test.ts'],
+  random: false,
+  jsLoader: 'require',
+});
 // Also import tests from core.
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
@@ -131,23 +206,23 @@ if (process.env.JASMINE_SEED) {
 
 const env = jasmine.getEnv();
 
-const grepRegex = new RegExp(argv.grep as string);
-
-// Filter method that returns boolean, if a given test should return.
-env.specFilter = spec => {
-  // Filter based on the grep flag.
-  if (!grepRegex.test(spec.getFullName())) {
-    return false;
-  }
-  // Return false (skip the test) if the test is in the ignore list.
-  for (let i = 0; i < IGNORE_LIST.length; ++i) {
-    if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+// // Filter method that returns boolean, if a given test should return.
+env.configure({
+  specFilter: (spec: jasmine.Spec) => {
+    // Filter based on the grep flag.
+    if (!grepRegex.test(spec.getFullName())) {
       return false;
     }
+    // Return false (skip the test) if the test is in the ignore list.
+    for (let i = 0; i < IGNORE_LIST.length; ++i) {
+      if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+        return false;
+      }
+    }
+    // Otherwise run the test.
+    return true;
   }
-  // Otherwise run the test.
-  return true;
-};
+});
 
 // TODO(kreeger): Consider moving to C-code.
 console.log(`Running tests against TensorFlow: ${

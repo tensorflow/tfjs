@@ -12,14 +12,14 @@
  * Unit tests for core.ts.
  */
 
-import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {cast, ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {Shape} from '../keras_format/common';
 import {deserialize} from '../layers/serialization';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {Add, Average, Concatenate, Maximum, Minimum, Multiply} from './merge';
 
@@ -419,7 +419,7 @@ describeMathCPUAndGPU('Minimum Layer: Tensor', () => {
   });
 });
 
-describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Concatenate Layer: Tensor', () => {
   let x1: Tensor2D;
   let x2: Tensor2D;
 
@@ -445,7 +445,7 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
     const x1 = tensor2d([[1], [0], [1]]);
     const x2 = tensor2d([[1], [0], [0]]);
     const mask =
-        layer.computeMask([x1, x2], [x1.asType('bool'), x2.asType('bool')]);
+        layer.computeMask([x1, x2], [cast(x1, 'bool'), cast(x2, 'bool')]);
     expectTensorsClose(mask, tensor1d([true, false, false], 'bool'));
   });
 
@@ -814,7 +814,7 @@ describeMathCPU('Dot-Layer: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('Dot-Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Dot-Layer: Tensor', () => {
   // Example reference Python Keras code:
   //
   // ```py

@@ -56,4 +56,4 @@ function concat3d_(
   return concat(tensors, axis);
 }
 
-export const concat3d = op({concat3d_});
+export const concat3d = /* @__PURE__ */ op({concat3d_});

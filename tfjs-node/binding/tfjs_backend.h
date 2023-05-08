@@ -29,6 +29,8 @@ namespace tfnodejs {
 
 class TFJSBackend {
  public:
+  ~TFJSBackend();
+
   // Creates, initializes, and returns a TFJSBackend instance. If initialization
   // fails, a nullptr is returned.
   static TFJSBackend *Create(napi_env env);
@@ -83,9 +85,11 @@ class TFJSBackend {
   // Get number of loaded SavedModel in the backend:
   napi_value GetNumOfSavedModels(napi_env env);
 
+  // Get number of tensor handles in the backend:
+  napi_value GetNumOfTensors(napi_env env);
+
  private:
   TFJSBackend(napi_env env);
-  ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle *tfe_handle);
   int32_t InsertSavedModel(TF_Session *tf_session, TF_Graph *tf_graph);

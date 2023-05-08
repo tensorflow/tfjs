@@ -36,7 +36,7 @@ import {sum} from '../sum';
  * const x = tf.tensor2d([[1, 2], [3, 4]]);
  * let y = tf.linalg.gramSchmidt(x);
  * y.print();
- * console.log('Othogonalized:');
+ * console.log('Orthogonalized:');
  * y.dot(y.transpose()).print();  // should be nearly the identity matrix.
  * console.log('First row direction maintained:');
  * const data = await y.array();
@@ -106,4 +106,4 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
   }
 }
 
-export const gramSchmidt = op({gramSchmidt_});
+export const gramSchmidt = /* @__PURE__ */ op({gramSchmidt_});

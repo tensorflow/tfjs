@@ -17,15 +17,15 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
-export const CHECK_NAN_SNIPPET = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
+export const CHECK_NAN_SNIPPET_PACKED = `
+  result.r = isNaN.r ? NAN : result.r;
+  result.g = isNaN.g ? NAN : result.g;
+  result.b = isNaN.b ? NAN : result.b;
+  result.a = isNaN.a ? NAN : result.a;
 `;
 
 export const ELU_DER = `
@@ -44,12 +44,14 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
   supportsBroadcasting = true;
   packedInputs = true;
   packedOutput = true;
+  enableShapeUniforms: boolean;
 
   constructor(
       op: string, aShape: number[], bShape: number[],
       checkOutOfBounds = false) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     const rank = this.outputShape.length;
+    this.enableShapeUniforms = useShapeUniforms(rank);
     let checkOutOfBoundsString = '';
     if (checkOutOfBounds) {
       if (rank === 0 || util.sizeFromShape(this.outputShape) === 1) {
@@ -64,14 +66,33 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
           ${dtype} coords = getOutputCoords();
         `;
         if (rank === 1) {
-          checkOutOfBoundsString += `
+          if (this.enableShapeUniforms) {
+            checkOutOfBoundsString += `
+            result.y = (coords + 1) >= outShape ? 0. : result.y;
+            result.z = 0.;
+            result.w = 0.;
+          `;
+          } else {
+            checkOutOfBoundsString += `
             result.y = (coords + 1) >= ${this.outputShape[0]} ? 0. : result.y;
             result.z = 0.;
             result.w = 0.;
           `;
+          }
         } else {
           const channels = getChannels('coords', rank);
-          checkOutOfBoundsString += `
+          if (this.enableShapeUniforms) {
+            checkOutOfBoundsString += `
+            bool nextRowOutOfBounds =
+              (${channels[rank - 2]} + 1) >= outShape[${rank} - 2];
+            bool nextColOutOfBounds =
+              (${channels[rank - 1]} + 1) >= outShape[${rank} - 1];
+            result.y = nextColOutOfBounds ? 0. : result.y;
+            result.z = nextRowOutOfBounds ? 0. : result.z;
+            result.w = nextColOutOfBounds || nextRowOutOfBounds ? 0. : result.w;
+          `;
+          } else {
+            checkOutOfBoundsString += `
             bool nextRowOutOfBounds =
               (${channels[rank - 2]} + 1) >= ${this.outputShape[rank - 2]};
             bool nextColOutOfBounds =
@@ -80,6 +101,7 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
             result.z = nextRowOutOfBounds ? 0. : result.z;
             result.w = nextColOutOfBounds || nextRowOutOfBounds ? 0. : result.w;
           `;
+          }
         }
       }
     }

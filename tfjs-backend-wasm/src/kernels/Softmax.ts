@@ -31,7 +31,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function softmax(
+export function softmax(
     args: {backend: BackendWasm, inputs: SoftmaxInputs, attrs: SoftmaxAttrs}):
     TensorInfo {
   const {backend, inputs: {logits}, attrs: {dim}} = args;
@@ -55,5 +55,5 @@ export const softmaxConfig: KernelConfig = {
   kernelName: Softmax,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: softmax as {} as KernelFunc
+  kernelFunc: softmax as unknown as KernelFunc
 };

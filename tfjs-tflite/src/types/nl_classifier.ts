@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Category} from './common';
+import {BaseTaskLibrary, Category} from './common';
 
 /** Classification options to identify input and ouptut tensors of the model. */
 export declare interface NLClassifierOptions {
@@ -32,18 +32,16 @@ export declare interface NLClassifierClass {
   /**
    * The factory function to create a NLClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options: NLClassifierOptions):
+  create(model: string|ArrayBuffer, options: NLClassifierOptions):
       Promise<NLClassifier>;
 }
 
 /** The main NLClassifier class interface. */
-export declare interface NLClassifier {
+export declare interface NLClassifier extends BaseTaskLibrary {
   /** Performs classification on a string input, returns classified results. */
   classify(input: string): Category[]|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

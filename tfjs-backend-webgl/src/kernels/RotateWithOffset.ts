@@ -26,16 +26,17 @@ export const rotateWithOffsetConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {image} = inputs as RotateWithOffsetInputs;
-    const {radians, fillValue, center} = attrs as {} as RotateWithOffsetAttrs;
+    const {radians, fillValue, center} =
+        attrs as unknown as RotateWithOffsetAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const program = new RotateProgram((image as Tensor4D).shape, fillValue);
     const [centerX, centerY] =
         backend_util.getImageCenter(center, image.shape[1], image.shape[2]);
-    const customSetup = program.getCustomSetupFunc(
-        centerX, centerY, Math.sin(radians), Math.cos(radians));
+    const customValues =
+        [[centerX, centerY, Math.sin(radians), Math.cos(radians)]];
     const output = webglBackend.runWebGLProgram(
-        program, [image], image.dtype, customSetup);
+        program, [image], image.dtype, customValues);
     return output;
   }
 };

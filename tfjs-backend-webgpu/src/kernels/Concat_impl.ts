@@ -18,10 +18,10 @@
 import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {ConcatProgram} from '../concat_webgpu';
 import {concatImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
-import {ConcatProgram} from './concat_webgpu';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
@@ -47,6 +47,8 @@ export function concatImpl(
     return result;
   }
 
+  let runOnCpu = backend.shouldExecuteOnCPU(inputs);
+
   // Run on cpu if dtype is string. For string, the backend represents it
   // as Uint8Array[], where each Uint8Array is a character. Given that the
   // computation is only on the outer array, uploading the whole data onto
@@ -54,10 +56,30 @@ export function concatImpl(
   // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
   // just run the kernel on cpu if dtype is string.
   if (dtype === 'string') {
-    const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+    runOnCpu = true;
+  }
+
+  if (runOnCpu) {
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const tensors2D = inputs.map(t => {
+      const innerSize = util.sizeFromShape(t.shape.slice(axis));
+      const shape = [-1, innerSize];
+      return reshape({inputs: {x: t}, backend, attrs: {shape}});
+    });
+
     const inputsValShapes = tensors2D.map(t => {
       return {vals: backend.readSync(t.dataId), shape: t.shape};
     });
+
+    // Concats 2d tensors along axis=1.
+    const outShape =
+        backend_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis */);
     const simplyConcat = tensors2D[0].shape[0] === 1;
     const outVals =
         concatImplCPU(inputsValShapes, outShape, dtype, simplyConcat);
@@ -72,10 +94,41 @@ export function concatImpl(
     return outInfo;
   }
 
+  // There is a storage buffer limitation in compute stage, one for output so
+  // the maximum for input is limits.maxStorageBuffersPerShaderStage - 1
+  const maxInputNum = backend.device.limits.maxStorageBuffersPerShaderStage - 1;
+  if (inputs.length > maxInputNum) {
+    const reducedInputs = [];
+    for (let i = 0; i < inputs.length; i += maxInputNum) {
+      const subArray = inputs.slice(i, i + maxInputNum);
+      reducedInputs.push(concatImpl(subArray, axis, backend));
+    }
+    const result = concatImpl(reducedInputs, axis, backend);
+
+    for (const i of reducedInputs) {
+      backend.disposeData(i.dataId);
+    }
+
+    return result;
+  }
+
   const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
-  const program =
-      new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
-  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
+  const shapes = (tensors2D).map(t => t.shape as [number, number]);
+  const program = new ConcatProgram(shapes);
+
+  const uniformData: Array<{type: string; data: number[]}> = [];
+  const offsets: number[] = new Array(shapes.length - 1);
+  if (offsets.length > 0) {
+    offsets[0] = shapes[0][1];
+    uniformData.push({type: 'int32', data: [offsets[0]]});
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+      uniformData.push({type: 'int32', data: [offsets[i]]});
+    }
+  }
+
+  const res = backend.runWebGPUProgram(
+      program, tensors2D, tensors2D[0].dtype, uniformData);
   tensors2D.forEach(r => backend.disposeData(r.dataId));
 
   const reshapedResult =

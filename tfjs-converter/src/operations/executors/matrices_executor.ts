@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor2D} from '@tensorflow/tfjs-core';
+import {Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -26,13 +26,13 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+     ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'BatchMatMul':
         case 'BatchMatMulV2':
         case 'MatMul':
-          return [tfOps.matMul(
+          return [ops.matMul(
               getParamValue('a', node, tensorMap, context) as Tensor2D,
               getParamValue('b', node, tensorMap, context) as Tensor2D,
               getParamValue('transposeA', node, tensorMap, context) as boolean,
@@ -40,13 +40,13 @@ export const executeOp: InternalOpExecutor =
                   boolean)];
 
         case 'Einsum':
-          return [tfOps.einsum(
+          return [ops.einsum(
               getParamValue('equation', node, tensorMap, context) as string,
               ...getParamValue('tensors', node, tensorMap, context) as
                   Tensor[])];
 
         case 'Transpose':
-          return [tfOps.transpose(
+          return [ops.transpose(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('perm', node, tensorMap, context) as number[])];
 
@@ -76,7 +76,7 @@ export const executeOp: InternalOpExecutor =
           }
           const [biasArg, preluArg] =
               getParamValue('args', node, tensorMap, context) as Tensor[];
-          return [tfOps.fused.matMul({
+          return [ops.fused.matMul({
             a: getParamValue('a', node, tensorMap, context) as Tensor2D,
             b: getParamValue('b', node, tensorMap, context) as Tensor2D,
             transposeA: getParamValue('transposeA', node, tensorMap, context) as
@@ -88,6 +88,12 @@ export const executeOp: InternalOpExecutor =
             preluActivationWeights: preluArg,
             leakyreluAlpha
           })];
+
+        case 'MatrixBandPart':
+          return [ops.linalg.bandPart(
+              getParamValue('a', node, tensorMap, context) as Tensor2D,
+              getParamValue('numLower', node, tensorMap, context) as Scalar,
+              getParamValue('numUpper', node, tensorMap, context) as Scalar)];
 
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

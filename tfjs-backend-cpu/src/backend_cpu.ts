@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
@@ -49,21 +49,17 @@ export class MathBackendCPU extends KernelBackend {
     this.data = new DataStorage(this, engine());
   }
 
-  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  override write(
+      values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): DataId {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
         backend_util.warn(
             '\n============================\n' +
-            'Hi there 👋. Looks like you are running TensorFlow.js in ' +
+            'Hi, looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
-            'backend, which binds to TensorFlow C++, by running ' +
-            'npm i @tensorflow/tfjs-node, ' +
-            'or npm i @tensorflow/tfjs-node-gpu if you have CUDA. ' +
-            'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
-            'suffix for CUDA) at the start of your program. ' +
-            'Visit https://github.com/tensorflow/tfjs-node for more details.' +
+            'backend, visit https://github.com/tensorflow/tfjs-node for more details. ' +
             '\n============================');
       }
     }
@@ -87,7 +83,7 @@ export class MathBackendCPU extends KernelBackend {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
       const encodedValues =
-          (values as {} as string[]).map(d => util.encodeString(d));
+          (values as unknown as string[]).map(d => util.encodeString(d));
 
       outId = this.write(encodedValues, shape, dtype);
     } else {
@@ -98,7 +94,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   /** Return refCount of a `TensorData`. */
-  refCount(dataId: DataId): number {
+  override refCount(dataId: DataId): number {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
       return tensorData.refCount;
@@ -107,7 +103,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   /** Increase refCount of a `TensorData`. */
-  incRef(dataId: DataId): void {
+  override incRef(dataId: DataId): void {
     const tensorData = this.data.get(dataId);
     tensorData.refCount++;
   }
@@ -120,20 +116,20 @@ export class MathBackendCPU extends KernelBackend {
     }
   }
 
-  move(
+  override move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
     this.data.set(dataId, {values, dtype, refCount});
   }
 
-  numDataIds(): number {
+  override numDataIds(): number {
     return this.data.numDataIds();
   }
 
-  async read(dataId: DataId): Promise<backend_util.BackendValues> {
+  override async read(dataId: DataId): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
-  readSync(dataId: DataId): backend_util.BackendValues {
+  override readSync(dataId: DataId): backend_util.BackendValues {
     const {dtype, complexTensorInfos} = this.data.get(dataId);
 
     if (dtype === 'complex64') {
@@ -143,29 +139,31 @@ export class MathBackendCPU extends KernelBackend {
           this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
       return backend_util.mergeRealAndImagArrays(realValues, imagValues);
     }
-
-    return this.data.get(dataId).values;
+    return util.convertBackendValuesAndArrayBuffer(
+        this.data.get(dataId).values, dtype);
   }
 
-  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
+      TensorBuffer<R, D> {
     const data = this.readSync(t.dataId);
-    let decodedData = data as DataValues;
     if (t.dtype === 'string') {
       try {
         // Decode the bytes into string.
-        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+        const strings = (data as Uint8Array[]).map(d => util.decodeString(d));
+        return buffer(t.shape as ShapeMap[R], t.dtype, strings) as
+            TensorBuffer<R, D>;
       } catch {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, data as TypedArray) as
+        TensorBuffer<R, D>;
   }
 
   makeOutput<T extends Tensor>(
       values: backend_util.BackendValues, shape: number[], dtype: DataType): T {
-    const dataId = this.write(values, shape, dtype);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
+    return engine().makeTensorFromTensorInfo(
+               this.makeTensorInfo(shape, dtype, values), this) as T;
   }
 
   /**
@@ -175,7 +173,7 @@ export class MathBackendCPU extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force = false): boolean {
+  override disposeData(dataId: DataId, force = false): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
       if (!force && this.data.get(dataId).refCount > 0) {
@@ -198,14 +196,14 @@ export class MathBackendCPU extends KernelBackend {
     this.disposeData(tensorInfo.dataId);
   }
 
-  async time(f: () => void): Promise<BackendTimingInfo> {
+  override async time(f: () => void): Promise<BackendTimingInfo> {
     const start = util.now();
     f();
     const kernelMs = util.now() - start;
     return {kernelMs};
   }
 
-  memory() {
+  override memory() {
     return {
       // Unreliable due to automatic gc. The numbers above are cumulative.
       unreliable: true,
@@ -222,14 +220,14 @@ export class MathBackendCPU extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
-  dispose() {}
+  override dispose() {}
 
-  floatPrecision(): 16|32 {
+  override floatPrecision(): 16|32 {
     return 32;
   }
 
   /** Returns the smallest representable number.  */
-  epsilon(): number {
+  override epsilon(): number {
     return super.epsilon();
   }
 }

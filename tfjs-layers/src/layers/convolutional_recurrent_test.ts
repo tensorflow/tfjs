@@ -10,9 +10,10 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+
 import {serializeActivation, Tanh} from '../activations';
 import {NonNeg, serializeConstraint, UnitNorm} from '../constraints';
-
 import {sequential} from '../exports';
 import * as tfl from '../index';
 import {GlorotUniform, HeUniform, Ones, serializeInitializer} from '../initializers';
@@ -21,7 +22,7 @@ import {modelFromJSON} from '../models';
 import {L1L2, serializeRegularizer} from '../regularizers';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {ConvLSTM2DArgs, ConvLSTM2DCellArgs} from './convolutional_recurrent';
 
@@ -324,7 +325,7 @@ describeMathCPU('ConvLSTM2D Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
+describeMathCPUAndWebGL2('ConvLSTM2D Tensor', () => {
   const filters = 5;
   const kernelSize = 3;
 
@@ -357,6 +358,10 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
           training}, implementation=${implementation}`;
 
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
+
         const convLstm = tfl.layers.convLstm2d({
           filters,
           kernelSize,
@@ -366,11 +371,11 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
           dropout,
           recurrentDropout,
           implementation,
+          dropoutFunc,
         });
 
         const input = tfc.ones(inputShape);
 
-        spyOn(tfc, 'dropout').and.callThrough();
         let dropoutCall = 0;
         if (dropout !== 0.0 && training) {
           dropoutCall += 4;
@@ -384,7 +389,7 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
         for (let i = 0; i < 2; i++) {
           tfc.dispose(convLstm.apply(input, {training}) as tfc.Tensor);
 
-          expect(tfc.dropout).toHaveBeenCalledTimes((i + 1) * dropoutCall);
+          expect(dropoutFunc).toHaveBeenCalledTimes((i + 1) * dropoutCall);
 
           if (i === 0) {
             numTensors = tfc.memory().numTensors;

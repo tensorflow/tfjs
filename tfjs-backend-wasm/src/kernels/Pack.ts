@@ -62,5 +62,5 @@ export function pack(
 export const packConfig: KernelConfig = {
   kernelName: Pack,
   backendName: 'wasm',
-  kernelFunc: pack as {} as KernelFunc
+  kernelFunc: pack as unknown as KernelFunc
 };

@@ -59,4 +59,4 @@ function absoluteDifference_<T extends Tensor, O extends Tensor>(
   return computeWeightedLoss(losses, $weights, reduction);
 }
 
-export const absoluteDifference = op({absoluteDifference_});
+export const absoluteDifference = /* @__PURE__ */ op({absoluteDifference_});

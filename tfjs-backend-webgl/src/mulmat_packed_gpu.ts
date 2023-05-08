@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class MatMulPackedProgram implements GPGPUProgram {
   variableNames = ['matrixA', 'matrixB'];
@@ -23,6 +23,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -30,6 +31,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
       transposeB = false, addBias = false, activation: string = null,
       hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
@@ -76,21 +78,21 @@ export class MatMulPackedProgram implements GPGPUProgram {
     let batchASnippet = 'rc.x';
     let batchBSnippet = 'rc.x';
     if (aShape[0] < bShape[0]) {
-      batchASnippet = `int(min(float(rc.x), ${aShape[0] - 1}.))`;
+      batchASnippet = `imod(rc.x, ${aShape[0]})`;
     } else if (bShape[0] < aShape[0]) {
-      batchBSnippet = `int(min(float(rc.x), ${bShape[0] - 1}.))`;
+      batchBSnippet = `imod(rc.x, ${bShape[0]})`;
     }
 
     this.userCode = `
       ${activationSnippet}
-
+      // Don't use uniform for sharedDimensionPacked for performance.
       const float sharedDimension = ${sharedDimensionPacked}.0;
 
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
+        int batchA = ${batchASnippet};
+        int batchB = ${batchBSnippet};
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          int batchA = ${batchASnippet};
-          int batchB = ${batchBSnippet};
           vec4 a = getMatrixA(batchA, ${aSample});
           vec4 b = getMatrixB(batchB, ${bSample});
 

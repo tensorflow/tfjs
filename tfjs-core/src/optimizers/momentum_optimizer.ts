@@ -21,7 +21,7 @@ import {add} from '../ops/add';
 import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
 import {zerosLike} from '../ops/zeros_like';
-import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
+import {ConfigDict, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -31,18 +31,24 @@ import {SGDOptimizer} from './sgd_optimizer';
 /** @doclink Optimizer */
 export class MomentumOptimizer extends SGDOptimizer {
   /** @nocollapse */
-  static className = 'Momentum';  // Name matters for Python compatibility.
+  // Name matters for Python compatibility.
+  static override get className() {
+    // Name matters for Python compatibility.
+    // This is a getter instead of a property because when it's a property, it
+    // prevents the entire class from being tree-shaken.
+    return 'Momentum';
+  }
   private m: Scalar;
   private accumulations: OptimizerVariable[] = [];
 
   constructor(
-      protected learningRate: number, private momentum: number,
+      protected override learningRate: number, private momentum: number,
       private useNesterov = false) {
     super(learningRate);
     this.m = scalar(this.momentum);
   }
 
-  applyGradients(variableGradients: NamedVariableMap|NamedTensor[]) {
+  override applyGradients(variableGradients: NamedVariableMap|NamedTensor[]) {
     const variableNames = Array.isArray(variableGradients) ?
         variableGradients.map(item => item.name) :
         Object.keys(variableGradients);
@@ -81,7 +87,7 @@ export class MomentumOptimizer extends SGDOptimizer {
     this.incrementIterations();
   }
 
-  dispose(): void {
+  override dispose(): void {
     this.m.dispose();
     if (this.accumulations != null) {
       dispose(this.accumulations.map(v => v.variable));
@@ -97,20 +103,20 @@ export class MomentumOptimizer extends SGDOptimizer {
     this.momentum = momentum;
   }
 
-  async getWeights(): Promise<NamedTensor[]> {
+  override async getWeights(): Promise<NamedTensor[]> {
     // Order matters for Python compatibility.
     return [await this.saveIterations()].concat(this.accumulations.map(
         v => ({name: v.originalName, tensor: v.variable})));
   }
 
-  async setWeights(weightValues: NamedTensor[]): Promise<void> {
+  override async setWeights(weightValues: NamedTensor[]): Promise<void> {
     weightValues = await this.extractIterations(weightValues);
     const trainable = false;
     this.accumulations = weightValues.map(
         v => ({originalName: v.name, variable: v.tensor.variable(trainable)}));
   }
 
-  getConfig(): ConfigDict {
+  override getConfig(): ConfigDict {
     return {
       'learningRate': this.learningRate,
       'momentum': this.momentum,
@@ -119,10 +125,9 @@ export class MomentumOptimizer extends SGDOptimizer {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends Serializable>(
+  static override fromConfig<T extends Serializable>(
       cls: SerializableConstructor<T>, config: ConfigDict): T {
     return new cls(
         config['learningRate'], config['momentum'], config['useNesterov']);
   }
 }
-registerClass(MomentumOptimizer);

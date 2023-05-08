@@ -52,36 +52,35 @@ describe('InputSpec', () => {
 });
 
 describe('Node', () => {
-  const outboundLayerName = 'outboundLayer';
-  const inboundLayerName = 'inboundLayer';
-  const outboundLayer = new LayerForTest({name: outboundLayerName});
-  const inboundLayers = [new LayerForTest({name: inboundLayerName})];
-  const nodeIndices = [0];
-  const tensorIndices = [0];
-  const inputTensors = [new tfl.SymbolicTensor('float32', [1], null, [], {})];
-  const outputTensors =
-      [new tfl.SymbolicTensor('float32', [2, 2], null, [], {})];
-  const inputMasks = [zeros([1])];
-  const outputMasks = [zeros([1])];
-  const inputShapes = [[1]];
-  const outputShapes = [[1], [1]];
-  const callArgs = {mask: zeros([1])};
-  const node = new Node(
-      {
-        outboundLayer,
-        inboundLayers,
-        nodeIndices,
-        tensorIndices,
-        inputTensors,
-        outputTensors,
-        inputMasks,
-        outputMasks,
-        inputShapes,
-        outputShapes
-      },
-      callArgs);
-
   it('initializes object as expected.', () => {
+    const outboundLayerName = 'outboundLayer';
+    const inboundLayerName = 'inboundLayer';
+    const outboundLayer = new LayerForTest({name: outboundLayerName});
+    const inboundLayers = [new LayerForTest({name: inboundLayerName})];
+    const nodeIndices = [0];
+    const tensorIndices = [0];
+    const inputTensors = [new tfl.SymbolicTensor('float32', [1], null, [], {})];
+    const outputTensors =
+        [new tfl.SymbolicTensor('float32', [2, 2], null, [], {})];
+    const inputMasks = [zeros([1])];
+    const outputMasks = [zeros([1])];
+    const inputShapes = [[1]];
+    const outputShapes = [[1], [1]];
+    const callArgs = {mask: zeros([1])};
+    const node = new Node(
+        {
+          outboundLayer,
+          inboundLayers,
+          nodeIndices,
+          tensorIndices,
+          inputTensors,
+          outputTensors,
+          inputMasks,
+          outputMasks,
+          inputShapes,
+          outputShapes
+        },
+        callArgs);
     expect(node.outboundLayer).toEqual(outboundLayer);
     expect(node.inboundLayers).toEqual(inboundLayers);
     expect(node.nodeIndices).toEqual(nodeIndices);
@@ -98,6 +97,34 @@ describe('Node', () => {
   });
 
   it('generates expected SerializableNodeConfig.', () => {
+    const outboundLayerName = 'outboundLayer';
+    const inboundLayerName = 'inboundLayer';
+    const outboundLayer = new LayerForTest({name: outboundLayerName});
+    const inboundLayers = [new LayerForTest({name: inboundLayerName})];
+    const nodeIndices = [0];
+    const tensorIndices = [0];
+    const inputTensors = [new tfl.SymbolicTensor('float32', [1], null, [], {})];
+    const outputTensors =
+        [new tfl.SymbolicTensor('float32', [2, 2], null, [], {})];
+    const inputMasks = [zeros([1])];
+    const outputMasks = [zeros([1])];
+    const inputShapes = [[1]];
+    const outputShapes = [[1], [1]];
+    const callArgs = {mask: zeros([1])};
+    const node = new Node(
+        {
+          outboundLayer,
+          inboundLayers,
+          nodeIndices,
+          tensorIndices,
+          inputTensors,
+          outputTensors,
+          inputMasks,
+          outputMasks,
+          inputShapes,
+          outputShapes
+        },
+        callArgs);
     const nodeConfig = node.getConfig();
     expect(nodeConfig.outboundLayer).toEqual(outboundLayerName);
     expect(nodeConfig.inboundLayers).toEqual([inboundLayerName]);
@@ -106,6 +133,34 @@ describe('Node', () => {
   });
 
   it('generates unique IDs', () => {
+    const outboundLayerName = 'outboundLayer';
+    const inboundLayerName = 'inboundLayer';
+    const outboundLayer = new LayerForTest({name: outboundLayerName});
+    const inboundLayers = [new LayerForTest({name: inboundLayerName})];
+    const nodeIndices = [0];
+    const tensorIndices = [0];
+    const inputTensors = [new tfl.SymbolicTensor('float32', [1], null, [], {})];
+    const outputTensors =
+        [new tfl.SymbolicTensor('float32', [2, 2], null, [], {})];
+    const inputMasks = [zeros([1])];
+    const outputMasks = [zeros([1])];
+    const inputShapes = [[1]];
+    const outputShapes = [[1], [1]];
+    const callArgs = {mask: zeros([1])};
+    const node = new Node(
+        {
+          outboundLayer,
+          inboundLayers,
+          nodeIndices,
+          tensorIndices,
+          inputTensors,
+          outputTensors,
+          inputMasks,
+          outputMasks,
+          inputShapes,
+          outputShapes
+        },
+        callArgs);
     const secondNode = new Node(
         {
           outboundLayer,
@@ -308,8 +363,7 @@ describeMathCPU('Layer', () => {
               'foo', [2, 3], 'float32', initializers.getInitializer('zeros'));
         }
       }
-      expect(() => new LayerForTest())
-          .toThrowError(/[Dd]uplicate weight name/);
+      expect(() => new LayerForTest()).toThrowError(/[Dd]uplicate weight name/);
     });
   });
 

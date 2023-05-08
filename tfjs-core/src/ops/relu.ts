@@ -33,7 +33,7 @@ import {op} from './operation';
  * x.relu().print();  // or tf.relu(x)
  * ```
  * @param x The input tensor. If the dtype is `bool`, the output dtype will be
- *     `int32'.
+ *     `int32`.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
@@ -42,7 +42,7 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: ReluInputs = {x: $x};
 
-  return ENGINE.runKernel(Relu, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Relu, inputs as unknown as NamedTensorMap);
 }
 
-export const relu = op({relu_});
+export const relu = /* @__PURE__ */ op({relu_});

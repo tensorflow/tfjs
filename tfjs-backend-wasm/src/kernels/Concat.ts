@@ -28,6 +28,9 @@ export function concat(
 
   const axis = util.parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
 
+  const shapes = inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, axis);
+
   let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
 
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
@@ -41,9 +44,6 @@ export function concat(
   if (util.sizeFromShape(outShape) === 0) {
     return out;
   }
-
-  const shapes = $inputs.map(t => t.shape);
-  backend_util.assertParamsConsistent(shapes, axis);
 
   if ($inputs[0].dtype === 'string') {
     // Any concat of n-dimensional tensors across any axis can be reduced to
@@ -108,5 +108,5 @@ export function concat(
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'wasm',
-  kernelFunc: concat as {} as KernelFunc,
+  kernelFunc: concat as unknown as KernelFunc,
 };

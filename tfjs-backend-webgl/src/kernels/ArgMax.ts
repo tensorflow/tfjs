@@ -51,5 +51,5 @@ export function argMax(
 export const argMaxConfig: KernelConfig = {
   kernelName: ArgMax,
   backendName: 'webgl',
-  kernelFunc: argMax as {} as KernelFunc
+  kernelFunc: argMax as unknown as KernelFunc
 };

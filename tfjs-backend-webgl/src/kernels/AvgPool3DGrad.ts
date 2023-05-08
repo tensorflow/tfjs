@@ -37,8 +37,8 @@ export function avgPool3DGrad(args: {
   return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
 
-export const avgPoolGrad3DConfig: KernelConfig = {
+export const avgPool3DGradConfig: KernelConfig = {
   kernelName: AvgPool3DGrad,
   backendName: 'webgl',
-  kernelFunc: avgPool3DGrad as {} as KernelFunc
+  kernelFunc: avgPool3DGrad as unknown as KernelFunc
 };

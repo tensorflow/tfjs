@@ -222,18 +222,36 @@ export class Swish extends Activation {
    * @returns a Tensor of the same shape as x
    */
   apply(x: Tensor, alpha = 1): Tensor {
-    return tidy(() => tfc.sigmoid(x.mul(alpha)).mul(x));
+    return tidy(() => tfc.mul(tfc.sigmoid(tfc.mul(x, alpha)), x));
   }
 }
 serialization.registerClass(Swish);
+
+/**
+ * Mish activation function
+ */
+export class Mish extends Activation {
+  /** @nocollapse */
+  static readonly className = 'mish';
+  /**
+   * Calculate the activation function.
+   *
+   * @param x Tensor.
+   * @returns a Tensor of the same shape as x
+   */
+  apply(x: Tensor): Tensor {
+    return tidy(() => tfc.mul(x, tfc.tanh(tfc.softplus(x))));
+  }
+}
+serialization.registerClass(Mish);
 
 export function serializeActivation(activation: Activation): string {
   return activation.getClassName();
 }
 
 export function deserializeActivation(
-   config: serialization.ConfigDict,
-   customObjects: serialization.ConfigDict = {}): Activation {
+    config: serialization.ConfigDict,
+    customObjects: serialization.ConfigDict = {}): Activation {
   return deserializeKerasObject(
       config, serialization.SerializationMap.getMap().classNameMap,
       customObjects, 'activation');

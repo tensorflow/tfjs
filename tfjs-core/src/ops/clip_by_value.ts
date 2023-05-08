@@ -22,6 +22,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+import {fill} from './fill';
 
 import {op} from './operation';
 
@@ -34,8 +35,8 @@ import {op} from './operation';
  * x.clipByValue(-2, 3).print();  // or tf.clipByValue(x, -2, 3)
  * ```
  * @param x The input tensor.
- * @param clipValueMin Lower-bound of range to be clipped to.
- * @param clipValueMax Upper-bound of range to be clipped to.
+ * @param clipValueMin Lower bound of range to be clipped to.
+ * @param clipValueMax Upper bound of range to be clipped to.
  *
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
@@ -47,11 +48,16 @@ function clipByValue_<T extends Tensor>(
       () => `Error in clip: min (${clipValueMin}) must be ` +
           `less than or equal to max (${clipValueMax}).`);
 
+  if (clipValueMin === clipValueMax) {
+    return fill($x.shape, clipValueMin, $x.dtype) as T;
+  }
+
   const inputs: ClipByValueInputs = {x: $x};
   const attrs: ClipByValueAttrs = {clipValueMin, clipValueMax};
 
   return ENGINE.runKernel(
-      ClipByValue, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      ClipByValue, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const clipByValue = op({clipByValue_});
+export const clipByValue = /* @__PURE__ */ op({clipByValue_});

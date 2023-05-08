@@ -15,25 +15,27 @@
  * =============================================================================
  */
 
-import {BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {BinaryOpComplexProgram, COMPLEX_MULTIPLY} from '../kernels/binary_op_complex_webgpu';
-import {BinaryOpType, getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpComplexProgram} from '../binary_op_complex_webgpu';
+import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpProgram} from '../binary_op_webgpu';
 import {complex} from '../kernels/Complex';
-import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
+import {UnaryOpType} from '../unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
 
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 type UnaryKernelFuncConfig = {
-  opSnippet: string,
+  opType: UnaryOpType,
   cpuKernelImpl?: SimpleUnaryKernelImplCPU,
   dtype?: DataType
 };
 
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param opType Op type to create `UnaryOpProgram`.
  * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
  *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
@@ -41,7 +43,7 @@ type UnaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function unaryKernelFunc(
-    {opSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig): KernelFunc {
+    {opType, cpuKernelImpl, dtype}: UnaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
@@ -53,13 +55,13 @@ export function unaryKernelFunc(
       return webgpuBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 
-    const program: UnaryOpProgram = new UnaryOpProgram(x.shape, opSnippet);
+    const program: UnaryOpProgram = new UnaryOpProgram(x.shape, opType);
     return webgpuBackend.runWebGPUProgram(program, [x], $dtype);
   };
 }
 
 type BinaryKernelFuncConfig = {
-  opSnippet: number,
+  opType: BinaryOpType,
   cpuKernelImpl?: SimpleBinaryKernelImplCPU,
   supportsComplex?: boolean,
   dtype?: DataType
@@ -67,7 +69,7 @@ type BinaryKernelFuncConfig = {
 
 /**
  * Template that creates a `KernelFunc` for binary ops.
- * @param opSnippet Op snippet to create `BinaryOpProgram`.
+ * @param opType Op type to create `BinaryOpProgram`.
  * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
  *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
@@ -75,7 +77,7 @@ type BinaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    {opSnippet, cpuKernelImpl, supportsComplex = false, dtype}:
+    {opType, cpuKernelImpl, supportsComplex = false, dtype}:
         BinaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
@@ -85,7 +87,7 @@ export function binaryKernelFunc(
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
       let real: TensorInfo, imag: TensorInfo;
-      if (opSnippet !== BinaryOpType.MUL) {
+      if (opType !== BinaryOpType.MUL) {
         [real, imag] = [
           [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
           [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
@@ -103,16 +105,16 @@ export function binaryKernelFunc(
             shape: b.shape
           };
 
-          const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+          const program = new BinaryOpProgram(opType, a.shape, b.shape);
           return webgpuBackend.runWebGPUProgram(
               program, [aHandle, bHandle],
               upcastType(aPart.dtype, bPart.dtype));
         });
       } else {
-        const realProgram =
-            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-        const imagProgram =
-            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
+        const realProgram = new BinaryOpComplexProgram(
+            BinaryOpType.COMPLEX_MULTIPLY_REAL, a.shape, b.shape);
+        const imagProgram = new BinaryOpComplexProgram(
+            BinaryOpType.COMPLEX_MULTIPLY_IMAG, a.shape, b.shape);
 
         const inputs = [
           {
@@ -153,16 +155,25 @@ export function binaryKernelFunc(
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webgpuBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
-      const aData = webgpuBackend.tensorMap.get(a.dataId);
-      const bData = webgpuBackend.tensorMap.get(b.dataId);
-      const [outValues, outShape] = cpuKernelImpl(
-          a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, $dtype);
+    if ((a.dtype === 'string' || b.dtype === 'string' ||
+         webgpuBackend.shouldExecuteOnCPU([a, b])) &&
+        cpuKernelImpl != null) {
+      const aData = webgpuBackend.tensorMap.get(a.dataId).values as TypedArray;
+      const bData = webgpuBackend.tensorMap.get(b.dataId).values as TypedArray;
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aData as any as Uint8Array[]) :
+          aData;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bData as any as Uint8Array[]) :
+          bData;
+      const [outValues, outShape] =
+          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
-    const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+    const program = new BinaryOpProgram(opType, a.shape, b.shape);
     return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
   };
 }

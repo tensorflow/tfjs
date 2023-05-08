@@ -38,10 +38,10 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'rsqrt');
+  const $x = convertToTensor(x, 'x', 'rsqrt', 'float32');
 
   const inputs: RsqrtInputs = {x: $x};
 
-  return ENGINE.runKernel(Rsqrt, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Rsqrt, inputs as unknown as NamedTensorMap);
 }
-export const rsqrt = op({rsqrt_});
+export const rsqrt = /* @__PURE__ */ op({rsqrt_});

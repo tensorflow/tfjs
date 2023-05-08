@@ -115,7 +115,7 @@ export class InputLayer extends Layer {
     });
   }
 
-  apply(
+  override apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor {
     throw new ValueError(
@@ -123,12 +123,12 @@ export class InputLayer extends Layer {
         `InputLayer's apply() method. InputLayer name: ${this.name}`);
   }
 
-  dispose(): DisposeResult {
+  override dispose(): DisposeResult {
     // dispose() for InputLayer is overridden as no-op.
     return {refCountAfterDispose: this._refCount, numDisposedVariables: 0};
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       batchInputShape: this.batchInputShape,
       dtype: this.dtype,

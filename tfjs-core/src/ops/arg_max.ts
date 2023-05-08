@@ -56,7 +56,8 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   const attrs: ArgMaxAttrs = {axis};
 
   return ENGINE.runKernel(
-      ArgMax, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      ArgMax, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const argMax = op({argMax_});
+export const argMax = /* @__PURE__ */ op({argMax_});

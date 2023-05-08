@@ -50,4 +50,4 @@ function logicalXor_<T extends Tensor>(
   return logicalAnd(logicalOr(a, b), logicalNot(logicalAnd(a, b)));
 }
 
-export const logicalXor = op({logicalXor_});
+export const logicalXor = /* @__PURE__ */ op({logicalXor_});

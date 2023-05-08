@@ -1,27 +1,34 @@
 steps:
 
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
 
 # Install converter dependencies
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
+- name: 'gcr.io/learnjs-174218/release'
+  id: 'create-pips'
+  entrypoint: 'bash'
+  args:
+    - './tfjs-converter/scripts/create_python_pips.sh'
+  waitFor: ['yarn-common']
+
 # Run python tests.
-- name: 'gcr.io/google-appengine/python'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
-  waitFor: ['yarn']
+  waitFor: ['create-pips']
 
-timeout: 1800s
+timeout: 4800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''

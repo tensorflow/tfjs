@@ -122,4 +122,8 @@ describeWithFlags('randomGamma', ALL_ENVS, () => {
     expect(result.dtype).toBe('int32');
     expectValuesInRange(await result.data(), GAMMA_MIN, GAMMA_MAX);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.randomGamma([2, 2.22, 3.33], 2, 2)).toThrow();
+  });
 });

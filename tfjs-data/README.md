@@ -8,7 +8,7 @@ the web in a variety of formats, and to prepare that data for use in machine
 learning models (e.g. via operations like filter, map, shuffle, and batch).
 
 This project is the JavaScript analogue of
-[tf.data](https://www.tensorflow.org/get_started/datasets_quickstart) on the
+[tf.data](https://www.tensorflow.org/datasets) on the
 Python/C++ side.  TF.js Data will match the tf.data API to the extent possible.
 
 To keep track of issues we use the [tensorflow/tfjs](https://github.com/tensorflow/tfjs/issues?q=is%3Aissue+is%3Aopen+label%3Acomp%3Adata) Github repo with `comp:data` tag.

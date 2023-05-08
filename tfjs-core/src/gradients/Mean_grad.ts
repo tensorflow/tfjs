@@ -30,7 +30,7 @@ export const meanGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const {axis} = attrs as {} as MeanAttrs;
+    const {axis} = attrs as unknown as MeanAttrs;
     const axes = util.parseAxisParam(axis, x.shape);
     const shapes = computeOutAndReduceShapes(x.shape, axes);
     const reduceShape = shapes[1];

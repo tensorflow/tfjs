@@ -34,7 +34,7 @@ import {tensor2d} from '../tensor2d';
  * @param frameLength Length of each frame
  * @param frameStep The frame hop size in samples.
  * @param padEnd Whether to pad the end of signal with padValue.
- * @param padValue An number to use where the input signal does
+ * @param padValue A number to use where the input signal does
  *     not exist when padEnd is True.
  *
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
@@ -66,4 +66,4 @@ function frame_(
 
   return reshape(concat(output), [output.length, frameLength]);
 }
-export const frame = op({frame_});
+export const frame = /* @__PURE__ */ op({frame_});

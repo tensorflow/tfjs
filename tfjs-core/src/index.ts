@@ -17,5 +17,12 @@
 
 // Required side effectful code.
 import './base_side_effects';
+
+// TODO(mattSoulanille): Move this to base_side_effects.ts
+// It is here for now because custom bundles need to avoid calling it, and they
+// only replace the index.js file, not the base_side_effects file.
+import {registerOptimizers} from './optimizers/register_optimizers';
+registerOptimizers();
+
 // All exports from this package should be in base.
 export * from './base';

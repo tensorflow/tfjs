@@ -80,6 +80,7 @@ import {packGradConfig} from './gradients/Pack_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
+import {prodGradConfig} from './gradients/Prod_grad';
 import {divGradConfig} from './gradients/RealDiv_grad';
 import {reciprocalGradConfig} from './gradients/Reciprocal_grad';
 import {relu6GradConfig} from './gradients/Relu6_grad';
@@ -188,6 +189,7 @@ const gradConfigs: GradConfig[] = [
   padV2GradConfig,
   powGradConfig,
   preluGradConfig,
+  prodGradConfig,
   reciprocalGradConfig,
   relu6GradConfig,
   reluGradConfig,

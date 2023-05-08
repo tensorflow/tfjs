@@ -44,14 +44,17 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function avgPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'avgPool', 'float32');
   const dilations = 1;
@@ -71,22 +74,14 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   util.assert(
       x4D.rank === 4,
       () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('avgPool', pad, dimRoundingMode);
   const inputs: AvgPoolInputs = {x: x4D};
-
   const attrs: AvgPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
-                AvgPool, inputs as {} as NamedTensorMap,
-                attrs as {} as NamedAttrMap) as T;
+                AvgPool, inputs as unknown as NamedTensorMap,
+                attrs as unknown as NamedAttrMap) as T;
 
   res = cast(res, $x.dtype);
 
@@ -97,4 +92,4 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const avgPool = op({avgPool_});
+export const avgPool = /* @__PURE__ */ op({avgPool_});

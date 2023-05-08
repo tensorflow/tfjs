@@ -143,6 +143,27 @@ inline size_t offset(size_t i1, size_t i2, size_t i3, size_t i4, size_t i5,
 // are of length R-1 where R is the rank of the tensor.
 const std::vector<size_t> compute_strides(const std::vector<size_t> shape);
 
+// Returns the broadcasted new shape given two shapes.
+const std::vector<size_t> assert_and_get_broadcast_shape(
+    const std::vector<size_t> shape_a, const std::vector<size_t> shape_b);
+
+// Returns the dimensions in the input shape that are broadcasted to produce the
+// provided output shape.
+const std::vector<size_t> get_broadcast_dims(
+    const std::vector<size_t> in_shape, const std::vector<size_t> out_shape);
+
+// Generates the output for AvgPool, MaxPool, etc where xnnpack does not support
+// a 1x1 filter. Applies batching, channels, and strides.
+// TODONT(mattsoulanille): Padding support is not necessary because it is
+// meaningless for a 1x1 kernel. It would be undefined for regions where the
+// kernel does not overlap the input tensor.
+// https://www.tensorflow.org/api_docs/python/tf/nn#difference_between_convolution_and_pooling_layers_2
+const void identity_pool(const size_t x_id, const float* x_buf, float* out_buf,
+                         const size_t out_size, const size_t batch_size,
+                         const size_t input_height, const size_t input_width,
+                         const size_t stride_height, const size_t stride_width,
+                         const size_t channels);
+
 }  // namespace util
 }  // namespace tfjs
 #endif  // UTIL_H_

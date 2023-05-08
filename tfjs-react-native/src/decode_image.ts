@@ -16,7 +16,7 @@ enum ImageType {
  * const imageUri = 'http://image-uri-here.example.com/image.jpg'; *
  * const response = await fetch(imageUri, {}, { isBinary: true });
  * const imageDataArrayBuffer = await response.arrayBuffer();
- * cosnt imageData = new Uint8Array(imageDataArrayBuffer);
+ * const imageData = new Uint8Array(imageDataArrayBuffer);
  *
  * // Decode image data to a tensor
  * const imageTensor = decodeJpeg(imageData);

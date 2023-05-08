@@ -26,6 +26,7 @@
  */
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -38,7 +39,7 @@ import {createInputTensors} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
-describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
+describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
   beforeAll(() => {
@@ -55,8 +56,13 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
   for (const modelType in CONVERT_PREDICT_MODELS) {
     const models =
         (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];
-    models.forEach(model => {
+    for (const model of models) {
+      if (env.backendName === 'wasm' && model.includes('complex')) {
+        // WASM does not support complex
+        continue;
+      }
       it(`${model}.`, async () => {
+        await tfc.setBackend(env.name);
         let inputsNames: string[];
         let inputsData: tfc.TypedArray[];
         let inputsShapes: number[][];
@@ -146,6 +152,6 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
           ys.forEach(tensor => tensor.dispose());
         }
       });
-    });
+    }
   }
 });

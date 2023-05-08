@@ -131,4 +131,8 @@ describeWithFlags('ones', ALL_ENVS, () => {
     expect(a.shape).toEqual([3, 2, 1, 1]);
     expectArraysEqual(await a.data(), [1, 1, 1, 1, 1, 1]);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.ones([2, 2.22, 3.33])).toThrow();
+  });
 });

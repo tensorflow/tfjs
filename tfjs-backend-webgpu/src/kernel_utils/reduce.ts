@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util, sumOutType, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ReduceProgram} from '../kernels/reduce_webgpu';
-
-import {maxImplCPU} from '../kernel_utils/shared';
-import {prodImplCPU} from '../kernel_utils/shared';
 import {reshape} from '../kernels/Reshape';
 import {transpose} from '../kernels/Transpose';
+import {ReduceProgram} from '../reduce_webgpu';
 
-type ReduceTypes = 'max'|'mean'|'min'|'prod'|'sum';
+import {maxImplCPU} from './shared';
+import {prodImplCPU} from './shared';
+
+type ReduceTypes = 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
 
 export function reduce(
     x: TensorInfo, axis: number|number[], keepDims: boolean,
@@ -60,8 +60,8 @@ export function reduce(
     const xVals = backend.tensorMap.get(input.dataId).values as TypedArray;
     switch (reduceType) {
       case 'max':
-        const outValues = maxImplCPU(xVals, util.sizeFromShape(reduceShape),
-            resOutShape, x.dtype);
+        const outValues = maxImplCPU(
+            xVals, util.sizeFromShape(reduceShape), resOutShape, x.dtype);
         res = backend.makeTensorInfo(resOutShape, x.dtype, outValues);
         break;
       case 'prod':
@@ -78,19 +78,19 @@ export function reduce(
     const xSize = util.sizeFromShape(input.shape);
     const batchSize = xSize / inSize;
 
-    const reshapedInput = reshape(
-        {inputs: {x: input}, attrs: {shape: [batchSize, inSize]}, backend});
-    toDispose.push(reshapedInput);
-
     const reduceInfo = {windowSize: inSize, inSize, batchSize, outSize: 1};
-    const program = new ReduceProgram(reduceInfo, reduceType);
     const dtype = reduceType === 'mean' ? 'float32' : sumOutType(x.dtype);
-    const reduced = backend.runWebGPUProgram(program, [input], dtype);
+    const uniformData = [
+      {type: 'int32', data: [inSize]},
+    ];
+    const program = new ReduceProgram(
+        reduceInfo, reduceType, backend.device.limits.maxComputeWorkgroupSizeX);
+    const reduced =
+        backend.runWebGPUProgram(program, [input], dtype, uniformData);
     toDispose.push(reduced);
 
-    res = reshape({inputs: {x: reduced}, attrs: {shape: resOutShape},
-        backend});
-    }
+    res = reshape({inputs: {x: reduced}, attrs: {shape: resOutShape}, backend});
+  }
 
   toDispose.forEach(t => backend.disposeData(t.dataId));
 

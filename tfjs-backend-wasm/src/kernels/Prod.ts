@@ -94,5 +94,5 @@ export const prodConfig: KernelConfig = {
   kernelName: Prod,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: prod as {} as KernelFunc
+  kernelFunc: prod as unknown as KernelFunc
 };

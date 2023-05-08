@@ -23,6 +23,7 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {browserDownloads, BrowserDownloads, browserDownloadsRouter} from './browser_files';
 import {WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 const modelTopology1: {} = {
   'class_name': 'Sequential',
@@ -69,6 +70,12 @@ const weightSpecs1: tf.io.WeightsManifestEntry[] = [
   }
 ];
 const weightData1 = new ArrayBuffer(16);
+const trainingConfig1: tf.io.TrainingConfig = {
+  loss: 'categorical_crossentropy',
+  metrics: ['accuracy'],
+  optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+};
+
 const artifacts1: tf.io.ModelArtifacts = {
   modelTopology: modelTopology1,
   weightSpecs: weightSpecs1,
@@ -76,7 +83,8 @@ const artifacts1: tf.io.ModelArtifacts = {
   format: 'layers-model',
   generatedBy: 'TensorFlow.js v0.0.0',
   convertedBy: null,
-  modelInitializer: {}
+  modelInitializer: {},
+  trainingConfig: trainingConfig1,
 };
 
 describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
@@ -101,7 +109,7 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
     fakeAnchorCount = 0;
     fakeAnchors = [new FakeHTMLAnchorElement(), new FakeHTMLAnchorElement()];
     spyOn(document, 'createElement').and.callFake((tag: string) => {
-      return fakeAnchors[fakeAnchorCount++];
+      return fakeAnchors[fakeAnchorCount++] as unknown as HTMLElement;
     });
   });
 
@@ -126,17 +134,15 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
 
     // Verify the content of the JSON file.
     const jsonContent = await fetch(jsonAnchor.href);
-    const modelTopologyAndWeightsManifest =
-        JSON.parse(await jsonContent.text());
-    expect(modelTopologyAndWeightsManifest.modelTopology)
-        .toEqual(modelTopology1);
-    expect(modelTopologyAndWeightsManifest.format).toEqual('layers-model');
-    expect(modelTopologyAndWeightsManifest.generatedBy)
-        .toEqual('TensorFlow.js v0.0.0');
-    expect(modelTopologyAndWeightsManifest.convertedBy).toEqual(null);
-    expect(modelTopologyAndWeightsManifest.modelInitializer).toEqual({});
-    const weightsManifest = modelTopologyAndWeightsManifest.weightsManifest as
-        WeightsManifestConfig;
+    const modelJSON = JSON.parse(await jsonContent.text()) as tf.io.ModelJSON;
+    expect(modelJSON.modelTopology).toEqual(modelTopology1);
+    expect(modelJSON.format).toEqual('layers-model');
+    expect(modelJSON.generatedBy).toEqual('TensorFlow.js v0.0.0');
+    expect(modelJSON.convertedBy).toEqual(null);
+    expect(modelJSON.modelInitializer).toEqual({});
+    expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
+
+    const weightsManifest = modelJSON.weightsManifest;
     expect(weightsManifest.length).toEqual(1);
     expect(weightsManifest[0].paths).toEqual(['./test-model.weights.bin']);
     expect(weightsManifest[0].weights).toEqual(weightSpecs1);
@@ -283,17 +289,17 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       paths: ['./model.weights.bin'],
       weights: weightSpecs1,
     }];
-    const weightsTopologyAndManifest = {
+    const modelJSON: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
       weightsManifest,
       format: 'layers-model',
       generatedBy: 'TensorFlow.js v0.0.0',
       convertedBy: '1.13.1',
-      modelInitializer: {}
+      modelInitializer: {},
+      trainingConfig: trainingConfig1,
     };
     const jsonFile = new File(
-        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
-        {type: 'application/json'});
+        [JSON.stringify(modelJSON)], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles([jsonFile, weightsFile]);
     const modelArtifacts = await filesHandler.load();
@@ -303,8 +309,9 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
     expect(modelArtifacts.convertedBy).toEqual('1.13.1');
     expect(modelArtifacts.modelInitializer).toEqual({});
+    expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
 
-    expect(new Uint8Array(modelArtifacts.weightData))
+    expect(new Uint8Array(CompositeArrayBuffer.join(modelArtifacts.weightData)))
         .toEqual(new Uint8Array(weightData1));
   });
 
@@ -345,9 +352,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     const modelArtifacts = await filesHandler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightSpecs);
-    expect(new Uint8Array(modelArtifacts.weightData)).toEqual(new Uint8Array([
-      1, 2, 3, 4, 10, 20, 30, 40
-    ]));
+    expect(new Uint8Array(CompositeArrayBuffer.join(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 2, 3, 4, 10, 20, 30, 40
+        ]));
   });
 
   it(`Two groups, four paths, reverseOrder=false`, async () => {
@@ -412,9 +420,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs)
         .toEqual(weightSpecs1.concat(weightSpecs2));
-    expect(new Uint8Array(modelArtifacts.weightData)).toEqual(new Uint8Array([
-      1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
-    ]));
+    expect(new Uint8Array(CompositeArrayBuffer.join(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
+        ]));
   });
 
   it(`Two groups, four paths, reverseOrder=true`, async () => {
@@ -479,9 +488,10 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs)
         .toEqual(weightSpecs1.concat(weightSpecs2));
-    expect(new Uint8Array(modelArtifacts.weightData)).toEqual(new Uint8Array([
-      1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
-    ]));
+    expect(new Uint8Array(CompositeArrayBuffer.join(modelArtifacts.weightData)))
+        .toEqual(new Uint8Array([
+            1, 3, 5, 7, 10, 30, 50, 70, 2, 4, 6, 8, 20, 40, 60, 80
+        ]));
   });
 
   it('Upload model topology only', async () => {

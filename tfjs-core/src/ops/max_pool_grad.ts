@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import * as conv_util from './conv_util';
 import {op} from './operation';
 
 /**
@@ -40,15 +41,18 @@ import {op} from './operation';
  *     `filterSize` is a single number, then `filterHeight == filterWidth`.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
+ * @param pad The type of padding algorithm used in the forward prop of the op.
+ *     'same', 'valid', for more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  */
 function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   const $dy = convertToTensor(dy, 'dy', 'maxPoolGrad');
   const $input = convertToTensor(input, 'input', 'maxPoolGrad');
@@ -67,21 +71,14 @@ function maxPoolGrad_(
       $input.rank === 4,
       () => `Error in maxPoolGrad: input must be rank 4 but got rank ` +
           `${$input.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPoolGrad: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('maxPoolGrad', pad, dimRoundingMode);
   const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
-
   const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             MaxPoolGrad, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+             MaxPoolGrad, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const maxPoolGrad = op({maxPoolGrad_});
+export const maxPoolGrad = /* @__PURE__ */ op({maxPoolGrad_});

@@ -71,7 +71,7 @@ export function countParams(x: HasShape): number {
  * @returns Tensor of the specified `dtype`.
  */
 export function cast(x: Tensor, dtype: tfc.DataType): Tensor {
-  return x.asType(dtype);
+  return tfc.cast(x, dtype);
 }
 
 /**
@@ -86,7 +86,7 @@ export function expandDims(x: Tensor, axis = -1): Tensor {
     axis = outShape.length + axis + 1;
   }
   outShape.splice(axis, 0, 1);
-  return x.reshape(outShape);
+  return tfc.reshape(x, outShape);
 }
 
 /**
@@ -119,7 +119,7 @@ export function repeat(x: Tensor, n: number): Tensor {
  */
 export function flatten(x: Tensor): Tensor {
   const newShape = [math_utils.arrayProd(x.shape)];
-  return x.reshape(newShape);
+  return tfc.reshape(x, newShape);
 }
 
 /**
@@ -136,7 +136,7 @@ export function batchFlatten(x: Tensor): Tensor {
         `batchFlatten requires a minimum rank of 2. Got rank: ${x.rank}.`);
   }
   const newShape = [x.shape[0], math_utils.arrayProd(x.shape, 1)];
-  return x.reshape(newShape);
+  return tfc.reshape(x, newShape);
 }
 
 /**
@@ -424,7 +424,7 @@ export function dot(
     // Reshape x into the analogous 2D Tensor.
     const aFirstDims = a.shape.slice();  // Holds all but the last dim of x.
     const aLastDim = aFirstDims.pop();
-    a = a.reshape([-1, aLastDim]);
+    a = tfc.reshape(a, [-1, aLastDim]);
 
     // Reshape y into the analogous 2D Tensor, and keep track of the
     // required dimensions to reproduce the output shape.
@@ -442,22 +442,22 @@ export function dot(
       }
       return i;
     });
-    b = b.transpose(perm).reshape([ySecondLastDim, -1]);
+    b = tfc.reshape(tfc.transpose(b, perm), [ySecondLastDim, -1]);
 
     // Multiply x and y as 2D Tensors, and then reshape back to original.
     const outputShape = [...aFirstDims, ...yOtherDims];
     const transposeA = false;
     const transposeB = false;
-    return tfc.fused
-        .matMul({
+    return tfc.reshape(
+        tfc.fused.matMul({
           a,
           b,
           transposeA,
           transposeB,
           bias: bias ? reshapeBias(a.rank, bias, imageDataFormat()) : null,
           activation
-        })
-        .reshape(outputShape);
+        }),
+        outputShape);
   }
 }
 
@@ -499,8 +499,8 @@ export function oneHot(indices: Tensor, numClasses: number): Tensor {
           'Only 1D one-hot tensors are supported in the ' +
           'deeplearn backend, at present.');
     }
-    indices = indices.toInt();
-    return tfc.oneHot(indices as Tensor1D, numClasses).toFloat();
+    indices = tfc.cast(indices, 'int32');
+    return tfc.cast(tfc.oneHot(indices as Tensor1D, numClasses), 'float32');
   });
 }
 
@@ -519,7 +519,7 @@ export function gather(
     if (Array.isArray(indices)) {
       indices = tensor1d(indices, 'int32');
     } else {
-      indices = indices.toInt();
+      indices = tfc.cast(indices, 'int32');
     }
     return tfc.gather(reference, indices, axis);
   });
@@ -574,44 +574,44 @@ function reshapeBias(xRank: number, bias: Tensor, dataFormat: string) {
   if (xRank === 5) {
     if (dataFormat === 'channelsFirst') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, biasShape[0], 1, 1, 1]);
+        return tfc.reshape(bias, [1, biasShape[0], 1, 1, 1]);
       } else {
-        return bias.reshape(
-            [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
+        return tfc.reshape(
+            bias, [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
       }
     } else if (dataFormat === 'channelsLast') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, 1, 1, 1, biasShape[0]]);
+        return tfc.reshape(bias, [1, 1, 1, 1, biasShape[0]]);
       } else {
-        return bias.reshape([1].concat(biasShape));
+        return tfc.reshape(bias, [1].concat(biasShape));
       }
     }
   } else if (xRank === 4) {
     if (dataFormat === 'channelsFirst') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, biasShape[0], 1, 1]);
+        return tfc.reshape(bias, [1, biasShape[0], 1, 1]);
       } else {
-        return bias.reshape([1, biasShape[2], biasShape[0], biasShape[1]]);
+        return tfc.reshape(bias, [1, biasShape[2], biasShape[0], biasShape[1]]);
       }
     } else if (dataFormat === 'channelsLast') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, 1, 1, biasShape[0]]);
+        return tfc.reshape(bias, [1, 1, 1, biasShape[0]]);
       } else {
-        return bias.reshape([1].concat(biasShape));
+        return tfc.reshape(bias, [1].concat(biasShape));
       }
     }
   } else if (xRank === 3) {
     if (dataFormat === 'channelsFirst') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, biasShape[0], 1]);
+        return tfc.reshape(bias, [1, biasShape[0], 1]);
       } else {
-        return bias.reshape([1, biasShape[1], biasShape[0]]);
+        return tfc.reshape(bias, [1, biasShape[1], biasShape[0]]);
       }
     } else if (dataFormat === 'channelsLast') {
       if (biasShape.length === 1) {
-        return bias.reshape([1, 1, biasShape[0]]);
+        return tfc.reshape(bias, [1, 1, biasShape[0]]);
       } else {
-        return bias.reshape([1].concat(biasShape));
+        return tfc.reshape(bias, [1].concat(biasShape));
       }
     }
   } else if (xRank < 3) {
@@ -638,7 +638,7 @@ export function biasAdd(
     }
     checkDataFormat(dataFormat);
 
-    return x.add(reshapeBias(x.rank, bias, dataFormat));
+    return tfc.add(x, reshapeBias(x.rank, bias, dataFormat));
   });
 }
 
@@ -667,7 +667,7 @@ export function elu(x: Tensor, alpha = 1): Tensor {
  * @returns Output.
  */
 export function softsign(x: Tensor): Tensor {
-  return tidy(() => tfc.div(x, tfc.abs(x).add(1)));
+  return tidy(() => tfc.div(x, tfc.add(tfc.abs(x), 1)));
 }
 
 /**

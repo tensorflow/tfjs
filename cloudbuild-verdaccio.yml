@@ -1,0 +1,35 @@
+steps:
+# Install top-level deps.
+- name: 'gcr.io/learnjs-174218/release'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Run verdaccio nightly publishing tests.
+- name: 'gcr.io/learnjs-174218/release'
+  entrypoint: 'bash'
+  id: 'nightly-verdaccio-test'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'RELEASE=true']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn-common']
+  args:
+    - '-eEuo'
+    - 'pipefail'
+    - '-c'
+    - |-
+      yarn release-tfjs --dry --guess-version release --use-local-changes --force
+      cd /tmp/tfjs-release/tfjs/e2e/
+      bash scripts/release-e2e.sh
+
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 7200s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_32'
+  substitution_option: 'ALLOW_LOOSE'

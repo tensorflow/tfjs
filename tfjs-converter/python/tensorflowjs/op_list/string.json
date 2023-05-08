@@ -1,0 +1,128 @@
+[
+  {
+    "tfOpName": "StaticRegexReplace",
+    "category": "string",
+    "inputs": [
+      {
+      "start": 0,
+        "name": "input",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "pattern",
+        "name": "pattern",
+        "type": "string"
+      },
+      {
+        "tfName": "rewrite",
+        "name": "rewrite",
+        "type": "string"
+      },
+      {
+        "tfName": "replace_global",
+        "name": "replaceGlobal",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "tfOpName": "StringNGrams",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "data",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "dataSplits",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "separator",
+        "name": "separator",
+        "type": "string"
+      },
+      {
+        "tfName": "ngram_widths",
+        "name": "nGramWidths",
+        "type": "number[]"
+      },
+      {
+        "tfName": "left_pad",
+        "name": "leftPad",
+        "type": "string"
+      },
+      {
+        "tfName": "right_pad",
+        "name": "rightPad",
+        "type": "string"
+      },
+      {
+        "tfName": "pad_width",
+        "name": "padWidth",
+        "type": "number"
+      },
+      {
+        "tfName": "preserve_short_sequences",
+        "name": "preserveShortSequences",
+        "type": "bool"
+      }
+    ],
+    "outputs": [
+      "ngrams",
+      "ngrams_splits"
+    ]
+  },
+  {
+    "tfOpName": "StringSplit",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "input",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "delimiter",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "skip_empty",
+        "name": "skipEmpty",
+        "type": "bool"
+      }
+    ],
+    "outputs": [
+      "indices",
+      "values",
+      "shape"
+    ]
+  },
+  {
+    "tfOpName": "StringToHashBucketFast",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "input",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "num_buckets",
+        "name": "numBuckets",
+        "type": "number"
+      }
+    ]
+  }
+]

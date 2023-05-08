@@ -20,5 +20,5 @@
 // input.
 // tslint:disable-next-line:no-any
 export function isLocalPath(source: any): boolean {
-  return (typeof source === 'string') && source.substr(0, 7) === 'file://';
+  return (typeof source === 'string') && source.slice(0, 7) === 'file://';
 }

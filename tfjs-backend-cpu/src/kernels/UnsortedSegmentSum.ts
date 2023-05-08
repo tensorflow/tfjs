@@ -55,7 +55,8 @@ export function unsortedSegmentSum(args: {
   }
 
   for (let i = 0; i < numSegments; ++i) {
-    const scalarValue = util.createScalarValue(i as {} as 'int32', 'int32');
+    const scalarValue = util.createScalarValue(
+      i as unknown as 'int32', 'int32');
     const segmentId = backend.makeTensorInfo([], 'int32', scalarValue);
     const mask =
         equal({inputs: {a: segmentId, b: $segmentIds}, backend}) as TensorInfo;
@@ -83,5 +84,5 @@ export function unsortedSegmentSum(args: {
 export const unsortedSegmentSumConfig: KernelConfig = {
   kernelName: UnsortedSegmentSum,
   backendName: 'cpu',
-  kernelFunc: unsortedSegmentSum as {} as KernelFunc
+  kernelFunc: unsortedSegmentSum as unknown as KernelFunc
 };

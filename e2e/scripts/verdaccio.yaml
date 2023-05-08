@@ -19,7 +19,7 @@ packages:
   '@tensorflow/**':
     access: $all
     publish: $all
-    # Don't set proxy to avoid accidentally publishing to npm.
+    proxy: npmjs
   '@*/*':
     access: $all
     publish: $all
@@ -33,3 +33,6 @@ packages:
 # Log settings.
 logs:
   - {type: stdout, format: pretty, level: http}
+
+listen:
+  - 127.0.0.1:4873

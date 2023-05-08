@@ -18,7 +18,7 @@
 import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {CropAndResizeProgram} from './crop_and_resize_webgpu';
+import {CropAndResizeProgram} from '../crop_and_resize_webgpu';
 
 export const cropAndResize = (args: {
   inputs: CropAndResizeInputs,
@@ -30,13 +30,14 @@ export const cropAndResize = (args: {
   const {cropSize, method, extrapolationValue} = attrs;
 
   const program = new CropAndResizeProgram(
-      image.shape as [number, number, number, number],
-      boxes.shape as [number, number], cropSize, method, extrapolationValue);
-  return backend.runWebGPUProgram(program, [image, boxes, boxInd], 'float32');
+      image.shape[3], boxes.shape as [number, number], cropSize, method);
+  const uniformData = [{type: 'float32', data: [extrapolationValue]}];
+  return backend.runWebGPUProgram(
+      program, [image, boxes, boxInd], 'float32', uniformData);
 };
 
 export const cropAndResizeConfig: KernelConfig = {
   kernelName: CropAndResize,
   backendName: 'webgpu',
-  kernelFunc: cropAndResize as {} as KernelFunc
+  kernelFunc: cropAndResize as unknown as KernelFunc
 };

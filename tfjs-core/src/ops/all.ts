@@ -31,7 +31,7 @@ import {op} from './operation';
  * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
  * is true, the rank of the `tf.Tensor` is reduced by 1 for each entry in
  * `axes`. If `keepDims` is true, the reduced dimensions are retained with
- * length 1. If `axes` has no entries, all dimensions are reduced, and an
+ * length 1. If `axes` has no entries, all dimensions are reduced, and a
  * `tf.Tensor` with a single element is returned.
  *
  * ```js
@@ -62,7 +62,8 @@ function all_<T extends Tensor>(
   const attrs: AllAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      All, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      All, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const all = op({all_});
+export const all = /* @__PURE__ */ op({all_});

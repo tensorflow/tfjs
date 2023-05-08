@@ -23,6 +23,11 @@
 #include <set>
 #include <string>
 #include "napi_auto_ref.h"
+#include "tensorflow/c/eager/c_api.h"
+#include "tensorflow/c/tf_datatype.h"
+#include "tensorflow/c/tf_status.h"
+#include "tensorflow/c/tf_tensor.h"
+#include "tensorflow/core/platform/ctstring_internal.h"
 #include "tf_auto_tensor.h"
 #include "tfe_auto_op.h"
 #include "utils.h"
@@ -781,8 +786,31 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
     return;
   }
 
+  TFE_TensorHandle *tensor_handle = tensor_entry->second;
+  if (TFE_TensorHandleDataType(tensor_handle) == TF_STRING) {
+    TF_AutoStatus tf_status;
+    TF_AutoTensor tensor(
+        TFE_TensorHandleResolve(tensor_handle, tf_status.status));
+    ENSURE_TF_OK(env, tf_status);
+    size_t num_elements = GetTensorNumElements(tensor.tensor);
+    TF_TString *data = reinterpret_cast<TF_TString *>(TF_TensorData(tensor.tensor));
+
+    // Deallocate each string
+    for (size_t i = 0; i < num_elements; i++) {
+      TF_TString_Dealloc(data + i);
+    }
+  };
   TFE_DeleteTensorHandle(tensor_entry->second);
   tfe_handle_map_.erase(tensor_entry);
+}
+
+napi_value TFJSBackend::GetNumOfTensors(napi_env env) {
+  napi_status nstatus;
+  napi_value num_of_tensors;
+  nstatus =
+      napi_create_int32(env, tfe_handle_map_.size(), &num_of_tensors);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return num_of_tensors;
 }
 
 napi_value TFJSBackend::GetTensorData(napi_env env,
@@ -973,6 +1001,11 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   nstatus = napi_create_int32(env, InsertSavedModel(session, graph),
                               &output_session_id);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  // clean up the tags strings.
+  for (uint32_t i = 0; i < tags_ptrs.size(); i++) {
+    delete tags_ptrs[i];
+  }
   return output_session_id;
 }
 
@@ -1161,11 +1194,15 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     // Push into output array
     nstatus = napi_set_element(env, output_tensor_infos, i, tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    // delete output op name string
+    delete output_op_name_array[i];
   }
 
   for (uint32_t i = 0; i < num_input_ids; i++) {
     // Deallocate input TF_Tensor in C++.
     TF_DeleteTensor(input_values[i]);
+    // delete input op name string
+    delete input_op_name_array[i];
   }
 
   return output_tensor_infos;

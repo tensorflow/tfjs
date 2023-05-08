@@ -22,11 +22,12 @@ const modulePath =
     module_path_napi.replace('{napi_build_version}', process.versions.napi);
 
 /** Version of the libtensorflow shared library to depend on. */
-const LIBTENSORFLOW_VERSION = '2.4.1';
+const LIBTENSORFLOW_VERSION = '2.9.1';
 
 /** Map the os.arch() to arch string in a file name */
 const ARCH_MAPPING = {
-  'x64': 'x86_64'
+  'x64': 'x86_64',
+  'arm64': 'arm64'
 };
 /** Map the os.platform() to the platform value in a file name */
 const PLATFORM_MAPPING = {
@@ -82,7 +83,7 @@ if (os.platform() === 'win32') {
   destLibTensorFlowName += '.so';
   destLibTensorFlowFrameworkName += '.so';
 } else {
-  throw Exception('Unsupported platform: ' + os.platform());
+  throw new Error('Unsupported platform: ' + os.platform());
 }
 
 const depsPath = join(__dirname, '..', 'deps');
@@ -116,6 +117,6 @@ module.exports = {
   PLATFORM_MAPPING,
   PLATFORM_EXTENSION,
   ALL_SUPPORTED_COMBINATION,
-  customTFLibUri: customBinaries['tf-lib'],
-  customAddon: customBinaries['addon']
+  customTFLibUri : customBinaries['tf-lib'],
+  customAddon : customBinaries['addon']
 };

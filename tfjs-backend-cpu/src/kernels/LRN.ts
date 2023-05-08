@@ -59,8 +59,9 @@ export function lRN(
   return backend.makeTensorInfo(x.shape, x.dtype, result);
 }
 
-export const lRNConfig: KernelConfig = {
+// tslint:disable-next-line: variable-name
+export const LRNConfig: KernelConfig = {
   kernelName: LRN,
   backendName: 'cpu',
-  kernelFunc: lRN as {} as KernelFunc
+  kernelFunc: lRN as unknown as KernelFunc
 };

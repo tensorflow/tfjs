@@ -19,19 +19,20 @@ import 'regenerator-runtime/runtime';
 import '@tensorflow/tfjs-backend-cpu';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
+import * as tflite from '@tensorflow/tfjs-tflite';
 
 const CARTOONIZER_LINK =
     'https://github.com/margaretmz/Cartoonizer-with-TFLite';
 
-const PHYSICAL_CORES = navigator.hardwareConcurrency / 2;
+tflite.setWasmPath(
+    'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.8/dist/');
 
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
-  const tfliteModel = await loadTFLiteModel('cartoongan_fp16.tflite', {
-    numThreads: PHYSICAL_CORES,
-  });
+  const tfliteModel = await tflite.loadTFLiteModel(
+      'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1',
+  );
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
       CARTOONIZER_LINK}' target='blank'>TFLite model</a> in ${
       Date.now() - start}ms`;
@@ -85,7 +86,8 @@ async function setupCam() {
   await new Promise(resolve => camEle.onplaying = resolve);
 }
 
-function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
+function handleClickTrigger(
+    trigger: HTMLElement, tfliteModel: tflite.TFLiteModel) {
   // Get the source media (either a picture or the cam video).
   const imageContainer = trigger.closest('.img-container')!;
   let srcMedia: HTMLImageElement|HTMLVideoElement =
@@ -96,7 +98,7 @@ function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
   }
 
   // Run inference and draw the result on the corresponding canvas.
-  const canvas = imageContainer.querySelector('canvas')! as HTMLCanvasElement;
+  const canvas = imageContainer.querySelector('canvas')!;
   const ctx = canvas.getContext('2d')!;
   const inferenceStart = Date.now();
   const imageData = cartoonize(tfliteModel, srcMedia);
@@ -105,14 +107,13 @@ function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
   canvas.classList.add('show');
 
   // Show latency stat.
-  const stats = trigger.closest('.img-container')!.querySelector('.stats')! as
-      HTMLCanvasElement;
+  const stats = trigger.closest('.img-container')!.querySelector('.stats')!;
   stats.classList.add('show');
   stats.innerHTML = latency.toFixed(1) + ' ms';
 }
 
 function cartoonize(
-    tfliteModel: TFLiteModel,
+    tfliteModel: tflite.TFLiteModel,
     ele: HTMLImageElement|HTMLVideoElement): ImageData {
   const outputTensor = tf.tidy(() => {
     // Get pixels data.
@@ -123,9 +124,9 @@ function cartoonize(
     // we don't resize them here.
     const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
     // Run the inference.
-    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+    const outputTensor = tfliteModel.predict(input) as tf.Tensor;
     // De-normalize the result.
-    return tf.mul(tf.add(outputTensor, 1), 127.5)
+    return tf.mul(tf.add(outputTensor, 1), 127.5);
   });
 
   // Convert from RGB to RGBA, and create and return ImageData.

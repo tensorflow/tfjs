@@ -14,13 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {identity} from './Identity';
-import {Pool2DProgram} from './pool2d_webgpu';
-import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
+import {poolImpl} from './Pool_impl';
 
 export function maxPool(
     args: {inputs: MaxPoolInputs, backend: WebGPUBackend, attrs: MaxPoolAttrs}):
@@ -32,30 +29,12 @@ export function maxPool(
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-    if (util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-      return identity({inputs: {x}, backend});
-    }
-    program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
-  } else {
-    program = new Pool2DProgram(convInfo, 'max');
-  }
 
-  const dimensions = [
-    convInfo.padInfo.top, convInfo.padInfo.left,      // Padding.
-    convInfo.strideHeight, convInfo.strideWidth,      // Stride.
-    convInfo.dilationHeight, convInfo.dilationWidth,  // Dilation.
-    convInfo.inHeight, convInfo.inWidth,              // Conv dims.
-    convInfo.effectiveFilterHeight,
-    convInfo.effectiveFilterWidth  // Filter dims.
-  ];
-  const uniformData = new Int32Array(dimensions);
-  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+  return poolImpl(x, convInfo, 'max', backend);
 }
 
 export const maxPoolConfig: KernelConfig = {
   kernelName: MaxPool,
   backendName: 'webgpu',
-  kernelFunc: maxPool as {} as KernelFunc
+  kernelFunc: maxPool as unknown as KernelFunc
 };

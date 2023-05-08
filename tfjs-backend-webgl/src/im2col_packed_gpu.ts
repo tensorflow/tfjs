@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class Im2ColPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -25,63 +25,62 @@ export class Im2ColPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
+  customUniforms = [
+    {name: 'inputShape', type: 'ivec4' as const },
+    {name: 'pad', type: 'ivec2' as const },
+    {name: 'stride', type: 'ivec2' as const },
+    {name: 'dilation', type: 'ivec2' as const },
+    {name: 'inChannels', type: 'int' as const },
+    {name: 'itemsPerBlockRow', type: 'int' as const },
+    {name: 'outWidth', type: 'int' as const },
+  ];
 
-  constructor(
-      outputShape: number[], inputShape: number[],
-      convInfo: backend_util.Conv2DInfo) {
+  constructor(outputShape: number[], convInfo: backend_util.Conv2DInfo) {
     this.outputShape = outputShape;
-
-    const {
-      filterWidth,
-      inChannels,
-      strideWidth,
-      strideHeight,
-      padInfo,
-      outWidth,
-      dilationWidth,
-      dilationHeight,
-      dataFormat
-    } = convInfo;
-    const {left, top} = padInfo;
-    const itemsPerBlockRow = inChannels * filterWidth;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    const {dataFormat} = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === 'channelsLast';
-    const rowDim = isChannelsLast ? 0 : 1;
-    const colDim = isChannelsLast ? 1 : 2;
+    const rowDim = isChannelsLast ? 1 : 2;
+    const colDim = isChannelsLast ? 2 : 3;
 
+    const boundsCheckingSnippet = this.enableShapeUniforms ?
+        'if(blockIndex < outShape[2] && pos < outShape[1]) {' :
+        `if(blockIndex < ${outputShape[2]} && pos < ${outputShape[1]}) {`;
     let unrolled = ``;
 
     for (let row = 0; row <= 1; row++) {
       for (let col = 0; col <= 1; col++) {
         unrolled += `
-          blockIndex = rc.y + ${col};
-          pos = rc.x + ${row};
+          blockIndex = rc.z + ${col};
+          pos = rc.y + ${row};
 
-          if(blockIndex < ${outputShape[1]} && pos < ${outputShape[0]}) {
-            offsetY = int(blockIndex / (${outWidth})) * ${strideHeight} - ${
-            top};
-            d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+          ${boundsCheckingSnippet}
+            offsetY = int(blockIndex / outWidth) * stride[0] - pad[0];
+            d0 = offsetY + dilation[0] * (pos / itemsPerBlockRow);
 
-            if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
+            if(d0 < inputShape[${rowDim}] && d0 >= 0) {
+              // Use custom imod instead mod. On Intel GPU, mod may generate
+              // unexpected value.
+              // https://github.com/tensorflow/tfjs/issues/5447
+              offsetX = imod(blockIndex, outWidth) * stride[1] - pad[1];
+              d1 = offsetX + dilation[1] * (imod(pos, itemsPerBlockRow) /
+                  inChannels);
 
-              offsetX = int(mod(float(blockIndex), ${outWidth}.) * ${
-            strideWidth}. - ${left}.);
-              d1 = offsetX + ${dilationWidth} * (int(mod(float(pos), ${
-            itemsPerBlockRow}.) / ${inChannels}.));
+              if(d1 < inputShape[${colDim}] && d1 >= 0) {
 
-              if(d1 < ${inputShape[colDim]} && d1 >= 0) {
-
-                ch = int(mod(float(pos), ${inChannels}.));
+                ch = imod(pos, inChannels);
 
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);
                   result[${row * 2 + col}] = getChannel(
-                    getA(d0, int(innerDims.x),
+                    getA(rc.x, d0, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 } else {
                   innerDims = vec2(d0, d1);
                   result[${row * 2 + col}] = getChannel(
-                    getA(ch, int(innerDims.x),
+                    getA(rc.x, ch, int(innerDims.x),
                     int(innerDims.y)), innerDims);
                 }
               }
@@ -93,7 +92,7 @@ export class Im2ColPackedProgram implements GPGPUProgram {
 
     this.userCode = `
       void main() {
-        ivec2 rc = getOutputCoords();
+        ivec3 rc = getOutputCoords();
 
         vec4 result = vec4(0);
 

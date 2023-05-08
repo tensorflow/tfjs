@@ -40,7 +40,7 @@ function imag_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'imag');
 
   const inputs: ImagInputs = {input: $input};
-  return ENGINE.runKernel(Imag, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Imag, inputs as unknown as NamedTensorMap);
 }
 
-export const imag = op({imag_});
+export const imag = /* @__PURE__ */ op({imag_});

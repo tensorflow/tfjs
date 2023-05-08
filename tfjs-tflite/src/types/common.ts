@@ -35,3 +35,15 @@ export declare interface Class {
   getScore(): number;
   hasScore(): boolean;
 }
+
+/** Stores the status of WASM features that user's browser supports. */
+export declare interface WasmFeatures {
+  simd: boolean;
+  multiThreading: boolean;
+}
+
+/** Base class for task libraries. */
+export declare class BaseTaskLibrary {
+  /** Cleans up resources when the instance is no longer needed. */
+  cleanUp(): void;
+}

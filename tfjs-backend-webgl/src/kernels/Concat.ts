@@ -29,6 +29,10 @@ export function concat(
   const {axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
+
+  const shapes = inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, $axis);
+
   const outShape =
       backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
@@ -42,14 +46,11 @@ export function concat(
     return identity({inputs: {x: $inputs[0]}, backend});
   }
 
-  const shapes = $inputs.map(t => t.shape);
-  backend_util.assertParamsConsistent(shapes, $axis);
-
   return concatImpl($inputs, $axis, backend);
 }
 
 export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'webgl',
-  kernelFunc: concat as {} as KernelFunc
+  kernelFunc: concat as unknown as KernelFunc
 };

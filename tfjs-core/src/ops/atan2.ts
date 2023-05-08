@@ -49,7 +49,7 @@ function atan2_<T extends Tensor>(
 
   const inputs: Atan2Inputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Atan2, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Atan2, inputs as unknown as NamedTensorMap);
 }
 
-export const atan2 = op({atan2_});
+export const atan2 = /* @__PURE__ */ op({atan2_});

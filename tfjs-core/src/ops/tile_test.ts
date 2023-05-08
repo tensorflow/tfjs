@@ -73,6 +73,19 @@ describeWithFlags('tile', ALL_ENVS, () => {
         await t2.data(), [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
+  it('6D (tile)', async () => {
+    const t = tf.tensor6d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+        [1, 1, 2, 2, 2, 2]);
+    const t2 = tf.tile(t, [1, 2, 1, 1, 1, 1]);
+
+    expect(t2.shape).toEqual([1, 2, 2, 2, 2, 2]);
+    expectArraysClose(await t2.data(), [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+    ]);
+  });
+
   it('1d string tensor', async () => {
     const a = tf.tensor(['a', 'b', 'c']);
     const res = tf.tile(a, [2]);
@@ -87,6 +100,27 @@ describeWithFlags('tile', ALL_ENVS, () => {
     expectArraysEqual(await res.data(), [
       'a', 'b', 'a', 'b', 'a', 'b', 'c', 'd', 'c', 'd', 'c', 'd',
       'a', 'b', 'a', 'b', 'a', 'b', 'c', 'd', 'c', 'd', 'c', 'd'
+    ]);
+  });
+
+  it('6D string tensor', async () => {
+    const t = tf.tensor6d(
+        [
+          'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+          'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+          'sixteen'
+        ],
+        [1, 1, 2, 2, 2, 2]);
+    const t2 = tf.tile(t, [1, 2, 1, 1, 1, 1]);
+
+    expect(t2.shape).toEqual([1, 2, 2, 2, 2, 2]);
+    expectArraysClose(await t2.data(), [
+      'one',      'two',      'three',   'four',    'five',     'six',
+      'seven',    'eight',    'nine',    'ten',     'eleven',   'twelve',
+      'thirteen', 'fourteen', 'fifteen', 'sixteen', 'one',      'two',
+      'three',    'four',     'five',    'six',     'seven',    'eight',
+      'nine',     'ten',      'eleven',  'twelve',  'thirteen', 'fourteen',
+      'fifteen',  'sixteen'
     ]);
   });
 

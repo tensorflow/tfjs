@@ -31,7 +31,7 @@ export class FlipLeftRightProgram implements GPGPUProgram {
           ivec4 coords = getOutputCoords();
           int x = coords[2];
 
-          int coordX = ${imageWidth} - x;
+          int coordX = ${imageWidth} - x - 1;
           float outputValue;
           if(coordX >= 0 && coordX < ${imageWidth}) {
             outputValue = getImage(coords[0], coords[1], coordX, coords[3]);

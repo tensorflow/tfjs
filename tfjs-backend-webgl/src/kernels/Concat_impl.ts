@@ -21,6 +21,8 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ConcatProgram} from '../concat_gpu';
 import {ConcatPackedProgram} from '../concat_packed_gpu';
 import {concatImplCPU} from '../kernel_utils/shared';
+import {CLONE, UnaryOpProgram} from '../unaryop_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
 import {complex} from './Complex';
 import {imag} from './Imag';
@@ -48,6 +50,8 @@ export function concatImpl(
     return result;
   }
 
+  let runOnCpu = backend.shouldExecuteOnCPU(inputs);
+
   // Run on cpu if dtype is string. For string, the backend represents it
   // as Uint8Array[], where each Uint8Array is a character. Given that the
   // computation is only on the outer array, uploading the whole data onto
@@ -55,10 +59,30 @@ export function concatImpl(
   // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
   // just run the kernel on cpu if dtype is string.
   if (dtype === 'string') {
-    const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+    runOnCpu = true;
+  }
+
+  if (runOnCpu) {
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const tensors2D = inputs.map(t => {
+      const innerSize = util.sizeFromShape(t.shape.slice(axis));
+      const shape = [-1, innerSize];
+      return reshape({inputs: {x: t}, backend, attrs: {shape}});
+    });
+
     const inputsValShapes = tensors2D.map(t => {
       return {vals: backend.readSync(t.dataId), shape: t.shape};
     });
+
+    // Concats 2d tensors along axis=1.
+    const outShape =
+        backend_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis */);
     const simplyConcat = tensors2D[0].shape[0] === 1;
     const outVals =
         concatImplCPU(inputsValShapes, outShape, dtype, simplyConcat);
@@ -73,26 +97,42 @@ export function concatImpl(
     return outInfo;
   }
 
-  if (inputs.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-    const midIndex = Math.floor(inputs.length / 2);
-    const leftSide = concatImpl(inputs.slice(0, midIndex), axis, backend);
-    const rightSide = concatImpl(inputs.slice(midIndex), axis, backend);
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
 
-    const result = concatImpl([leftSide, rightSide], axis, backend);
+  const shouldPack: boolean = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') &&
+      $inputs[0].shape.length > 1;
 
-    backend.disposeIntermediateTensorInfo(leftSide);
-    backend.disposeIntermediateTensorInfo(rightSide);
+  if ($inputs.length === 1) {
+    // Clone tensor.
+    const program = shouldPack ?
+        new UnaryOpProgram(inputs[0].shape, CLONE) :
+        new UnaryOpPackedProgram(inputs[0].shape, CLONE);
+    return backend.runWebGLProgram(program, inputs, dtype);
+  }
+
+  const maxTexturesInShader = env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER');
+  if ($inputs.length > maxTexturesInShader) {
+    const reducedInputs = [];
+    for (let i = 0; i < $inputs.length; i += maxTexturesInShader) {
+      const subArray = $inputs.slice(i, i + maxTexturesInShader);
+      reducedInputs.push(concatImpl(subArray, axis, backend));
+    }
+    const result = concatImpl(reducedInputs, axis, backend);
+
+    for (const i of reducedInputs) {
+      backend.disposeIntermediateTensorInfo(i);
+    }
 
     return result;
   }
 
-  if (env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') &&
-      inputs[0].shape.length > 1) {
-    const program = new ConcatPackedProgram(inputs.map(t => t.shape), axis);
-    return backend.runWebGLProgram(program, inputs, dtype);
+  if (shouldPack) {
+    const program = new ConcatPackedProgram($inputs.map(t => t.shape), axis);
+    return backend.runWebGLProgram(program, $inputs, dtype);
   }
 
-  const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+  const {tensors2D, outShape} = computeTensors2D($inputs, axis, backend);
   const program =
       new ConcatProgram(tensors2D.map(t => t.shape as [number, number]));
   const result = backend.runWebGLProgram(program, tensors2D, dtype);

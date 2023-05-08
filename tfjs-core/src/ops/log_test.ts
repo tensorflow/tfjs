@@ -44,6 +44,12 @@ describeWithFlags('log', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.log(1), NaN]);
   });
 
+  it('negtive values', async () => {
+    const a = tf.tensor1d([1, -1]);
+    const r = tf.log(a);
+    expectArraysClose(await r.data(), [Math.log(1), NaN]);
+  });
+
   it('gradients: Scalar', async () => {
     const a = tf.scalar(5);
     const dy = tf.scalar(3);
@@ -100,6 +106,11 @@ describeWithFlags('log', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.log('q'))
-        .toThrowError(/Argument 'x' passed to 'log' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'log' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.log(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'log' must be float32/);
   });
 });

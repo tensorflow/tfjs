@@ -118,4 +118,4 @@ function sigmoidCrossEntropy_<T extends Tensor, O extends Tensor>(
   return computeWeightedLoss(losses, $weights, reduction);
 }
 
-export const sigmoidCrossEntropy = op({sigmoidCrossEntropy_});
+export const sigmoidCrossEntropy = /* @__PURE__ */ op({sigmoidCrossEntropy_});

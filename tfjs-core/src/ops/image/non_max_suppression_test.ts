@@ -174,6 +174,23 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
       expectArraysEqual(await indices.data(), [1, 0]);
     });
 
+    it('throws when boxes is int32', async () => {
+      const boxes = tf.tensor2d([[0, 0, 1, 1], [0, 1, 1, 2]], [2, 4], 'int32');
+      const scores = [1, 2];
+      expect(() => tf.image.nonMaxSuppression(boxes, scores, 10))
+          .toThrowError(
+              /Argument 'boxes' passed to 'nonMaxSuppression' must be float32/);
+    });
+
+    it('throws when scores is int32', async () => {
+      const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
+      const scores = tf.tensor1d([1, 2], 'int32');
+      const errRegex =
+          /Argument 'scores' passed to 'nonMaxSuppression' must be float32/;
+      expect(() => tf.image.nonMaxSuppression(boxes, scores, 10))
+          .toThrowError(errRegex);
+    });
+
     it('works when inputs are not explicitly initialized on the CPU',
        async () => {
          // This test ensures that asynchronous backends work with NMS, which

@@ -88,7 +88,8 @@ describe('renderBarChart', () => {
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas').width).toBe(400 * pixelRatio);
+    expect(document.querySelector('canvas').width)
+        .toBe(Math.floor(400 * pixelRatio));
   });
 
   it('sets height of chart', async () => {
@@ -103,6 +104,7 @@ describe('renderBarChart', () => {
 
     expect(document.querySelectorAll('.vega-embed').length).toBe(1);
     expect(document.querySelectorAll('canvas').length).toBe(1);
-    expect(document.querySelector('canvas').height).toBe(200 * pixelRatio);
+    expect(document.querySelector('canvas').height)
+        .toBe(Math.floor(200 * pixelRatio));
   });
 });

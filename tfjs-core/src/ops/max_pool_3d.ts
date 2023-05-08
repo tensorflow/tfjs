@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -52,8 +53,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1*1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
@@ -83,22 +84,15 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in maxPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPool3d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  checkPadOnDimRoundingMode('maxPool3d', pad, dimRoundingMode);
   const inputs: MaxPool3DInputs = {x: x5D};
-
   const attrs:
       MaxPool3DAttrs = {filterSize, strides, pad, dimRoundingMode, dataFormat};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  MaxPool3D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  MaxPool3D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -109,4 +103,4 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const maxPool3d = op({maxPool3d_});
+export const maxPool3d = /* @__PURE__ */ op({maxPool3d_});

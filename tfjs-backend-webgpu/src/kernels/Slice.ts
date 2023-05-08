@@ -19,7 +19,7 @@ import {KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Te
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {sliceImplCPU} from '../kernel_utils/shared';
-import {SliceProgram} from './slice_webgpu';
+import {SliceProgram} from '../slice_webgpu';
 
 export function slice(
     args: {inputs: SliceInputs, backend: WebGPUBackend, attrs: SliceAttrs}):
@@ -32,9 +32,9 @@ export function slice(
   slice_util.assertParamsValid(x, $begin, $size);
 
   if (backend.shouldExecuteOnCPU([x]) || x.dtype === 'string') {
-    const xBufferInfo = backend.tensorMap.get(x.dataId);
+    const xTensorData = backend.tensorMap.get(x.dataId);
     const outValues = sliceImplCPU(
-        xBufferInfo.values as TypedArray, $begin, $size, x.shape, x.dtype);
+        xTensorData.values as TypedArray, $begin, $size, x.shape, x.dtype);
     return backend.makeTensorInfo($size, x.dtype, outValues);
   }
 
@@ -44,11 +44,12 @@ export function slice(
 
   // TODO(xing.xu): Add shadow slice support.
   const program = new SliceProgram($begin, $size);
-  return backend.runWebGPUProgram(program, [x], x.dtype);
+  const uniformData = [{type: 'int32', data: $begin}];
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const sliceConfig: KernelConfig = {
   kernelName: Slice,
   backendName: 'webgpu',
-  kernelFunc: slice as {} as KernelFunc
+  kernelFunc: slice as unknown as KernelFunc
 };

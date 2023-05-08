@@ -37,4 +37,4 @@ function slice2d_(
           `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
   return slice($x, begin, size);
 }
-export const slice2d = op({slice2d_});
+export const slice2d = /* @__PURE__ */ op({slice2d_});

@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class PadPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
@@ -26,7 +25,7 @@ export class PadPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
-  valueLoc: WebGLUniformLocation;
+  customUniforms = [{name: 'value', type: 'float' as UniformType}];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -76,7 +75,6 @@ export class PadPackedProgram implements GPGPUProgram {
     this.userCode = `
       const ${dtype} start = ${dtype}(${start});
       const ${dtype} end = ${dtype}(${end});
-      uniform float value;
 
       void main() {
         ${dtype} outputLoc = getOutputCoords();
@@ -85,14 +83,5 @@ export class PadPackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
-  }
-
-  getCustomSetupFunc(value: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.valueLoc == null) {
-        this.valueLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'value');
-      }
-      gpgpu.gl.uniform1f(this.valueLoc, value);
-    };
   }
 }

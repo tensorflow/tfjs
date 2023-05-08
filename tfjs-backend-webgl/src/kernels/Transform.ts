@@ -44,5 +44,5 @@ export function transform(args: {
 export const transformConfig: KernelConfig = {
   kernelName: Transform,
   backendName: 'webgl',
-  kernelFunc: transform as {} as KernelFunc
+  kernelFunc: transform as unknown as KernelFunc
 };

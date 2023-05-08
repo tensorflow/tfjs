@@ -6,6 +6,7 @@
 */run-ci
 **/*.pyc
 **/bundle.js
+**/.parcel-cache
 **/*.js.map
 .DS_Store
 .idea/
@@ -29,10 +30,14 @@ tfjs-layers/integration/typescript/yarn.lock
 e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
 e2e/integration_tests/metadata
+e2e/integration_tests/graph_model_golden_data/*.golden.json
 e2e/scripts/storage
 e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
 e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
+e2e/benchmarks/browserstack-benchmark/benchmark_results.json
+e2e/benchmarks/browserstack-benchmark/benchmark_results.js
+e2e/benchmarks/browserstack-benchmark/benchmark_test_results.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
 
@@ -60,6 +65,14 @@ tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log
 cloudbuild_generated.yml
+wasm-dist/
+.firebase/
+
+# e2e custom modules
+e2e/custom_module/blazeface/custom_tfjs_blazeface
+e2e/custom_module/dense_model/custom_tfjs
+e2e/custom_module/universal_sentence_encoder/custom_tfjs
 
 # User-specific .bazelrc
 .bazelrc.user
+**/.parcel-cache

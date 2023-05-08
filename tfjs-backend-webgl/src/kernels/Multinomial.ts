@@ -38,9 +38,8 @@ export function multinomial(args: {
   const batchSize = probs.shape[0];
   const numOutcomes = probs.shape[1];
   const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
-  const customSetup = program.getCustomSetupFunc(seed);
-
-  const res = backend.runWebGLProgram(program, [probs], 'int32', customSetup);
+  const customValues = [[seed]];
+  const res = backend.runWebGLProgram(program, [probs], 'int32', customValues);
   if (!normalized) {
     backend.disposeIntermediateTensorInfo(probs);
   }
@@ -50,5 +49,5 @@ export function multinomial(args: {
 export const multinomialConfig: KernelConfig = {
   kernelName: Multinomial,
   backendName: 'webgl',
-  kernelFunc: multinomial as {} as KernelFunc
+  kernelFunc: multinomial as unknown as KernelFunc
 };

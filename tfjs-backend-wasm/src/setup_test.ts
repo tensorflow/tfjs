@@ -15,14 +15,21 @@
  * =============================================================================
  */
 
+// Import Object.fromEntries polyfill for Safari 11
+import 'core-js/es/object/from-entries';
 // Import core for side effects (e.g. flag registration)
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
+// Register the wasm backend.
+import './index';
+
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {setupCachedWasmPaths} from './test_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
@@ -44,10 +51,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'pow',
     excludes: [
-      'gradient',  // zerosLike not defined yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
+      'gradient'  // zerosLike not defined yet.
     ]
   },
   {
@@ -60,10 +64,9 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'depthToSpace'},
   {
-    include: 'avgPool',
+    include: 'avgPool ',
     excludes: [
-      'gradient',   // Not yet implemented.
-      'avgPool3d',  // Not yet implemented.
+      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -80,21 +83,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',    // Not yet implemented.
-      'maxPool3d',          // Not yet implemented.
-      'maxPool3dBackprop',  // Not yet implemented.
-      'ignores NaNs',       // Actual != expected.
-      'maxPoolWithArgmax'   // Not yet implemented.
-
+      'maxPoolBackprop',   // Not yet implemented.
+      'ignores NaNs',      // Actual != expected.
+      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
-  {
-    include: 'resizeBilinear',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
+  {include: 'resizeBilinear'},
+  {include: 'resizeNearestNeighbor'},
   {
     include: 'matmul ',
     excludes: [
@@ -103,8 +99,6 @@ const TEST_FILTERS: TestFilter[] = [
       'zero in its shape',         // Zero in shapes aren't supported yet
       'matmul followed by mul',    // mul not supported yet
       'upcasts',                   // Upcasting not supported yet.
-      'fused A x B with elu',      // Fused matMul with elu activation not yet
-                                   // supported.
       'fused A x B with 2d bias',  // Fused matMul with 2D bias not yet
                                    // supported.
     ]
@@ -121,8 +115,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'conv2d ',
     excludes: [
       'broadcasted bias',  // Broadcasted bias not yet supported.
-      'basic with elu',    // Only fused relu, relu6, prelu activations
-                           // supported.
       'gradient',          // Gradients not defined yet.
       'backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // Gradients not
                                                          // defined.
@@ -133,6 +125,7 @@ const TEST_FILTERS: TestFilter[] = [
       'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
+  {include: 'conv2dTranspose ', excludes: ['gradient']},
   {
     include: 'prelu ',
     excludes: [
@@ -161,6 +154,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'scatterND '},
+  {include: 'tensorScatterUpdate '},
   {
     include: 'abs ',
     excludes: [
@@ -200,6 +194,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'slice '},
   {include: 'stridedSlice '},
   {include: 'rotate '},
+  {include: 'rotateWithOffset'},
   {include: 'flipLeftRight '},
   {include: 'square '},
   {include: 'squaredDifference'},
@@ -210,15 +205,13 @@ const TEST_FILTERS: TestFilter[] = [
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
                                                              // implemented.,
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
     startsWith: 'max ',
     excludes: [
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
@@ -228,7 +221,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Split is not yet implemented
     ]
   },
-  {include: 'transpose'},
+  {include: 'transpose', excludes: ['accepts complex64 input']},
   {include: 'oneHot'},
   {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
@@ -236,14 +229,17 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'clip',
     excludes: [
       'gradient',
-      'propagates NaNs'  // clip delegates to XNNPACK which does not make
-                         // guarantees about behavior of nans.
+      'propagates NaNs',  // clip delegates to XNNPACK which does not make
+                          // guarantees about behavior of nans.
+      'basic vec4'        // basic vec4 also includes nans.
     ]
   },
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
-  {include: 'argmax', excludes: ['gradient']},
+  {include: 'argmax '},
+  {include: 'argmin '},
   {include: 'exp '},
+  {include: 'elu '},
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -256,72 +252,30 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maximum',
     excludes: [
-      'gradient',                                 // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
-                                                  // dims not supported yet.
+      'gradient'  // Not yet implemented.
     ]
   },
   {
     include: 'log ',
   },
-  {
-    startsWith: 'equal ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
-    ]
-  },
-  {
-    include: 'greater ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
-    ]
-  },
+  {startsWith: 'equal ', excludes: ['string']},
+  {include: 'greater ', excludes: ['string']},
   {
     include: 'greaterEqual',
     excludes: [
-      'gradient',                      // Not yet implemented.
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'gradient',  // Not yet implemented.
+      'string'
     ]
   },
-  {
-    include: 'less ',
-    excludes: [
-      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
-                                        // supported yet.
-      'broadcasting Tensor3D shapes',   // Same as above.
-      'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
-    ]
-  },
+  {include: 'less ', excludes: ['string']},
   {
     include: 'lessEqual',
     excludes: [
-      'gradient',                       // Not yet implemented.
-      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
-                                        // supported yet.
-      'broadcasting Tensor3D shapes',   // Same as above.
-      'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'gradient',  // Not yet implemented.
+      'string'
     ]
   },
-  {
-    include: 'notEqual',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
-    ]
-  },
+  {include: 'notEqual', excludes: ['string']},
   {
     include: 'mean ',
     excludes: [
@@ -330,16 +284,12 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
+  {startsWith: 'cumprod'},
   {startsWith: 'cumsum'},
-  {
-    startsWith: 'logicalAnd ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
-                                       // not yet supported.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
-    ]
-  },
+  {startsWith: 'logicalAnd '},
+  {startsWith: 'logicalNot '},
+  {startsWith: 'logicalOr '},
+  {startsWith: 'logicalXor '},
   {
     startsWith: 'tile ',
     excludes: [
@@ -353,6 +303,12 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'cos ',
     excludes: [
       'gradient',  // Gradient not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'cosh',
+    excludes: [
+      'gradient'  // Gradient not yet implemented.
     ]
   },
   {
@@ -391,6 +347,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'prod'},
   {include: 'floor'},
+  {include: 'floorDiv'},
   {include: 'topk'},
   {include: 'expandDims'},
   {include: 'stack'},
@@ -414,6 +371,49 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
+  {include: 'image.transform'},
+  {include: 'batchToSpaceND'},
+  {include: 'spaceToBatchND'},
+  {include: 'sparseFillEmptyRows'},
+  {include: 'sparseReshape'},
+  {include: 'sparseSegmentMean'},
+  {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
+  {include: 'stringNGrams'},
+  {include: 'stringSplit'},
+  {include: 'stringToHashBucketFast'},
+  {include: 'reciprocal'},
+  {include: 'isNaN'},
+  {include: 'atan '},
+  {include: 'acos '},
+  {include: 'acosh '},
+  {include: 'asin '},
+  {include: 'asinh '},
+  {include: 'diag '},
+  {include: 'denseBincount '},
+  {include: 'bitwiseAnd'},
+  {include: 'broadcastArgs '},
+  {include: 'searchSorted '},
+  {include: 'avgPool3d '},
+  {include: 'avgPool3dBackprop '},
+  {include: 'upperBound '},
+  {include: 'lowerBound '},
+  {include: 'dilation2d '},
+  {include: 'localResponseNormalization '},
+  {include: 'log1p '},
+  {include: 'atan2 '},
+  {include: 'atanh '},
+  {include: 'isInf '},
+  {include: 'isFinite '},
+  {include: 'sign '},
+  {include: 'selu '},
+  {include: 'softplus '},
+  {include: 'linspace'},
+  {include: 'bincount'},
+  {include: 'expm1 '},
+  {include: 'multinomial'},
+  {include: 'unique'},
+  {include: 'conv3d'},
 ];
 
 const customInclude = (testName: string) => {
@@ -431,6 +431,12 @@ const customInclude = (testName: string) => {
 };
 setupTestFilters(TEST_FILTERS, customInclude);
 
+beforeAll(setupCachedWasmPaths, 30_000);
+
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require-imports
+require('@tensorflow/tfjs-core/dist/tests');
+// Import and run wasm tests
+// tslint:disable-next-line:no-require-imports
+require('./tests');

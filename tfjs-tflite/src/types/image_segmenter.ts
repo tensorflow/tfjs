@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {BaseTaskLibrary} from './common';
+
 /** Different output types. */
 export declare enum OutputType {
   CATEGORY_MASK = 1.0,
@@ -66,18 +68,16 @@ export declare interface ImageSegmenterClass {
   /**
    * The factory function to create an ImageSegmenter instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options?: ImageSegmenterOptions):
+  create(model: string|ArrayBuffer, options?: ImageSegmenterOptions):
       Promise<ImageSegmenter>;
 }
 
-export declare class ImageSegmenter {
+export declare class ImageSegmenter extends BaseTaskLibrary {
   /** Performs segmentation on the given image-like element. */
   segment(input: ImageData|HTMLImageElement|HTMLCanvasElement|
           HTMLVideoElement): SegmentationResult|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

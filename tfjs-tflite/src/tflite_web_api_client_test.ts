@@ -25,15 +25,12 @@ describe('TFLiteWebAPIClient', () => {
   // sure that all the types defined in tflite_web_api_client.d.ts actually
   // exist in the loaded JS client.
   it('should all its exported types defined', () => {
-    // In test environment, tfweb namespace is in tfliteWebApiClient.default.
-    //
-    // TODO: figure out how to remove this workaround by updating the karma
-    // configs.
-    // tslint:disable-next-line: no-any
-    const tfliteWeb = (tfliteWebApiClient as any).default.tfweb;
+    const tfliteWeb = tfliteWebApiClient.tfweb;
     for (const field of Object.keys(tfliteWeb)) {
-      expect(tfliteWeb[field]).toBeDefined();
+      // tslint:disable-next-line: no-any
+      expect((tfliteWeb as any)[field]).toBeDefined();
     }
     expect(tfliteWeb['tflite_web_api']['setWasmPath']).toBeDefined();
+    expect(tfliteWeb['tflite_web_api']['getWasmFeatures']).toBeDefined();
   });
 });

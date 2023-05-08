@@ -41,7 +41,7 @@ function round_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'round');
   const inputs: RoundInputs = {x: $x};
 
-  return ENGINE.runKernel(Round, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Round, inputs as unknown as NamedTensorMap);
 }
 
-export const round = op({round_});
+export const round = /* @__PURE__ */ op({round_});

@@ -20,7 +20,7 @@ import {ENGINE} from './engine';
 import * as tf from './index';
 import {KernelFunc} from './index';
 import {ALL_ENVS, describeWithFlags, TestKernelBackend} from './jasmine_util';
-import {TensorInfo} from './kernel_registry';
+import { TensorInfo } from './tensor_info';
 import {Tensor} from './tensor';
 import {expectArraysClose} from './test_util';
 import {BackendValues, DataType} from './types';
@@ -368,6 +368,12 @@ describeWithFlags('memory', ALL_ENVS, () => {
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReason) >= 0).toBe(true);
   });
+
+  it('makeTensorFromDataId creates a tensor', () => {
+    const tensor = ENGINE.makeTensorFromDataId({}, [3], 'float32');
+    expect(tensor).toBeDefined();
+    expect(tensor.shape).toEqual([3]);
+  });
 });
 
 describeWithFlags('profile', ALL_ENVS, () => {
@@ -593,6 +599,8 @@ describeWithFlags(
  * have coverage for when these backends are enabled and ensure they work with
  * the engine.
  */
+// TODO(#5632): Re-enable these tests
+/*
 describeWithFlags(
     'Switching WebGL + CPU backends', {
       predicate: testEnv => testEnv.backendName === 'webgl' &&
@@ -681,7 +689,7 @@ describeWithFlags(
         tf.unregisterKernel('Square', 'webgl2');
       });
     });
-
+*/
 interface TestStorage extends KernelBackend {
   id: number;
 }

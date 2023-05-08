@@ -1,0 +1,132 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+
+package(default_visibility = ["//visibility:public"])
+
+TEST_SRCS = [
+    "**/*_test.ts",
+    "setup_test.ts",
+]
+
+ts_library(
+    name = "tfjs-tflite_src_lib",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = TEST_SRCS + ["index.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-tflite/dist",
+    deps = [
+        "//tfjs-core/src:tfjs-core_lib",
+        "@npm//@types/seedrandom",
+        "@npm//seedrandom",
+    ],
+)
+
+ts_library(
+    name = "tfjs-tflite_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-tflite",
+    deps = [
+        ":tfjs-tflite_src_lib",
+    ],
+)
+
+copy_to_bin(
+    name = "tflite_web_api_client_js",
+    srcs = [
+        "tflite_web_api_client.js",
+    ],
+)
+
+ts_library(
+    name = "tfjs-tflite_test_lib",
+    srcs = glob(
+        TEST_SRCS,
+        exclude = ["worker_test.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-tflite/dist",
+    deps = [
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_src_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+    ],
+)
+
+esbuild(
+    name = "tfjs-tflite_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_test_lib",
+        ":tflite_web_api_client_js",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-tflite/wasm",
+    ],
+)
+
+ts_library(
+    name = "worker_test_lib",
+    srcs = [
+        "worker_test.ts",
+    ],
+    deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+    ],
+)
+
+tfjs_web_test(
+    name = "worker_test",
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        # Temporarily disabled because BrowserStack does not support loading
+        # absolute paths in iOS, which is required for loading the worker.
+        # https://www.browserstack.com/question/39573
+        # "bs_ios_12",
+        "bs_android_10",
+        "win_10_chrome",
+    ],
+    static_files = [
+        # For the webworker
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+        "//tfjs-tflite:tf-tflite.min.js",
+        "//tfjs-tflite:tf-tflite.min.js.map",
+        "//tfjs-tflite/wasm",
+        "//tfjs-tflite/test_files:add4.tflite",
+    ],
+    deps = [
+        ":worker_test_lib",
+        "@npm//long:long__umd",
+        "@npm//seedrandom:seedrandom__umd",
+    ],
+)

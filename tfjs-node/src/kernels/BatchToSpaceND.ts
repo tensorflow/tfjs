@@ -25,7 +25,7 @@ export const batchToSpaceNDConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as BatchToSpaceNDInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {blockShape, crops} = args.attrs as {} as BatchToSpaceNDAttrs;
+    const {blockShape, crops} = args.attrs as unknown as BatchToSpaceNDAttrs;
 
     const blockShapeTensor = tensor1d(blockShape, 'int32');
     const cropsTensor =

@@ -79,5 +79,5 @@ export const cumsumConfig: KernelConfig = {
   kernelName: Cumsum,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cumsum as {} as KernelFunc
+  kernelFunc: cumsum as unknown as KernelFunc
 };
