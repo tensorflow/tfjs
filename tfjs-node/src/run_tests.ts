@@ -48,6 +48,7 @@ jasmine_util.setTestEnvs([{
 
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:
+  'bitwiseAnd',
   'version version',
   'unreliable is true due to both auto gc and string tensors',
   'unreliable is true due to auto gc',
@@ -149,9 +150,8 @@ const IGNORE_LIST: string[] = [
   'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
-  // Node kernel for einsum is yet to be implemented.
-  // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum',
+  'einsum test-tensorflow {} 2d matrix calculate trace: duplicate axes not implemented yet',
+  'einsum test-tensorflow {} nonexistent dimension throws error',
   'raggedGather',
   'raggedRange',
   'raggedTensorToTensor',
@@ -173,6 +173,7 @@ const IGNORE_LIST: string[] = [
   // upperBound and lowerBound use SearchSorted, which is unsupported
   'upperBound',
   'lowerBound',
+  'multinomial test-tensorflow {} creates the same data given the same seed',
 ];
 
 if (process.platform === 'win32') {
@@ -188,8 +189,13 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
+const grepRegex = new RegExp(argv.grep as string);
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({
+  spec_files: ['src/**/*_test.ts'],
+  random: false,
+  jsLoader: 'require',
+});
 // Also import tests from core.
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
@@ -200,23 +206,23 @@ if (process.env.JASMINE_SEED) {
 
 const env = jasmine.getEnv();
 
-const grepRegex = new RegExp(argv.grep as string);
-
-// Filter method that returns boolean, if a given test should return.
-env.specFilter = spec => {
-  // Filter based on the grep flag.
-  if (!grepRegex.test(spec.getFullName())) {
-    return false;
-  }
-  // Return false (skip the test) if the test is in the ignore list.
-  for (let i = 0; i < IGNORE_LIST.length; ++i) {
-    if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+// // Filter method that returns boolean, if a given test should return.
+env.configure({
+  specFilter: (spec: jasmine.Spec) => {
+    // Filter based on the grep flag.
+    if (!grepRegex.test(spec.getFullName())) {
       return false;
     }
+    // Return false (skip the test) if the test is in the ignore list.
+    for (let i = 0; i < IGNORE_LIST.length; ++i) {
+      if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+        return false;
+      }
+    }
+    // Otherwise run the test.
+    return true;
   }
-  // Otherwise run the test.
-  return true;
-};
+});
 
 // TODO(kreeger): Consider moving to C-code.
 console.log(`Running tests against TensorFlow: ${

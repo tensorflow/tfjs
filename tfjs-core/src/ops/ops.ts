@@ -39,6 +39,7 @@ export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
 export {bincount} from './bincount';
+export {bitwiseAnd} from './bitwise_and';
 export {broadcastArgs} from './broadcast_args';
 export {broadcastTo} from './broadcast_to';
 export {buffer} from './buffer';
@@ -71,6 +72,7 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {einsum} from './einsum';
 export {elu} from './elu';
+export {ensureShape} from './ensure_shape';
 export {equal} from './equal';
 export {erf} from './erf';
 export {euclideanNorm} from './euclidean_norm';
@@ -143,6 +145,7 @@ export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomStandardNormal} from './random_standard_normal';
 export {randomUniform} from './random_uniform';
+export {randomUniformInt} from './random_uniform_int';
 export {range} from './range';
 export {real} from './real';
 export {reciprocal} from './reciprocal';
@@ -325,11 +328,13 @@ const sparse = {
 import {stringNGrams} from './string/string_n_grams';
 import {stringSplit} from './string/string_split';
 import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
+import {staticRegexReplace} from './string/static_regex_replace';
 // tslint:disable-next-line:variable-name
 const string = {
   stringNGrams,
   stringSplit,
-  stringToHashBucketFast
+  stringToHashBucketFast,
+  staticRegexReplace,
 };
 
 // Second level exports.

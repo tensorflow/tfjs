@@ -23,6 +23,7 @@ import {BrowserLocalStorage, BrowserLocalStorageManager} from '../io/local_stora
 import {ModelStoreManagerRegistry} from '../io/model_management';
 
 import {Platform} from './platform';
+import {isTypedArrayBrowser} from './is_typed_array_browser';
 
 export class PlatformBrowser implements Platform {
   // According to the spec, the built-in encoder can do only UTF-8 encoding.
@@ -93,8 +94,7 @@ export class PlatformBrowser implements Platform {
 
   isTypedArray(a: unknown): a is Uint8Array | Float32Array | Int32Array
     | Uint8ClampedArray {
-    return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+    return isTypedArrayBrowser(a);
   }
 }
 

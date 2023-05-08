@@ -65,6 +65,12 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'depthToSpace'},
   {include: 'avgPool '},
   {
+    include: 'avgPool ',
+    excludes: [
+      'gradient',  // Not yet implemented.
+    ]
+  },
+  {
     include: 'relu',
     excludes: [
       'derivative',               // Not yet implemented.
@@ -78,23 +84,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
+      'maxPoolBackprop',   // Not yet implemented.
       'ignores NaNs',      // Actual != expected.
       'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
-  {
-    include: 'resizeBilinear',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
-  {
-    include: 'resizeNearestNeighbor',
-    excludes: [
-      'gradients',  // Not yet implemented.
-    ]
-  },
+  {include: 'resizeBilinear'},
+  {include: 'resizeNearestNeighbor'},
   {
     include: 'matmul ',
     excludes: [
@@ -240,16 +237,10 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
-  {include: 'argmax', excludes: ['gradient']},
+  {include: 'argmax '},
+  {include: 'argmin '},
   {include: 'exp '},
-  {
-    include: 'elu',
-    excludes: [
-      'derivative',  // Not yet implemented.
-      'gradient',    // Not yet implemented.
-      'selu'         // Not yet implemented.
-    ]
-  },
+  {include: 'elu '},
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -387,6 +378,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
   {include: 'stringNGrams'},
   {include: 'stringSplit'},
   {include: 'stringToHashBucketFast'},
@@ -399,8 +391,29 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'bitwiseAnd'},
+  {include: 'broadcastArgs '},
+  {include: 'searchSorted '},
   {include: 'avgPool3d '},
   {include: 'avgPool3dBackprop '},
+  {include: 'upperBound '},
+  {include: 'lowerBound '},
+  {include: 'dilation2d '},
+  {include: 'localResponseNormalization '},
+  {include: 'log1p '},
+  {include: 'atan2 '},
+  {include: 'atanh '},
+  {include: 'isInf '},
+  {include: 'isFinite '},
+  {include: 'sign '},
+  {include: 'selu '},
+  {include: 'softplus '},
+  {include: 'linspace'},
+  {include: 'bincount'},
+  {include: 'expm1 '},
+  {include: 'multinomial'},
+  {include: 'unique'},
+  {include: 'conv3d'},
 ];
 
 const customInclude = (testName: string) => {

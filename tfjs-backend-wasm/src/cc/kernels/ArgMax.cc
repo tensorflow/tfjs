@@ -18,60 +18,38 @@
 
 #include <cstddef>
 
+#include "tfjs-backend-wasm/src/cc/argminmax_impl.h"
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
-namespace {
+namespace tfjs::wasm {
 
-template <typename T>
-void argmax(const T* x, const size_t outer_size, const size_t inner_size,
-            int* out_buf) {
-  for (int i = 0; i < outer_size; ++i) {
-    const int offset = i * inner_size;
-    T max = x[offset];
-    int max_index = 0;
-    for (int j = 1; j < inner_size; ++j) {
-      const T val = x[offset + j];
-      if (val > max) {
-        max = val;
-        max_index = j;
-      }
-    }
-    out_buf[i] = max_index;
-  }
-}
-
-}  // namespace
-
-namespace tfjs {
-namespace wasm {
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void ArgMax(const size_t x_id, const DType dtype, const size_t outer_size,
-            const size_t inner_size, const size_t out_id) {
+void ArgMax(const int x_id, const DType dtype, const int outer_size,
+            const int inner_size, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  int* out_buf = out_info.i32_write();
+  int32_t* out_buf = out_info.i32_write();
 
   switch (dtype) {
     case DType::float32:
-      argmax<float>(x_info.f32(), outer_size, inner_size, out_buf);
+      ArgMaxImpl<float>(x_info.f32(), outer_size, inner_size, out_buf);
       break;
     case DType::int32:
-      argmax<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
+      ArgMaxImpl<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
       break;
     case DType::boolean:
-      argmax<bool>(x_info.b(), outer_size, inner_size, out_buf);
+      ArgMaxImpl<bool>(x_info.b(), outer_size, inner_size, out_buf);
       break;
     default:
-      util::warn("Argmax failed. Unknown dtype %d", dtype);
+      util::warn("ArgMax failed. Unknown dtype %d", dtype);
   }
 }
 
 }  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+}  // namespace tfjs::wasm

@@ -17,13 +17,22 @@
 
 import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
 
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const SIN = CHECK_NAN_SNIPPET_UNARY + `
   return sin(x);
 `;
 
-export const sin = unaryKernelFunc({opSnippet: SIN});
+const SIN_PACKED = `
+  vec4 result = sin(x);
+  bvec4 isNaN = isnan(x);
+  ${CHECK_NAN_SNIPPET_PACKED}
+  return result;
+`;
+
+export const sin =
+    unaryKernelFunc({opSnippet: SIN, packedOpSnippet: SIN_PACKED});
 
 export const sinConfig: KernelConfig = {
   kernelName: Sin,

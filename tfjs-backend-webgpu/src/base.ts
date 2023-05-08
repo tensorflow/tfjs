@@ -24,10 +24,6 @@ import {isWebGPUSupported} from './webgpu_util';
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
-    // Remove it once we figure out how to correctly read the tensor data
-    // before the tensor is disposed in profiling mode.
-    env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
-
     const gpuDescriptor: GPURequestAdapterOptions = {
       powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ?
           'low-power' :
@@ -54,6 +50,10 @@ if (isWebGPUSupported()) {
       'maxComputeWorkgroupsPerDimension':
           adapterLimits.maxComputeWorkgroupsPerDimension,
       'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
+      'maxBufferSize': adapterLimits.maxBufferSize,
+      'maxComputeWorkgroupSizeX': adapterLimits.maxComputeWorkgroupSizeX,
+      'maxComputeInvocationsPerWorkgroup':
+          adapterLimits.maxComputeInvocationsPerWorkgroup,
     };
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);

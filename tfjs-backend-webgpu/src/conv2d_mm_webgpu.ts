@@ -17,9 +17,9 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
-import {WebGPUProgram} from './webgpu_program';
+import {typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 function conv2dCommonSnippet(
@@ -159,7 +159,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  variableTypes: string[];
+  variableComponents: number[];
   uniforms =
       `filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, dilations : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workgroupSize: [number, number, number];
@@ -176,6 +176,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   tileInner: number;
   innerElementSize: number;
   isVec4?: boolean;
+  outputComponent: number;
   private sequentialAccessByThreads: boolean;
 
   constructor(
@@ -202,22 +203,23 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     if (this.isVec4) {
+      this.outputComponent = 4;
       if (this.isChannelsLast && convInfo.inChannels % 4 !== 0) {
         this.innerElementSize = 3;
-        this.variableTypes = ['f32', 'vec4<f32>'];
+        this.variableComponents = [1, 4];
       } else {
         this.innerElementSize = 4;
-        this.variableTypes = ['vec4<f32>', 'vec4<f32>'];
+        this.variableComponents = [4, 4];
       }
 
       if (addBias) {
         this.variableNames.push('bias');
-        this.variableTypes.push('vec4<f32>');
+        this.variableComponents.push(4);
       }
 
       if (hasPreluActivationWeights) {
         this.variableNames.push('preluActivationWeights');
-        this.variableTypes.push('vec4<f32>');
+        this.variableComponents.push(4);
       }
     } else {
       this.innerElementSize = this.elementsPerThread[0];

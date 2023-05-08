@@ -15,6 +15,13 @@ steps:
   args: ['build-deps-ci']
   env: ['NIGHTLY=$_NIGHTLY']
 
+# Fetch graph model golden data from public TFJS gcp bucket.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'fetch-graph-model-golden-data'
+  args: ['fetch-graph-model-golden-data-ci']
+
 # Test.
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
@@ -23,7 +30,7 @@ steps:
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn', 'build-deps']
+  waitFor: ['yarn', 'build-deps', 'fetch-graph-model-golden-data']
 
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc

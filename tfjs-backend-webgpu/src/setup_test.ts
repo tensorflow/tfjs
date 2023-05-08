@@ -28,27 +28,9 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 const TEST_FILTERS: TestFilter[] = [
   // skip specific test cases for supported kernels
   {
-    startsWith: 'abs ',
-    excludes: [
-      'complex64',  // Kernel 'ComplexAbs' not registered.
-    ]
-  },
-  {
-    startsWith: 'conv3d ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'dilation2d ',
-    excludes: [
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -61,7 +43,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'gather ',
     excludes: [
       'throws when index is out of bound',
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -77,33 +58,123 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'resizeBilinear ',
+    startsWith: 'cos ',
     excludes: [
-      'gradients',  // Not yet implemented
+      'gradients',             // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'tan ',
+    excludes: [
+      'gradients',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'acosh ',
+    excludes: [
+      'propagates NaNs',       // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'asinh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'atanh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'sigmoid ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'unsortedSegmentSum ',
+    excludes: [
+      'ignores negative segmentIds',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'log ',
+    excludes: [
+      'log propagates NaNs',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'softmax ',
+    excludes: [
+      'Propagates NaNs',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'fromPixels ',
+    excludes: [
+      'HTMLVideoElement',        // Device is lost on Linux
+      'canvas and image match',  // Failing on Linux
+    ],
+  },
+  {
+    startsWith: 'Draw',
+    excludes: [
+      'on 2d context',
     ]
   },
   {
-    startsWith: 'resizeNearestNeighbor ',
+    startsWith: 'sign ',
     excludes: [
-      'gradients',  // Not yet implemented
-    ]
+      // Failing on Linux
+      'basic',
+      'does not propagate NaNs',
+      'accepts a tensor-like object',
+    ],
+  },
+  {
+    startsWith: 'broadcastArgs ',
+    excludes: [
+      'error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
+  },
+  {
+    startsWith: 'tensor.data ',
+    excludes: [
+      '.data() postpones disposal of tensor',
+      'calling .data() twice works',
+    ],
+  },
+  {
+    startsWith: 'bitwiseAnd',
+    excludes: [
+      'bitwiseAnd',
+    ],
   },
 
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
-      // Not implemented kernel list.
-      'avgPool3d ',           'avgPool3dBackprop ',
-      'conv3dTranspose ',     'maxPool3d ',
-      'maxPool3dBackprop ',   'raggedGather ',
-      'raggedRange ',         'raggedTensorToTensor ',
+      'raggedGather ',
+      'raggedRange ',
+      'raggedTensorToTensor ',
       'method otsu',  // round
-      'sparseFillEmptyRows ', 'sparseReshape ',
-      'sparseSegmentMean ',   'sparseSegmentSum ',
-      'stringSplit ',         'stringToHashBucketFast ',
-      'tensorScatterUpdate ', 'unique ',
-      'unsortedSegmentSum ',  'valueAndGradients ',
+      'sparseFillEmptyRows ',
+      'sparseReshape ',
+      'sparseSegmentMean ',
+      'sparseSegmentSum ',
+      'staticRegexReplace ',
+      'stringSplit ',
+      'stringToHashBucketFast ',
+      'unique ',
     ]
   },
 ];
@@ -133,7 +204,7 @@ if (typeof __karma__ !== 'undefined') {
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
-// Import and run tests from webgl.
+// Import and run tests from webgpu.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('./tests');

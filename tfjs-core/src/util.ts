@@ -16,6 +16,7 @@
  */
 
 import {env} from './environment';
+import {isTypedArrayBrowser} from './platforms/is_typed_array_browser';
 import {BackendValues, DataType, RecursiveArray, TensorLike, TypedArray} from './types';
 import * as base from './util_base';
 export * from './util_base';
@@ -95,7 +96,7 @@ export function now(): number {
  * If not, `tf.util.fetch` returns a platform-specific solution.
  *
  * ```js
- * const resource = await tf.util.fetch('https://unpkg.com/@tensorflow/tfjs');
+ * const resource = await tf.util.fetch('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs');
  * // handle response
  * ```
  *
@@ -134,7 +135,12 @@ export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
 
 export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
     Uint8ClampedArray {
-  return env().platform.isTypedArray(a);
+  // TODO(mattsoulanille): Remove this fallback in 5.0.0
+  if (env().platform.isTypedArray != null) {
+    return env().platform.isTypedArray(a);
+  } else {
+    return isTypedArrayBrowser(a);
+  }
 }
 
 // NOTE: We explicitly type out what T extends instead of any so that

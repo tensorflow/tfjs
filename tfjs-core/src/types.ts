@@ -56,6 +56,11 @@ export interface SingleValueMap {
 /** @docalias 'float32'|'int32'|'bool'|'complex64'|'string' */
 export type DataType = keyof DataTypeMap;
 export type NumericDataType = 'float32'|'int32'|'bool'|'complex64';
+
+export type DataTypeFor<T extends number|string|boolean> =
+    T extends number|boolean ? NumericDataType : T extends string ? 'string' :
+                                                                    never;
+
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 /** Tensor data used in tensor creation and user-facing API. */
 export type DataValues = DataTypeMap[DataType];
@@ -195,4 +200,47 @@ export interface WebGLData {
 export interface WebGPUData {
   buffer: GPUBuffer;
   zeroCopy?: boolean;
+}
+
+export function isWebGLData(values: unknown): values is WebGLData {
+  return values != null && typeof values === 'object' && 'texture' in values &&
+      values.texture instanceof WebGLTexture;
+}
+export function isWebGPUData(values: unknown): values is WebGPUData {
+  return typeof GPUBuffer !== 'undefined' && values != null &&
+      typeof values === 'object' && 'buffer' in values &&
+      values.buffer instanceof GPUBuffer;
+}
+
+export interface ImageOptions {
+  /**
+   * Optional. A number in range [0-1]. If the image is a 2D tensor or a 3D
+   * tensor with 1 or 3 channels, the alpha channels would set as its value;
+   * otherwise, it would not make effects.
+   */
+  alpha?: number;
+}
+
+export interface ContextOptions {
+  /**
+   * Optional.  If the canvas has created a context, it would not make effects.
+   * If it is not set, it would be variable based on the current backend.
+   */
+  contextType?: string;
+  /**
+   * Optional. A WebGLContextAttributes configuration. If the canvas has created
+   * a context, it would not make effects.
+   */
+  contextAttributes?: WebGLContextAttributes;
+}
+
+export interface DrawOptions {
+  /**
+   * Optional. An object of options to customize the values of image tensor.
+   */
+  imageOptions?: ImageOptions;
+  /**
+   * Optional. An object to configure the context of the canvas to draw to.
+   */
+  contextOptions?: ContextOptions;
 }

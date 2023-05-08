@@ -19,7 +19,7 @@ import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {TextureInfo, WebGPUBackend} from '../backend_webgpu';
+import {WebGPUBackend} from '../backend_webgpu';
 import {FromPixelsProgram} from '../from_pixels_webgpu';
 
 export const fromPixelsConfig: KernelConfig = {
@@ -30,7 +30,6 @@ export const fromPixelsConfig: KernelConfig = {
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 let willReadFrequently = env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
-const videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -70,24 +69,10 @@ export function fromPixels(args: {
       false && env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
-    let textureInfo: TextureInfo;
+    let resource;
     if (importVideo) {
-      const videoElement = pixels as HTMLVideoElement;
-      if (!(videoToTextureMap.has(videoElement)) ||
-          (videoToTextureMap.get(videoElement) as GPUExternalTexture).expired) {
-        const externalTextureDescriptor = {source: videoElement};
-        videoToTextureMap.set(
-            videoElement,
-            backend.device.importExternalTexture(externalTextureDescriptor));
-      }
-
-      textureInfo = {
-        width,
-        height,
-        format: null,
-        usage: null,
-        texture: videoToTextureMap.get(videoElement) as GPUExternalTexture
-      };
+      resource = backend.device.importExternalTexture(
+          {source: pixels as HTMLVideoElement});
     } else {
       if (isVideoOrImage) {
         const newWillReadFrequently =
@@ -95,9 +80,8 @@ export function fromPixels(args: {
         if (fromPixels2DContext == null ||
             newWillReadFrequently !== willReadFrequently) {
           willReadFrequently = newWillReadFrequently;
-          fromPixels2DContext =
-              document.createElement('canvas').getContext(
-                  '2d', {willReadFrequently});
+          fromPixels2DContext = document.createElement('canvas').getContext(
+              '2d', {willReadFrequently});
         }
         fromPixels2DContext.canvas.width = width;
         fromPixels2DContext.canvas.height = height;
@@ -114,7 +98,7 @@ export function fromPixels(args: {
       backend.queue.copyExternalImageToTexture(
           {source: pixels as HTMLCanvasElement | ImageBitmap}, {texture},
           [outputShape[1], outputShape[0]]);
-      textureInfo = {width, height, format, usage, texture};
+      resource = texture;
     }
 
     const size = util.sizeFromShape(outputShape);
@@ -128,7 +112,7 @@ export function fromPixels(args: {
     ];
     const input = backend.makeTensorInfo([height, width], 'int32');
     const info = backend.tensorMap.get(input.dataId);
-    info.resourceInfo = textureInfo;
+    info.resource = resource;
 
     const result =
         backend.runWebGPUProgram(program, [input], 'int32', uniformData);

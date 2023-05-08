@@ -90,6 +90,16 @@ describe('tensorboard', () => {
       expect(fileNames.length).toEqual(1);
     });
 
+    it('Writing tf.Scalar no memory leak', () => {
+      const writer = tfn.node.summaryFileWriter(tmpLogDir);
+      const beforeNumTFTensors = writer.backend.getNumOfTFTensors();
+      const value = scalar(42);
+      writer.scalar('foo', value, 0);
+      writer.flush();
+      value.dispose();
+      expect(writer.backend.getNumOfTFTensors()).toBe(beforeNumTFTensors);
+    });
+
     it('No crosstalk between two summary writers', () => {
       const logDir1 = path.join(tmpLogDir, '1');
       const writer1 = tfn.node.summaryFileWriter(logDir1);
@@ -180,6 +190,15 @@ describe('tensorboard', () => {
       expect(fileSize2 - fileSize1).toEqual(2 * incrementPerScalar);
     });
 
+    it('summaryFileWriter no memory leak', () => {
+      const writer = tfn.node.summaryFileWriter(tmpLogDir);
+      const beforeNumTFTensors = writer.backend.getNumOfTFTensors();
+      const value = tensor1d([1, 2, 3, 4, 5], 'int32');
+      writer.histogram('foo', value, 0, 5);
+      writer.flush();
+      value.dispose();
+      expect(writer.backend.getNumOfTFTensors()).toBe(beforeNumTFTensors);
+    });
     it('Can create multiple normal distribution', () => {
       const writer = tfn.node.summaryFileWriter(tmpLogDir);
       tf.tidy(() => {

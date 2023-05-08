@@ -83,68 +83,53 @@ describe('File system IOHandler', () => {
   };
 
   let testDir: string;
-  beforeEach(async done => {
+  beforeEach(async () => {
     testDir = await mkdtemp('tfjs_node_fs_test');
-    done();
   });
 
-  afterEach(async done => {
+  afterEach(async () => {
     await rimrafPromise(testDir);
-    done();
   });
 
-  it('save succeeds with newly created directory', async done => {
+  it('save succeeds with newly created directory', async () => {
     const t0 = new Date();
     const dir = path.join(testDir, 'save-destination');
     const handler = tf.io.getSaveHandlers(`file://${dir}`)[0];
-    handler
-        .save({
-          modelTopology: modelTopology1,
-          weightSpecs: weightSpecs1,
-          weightData: weightData1,
-        })
-        .then(async saveResult => {
-          expect(saveResult.modelArtifactsInfo.dateSaved.getTime())
-              .toBeGreaterThanOrEqual(t0.getTime());
-          expect(saveResult.modelArtifactsInfo.modelTopologyType)
-              .toEqual('JSON');
 
-          const modelJSONPath = path.join(dir, 'model.json');
-          const weightsBinPath = path.join(dir, 'weights.bin');
-          const modelJSON = JSON.parse(await readFile(modelJSONPath, 'utf8'));
-          expect(modelJSON.modelTopology).toEqual(modelTopology1);
-          expect(modelJSON.weightsManifest.length).toEqual(1);
-          expect(modelJSON.weightsManifest[0].paths).toEqual(['weights.bin']);
-          expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+    const saveResult = await handler.save({
+      modelTopology: modelTopology1,
+      weightSpecs: weightSpecs1,
+      weightData: weightData1,
+    });
 
-          const weightData = new Uint8Array(await readFile(weightsBinPath));
-          expect(weightData.length).toEqual(16);
-          weightData.forEach(value => expect(value).toEqual(0));
+    expect(saveResult.modelArtifactsInfo.dateSaved.getTime())
+      .toBeGreaterThanOrEqual(t0.getTime());
+    expect(saveResult.modelArtifactsInfo.modelTopologyType)
+      .toEqual('JSON');
 
-          // Verify the content of the files.
-          done();
-        })
-        .catch(err => done.fail(err.stack));
+    const modelJSONPath = path.join(dir, 'model.json');
+    const weightsBinPath = path.join(dir, 'weights.bin');
+    const modelJSON = JSON.parse(await readFile(modelJSONPath, 'utf8'));
+    expect(modelJSON.modelTopology).toEqual(modelTopology1);
+    expect(modelJSON.weightsManifest.length).toEqual(1);
+    expect(modelJSON.weightsManifest[0].paths).toEqual(['weights.bin']);
+    expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+
+    const weightData = new Uint8Array(await readFile(weightsBinPath));
+    expect(weightData.length).toEqual(16);
+    weightData.forEach(value => expect(value).toEqual(0));
   });
 
-  it('save fails if path exists as a file', async done => {
+  it('save fails if path exists as a file', async () => {
     const dir = path.join(testDir, 'save-destination');
     // Create a file at the locatin.
     await writeFile(dir, 'foo');
     const handler = tf.io.getSaveHandlers(`file://${dir}`)[0];
-    handler
-        .save({
-          modelTopology: modelTopology1,
-          weightSpecs: weightSpecs1,
-          weightData: weightData1,
-        })
-        .then(saveResult => {
-          done.fail('Saving to path of existing file succeeded unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message).toMatch(/.*exists as a file.*directory.*/);
-          done();
-        });
+    await expectAsync(handler.save({
+      modelTopology: modelTopology1,
+      weightSpecs: weightSpecs1,
+      weightData: weightData1,
+    })).toBeRejectedWithError(/.*exists as a file.*directory.*/);
   });
 
   it('save-load round trip: one weight file', done => {
@@ -165,7 +150,8 @@ describe('File system IOHandler', () => {
                 expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
                 expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
 
-                expect(new Float32Array(modelArtifacts.weightData))
+                expect(new Float32Array(tf.io.CompositeArrayBuffer.join(
+                  modelArtifacts.weightData)))
                     .toEqual(new Float32Array([0, 0, 0, 0]));
                 done();
               })
@@ -175,7 +161,7 @@ describe('File system IOHandler', () => {
   });
 
   describe('load json model', () => {
-    it('load: two weight files', async done => {
+    it('load: two weight files', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -216,27 +202,24 @@ describe('File system IOHandler', () => {
       // Load the artifacts consisting of a model.json and two binary weight
       // files.
       const handler = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
-      handler.load()
-          .then(modelArtifacts => {
-            expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
-            expect(modelArtifacts.weightSpecs).toEqual([
-              {
-                name: 'dense/kernel',
-                shape: [3, 1],
-                dtype: 'float32',
-              },
-              {
-                name: 'dense/bias',
-                shape: [1],
-                dtype: 'float32',
-              }
-            ]);
-            tf.test_util.expectArraysClose(
-                new Float32Array(modelArtifacts.weightData),
-                new Float32Array([-1.1, -3.3, -3.3, -7.7]));
-            done();
-          })
-          .catch(err => done.fail(err.stack));
+      const modelArtifacts = await handler.load();
+      expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+      expect(modelArtifacts.weightSpecs).toEqual([
+        {
+          name: 'dense/kernel',
+          shape: [3, 1],
+          dtype: 'float32',
+        },
+        {
+          name: 'dense/bias',
+          shape: [1],
+          dtype: 'float32',
+        }
+      ]);
+      tf.test_util.expectArraysClose(
+        new Float32Array(tf.io.CompositeArrayBuffer.join(
+          modelArtifacts.weightData)),
+        new Float32Array([-1.1, -3.3, -3.3, -7.7]));
     });
 
     it('loading from nonexistent model.json path fails', done => {
@@ -255,7 +238,7 @@ describe('File system IOHandler', () => {
           });
     });
 
-    it('loading from missing weights path fails', async done => {
+    it('loading from missing weights path fails', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -293,22 +276,13 @@ describe('File system IOHandler', () => {
       // Load the artifacts consisting of a model.json and two binary weight
       // files.
       const handler = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
-      handler.load()
-          .then(modelArtifacts => {
-            done.fail(
-                'Loading with missing weights file succeeded ' +
-                'unexpectedly.');
-          })
-          .catch(err => {
-            expect(err.message)
-                .toMatch(/Weight file .*weights\.2\.bin does not exist/);
-            done();
-          });
+      await expectAsync(handler.load()).toBeRejectedWithError(
+        /Weight file .*weights\.2\.bin does not exist/);
     });
   });
 
   describe('load binary model', () => {
-    it('load: two weight files', async done => {
+    it('load: two weight files', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -352,29 +326,26 @@ describe('File system IOHandler', () => {
       // binary weight files.
       const handler =
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
-      handler.load()
-          .then(modelArtifacts => {
-            tf.test_util.expectArraysClose(
-                new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
-                new Uint8Array(modelData));
-            expect(modelArtifacts.weightSpecs).toEqual([
-              {
-                name: 'dense/kernel',
-                shape: [3, 1],
-                dtype: 'float32',
-              },
-              {
-                name: 'dense/bias',
-                shape: [1],
-                dtype: 'float32',
-              }
-            ]);
-            tf.test_util.expectArraysClose(
-                new Float32Array(modelArtifacts.weightData),
-                new Float32Array([-1.1, -3.3, -3.3, -7.7]));
-            done();
-          })
-          .catch(err => done.fail(err.stack));
+      const modelArtifacts = await handler.load();
+      tf.test_util.expectArraysClose(
+        new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
+        new Uint8Array(modelData));
+      expect(modelArtifacts.weightSpecs).toEqual([
+        {
+          name: 'dense/kernel',
+          shape: [3, 1],
+          dtype: 'float32',
+        },
+        {
+          name: 'dense/bias',
+          shape: [1],
+          dtype: 'float32',
+        }
+      ]);
+      tf.test_util.expectArraysClose(
+        new Float32Array(tf.io.CompositeArrayBuffer.join(
+          modelArtifacts.weightData)),
+        new Float32Array([-1.1, -3.3, -3.3, -7.7]));
     });
 
     it('path length does not equal 2 fails', () => {
@@ -399,7 +370,7 @@ describe('File system IOHandler', () => {
           });
     });
 
-    it('loading from missing weights path fails', async done => {
+    it('loading from missing weights path fails', async () => {
       const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
@@ -439,17 +410,8 @@ describe('File system IOHandler', () => {
       // files.
       const handler =
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
-      handler.load()
-          .then(modelArtifacts => {
-            done.fail(
-                'Loading with missing weights file succeeded ' +
-                'unexpectedly.');
-          })
-          .catch(err => {
-            expect(err.message)
-                .toMatch(/Weight file .*weights\.2\.bin does not exist/);
-            done();
-          });
+      await expectAsync(handler.load()).toBeRejectedWithError(
+        /Weight file .*weights\.2\.bin does not exist/);
     });
   });
 

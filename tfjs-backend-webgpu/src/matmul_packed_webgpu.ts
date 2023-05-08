@@ -16,8 +16,9 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
+import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
@@ -119,24 +120,25 @@ const calculateResultSnippet =
                                      `let ACached3 = mm_Asub[k * ${
                                          innerElementSize} + 3][localRow];`}
         for (var i = 0; i < ${rowPerThread}; i++) {
-          acc[i] = BCached0 * ACached0[i] + acc[i];
-          acc[i] = BCached1 * ACached1[i] + acc[i];
-          acc[i] = BCached2 * ACached2[i] + acc[i];
+          acc[i] = fma(BCached0, vec4<f32>(ACached0[i]), acc[i]);
+          acc[i] = fma(BCached1, vec4<f32>(ACached1[i]), acc[i]);
+          acc[i] = fma(BCached2, vec4<f32>(ACached2[i]), acc[i]);
           ${
             innerElementSize === 3 ?
                 '' :
-                'acc[i] = BCached3 * ACached3[i] + acc[i];'}
+                'acc[i] = fma(BCached3, vec4<f32>(ACached3[i]), acc[i]);'}
         }`;
       } else {
         return `
         for (var i = 0; i < ${rowPerThread}; i++) {
           let ACached = mm_Asub[tileRow + i][k];
-          acc[i] = BCached0 * ACached.x + acc[i];
-          acc[i] = BCached1 * ACached.y + acc[i];
-          acc[i] = BCached2 * ACached.z + acc[i];
+          acc[i] = fma(BCached0, vec4<f32>(ACached.x), acc[i]);
+          acc[i] = fma(BCached1, vec4<f32>(ACached.y), acc[i]);
+          acc[i] = fma(BCached2, vec4<f32>(ACached.z), acc[i]);
           ${
-            innerElementSize === 3 ? '' :
-                                     'acc[i] = BCached3 * ACached.w + acc[i];'}
+            innerElementSize === 3 ?
+                '' :
+                'acc[i] = fma(BCached3, vec4<f32>(ACached.w), acc[i]);'}
         }`;
       }
     };
@@ -322,8 +324,8 @@ export function makeMatMulPackedSource(
               `mm_Asub[k][localRow + innerRow * ${workgroupSize[1]}];` :
               `mm_Asub[localRow + innerRow * ${workgroupSize[1]}][k];`}
             for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
-              acc[innerRow][innerCol] = acc[innerRow][innerCol] +
-                  ACached * BCached[innerCol];
+              acc[innerRow][innerCol] =
+                  fma(ACached, BCached[innerCol], acc[innerRow][innerCol]);
             }
           }
         }
@@ -382,7 +384,8 @@ export function makeMatMulPackedSource(
       for (var innerRow = 0; innerRow < ${rowPerThread}; innerRow++) {
         ${readDataFromSubASnippet(transposeA)}
         for (var innerCol = 0; innerCol < ${colPerThread}; innerCol++) {
-          acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+          acc[innerRow][innerCol] =
+              fma(ACached, BCached[innerCol], acc[innerRow][innerCol]);
         }
       }
     }
@@ -509,6 +512,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   tileInner: number;
   isVectorA: boolean;
   isVec4: boolean;
+  outputComponent: number;
   private sequentialAccessByThreads: boolean;
 
   constructor(
@@ -523,6 +527,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.isVec4 = ((dimInner % 4 === 0 && !transposeA) ||
                    (outputShape[1] % 4 === 0 && transposeA)) &&
         outputShape[2] % 4 === 0 && !transposeB;
+    this.outputComponent = this.isVec4 ? 4 : 1;
     this.isVectorA = outputShape[1] === 1 && !transposeA;
 
     if (!this.isVec4 && this.isVectorA) {

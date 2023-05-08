@@ -1,8 +1,23 @@
+/* Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ===========================================================================*/
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
 #include <cstddef>
+#include "tfjs-backend-wasm/src/cc/shape.h"
 
 namespace tfjs::wasm {
 
@@ -12,7 +27,7 @@ inline int AddUntilNonNegative(int v, int d) {
   if (v >= 0) {
     return v;
   }
-  return (v % d + v) % d;
+  return (v % d + d) % d;
 }
 
 }  // namespace
@@ -42,20 +57,23 @@ struct NDHWCPool3DInfo {
   int pad_top;
   int pad_left;
 
+  inline Shape<int, 5> in_shape() const {
+    return Shape<int, 5>(
+        {batch_size, in_depth, in_height, in_width, channel_size});
+  }
+  inline Shape<int, 5> out_shape() const {
+    return Shape<int, 5>(
+        {batch_size, out_depth, out_height, out_width, channel_size});
+  }
+
   inline int in_offset(int b, int d, int h, int w, int c) const {
-    return c +
-           (w + (h + (d + b * in_depth) * in_height) * in_width) * channel_size;
+    return in_shape().offset({b, d, h, w, c});
   }
   inline int out_offset(int b, int d, int h, int w, int c) const {
-    return c + (w + (h + (d + b * out_depth) * out_height) * out_width) *
-                   channel_size;
+    return out_shape().offset({b, d, h, w, c});
   }
-  inline int in_size() const {
-    return batch_size * in_depth * in_height * in_width * channel_size;
-  }
-  inline int out_size() const {
-    return batch_size * out_depth * out_height * out_width * channel_size;
-  }
+  inline int int_size() const { return in_shape().size(); }
+  inline int out_size() const { return out_shape().size(); }
 };
 template <typename IN, typename OUT, typename FI, typename FAP, typename FAG>
 inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
@@ -110,20 +128,22 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
 
 template <typename DY, typename DX, typename FM>
 inline void NDHWCPool3DGradImpl(const DY* dy_buf, DX* dx_buf,
-                                const NDHWCPool3DInfo& info,
+                                const NDHWCPool3DInfo& forward_info,
                                 const FM& pixel_mask) {
+  auto info = forward_info;
+  info.pad_front = info.effective_filter_depth - 1 - info.pad_front;
+  info.pad_top = info.effective_filter_height - 1 - info.pad_top;
+  info.pad_left = info.effective_filter_width - 1 - info.pad_left;
+
   for (int batch = 0; batch < info.batch_size; ++batch) {
     for (int channel = 0; channel < info.channel_size; ++channel) {
       for (int dx_depth = 0; dx_depth < info.in_depth; ++dx_depth) {
         for (int dx_row = 0; dx_row < info.in_height; ++dx_row) {
           for (int dx_col = 0; dx_col < info.in_width; ++dx_col) {
             // Sharder code begins
-            int dy_depth_corner =
-                dx_depth - (info.effective_filter_depth - 1 - info.pad_front);
-            int dy_row_corner =
-                dx_row - (info.effective_filter_height - 1 - info.pad_top);
-            int dy_col_corner =
-                dx_col - (info.effective_filter_width - 1 - info.pad_left);
+            int dy_depth_corner = dx_depth - info.pad_front;
+            int dy_row_corner = dx_row - info.pad_top;
+            int dy_col_corner = dx_col - info.pad_left;
 
             int dx_offset =
                 info.in_offset(batch, dx_depth, dx_row, dx_col, channel);

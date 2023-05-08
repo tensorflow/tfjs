@@ -15,8 +15,12 @@
  * =============================================================================
  */
 
-import {DataType, NamedAttrMap, TypedArray} from '@tensorflow/tfjs-core';
+import {DataTypeFor, DataTypeMap, NamedAttrMap} from '@tensorflow/tfjs-core';
 
-export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
-export type SimpleUnaryImpl =
-    (values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray;
+export type SimpleUnaryOperation<I extends number | string = number,
+    O extends number | string = number> = (x: I, attrs?: NamedAttrMap) => O;
+
+export type SimpleUnaryImpl<I extends number | string = number | string,
+  O extends number | string = number | string> =
+  (values: ArrayLike<I>, dtype: DataTypeFor<O>,
+   attrs?: NamedAttrMap) => DataTypeMap[DataTypeFor<O>];

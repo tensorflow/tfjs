@@ -67,8 +67,8 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
-|Not mapped|isFinite|
-|Not mapped|isInf|
+|IsFinite|isFinite|
+|IsInf|isInf|
 |IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
@@ -201,6 +201,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BitwiseAnd|bitwiseAnd|
 |Equal|equal|
 |Greater|greater|
 |GreaterEqual|greaterEqual|
@@ -248,6 +249,7 @@
 |Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
+|MatrixBandPart|MatrixBandPart|
 |Not mapped|dot|
 |Not mapped|norm|
 |Not mapped|outerProduct|
@@ -372,6 +374,7 @@
 |Pad|pad|
 |PadV2|PadV2|
 |Reshape|reshape|
+|EnsureShape|ensureShape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
 |Not mapped|setdiff1dAsync|

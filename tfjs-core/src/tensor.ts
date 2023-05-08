@@ -19,8 +19,8 @@
 /// <reference types="@webgpu/types/dist" />
 
 import {getGlobal} from './global_util';
-import {TensorInfo, DataId} from './tensor_info';
 import {tensorToString} from './tensor_format';
+import {DataId, TensorInfo} from './tensor_info';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
@@ -171,7 +171,6 @@ export interface GPUData {
   texture?: WebGLTexture;
   buffer?: GPUBuffer;
   texShape?: [number, number];
-  bufSize?: number;
 }
 
 export interface TensorTracker {
@@ -385,12 +384,10 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
    *        texShape: [number, number] // [height, width]
    *     }
    *
-   *     For WebGPU backend, a GPUData contains the new buffer and
-   *     its information.
+   *     For WebGPU backend, a GPUData contains the new buffer.
    *     {
    *        tensorRef: The tensor that is associated with this buffer,
    *        buffer: GPUBuffer,
-   *        bufSize: number
    *     }
    *
    *     Remember to dispose the GPUData after it is used by

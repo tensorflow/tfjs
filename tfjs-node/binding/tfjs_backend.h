@@ -85,6 +85,9 @@ class TFJSBackend {
   // Get number of loaded SavedModel in the backend:
   napi_value GetNumOfSavedModels(napi_env env);
 
+  // Get number of tensor handles in the backend:
+  napi_value GetNumOfTensors(napi_env env);
+
  private:
   TFJSBackend(napi_env env);
 

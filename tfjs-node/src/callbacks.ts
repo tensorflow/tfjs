@@ -21,10 +21,11 @@ import * as ProgressBar from 'progress';
 
 import {summaryFileWriter, SummaryFileWriter} from './tensorboard';
 
+type LogFunction = (message: string) => void;
 // A helper class created for testing with the jasmine `spyOn` method, which
 // operates only on member methods of objects.
 // tslint:disable-next-line:no-any
-export const progressBarHelper: {ProgressBar: any, log: Function} = {
+export const progressBarHelper: {ProgressBar: any, log: LogFunction} = {
   ProgressBar,
   log: console.log
 };

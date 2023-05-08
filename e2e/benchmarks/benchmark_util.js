@@ -109,8 +109,8 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         generatedRaw.dispose();
       } else {
         throw new Error(
-          `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
-          `at model.inputs[${inputDefIndex}] is not supported.`);
+            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+            `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
@@ -162,8 +162,8 @@ function getPredictFnForModel(model, input) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-      'Predict function was not found. Please provide a tf.GraphModel or ' +
-      'tf.LayersModel');
+        'Predict function was not found. Please provide a tf.GraphModel or ' +
+        'tf.LayersModel');
   }
   return predict;
 }
@@ -241,16 +241,22 @@ async function timeModelInference(model, input, numRuns = 1) {
 async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-      'The first parameter should be a function, while ' +
-      `a(n) ${typeof predict} is found.`);
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
   }
 
   const times = [];
   for (let i = 0; i < numRuns; i++) {
     const start = performance.now();
     const res = await predict();
-    // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
-    const value = await downloadValuesFromTensorContainer(res);
+    // Prediction from tflite backend generates in the worker thread,
+    // we don't post the result back to main thread to avoid unnecessary
+    // overhead in transferring between worker and main thread.
+    if (!isTflite()) {
+      // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]:
+      // tf.Tensor}.
+      const value = await downloadValuesFromTensorContainer(res);
+    }
     const elapsedTime = performance.now() - start;
 
     tf.dispose(res);
@@ -259,8 +265,8 @@ async function timeInference(predict, numRuns = 1) {
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
   const averageTimeExclFirst = times.length > 1 ?
-    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
-    'NA';
+      times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+      'NA';
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
   const timeInfo = {
@@ -356,14 +362,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
- * @param isTflite Whether a TFLite model is being profiled or not.
  * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(
-  model, input, isTflite = false, numProfiles = 1) {
-  const predict = isTflite ? () => tfliteModel.predict(input) :
-    getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite, numProfiles);
+async function profileModelInference(model, input, numProfiles = 1) {
+  const predict = getPredictFnForModel(model, input);
+  return profileInference(predict, false, numProfiles);
 }
 
 /**
@@ -400,8 +403,8 @@ async function profileModelInference(
 async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-      'The first parameter should be a function, while ' +
-      `a(n) ${typeof predict} is found.`);
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
   }
 
   let kernelInfo = {};
@@ -409,7 +412,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (isTflite) {
     for (let i = 0; i < numProfiles; i++) {
       await predict();
-      const profileItems = tfliteModel.getProfilingResults();
+      const profileItems = await tfliteModel.getProfilingResults();
       kernelInfo.kernels = profileItems.map(item => {
         return {
           name: item.nodeType,
@@ -439,7 +442,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
     kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
-    kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -459,13 +462,13 @@ function aggregateKernelTime(kernels) {
       aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
     } else {
       aggregatedKernelTime[kernel.name] =
-        oldAggregatedKernelTime + kernel.kernelTimeMs;
+          oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-    .map(([name, timeMs]) => ({ name, timeMs }))
-    .sort((a, b) => b.timeMs - a.timeMs);
+      .map(([name, timeMs]) => ({name, timeMs}))
+      .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -500,8 +503,9 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
 /**
  * Set environment flags for testing.
  *
- * This is a wrapper function of `tf.env().setFlags()` to constrain users to
- * only set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`).
+ * This will first set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`). Then
+ * set URL parameter flags. If there are overlap, URL parameter flags will
+ * override tunable flags.
  *
  * ```js
  * const flagConfig = {
@@ -520,7 +524,7 @@ async function setEnvFlags(flagConfig) {
     return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
-      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
   }
 
   // Check the validation of flags and values.
@@ -531,12 +535,14 @@ async function setEnvFlags(flagConfig) {
     }
     if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
       throw new Error(
-        `${flag} value is expected to be in the range [${TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-        ' is found.');
+          `${flag} value is expected to be in the range [${
+              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+          ' is found.');
     }
   }
 
   tf.env().setFlags(flagConfig);
+  setEnvFlagsFromUrlParameters();
 
   // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
   // initializing backends, not only inferring.
@@ -548,6 +554,40 @@ async function setEnvFlags(flagConfig) {
 
   if ('WEBGL_VERSION' in flagConfig) {
     return await resetBackend('webgl');
+  }
+}
+
+/**
+ * Set flags from URL. URL should be in the format:
+ * ?tfjsflags=FLAG1:1,FLAG2:true.
+ */
+function setEnvFlagsFromUrlParameters() {
+  const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
+  const urlParams = tf.env().getQueryParams(location.search);
+  if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
+    const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
+    keyValues.forEach(keyValue => {
+      const [key, value] = keyValue.split(':');
+      try {
+        tf.env().set(key, parseValue(value));
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+}
+
+/**
+ * Converted a URL parameter to a typed value, such a boolean, number, string.
+ */
+function parseValue(value) {
+  const lowerCaseValue = value.toLowerCase();
+  if (lowerCaseValue === 'true' || lowerCaseValue === 'false') {
+    return lowerCaseValue === 'true';
+  } else if (`${+ lowerCaseValue}` === lowerCaseValue) {
+    return +lowerCaseValue;
+  } else {
+    return value;
   }
 }
 
