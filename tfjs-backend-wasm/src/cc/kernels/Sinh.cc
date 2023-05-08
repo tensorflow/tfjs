@@ -28,7 +28,7 @@ namespace {
 
 template <typename T>
 inline T SinhImpl(T x) {
-  return static_cast<T>(std::sinhf(static_cast<float>(x) + 1.0));
+  return static_cast<T>(std::sinhf(static_cast<float>(x)));
 }
 
 }  // namespace
