@@ -17,4 +17,5 @@
 import {KernelConfig, Sinh} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
+
 export const sinhConfig: KernelConfig = createUnaryKernelConfig(Sinh);

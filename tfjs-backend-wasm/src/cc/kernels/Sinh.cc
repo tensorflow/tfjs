@@ -18,19 +18,41 @@
 
 #include <math.h>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
+
+namespace {
+
+template <typename T>
+inline T SinhImpl(T x) {
+  return static_cast<T>(std::sinhf(static_cast<float>(x) + 1.0));
+}
+
+}  // namespace
+
 // We use C-style API to interface with Javascript.
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sinh(const int x_id, const int out_id) { unary(x_id, out_id, sinh); }
+
+void Sinh(const int x_id, const DType dtype, const int out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_f32(x_id, out_id, SinhImpl<float>);
+      break;
+    case DType::int32:
+      unary_i32(x_id, out_id, SinhImpl<int32_t>);
+      break;
+    default:
+      util::warn("Sinh for tensor id %d failed. Unsupported dtype %d", x_id,
+                 dtype);
+  }
+}
 
 }  // extern "C"
 }  // namespace wasm
