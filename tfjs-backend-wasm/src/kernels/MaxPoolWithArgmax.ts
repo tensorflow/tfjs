@@ -72,7 +72,6 @@ export function maxPoolWithArgmax(args: {
       () => 'Error in maxPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
 
-
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides, [1, 1],
       pad);
