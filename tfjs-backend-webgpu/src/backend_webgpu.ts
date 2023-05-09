@@ -909,7 +909,8 @@ export class WebGPUBackend extends KernelBackend {
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
-    if (!program.isFromPixels) {
+    const uniformsType = 'int32';
+    if (program.pixelsOpType == null) {
       programUniform.push(
           {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
@@ -919,14 +920,16 @@ export class WebGPUBackend extends KernelBackend {
         const strides = util.computeStrides(d);
         programUniform.push({type: uniformsType, data: strides});
       });
-      if (program.size) {
-        const size = util.sizeFromShape(program.outputShape);
-        programUniform.push({
-          type: uniformsType,
-          data:
-              [program.outputComponent ? size / program.outputComponent : size]
-        });
-      }
+    } else {
+      const strides = util.computeStrides(output.shape);
+      programUniform.push({type: uniformsType, data: strides});
+    }
+    if (program.size) {
+      const size = util.sizeFromShape(program.outputShape);
+      programUniform.push({
+        type: uniformsType,
+        data: [program.outputComponent ? size / program.outputComponent : size]
+      });
     }
 
     if (programDefinedUniform) {
@@ -986,7 +989,8 @@ export class WebGPUBackend extends KernelBackend {
 
     if (shouldTimeProgram ||
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-            number <= this.dispatchCountInPass) {
+            number <= this.dispatchCountInPass ||
+        program.pixelsOpType === webgpu_program.PixelsOpType.TO_PIXELS) {
       this.endComputePassEncoder();
       if (shouldTimeProgram) {
         this.activeTimers.push(
