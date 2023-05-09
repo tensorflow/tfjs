@@ -404,6 +404,7 @@ tfjs_cc_library(
         ":MaxPool",
         ":MaxPool3D",
         ":MaxPool3DGrad",
+        ":MaxPoolWithArgmax",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -1213,6 +1214,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPoolWithArgmax",
+    srcs = ["kernels/MaxPoolWithArgmax.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+        ":util",
     ],
 )
 

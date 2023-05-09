@@ -83,9 +83,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
-      'ignores NaNs',      // Actual != expected.
-      'maxPoolWithArgmax'  // Not yet implemented.
+      'maxPoolBackprop',  // Not yet implemented.
+      'ignores NaNs',     // Actual != expected.
     ]
   },
   {include: 'cropAndResize'},
