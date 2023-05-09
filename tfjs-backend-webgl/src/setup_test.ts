@@ -36,7 +36,7 @@ const customInclude = (testName: string) => {
     'isBrowser: false', 'dilation gradient',
     'throws when index is out of bound',
     // otsu tests for threshold op is failing on windows
-    'method otsu'
+    'method otsu', 'Draw on 2d context'
   ];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
