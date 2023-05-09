@@ -62,8 +62,8 @@ source "$e2e_root_path"/scripts/local-registry.sh
 # automatically start and stop the registry while it publishes.
 cd "$e2e_root_path"/../
 yarn publish-npm --release-this-branch --dry 'tfjs-core' 'tfjs-backend-cpu' \
-  'tfjs-backend-webgl' 'tfjs-backend-wasm' 'tfjs-layers' 'tfjs-converter' \
-  'tfjs-data' 'tfjs' 'tfjs-node' 'tfjs-node-gpu'
+  'tfjs-backend-webgl' 'tfjs-backend-webgpu' 'tfjs-backend-wasm' 'tfjs-layers' \
+  'tfjs-converter' 'tfjs-data' 'tfjs' 'tfjs-node' 'tfjs-node-gpu'
 cd "$e2e_root_path"
 
 # ****************************************************************************
