@@ -19,6 +19,11 @@ import {backend_util, DataType, DataTypeMap, env, Rank, TensorInfo, util} from '
 
 import {symbolicallyComputeStrides} from './shader_util';
 
+export enum PixelsOpType {
+  FROM_PIXELS,
+  TO_PIXELS
+}
+
 export interface WebGPUProgram {
   // Whether to use atomic built-in functions.
   atomic?: boolean;
@@ -27,10 +32,10 @@ export interface WebGPUProgram {
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  isFromPixels?: boolean;
   // By default, the output data component is 1.
   outputComponent?: number;
   outputShape: number[];
+  pixelsOpType?: PixelsOpType;
   // The unique key to distinguish different shader source code.
   shaderKey: string;
   // Whether to use output size for bounds checking.
@@ -219,16 +224,23 @@ function makeShader(
       }
     `);
 
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
+    const inoutSnippet = program.pixelsOpType === PixelsOpType.FROM_PIXELS ?
+        `@group(0) @binding(0) var<storage, read_write> result: array<${
+            dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;` :
+        `@group(0) @binding(1) var<storage, read> inBuf : array<${
+            dataTypeToGPUType(inputInfo[0].dtype, program.outputComponent)}>;`;
+    const outShapeStridesType =
+        outputData.shape.length === 3 ? 'vec2<i32>' : 'i32';
     prefixSnippets.push(`
         struct Uniform {
+          outShapeStrides : ${outShapeStridesType},
           size            : i32,
           numChannels     : i32,
-          outShapeStrides : vec2<i32>,
+          alpha           : f32,
         };
 
-        @group(0) @binding(0) var<storage, read_write> result: array<${
-        dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
+        ${inoutSnippet}
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
@@ -339,7 +351,7 @@ export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, inputsData: InputInfo[],
     output: TensorInfo): string {
   let key = program.shaderKey;
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
     return key;
   }
 

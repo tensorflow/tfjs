@@ -22,6 +22,7 @@ import {backend_util, BackendValues, buffer, DataStorage, DataType, engine, env,
 import {AdapterInfo} from './adapter_info';
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
+import * as webgpu_graphics_program from './webgpu_graphics_program';
 import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
 
@@ -118,6 +119,7 @@ export class WebGPUBackend extends KernelBackend {
   private static nextDataId = 0;
   private pipelineCache:
       {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
+  private graphicsPipelineCache: {[key: string]: GPURenderPipeline};
   private programTimersStack: TimerNode[];
   private queryResolveBuffer: GPUBuffer = null;
   private querySet: GPUQuerySet = null;
@@ -139,6 +141,7 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error('WebGPU is not supported on this device');
     }
     this.pipelineCache = {};
+    this.graphicsPipelineCache = {};
     this.device = device;
     this.queue = device.queue;
     this.commandEncoder = null;
@@ -712,6 +715,16 @@ export class WebGPUBackend extends KernelBackend {
     return {dataId, shape, dtype};
   }
 
+  makeTensorInfoWithTexture(
+      size: number[], format: GPUTextureFormat, dtype: DataType,
+      usage: number) {
+    const output = this.makeTensorInfo(size, dtype);
+    const info = this.tensorMap.get(output.dataId);
+    info.resource =
+        this.textureManager.acquireTexture(size[1], size[0], format, usage);
+    return output;
+  }
+
   private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
@@ -847,6 +860,46 @@ export class WebGPUBackend extends KernelBackend {
     return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
 
+  public runWebGPUGraphicsProgram(
+      program: webgpu_graphics_program.WebGPUGraphicsProgram,
+      gpuContext: GPUCanvasContext, inputTensorInfo: TensorInfo) {
+    this.endComputePassEncoder();
+    if (!(program.shaderKey in this.graphicsPipelineCache)) {
+      this.graphicsPipelineCache[program.shaderKey] =
+          webgpu_graphics_program.compileGraphicsProgram(this.device, program);
+    }
+    const graphicsPipeline = this.graphicsPipelineCache[program.shaderKey];
+    const inputTexture = this.tensorMap.get(inputTensorInfo.dataId).resource;
+
+    const bindGroup = this.device.createBindGroup({
+      layout: graphicsPipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: (inputTexture as GPUTexture).createView(),
+        },
+      ],
+    });
+
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [
+        {
+          view: gpuContext.getCurrentTexture().createView(),
+          loadOp: 'load',
+          storeOp: 'store',
+        },
+      ],
+    };
+
+    const pass = this.commandEncoder.beginRenderPass(renderPassDescriptor);
+    pass.setPipeline(graphicsPipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.draw(6);
+    pass.end();
+    this.submitQueue();
+    // TODO: Support timestamp here.
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, programDefinedUniform?: ProgramUniform,
@@ -909,7 +962,8 @@ export class WebGPUBackend extends KernelBackend {
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
-    if (!program.isFromPixels) {
+    const uniformsType = 'int32';
+    if (program.pixelsOpType == null) {
       programUniform.push(
           {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
@@ -919,14 +973,16 @@ export class WebGPUBackend extends KernelBackend {
         const strides = util.computeStrides(d);
         programUniform.push({type: uniformsType, data: strides});
       });
-      if (program.size) {
-        const size = util.sizeFromShape(program.outputShape);
-        programUniform.push({
-          type: uniformsType,
-          data:
-              [program.outputComponent ? size / program.outputComponent : size]
-        });
-      }
+    } else {
+      const strides = util.computeStrides(output.shape);
+      programUniform.push({type: uniformsType, data: strides});
+    }
+    if (program.size) {
+      const size = util.sizeFromShape(program.outputShape);
+      programUniform.push({
+        type: uniformsType,
+        data: [program.outputComponent ? size / program.outputComponent : size]
+      });
     }
 
     if (programDefinedUniform) {
