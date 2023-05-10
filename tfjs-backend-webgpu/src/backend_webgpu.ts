@@ -207,10 +207,6 @@ export class WebGPUBackend extends KernelBackend {
       return true;
     }
 
-    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-      return true;
-    }
-
     const tensorData = this.tensorMap.get(dataId);
     if (force) {
       tensorData.refCount = 0;
@@ -223,8 +219,8 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (tensorData.complexTensorInfos != null) {
-      this.disposeData(tensorData.complexTensorInfos.real.dataId, force);
-      this.disposeData(tensorData.complexTensorInfos.imag.dataId, force);
+      this.disposeData(tensorData.complexTensorInfos.real.dataId);
+      this.disposeData(tensorData.complexTensorInfos.imag.dataId);
     }
 
     if (this.commandQueueOwnedIds.has(dataId)) {
