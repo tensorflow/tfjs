@@ -12,6 +12,7 @@ KERNELS_WITH_KEEPALIVE = glob(
 
 BASE_LINKOPTS = [
     "-s ALLOW_MEMORY_GROWTH=1",
+    "-s MAXIMUM_MEMORY=4GB",
     "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
     "-s DISABLE_EXCEPTION_CATCHING=1",
     "-s FILESYSTEM=0",
@@ -358,6 +359,7 @@ tfjs_cc_library(
         ":AvgPool3DGrad",
         ":BatchMatMul",
         ":Bincount",
+        ":BitwiseAnd",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
@@ -434,6 +436,7 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sign",
         ":Sin",
+        ":Sinh",
         ":Softmax",
         ":Softplus",
         ":SparseFillEmptyRows",
@@ -643,6 +646,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":bincount_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "BitwiseAnd",
+    srcs = ["kernels/BitwiseAnd.cc"],
+    deps = [
+        ":backend",
+        ":binary",
         ":util",
     ],
 )
@@ -1509,6 +1522,15 @@ tfjs_cc_library(
         ":backend",
         ":sin_cos_workaround",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sinh",
+    srcs = ["kernels/Sinh.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 

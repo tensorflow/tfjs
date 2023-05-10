@@ -291,12 +291,6 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'logicalOr '},
   {startsWith: 'logicalXor '},
   {
-    startsWith: 'bitwiseAnd',
-    excludes: [
-      'bitwiseAnd',
-    ]
-  },
-  {
     startsWith: 'tile ',
     excludes: [
       'gradient',      // Gradient not yet implemented.
@@ -304,6 +298,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {startsWith: 'sin '},
+  {startsWith: 'sinh '},
   {
     startsWith: 'cos ',
     excludes: [
@@ -396,6 +391,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'asinh '},
   {include: 'diag '},
   {include: 'denseBincount '},
+  {include: 'bitwiseAnd'},
   {include: 'broadcastArgs '},
   {include: 'searchSorted '},
   {include: 'avgPool3d '},
