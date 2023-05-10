@@ -190,6 +190,19 @@ export function getWorkgroupSizeString(program: WebGPUProgram): string {
 `;
 }
 
+function getMiscAndProgramUniforms(
+    program: WebGPUProgram, outputStridesDataType: string) {
+  let uniformDeclaration = `outShapeStrides: ${outputStridesDataType}, `;
+  if (program.size) {
+    uniformDeclaration += 'size : i32, ';
+  }
+
+  if (program.uniforms) {
+    uniformDeclaration += program.uniforms;
+  }
+  return uniformDeclaration;
+}
+
 function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: WebGPUProgram): string {
@@ -219,12 +232,12 @@ function makeShader(
       }
     `);
 
+  const outputStridesDataType = getCoordsDataType(outputData.shape.length - 1);
+
   if (program.isFromPixels) {
     prefixSnippets.push(`
         struct Uniform {
-          size            : i32,
-          numChannels     : i32,
-          outShapeStrides : vec2<i32>,
+          ${getMiscAndProgramUniforms(program, outputStridesDataType)}
         };
 
         @group(0) @binding(0) var<storage, read_write> result: array<${
@@ -256,18 +269,10 @@ function makeShader(
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
   uniformDeclaration += `outShape : ${outputDataType}, `;
-  stridesLength = outputData.shape.length - 1;
-  stridesDataType = getCoordsDataType(stridesLength);
-  uniformDeclaration += `
-         outShapeStrides: ${stridesDataType}, `;
 
-  if (program.size) {
-    uniformDeclaration += 'size : i32, ';
-  }
+  uniformDeclaration +=
+      getMiscAndProgramUniforms(program, outputStridesDataType);
 
-  if (program.uniforms) {
-    uniformDeclaration += program.uniforms;
-  }
   uniformDeclaration += '};';
   uniformDeclaration = insertAlignment(uniformDeclaration);
 
