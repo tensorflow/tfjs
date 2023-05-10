@@ -178,35 +178,36 @@ export class WebGPUBackend extends KernelBackend {
 
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
-   * is released or memory is not managed in this backend, false if memory is
-   * not cleared.
+   * is released or delayed in this backend, false if there are still
+   * references.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
   override disposeData(dataId: DataId, force = false): boolean {
-    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
-      return false;
-    }
+    // No-op if already disposed.
     if (!this.tensorMap.has(dataId)) {
       return true;
     }
 
     const tensorData = this.tensorMap.get(dataId);
-    this.decRef(dataId);
-    if (!force && tensorData.refCount > 0) {
+    if (force) {
+      tensorData.refCount = 0;
+    } else {
+      tensorData.refCount--;
+    }
+
+    if (tensorData.refCount > 0) {
       return false;
     }
 
-    // complex is never in commandQueueOwnedIds
+    if (tensorData.complexTensorInfos != null) {
+      this.disposeData(tensorData.complexTensorInfos.real.dataId);
+      this.disposeData(tensorData.complexTensorInfos.imag.dataId);
+    }
+
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.tensorDataPendingDisposal.push(dataId);
-      return false;
-    }
-
-    const {complexTensorInfos} = this.tensorMap.get(dataId);
-    if (complexTensorInfos != null) {
-      this.disposeData(complexTensorInfos.real.dataId, force);
-      this.disposeData(complexTensorInfos.imag.dataId, force);
+      return true;
     }
 
     this.releaseResource(dataId);
@@ -223,7 +224,7 @@ export class WebGPUBackend extends KernelBackend {
     } as WebGPUMemoryInfo;
   }
 
-  releaseResource(dataId: DataId) {
+  private releaseResource(dataId: DataId) {
     const tensorData = this.tensorMap.get(dataId);
     if (!tensorData || !tensorData.resource) {
       return;
@@ -300,6 +301,7 @@ export class WebGPUBackend extends KernelBackend {
       this.releaseResource(d);
       this.tensorMap.delete(d);
     });
+
     this.uniformPendingDisposal.forEach(
         b => this.bufferManager.releaseBuffer(b));
     this.stagingPendingDisposal.forEach(
@@ -382,7 +384,6 @@ export class WebGPUBackend extends KernelBackend {
   private convertAndCacheOnCPU(dataId: DataId, data: BackendValues):
       BackendValues {
     const tensorData = this.tensorMap.get(dataId);
-    this.releaseResource(dataId);
     tensorData.values = data;
     return tensorData.values;
   }

@@ -298,6 +298,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {startsWith: 'sin '},
+  {startsWith: 'sinh '},
   {
     startsWith: 'cos ',
     excludes: [
