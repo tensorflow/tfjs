@@ -41,7 +41,7 @@ tfjs_web_test(
     ],
     headless = False,
     presubmit_browsers = [
-        "bs_safari_mac",
+        "bs_chrome_mac",
     ],
 )
 
