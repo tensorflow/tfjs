@@ -299,6 +299,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'erf'},
   {startsWith: 'sin '},
+  {startsWith: 'sinh '},
   {
     startsWith: 'cos ',
     excludes: [

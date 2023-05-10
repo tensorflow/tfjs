@@ -141,6 +141,7 @@ import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
@@ -296,6 +297,7 @@ const kernelConfigs: KernelConfig[] = [
   sigmoidConfig,
   signConfig,
   sinConfig,
+  sinhConfig,
   sliceConfig,
   softmaxConfig,
   softplusConfig,
