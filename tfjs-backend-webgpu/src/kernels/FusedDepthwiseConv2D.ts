@@ -71,6 +71,7 @@ export function fusedDepthwiseConv2D(args: {
       convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2DVec4Program(
         convInfo, hasBias, activation, hasPreluActivationWeights);
+    dimensions.push({type: 'int32', data: [program.virtualWidth]});
   } else {
     program = new DepthwiseConv2DProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
