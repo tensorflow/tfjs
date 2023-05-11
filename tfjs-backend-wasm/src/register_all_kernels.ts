@@ -37,6 +37,7 @@ import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
@@ -102,6 +103,7 @@ import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
@@ -192,6 +194,7 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanhConfig,
   avgPoolConfig,
+  avgPoolGradConfig,
   avgPool3DConfig,
   avgPool3DGradConfig,
   batchMatMulConfig,
@@ -259,6 +262,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolConfig,
   maxPool3DConfig,
   maxPool3DGradConfig,
+  maxPoolGradConfig,
   meanConfig,
   minConfig,
   minimumConfig,

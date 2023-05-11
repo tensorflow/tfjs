@@ -357,6 +357,7 @@ tfjs_cc_library(
         ":AvgPool",
         ":AvgPool3D",
         ":AvgPool3DGrad",
+        ":AvgPoolGrad",
         ":BatchMatMul",
         ":Bincount",
         ":BitwiseAnd",
@@ -405,6 +406,7 @@ tfjs_cc_library(
         ":MaxPool",
         ":MaxPool3D",
         ":MaxPool3DGrad",
+        ":MaxPoolGrad",
         ":Maximum",
         ":Min",
         ":Minimum",
@@ -601,6 +603,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "AvgPoolGrad",
+    srcs = ["kernels/AvgPoolGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
@@ -1198,6 +1209,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MaxPoolGrad",
+    srcs = ["kernels/MaxPoolGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
     ],
 )
 
