@@ -19,12 +19,13 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as inquirer from 'inquirer';
-import { Separator } from 'inquirer';
+import {Separator} from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
 import rimraf from 'rimraf';
 import * as path from 'path';
+import {ChildProcess, fork} from 'child_process';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -620,28 +621,46 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
   }
 }
 
-export function runVerdaccio() {
+export async function runVerdaccio(): Promise<ChildProcess> {
   // Remove the verdaccio package store.
   // TODO(mattsoulanille): Move the verdaccio storage and config file here
   // once the nightly verdaccio tests are handled by this script.
   rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
-  // Start verdaccio.
-  const serverProcess = shell.exec(
-      'yarn verdaccio --config=e2e/scripts/verdaccio.yaml',
-      {
-        async: true,
-        silent: true,
-        cwd: path.join(__dirname, '../'),
-      },
-      (code, stdout, stderr) => {
-        if (code !== 0) {
-          console.log(`Verdaccio stopped with exit code ${code}`);
-          console.log(stdout);
-          console.log(stderr);
-        }
+
+  // Start verdaccio. It must be started directly from its binary so that IPC
+  // messaging works and verdaccio can tell node that it has started.
+  // https://verdaccio.org/docs/verdaccio-programmatically/#using-fork-from-child_process-module
+  const verdaccioBin = require.resolve('verdaccio/bin/verdaccio');
+  const serverProcess = fork(verdaccioBin, ['--config=e2e/scripts/verdaccio.yaml']);
+  const ready = new Promise<void>((resolve, reject) => {
+    const timeLimitMilliseconds = 30_000;
+    console.log(`Waiting ${timeLimitMilliseconds / 1000} seconds for ` +
+                'verdaccio to start....');
+    const timeout = setTimeout(() => {
+      serverProcess.kill();
+      reject(`Verdaccio did not start in ${timeLimitMilliseconds} seconds.`);
+    }, timeLimitMilliseconds);
+
+    serverProcess.on('message', (msg: {verdaccio_started: boolean}) => {
+      if (msg.verdaccio_started) {
+        console.log('Verdaccio Started.');
+        clearTimeout(timeout);
+        resolve();
       }
-  );
+    });
+  });
+
+  serverProcess.on('error', (err: unknown) => {
+    throw new Error(`Verdaccio error: ${err}`);
+  });
+  serverProcess.on('disconnect', (err: unknown) => {
+    throw new Error(`Verdaccio disconnected: ${err}`);
+  });
+
+  // Kill verdaccio when node exits.
   process.on('exit', () => {serverProcess.kill();});
+
+  await ready;
   return serverProcess;
 }
 
