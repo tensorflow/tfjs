@@ -297,7 +297,9 @@ const TEST_FILTERS: TestFilter[] = [
       'string tensor'  // String tensors not yet implemented.
     ]
   },
+  {startsWith: 'erf'},
   {startsWith: 'sin '},
+  {startsWith: 'sinh '},
   {
     startsWith: 'cos ',
     excludes: [

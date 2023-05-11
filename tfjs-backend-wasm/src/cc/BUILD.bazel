@@ -380,6 +380,7 @@ tfjs_cc_library(
         ":Dilation2DBackpropInput",
         ":Elu",
         ":Equal",
+        ":Erf",
         ":Exp",
         ":FlipLeftRight",
         ":FloorDiv",
@@ -437,6 +438,7 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sign",
         ":Sin",
+        ":Sinh",
         ":Softmax",
         ":Softplus",
         ":SparseFillEmptyRows",
@@ -909,6 +911,15 @@ tfjs_cc_library(
     srcs = ["kernels/Equal.cc"],
     deps = [
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Erf",
+    srcs = ["kernels/Erf.cc"],
+    deps = [
+        ":unary",
         ":util",
     ],
 )
@@ -1531,6 +1542,15 @@ tfjs_cc_library(
         ":backend",
         ":sin_cos_workaround",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sinh",
+    srcs = ["kernels/Sinh.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 
