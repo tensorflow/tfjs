@@ -63,12 +63,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'depthToSpace'},
-  {
-    include: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
+  {include: 'avgPool '},
   {
     include: 'relu',
     excludes: [
@@ -83,8 +78,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',  // Not yet implemented.
-      'ignores NaNs',     // Actual != expected.
+      'ignores NaNs',      // Actual != expected.
     ]
   },
   {include: 'cropAndResize'},
@@ -296,7 +290,9 @@ const TEST_FILTERS: TestFilter[] = [
       'string tensor'  // String tensors not yet implemented.
     ]
   },
+  {startsWith: 'erf'},
   {startsWith: 'sin '},
+  {startsWith: 'sinh '},
   {
     startsWith: 'cos ',
     excludes: [

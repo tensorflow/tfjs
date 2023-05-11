@@ -12,7 +12,7 @@
     "**/bazel-out/**/*": true,
     "**/bazel-genfiles/**/*": true,
     "**/bazel-testlogs/**/*": true,
-    "**/bazel-tfjs*/**/*": true,
+    "**/bazel-tfjs*/**/*": true
   },
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
