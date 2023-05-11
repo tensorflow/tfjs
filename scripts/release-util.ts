@@ -30,6 +30,8 @@ export interface Phase {
   // The list of packages that will be updated with this change.
   packages: string[];
   // The list of dependencies that all of the packages will update to.
+  // TODO(mattSoulanille): Parse this from package_dependencies.json or from the
+  // package.json file of each package.
   deps?: string[];
   // An ordered map of scripts, key is package name, value is an object with two
   // optional fields: `before-yarn` with scripts to run before `yarn`, and
@@ -146,7 +148,8 @@ export const E2E_PHASE: Phase = {
   packages: ['e2e'],
   deps: [
     'tfjs', 'tfjs-backend-cpu', 'tfjs-backend-wasm', 'tfjs-backend-webgl',
-    'tfjs-converter', 'tfjs-core', 'tfjs-data', 'tfjs-layers', 'tfjs-node'
+    'tfjs-backend-webgpu', 'tfjs-converter', 'tfjs-core', 'tfjs-data',
+    'tfjs-layers', 'tfjs-node'
   ],
 }
 
