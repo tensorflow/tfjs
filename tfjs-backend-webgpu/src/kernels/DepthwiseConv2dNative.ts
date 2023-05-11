@@ -61,6 +61,7 @@ export function depthwiseConv2dNative(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2DVec4Program(convInfo);
+    dimensions.push({type: 'int32', data: [program.virtualWidth]});
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
     dimensions.push(

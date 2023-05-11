@@ -67,6 +67,7 @@ import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -142,6 +143,7 @@ import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
@@ -223,6 +225,7 @@ const kernelConfigs: KernelConfig[] = [
   eluConfig,
   eluGradConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   expm1Config,
@@ -298,6 +301,7 @@ const kernelConfigs: KernelConfig[] = [
   sigmoidConfig,
   signConfig,
   sinConfig,
+  sinhConfig,
   sliceConfig,
   softmaxConfig,
   softplusConfig,
