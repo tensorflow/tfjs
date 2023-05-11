@@ -23,8 +23,10 @@ set -e
 TAGS="#SMOKE,#REGRESSION"
 TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
-# Test macOS with smoke/regression/golden tests.
-COMMANDS+=("yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS_WITH_GOLDEN'")
+# Test macOS with smoke/regression tests.
+# Skip golden tests because they time out on browserstack (they work locally).
+# TODO(mattSoulanille): Make golden tests work on BrowserStack Mac.
+COMMANDS+=("yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'")
 
 # Test windows 10 with smoke/regression/golden tests.
 COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS_WITH_GOLDEN'")

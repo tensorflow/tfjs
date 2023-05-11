@@ -409,6 +409,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'multinomial'},
   {include: 'unique'},
   {include: 'conv3d'},
+  {include: 'mod '},
 ];
 
 const customInclude = (testName: string) => {
