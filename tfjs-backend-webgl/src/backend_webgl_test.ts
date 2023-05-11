@@ -630,6 +630,9 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     const time = await tf.time(() => a.square()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs === 0);
+    if (typeof time.kernelMs !== 'number') {
+      throw new Error(time.kernelMs.error);
+    }
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
   });
@@ -639,6 +642,9 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     const time = await tf.time(() => a.square().dataSync()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
+    if (typeof time.kernelMs !== 'number') {
+      throw new Error(time.kernelMs.error);
+    }
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
   });
@@ -649,6 +655,9 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
         await tf.time(async () => a.square().data()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
+    if (typeof time.kernelMs !== 'number') {
+      throw new Error(time.kernelMs.error);
+    }
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
   });
@@ -661,6 +670,9 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     // The tensor was already on gpu.
     expect(time.uploadWaitMs === 0);
     expect(time.downloadWaitMs === 0);
+    if (typeof time.kernelMs !== 'number') {
+      throw new Error(time.kernelMs.error);
+    }
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
   });
