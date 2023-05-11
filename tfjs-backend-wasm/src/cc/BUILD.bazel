@@ -407,10 +407,12 @@ tfjs_cc_library(
         ":MaxPool3D",
         ":MaxPool3DGrad",
         ":MaxPoolGrad",
+        ":MaxPoolWithArgmax",
         ":Maximum",
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Mod",
         ":Multinomial",
         ":Multiply",
         ":Neg",
@@ -1248,6 +1250,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "MaxPoolWithArgmax",
+    srcs = ["kernels/MaxPoolWithArgmax.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Min",
     srcs = ["kernels/Min.cc"],
     deps = [
@@ -1271,6 +1283,15 @@ tfjs_cc_library(
     srcs = ["kernels/MirrorPad.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
+    deps = [
+        ":binary",
         ":util",
     ],
 )

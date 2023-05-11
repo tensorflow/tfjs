@@ -79,7 +79,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maxPool',
     excludes: [
       'ignores NaNs',      // Actual != expected.
-      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
@@ -409,6 +408,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'multinomial'},
   {include: 'unique'},
   {include: 'conv3d'},
+  {include: 'mod '},
 ];
 
 const customInclude = (testName: string) => {
