@@ -61,9 +61,10 @@ source "$e2e_root_path"/scripts/local-registry.sh
 # Publish the monorepo to the local NPM registry. Note this publish script will
 # automatically start and stop the registry while it publishes.
 cd "$e2e_root_path"/../
-yarn publish-npm --release-this-branch --dry 'tfjs-core' 'tfjs-backend-cpu' \
-  'tfjs-backend-webgl' 'tfjs-backend-webgpu' 'tfjs-backend-wasm' 'tfjs-layers' \
-  'tfjs-converter' 'tfjs-data' 'tfjs' 'tfjs-node' 'tfjs-node-gpu'
+yarn publish-npm --release-this-branch --dry --ci 'tfjs-core' \
+  'tfjs-backend-cpu' 'tfjs-backend-webgl' 'tfjs-backend-webgpu' \
+  'tfjs-backend-wasm' 'tfjs-layers' 'tfjs-converter' 'tfjs-data' 'tfjs' \
+  'tfjs-node' 'tfjs-node-gpu'
 cd "$e2e_root_path"
 
 # ****************************************************************************

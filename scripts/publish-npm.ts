@@ -108,6 +108,11 @@ parser.addArgument(['--auto-publish-local-newer'], {
       + ' the packages in the registry',
 });
 
+parser.addArgument(['--ci'], {
+  action: 'storeTrue',
+  help: 'Enable CI bazel flags for faster compilation. No effect on results.',
+});
+
 parser.addArgument(['packages'], {
   type: 'string',
   nargs: '*',
@@ -338,9 +343,14 @@ async function main() {
   // efficiency.
   const bazelTargets = packages.filter(pkg => BAZEL_PACKAGES.has(pkg))
     .map(name => `//${name}:${name}_pkg`);
+
+  const bazelArgs = ['bazel', 'build']
+  if (args.ci) {
+    bazelArgs.push('--config=ci');
+  }
   // Use child_process.spawnSync to show bazel build progress.
   const result = child_process.spawnSync('yarn',
-                                         ['bazel', 'build', ...bazelTargets],
+                                         [...bazelArgs, ...bazelTargets],
                                          {stdio:'inherit'});
   if (result.status !== 0) {
     throw new Error(`Bazel process failed with exit code ${result.status}`);
