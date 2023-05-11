@@ -20,7 +20,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
-import {Constraints, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {GOLDEN, KARMA_SERVER} from './constants';
 import * as GOLDEN_MODEL_DATA_FILENAMES from './graph_model_golden_data/filenames.json';
@@ -30,14 +30,7 @@ import {GraphModeGoldenData, TensorDetail} from './types';
 const DATA_URL = 'graph_model_golden_data';
 const INTERMEDIATE_NODE_TESTS_NUM = 5;
 
-// WebGPU freezes when running mobilenet on BrowserStack, so disable it for
-// automated tests until it's working.
-// TODO(mattSoulanille); Enable WebGPU golden file tests.
-const NO_WEBGPU: Constraints = {
-  predicate: env => env.backendName !== 'webgpu'
-}
-
-describeWithFlags(`${GOLDEN} graph_model_golden`, NO_WEBGPU, (env) => {
+describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
   beforeAll(async () => {
