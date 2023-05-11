@@ -79,7 +79,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maxPool',
     excludes: [
       'ignores NaNs',      // Actual != expected.
-      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
