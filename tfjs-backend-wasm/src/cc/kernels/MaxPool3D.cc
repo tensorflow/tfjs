@@ -46,7 +46,7 @@ void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
   TensorInfo& out_info = backend::get_tensor_info_out(out_id);
 
   NDHWCPool3DImpl(
-      x_info.f32(), out_info.f32_write(),
+      x_info.f32(),
       NDHWCPool3DInfo{
           .batch_size = batch_size,
           .channel_size = channel_size,
@@ -73,8 +73,10 @@ void MaxPool3D(int x_id, int out_id, int batch_size, int channel_size,
       []() -> float { return std::numeric_limits<float>::min(); },
       /*filter_apply=*/
       [](float& data, int, const float& val) { data = std::max(data, val); },
-      /*filter_aggregate=*/
-      [](const float& data) { return data; });
+      /*filter_assign=*/
+      [buf = out_info.f32_write()](int offset, const float& data) {
+        buf[offset] = data;
+      });
 }
 
 }  // extern "C"

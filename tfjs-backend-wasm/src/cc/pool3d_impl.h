@@ -75,11 +75,10 @@ struct NDHWCPool3DInfo {
   inline int int_size() const { return in_shape().size(); }
   inline int out_size() const { return out_shape().size(); }
 };
-template <typename IN, typename OUT, typename FI, typename FAP, typename FAG>
-inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
-                            const NDHWCPool3DInfo& info, const FI& filter_init,
-                            const FAP& filter_apply,
-                            const FAG& filter_aggregate) {
+template <typename IN, typename FI, typename FAP, typename FAG>
+inline void NDHWCPool3DImpl(const IN* x_buf, const NDHWCPool3DInfo& info,
+                            const FI& filter_init, const FAP& filter_apply,
+                            const FAG& filter_assign) {
   for (int batch = 0; batch < info.batch_size; ++batch) {
     for (int channel = 0; channel < info.channel_size; ++channel) {
       for (int y_depth = 0; y_depth < info.out_depth; ++y_depth) {
@@ -118,7 +117,7 @@ inline void NDHWCPool3DImpl(const IN* x_buf, OUT* out_buf,
             }
             int out_offset =
                 info.out_offset(batch, y_depth, y_row, y_col, channel);
-            out_buf[out_offset] = filter_aggregate(filter_data);
+            filter_assign(out_offset, filter_data);
           }
         }
       }

@@ -104,6 +104,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
+import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
@@ -263,6 +264,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPool3DConfig,
   maxPool3DGradConfig,
   maxPoolGradConfig,
+  maxPoolWithArgmaxConfig,
   meanConfig,
   minConfig,
   minimumConfig,

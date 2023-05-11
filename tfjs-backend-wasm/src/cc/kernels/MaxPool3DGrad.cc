@@ -70,8 +70,8 @@ void MaxPool3DGrad(int x_id, int dy_id, int dx_id, int batch_size,
   };
 
   int* max_positions = new int[pool3d_info.out_size()];
-  NDHWCPool3DImpl</*IN=*/float, /*OUT=*/int>(
-      x_info.f32(), max_positions, pool3d_info,
+  NDHWCPool3DImpl</*IN=*/float>(
+      x_info.f32(), pool3d_info,
       /*filter_init=*/
       []() -> std::pair<float, int> {
         return {std::numeric_limits<float>::min(), 0};
@@ -82,8 +82,10 @@ void MaxPool3DGrad(int x_id, int dy_id, int dx_id, int batch_size,
           data = {x_val, x_offset};
         }
       },
-      /*filter_aggregate=*/
-      [](const std::pair<float, int>& data) { return data.second; });
+      /*filter_assign=*/
+      [max_positions](int offset, const std::pair<float, int>& data) {
+        max_positions[offset] = data.second;
+      });
 
   NDHWCPool3DGradImpl(
       dy_info.f32(), dx_info.f32_write(), pool3d_info,
