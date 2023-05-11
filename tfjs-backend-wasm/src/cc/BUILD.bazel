@@ -380,6 +380,7 @@ tfjs_cc_library(
         ":Dilation2DBackpropInput",
         ":Elu",
         ":Equal",
+        ":Erf",
         ":Exp",
         ":FlipLeftRight",
         ":FloorDiv",
@@ -909,6 +910,15 @@ tfjs_cc_library(
     srcs = ["kernels/Equal.cc"],
     deps = [
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Erf",
+    srcs = ["kernels/Erf.cc"],
+    deps = [
+        ":unary",
         ":util",
     ],
 )
