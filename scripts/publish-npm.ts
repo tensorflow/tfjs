@@ -359,7 +359,7 @@ async function main() {
   // Build and publish all packages to a local Verdaccio repo for staging.
   console.log(
     chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
-  const verdaccio = runVerdaccio();
+  const verdaccio = await runVerdaccio();
   try {
     for (const pkg of packages) {
       await publish(pkg, VERDACCIO_REGISTRY);
