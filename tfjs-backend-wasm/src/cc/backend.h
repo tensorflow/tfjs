@@ -16,7 +16,6 @@
 #define BACKEND_H_
 
 #include <xnnpack.h>
-#include <xnnpack/cache.h>
 #include <cstddef>
 #include <cstdint>
 
