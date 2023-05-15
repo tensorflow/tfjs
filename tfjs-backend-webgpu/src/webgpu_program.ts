@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, DataTypeMap, env, Rank, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
@@ -49,23 +49,45 @@ export interface WebGPUProgram {
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
   workPerThread?: number;
+  pipeline?: GPUComputePipeline|Promise<GPUComputePipeline>;
   getUserCode: () => string;
 }
 
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo): GPUComputePipeline => {
+     output: TensorInfo, parallelCompilation: boolean): GPUComputePipeline|
+    Promise<GPUComputePipeline> => {
       const outputData = {dtype: output.dtype, shape: output.shape};
       const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
-      const pipeline = device.createComputePipeline({
-        compute: {module, entryPoint: '_start'},
-        label: program.constructor.name,
-        layout: 'auto'
-      });
 
-      return pipeline;
+      let printShaderString = env().get('WEBGPU_PRINT_SHADER') as string;
+      if (printShaderString !== '') {
+        printShaderString = printShaderString.toLowerCase();
+        const printShaderArray = printShaderString.split(',');
+        if (printShaderString === 'all' ||
+            printShaderArray.some(
+                item => program.shaderKey.toLowerCase().includes(item))) {
+          console.group(program.shaderKey);
+          console.debug(source);
+          console.groupEnd();
+        }
+      }
+
+      if (parallelCompilation) {
+        return device.createComputePipelineAsync({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      } else {
+        return device.createComputePipeline({
+          compute: {module, entryPoint: '_start'},
+          label: program.constructor.name,
+          layout: 'auto'
+        });
+      }
     };
 
 export const typeSnippet = (component: number, type = 'f32') => {
@@ -314,14 +336,22 @@ function makeShader(
 }
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
+    program: WebGPUProgram, inputsData: InputInfo[],
     output: TensorInfo): string {
   let key = program.shaderKey;
   if (program.isFromPixels) {
     return key;
   }
 
-  const types = inputsData.map(d => d.dtype).concat(output.dtype);
+  const shapes: number[][] = [];
+  const types: Array<keyof DataTypeMap> = [];
+  inputsData.forEach(element => {
+    shapes.push(element.shape);
+    types.push(element.dtype);
+  });
+  shapes.push(output.shape);
+  types.push(output.dtype);
+
   const broadcastDims =
       inputsData.map(d => backend_util.getBroadcastDims(d.shape, output.shape));
   const inputShapesEqualsOutShape =

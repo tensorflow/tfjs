@@ -201,6 +201,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BitwiseAnd|bitwiseAnd|
 |Equal|equal|
 |Greater|greater|
 |GreaterEqual|greaterEqual|
@@ -373,6 +374,7 @@
 |Pad|pad|
 |PadV2|PadV2|
 |Reshape|reshape|
+|EnsureShape|ensureShape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
 |Not mapped|setdiff1dAsync|

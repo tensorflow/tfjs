@@ -83,7 +83,8 @@ export function reduce(
     const uniformData = [
       {type: 'int32', data: [inSize]},
     ];
-    const program = new ReduceProgram(reduceInfo, reduceType);
+    const program = new ReduceProgram(
+        reduceInfo, reduceType, backend.device.limits.maxComputeWorkgroupSizeX);
     const reduced =
         backend.runWebGPUProgram(program, [input], dtype, uniformData);
     toDispose.push(reduced);

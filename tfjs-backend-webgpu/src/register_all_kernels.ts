@@ -43,6 +43,7 @@ import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
+import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
@@ -172,6 +173,7 @@ import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
+import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -203,6 +205,7 @@ const kernelConfigs: KernelConfig[] = [
   ceilConfig,
   clipByValueConfig,
   complexConfig,
+  complexAbsConfig,
   concatConfig,
   conv2DConfig,
   conv2DBackpropFilterConfig,
@@ -332,6 +335,7 @@ const kernelConfigs: KernelConfig[] = [
   transformConfig,
   transposeConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 

@@ -19,6 +19,7 @@ import {env} from '../environment';
 
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 import {decodeWeights} from './io_utils';
 import {monitorPromisesProgress} from './progress';
 import {DTYPE_VALUE_SIZE_MAP, LoadOptions, WeightsManifestConfig, WeightsManifestEntry} from './types';
@@ -35,27 +36,27 @@ import {DTYPE_VALUE_SIZE_MAP, LoadOptions, WeightsManifestConfig, WeightsManifes
  *   length as `fetchURLs`.
  */
 export async function loadWeightsAsArrayBuffer(
-    fetchURLs: string[], loadOptions?: LoadOptions): Promise<ArrayBuffer[]> {
+  fetchURLs: string[], loadOptions?: LoadOptions): Promise<ArrayBuffer[]> {
   if (loadOptions == null) {
     loadOptions = {};
   }
 
   const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch :
-                                                    loadOptions.fetchFunc;
+    loadOptions.fetchFunc;
 
   // Create the requests for all of the weights in parallel.
   const requests = fetchURLs.map(
-      fetchURL =>
-          fetchFunc(fetchURL, loadOptions.requestInit, {isBinary: true}));
+    fetchURL =>
+      fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true }));
 
   const fetchStartFraction = 0;
   const fetchEndFraction = 0.5;
 
   const responses = loadOptions.onProgress == null ?
-      await Promise.all(requests) :
-      await monitorPromisesProgress(
-          requests, loadOptions.onProgress, fetchStartFraction,
-          fetchEndFraction);
+    await Promise.all(requests) :
+    await monitorPromisesProgress(
+      requests, loadOptions.onProgress, fetchStartFraction,
+      fetchEndFraction);
 
   const bufferPromises = responses.map(response => response.arrayBuffer());
 
@@ -63,10 +64,10 @@ export async function loadWeightsAsArrayBuffer(
   const bufferEndFraction = 1;
 
   const buffers = loadOptions.onProgress == null ?
-      await Promise.all(bufferPromises) :
-      await monitorPromisesProgress(
-          bufferPromises, loadOptions.onProgress, bufferStartFraction,
-          bufferEndFraction);
+    await Promise.all(bufferPromises) :
+    await monitorPromisesProgress(
+      bufferPromises, loadOptions.onProgress, bufferStartFraction,
+      bufferEndFraction);
   return buffers;
 }
 
@@ -80,9 +81,9 @@ export async function loadWeightsAsArrayBuffer(
  * @param weightNames The names of the weights to be fetched.
  */
 export async function loadWeights(
-    manifest: WeightsManifestConfig, filePathPrefix = '',
-    weightNames?: string[],
-    requestInit?: RequestInit): Promise<NamedTensorMap> {
+  manifest: WeightsManifestConfig, filePathPrefix = '',
+  weightNames?: string[],
+  requestInit?: RequestInit): Promise<NamedTensorMap> {
   // TODO(nsthorat): Groups are currently fetched atomically. If you need a
   // single weight from a group, the whole group will be fetched. At a future
   // date, we should support fetching only the individual shards within a
@@ -90,7 +91,7 @@ export async function loadWeights(
   // TODO(cais): Use `decodeWeights` for implementation.
 
   const fetchWeights = (fetchUrls: string[]) =>
-      loadWeightsAsArrayBuffer(fetchUrls, {requestInit});
+    loadWeightsAsArrayBuffer(fetchUrls, { requestInit });
   const loadWeights = weightsLoaderFactory(fetchWeights);
 
   return loadWeights(manifest, filePathPrefix, weightNames);
@@ -121,12 +122,12 @@ export async function loadWeights(
  * @returns Weight loading function.
  */
 export function weightsLoaderFactory(
-    fetchWeightsFunction: (fetchUrls: string[]) => Promise<ArrayBuffer[]>):
-    (manifest: WeightsManifestConfig, filePathPrefix?: string,
-     weightNames?: string[]) => Promise<NamedTensorMap> {
-  return async(
-             manifest: WeightsManifestConfig, filePathPrefix = '',
-             weightNames?: string[]): Promise<NamedTensorMap> => {
+  fetchWeightsFunction: (fetchUrls: string[]) => Promise<ArrayBuffer[]>):
+  (manifest: WeightsManifestConfig, filePathPrefix?: string,
+    weightNames?: string[]) => Promise<NamedTensorMap> {
+  return async (
+    manifest: WeightsManifestConfig, filePathPrefix = '',
+    weightNames?: string[]): Promise<NamedTensorMap> => {
     // Collect all the groups, weights, and their relative offsets to be
     // fetched.
     const groupIndicesToFetchMap = manifest.map(() => false);
@@ -137,17 +138,17 @@ export function weightsLoaderFactory(
       }>
     } = {};
     const weightsFound =
-        weightNames != null ? weightNames.map(() => false) : [];
+      weightNames != null ? weightNames.map(() => false) : [];
     const allManifestWeightNames: string[] = [];
     manifest.forEach((manifestGroupConfig, groupIndex) => {
       let groupOffset = 0;
       manifestGroupConfig.weights.forEach(weightsEntry => {
         const rawDtype = ('quantization' in weightsEntry) ?
-            weightsEntry.quantization.dtype :
-            weightsEntry.dtype;
+          weightsEntry.quantization.dtype :
+          weightsEntry.dtype;
 
         const weightsBytes = DTYPE_VALUE_SIZE_MAP[rawDtype] *
-            util.sizeFromShape(weightsEntry.shape);
+          util.sizeFromShape(weightsEntry.shape);
 
         const enqueueWeightsForFetchingFn = () => {
           groupIndicesToFetchMap[groupIndex] = true;
@@ -181,27 +182,27 @@ export function weightsLoaderFactory(
     if (!weightsFound.every(found => found)) {
       const weightsNotFound = weightNames.filter((_, i) => !weightsFound[i]);
       throw new Error(
-          `Could not find weights in manifest with names: ` +
-          `${weightsNotFound.join(', ')}. \n` +
-          `Manifest JSON has weights with names: ` +
-          `${allManifestWeightNames.join(', ')}.`);
+        `Could not find weights in manifest with names: ` +
+        `${weightsNotFound.join(', ')}. \n` +
+        `Manifest JSON has weights with names: ` +
+        `${allManifestWeightNames.join(', ')}.`);
     }
 
     // Convert the one-hot boolean groupId => shouldFetch map to a list of group
     // IDs.
     const groupIndicesToFetch =
-        groupIndicesToFetchMap.reduce((accumulator, shouldFetch, i) => {
-          if (shouldFetch) {
-            accumulator.push(i);
-          }
-          return accumulator;
-        }, []);
+      groupIndicesToFetchMap.reduce((accumulator, shouldFetch, i) => {
+        if (shouldFetch) {
+          accumulator.push(i);
+        }
+        return accumulator;
+      }, []);
 
     const fetchUrls: string[] = [];
     groupIndicesToFetch.forEach(i => {
       manifest[i].paths.forEach(filepath => {
         const fetchUrl = filePathPrefix +
-            (!filePathPrefix.endsWith('/') ? '/' : '') + filepath;
+          (!filePathPrefix.endsWith('/') ? '/' : '') + filepath;
         fetchUrls.push(fetchUrl);
       });
     });
@@ -212,28 +213,17 @@ export function weightsLoaderFactory(
     groupIndicesToFetch.forEach(i => {
       const numBuffers = manifest[i].paths.length;
 
-      let groupBytes = 0;
-      for (let i = 0; i < numBuffers; i++) {
-        groupBytes += buffers[bufferIndexOffset + i].byteLength;
-      }
-
-      // Create a buffer for the whole group.
-      const groupBuffer = new ArrayBuffer(groupBytes);
-      const groupByteBuffer = new Uint8Array(groupBuffer);
-      let groupBufferOffset = 0;
-      for (let i = 0; i < numBuffers; i++) {
-        const buffer = new Uint8Array(buffers[bufferIndexOffset + i]);
-        groupByteBuffer.set(buffer, groupBufferOffset);
-        groupBufferOffset += buffer.byteLength;
-      }
+      const weightsBuffer = new CompositeArrayBuffer(
+        buffers.slice(bufferIndexOffset, bufferIndexOffset + numBuffers));
 
       const weightsEntries = groupWeightsToFetch[i];
+
       weightsEntries.forEach(weightsEntry => {
-        const byteBuffer = groupBuffer.slice(
-            weightsEntry.groupOffset,
-            weightsEntry.groupOffset + weightsEntry.sizeBytes);
+        const byteBuffer = weightsBuffer.slice(
+          weightsEntry.groupOffset,
+          weightsEntry.groupOffset + weightsEntry.sizeBytes);
         const nameToTensorMap =
-            decodeWeights(byteBuffer, [weightsEntry.manifestEntry]);
+          decodeWeights(byteBuffer, [weightsEntry.manifestEntry]);
         for (const name in nameToTensorMap) {
           weightsTensorMap[name] = nameToTensorMap[name];
         }

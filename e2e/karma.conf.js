@@ -103,10 +103,20 @@ const devConfig = {
 
 const browserstackConfig = {
   ...devConfig,
-  hostname: 'bs-local.com',
+  // TODONT: do not use `hostname: 'bs-local.com'. This is automatically changed
+  // by BrowserStack when necessary (i.e. on ios safari). Setting it manually
+  // breaks WASM file serving.
+  // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9816
+  port: 9876
 };
+
+const chromeWebgpuFlags = [
+  '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
+  '--use-webgpu-adapter=swiftshader',
+  // https://github.com/tensorflow/tfjs/issues/7631
+  '--disable-vulkan-fallback-to-gl-for-testing',
+];
 
 module.exports = function(config) {
   const args = [];
@@ -153,7 +163,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'High Sierra',
+        flags: chromeWebgpuFlags,
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
@@ -188,7 +199,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: '101.0',
         os: 'Windows',
-        os_version: '10'
+        os_version: '10',
+        flags: chromeWebgpuFlags,
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},

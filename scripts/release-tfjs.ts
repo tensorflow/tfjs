@@ -207,18 +207,31 @@ async function main() {
     for (const packageName of phase.packages) {
       shell.cd(packageName);
 
-      // Update the version.
-      const packageJsonPath = `${dir}/${packageName}/package.json`;
-      let pkg = `${fs.readFileSync(packageJsonPath)}`;
+      // Update the version number of the package.json
+      const packagePath = path.join(dir, packageName);
+      const packageJsonPath = path.join(packagePath, 'package.json');
+      let pkg = fs.readFileSync(packageJsonPath, 'utf8');
       const parsedPkg = JSON.parse(`${pkg}`);
 
       console.log(chalk.magenta.bold(`~~~ Processing ${packageName} ~~~`));
       const newVersion = versions.get(packageName);
       pkg = `${pkg}`.replace(
           `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
-      pkg = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
 
       fs.writeFileSync(packageJsonPath, pkg);
+
+      // Update dependency versions of all package.json files found in the
+      // package to use the new verison numbers (except ones in node_modules).
+      const subpackages =
+            $(`find ${packagePath} -name package.json -not -path \'*/node_modules/*\'`)
+            .split('\n');
+      for (const packageJsonPath of subpackages) {
+        const pkg = fs.readFileSync(packageJsonPath, 'utf8');
+        console.log(chalk.magenta.bold(
+            `~~~ Update dependency versions for ${packageJsonPath} ~~~`));
+        const updated = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
+        fs.writeFileSync(packageJsonPath, updated);
+      }
 
       shell.cd('..');
 
