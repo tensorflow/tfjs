@@ -94,8 +94,6 @@ extern size_t xnn_operator_count;
 
 extern pthreadpool *threadpool;
 
-xnn_caches *GetGlobalXNNCaches();
-
 }  // namespace backend
 
 namespace wasm {

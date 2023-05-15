@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "6cb6fd281081f309f82a2769fa06633e25fd851a8539462676bf021c78a5ba19",
-    strip_prefix = "emsdk-3.1.26/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.26.tar.gz"],
+    sha256 = "bbea764c57af830e761f1fb8600d42dc303aa63ffd43647694eda5b8b757b469",
+    strip_prefix = "emsdk-3.1.35/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.35.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -124,9 +124,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "c3a67e34ec25098783f84c7a9205befec46324c2",
+    commit = "fa94f297e58c1e139ca64f78786df3744f557819",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1679607718 -0700",
+    shallow_since = "1683912990 -0700"
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to

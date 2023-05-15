@@ -129,7 +129,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     xnn_status status = xnn_create_fully_connected_nc_f32(
         input_channels, output_channels, input_stride, output_stride, b_buf,
         bias_buf, output_min, output_max, flags,
-        tfjs::backend::GetGlobalXNNCaches(), &fully_connected_op);
+        /*code_cache=*/nullptr, /*weights_cache=*/nullptr, &fully_connected_op);
     if (status != xnn_status_success) {
       tfjs::util::warn(
           "XNN status for xnn_create_fully_connected_nc_f32 is not successful. "
