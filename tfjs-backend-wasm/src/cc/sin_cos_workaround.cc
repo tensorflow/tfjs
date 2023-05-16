@@ -23,13 +23,17 @@ namespace {
 
 template <typename T>
 inline T ShiftRadianToZeroTo2PI(const T& x) {
+  if (std::isnan(x)) {
+    return x;
+  }
   return std::fmod(std::fmod(x, 2 * M_PI) + 2 * M_PI, 2 * M_PI);
 }
 
-template <typename T, bool is_shifted = false>
-inline T SinFixedImpl(T x) {
-  if (std::isnan(x)) return x;
-  if (!is_shifted) x = ShiftRadianToZeroTo2PI(x);
+template <typename T>
+inline T SinZeroTo2PI(T x) {
+  if (std::isnan(x)) {
+    return x;
+  }
 
   if (x < M_PI_4) {
     return std::sin(x);
@@ -42,10 +46,11 @@ inline T SinFixedImpl(T x) {
   }
 }
 
-template <typename T, bool is_shifted = false>
-inline T CosFixedImpl(T x) {
-  if (std::isnan(x)) return x;
-  if (!is_shifted) x = ShiftRadianToZeroTo2PI(x);
+template <typename T>
+inline T CosZeroTo2PI(T x) {
+  if (std::isnan(x)) {
+    return x;
+  }
 
   if (x < M_PI_4) {
     return std::cos(x);
@@ -60,9 +65,9 @@ inline T CosFixedImpl(T x) {
 
 }  // namespace
 
-float SinFixed(float x) { return SinFixedImpl(x); }
+float SinFixed(float x) { return SinZeroTo2PI(ShiftRadianToZeroTo2PI(x)); }
 
-float CosFixed(float x) { return CosFixedImpl(x); }
+float CosFixed(float x) { return CosZeroTo2PI(ShiftRadianToZeroTo2PI(x)); }
 
 float TanFixed(float x) {
   // TODO: Check if this work on iOS 11/12.
