@@ -65,10 +65,8 @@ float SinFixed(float x) { return SinFixedImpl(x); }
 float CosFixed(float x) { return CosFixedImpl(x); }
 
 float TanFixed(float x) {
-  if (std::isnan(x)) {
-    return x;
-  }
-  return SinFixedImpl(x) / CosFixedImpl(x);
+  // TODO: Check if this work on iOS 11/12.
+  return std::tan(x);
 }
 
 }  // namespace sin_cos_workaround
