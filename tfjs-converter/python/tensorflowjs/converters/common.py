@@ -40,6 +40,7 @@ RESOURCE_ID_KEY = 'resourceId'
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'
 KERAS_MODEL = 'keras'
+KERAS_V3_MODEL = 'keras_v3'
 TF_SAVED_MODEL = 'tf_saved_model'
 TF_HUB_MODEL = 'tf_hub'
 TFJS_GRAPH_MODEL = 'tfjs_graph_model'
