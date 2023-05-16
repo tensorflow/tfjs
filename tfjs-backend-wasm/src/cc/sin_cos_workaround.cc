@@ -40,9 +40,9 @@ inline T SinZeroTo2PI(T x) {
   } else if (x < M_PI_2) {
     return std::cos(M_PI_2 - x);
   } else if (x < M_PI) {
-    return SinFixedImpl<T, /*is_shifted=*/true>(M_PI - x);
+    return SinZeroTo2PI<T, /*is_shifted=*/true>(M_PI - x);
   } else {
-    return -SinFixedImpl<T, /*is_shifted=*/true>(2 * M_PI - x);
+    return -SinZeroTo2PI<T, /*is_shifted=*/true>(2 * M_PI - x);
   }
 }
 
@@ -57,9 +57,9 @@ inline T CosZeroTo2PI(T x) {
   } else if (x < M_PI_2) {
     return std::sin(M_PI_2 - x);
   } else if (x < M_PI) {
-    return -CosFixedImpl<T, /*is_shifted=*/true>(M_PI - x);
+    return -CosZeroTo2PI<T, /*is_shifted=*/true>(M_PI - x);
   } else {
-    return CosFixedImpl<T, /*is_shifted=*/true>(2 * M_PI - x);
+    return CosZeroTo2PI<T, /*is_shifted=*/true>(2 * M_PI - x);
   }
 }
 

@@ -174,7 +174,6 @@ const IGNORE_LIST: string[] = [
   'upperBound',
   'lowerBound',
   'multinomial test-tensorflow {} creates the same data given the same seed',
-  // https://github.com/tensorflow/tfjs/issues/7618
   'tan test-tensorflow {} numbers exceed float32 precision',
 ];
 
