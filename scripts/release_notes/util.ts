@@ -19,7 +19,7 @@
 import * as shell from 'shelljs';
 import * as readline from 'readline';
 
-const GOOGLERS_WITH_GMAIL = [
+const GOOGLERS_WITH_GMAIL = new Set([
   'dsmilkov',
   'kainino0x',
   'davidsoergel',
@@ -31,7 +31,14 @@ const GOOGLERS_WITH_GMAIL = [
   'lina128',
   'mattsoulanille',
   'jinjingforever',
-];
+  'chunnienc',
+  'Linchenn',
+  'fengwuyao',
+].map((s) => s.trim().toLowerCase()));
+
+function isGooglerUsername(username: string): boolean {
+  return GOOGLERS_WITH_GMAIL.has(username.trim().toLocaleLowerCase());
+}
 
 const rl =
     readline.createInterface({input: process.stdin, output: process.stdout});
@@ -124,7 +131,7 @@ const SECTION_TAGS: SectionTag[] = [
  */
 export async function getReleaseNotesDraft(
     octokit: OctokitGetCommit, repoCommits: RepoCommits[]): Promise<string> {
-  const repoNotes = [];
+  const repoNotes: string[] = [];
   for (let i = 0; i < repoCommits.length; i++) {
     const repoCommit = repoCommits[i];
 
@@ -174,13 +181,13 @@ export async function getReleaseNotesDraft(
       const username = await getUsernameForCommit(commit.sha);
       const isExternalContributor =
           !commit.authorEmail.endsWith('@google.com') &&
-          GOOGLERS_WITH_GMAIL.indexOf(username) === -1;
+          !isGooglerUsername(username);
 
       const pullRequestRegexp = /\(#([0-9]+)\)/;
       const pullRequestMatch = commit.subject.match(pullRequestRegexp);
 
       let subject = commit.subject;
-      let pullRequestNumber = null;
+      let pullRequestNumber: string|null = null;
       if (pullRequestMatch != null) {
         subject = subject.replace(pullRequestRegexp, '').trim();
         pullRequestNumber = pullRequestMatch[1];

@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
-import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
+import {toArrayBuffer} from './io_utils';
 
 const stat = promisify(fs.stat);
 const writeFile = promisify(fs.writeFile);
@@ -121,7 +121,7 @@ export class NodeFileSystem implements tf.io.IOHandler {
         // TODO(cais): Use explicit tf.io.ModelArtifactsInfo type below once it
         // is available.
         // tslint:disable-next-line:no-any
-        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) as any
+        modelArtifactsInfo: tf.io.getModelArtifactsInfoForJSON(modelArtifacts),
       };
     }
   }

@@ -340,28 +340,23 @@ export class GPGPUContext {
     webgl_util.callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, program);
 
-    let program2: GPGPUContextProgram;
-    {
-      program2 = Object.assign(program, {
-        vao: this.createVertexArray(),
-      });
-      this.bindVertexArray(program2.vao);
-      // Bind index buffer, and vertex buffers based on program attrib
-      // locations.
-      webgl_util.callAndCheck(
-          gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer));
-      console.assert(
-          gpgpu_util.bindVertexProgramAttributeStreams(
-              gl, program2, this.vertexBuffer),
-          'gpgpu_util.bindVertexProgramAttributeStreams not fully successful.');
-
-      if (this.debug) {
-        webgl_util.validateProgram(gl, program2);
-      }
+    const program2 = Object.assign(program, {vao: this.createVertexArray()});
+    if (this.debug) {
+      webgl_util.validateProgram(gl, program2);
     }
-    this.setProgram(program2);
-
     return program2;
+  }
+
+  public buildVao(program: GPGPUContextProgram) {
+    this.setProgram(program);
+    this.bindVertexArray(program.vao);
+    const gl = this.gl;
+    // Bind index buffer, and vertex buffers based on program attrib
+    // locations.
+    webgl_util.callAndCheck(
+        gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer));
+    gpgpu_util.bindVertexProgramAttributeStreams(
+        gl, program, this.vertexBuffer);
   }
 
   public deleteProgram(program: GPGPUContextProgram) {
@@ -380,8 +375,6 @@ export class GPGPUContext {
     this.program = program;
 
     if (this.program != null) {
-      this.bindVertexArray(this.program.vao);
-
       if (this.debug) {
         webgl_util.validateProgram(this.gl, this.program);
       }

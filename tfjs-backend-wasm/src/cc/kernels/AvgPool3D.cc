@@ -45,7 +45,7 @@ void AvgPool3D(int x_id, int out_id, int batch_size, int channel_size,
   const TensorInfo& x_info = backend::get_tensor_info(x_id);
   TensorInfo& out_info = backend::get_tensor_info_out(out_id);
 
-  NDHWCPool3DImpl(x_info.f32(), out_info.f32_write(),
+  NDHWCPool3DImpl(x_info.f32(),
                   NDHWCPool3DInfo{
                       .batch_size = batch_size,
                       .channel_size = channel_size,
@@ -77,10 +77,11 @@ void AvgPool3D(int x_id, int out_id, int batch_size, int channel_size,
                     data.first += val;
                     ++data.second;
                   },
-                  /*filter_aggregate=*/
-                  [](const std::pair<float, int>& data) {
-                    return data.first /
-                           static_cast<float>(std::max(data.second, 1));
+                  /*filter_assign=*/
+                  [buf = out_info.f32_write()](
+                      int offset, const std::pair<float, int>& data) {
+                    buf[offset] = data.first /
+                                  static_cast<float>(std::max(data.second, 1));
                   });
 }
 

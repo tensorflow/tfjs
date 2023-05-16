@@ -20,7 +20,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import babel from '@rollup/plugin-babel';
 import {terser} from 'rollup-plugin-terser';
-import visualizer from 'rollup-plugin-visualizer';
+import {visualizer} from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
  * @license
@@ -69,7 +69,6 @@ function config({
       commonjs({
         ignore: ['crypto', 'fs', 'node-fetch', 'string_decoder', 'util'],
         include: 'node_modules/**',
-        namedExports: {'node_modules/seedrandom/index.js': ['alea']},
       }),
       ...plugins,
     ],
@@ -96,7 +95,7 @@ function config({
   };
 }
 
-module.exports = cmdOptions => {
+export default function(cmdOptions) {
   const bundles = [];
 
   const babelPlugin = babel({

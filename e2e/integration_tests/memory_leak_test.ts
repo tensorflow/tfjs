@@ -16,6 +16,8 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';

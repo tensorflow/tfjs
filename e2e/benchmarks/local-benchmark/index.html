@@ -164,10 +164,10 @@ limitations under the License.
         numProfilesController.setValue(urlState.get('profile'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
-        correctnessButton.domElement.click();
+        correctnessButton.$button.click();
       }
       if (runButton != null && task == 'performance') {
-        runButton.domElement.click();
+        runButton.$button.click();
       }
     }
 
@@ -1016,6 +1016,8 @@ limitations under the License.
     }
 
     function updateModelsDropdown(newValues) {
+      modelController._names = newValues;
+      modelController._values = newValues;
       const tfliteBenchmarksHtml = newValues.map(name => `<option value="${name}">${name}</option>`);
       modelController.domElement.children[1].children[0].innerHTML = tfliteBenchmarksHtml;
     }

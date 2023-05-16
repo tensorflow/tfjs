@@ -111,6 +111,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   const webGLProgram = gpgpu.createProgram(fragmentShader);
 
   if (!env().get('ENGINE_COMPILE_ONLY')) {
+    gpgpu.buildVao(webGLProgram);
     return {
       program,
       fragmentShader,
@@ -253,6 +254,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
         outTex.texture, outTexShape[0], outTexShape[1]);
   }
   gpgpu.setProgram(binary.webGLProgram);
+  gpgpu.bindVertexArray(binary.webGLProgram.vao);
 
   // Set special uniforms (NAN, INFINITY)
   if (env().getNumber('WEBGL_VERSION') === 1) {
