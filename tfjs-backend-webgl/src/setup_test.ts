@@ -30,13 +30,24 @@ import {registerTestEnvs} from './backend_webgl_test_registry';
 
 registerTestEnvs();
 
-const TEST_FILTERS: TestFilter[] = [];
+const TEST_FILTERS: TestFilter[] = [
+  {
+    startsWith: 'tan ',
+    excludes: [
+      // https://github.com/tensorflow/tfjs/issues/7618
+      'numbers exceed float32 precision',
+    ],
+  },
+];
+
 const customInclude = (testName: string) => {
   const toExclude = [
-    'isBrowser: false', 'dilation gradient',
+    'isBrowser: false',
+    'dilation gradient',
     'throws when index is out of bound',
     // otsu tests for threshold op is failing on windows
-    'method otsu', 'Draw on 2d context'
+    'method otsu',
+    'Draw on 2d context',
   ];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
