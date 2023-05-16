@@ -30,7 +30,7 @@ inline T ShiftRadianToZeroTo2PI(const T& x) {
 }
 
 template <typename T>
-inline T SinZeroTo2PI(T x) {
+inline T SinZeroTo2PI(const T& x) {
   if (std::isnan(x)) {
     return x;
   }
@@ -47,7 +47,7 @@ inline T SinZeroTo2PI(T x) {
 }
 
 template <typename T>
-inline T CosZeroTo2PI(T x) {
+inline T CosZeroTo2PI(const T& x) {
   if (std::isnan(x)) {
     return x;
   }
