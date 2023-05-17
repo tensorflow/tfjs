@@ -11,6 +11,7 @@
 /* Original source: keras/engine/topology.py */
 
 import {NamedTensorMap, Scalar, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {getRegisteredName} from '@tensorflow/tfjs-core/dist/serialization';
 
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
@@ -44,6 +45,8 @@ export interface ContainerArgs {
  *
  */
 export abstract class Container extends Layer {
+  override moduleName: string = null;
+
   inputs: SymbolicTensor[];
   outputs: SymbolicTensor[];
 
@@ -650,7 +653,7 @@ export abstract class Container extends Layer {
     const theConfig = this.getConfig();
     const modelConfig: serialization.ConfigDict = {};
     modelConfig['className'] = this.getClassName();
-    modelConfig['config'] = theConfig;
+    modelConfig['modelConfig'] = theConfig;
     modelConfig['kerasVersion'] = `tfjs-layers ${layersVersion}`;
     // TODO(nielsene): Replace something like K.backend() once
     // possible.
@@ -1035,6 +1038,7 @@ export abstract class Container extends Layer {
     for (const layer of this.layers) {
       const layerClassName = layer.getClassName();
       const layerConfig = layer.getConfig();
+      const moduleName = layer.moduleName;
       const filteredInboundNodes = [];
       for (let originalNodeIndex = 0;
            originalNodeIndex < layer.inboundNodes.length; originalNodeIndex++) {
@@ -1080,6 +1084,8 @@ export abstract class Container extends Layer {
       dict['name'] = layer.name;
       dict['className'] = layerClassName;
       dict['config'] = layerConfig;
+      dict['module'] = moduleName;
+      dict['registeredName'] = getRegisteredName(layer);
       dict['inboundNodes'] = filteredInboundNodes;
       layerConfigs.push(dict);
     }
@@ -1120,6 +1126,8 @@ export abstract class Container extends Layer {
       modelOutputs.push([layer.name, newNodeIndex, tensorIndex]);
     }
     config['outputLayers'] = modelOutputs;
+    config['module'] = this.moduleName;
+    config['registerName'] = getRegisteredName(this);
     return config;
   }
 

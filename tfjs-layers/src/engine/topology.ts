@@ -405,6 +405,8 @@ let _nextLayerID = 0;
 export abstract class Layer extends serialization.Serializable {
   /** Name for this layer. Must be unique within a model. */
   name: string;
+  /** Module for this layer. */
+  moduleName: string = null;
   /**
    * List of InputSpec class instances.
    *

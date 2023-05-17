@@ -54,6 +54,13 @@ export declare type SerializableConstructor<T extends Serializable> = {
 export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
 
+const GlobalCustomObject:
+    {[key: string]: SerializableConstructor<Serializable>} = {};
+
+const GlobalCustomNames: {[key: string]: string} = {};
+// const GlobaleCustomNames : Record<SerializableConstructor<Serializable>,
+// string> = {};
+
 /**
  * Serializable defines the serialization contract.
  *
@@ -155,11 +162,13 @@ export class SerializationMap {
  *
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
+ * @param pkg The pakcage that this class belongs to. This used to define the
+ *     key in GlobalCustomObject.
  *
  * @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true}
  */
 export function registerClass<T extends Serializable>(
-    cls: SerializableConstructor<T>) {
+    cls: SerializableConstructor<T>, pkg: string = 'Custom', name?: string) {
   assert(
       cls.className != null,
       () => `Class being registered does not have the static className ` +
@@ -172,6 +181,33 @@ export function registerClass<T extends Serializable>(
       cls.className.length > 0,
       () => `Class being registered has an empty-string as its className, ` +
           `which is disallowed.`);
-
   SerializationMap.register(cls);
+  const className = name == null ? cls.className : name;
+  const registerName = pkg + '>' + className;
+
+  GlobalCustomObject[registerName] = cls;
+  GlobalCustomNames[cls.className] = registerName;
+
+  return cls;
+}
+
+// export function registerKerasSerializable(
+//     pkg: string = 'Custom', name?: string) {
+//   function decorator(cls: Serializable) {
+//     const className = name == null ? cls.getClassName() : name;
+//     const registerName = pkg + '>' + className;
+
+//     GlobalCustomObject[registerName] = cls;
+//     GlobalCustomNames[cls.getClassName()] = registerName;
+//     return cls;
+//   }
+//   return decorator;
+// }
+
+export function getRegisteredName(cls: Serializable) {
+  if (cls.getClassName() in GlobalCustomNames) {
+    return GlobalCustomNames[cls.getClassName()];
+  } else {
+    return cls.getClassName();
+  }
 }
