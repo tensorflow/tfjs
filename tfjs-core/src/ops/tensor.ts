@@ -50,11 +50,13 @@ import {makeTensor} from './tensor_ops_util';
  * // downloading the values.
  *
  * // Example for WebGL2:
- * const customCanvas = document.createElement('canvas');
- * const customBackend = new tf.MathBackendWebGL(customCanvas);
- * tf.registerBackend('custom-webgl', () => customBackend);
- * await tf.setBackend('custom-webgl');
- * const gl = customBackend.gpgpu.gl;
+ * if (tf.getBackend() !== 'custom-webgl') {
+ *   const customCanvas = document.createElement('canvas');
+ *   const customBackend = new tf.MathBackendWebGL(customCanvas);
+ *   tf.registerBackend('custom-webgl', () => customBackend);
+ *   await tf.setBackend('custom-webgl');
+ * }
+ * const gl = tf.backend().gpgpu.gl;
  * const texture = gl.createTexture();
  * const tex2d = gl.TEXTURE_2D;
  * const width = 2;
@@ -81,6 +83,7 @@ import {makeTensor} from './tensor_ops_util';
  *
  * const logicalShape = [height * width * 2];
  * const a = tf.tensor({texture, height, width, channels: 'BR'}, logicalShape);
+ * a.print();
  * // Tensor value will be [2, 0, 6, 4, 10, 8, 14, 12], since [2, 0] is the
  * // values of 'B' and 'R' channels of Pixel0, [6, 4] is the values of 'B' and
  * 'R'
