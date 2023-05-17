@@ -25,7 +25,7 @@ import * as readline from 'readline';
 import * as shell from 'shelljs';
 import rimraf from 'rimraf';
 import * as path from 'path';
-import {ChildProcess, fork} from 'child_process';
+import {fork} from 'child_process';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
@@ -621,7 +621,7 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
   }
 }
 
-export async function runVerdaccio(): Promise<ChildProcess> {
+export async function runVerdaccio(): Promise<() => void> {
   // Remove the verdaccio package store.
   // TODO(mattsoulanille): Move the verdaccio storage and config file here
   // once the nightly verdaccio tests are handled by this script.
@@ -631,7 +631,8 @@ export async function runVerdaccio(): Promise<ChildProcess> {
   // messaging works and verdaccio can tell node that it has started.
   // https://verdaccio.org/docs/verdaccio-programmatically/#using-fork-from-child_process-module
   const verdaccioBin = require.resolve('verdaccio/bin/verdaccio');
-  const serverProcess = fork(verdaccioBin, ['--config=e2e/scripts/verdaccio.yaml']);
+  const config = path.join(__dirname, '../e2e/scripts/verdaccio.yaml');
+  const serverProcess = fork(verdaccioBin, [`--config=${config}`]);
   const ready = new Promise<void>((resolve, reject) => {
     const timeLimitMilliseconds = 30_000;
     console.log(`Waiting ${timeLimitMilliseconds / 1000} seconds for ` +
@@ -653,15 +654,22 @@ export async function runVerdaccio(): Promise<ChildProcess> {
   serverProcess.on('error', (err: unknown) => {
     throw new Error(`Verdaccio error: ${err}`);
   });
-  serverProcess.on('disconnect', (err: unknown) => {
-    throw new Error(`Verdaccio disconnected: ${err}`);
-  });
+
+  const onUnexpectedDisconnect = (err: unknown) => {
+    throw new Error(`Verdaccio process unexpectedly disconnected: ${err}`);
+  };
+  serverProcess.on('disconnect', onUnexpectedDisconnect);
+
+  const killVerdaccio = () => {
+    serverProcess.off('disconnect', onUnexpectedDisconnect);
+    serverProcess.kill();
+  }
 
   // Kill verdaccio when node exits.
-  process.on('exit', () => {serverProcess.kill();});
+  process.on('exit', killVerdaccio);
 
   await ready;
-  return serverProcess;
+  return killVerdaccio;
 }
 
 /**
