@@ -46,7 +46,8 @@ async function main() {
   console.log();
 
   // ========== Checkout release branch. =======================================
-  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR,
+                        /*shallow*/ false);
 
   shell.cd(TMP_DIR);
 
@@ -87,9 +88,14 @@ async function main() {
   }
 
   // ========== Send a PR to the release branch =====================
-  const message = `Update lockfiles branch ${lockfilesBranch} lock files.`;
+  const message = `Update ${lockfilesBranch}`;
   createPR(lockfilesBranch, releaseBranch, message);
-
+  // Cherry-pick a patch that disables Verdaccio proxying for
+  // `@tensorflow`-scoped packages.  For details, see #7557.
+  // TODO(mattSoulanille): Find a better solution than this? Or perhaps this is
+  // an acceptable solution.
+  $(`git cherry-pick 740d44448341b1cc78329d85d59156065faaa59e`);
+  $(`git push`);
   console.log('Done.');
 
   process.exit(0);
