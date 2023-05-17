@@ -355,40 +355,34 @@ export function updateTFJSDependencyVersions(
 
   const parsedPkg = JSON.parse(pkg);
 
-  for (const dep of depsToReplace) {
-    const newVersion = versions.get(dep);
-    if (!newVersion) {
-      throw new Error(`No new version found for ${dep}`);
-    }
-    // Get the current dependency package version.
-    let version = '';
-    const depNpmName = `@tensorflow/${dep}`;
-    if (parsedPkg['dependencies'] != null &&
-        parsedPkg['dependencies'][depNpmName] != null) {
-      version = parsedPkg['dependencies'][depNpmName];
-    } else if (
-        parsedPkg['peerDependencies'] != null &&
-        parsedPkg['peerDependencies'][depNpmName] != null) {
-      version = parsedPkg['peerDependencies'][depNpmName];
-    } else if (
-        parsedPkg['devDependencies'] != null &&
-        parsedPkg['devDependencies'][depNpmName] != null) {
-      version = parsedPkg['devDependencies'][depNpmName];
-    }
-    if (version == null) {
-      throw new Error(`No dependency found for ${dep}.`);
-    }
+  const dependencyMaps: Array<{[index: string]: string}> = [
+    parsedPkg['dependencies'],
+    parsedPkg['peerDependencies'],
+    parsedPkg['devDependencies'],
+  ].filter(v => v != null);
 
-    let relaxedVersionPrefix = '';
-    if (version.startsWith('~') || version.startsWith('^')) {
-      relaxedVersionPrefix = version.slice(0, 1);
-    }
-    const versionLatest = relaxedVersionPrefix + newVersion;
+  for (const dependencyMap of dependencyMaps) {
+    for (const [name, version] of Object.entries(dependencyMap)) {
+      const prefix = '@tensorflow/';
+      if (name.startsWith(prefix) && version.startsWith('link:')) {
+        const tfjsName = name.slice(prefix.length);
+        const newVersion = versions.get(tfjsName);
+        if (newVersion == null) {
+          throw new Error(`Versions map does not include ${tfjsName}`);
+        }
 
-    pkg = `${pkg}`.replace(
-        new RegExp(`"${depNpmName}": "${version}"`, 'g'),
-        `"${depNpmName}": "${versionLatest}"`);
+        let relaxedVersionPrefix = '';
+        if (version.startsWith('~') || version.startsWith('^')) {
+          relaxedVersionPrefix = version.slice(0, 1);
+        }
+        const versionLatest = relaxedVersionPrefix + newVersion;
+        pkg = `${pkg}`.replace(
+          new RegExp(`"${name}": "${version}"`, 'g'),
+          `"${name}": "${versionLatest}"`);
+      }
+    }
   }
+
   return pkg;
 }
 
