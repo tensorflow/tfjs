@@ -10,7 +10,6 @@
   "devDependencies": {
     "@tensorflow/tfjs": "link:../../../tfjs",
     "@tensorflow/tfjs-backend-wasm": "link:../../../link-package/node_modules/@tensorflow/tfjs-backend-wasm",
-    "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
     "firebase-admin": "^11.0.1",
     "jasmine": "^3.7.0",
@@ -45,6 +44,7 @@
     "minimist": "1.2.6"
   },
   "dependencies": {
+    "@tensorflow/tfjs-vis": "^1.5.1",
     "JSONStream": "^1.3.5"
   }
 }
