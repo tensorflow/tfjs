@@ -148,18 +148,21 @@ export function makeMatMulPackedVec4Source(
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
-  const rowPerThreadRaw = Math.ceil(
-      tileAOuter * tileBOuter /
-      (workgroupSize[0] * workgroupSize[1] * workPerThread[0]));
-  const rowPerThread = rowPerThreadRaw === 3 ? 4 : rowPerThreadRaw;
+  const rowPerThread = tileAOuter < 4 ? tileAOuter : 4;
+  const colPerThread = 4;
+  const requiredThreads = Math.ceil(tileAOuter / rowPerThread) *
+      Math.ceil(tileBOuter / colPerThread);
+  const workgroupThreads = workgroupSize[0] * workgroupSize[1];
   util.assert(
       ((transposeA && innerElementSize === 4 && workPerThread[1] === 4) ||
        (!transposeA && (innerElementSize === 3 || innerElementSize === 4))) &&
-          workPerThread[0] === 4,
+          workPerThread[0] === 4 && requiredThreads <= workgroupThreads,
       () => `If transposeA ${transposeA} is true, innerElementSize ${
           innerElementSize} and workPerThread[1] ${workPerThread[1]} must be 4.
           Otherwise, innerElementSize ${innerElementSize} must be 3 or 4.
-      colPerThread ${workPerThread[0]} must be 4.`);
+      colPerThread ${workPerThread[0]} must be 4. requiredThreads ${
+          requiredThreads} must be less than or equal to workgroupThreads ${
+          workgroupThreads}`);
   return `
   var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
       tileAWidth / innerElementSize}>, ${tileAHight}>;
@@ -531,7 +534,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
       this.workgroupSize = [32, 1, 1];
     } else {
       if (this.isVec4) {
-        this.workgroupSize = [8, 8, 1];
+        this.workgroupSize = [64, 1, 1];
         this.elementsPerThread = [4, 4, 1];
       } else {
         const workgroupInfo = computeWorkgroupInfoForMatMul(
@@ -579,8 +582,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
       boolean[] {
     if (this.isVec4) {
       this.tileAOuter = dimAOuter < 32 ? dimAOuter : 32;
-      this.tileBOuter = dimBOuter < 32 ? dimBOuter : 32;
-      this.tileInner = dimInner < 32 ? dimInner : 32;
+      this.tileBOuter =
+          dimBOuter < 32 ? dimBOuter : (this.tileAOuter === 1 ? 64 : 32);
+      this.tileInner = dimInner < 32 ? dimInner : 16;
     } else {
       this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
       this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
