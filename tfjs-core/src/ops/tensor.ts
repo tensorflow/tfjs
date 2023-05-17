@@ -50,12 +50,12 @@ import {makeTensor} from './tensor_ops_util';
  * // downloading the values.
  *
  * // Example for WebGL2:
- * if (tf.getBackend() !== 'custom-webgl') {
+ * if (tf.findBackend('custom-webgl') == null) {
  *   const customCanvas = document.createElement('canvas');
  *   const customBackend = new tf.MathBackendWebGL(customCanvas);
  *   tf.registerBackend('custom-webgl', () => customBackend);
- *   await tf.setBackend('custom-webgl');
  * }
+ * await tf.setBackend('custom-webgl');
  * const gl = tf.backend().gpgpu.gl;
  * const texture = gl.createTexture();
  * const tex2d = gl.TEXTURE_2D;
@@ -161,6 +161,7 @@ import {makeTensor} from './tensor_ops_util';
  * const a = tf.tensor({buffer: aBuffer}, shape, dtype);
  * const b = tf.tensor(bData, shape, dtype);
  * const result = tf.add(a, b);
+ * result.print();
  * a.dispose();
  * b.dispose();
  * result.dispose();
