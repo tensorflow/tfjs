@@ -357,8 +357,10 @@ tfjs_cc_library(
         ":AvgPool",
         ":AvgPool3D",
         ":AvgPool3DGrad",
+        ":AvgPoolGrad",
         ":BatchMatMul",
         ":Bincount",
+        ":BitwiseAnd",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
@@ -379,6 +381,7 @@ tfjs_cc_library(
         ":Dilation2DBackpropInput",
         ":Elu",
         ":Equal",
+        ":Erf",
         ":Exp",
         ":FlipLeftRight",
         ":FloorDiv",
@@ -403,10 +406,13 @@ tfjs_cc_library(
         ":MaxPool",
         ":MaxPool3D",
         ":MaxPool3DGrad",
+        ":MaxPoolGrad",
+        ":MaxPoolWithArgmax",
         ":Maximum",
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Mod",
         ":Multinomial",
         ":Multiply",
         ":Neg",
@@ -435,6 +441,7 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sign",
         ":Sin",
+        ":Sinh",
         ":Softmax",
         ":Softplus",
         ":SparseFillEmptyRows",
@@ -601,6 +608,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "AvgPoolGrad",
+    srcs = ["kernels/AvgPoolGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
+tfjs_cc_library(
     name = "AvgPool3D",
     srcs = ["kernels/AvgPool3D.cc"],
     deps = [
@@ -644,6 +660,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":bincount_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "BitwiseAnd",
+    srcs = ["kernels/BitwiseAnd.cc"],
+    deps = [
+        ":backend",
+        ":binary",
         ":util",
     ],
 )
@@ -897,6 +923,15 @@ tfjs_cc_library(
     srcs = ["kernels/Equal.cc"],
     deps = [
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Erf",
+    srcs = ["kernels/Erf.cc"],
+    deps = [
+        ":unary",
         ":util",
     ],
 )
@@ -1178,6 +1213,15 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "MaxPoolGrad",
+    srcs = ["kernels/MaxPoolGrad.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+    ],
+)
+
 tfjs_unit_test(
     name = "MaxPool_test",
     srcs = ["kernels/MaxPool_test.cc"],
@@ -1206,6 +1250,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "MaxPoolWithArgmax",
+    srcs = ["kernels/MaxPoolWithArgmax.cc"],
+    deps = [
+        ":backend",
+        ":pool3d_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Min",
     srcs = ["kernels/Min.cc"],
     deps = [
@@ -1229,6 +1283,15 @@ tfjs_cc_library(
     srcs = ["kernels/MirrorPad.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
+    deps = [
+        ":binary",
         ":util",
     ],
 )
@@ -1510,6 +1573,15 @@ tfjs_cc_library(
         ":backend",
         ":sin_cos_workaround",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sinh",
+    srcs = ["kernels/Sinh.cc"],
+    deps = [
+        ":unary",
+        ":util",
     ],
 )
 
