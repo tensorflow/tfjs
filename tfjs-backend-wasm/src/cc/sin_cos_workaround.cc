@@ -69,10 +69,7 @@ float SinFixed(float x) { return SinZeroTo2PI(ShiftRadianToZeroTo2PI(x)); }
 
 float CosFixed(float x) { return CosZeroTo2PI(ShiftRadianToZeroTo2PI(x)); }
 
-float TanFixed(float x) {
-  // TODO: Check if this work on iOS 11/12.
-  return std::tan(x);
-}
+float TanFixed(float x) { return std::tan(x); }
 
 }  // namespace sin_cos_workaround
 }  // namespace tfjs
