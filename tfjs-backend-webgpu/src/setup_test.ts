@@ -69,6 +69,8 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradients',  // Failing on MacOS
       //'gradient with clones', // Failing on MacOS
+      // https://github.com/tensorflow/tfjs/issues/7618
+      'numbers exceed float32 precision',
     ],
   },
   {

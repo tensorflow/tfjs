@@ -32,6 +32,23 @@ describeWithFlags('tan', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('numbers exceed float32 precision', async () => {
+    const values = [
+      -608065414.8781943,
+      781902002.7943993,
+      -470910673.97399473,
+      1786759246.171617,
+      1873777868.5510726,
+      -1015107953.8969269,
+      830023227.6215034,
+    ];
+    const a = tf.tensor1d(values, 'float32');
+    const result = tf.tan(a);
+
+    const expected = [...new Float32Array(values).map((v) => Math.tan(v))];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('propagates NaNs', async () => {
     const a = tf.tensor1d([4, NaN, 0]);
     const res = tf.tan(a);
