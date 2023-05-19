@@ -66,12 +66,9 @@ export const spaceToBatchND = (args: {
   completePaddings.map(
       p => uniformData.push({type: 'int32', data: [p[0], p[1]]}));
   const paddedXT = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
-
   const result =
       reshape({inputs: {x: paddedXT}, backend, attrs: {shape: flattenShape}});
-
-  backend.disposeData(paddedXT.dataId)
-
+  backend.disposeData(paddedXT.dataId);
   return result;
 };
 

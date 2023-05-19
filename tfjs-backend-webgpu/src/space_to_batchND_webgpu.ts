@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getCoordsFromIndexSnippet, getCoordsXYZ, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {padCommon} from './pad_webgpu';
+import {getSwitchedCoords} from './transpose_webgpu';
+import {getCoordsDataType, getCoordsFromIndexSnippet, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SpaceToBatchNDProgram implements WebGPUProgram {
@@ -59,57 +61,19 @@ export class SpaceToBatchNDProgram implements WebGPUProgram {
   getUserCode(): string {
     const dtype = getCoordsDataType(this.outputShape.length);
     const switched = getSwitchedCoords(this.newDim);
-    const rank = this.xShape.length;
-    const inType = getCoordsDataType(rank);
-    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
-    const end = this.xShape
-                    .map(
-                        (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
-                            rank > 1 ? `[${i}]` : ''}`)
-                    .join(',');
-    const startValue = rank > 1 ? `${inType}(${start})` : `${start}`;
-    const endValue = rank > 1 ? `${inType}(${end})` : `${end}`;
 
-    const leftPadCondition =
-        rank > 1 ? `any(paddedCoords < start)` : `paddedCoords < start`;
-    const rightPadCondition =
-        rank > 1 ? `any(paddedCoords >= end)` : `paddedCoords >= end`;
-
-    const unpackedCoords = rank > 1 ?
-        ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
-        'coords';
     const userCode = `
       ${getCoordsFromIndexSnippet(this.paddedXShape, 'PaddedX')}
       ${main('index')} {
         if(index < uniforms.size) {
-          let resRC = getCoordsFromIndex(index);
+          let coords = getCoordsFromIndex(index);
           let switchedIndex = getIndexFromCoords${this.outputShape.length}D(${
         dtype}(${switched}), uniforms.reshapedPaddedXShape);
           let paddedCoords = getPaddedXCoordsFromIndex(switchedIndex);
-          let start = ${startValue};
-          let end = ${endValue};
-          if (${leftPadCondition} || ${rightPadCondition}) {
-            setOutputAtIndex(index, 0.0);
-          } else {
-            let coords = paddedCoords - start;
-            setOutputAtIndex(index, getX(${unpackedCoords}));
-          }
+          ${padCommon(this.xShape, true)}
         }
       }
     `;
     return userCode;
   }
-}
-
-function getSwitchedCoords(newDim: number[]): string {
-  const rank = newDim.length;
-  if (rank > 6) {
-    throw Error(`Transpose for rank ${rank} is not yet supported`);
-  }
-  const switchedCoords = new Array(rank);
-  for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
-  }
-
-  return switchedCoords.join();
 }
