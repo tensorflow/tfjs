@@ -55,6 +55,7 @@ import {makeTensor} from './tensor_ops_util';
  *   const customBackend = new tf.MathBackendWebGL(customCanvas);
  *   tf.registerBackend('custom-webgl', () => customBackend);
  * }
+ * const savedBackend = tf.getBackend();
  * await tf.setBackend('custom-webgl');
  * const gl = tf.backend().gpgpu.gl;
  * const texture = gl.createTexture();
@@ -94,6 +95,7 @@ import {makeTensor} from './tensor_ops_util';
  * // so:
  *
  * const tex = a.dataToGPU();
+ * await tf.setBackend(savedBackend);
  * ```
  *
  * ```js
@@ -146,6 +148,7 @@ import {makeTensor} from './tensor_ops_util';
  *   return gpuReadBuffer;
  * }
  *
+ * const savedBackend = tf.getBackend();
  * await tf.setBackend('webgpu').catch(
  *     () => {throw new Error(
  *         'Failed to use WebGPU backend. Please use Chrome Canary to run.')});
@@ -166,6 +169,7 @@ import {makeTensor} from './tensor_ops_util';
  * b.dispose();
  * result.dispose();
  * aBuffer.destroy();
+ * await tf.setBackend(savedBackend);
  * ```
  * @param values The values of the tensor. Can be nested array of numbers,
  *     or a flat array, or a `TypedArray`, or a `WebGLData` object, or a
