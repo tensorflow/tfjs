@@ -17,6 +17,7 @@
 
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-webgpu';
 
 import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
@@ -38,7 +39,7 @@ const DATA_URL = 'create_save_predict_data';
  *  - Make inference using each backends, and validate the results against
  *    Keras results.
  */
-describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
+describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
   beforeAll(() => {
@@ -54,6 +55,7 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
 
   LAYERS_MODELS.forEach(model => {
     it(`${model}.`, async () => {
+      await tfc.setBackend(env.name);
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
