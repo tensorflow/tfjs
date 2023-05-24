@@ -258,12 +258,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            [
-              this.elementsPerThread[0], this.elementsPerThread[1],
-              this.innerElementSize
-            ],
-            this.workgroupSize, !this.isChannelsLast, this.tileInner, false,
-            null, false, this.tileAOuter, this.tileBOuter) :
+            [this.innerElementSize, 4], this.workgroupSize,
+            !this.isChannelsLast, this.tileInner, false, null, false,
+            this.tileAOuter, this.tileBOuter) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
             this.tileInner, false, null, this.sequentialAccessByThreads);

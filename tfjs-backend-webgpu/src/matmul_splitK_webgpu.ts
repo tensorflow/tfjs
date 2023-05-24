@@ -97,8 +97,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       }
       ${
         component === 4 ? makeMatMulPackedVec4Source(
-                              this.elementsPerThread, this.workgroupSize,
-                              this.transposeA, 32, true, this.splitedDimInner) :
+                              [4, 4], this.workgroupSize, this.transposeA, 32,
+                              true, this.splitedDimInner) :
                           makeMatMulPackedSource(
                               this.elementsPerThread, this.workgroupSize,
                               this.transposeA, 32, true, this.splitedDimInner)}
