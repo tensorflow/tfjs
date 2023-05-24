@@ -32,7 +32,12 @@ if (isWebGPUSupported()) {
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
     const deviceDescriptor: GPUDeviceDescriptor = {};
-    deviceDescriptor.requiredFeatures = ['timestamp-query'];
+
+    if (adapter.features.has('timestamp-query')) {
+      deviceDescriptor.requiredFeatures = ['timestamp-query'];
+    } else {
+      deviceDescriptor.requiredFeatures = [];
+    }
 
     const adapterLimits = adapter.limits;
     deviceDescriptor.requiredLimits = {

@@ -119,12 +119,11 @@ export class WebGPUBackend extends KernelBackend {
   private pipelineCache:
       {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
   private programTimersStack: TimerNode[];
-
   private queryResolveBuffer: GPUBuffer = null;
   private querySet: GPUQuerySet = null;
   private querySetCount = 2;
-
   private stagingPendingDisposal: GPUBuffer[] = [];
+  private supportTimestampQuery: boolean;
   private uniformPendingDisposal: GPUBuffer[] = [];
   private uploadWaitMs = 0;
   private hasReadSyncWarned = false;
@@ -144,6 +143,7 @@ export class WebGPUBackend extends KernelBackend {
     this.commandEncoder = null;
     this.computePassEncoder = null;
     this.adapterInfo = new AdapterInfo(adapterInfo);
+    this.supportTimestampQuery = this.device.features.has('timestamp-query');
     this.thresholdToIncreaseWorkgroups =
         this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
 
@@ -941,7 +941,7 @@ export class WebGPUBackend extends KernelBackend {
 
     if (!this.computePassEncoder) {
       const computePassDescriptor: GPUComputePassDescriptor = {};
-      if (shouldTimeProgram) {
+      if (shouldTimeProgram && this.supportTimestampQuery) {
         if (this.querySet == null) {
           this.querySet = this.device.createQuerySet({
             type: 'timestamp',
@@ -968,44 +968,44 @@ export class WebGPUBackend extends KernelBackend {
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
             number <= this.dispatchCountInPass) {
       this.endComputePassEncoder();
-      let queryStagingBuffer;
-
       if (shouldTimeProgram) {
-        if (this.queryResolveBuffer == null) {
-          this.queryResolveBuffer = this.bufferManager.acquireBuffer(
-              this.querySetCount * 8,
-              GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST |
-                  GPUBufferUsage.QUERY_RESOLVE);
-        }
-        this.commandEncoder.resolveQuerySet(
-            this.querySet, 0, this.querySetCount, this.queryResolveBuffer, 0);
-
-        queryStagingBuffer = this.bufferManager.acquireBuffer(
-            this.querySetCount * 8,
-            GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
-
-        this.commandEncoder.copyBufferToBuffer(
-            this.queryResolveBuffer, 0, queryStagingBuffer, 0,
-            this.querySetCount * 8);
-      }
-
-      this.submitQueue();
-
-      if (shouldTimeProgram) {
-        this.activeTimers.push({
-          name: program.constructor.name,
-          query: this.getQueryTime(queryStagingBuffer)
-        });
+        this.activeTimers.push(
+            {name: program.constructor.name, query: this.getQueryTime()});
+      } else {
+        this.submitQueue();
       }
     }
   }
 
-  async getQueryTime(buffer: GPUBuffer) {
-    await buffer.mapAsync(GPUMapMode.READ);
-    const arrayBuffer = new BigUint64Array(buffer.getMappedRange());
+  async getQueryTime(): Promise<number> {
+    if (!this.supportTimestampQuery) {
+      return 0;
+    }
+
+    if (this.queryResolveBuffer == null) {
+      this.queryResolveBuffer = this.bufferManager.acquireBuffer(
+          this.querySetCount * 8,
+          GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST |
+              GPUBufferUsage.QUERY_RESOLVE);
+    }
+    this.commandEncoder.resolveQuerySet(
+        this.querySet, 0, this.querySetCount, this.queryResolveBuffer, 0);
+
+    const queryStagingBuffer = this.bufferManager.acquireBuffer(
+        this.querySetCount * 8,
+        GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+
+    this.commandEncoder.copyBufferToBuffer(
+        this.queryResolveBuffer, 0, queryStagingBuffer, 0,
+        this.querySetCount * 8);
+
+    this.submitQueue();
+
+    await queryStagingBuffer.mapAsync(GPUMapMode.READ);
+    const arrayBuffer = new BigUint64Array(queryStagingBuffer.getMappedRange());
     const time = Number(arrayBuffer[1] - arrayBuffer[0]) / 1000000;
-    buffer.unmap();
-    this.bufferManager.releaseBuffer(buffer);
+    queryStagingBuffer.unmap();
+    this.bufferManager.releaseBuffer(queryStagingBuffer);
     return time;
   }
 
