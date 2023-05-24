@@ -359,7 +359,7 @@ async function main() {
   // Build and publish all packages to a local Verdaccio repo for staging.
   console.log(
     chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
-  const verdaccio = await runVerdaccio();
+  const killVerdaccio = await runVerdaccio();
   try {
     for (const pkg of packages) {
       await publish(pkg, VERDACCIO_REGISTRY);
@@ -367,7 +367,7 @@ async function main() {
   } finally {
     // Make sure to kill the verdaccio server before exiting even if publish
     // throws an error. Otherwise, it blocks the port for the next run.
-    verdaccio.kill();
+    killVerdaccio();
   }
 
   if (args.dry) {
