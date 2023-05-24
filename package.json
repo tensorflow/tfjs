@@ -13,6 +13,7 @@
     "@rollup/plugin-commonjs": "^24.1.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@types/argparse": "^1.0.38",
+    "@types/dom-webcodecs": "0.1.7",
     "@types/emscripten": "~0.0.34",
     "@types/estree": "^0.0.51",
     "@types/inquirer": "^8.0.0",

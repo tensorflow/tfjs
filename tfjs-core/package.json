@@ -37,6 +37,7 @@
     "test-snippets": "bazel test :test_snippets_test --test_output=streamed"
   },
   "dependencies": {
+    "@types/dom-webcodecs": "0.1.7",
     "@types/long": "^4.0.1",
     "@types/offscreencanvas": "~2019.7.0",
     "@types/seedrandom": "^2.4.28",
