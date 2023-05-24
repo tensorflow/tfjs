@@ -19,17 +19,20 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as inquirer from 'inquirer';
-import { Separator } from 'inquirer';
+import {Separator} from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
 import rimraf from 'rimraf';
 import * as path from 'path';
+import {ChildProcess, fork} from 'child_process';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
   packages: string[];
   // The list of dependencies that all of the packages will update to.
+  // TODO(mattSoulanille): Parse this from package_dependencies.json or from the
+  // package.json file of each package.
   deps?: string[];
   // An ordered map of scripts, key is package name, value is an object with two
   // optional fields: `before-yarn` with scripts to run before `yarn`, and
@@ -146,7 +149,8 @@ export const E2E_PHASE: Phase = {
   packages: ['e2e'],
   deps: [
     'tfjs', 'tfjs-backend-cpu', 'tfjs-backend-wasm', 'tfjs-backend-webgl',
-    'tfjs-converter', 'tfjs-core', 'tfjs-data', 'tfjs-layers', 'tfjs-node'
+    'tfjs-backend-webgpu', 'tfjs-converter', 'tfjs-core', 'tfjs-data',
+    'tfjs-layers', 'tfjs-node'
   ],
 }
 
@@ -351,40 +355,34 @@ export function updateTFJSDependencyVersions(
 
   const parsedPkg = JSON.parse(pkg);
 
-  for (const dep of depsToReplace) {
-    const newVersion = versions.get(dep);
-    if (!newVersion) {
-      throw new Error(`No new version found for ${dep}`);
-    }
-    // Get the current dependency package version.
-    let version = '';
-    const depNpmName = `@tensorflow/${dep}`;
-    if (parsedPkg['dependencies'] != null &&
-        parsedPkg['dependencies'][depNpmName] != null) {
-      version = parsedPkg['dependencies'][depNpmName];
-    } else if (
-        parsedPkg['peerDependencies'] != null &&
-        parsedPkg['peerDependencies'][depNpmName] != null) {
-      version = parsedPkg['peerDependencies'][depNpmName];
-    } else if (
-        parsedPkg['devDependencies'] != null &&
-        parsedPkg['devDependencies'][depNpmName] != null) {
-      version = parsedPkg['devDependencies'][depNpmName];
-    }
-    if (version == null) {
-      throw new Error(`No dependency found for ${dep}.`);
-    }
+  const dependencyMaps: Array<{[index: string]: string}> = [
+    parsedPkg['dependencies'],
+    parsedPkg['peerDependencies'],
+    parsedPkg['devDependencies'],
+  ].filter(v => v != null);
 
-    let relaxedVersionPrefix = '';
-    if (version.startsWith('~') || version.startsWith('^')) {
-      relaxedVersionPrefix = version.slice(0, 1);
-    }
-    const versionLatest = relaxedVersionPrefix + newVersion;
+  for (const dependencyMap of dependencyMaps) {
+    for (const [name, version] of Object.entries(dependencyMap)) {
+      const prefix = '@tensorflow/';
+      if (name.startsWith(prefix) && version.startsWith('link:')) {
+        const tfjsName = name.slice(prefix.length);
+        const newVersion = versions.get(tfjsName);
+        if (newVersion == null) {
+          throw new Error(`Versions map does not include ${tfjsName}`);
+        }
 
-    pkg = `${pkg}`.replace(
-        new RegExp(`"${depNpmName}": "${version}"`, 'g'),
-        `"${depNpmName}": "${versionLatest}"`);
+        let relaxedVersionPrefix = '';
+        if (version.startsWith('~') || version.startsWith('^')) {
+          relaxedVersionPrefix = version.slice(0, 1);
+        }
+        const versionLatest = relaxedVersionPrefix + newVersion;
+        pkg = `${pkg}`.replace(
+          new RegExp(`"${name}": "${version}"`, 'g'),
+          `"${name}": "${versionLatest}"`);
+      }
+    }
   }
+
   return pkg;
 }
 
@@ -617,28 +615,46 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
   }
 }
 
-export function runVerdaccio() {
+export async function runVerdaccio(): Promise<ChildProcess> {
   // Remove the verdaccio package store.
   // TODO(mattsoulanille): Move the verdaccio storage and config file here
   // once the nightly verdaccio tests are handled by this script.
   rimraf.sync(path.join(__dirname, '../e2e/scripts/storage'));
-  // Start verdaccio.
-  const serverProcess = shell.exec(
-      'yarn verdaccio --config=e2e/scripts/verdaccio.yaml',
-      {
-        async: true,
-        silent: true,
-        cwd: path.join(__dirname, '../'),
-      },
-      (code, stdout, stderr) => {
-        if (code !== 0) {
-          console.log(`Verdaccio stopped with exit code ${code}`);
-          console.log(stdout);
-          console.log(stderr);
-        }
+
+  // Start verdaccio. It must be started directly from its binary so that IPC
+  // messaging works and verdaccio can tell node that it has started.
+  // https://verdaccio.org/docs/verdaccio-programmatically/#using-fork-from-child_process-module
+  const verdaccioBin = require.resolve('verdaccio/bin/verdaccio');
+  const serverProcess = fork(verdaccioBin, ['--config=e2e/scripts/verdaccio.yaml']);
+  const ready = new Promise<void>((resolve, reject) => {
+    const timeLimitMilliseconds = 30_000;
+    console.log(`Waiting ${timeLimitMilliseconds / 1000} seconds for ` +
+                'verdaccio to start....');
+    const timeout = setTimeout(() => {
+      serverProcess.kill();
+      reject(`Verdaccio did not start in ${timeLimitMilliseconds} seconds.`);
+    }, timeLimitMilliseconds);
+
+    serverProcess.on('message', (msg: {verdaccio_started: boolean}) => {
+      if (msg.verdaccio_started) {
+        console.log('Verdaccio Started.');
+        clearTimeout(timeout);
+        resolve();
       }
-  );
+    });
+  });
+
+  serverProcess.on('error', (err: unknown) => {
+    throw new Error(`Verdaccio error: ${err}`);
+  });
+  serverProcess.on('disconnect', (err: unknown) => {
+    throw new Error(`Verdaccio disconnected: ${err}`);
+  });
+
+  // Kill verdaccio when node exits.
   process.on('exit', () => {serverProcess.kill();});
+
+  await ready;
   return serverProcess;
 }
 
