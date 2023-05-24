@@ -115,9 +115,9 @@ const calculateResultSnippet =
         }
       }`;
       } else {
-        var bCachedStr = '';
-        var accStr = '';
-        for (var i = 0; i < innerElementSize; i++) {
+        let bCachedStr = '';
+        let accStr = '';
+        for (let i = 0; i < innerElementSize; i++) {
           bCachedStr += `let BCached${i} = mm_Bsub[k * ${innerElementSize} + ${
               i}][tileCol];`;
           accStr +=
@@ -137,8 +137,8 @@ const calculateResultSnippet =
 export function makeMatMulPackedVec4Source(
     componentSize:
         [
-          number /**components from mm_readA*/,
-          number /**components from mm_readB*/
+          number /*components from mm_readA*/,
+          number /*components from mm_readB*/
         ],
     workgroupSize: [number, number, number], transposeA = false, tileInner = 32,
     splitK = false, splitedDimInner = 32, broadcastBatch = false,
