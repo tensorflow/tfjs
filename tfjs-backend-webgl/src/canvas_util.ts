@@ -104,7 +104,8 @@ function getWebGLRenderingContext(
     return (
         canvas.getContext('webgl', WEBGL_ATTRIBUTES) as WebGLRenderingContext ||
         (canvas as HTMLCanvasElement)
-            .getContext('experimental-webgl', WEBGL_ATTRIBUTES));
+            .getContext('experimental-webgl',
+                        WEBGL_ATTRIBUTES) as WebGLRenderingContext);
   }
   return canvas.getContext('webgl2', WEBGL_ATTRIBUTES) as WebGLRenderingContext;
 }

@@ -28,7 +28,6 @@
     "@types/seedrandom": "^2.4.28",
     "@types/semver": "^7.3.9",
     "@types/shelljs": "^0.8.7",
-    "@types/webgl-ext": "0.0.30",
     "@webgpu/types": "0.1.30",
     "ajv": "~6.12.3",
     "argparse": "^1.0.10",
