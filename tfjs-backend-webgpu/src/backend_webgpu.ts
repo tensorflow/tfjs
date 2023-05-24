@@ -127,6 +127,7 @@ export class WebGPUBackend extends KernelBackend {
   private uniformPendingDisposal: GPUBuffer[] = [];
   private uploadWaitMs = 0;
   private hasReadSyncWarned = false;
+  private hasTimestampQueryWarned = false;
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -646,13 +647,14 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   override async time(f: () => void): Promise<WebGPUTimingInfo> {
-    if (!this.supportTimestampQuery) {
+    if (!this.supportTimestampQuery && !this.hasTimestampQueryWarned) {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
           `Start Chrome browser with flag ` +
           `--enable-dawn-features=allow_unsafe_apis to try it again. ` +
-          `Otherwise, zero will be shown for the kernel time when profiling` +
+          `Otherwise, zero will be shown for the kernel time when profiling ` +
           `mode is enabled.`);
+      this.hasTimestampQueryWarned = true;
     }
 
     const oldActiveTimers = this.activeTimers;
