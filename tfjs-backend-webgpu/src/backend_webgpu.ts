@@ -107,7 +107,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private activeTimers: TimerNode[];
   private commandEncoder: GPUCommandEncoder;
-  private computePass: GPUComputePassEncoder;
+  private computePassEncoder: GPUComputePassEncoder;
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private dispatchCountInPass = 0;
   private disposed = false;
@@ -142,7 +142,7 @@ export class WebGPUBackend extends KernelBackend {
     this.device = device;
     this.queue = device.queue;
     this.commandEncoder = null;
-    this.computePass = null;
+    this.computePassEncoder = null;
     this.adapterInfo = new AdapterInfo(adapterInfo);
     this.thresholdToIncreaseWorkgroups =
         this.adapterInfo.intelGPUGeneration >= 12 ? 16 : 8;
@@ -313,10 +313,10 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  ensureComputePassEnded() {
-    if (this.computePass) {
-      this.computePass.end();
-      this.computePass = null;
+  endComputePassEncoder() {
+    if (this.computePassEncoder) {
+      this.computePassEncoder.end();
+      this.computePassEncoder = null;
     }
   }
 
@@ -344,7 +344,7 @@ export class WebGPUBackend extends KernelBackend {
     const stagingBuffer = this.bufferManager.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
+    this.endComputePassEncoder();
     this.commandEncoder.copyBufferToBuffer(buffer, 0, stagingBuffer, 0, size);
     this.submitQueue();
 
@@ -418,7 +418,7 @@ export class WebGPUBackend extends KernelBackend {
         alphaModes.map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
     const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
 
-    this.ensureComputePassEnded();
+    this.endComputePassEncoder();
     stagingDeviceStorage
         .map((storage, index) => {
           const context = storage.getContext('webgpu');
@@ -543,7 +543,7 @@ export class WebGPUBackend extends KernelBackend {
     const usage = srcBuffer.usage;
     const dstBuffer = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
+    this.endComputePassEncoder();
     this.commandEncoder.copyBufferToBuffer(srcBuffer, 0, dstBuffer, 0, size);
     this.submitQueue();
     return dstBuffer;
@@ -613,7 +613,7 @@ export class WebGPUBackend extends KernelBackend {
     const usage = srcBuffer.usage;
     const buffer = this.bufferManager.acquireBuffer(size, usage);
     this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
+    this.endComputePassEncoder();
     this.commandEncoder.copyBufferToBuffer(
         resource as GPUBuffer, 0, buffer, 0, size);
     this.submitQueue();
@@ -745,7 +745,7 @@ export class WebGPUBackend extends KernelBackend {
         }
         stagingBuffer.unmap();
         this.ensureCommandEncoderReady();
-        this.ensureComputePassEnded();
+        this.endComputePassEncoder();
         this.commandEncoder.copyBufferToBuffer(
             stagingBuffer, 0, buffer, 0, size);
 
@@ -887,7 +887,7 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  private async recordAndSubmit(
+  private recordAndSubmit(
       program: webgpu_program.WebGPUProgram, output: TensorInfo,
       inputs: TensorInfo[], programDefinedUniform?: ProgramUniform) {
     if (program.pipeline instanceof Promise<GPUComputePipeline>) {
@@ -939,7 +939,7 @@ export class WebGPUBackend extends KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
     this.ensureCommandEncoderReady();
 
-    if (!this.computePass) {
+    if (!this.computePassEncoder) {
       const computePassDescriptor: GPUComputePassDescriptor = {};
       if (shouldTimeProgram) {
         if (this.querySet == null) {
@@ -954,20 +954,20 @@ export class WebGPUBackend extends KernelBackend {
           endOfPassWriteIndex: 1,
         };
       }
-      this.computePass =
+      this.computePassEncoder =
           this.commandEncoder.beginComputePass(computePassDescriptor);
     }
 
-    this.computePass.setPipeline(program.pipeline);
-    this.computePass.setBindGroup(0, bindGroup);
-    this.computePass.dispatchWorkgroups(
+    this.computePassEncoder.setPipeline(program.pipeline);
+    this.computePassEncoder.setBindGroup(0, bindGroup);
+    this.computePassEncoder.dispatchWorkgroups(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     this.dispatchCountInPass++;
 
     if (shouldTimeProgram ||
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
             number <= this.dispatchCountInPass) {
-      this.ensureComputePassEnded();
+      this.endComputePassEncoder();
       let queryStagingBuffer;
 
       if (shouldTimeProgram) {
@@ -994,13 +994,13 @@ export class WebGPUBackend extends KernelBackend {
       if (shouldTimeProgram) {
         this.activeTimers.push({
           name: program.constructor.name,
-          query: this.getTime(queryStagingBuffer)
+          query: this.getQueryTime(queryStagingBuffer)
         });
       }
     }
   }
 
-  async getTime(buffer: GPUBuffer) {
+  async getQueryTime(buffer: GPUBuffer) {
     await buffer.mapAsync(GPUMapMode.READ);
     const arrayBuffer = new BigUint64Array(buffer.getMappedRange());
     const time = Number(arrayBuffer[1] - arrayBuffer[0]) / 1000000;
