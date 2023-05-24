@@ -657,7 +657,7 @@ export async function runVerdaccio(): Promise<() => void> {
   const killVerdaccio = () => {
     serverProcess.off('disconnect', onUnexpectedDisconnect);
     serverProcess.kill();
-  }
+  };
 
   // Kill verdaccio when node exits.
   process.on('exit', killVerdaccio);
