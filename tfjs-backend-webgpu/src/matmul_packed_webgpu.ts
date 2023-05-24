@@ -104,21 +104,19 @@ const writeDataToSubAVec4Snippet =
 
 const calculateResultSnippet =
     (transposeA: boolean, innerElementSize: number, rowPerThread: number,
-     tileWidth: number, blockSize: number) => {
+     tileInner: number) => {
       if (transposeA) {
         return `
-        // TODO. It's not easy to support transposeA = true for any output tile
+      for (var k = 0; k < ${tileInner}; k++) {
+        let BCached0 = mm_Bsub[k][tileCol];
+        let ACached0 = mm_Asub[k][localRow];
         for (var i = 0; i < ${rowPerThread}; i++) {
-          let tIndex = tileIndex + (i * ${blockSize});
-          var tileRow = tIndex / ${tileWidth};
-          var tileCol = tIndex % ${tileWidth};
-          let BCached = mm_Bsub[k * ${innerElementSize}][tileCol];
-          let ACached = mm_Asub[k * ${innerElementSize}][tileRow / ${
-            rowPerThread}];
           acc[i] = fma(BCached0, vec4<f32>(ACached0[i]), acc[i]);
-        }`;
+        }
+      }`;
       } else {
         return `
+      for (var k = 0; k < ${tileInner / innerElementSize}; k++) {
         let BCached0 = mm_Bsub[k * ${innerElementSize}][tileCol];
         let BCached1 = mm_Bsub[k * ${innerElementSize} + 1][tileCol];
         let BCached2 = mm_Bsub[k * ${innerElementSize} + 2][tileCol];
@@ -135,7 +133,8 @@ const calculateResultSnippet =
             innerElementSize === 3 ?
                 '' :
                 'acc[i] = fma(BCached3, vec4<f32>(ACached.w), acc[i]);'}
-        }`;
+        }
+      }`;
       }
     };
 
@@ -143,8 +142,6 @@ export function makeMatMulPackedVec4Source(
     workPerThread: number[], workgroupSize: [number, number, number],
     transposeA = false, tileInner = 32, splitK = false, splitedDimInner = 32,
     broadcastBatch = false, tileAOuter = 32, tileBOuter = 32): string {
-  // const tileAOuter = workgroupSize[1] * workPerThread[1];
-  // const tileBOuter = workgroupSize[0] * workPerThread[0];
   const tileAWidth = transposeA ? tileAOuter : tileInner;
   const tileAHight = transposeA ? tileInner : tileAOuter;
   const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
@@ -171,7 +168,8 @@ export function makeMatMulPackedVec4Source(
 
   ${main()} {
     let tileIndex = i32(localIndex);
-    let tileRow = tileIndex / ${tileBOuter / 4} * ${rowPerThread};
+    let localRow = tileIndex / ${tileBOuter / 4};
+    let tileRow = localRow * ${rowPerThread};
     let tileCol = tileIndex % ${tileBOuter / 4};
     let batch = ${splitK ? '0' : 'i32(globalId.z)'};
     let batchA = ${
@@ -211,12 +209,9 @@ export function makeMatMulPackedVec4Source(
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < ${tileInner / innerElementSize}; k++) {
-            ${
+        ${
       calculateResultSnippet(
-          transposeA, innerElementSize, rowPerThread,
-          tileBOuter / workPerThread[0], workgroupSize[0] * workgroupSize[1])}
-        }
+          transposeA, innerElementSize, rowPerThread, tileInner)}
 
         workgroupBarrier();
     }
