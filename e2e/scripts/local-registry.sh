@@ -14,10 +14,10 @@
 # limitations under the License.
 # ==============================================================================
 
-custom_registry_url=http://localhost:4873
+custom_registry_url=http://127.0.0.1:4873
 original_npm_registry_url=`npm get registry`
 original_yarn_registry_url=`yarn config get registry`
-default_verdaccio_package=verdaccio@4.8.1
+default_verdaccio_package=verdaccio@5.9.0
 
 function startLocalRegistry {
   # Start local registry

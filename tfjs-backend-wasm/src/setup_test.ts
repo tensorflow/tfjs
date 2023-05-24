@@ -63,12 +63,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'depthToSpace'},
-  {
-    include: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
+  {include: 'avgPool '},
   {
     include: 'relu',
     excludes: [
@@ -83,9 +78,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
       'ignores NaNs',      // Actual != expected.
-      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {include: 'cropAndResize'},
@@ -415,6 +408,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'multinomial'},
   {include: 'unique'},
   {include: 'conv3d'},
+  {include: 'mod '},
 ];
 
 const customInclude = (testName: string) => {
