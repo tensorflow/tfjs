@@ -646,6 +646,15 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   override async time(f: () => void): Promise<WebGPUTimingInfo> {
+    if (!this.supportTimestampQuery) {
+      console.warn(
+          `This device doesn't support timestamp-query extension. ` +
+          `Start Chrome browser with flag ` +
+          `--enable-dawn-features=allow_unsafe_apis to try it again. ` +
+          `Otherwise, zero will be shown for the kernel time when profiling` +
+          `mode is enabled.`);
+    }
+
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
 
