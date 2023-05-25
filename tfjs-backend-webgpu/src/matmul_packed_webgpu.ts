@@ -568,15 +568,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
         this.fitInner}_${this.isVec4}_${this.isVectorA}_${
         this.sequentialAccessByThreads}_${this.tileInner}_${this.tileAOuter}_${
         this.tileBOuter}`;
-    if (this.isVec4) {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape,
-          [this.tileBOuter, this.tileAOuter, 1]);
-    } else {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workgroupSize,
-          this.elementsPerThread);
-    }
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape,
+        [this.tileBOuter, this.tileAOuter, 1]);
   }
 
   getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
