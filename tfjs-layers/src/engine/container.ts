@@ -652,6 +652,7 @@ export abstract class Container extends Layer {
   protected updatedConfig(): serialization.ConfigDict {
     const theConfig = this.getConfig();
     const modelConfig: serialization.ConfigDict = {};
+    modelConfig['module'] = __dirname;
     modelConfig['className'] = this.getClassName();
     modelConfig['modelConfig'] = theConfig;
     modelConfig['kerasVersion'] = `tfjs-layers ${layersVersion}`;

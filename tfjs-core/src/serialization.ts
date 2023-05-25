@@ -50,6 +50,8 @@ export declare interface ConfigDictArray extends Array<ConfigDictValue> {}
 export declare type SerializableConstructor<T extends Serializable> = {
   // tslint:disable-next-line:no-any
   new (...args: any[]): T; className: string; fromConfig: FromConfigMethod<T>;
+  packageName: string;
+  name?: string;
 };
 export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
@@ -82,6 +84,15 @@ export abstract class Serializable {
   getClassName(): string {
     return (this.constructor as SerializableConstructor<Serializable>)
         .className;
+  }
+
+  getPackageName(): string {
+    return (this.constructor as SerializableConstructor<Serializable>)
+        .packageName;
+  }
+
+  getName(): string {
+    return (this.constructor as SerializableConstructor<Serializable>).name;
   }
 
   /**
