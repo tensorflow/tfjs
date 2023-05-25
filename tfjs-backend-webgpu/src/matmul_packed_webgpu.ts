@@ -144,14 +144,19 @@ export function makeMatMulPackedVec4Source(
     splitK = false, splitedDimInner = 32, broadcastBatch = false,
     tileAOuter = 32, tileBOuter = 32): string {
   const innerElementSize = componentSize[0];
+  const colPerThread = componentSize[1];
+  const workgroupThreads = workgroupSize[0] * workgroupSize[1];
   const tileAWidthRaw = transposeA ? tileAOuter : tileInner;
   const tileAWidth = tileAWidthRaw / innerElementSize;
   const tileAHight = transposeA ? tileInner : tileAOuter;
-  const rowPerThread = !transposeA && tileAOuter < 4 ? tileAOuter : 4;
-  const colPerThread = componentSize[1];
   const tileBWidth = tileBOuter / colPerThread;
+  const rowPerThread = !transposeA &&
+          Math.ceil(
+              tileAOuter * tileBOuter / (workgroupThreads * colPerThread)) ===
+              1 ?
+      1 :
+      4;
   const requiredThreads = Math.ceil(tileAOuter / rowPerThread) * tileBWidth;
-  const workgroupThreads = workgroupSize[0] * workgroupSize[1];
   util.assert(
       ((transposeA && innerElementSize === rowPerThread) || !transposeA) &&
           tileAWidthRaw % innerElementSize === 0 &&
