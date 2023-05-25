@@ -959,11 +959,18 @@ export class WebGPUBackend extends KernelBackend {
             count: this.querySetCount,
           });
         }
-        computePassDescriptor.timestampWrites = {
-          querySet: this.querySet,
-          beginningOfPassWriteIndex: 0,
-          endOfPassWriteIndex: 1,
-        };
+        computePassDescriptor.timestampWrites = [
+          {
+            querySet: this.querySet,
+            queryIndex: 0,
+            location: 'beginning',
+          },
+          {
+            querySet: this.querySet,
+            queryIndex: 1,
+            location: 'end',
+          }
+        ];
       }
       this.computePassEncoder =
           this.commandEncoder.beginComputePass(computePassDescriptor);

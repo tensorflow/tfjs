@@ -12,11 +12,6 @@
   resolved "https://registry.yarnpkg.com/@bazel/ibazel/-/ibazel-0.16.2.tgz#05dd7f06659759fda30f87b15534f1e42f1201bb"
   integrity sha512-KgqAWMH0emL6f3xH6nqyTryoBMqlJ627LBIe9PT1PRRQPz2FtHib3FIHJPukp1slzF3hJYZvdiVwgPnHbaSOOA==
 
-"@types/dom-webcodecs@0.1.7":
-  version "0.1.7"
-  resolved "https://registry.npmjs.org/@types/dom-webcodecs/-/dom-webcodecs-0.1.7.tgz#29d3e7d4e0b9902676c599d74c1b6c15eafce714"
-  integrity sha512-1euwRyJ7rQrddOa24d5ZcoDRMp68xEIwyb7PKb3Wpc2OullUxHQ4a63WPa5V8R+KtCWISKjgS+f83HCUVhXS/w==
-
 "@types/long@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.1.tgz#459c65fa1867dafe6a8f322c4c51695663cc55e9"
@@ -37,10 +32,10 @@
   resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.30.tgz#0ce498c16a41a23d15289e0b844d945b25f0fb9d"
   integrity sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==
 
-"@webgpu/types@0.1.32":
-  version "0.1.32"
-  resolved "https://registry.npmjs.org/@webgpu/types/-/types-0.1.32.tgz#098ba131c16cc59406b6721f612238130b58846c"
-  integrity sha512-H6JRAvRonWxqREjxXMZgQmdgIFPe6mykLgdrHY7EQE7YihMKd/SjtSGilUmMKECVdUMg2IQB9vzaXDiTj1AxZg==
+"@webgpu/types@0.1.30":
+  version "0.1.30"
+  resolved "https://registry.npmjs.org/@webgpu/types/-/types-0.1.30.tgz#b6406dc4a1c1e0d469028ceb30ddffbbd2fa706c"
+  integrity sha512-9AXJSmL3MzY8ZL//JjudA//q+2kBRGhLBFpkdGksWIuxrMy81nFrCzj2Am+mbh8WoU6rXmv7cY5E3rdlyru2Qg==
 
 long@4.0.0:
   version "4.0.0"
