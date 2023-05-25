@@ -651,7 +651,7 @@ export class WebGPUBackend extends KernelBackend {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
           `Start Chrome browser with flag ` +
-          `--enable-dawn-features=allow_unsafe_apis to try it again. ` +
+          `--disable-dawn-features=disallow_unsafe_apis to try it again. ` +
           `Otherwise, zero will be shown for the kernel time when profiling ` +
           `mode is enabled.`);
       this.hasTimestampQueryWarned = true;
