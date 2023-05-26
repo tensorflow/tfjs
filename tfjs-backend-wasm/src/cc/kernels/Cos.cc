@@ -31,7 +31,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Cos(const int x_id, const DType dtype, const int out_id) {
-  unary_f32(x_id, out_id, tfjs::sin_cos_workaround::cos_fixed);
+  unary_f32(x_id, out_id, tfjs::sin_cos_workaround::CosFixed);
 }
 
 }  // extern "C"

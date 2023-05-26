@@ -444,7 +444,7 @@ type InputInfo = {
  * with each stride and decrements the index until the index equals the final
  * dimension coordinate.
  */
-function getCoordsFromIndexSnippet(shape: number[], name = ''): string {
+export function getCoordsFromIndexSnippet(shape: number[], name = ''): string {
   const rank = shape.length;
   const funcName = name !== '' ?
       `get${name.charAt(0).toUpperCase() + name.slice(1)}CoordsFromIndex` :
