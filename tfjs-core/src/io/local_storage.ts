@@ -16,11 +16,12 @@
  */
 
 import '../flags';
-import {env} from '../environment';
 
+import {env} from '../environment';
 import {assert} from '../util';
-import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
+
 import {CompositeArrayBuffer} from './composite_array_buffer';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelJSON, ModelStoreManager, SaveResult} from './types';
 
@@ -184,8 +185,7 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(this.keys.topology, topology);
         this.LS.setItem(this.keys.weightSpecs, weightSpecs);
         this.LS.setItem(
-            this.keys.weightData,
-            arrayBufferToBase64String(weightBuffer));
+            this.keys.weightData, arrayBufferToBase64String(weightBuffer));
 
         // Note that JSON.stringify doesn't write out keys that have undefined
         // values, so for some keys, we set undefined instead of a null-ish
@@ -208,6 +208,9 @@ export class BrowserLocalStorage implements IOHandler {
               undefined,
           trainingConfig: modelArtifacts.trainingConfig != null ?
               modelArtifacts.trainingConfig :
+              undefined,
+          dateSaved: modelArtifacts.dateSaved != null ?
+              modelArtifacts.dateSaved :
               undefined
         };
         this.LS.setItem(this.keys.modelMetadata, JSON.stringify(metadata));

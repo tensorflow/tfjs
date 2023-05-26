@@ -215,7 +215,7 @@ export declare interface TrainingConfig {
   loss_weights?: number[]|{[key: string]: number};
 }
 
-export type WeightData = ArrayBuffer | ArrayBuffer[];
+export type WeightData = ArrayBuffer|ArrayBuffer[];
 
 /**
  * The serialized artifacts of a model, including topology and weights.
@@ -301,6 +301,11 @@ export declare interface ModelArtifacts {
    * Inputs and outputs signature for model initializer.
    */
   initializerSignature?: {};
+
+  /**
+   * Date for model been saved.
+   */
+  dateSaved?: string;
 }
 
 /**
@@ -376,6 +381,11 @@ export declare interface ModelJSON {
    * Inputs and outputs signature for model initializer.
    */
   initializerSignature?: {};
+
+  /**
+   * Date for model been saved.
+   */
+  dateSaved?: string;
 }
 
 /**

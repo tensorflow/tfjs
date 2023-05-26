@@ -142,5 +142,8 @@
     "hash_map": "cpp",
     "__refstring": "cpp"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  }
 }

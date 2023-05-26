@@ -21,8 +21,8 @@ import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightData, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {CompositeArrayBuffer} from './composite_array_buffer';
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightData, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -112,8 +112,7 @@ export async function encodeWeights(
  * @throws Error, if any of the tensors has unsupported dtype.
  */
 export function decodeWeights(
-    weightData: WeightData,
-    specs: WeightsManifestEntry[]): NamedTensorMap {
+    weightData: WeightData, specs: WeightsManifestEntry[]): NamedTensorMap {
   // TODO(adarob, cais): Support quantization.
   const compositeBuffer = new CompositeArrayBuffer(weightData);
   const out: NamedTensorMap = {};
@@ -192,15 +191,15 @@ export function decodeWeights(
         const byteLength = new Uint32Array(
             compositeBuffer.slice(offset, offset + NUM_BYTES_STRING_LENGTH))[0];
         offset += NUM_BYTES_STRING_LENGTH;
-        const bytes = new Uint8Array(
-          compositeBuffer.slice(offset, offset + byteLength));
+        const bytes =
+            new Uint8Array(compositeBuffer.slice(offset, offset + byteLength));
         (values as Uint8Array[]).push(bytes);
         offset += byteLength;
       }
     } else {
       const dtypeFactor = DTYPE_VALUE_SIZE_MAP[dtype];
-      const byteBuffer = compositeBuffer.slice(offset,
-                                               offset + size * dtypeFactor);
+      const byteBuffer =
+          compositeBuffer.slice(offset, offset + size * dtypeFactor);
 
       if (dtype === 'float32') {
         values = new Float32Array(byteBuffer);
@@ -342,8 +341,8 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  *
  * @deprecated Use tf.io.CompositeArrayBuffer.join() instead.
  */
-export function concatenateArrayBuffers(buffers: ArrayBuffer[]
-      | ArrayBuffer): ArrayBuffer {
+export function concatenateArrayBuffers(buffers: ArrayBuffer[]|
+                                        ArrayBuffer): ArrayBuffer {
   return CompositeArrayBuffer.join(buffers);
 }
 
@@ -380,7 +379,8 @@ export function getModelJSONForModelArtifacts(
     format: artifacts.format,
     generatedBy: artifacts.generatedBy,
     convertedBy: artifacts.convertedBy,
-    weightsManifest: manifest
+    weightsManifest: manifest,
+    dateSaved: artifacts.dateSaved
   };
   if (artifacts.signature != null) {
     result.signature = artifacts.signature;
@@ -396,6 +396,9 @@ export function getModelJSONForModelArtifacts(
   }
   if (artifacts.trainingConfig != null) {
     result.trainingConfig = artifacts.trainingConfig;
+  }
+  if (artifacts.dateSaved != null) {
+    result.dateSaved = artifacts.dateSaved;
   }
   return result;
 }
@@ -414,7 +417,6 @@ export function getModelJSONForModelArtifacts(
 export function getModelArtifactsForJSONSync(
     modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
     weightData?: WeightData): ModelArtifacts {
-
   const modelArtifacts: ModelArtifacts = {
     modelTopology: modelJSON.modelTopology,
     format: modelJSON.format,
@@ -463,10 +465,11 @@ export function getModelArtifactsForJSONSync(
 export async function getModelArtifactsForJSON(
     modelJSON: ModelJSON,
     loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
-      /* weightSpecs */ WeightsManifestEntry[], WeightData,
+      /* weightSpecs */ WeightsManifestEntry[],
+      WeightData,
     ]>): Promise<ModelArtifacts> {
-  let weightSpecs: WeightsManifestEntry[] | undefined;
-  let weightData: WeightData | undefined;
+  let weightSpecs: WeightsManifestEntry[]|undefined;
+  let weightData: WeightData|undefined;
 
   if (modelJSON.weightsManifest != null) {
     [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);

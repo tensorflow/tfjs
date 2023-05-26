@@ -22,7 +22,7 @@ import {LossIdentifier} from '../keras_format/loss_config';
 import {OptimizerSerialization} from '../keras_format/optimizer_config';
 import {MetricsIdentifier, TrainingConfig} from '../keras_format/training_config';
 import {deserialize} from '../layers/serialization';
-import { disposeTensorsInLogs, UnresolvedLogs } from '../logs';
+import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
@@ -941,8 +941,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     }
 
     const outputsIsArray = Array.isArray(outputs);
-    const outputNames =
-        (outputsIsArray ? outputs : [outputs]);
+    const outputNames = (outputsIsArray ? outputs : [outputs]);
     const outputSymbolicTensors = this.retrieveSymbolicTensors(outputNames);
 
     // Format the input into a FeedDict.
@@ -1581,9 +1580,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
 
       const callbacks = standardizeCallbacks(args.callbacks, args.yieldEvery);
       const out = await this.fitLoop(
-          trainFunction, ins, outLabels, batchSize, args.epochs,
-          args.verbose, callbacks, valFunction, valIns, args.shuffle,
-          callbackMetrics, args.initialEpoch, null, null);
+          trainFunction, ins, outLabels, batchSize, args.epochs, args.verbose,
+          callbacks, valFunction, valIns, args.shuffle, callbackMetrics,
+          args.initialEpoch, null, null);
       return out;
     } finally {
       this.isTraining = false;
@@ -1629,12 +1628,12 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @returns A `History` object.
    */
   async fitLoop(
-      f: (data: Tensor[]) => Scalar[], ins: Tensor[], outLabels?:
-      string[], batchSize?: number, epochs?: number, verbose?: number,
-      callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[], valIns?:
-      Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
-      initialEpoch?: number, stepsPerEpoch?: number, validationSteps?: number):
-      Promise<History> {
+      f: (data: Tensor[]) => Scalar[], ins: Tensor[], outLabels?: string[],
+      batchSize?: number, epochs?: number, verbose?: number,
+      callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[],
+      valIns?: Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
+      initialEpoch?: number, stepsPerEpoch?: number,
+      validationSteps?: number): Promise<History> {
     if (batchSize == null) {
       batchSize = 32;
     }
@@ -1692,8 +1691,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
             'stepsPerEpoch mode is not implemented yet.');
       } else {
         if (shuffle === 'batch') {
-          throw new NotImplementedError('batch shuffling is not implemneted'
-                                        + ' yet');
+          throw new NotImplementedError(
+              'batch shuffling is not implemneted' +
+              ' yet');
         } else if (shuffle) {
           util.shuffle(indexArray);
         }
@@ -2140,8 +2140,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       format: LAYERS_MODEL_FORMAT_NAME,
       generatedBy: `TensorFlow.js tfjs-layers v${version}`,
       convertedBy: null,
+      dateSaved: this.getCurrentTime(),
     };
-
     const includeOptimizer = config == null ? false : config.includeOptimizer;
     if (includeOptimizer && this.optimizer != null) {
       modelArtifacts.trainingConfig = this.getTrainingConfig();
@@ -2191,6 +2191,25 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    */
   getUserDefinedMetadata(): {} {
     return this.userDefinedMetadata;
+  }
+
+  /**
+   * Get the current time string function.
+   *
+   * Used for dateSaved key in model artifacts.
+   *
+   * @returns Current time string in `YYYY-MM-DD@HH:MM:SS` format.
+   */
+  getCurrentTime(): string {
+    const now = new Date();
+    const year = now.getFullYear().toString().padStart(4, '0');
+    const month = now.getMonth().toString().padStart(2, '0');
+    const day = now.getDay().toString().padStart(2, '0');
+    const hour = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}@${hour}:${minutes}:${seconds}`;
   }
 }
 serialization.registerClass(LayersModel);
