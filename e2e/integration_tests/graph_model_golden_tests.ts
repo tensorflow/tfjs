@@ -40,7 +40,7 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
     // https://jasmine.github.io/2.0/introduction.html#section-42
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
-    await tfc.setBackend(env.name);
+    await tfc.setBackend(env.backendName);
   });
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
@@ -49,18 +49,16 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
     describe(goldenFilename, () => {
       it('model.predict(...)', async () => {
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
-        tfc.tidy(() => {
-          const outputs = model.predict(createGoldenInputTensors(modelGolden));
-          expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
-        });
+        const outputs = model.predict(createGoldenInputTensors(modelGolden));
+        await expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
+        tfc.dispose(outputs);
       });
 
       it('model.execute(...) with default outputs', async () => {
         const [modelGolden, model] = await loadModelGolden(goldenFilename);
-        tfc.tidy(() => {
-          const outputs = model.execute(createGoldenInputTensors(modelGolden));
-          expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
-        });
+        const outputs = model.execute(createGoldenInputTensors(modelGolden));
+        await expectTensorsToEqualGoldens(outputs, modelGolden.outputDetails);
+        tfc.dispose(outputs);
       });
 
       for (let batchId = 1; batchId <= INTERMEDIATE_NODE_TESTS_NUM; ++batchId) {
@@ -90,13 +88,13 @@ describeWithFlags(`${GOLDEN} graph_model_golden`, ALL_ENVS, (env) => {
                return details;
              });
 
-             tfc.tidy(() => {
-               const outputs = model.execute(
-                                   createGoldenInputTensors(modelGolden),
-                                   targetNodeNames) as tfc.Tensor[];
-               expect(outputs.length).toEqual(goldens.length);
-               expectTensorsToEqualGoldens(outputs, goldens);
-             });
+             const outputs = model.execute(
+                                 createGoldenInputTensors(modelGolden),
+                                 targetNodeNames) as tfc.Tensor[];
+
+             expect(outputs.length).toEqual(goldens.length);
+             await expectTensorsToEqualGoldens(outputs, goldens);
+             tfc.dispose(outputs);
            });
       }
     });
@@ -134,20 +132,20 @@ async function expectTensorsToEqualGoldens(
   expect(tensors).toEqual(jasmine.anything());
   expect(goldens).toEqual(jasmine.anything());
   if (tensors instanceof tfc.Tensor) {
-    expectTensorToEqualGolden(tensors, goldens as TensorDetail);
+    await expectTensorToEqualGolden(tensors, goldens as TensorDetail);
   } else if (Array.isArray(tensors)) {
     expect(Array.isArray(goldens)).toEqual(true);
     const details = goldens as TensorDetail[];
     expect(tensors.length).toEqual(details.length);
     for (let i = 0; i < tensors.length; ++i) {
-      expectTensorToEqualGolden(tensors[i], details[i]);
+      await expectTensorToEqualGolden(tensors[i], details[i]);
     }
   } else {
     const detailMap = goldens as Record<string, TensorDetail>;
     expect(new Set(Object.keys(detailMap)))
         .toEqual(new Set(Object.keys(tensors)));
     for (const [name, detail] of Object.entries(detailMap)) {
-      expectTensorToEqualGolden(tensors[name], detail);
+      await expectTensorToEqualGolden(tensors[name], detail);
     }
   }
 }
