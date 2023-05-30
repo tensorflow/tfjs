@@ -163,8 +163,8 @@ export class BrowserIndexedDB implements IOHandler {
           // models (~1GB) have problems saving if they are not concatenated.
           // TODO(mattSoulanille): Save large models to multiple indexeddb
           // records.
-          modelArtifacts.weightData = new CompositeArrayBuffer(
-            modelArtifacts.weightData).slice();
+          modelArtifacts.weightData = CompositeArrayBuffer.join(
+              modelArtifacts.weightData);
           const modelArtifactsInfo: ModelArtifactsInfo =
               getModelArtifactsInfoForJSON(modelArtifacts);
           // First, put ModelArtifactsInfo into info store.
