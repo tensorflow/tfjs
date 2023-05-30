@@ -377,13 +377,6 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   override readSync(dataId: object): BackendValues {
-    if (!this.hasReadSyncWarned) {
-      this.hasReadSyncWarned = true;
-      console.warn(
-          `The performance of synchronously reading data from GPU to CPU is ` +
-          `poor on the webgpu backend, please use asynchronous APIs instead.`);
-    }
-
     const tensorData = this.tensorMap.get(dataId);
     const {values, complexTensorInfos} = tensorData;
 
@@ -401,6 +394,13 @@ export class WebGPUBackend extends KernelBackend {
           'float32');
       this.convertAndCacheOnCPU(dataId, complexVals);
       return complexVals;
+    }
+
+    if (!this.hasReadSyncWarned) {
+      this.hasReadSyncWarned = true;
+      console.warn(
+          `The performance of synchronously reading data from GPU to CPU is ` +
+          `poor on the webgpu backend, please use asynchronous APIs instead.`);
     }
 
     const alphaModes: GPUCanvasAlphaMode[] = ['opaque', 'premultiplied'];
