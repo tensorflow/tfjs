@@ -53,6 +53,14 @@ describeMathCPUAndGPU('LayersModel.save', () => {
     expect(handler.savedArtifacts.convertedBy).toEqual(null);
   });
 
+  it('Save model artifact with dateSaved key', async () => {
+    const model = tfl.sequential();
+    const handler = new IOHandlerForTest();
+    model.add(tfl.layers.dense({units: 1, inputShape: [3]}));
+    await model.save(handler);
+    expect(handler.savedArtifacts.dateSaved).not.toBeNull();
+  })
+
   it('Saving all weights succeeds', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
