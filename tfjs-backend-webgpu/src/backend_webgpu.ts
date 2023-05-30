@@ -377,13 +377,6 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   override readSync(dataId: object): BackendValues {
-    if (!this.hasReadSyncWarned) {
-      this.hasReadSyncWarned = true;
-      console.warn(
-          `The performance of synchronously reading data from GPU to CPU is ` +
-          `poor on the webgpu backend, please use asynchronous APIs instead.`);
-    }
-
     const tensorData = this.tensorMap.get(dataId);
     const {values, complexTensorInfos} = tensorData;
 
@@ -401,6 +394,13 @@ export class WebGPUBackend extends KernelBackend {
           'float32');
       this.convertAndCacheOnCPU(dataId, complexVals);
       return complexVals;
+    }
+
+    if (!this.hasReadSyncWarned) {
+      this.hasReadSyncWarned = true;
+      console.warn(
+          `The performance of synchronously reading data from GPU to CPU is ` +
+          `poor on the webgpu backend, please use asynchronous APIs instead.`);
     }
 
     const alphaModes: GPUCanvasAlphaMode[] = ['opaque', 'premultiplied'];
@@ -950,28 +950,30 @@ export class WebGPUBackend extends KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
     this.ensureCommandEncoderReady();
 
-    if (!this.computePassEncoder) {
-      const computePassDescriptor: GPUComputePassDescriptor = {};
-      if (shouldTimeProgram && this.supportTimestampQuery) {
-        if (this.querySet == null) {
-          this.querySet = this.device.createQuerySet({
-            type: 'timestamp',
-            count: this.querySetCount,
-          });
-        }
-        computePassDescriptor.timestampWrites = [
-          {
-            querySet: this.querySet,
-            queryIndex: 0,
-            location: 'beginning',
-          },
-          {
-            querySet: this.querySet,
-            queryIndex: 1,
-            location: 'end',
-          }
-        ];
+    const computePassDescriptor: GPUComputePassDescriptor = {};
+    if (shouldTimeProgram && this.supportTimestampQuery) {
+      this.endComputePassEncoder();
+      if (this.querySet == null) {
+        this.querySet = this.device.createQuerySet({
+          type: 'timestamp',
+          count: this.querySetCount,
+        });
       }
+      computePassDescriptor.timestampWrites = [
+        {
+          querySet: this.querySet,
+          queryIndex: 0,
+          location: 'beginning',
+        },
+        {
+          querySet: this.querySet,
+          queryIndex: 1,
+          location: 'end',
+        }
+      ];
+      this.computePassEncoder =
+          this.commandEncoder.beginComputePass(computePassDescriptor);
+    } else if (!this.computePassEncoder) {
       this.computePassEncoder =
           this.commandEncoder.beginComputePass(computePassDescriptor);
     }
