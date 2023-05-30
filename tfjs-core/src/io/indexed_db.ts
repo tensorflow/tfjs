@@ -22,6 +22,7 @@ import {env} from '../environment';
 import {getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 const DATABASE_NAME = 'tensorflowjs';
 const DATABASE_VERSION = 1;
@@ -157,6 +158,13 @@ export class BrowserIndexedDB implements IOHandler {
           modelTx.oncomplete = () => db.close();
         } else {
           // Put model into object store.
+
+          // Concatenate all the model weights into a single ArrayBuffer. Large
+          // models (~1GB) have problems saving if they are not concatenated.
+          // TODO(mattSoulanille): Save large models to multiple indexeddb
+          // records.
+          modelArtifacts.weightData = new CompositeArrayBuffer(
+            modelArtifacts.weightData).slice();
           const modelArtifactsInfo: ModelArtifactsInfo =
               getModelArtifactsInfoForJSON(modelArtifacts);
           // First, put ModelArtifactsInfo into info store.
