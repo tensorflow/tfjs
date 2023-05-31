@@ -1,4 +1,4 @@
-/* Copyright 2019 Google LLC. All Rights Reserved.
+/* Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,22 +16,36 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
+#include <cmath>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
+
+namespace {
+template <typename T>
+inline T ErfImpl(T n) {
+  return static_cast<T>(std::erff(static_cast<float>(n)));
+}
+}  // namespace
+
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sin(const int x_id, const DType dtype, const int out_id) {
-  unary_f32(x_id, out_id, tfjs::sin_cos_workaround::SinFixed);
+
+void Erf(const int x_id, const DType dtype, const int out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_f32(x_id, out_id, ErfImpl<float>);
+      break;
+    default:
+      util::warn("Erf for tensor id %d failed. Unsupported dtype %d", x_id,
+                 dtype);
+  }
 }
 
 }  // extern "C"

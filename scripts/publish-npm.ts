@@ -55,6 +55,25 @@ async function retry<T>(f: () => T, tries = 3, sleep=5_000): Promise<T> {
   throw lastError;
 }
 
+/**
+ * For sets `a` and `b`, compute the set difference `a \ b`
+ *
+ * The set difference of `a` and `b`, denoted `a \ b`, is the set containing all
+ * elements of `a` that are not in `b`
+ *
+ * @param a The set to subtract from
+ * @param b The set to remove from `a` when creating the output set
+ */
+function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  const difference = new Set<T>();
+  for (const val of a) {
+    if (!b.has(val)) {
+      difference.add(val);
+    }
+  }
+  return difference;
+}
+
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
   action: 'storeTrue',
@@ -87,6 +106,11 @@ parser.addArgument(['--auto-publish-local-newer'], {
   action: 'storeTrue',
   help: 'Automatically publish local packages that have newer versions than'
       + ' the packages in the registry',
+});
+
+parser.addArgument(['--ci'], {
+  action: 'storeTrue',
+  help: 'Enable CI bazel flags for faster compilation. No effect on results.',
 });
 
 parser.addArgument(['packages'], {
@@ -268,23 +292,19 @@ async function main() {
   // 3. Interactively on the command line.
   let packages: string[];
   if (args.packages.length > 0) {
-    // Get packages to publish from args
-    const errorMessages: string[] = [];
+    // Get packages to publish from the 'packages' arg
     // Filter from the set of all packages to make sure they end up
     // in topological order.
     const allPackages = getPackages(PUBLISHABLE_RELEASE_UNITS);
-    const toPublish = new Set(args.packages);
-    packages = allPackages.filter(pkg => {
-      if (!toPublish.has(pkg)) {
-        errorMessages.push(`Package ${pkg} is not a tfjs package.`);
-        return false;
-      }
-      return true;
-    })
+    const requestedPackages = new Set(args.packages);
+    packages = allPackages.filter(pkg => requestedPackages.has(pkg));
 
-    if (errorMessages.length > 0) {
-      throw new Error(errorMessages.join('\n') +
-        `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
+    // Check if there are any unsupported packages requested by the user
+    const unsupportedPackages = setDifference(requestedPackages,
+                                              new Set(packages));
+    if (unsupportedPackages.size > 0) {
+      throw new Error(`Can not publish ${[...unsupportedPackages]}. `
+              + `Supported packages are:\n${[...ALL_PACKAGES].join('\n')}`);
     }
   } else if (args.auto_publish_local_newer) {
     // Automatically select packages based on npm versions
@@ -323,9 +343,14 @@ async function main() {
   // efficiency.
   const bazelTargets = packages.filter(pkg => BAZEL_PACKAGES.has(pkg))
     .map(name => `//${name}:${name}_pkg`);
+
+  const bazelArgs = ['bazel', 'build']
+  if (args.ci) {
+    bazelArgs.push('--config=ci');
+  }
   // Use child_process.spawnSync to show bazel build progress.
   const result = child_process.spawnSync('yarn',
-                                         ['bazel', 'build', ...bazelTargets],
+                                         [...bazelArgs, ...bazelTargets],
                                          {stdio:'inherit'});
   if (result.status !== 0) {
     throw new Error(`Bazel process failed with exit code ${result.status}`);
@@ -334,7 +359,7 @@ async function main() {
   // Build and publish all packages to a local Verdaccio repo for staging.
   console.log(
     chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
-  const verdaccio = runVerdaccio();
+  const killVerdaccio = await runVerdaccio();
   try {
     for (const pkg of packages) {
       await publish(pkg, VERDACCIO_REGISTRY);
@@ -342,7 +367,7 @@ async function main() {
   } finally {
     // Make sure to kill the verdaccio server before exiting even if publish
     // throws an error. Otherwise, it blocks the port for the next run.
-    verdaccio.kill();
+    killVerdaccio();
   }
 
   if (args.dry) {

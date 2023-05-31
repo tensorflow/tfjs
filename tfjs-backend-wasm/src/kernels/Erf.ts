@@ -1,4 +1,6 @@
-/* Copyright 2021 Google LLC. All Rights Reserved.
+/**
+ * @license
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,23 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * ===========================================================================*/
+ * =============================================================================
+ */
 
-#ifndef SIN_COS_WORKAROUND_H_
-#define SIN_COS_WORKAROUND_H_
+import {Erf, KernelConfig} from '@tensorflow/tfjs-core';
 
-// Workaround a bug related to sin/cos with emscripten/webkit on iOS 11/12:
-// https://github.com/emscripten-core/emscripten/issues/13130
-namespace tfjs {
-namespace sin_cos_workaround {
+import {createUnaryKernelConfig} from './unary_kernel';
 
-float SinFixed(float x);
-
-float CosFixed(float x);
-
-float TanFixed(float x);
-
-}  // namespace sin_cos_workaround
-}  // namespace tfjs
-
-#endif  // SIN_COS_WORKAROUND_H_
+export const erfConfig: KernelConfig = createUnaryKernelConfig(Erf);

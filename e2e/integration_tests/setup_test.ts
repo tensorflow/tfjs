@@ -47,7 +47,8 @@ registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
 
 // TODO: Support test windows on WebGPU. Bug:
 // https://github.com/tensorflow/tfjs/issues/7616.
-if (navigator.platform.toUpperCase().indexOf('MAC') >= 0) {
+if (navigator.platform.toUpperCase().indexOf('MAC') >= 0 &&
+    (window as any).chrome != null) {
   registerTestEnv({
     name: 'webgpu',
     backendName: 'webgpu',
