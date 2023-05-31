@@ -972,27 +972,37 @@ export abstract class Container extends Layer {
    *    subclasses: ['LayersModel']
    * }
    */
-  getLayer(name?: string, index?: number): Layer {
+  getLayer(name: string): Layer;
+  getLayer(index: number): Layer;
+  getLayer(name: string, index: number): Layer;
+  getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-            `Was asked to retrieve layer at index ${index}, but model only ` +
-            `has ${this.layers.length} layer(s).`);
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
+      }
+      if (typeof nameOrIndex === 'number') {
+        return this.findLayer(nameOrIndex);
       }
     }
 
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+
+  findLayer(index: number): Layer {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+          `Was asked to retrieve layer at index ${index}, but model only ` +
+          `has ${this.layers.length} layer(s).`);
+    } else {
+      return this.layers[index];
+    }
   }
 
   /**
