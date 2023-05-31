@@ -972,15 +972,18 @@ export abstract class Container extends Layer {
    *    subclasses: ['LayersModel']
    * }
    */
+  getLayer(name: string): Layer;
+  getLayer(index: number): Layer;
+  getLayer(name: string, index: number): Layer;
   getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
       return this.findLayer(index);
     } else {
-      if (nameOrIndex != null && typeof nameOrIndex === 'number') {
-        return this.findLayer(nameOrIndex);
-      }
       if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
+      }
+      if (typeof nameOrIndex === 'number') {
+        return this.findLayer(nameOrIndex);
       }
     }
 
