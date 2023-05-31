@@ -24,10 +24,6 @@ import {isWebGPUSupported} from './webgpu_util';
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
-    // Remove it once we figure out how to correctly read the tensor data
-    // before the tensor is disposed in profiling mode.
-    env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
-
     const gpuDescriptor: GPURequestAdapterOptions = {
       powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ?
           'low-power' :
@@ -37,14 +33,8 @@ if (isWebGPUSupported()) {
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
-    // Note that timestamp-query-inside-passes is not formally in spec as
-    // timestamp within a pass is not generally supported on all the platforms.
-    // More details can be found at
-    // https://github.com/gpuweb/gpuweb/blob/main/proposals/timestamp-query-inside-passes.md
-    if (adapter.features.has('timestamp-query-inside-passes')) {
-      deviceDescriptor.requiredFeatures =
-          // tslint:disable-next-line:no-any
-          ['timestamp-query-inside-passes' as any];
+    if (adapter.features.has('timestamp-query')) {
+      deviceDescriptor.requiredFeatures = ['timestamp-query'];
     }
 
     const adapterLimits = adapter.limits;

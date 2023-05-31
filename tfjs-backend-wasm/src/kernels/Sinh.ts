@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Sinh} from '@tensorflow/tfjs-core';
 
-import {makeRollupConfig} from 'make_rollup_config/make_rollup_config';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-export default makeRollupConfig({
-  globals: TEMPLATE_globals,
-  external: TEMPLATE_external,
-  leave_as_require: TEMPLATE_leave_as_require,
-  terser: TEMPLATE_minify,
-  es5: TEMPLATE_es5,
-  vis_filename: 'TEMPLATE_stats',
-});
+export const sinhConfig: KernelConfig = createUnaryKernelConfig(Sinh);

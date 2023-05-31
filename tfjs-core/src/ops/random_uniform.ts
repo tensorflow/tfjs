@@ -40,6 +40,9 @@ import {UniformRandom} from './rand_util';
  * @param maxval The upper bound on the range of random values to generate.
  *   Defaults to 1.
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ * @param seed An optional int. Defaults to 0. If seed is set to be non-zero,
+ *   the random number generator is seeded by the given seed. Otherwise, it is
+ *   seeded by a random seed.
  *
  * @doc {heading: 'Tensors', subheading: 'Random'}
  */

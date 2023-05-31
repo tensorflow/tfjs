@@ -39,6 +39,12 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     expectArraysClose(await y.data(), [0.5, 0.5]);
   });
 
+  it('odd number of inputs', async () => {
+    const y = tf.softmax(tf.tensor1d([-400, -400, 0, -400, -400, -400, -400]));
+
+    expectArraysClose(await y.data(), [0, 0, 1, 0, 0, 0, 0]);
+  });
+
   it('Huge difference between probabilities', async () => {
     const y = tf.softmax(tf.tensor1d([-1000, +1000]));
 

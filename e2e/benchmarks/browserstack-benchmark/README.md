@@ -141,6 +141,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --localBuild=core,webgl,wasm,cpu,layers,converter,automl
     ```
+  * --npmVersion
+    - Specify the npm version of TFJS library to benchmark. By default the latest version of TFJS will be benchmarked. 
+   ``` shell
+    node app.js --npmVersion=4.4.0 
+   ```
 
 ## Custom model
 The custom model is supported, but is constrained by:

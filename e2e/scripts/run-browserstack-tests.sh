@@ -23,7 +23,12 @@ set -e
 TAGS="#SMOKE,#REGRESSION"
 TAGS_WITH_GOLDEN="$TAGS,#GOLDEN"
 
-# Test windows 10 with golden model tests
+# Test macOS with smoke/regression tests.
+# Skip golden tests because they time out on browserstack (they work locally).
+# TODO(mattSoulanille): Make golden tests work on BrowserStack Mac.
+COMMANDS+=("yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'")
+
+# Test windows 10 with smoke/regression/golden tests.
 COMMANDS+=("yarn run-browserstack --browsers=win_10_chrome --tags '$TAGS_WITH_GOLDEN'")
 
 # Test script tag bundles
@@ -35,7 +40,6 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
     "yarn run-browserstack --browsers=bs_ios_12 --tags '$TAGS' --testEnv webgl --flags '{\"\\"\"WEBGL_VERSION\"\\"\": 1, \"\\"\"WEBGL_CPU_FORWARD\"\\"\": false, \"\\"\"WEBGL_SIZE_UPLOAD_UNIFORM\"\\"\": 0}'"
     "yarn run-browserstack --browsers=bs_safari_mac --tags '$TAGS' --testEnv webgl --flags '{\"\\"\"WEBGL_VERSION\"\\"\": 1, \"\\"\"WEBGL_CPU_FORWARD\"\\"\": false, \"\\"\"WEBGL_SIZE_UPLOAD_UNIFORM\"\\"\": 0}'"
     "yarn run-browserstack --browsers=bs_firefox_mac --tags '$TAGS'"
-    "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'"
     "yarn run-browserstack --browsers=bs_android_10 --tags '$TAGS'"
     # Test script tag bundles
     "karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js --browserstack --browsers=bs_chrome_mac"

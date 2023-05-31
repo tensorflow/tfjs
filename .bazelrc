@@ -12,6 +12,9 @@ build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
+# Avoid unused function error `xnn_vlog` when building XNNPACK with `-c opt`.
+build:xnnpack-opt --copt="-DXNN_LOG_TO_STDIO=0"
+build:xnnpack-opt --define=xnn_log_level=none
 
 # The following --define=EXECUTOR=remote will be able to be removed
 # once https://github.com/bazelbuild/bazel/issues/7254 is fixed
@@ -51,6 +54,7 @@ build:ci --config=bes
 # See https://github.com/angular/angular/issues/27514.
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
+test --incompatible_strict_action_env
 
 # Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
 # Remote builds are sandboxed.
@@ -70,11 +74,13 @@ run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
 # Make python debugging refer to the real files instead of symlinks
+build --action_env=PYDEVD_RESOLVE_SYMLINKS=true
 run --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+test --action_env=PYDEVD_RESOLVE_SYMLINKS=true
 
 # Platform specific DISPLAY environment variable for webgl and headless setting
 # for browser tests.
-test:linux --test_env=DISPLAY
+test:linux --test_env=DISPLAY --test_env=XAUTHORITY=/run/user/1001/.mutter-Xwaylandauth.ONEU31
 test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true --//:headless=false
 

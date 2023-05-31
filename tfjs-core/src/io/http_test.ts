@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {BROWSER_ENVS, CHROME_ENVS, describeWithFlags, NODE_ENVS} from '../jasmine_util';
 import {HTTPRequest, httpRouter, parseUrl} from './http';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 // Test data.
 const modelTopology1: {} = {
@@ -161,7 +162,8 @@ describeWithFlags('http-load fetch', NODE_ENVS, () => {
     expect(modelArtifacts.generatedBy).toEqual('1.15');
     expect(modelArtifacts.convertedBy).toEqual('1.3.1');
     expect(modelArtifacts.userDefinedMetadata).toEqual({});
-    expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+    expect(new Float32Array(CompositeArrayBuffer.join(
+        modelArtifacts.weightData))).toEqual(floatData);
   });
 
   it('throw exception if no fetch polyfill', () => {
@@ -507,7 +509,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       expect(modelArtifacts.userDefinedMetadata).toEqual({});
       expect(modelArtifacts.modelInitializer).toEqual({});
 
-      expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+      expect(new Float32Array(CompositeArrayBuffer.join(modelArtifacts
+          .weightData))).toEqual(floatData);
       expect(Object.keys(requestInits).length).toEqual(2);
       // Assert that fetch is invoked with `window` as the context.
       expect(fetchSpy.calls.mostRecent().object).toEqual(window);
@@ -550,7 +553,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
-      expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+      expect(new Float32Array(CompositeArrayBuffer.join(modelArtifacts
+          .weightData))).toEqual(floatData);
       expect(Object.keys(requestInits).length).toEqual(2);
       expect(Object.keys(requestInits).length).toEqual(2);
       expect(requestInits['./model.json'].headers['header_key_1'])
@@ -599,8 +603,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
-      expect(new Float32Array(modelArtifacts.weightData))
-          .toEqual(new Float32Array([1, 3, 3, 7, 4]));
+      expect(new Float32Array(CompositeArrayBuffer.join(modelArtifacts
+        .weightData))).toEqual(new Float32Array([1, 3, 3, 7, 4]));
     });
 
     it('2 groups, 2 weight, 2 paths', async () => {
@@ -644,8 +648,9 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       expect(modelArtifacts.weightSpecs)
           .toEqual(
               weightsManifest[0].weights.concat(weightsManifest[1].weights));
-      expect(new Float32Array(modelArtifacts.weightData))
-          .toEqual(new Float32Array([1, 3, 3, 7, 4]));
+      expect(new Float32Array(CompositeArrayBuffer.join(
+          modelArtifacts.weightData)))
+              .toEqual(new Float32Array([1, 3, 3, 7, 4]));
     });
 
     it('2 groups, 2 weight, 2 paths, Int32 and Uint8 Data', async () => {
@@ -689,10 +694,10 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       expect(modelArtifacts.weightSpecs)
           .toEqual(
               weightsManifest[0].weights.concat(weightsManifest[1].weights));
-      expect(new Int32Array(modelArtifacts.weightData.slice(0, 12)))
-          .toEqual(new Int32Array([1, 3, 3]));
-      expect(new Uint8Array(modelArtifacts.weightData.slice(12, 14)))
-          .toEqual(new Uint8Array([7, 4]));
+      expect(new Int32Array(CompositeArrayBuffer.join(modelArtifacts.weightData)
+        .slice(0, 12))).toEqual(new Int32Array([1, 3, 3]));
+      expect(new Uint8Array(CompositeArrayBuffer.join(modelArtifacts.weightData)
+        .slice(12, 14))).toEqual(new Uint8Array([7, 4]));
     });
 
     it('topology only', async () => {
@@ -752,10 +757,11 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       expect(modelArtifacts.weightSpecs)
           .toEqual(
               weightsManifest[0].weights.concat(weightsManifest[1].weights));
-      expect(new Int32Array(modelArtifacts.weightData.slice(0, 12)))
-          .toEqual(new Int32Array([1, 3, 3]));
-      expect(new Float32Array(modelArtifacts.weightData.slice(12, 20)))
-          .toEqual(new Float32Array([-7, -4]));
+      expect(new Int32Array(CompositeArrayBuffer.join(modelArtifacts.weightData)
+          .slice(0, 12))).toEqual(new Int32Array([1, 3, 3]));
+      expect(new Float32Array(CompositeArrayBuffer
+          .join(modelArtifacts.weightData)
+          .slice(12, 20))).toEqual(new Float32Array([-7, -4]));
     });
 
     it('Missing modelTopology and weightsManifest leads to error', async () => {
@@ -840,7 +846,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
-      expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+      expect(new Float32Array(CompositeArrayBuffer.join(
+          modelArtifacts.weightData))).toEqual(floatData);
       expect(Object.keys(requestInits).length).toEqual(2);
       expect(Object.keys(requestInits).length).toEqual(2);
       expect(requestInits['./model.json'].headers['header_key_1'])
@@ -902,7 +909,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
-    expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+    expect(new Float32Array(CompositeArrayBuffer
+        .join(modelArtifacts.weightData))).toEqual(floatData);
 
     expect(fetchInputs).toEqual(['./model.json', './weightfile0']);
     expect(fetchInits.length).toEqual(2);
