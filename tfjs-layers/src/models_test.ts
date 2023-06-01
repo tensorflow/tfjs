@@ -160,15 +160,13 @@ describeMathCPU('Nested model topology', () => {
             {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'})
       ]
     });
-    expect(outerModel.getLayer(null, 0) instanceof tfl.Sequential)
-        .toEqual(true);
+    expect(outerModel.getLayer(0) instanceof tfl.Sequential).toEqual(true);
     // Expect all-one values based on the kernel and bias initializers specified
     // above.
-    expectTensorsClose(
-        outerModel.getLayer(null, 1).getWeights()[0], ones([2, 1]));
-    expectTensorsClose(outerModel.getLayer(null, 1).getWeights()[1], ones([1]));
+    expectTensorsClose(outerModel.getLayer(1).getWeights()[0], ones([2, 1]));
+    expectTensorsClose(outerModel.getLayer(1).getWeights()[1], ones([1]));
     // Expect there to be only two layers.
-    expect(() => outerModel.getLayer(null, 2)).toThrow();
+    expect(() => outerModel.getLayer(2)).toThrow();
   });
 
   it('getWeights() works for nested sequential model', () => {
@@ -1080,8 +1078,8 @@ describeMathCPU('loadLayersModel from URL', () => {
              });
            });
 
-       const model = await loadLayersModel(
-           io.browserHTTPRequest('model/model.json', {
+       const model =
+           await loadLayersModel(io.browserHTTPRequest('model/model.json', {
              requestInit: {
                headers: {'header_key_1': 'header_value_1'},
                credentials: 'include',
@@ -1294,7 +1292,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 * 8 + 4 * 1 + 4);
+        .toEqual(4 * 8 + 4 * 1 + 4);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1353,8 +1351,8 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // The second part comes from the bias of the dense layer, which has 1
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
-    expect(new io.CompositeArrayBuffer(weightData)
-      .byteLength).toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+    expect(new io.CompositeArrayBuffer(weightData).byteLength)
+        .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1414,7 +1412,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+        .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1472,7 +1470,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
+        .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1535,7 +1533,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+        .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1594,7 +1592,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
+        .toEqual(4 + 4 * 8 * 3 + 4 * 1 * 3);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
@@ -1652,7 +1650,7 @@ describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
     // element and is also 4 bytes.
     const weightData = savedArtifacts.weightData;
     expect(new io.CompositeArrayBuffer(weightData).byteLength)
-      .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
+        .toEqual(4 + 4 * 8 * 2 + 4 * 1 * 2);
 
     // Load the model back, with the optimizer.
     const model2 = await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
