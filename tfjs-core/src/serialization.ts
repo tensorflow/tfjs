@@ -54,14 +54,10 @@ export declare type SerializableConstructor<T extends Serializable> = {
 export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
 
-// export const GLOBALCUSTOMOBJECT:
-//     {[key: string]: SerializableConstructor<Serializable>} = {};
-export const GLOBALCUSTOMOBJECT =
+const GLOBAL_CUSTOM_OBJECT =
     new Map<string, SerializableConstructor<Serializable>>();
 
-// export const GLOBALCUSTOMNAMES: {[key:
-// SerializableConstructor<Serializable>]: string} = {};
-export const GLOBALCUSTOMNAMES =
+const GLOBAL_CUSTOM_NAMES =
     new Map<SerializableConstructor<Serializable>, string>();
 
 
@@ -214,7 +210,7 @@ export class SerializationMap {
  * @param pkg The pakcage name that this class belongs to. This used to define
  *     the key in GlobalCustomObject. If not defined, it defaults to `Custom`.
  * @param name The name that user specified. It defaults to the actual name of
- *     the class.
+ *     the class as specified by its static `className` property.
  * @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true}
  */
 export function registerClass<T extends Serializable>(
@@ -243,19 +239,19 @@ export function registerClass<T extends Serializable>(
   const className = name;
   const registerName = pkg + '>' + className;
 
-  if (GLOBALCUSTOMOBJECT.has(registerName)) {
+  if (GLOBAL_CUSTOM_OBJECT.has(registerName)) {
     throw new Error(
-        `The name "${registerName}" has been registered with class: ${
-            GLOBALCUSTOMOBJECT.get(registerName)}`);
+        `The name "${registerName}" has already been registered with class: ${
+            GLOBAL_CUSTOM_OBJECT.get(registerName)}`);
   }
-  if (GLOBALCUSTOMNAMES.has(cls)) {
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
     throw new Error(
-        `The class "${cls.className}" has been registered with name: ${
-            GLOBALCUSTOMNAMES.get(cls)}`);
+        `The class "${cls.className}" has already been registered with name: ${
+            GLOBAL_CUSTOM_NAMES.get(cls)}`);
   }
   SerializationMap.register(cls);
-  GLOBALCUSTOMOBJECT.set(registerName, cls);
-  GLOBALCUSTOMNAMES.set(cls, registerName);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
 
   return cls;
 }
@@ -270,8 +266,8 @@ export function registerClass<T extends Serializable>(
  */
 export function getRegisteredName<T extends Serializable>(
     cls: SerializableConstructor<T>) {
-  if (GLOBALCUSTOMNAMES.has(cls)) {
-    return GLOBALCUSTOMNAMES.get(cls);
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
+    return GLOBAL_CUSTOM_NAMES.get(cls);
   } else {
     return cls.className;
   }
