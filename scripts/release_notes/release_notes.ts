@@ -39,6 +39,8 @@ import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
 import {$, Commit, Repo, RepoCommits} from './util';
+import * as os from 'os';
+
 // tslint:disable-next-line:no-require-imports
 const octokit = require('@octokit/rest')();
 
@@ -303,8 +305,19 @@ async function generateNotes(repositories: util.Repo[]) {
   });
 
   // Ask for github token.
-  const token = await util.question(
-      'Enter GitHub token (https://github.com/settings/tokens): ');
+  //const token = await util.question(
+    //  'Enter GitHub token (https://github.com/settings/tokens): ');
+
+ // Getting the github token.
+ const homeDir = process.env.HOME || os.homedir();
+ console.log(homeDir); 
+ const githubTokenPath = process.env.HOME + '/.bashrc';
+ const token = fs.readFileSync(githubTokenPath, 'utf8')
+  .split('\n')
+  .find(line => line.startsWith('export GITHUB_TOKEN='))
+  .split('=')[1]
+  .trim();
+  
   octokit.authenticate({type: 'token', token});
 
   const notes = await util.getReleaseNotesDraft(octokit, repoCommits);
