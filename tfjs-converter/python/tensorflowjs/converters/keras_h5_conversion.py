@@ -87,7 +87,7 @@ def _convert_h5_group(group):
 
   return group_out
 
-def _convert_h5_group_v3(group):
+def _convert_h5_group_v3(group, actual_layer_name):
   """Construct a weights group entry.
 
   Args:
@@ -104,10 +104,14 @@ def _convert_h5_group_v3(group):
       return group_out
     name_list = [as_text(name) for name in names]
     weight_values = [np.array(names[weight_name]) for weight_name in name_list]
+    for index, item in enumerate(name_list):
+      # parse the name format to `layer_name/index`
+      name_list[index] = actual_layer_name + "/" + item
+    print("name_list: ", name_list)
     group_out += [{
     'name': normalize_weight_name(weight_name),
     'data': weight_value
-    } for (weight_name, weight_value) in zip(names, weight_values)]
+    } for (weight_name, weight_value) in zip(name_list, weight_values)]
   else:
     for key in list_of_folder:
       group_out += _convert_h5_group_v3(group[key])
@@ -208,6 +212,26 @@ def _ensure_h5file(h5file):
 
 def _ensure_json_dict(item):
   return item if isinstance(item, dict) else json.loads(as_text(item))
+
+def _discard_v3_keys(json_dict, keys_to_delete):
+  if isinstance(json_dict, dict):
+    keys = list(json_dict.keys())
+    for key in keys:
+      if key in keys_to_delete:
+        del json_dict[key]
+      else:
+        _discard_v3_keys(json_dict[key], keys_to_delete)
+  elif isinstance(json_dict, list):
+    for item in json_dict:
+      _discard_v3_keys(item, keys_to_delete)
+
+def _get_actual_layer_name_list(config):
+  config_list = config['config']['layers'][1:]
+  name_list = []
+  for i in config_list:
+    name_list.append(i['config']['name'])
+
+  return name_list
 
 
 # https://github.com/tensorflow/tfjs/issues/1255, b/124791387
@@ -323,10 +347,10 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
     this is likely a weight only file""")
   model_json = _initialize_v3_output_dictionary(h5file, meta_file)
 
-
-  # model_json['model_config'] = _ensure_json_dict(
-  #     h5file.attrs['model_config'])
-  model_json['model_config'] = _ensure_json_dict(config_file)
+  keys_to_remove = ["module", "registered_name", "date_saved"]
+  config = _ensure_json_dict(config_file)
+  _discard_v3_keys(config, keys_to_remove)
+  model_json['model_config'] = config
   translate_class_names(model_json['model_config'])
   if 'training_config' in h5file.attrs:
     model_json['training_config'] = _ensure_json_dict(
@@ -335,10 +359,13 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
   groups = [] if split_by_layer else [[]]
 
   model_weights = h5file['_layer_checkpoint_dependencies']
+  actual_names = _get_actual_layer_name_list(config)
   layer_names = [as_text(n) for n in model_weights]
-  for layer_name in layer_names:
+  for index, layer_name in enumerate(layer_names):
     layer = model_weights[layer_name]
-    group = _convert_h5_group_v3(layer)
+    actual_name = actual_names[index]
+    print("layer name: ", layer_name, " actual name: ", actual_name)
+    group = _convert_h5_group_v3(layer, actual_name)
     if group:
       if split_by_layer:
         groups.append(group)

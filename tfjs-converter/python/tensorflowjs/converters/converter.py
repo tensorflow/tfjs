@@ -131,7 +131,7 @@ def dispatch_keras_v3_to_tfjs_layers_model_conversion(
     meta_data_json_path = dir_path + "metadata.json"
     config_json_path = dir_path + "config.json"
     model_weights_path = dir_path + "model.weights.h5"
-    print("Config path-->", config_json_path)
+
     h5_file = h5py.File(model_weights_path, "r")
     with open(config_json_path, "rt") as conf:
         try:
@@ -151,17 +151,9 @@ def dispatch_keras_v3_to_tfjs_layers_model_conversion(
                 "but cannot read valid JSON content from %s." % meta_data_json_path
             )
 
-    if "layer_names" in h5_file.attrs:
-        model_json = None
-        # groups = conversion.h5_weights_to_tfjs_format(
-        #     h5_file, split_by_layer=split_weights_by_layer)
-        groups = conversion.h5_v3_weights_to_tfjs_format(
-            h5_file, meta_file, split_by_layer=split_weights_by_layer
-        )
-    else:
-        model_json, groups = conversion.h5_v3_merged_saved_model_to_tfjs_format(
-            h5_file, meta_file, config_file, split_by_layer=split_weights_by_layer
-        )
+    model_json, groups = conversion.h5_v3_merged_saved_model_to_tfjs_format(
+        h5_file, meta_file, config_file, split_by_layer=split_weights_by_layer
+    )
 
     if output_dir:
       if os.path.isfile(output_dir):
@@ -235,7 +227,6 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
   # Clean up the temporary SavedModel directory.
   shutil.rmtree(temp_savedmodel_dir)
 
-
 def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     keras_saved_model_path, output_dir, quantization_dtype_map=None,
     split_weights_by_layer=False,
@@ -283,7 +274,6 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     # Delete temporary .h5 file.
     os.remove(temp_h5_path)
 
-
 def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
   """Converts a TensorFlow.js Layers model format to Keras H5.
 
@@ -321,6 +311,42 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     model.save(h5_path)
 
+def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
+  """Converts a TensorFlow.js Layers model format to Keras H5.
+
+  Args:
+    config_json_path: Path to the JSON file that includes the model's
+      topology and weights manifest, in tensorflowjs format.
+    v3_path: Path for the to-be-created Keras V3 model file.
+
+  Raises:
+    ValueError, if `config_json_path` is not a path to a valid JSON
+      file, or if v3_path points to an existing directory.
+  """
+  if os.path.isdir(config_json_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model & output_format=keras, '
+        'the input path should be a model.json '
+        'file, but received a directory.')
+  if os.path.isdir(v3_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model & output_format=keras, '
+        'the output path should be the path to an HDF5 file, '
+        'but received an existing directory (%s).' % v3_path)
+
+  # Verify that config_json_path points to a JSON file.
+  with open(config_json_path, 'rt') as f:
+    try:
+      json.load(f)
+    except (ValueError, IOError):
+      raise ValueError(
+          'For input_type=tfjs_layers_model & output_format=keras, '
+          'the input path is expected to contain valid JSON content, '
+          'but cannot read valid JSON content from %s.' % config_json_path)
+
+  with tf.Graph().as_default(), tf.compat.v1.Session():
+    model = keras_tfjs_loader.load_keras_v3_model(config_json_path)
+    model.save(v3_path)
 
 def dispatch_tensorflowjs_to_keras_saved_model_conversion(
     config_json_path, keras_saved_model_path):
