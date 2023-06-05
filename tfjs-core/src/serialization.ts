@@ -54,12 +54,28 @@ export declare type SerializableConstructor<T extends Serializable> = {
 export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
 
+/**
+ * Maps to mapping between the custom object and its name.
+ *
+ * After registering a custom class, these two maps will add key-value pairs
+ * for the class object and the registered name.
+ *
+ * Therefore we can get the relative registered name by calling
+ * getRegisteredName() function.
+ *
+ * For example:
+ * GLOBAL_CUSTOM_OBJECT: {key=registeredName: value=corresponding
+ * CustomObjectClass}
+ *
+ * GLOBAL_CUSTOM_NAMES: {key=CustomObjectClass: value=corresponding
+ * registeredName}
+ *
+ */
 const GLOBAL_CUSTOM_OBJECT =
     new Map<string, SerializableConstructor<Serializable>>();
 
 const GLOBAL_CUSTOM_NAMES =
     new Map<SerializableConstructor<Serializable>, string>();
-
 
 /**
  * Serializable defines the serialization contract.
@@ -215,6 +231,11 @@ export class SerializationMap {
  */
 export function registerClass<T extends Serializable>(
     cls: SerializableConstructor<T>, pkg?: string, name?: string) {
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
+    throw new Error(
+        `The class "${cls.className}" has already been registered with name: ${
+            GLOBAL_CUSTOM_NAMES.get(cls)}`);
+  }
   assert(
       cls.className != null,
       () => `Class being registered does not have the static className ` +
@@ -244,11 +265,7 @@ export function registerClass<T extends Serializable>(
         `The name "${registerName}" has already been registered with class: ${
             GLOBAL_CUSTOM_OBJECT.get(registerName)}`);
   }
-  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
-    throw new Error(
-        `The class "${cls.className}" has already been registered with name: ${
-            GLOBAL_CUSTOM_NAMES.get(cls)}`);
-  }
+
   SerializationMap.register(cls);
   GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
   GLOBAL_CUSTOM_NAMES.set(cls, registerName);
