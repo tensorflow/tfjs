@@ -41,15 +41,6 @@ export enum BinaryOpType {
   SUB
 }
 
-const CHECK_NAN_SNIPPET = `
-  resultTemp = select(resultTemp, valueForNaN, isNaN | isnan(a) | isnan(b));`;
-
-const CHECK_NAN_SNIPPET_VEC4 = `
-  resultTemp = select(
-      resultTemp, vec4<f32>(valueForNaN),
-      vec4<bool>(isNaN) | isnanVec4(a) | isnanVec4(b));
-  `;
-
 const ADD = 'return a + b;';
 const ATAN2 = 'var resultTemp = atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
@@ -183,9 +174,10 @@ const SUB = 'return a - b;';
 
 export function getBinaryOpString(
     type: BinaryOpType, useVec4?: boolean): string {
+  let doOpSnippet: string;
+
   // Ops with NaN check
   do {
-    let doOpSnippet: string;
     switch (type) {
       case BinaryOpType.ATAN2:
         doOpSnippet = ATAN2;
@@ -208,13 +200,34 @@ export function getBinaryOpString(
       default:
         continue;
     }
+
+    let isNaN: string;
+    let dTypeN: string;
+    let boolN: string;
+    if (useVec4) {
+      isNaN = 'isnanVec4';
+      dTypeN = 'vec4<f32>';
+      boolN = 'vec4<bool>';
+    } else {
+      isNaN = 'isnan';
+      dTypeN = 'f32';
+      boolN = 'bool';
+    }
+
     return `
+      let aIsNaN = ${isNaN}(a);
+      let aPostLegalization = select(a, ${dTypeN}(42), aIsNaN);
+      let bIsNaN = ${isNaN}(b);
+      let bPostLegalization = select(b, ${dTypeN}(42), bIsNaN);
       let isNaN = false;
       let valueForNaN = uniforms.NAN;
       {
+        let a = aPostLegalization;
+        let b = bPostLegalization;
         ${doOpSnippet}
-        ${useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET}
-        return resultTemp;
+        return select(
+            resultTemp, ${dTypeN}(valueForNaN),
+            ${boolN}(isNaN) | aIsNaN | bIsNaN);
       }
     `;
   } while (false);
@@ -256,6 +269,10 @@ export function getBinaryOpString(
     case BinaryOpType.SUB:
       return SUB;
     default:
-      throw new Error(`BinaryType ${type} is not implemented!`);
+      // throw new Error(`BinaryType ${type} is not implemented!`);
   }
+  return `
+    ${doOpSnippet}
+    return resultTemp;
+  `;
 }
