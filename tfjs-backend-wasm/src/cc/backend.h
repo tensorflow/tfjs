@@ -92,7 +92,6 @@ const size_t num_tensors();
 extern size_t xnn_operator_count;
 
 extern pthreadpool *threadpool;
-
 }  // namespace backend
 
 namespace wasm {
