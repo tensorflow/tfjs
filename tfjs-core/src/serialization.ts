@@ -251,11 +251,11 @@ export function registerClass<T extends Serializable>(
       () => `Class being registered has an empty-string as its className, ` +
           `which is disallowed.`);
 
-  if (typeof pkg == 'undefined') {
+  if (typeof pkg === 'undefined') {
     pkg = 'Custom';
   }
 
-  if (typeof name == 'undefined') {
+  if (typeof name === 'undefined') {
     name = cls.className;
   }
 
