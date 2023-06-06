@@ -233,11 +233,6 @@ export class SerializationMap {
  */
 export function registerClass<T extends Serializable>(
     cls: SerializableConstructor<T>, pkg?: string, name?: string) {
-  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
-    throw new Error(
-        `The class "${cls.className}" has already been registered with name: ${
-            GLOBAL_CUSTOM_NAMES.get(cls)}`);
-  }
   assert(
       cls.className != null,
       () => `Class being registered does not have the static className ` +
@@ -261,12 +256,6 @@ export function registerClass<T extends Serializable>(
 
   const className = name;
   const registerName = pkg + '>' + className;
-
-  if (GLOBAL_CUSTOM_OBJECT.has(registerName)) {
-    throw new Error(
-        `The name "${registerName}" has already been registered with class: ${
-            GLOBAL_CUSTOM_OBJECT.get(registerName)}`);
-  }
 
   SerializationMap.register(cls);
   GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
