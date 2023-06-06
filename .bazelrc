@@ -12,9 +12,6 @@ build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
-# Avoid unused function error `xnn_vlog` when building XNNPACK with `-c opt`.
-build:xnnpack-opt --copt="-DXNN_LOG_TO_STDIO=0"
-build:xnnpack-opt --define=xnn_log_level=none
 
 # The following --define=EXECUTOR=remote will be able to be removed
 # once https://github.com/bazelbuild/bazel/issues/7254 is fixed
