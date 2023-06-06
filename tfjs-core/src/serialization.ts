@@ -217,8 +217,10 @@ export class SerializationMap {
  *   }
  * }
  * tf.serialization.registerClass(MyCustomLayer, "Package");
- * console.log(tf.serialization.GLOBALCUSTOMOBJECT.get("Package>MyCustomLayer"));
- * console.log(tf.serialization.GLOBALCUSTOMNAMES.get(MyCustomLayer));
+ * console.log(tf.serialization.GLOBALCUSTOMOBJECT
+ * .get("Package>MyCustomLayer"));
+ * console.log(tf.serialization.GLOBALCUSTOMNAMES
+ * .get(MyCustomLayer));
  * ```
  *
  * @param cls The class to be registered. It must have a public static member
