@@ -55,6 +55,29 @@ export declare type FromConfigMethod<T extends Serializable> =
     (cls: SerializableConstructor<T>, config: ConfigDict) => T;
 
 /**
+ * Maps to mapping between the custom object and its name.
+ *
+ * After registering a custom class, these two maps will add key-value pairs
+ * for the class object and the registered name.
+ *
+ * Therefore we can get the relative registered name by calling
+ * getRegisteredName() function.
+ *
+ * For example:
+ * GLOBAL_CUSTOM_OBJECT: {key=registeredName: value=corresponding
+ * CustomObjectClass}
+ *
+ * GLOBAL_CUSTOM_NAMES: {key=CustomObjectClass: value=corresponding
+ * registeredName}
+ *
+ */
+const GLOBAL_CUSTOM_OBJECT =
+    new Map<string, SerializableConstructor<Serializable>>();
+
+const GLOBAL_CUSTOM_NAMES =
+    new Map<SerializableConstructor<Serializable>, string>();
+
+/**
  * Serializable defines the serialization contract.
  *
  * TFJS requires serializable classes to return their className when asked
@@ -140,7 +163,7 @@ export class SerializationMap {
  * This is often used for registering custom Layers, so they can be
  * serialized and deserialized.
  *
- * Example:
+ * Example 1. Register the class without package name and specified name.
  *
  * ```js
  * class MyCustomLayer extends tf.layers.Layer {
@@ -151,15 +174,65 @@ export class SerializationMap {
  *   }
  * }
  * tf.serialization.registerClass(MyCustomLayer);
+ * console.log(tf.serialization.GLOBALCUSTOMOBJECT.get("Custom>MyCustomLayer"));
+ * console.log(tf.serialization.GLOBALCUSTOMNAMES.get(MyCustomLayer));
+ * ```
+ *
+ * Example 2. Register the class with package name: "Package" and specified
+ * name: "MyLayer".
+ * ```js
+ * class MyCustomLayer extends tf.layers.Layer {
+ *   static className = 'MyCustomLayer';
+ *
+ *   constructor(config) {
+ *     super(config);
+ *   }
+ * }
+ * tf.serialization.registerClass(MyCustomLayer, "Package", "MyLayer");
+ * console.log(tf.serialization.GLOBALCUSTOMOBJECT.get("Package>MyLayer"));
+ * console.log(tf.serialization.GLOBALCUSTOMNAMES.get(MyCustomLayer));
+ * ```
+ *
+ * Example 3. Register the class with specified name: "MyLayer".
+ * ```js
+ * class MyCustomLayer extends tf.layers.Layer {
+ *   static className = 'MyCustomLayer';
+ *
+ *   constructor(config) {
+ *     super(config);
+ *   }
+ * }
+ * tf.serialization.registerClass(MyCustomLayer, undefined, "MyLayer");
+ * console.log(tf.serialization.GLOBALCUSTOMOBJECT.get("Custom>MyLayer"));
+ * console.log(tf.serialization.GLOBALCUSTOMNAMES.get(MyCustomLayer));
+ * ```
+ *
+ * Example 4. Register the class with specified package name: "Package".
+ * ```js
+ * class MyCustomLayer extends tf.layers.Layer {
+ *   static className = 'MyCustomLayer';
+ *
+ *   constructor(config) {
+ *     super(config);
+ *   }
+ * }
+ * tf.serialization.registerClass(MyCustomLayer, "Package");
+ * console.log(tf.serialization.GLOBALCUSTOMOBJECT
+ * .get("Package>MyCustomLayer"));
+ * console.log(tf.serialization.GLOBALCUSTOMNAMES
+ * .get(MyCustomLayer));
  * ```
  *
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
- *
+ * @param pkg The pakcage name that this class belongs to. This used to define
+ *     the key in GlobalCustomObject. If not defined, it defaults to `Custom`.
+ * @param name The name that user specified. It defaults to the actual name of
+ *     the class as specified by its static `className` property.
  * @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true}
  */
 export function registerClass<T extends Serializable>(
-    cls: SerializableConstructor<T>) {
+    cls: SerializableConstructor<T>, pkg?: string, name?: string) {
   assert(
       cls.className != null,
       () => `Class being registered does not have the static className ` +
@@ -173,5 +246,37 @@ export function registerClass<T extends Serializable>(
       () => `Class being registered has an empty-string as its className, ` +
           `which is disallowed.`);
 
+  if (typeof pkg === 'undefined') {
+    pkg = 'Custom';
+  }
+
+  if (typeof name === 'undefined') {
+    name = cls.className;
+  }
+
+  const className = name;
+  const registerName = pkg + '>' + className;
+
   SerializationMap.register(cls);
+  GLOBAL_CUSTOM_OBJECT.set(registerName, cls);
+  GLOBAL_CUSTOM_NAMES.set(cls, registerName);
+
+  return cls;
+}
+
+/**
+ * Get the registered name of a class. If the class has not been registered,
+ * return the class name.
+ *
+ * @param cls The class we want to get register name for. It must have a public
+ *     static member called `className` defined.
+ * @returns registered name or class name.
+ */
+export function getRegisteredName<T extends Serializable>(
+    cls: SerializableConstructor<T>) {
+  if (GLOBAL_CUSTOM_NAMES.has(cls)) {
+    return GLOBAL_CUSTOM_NAMES.get(cls);
+  } else {
+    return cls.className;
+  }
 }
