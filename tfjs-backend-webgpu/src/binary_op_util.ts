@@ -42,7 +42,7 @@ export enum BinaryOpType {
 }
 
 const ADD = 'let resultTemp = a + b;';
-const ATAN2 = 'var resultTemp = atan2(a, b);';
+const ATAN2 = 'let resultTemp = atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -99,8 +99,8 @@ const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
 const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
 const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
   vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
-const MAX = 'var resultTemp = max(a, b);';
-const MIN = 'var resultTemp = min(a, b);';
+const MAX = 'let resultTemp = max(a, b);';
+const MIN = 'let resultTemp = min(a, b);';
 const MOD = `
   let isNaN = b == 0.;
   var resultTemp = a % b;
