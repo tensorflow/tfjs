@@ -17,6 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
+import {getBackend} from '../globals';
 import {Draw, DrawAttrs, DrawInputs, FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
@@ -372,10 +373,13 @@ export async function toPixels(
 
   if (canvas != null) {
     if (!hasToPixelsWarned) {
-      console.warn(
-          'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
-          'Please try tf.browser.draw instead.');
-      hasToPixelsWarned = true;
+      const backendName = getBackend();
+      if (backendName !== 'webgl' && backendName !== 'webgpu') {
+        console.warn(
+            'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
+            'Please try tf.browser.draw instead.');
+        hasToPixelsWarned = true;
+      }
     }
 
     canvas.width = width;
