@@ -42,7 +42,7 @@ export enum BinaryOpType {
 }
 
 const ADD = 'let resultTemp = a + b;';
-const ATAN2 = 'var resultTemp = atan2(a, b);';
+const ATAN2 = 'let resultTemp = atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
@@ -50,9 +50,7 @@ const ATAN2 = 'var resultTemp = atan2(a, b);';
 const COMPLEX_MULTIPLY_REAL = 'let resultTemp = areal * breal - aimag * bimag;';
 const COMPLEX_MULTIPLY_IMAG = 'let resultTemp = areal * bimag + aimag * breal;';
 const DIV = 'let resultTemp = a / b;';
-const ELU_DER = 'return select(a * (b + 1.0), a, b >= 0.);';
-const ELU_DER_VEC4 =
-    'return select(a * (b + vec4<f32>(1.0)), a, b >= vec4<f32>(0.));';
+const ELU_DER = 'let resultTemp = select(a * (b + 1.0), a, b >= b - b);';
 const EQUAL = 'return f32(a == b);';
 const EQUAL_VEC4 = 'return vec4<f32>(a == b);';
 const GREATER = 'return f32(a > b);';
@@ -99,8 +97,8 @@ const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
 const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
 const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
   vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
-const MAX = 'var resultTemp = max(a, b);';
-const MIN = 'var resultTemp = min(a, b);';
+const MAX = 'let resultTemp = max(a, b);';
+const MIN = 'let resultTemp = min(a, b);';
 const MOD = `
   let isNaN = b == 0.;
   var resultTemp = a % b;
@@ -247,7 +245,8 @@ export function getBinaryOpString(
       doOpSnippet = DIV;
       break;
     case BinaryOpType.ELU_DER:
-      return useVec4 ? ELU_DER_VEC4 : ELU_DER;
+      doOpSnippet = ELU_DER;
+      break;
     case BinaryOpType.EQUAL:
       return useVec4 ? EQUAL_VEC4 : EQUAL;
     case BinaryOpType.GREATER:
