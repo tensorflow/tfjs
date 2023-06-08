@@ -17,7 +17,6 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-import {getBackend} from '../globals';
 import {Draw, DrawAttrs, DrawInputs, FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
