@@ -373,8 +373,8 @@ export async function toPixels(
 
   if (canvas != null) {
     if (!hasToPixelsWarned) {
-      const backendName = getBackend();
-      if (backendName !== 'webgl' && backendName !== 'webgpu') {
+      const kernel = getKernel(Draw, ENGINE.backendName);
+      if (kernel != null) {
         console.warn(
             'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
             'Please try tf.browser.draw instead.');
