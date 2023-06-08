@@ -716,12 +716,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   makeTensorInfoWithTexture(
-      size: number[], format: GPUTextureFormat, dtype: DataType,
+      shape: number[], format: GPUTextureFormat, dtype: DataType,
       usage: number) {
-    const output = this.makeTensorInfo(size, dtype);
+    const output = this.makeTensorInfo(shape, dtype);
     const info = this.tensorMap.get(output.dataId);
     info.resource =
-        this.textureManager.acquireTexture(size[1], size[0], format, usage);
+        this.textureManager.acquireTexture(shape[1], shape[0], format, usage);
     return output;
   }
 

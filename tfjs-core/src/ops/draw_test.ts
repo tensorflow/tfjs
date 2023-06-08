@@ -19,31 +19,19 @@ import * as tf from '../index';
 import {Constraints, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
-function getCanvas() {
-  return document.createElement('canvas');
-}
-
-async function readPixelsFromGPUCanvas(
-    webgpuCanvas: ImageBitmapSource, width: number, height: number) {
-  const snapshot = await createImageBitmap(webgpuCanvas);
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(snapshot, 0, 0);
-  const imageData = new Uint8ClampedArray(
-      ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data);
-  return imageData;
-}
-
-async function readPixelsFromCanvas(
-    canvas: HTMLCanvasElement, contextType: string, width: number,
+function readPixelsFromCanvas(
+    canvas: OffscreenCanvas, contextType: string, width: number,
     height: number) {
   let actualData;
   if (contextType === '2d') {
     const ctx = canvas.getContext(contextType);
     actualData = ctx.getImageData(0, 0, height, width).data;
   } else {
-    actualData = await readPixelsFromGPUCanvas(
-        canvas as ImageBitmapSource, height, width);
+    const offscreenCanvas = new OffscreenCanvas(height, width);
+    const ctx = offscreenCanvas.getContext('2d');
+    ctx.drawImage(canvas, 0, 0);
+    actualData = new Uint8ClampedArray(
+        ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data);
   }
   return actualData;
 }
@@ -99,9 +87,9 @@ function convertToRGBA(
   return bytes;
 }
 
-async function drawAndReadback(
+function drawAndReadback(
     contextType: string, data: number[], shape: number[], dtype: string,
-    alpha = 1) {
+    alpha = 1, canvasUsedAs2d = false) {
   const [width, height] = shape.slice(0, 2);
   let img;
   if (shape.length === 3) {
@@ -111,16 +99,22 @@ async function drawAndReadback(
     img = tf.tensor2d(
         data, shape as [number, number], dtype as keyof tf.DataTypeMap);
   }
-  const canvas = getCanvas();
+  const canvas = new OffscreenCanvas(width, height);
+  if (canvasUsedAs2d) {
+    canvas.getContext('2d');
+  }
   const drawOptions = {contextOptions: {contextType}, imageOptions: {alpha}};
   // tslint:disable-next-line:no-any
   tf.browser.draw(img, canvas as any, drawOptions);
-  const actualData =
-      await readPixelsFromCanvas(canvas, contextType, width, height);
+  const actualData = readPixelsFromCanvas(canvas, contextType, width, height);
   const expectedData = convertToRGBA(data, shape, dtype, alpha);
   img.dispose();
   return [actualData, expectedData];
 }
+
+// CPU and GPU handle pixel value differently. The epsilon may possibly grow
+// after each draw and read back. The empirical value is 3.0.
+const DRAW_EPSILON = 3.0;
 
 describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
   let contextType: string;
@@ -136,9 +130,9 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const dtype = 'int32';
     const startNumTensors = tf.memory().numTensors;
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
+        drawAndReadback(contextType, data, shape, dtype);
     expect(tf.memory().numTensors).toEqual(startNumTensors);
-    expectArraysClose(actualData, expectedData, 3);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw image with 4 channels and int values, alpha=0.5', async () => {
@@ -148,9 +142,9 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const dtype = 'int32';
     const startNumTensors = tf.memory().numTensors;
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype, 0.5);
+        drawAndReadback(contextType, data, shape, dtype, 0.5);
     expect(tf.memory().numTensors).toEqual(startNumTensors);
-    expectArraysClose(actualData, expectedData, 3);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw image with 4 channels and float values', async () => {
@@ -159,8 +153,8 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const shape = [2, 2, 4];
     const dtype = 'float32';
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
-    expectArraysClose(actualData, expectedData, 4);
+        drawAndReadback(contextType, data, shape, dtype);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw image with 3 channels and int values', async () => {
@@ -168,7 +162,7 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const shape = [2, 2, 3];
     const dtype = 'int32';
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
+        drawAndReadback(contextType, data, shape, dtype);
     expectArraysEqual(actualData, expectedData);
   });
 
@@ -178,8 +172,8 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const dtype = 'int32';
     const alpha = 0.5;
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype, alpha);
-    expectArraysClose(actualData, expectedData, 2);
+        drawAndReadback(contextType, data, shape, dtype, alpha);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw image with 3 channels and float values', async () => {
@@ -187,8 +181,8 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const shape = [2, 2, 3];
     const dtype = 'float32';
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
-    expectArraysClose(actualData, expectedData, 1);
+        drawAndReadback(contextType, data, shape, dtype);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw 2D image in grayscale', async () => {
@@ -196,7 +190,7 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const shape = [2, 2];
     const dtype = 'int32';
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
+        drawAndReadback(contextType, data, shape, dtype);
     expectArraysEqual(actualData, expectedData);
   });
 
@@ -206,16 +200,17 @@ describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
     const dtype = 'int32';
     const alpha = 0.5;
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype, alpha);
-    expectArraysClose(actualData, expectedData, 1);
+        drawAndReadback(contextType, data, shape, dtype, alpha);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 
   it('draw image works when canvas has been used for 2d', async () => {
     const data = [101, 212, 113, 14, 35, 76, 17, 38, 59, 70, 81, 92];
     const shape = [6, 2, 1];
     const dtype = 'int32';
+    // Set canvasUsedAs2d to true so the canvas will be first used for 2d.
     const [actualData, expectedData] =
-        await drawAndReadback(contextType, data, shape, dtype);
-    expectArraysClose(actualData, expectedData, 1);
+        drawAndReadback(contextType, data, shape, dtype, 1, true);
+    expectArraysClose(actualData, expectedData, DRAW_EPSILON);
   });
 });

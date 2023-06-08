@@ -41,7 +41,7 @@ export function draw(
   let gpuContext = canvas.getContext('webgpu');
   let canvasWebGPU;
   if (!gpuContext) {
-    canvasWebGPU = document.createElement('canvas');
+    canvasWebGPU = new OffscreenCanvas(width, height);
     gpuContext = canvasWebGPU.getContext('webgpu');
   }
   const numChannels = image.shape.length === 3 ? image.shape[2] : 1;

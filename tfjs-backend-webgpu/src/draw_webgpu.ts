@@ -41,7 +41,7 @@ export class DrawProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.type = type;
     this.textureFormat = textureFormat;
-    this.shaderKey = `draw_${type}`;
+    this.shaderKey = `draw_${type}_${textureFormat}`;
   }
 
   getUserCode(): string {

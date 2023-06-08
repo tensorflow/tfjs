@@ -126,7 +126,6 @@ const TEST_FILTERS: TestFilter[] = [
       'canvas and image match',  // Failing on Linux
     ],
   },
-  {startsWith: 'draw', excludes: []},
   {
     startsWith: 'sign ',
     excludes: [
