@@ -21,12 +21,19 @@ from __future__ import print_function
 import json
 import os
 import uuid
-
+import zipfile
+import datetime
 import six
 import tensorflow.compat.v2 as tf
-
+import build_module_map
+import keras_h5_conversion
+from build_module_map import RESULT_MAP
 from tensorflowjs import read_weights
-from tensorflowjs.converters import keras_h5_conversion
+# from tensorflowjs.converters import keras_h5_conversion
+
+_CONFIG_FILENAME = "config.json"
+_METADATA_FILENAME = "metadata.json"
+_VARS_FNAME = "model.weights"
 
 
 def _deserialize_keras_model(model_topology_json,
@@ -116,11 +123,12 @@ def _deserialize_keras_v3_model(model_topology_json,
     model_topology_json = json.load(model_topology_json)
 
   if 'model_config' in model_topology_json:
-    model_topology_json['model_config'] = _generate_v3_keys(model_topology_json['model_config'])
+    # Build the map between class and its corresponding module in TF.
+    build_module_map.build_map()
+    _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
-  unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
-  with tf.compat.v1.name_scope(unique_name_scope):
-    model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+
+  model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
@@ -129,14 +137,12 @@ def _deserialize_keras_v3_model(model_topology_json,
 
     # Collect weight names from the model, in the same order as the internal
     # ordering of model.set_weights() used below.
+
     weight_names = []
     for layer in model.layers:
-      for w in layer.weights:
-        weight_names.append(
-            keras_h5_conversion.normalize_weight_name(
-                w.name[len(unique_name_scope) + 1:])
-            if use_unique_name_scope
-            else keras_h5_conversion.normalize_weight_name(w.name))
+      for index, w in enumerate(layer.weights):
+        weight_names.append(layer.name + '/' + str(index))
+
 
     # Prepare list of weight values for calling set_weights().
     weights_list = []
@@ -144,13 +150,6 @@ def _deserialize_keras_v3_model(model_topology_json,
     for name in weight_names:
       if name in weights_dict:
         weights_list.append(weights_dict[name])
-      else:
-        # TF 2.2.0 added cell name to the weight name in the format of
-        # layer_name/cell_name/weight_name, we need to remove
-        # the inner cell name.
-        tokens = name.split('/')
-        shorten_name = '/'.join(tokens[0:-2] + [tokens[-1]])
-        weights_list.append(weights_dict[shorten_name])
 
     model.set_weights(weights_list)
 
@@ -175,13 +174,25 @@ def _generate_v3_keys(config):
   if isinstance(config, dict):
     list_of_keys = list(config.keys())
     for key in list_of_keys:
-      if key == 'class_name':
-        config['module'] = _get_module()
-        config['registered_name'] = _get_registered_name()
-      else:
-        _generate_v3_keys()
-  elif isinstance()
+      _generate_v3_keys(config[key])
+    if 'class_name' in list_of_keys:
+      config['module'] = _get_module(config['class_name'])
+      # Put registred name as None since we do not support
+      # custom object saving when we save the model.
+      config['registered_name'] = None
 
+  elif isinstance(config, list):
+    for item in config:
+      _generate_v3_keys(item)
+
+def _generate_meta_json(version_number):
+  meta_data = {}
+  meta_data['keras_version'] = version_number
+  meta_data['date_saved'] = datetime.datetime.now().strftime("%Y-%m-%d@%H:%M:%S")
+
+def _get_module(class_name):
+  module_path = build_module_map.get_module_path(class_name)
+  return module_path
 
 
 def deserialize_keras_model(config_json,
@@ -362,5 +373,5 @@ def load_keras_v3_model(config_json_path,
                                                    flatten=True)
 
   return _deserialize_keras_v3_model(config_json['modelTopology'],
-                                  weight_entries=weight_entries,
-                                  use_unique_name_scope=use_unique_name_scope)
+                                     weight_entries=weight_entries,
+                                     use_unique_name_scope=use_unique_name_scope)

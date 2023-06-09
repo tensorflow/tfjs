@@ -107,7 +107,6 @@ def _convert_h5_group_v3(group, actual_layer_name):
     for index, item in enumerate(name_list):
       # parse the name format to `layer_name/index`
       name_list[index] = actual_layer_name + "/" + item
-    print("name_list: ", name_list)
     group_out += [{
     'name': normalize_weight_name(weight_name),
     'data': weight_value
@@ -116,28 +115,6 @@ def _convert_h5_group_v3(group, actual_layer_name):
     for key in list_of_folder:
       group_out += _convert_h5_group_v3(group[key])
   return group_out
-  # if 'weight_names' in group.attrs:
-  #   # This is a leaf node in namespace (e.g., 'Dense' in 'foo/bar/Dense').
-  #   names = group.attrs['weight_names'].tolist()
-
-  #   if not names:
-  #     return group_out
-
-  #   names = [as_text(name) for name in names]
-  #   weight_values = [
-  #       np.array(group[weight_name]) for weight_name in names]
-  #   group_out += [{
-  #       'name': normalize_weight_name(weight_name),
-  #       'data': weight_value
-  #   } for (weight_name, weight_value) in zip(names, weight_values)]
-  # else:
-  #   # This is *not* a leaf level in the namespace (e.g., 'foo' in
-  #   # 'foo/bar/Dense').
-  #   for key in group.keys():
-  #     # Call this method recursively.
-  #     group_out += _convert_h5_group_v3(group[key])
-
-  # return group_out
 
 
 def _check_version(h5file):
@@ -184,8 +161,6 @@ def _initialize_v3_output_dictionary(h5file, metafile):
   """
   out = dict()
   out['keras_version'] = metafile['keras_version']
-  # print("----> All attributes: ", h5file.attrs.keys())
-  # out['backend'] = as_text(h5file.attrs['backend'])
   return out
 
 def _initialize_output_dictionary(h5file):
@@ -361,11 +336,10 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
   model_weights = h5file['_layer_checkpoint_dependencies']
   actual_names = _get_actual_layer_name_list(config)
   layer_names = [as_text(n) for n in model_weights]
+
   for index, layer_name in enumerate(layer_names):
-    layer = model_weights[layer_name]
-    actual_name = actual_names[index]
-    print("layer name: ", layer_name, " actual name: ", actual_name)
-    group = _convert_h5_group_v3(layer, actual_name)
+    group_of_weights = model_weights[layer_name]
+    group = _convert_h5_group_v3(group_of_weights, layer_name)
     if group:
       if split_by_layer:
         groups.append(group)

@@ -35,9 +35,9 @@ from tensorflowjs import version
 
 # from tensorflowjs.converters import common
 # from tensorflowjs.converters import keras_h5_conversion as conversion
-from tensorflowjs.converters import keras_tfjs_loader
+import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
 
 
 def dispatch_keras_h5_to_tfjs_layers_model_conversion(
@@ -124,8 +124,7 @@ def dispatch_keras_v3_to_tfjs_layers_model_conversion(
             "Invalid `filepath` argument: expected a `.keras` extension. "
             f"Received: filepath={file_path}"
         )
-
-    with ZipFile(file_path, "r") as zip_file:
+    with ZipFile(v3_path, "r") as zip_file:
         zip_file.extractall()
     dir_path = os.path.dirname(file_path)
     meta_data_json_path = dir_path + "metadata.json"
@@ -312,7 +311,7 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
     model.save(h5_path)
 
 def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
-  """Converts a TensorFlow.js Layers model format to Keras H5.
+  """Converts a TensorFlow.js Layers model format to Keras V3 format.
 
   Args:
     config_json_path: Path to the JSON file that includes the model's
@@ -321,17 +320,17 @@ def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
 
   Raises:
     ValueError, if `config_json_path` is not a path to a valid JSON
-      file, or if v3_path points to an existing directory.
+      file.
   """
   if os.path.isdir(config_json_path):
     raise ValueError(
-        'For input_type=tfjs_layers_model & output_format=keras, '
+        'For input_type=tfjs_layers_model & output_format=keras_v3, '
         'the input path should be a model.json '
         'file, but received a directory.')
   if os.path.isdir(v3_path):
     raise ValueError(
-        'For input_type=tfjs_layers_model & output_format=keras, '
-        'the output path should be the path to an HDF5 file, '
+        'For input_type=tfjs_layers_model & output_format=keras_v3, '
+        'the output path should be the path to an .keras file, '
         'but received an existing directory (%s).' % v3_path)
 
   # Verify that config_json_path points to a JSON file.
@@ -340,13 +339,13 @@ def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
       json.load(f)
     except (ValueError, IOError):
       raise ValueError(
-          'For input_type=tfjs_layers_model & output_format=keras, '
+          'For input_type=tfjs_layers_model & output_format=keras_v3, '
           'the input path is expected to contain valid JSON content, '
           'but cannot read valid JSON content from %s.' % config_json_path)
 
-  with tf.Graph().as_default(), tf.compat.v1.Session():
-    model = keras_tfjs_loader.load_keras_v3_model(config_json_path)
-    model.save(v3_path)
+  model = keras_tfjs_loader.load_keras_v3_model(config_json_path)
+  tf.keras.saving.save_model(model, v3_path, save_format="keras")
+
 
 def dispatch_tensorflowjs_to_keras_saved_model_conversion(
     config_json_path, keras_saved_model_path):
@@ -664,6 +663,10 @@ def _dispatch_converter(input_format,
     dispatch_tensorflowjs_to_keras_h5_conversion(args.input_path,
                                                  args.output_path)
   elif (input_format == common.TFJS_LAYERS_MODEL and
+        output_format == common.KERAS_V3_MODEL):
+    dispatch_tensorflowjs_to_keras_v3_conversion(args.input_path,
+                                                 args.output_path)
+  elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_SAVED_MODEL):
     dispatch_tensorflowjs_to_keras_saved_model_conversion(args.input_path,
                                                           args.output_path)
@@ -745,7 +748,7 @@ def get_arg_parser():
       type=str,
       required=False,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
-                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL, common.KERAS_V3_MODEL]),
       help='Output format. Default: tfjs_graph_model.')
   parser.add_argument(
       '--%s' % common.SIGNATURE_NAME,
