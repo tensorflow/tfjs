@@ -29,7 +29,6 @@ import build_module_map
 import keras_h5_conversion
 from build_module_map import RESULT_MAP
 from tensorflowjs import read_weights
-# from tensorflowjs.converters import keras_h5_conversion
 
 _CONFIG_FILENAME = "config.json"
 _METADATA_FILENAME = "metadata.json"

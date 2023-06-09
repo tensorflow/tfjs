@@ -33,8 +33,6 @@ import keras_h5_conversion as conversion
 from tensorflowjs import quantization
 from tensorflowjs import version
 
-# from tensorflowjs.converters import common
-# from tensorflowjs.converters import keras_h5_conversion as conversion
 import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from zipfile import ZipFile, is_zipfile
@@ -111,6 +109,27 @@ def dispatch_keras_v3_to_tfjs_layers_model_conversion(
     weight_shard_size_bytes=1024 * 1024 * 4,
     metadata=None,
 ):
+  """Converts a Keras v3 .keras file to TensorFlow.js format.
+
+  Args:
+    v3_path: path to an .keras file containing keras model data as a `str`.
+    output_dir: Output directory to which the TensorFlow.js-format model JSON
+      file and weights files will be written. If the directory does not exist,
+      it will be created.
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
+    split_weights_by_layer: Whether to split the weights into separate weight
+      groups (corresponding to separate binary weight files) layer by layer
+      (Default: `False`).
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
+
+  Returns:
+    (model_json, groups)
+      model_json: a json dictionary (empty if unused) for model topology.
+      groups: an array of weight_groups as defined in tfjs weights_writer.
+  """
     if not os.path.exists(v3_path):
         raise ValueError("Nonexistent path to .keras file: %s" % v3_path)
     if os.path.isdir(v3_path):
