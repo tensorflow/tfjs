@@ -372,10 +372,13 @@ export async function toPixels(
 
   if (canvas != null) {
     if (!hasToPixelsWarned) {
-      console.warn(
-          'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
-          'Please try tf.browser.draw instead.');
-      hasToPixelsWarned = true;
+      const kernel = getKernel(Draw, ENGINE.backendName);
+      if (kernel != null) {
+        console.warn(
+            'tf.browser.toPixels is not efficient to draw tensor on canvas. ' +
+            'Please try tf.browser.draw instead.');
+        hasToPixelsWarned = true;
+      }
     }
 
     canvas.width = width;
