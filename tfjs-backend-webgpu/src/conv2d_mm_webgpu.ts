@@ -44,9 +44,9 @@ function conv2dCommonSnippet(
   const getWSnippet = (innerElementSize: number) => {
     switch (innerElementSize) {
       case 1:
-        return 'return W[row * uniforms.wShape[3] + colIn];';
+        return 'return W[row * uniforms.wShape[3] + col];';
       case 4:
-        return 'return W[row * uniforms.wShape[3] / 4 + colIn];';
+        return 'return W[(row * uniforms.wShape[3] + col) / 4];';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
@@ -101,19 +101,15 @@ function conv2dCommonSnippet(
       return resData;`;
 
   const sampleX = isChannelsLast ? (fitAOuter && fitInner ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
         ${readXSnippet}
       }
       return ${typeSnippet(innerElementSizeX)}(0.0);`) :
                                    (fitInner && fitBOuter ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
         ${readXSnippet}
       }
@@ -130,16 +126,15 @@ function conv2dCommonSnippet(
       ${
       activationFnSnippet(
           activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
+      fn mm_readA(batch: i32, row : i32, col : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
+      fn mm_readB(batch: i32, row : i32, col : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
-        let col = colIn * ${innerElementSize};
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : ${resType}) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
         var value = valueIn;
@@ -193,15 +188,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
         convInfo.outChannels % 4 === 0;
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [2, 3], y: [1], z: [0]};
-    this.workgroupSize = computeWorkgroupSizeForConv2d(
-        this.dispatchLayout, this.outputShape, this.isVec4);
-    this.elementsPerThread = computeWorkPerThreadForConv2d(
-        this.dispatchLayout, this.outputShape, this.isVec4);
-
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workgroupSize,
-        this.elementsPerThread);
-
     if (this.isVec4) {
       this.outputComponent = 4;
       if (this.isChannelsLast && convInfo.inChannels % 4 !== 0) {
@@ -221,8 +207,21 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.variableNames.push('preluActivationWeights');
         this.variableComponents.push(4);
       }
+      // TODO: Further tune below parameters.
+      this.workgroupSize = [256, 1, 1];
+      this.tileAOuter = dimAOuter < 64 ? dimAOuter : 64;
+      this.tileBOuter = dimBOuter < 64 ? dimBOuter : 64;
+      this.tileInner = dimInner < 64 ? dimInner : 8 * this.innerElementSize;
     } else {
+      this.workgroupSize = computeWorkgroupSizeForConv2d(
+          this.dispatchLayout, this.outputShape, this.isVec4);
+      this.elementsPerThread = computeWorkPerThreadForConv2d(
+          this.dispatchLayout, this.outputShape, this.isVec4);
       this.innerElementSize = this.elementsPerThread[0];
+      this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
+      this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
+      this.tileInner = Math.max(
+          this.workgroupSize[0] * this.innerElementSize, this.workgroupSize[1]);
       if (addBias) {
         this.variableNames.push('bias');
       }
@@ -237,26 +236,27 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    this.tileAOuter = this.workgroupSize[1] * this.elementsPerThread[1];
-    this.tileBOuter = this.workgroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = Math.max(
-        this.workgroupSize[0] * this.innerElementSize, this.workgroupSize[1]);
-
     this.fitAOuter = dimAOuter % this.tileAOuter === 0;
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
     this.fitInner = dimInner % this.tileInner === 0;
 
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape,
+        [this.tileBOuter, this.tileAOuter, 1]);
+
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
         this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${
         this.innerElementSize}_${this.isChannelsLast}_${
-        this.sequentialAccessByThreads}`;
+        this.sequentialAccessByThreads}_${this.tileAOuter}_${this.tileInner}_${
+        this.tileBOuter}`;
   }
 
   getUserCode(): string {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
-            this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
-            this.tileInner) :
+            [this.innerElementSize, 4], this.workgroupSize,
+            !this.isChannelsLast, this.tileInner, false, null, false,
+            this.tileAOuter, this.tileBOuter) :
         makeMatMulPackedSource(
             this.elementsPerThread, this.workgroupSize, !this.isChannelsLast,
             this.tileInner, false, null, this.sequentialAccessByThreads);
