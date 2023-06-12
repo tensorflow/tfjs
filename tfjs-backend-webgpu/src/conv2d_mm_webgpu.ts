@@ -44,9 +44,9 @@ function conv2dCommonSnippet(
   const getWSnippet = (innerElementSize: number) => {
     switch (innerElementSize) {
       case 1:
-        return 'return W[row * uniforms.wShape[3] + colIn];';
+        return 'return W[row * uniforms.wShape[3] + col];';
       case 4:
-        return 'return W[row * uniforms.wShape[3] / 4 + colIn];';
+        return 'return W[(row * uniforms.wShape[3] + col) / 4];';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
@@ -101,19 +101,15 @@ function conv2dCommonSnippet(
       return resData;`;
 
   const sampleX = isChannelsLast ? (fitAOuter && fitInner ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
         ${readXSnippet}
       }
       return ${typeSnippet(innerElementSizeX)}(0.0);`) :
                                    (fitInner && fitBOuter ? `
-      let col = colIn * ${innerElementSizeX};
       ${readXSnippet}` :
                                                             `
-      let col = colIn * ${innerElementSizeX};
       if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
         ${readXSnippet}
       }
@@ -130,16 +126,15 @@ function conv2dCommonSnippet(
       ${
       activationFnSnippet(
           activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
+      fn mm_readA(batch: i32, row : i32, col : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
+      fn mm_readB(batch: i32, row : i32, col : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
-        let col = colIn * ${innerElementSize};
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : ${resType}) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
         var value = valueIn;

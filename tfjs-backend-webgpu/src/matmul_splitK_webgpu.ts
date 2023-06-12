@@ -80,9 +80,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       ${
         matMulReadFnSource(
             false, this.transposeB, false, false, false, component)}
-      fn mm_write(batch: i32, row : i32, colIn : i32, value : ${
+      fn mm_write(batch: i32, row : i32, col : i32, value : ${
         typeSnippet(component)}) {
-        let col = colIn * ${component};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let coords = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(coords);
