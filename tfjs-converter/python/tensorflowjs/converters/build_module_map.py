@@ -23,7 +23,6 @@ def _build_ts_class_module_map(folder_path):
                 with open(file_path, "r") as f:
                     file_contents = f.read()
                     matches = re.findall(r"class\s+(\w+)", file_contents)
-                    # print("matches ===> ", matches)
                     for cls in matches:
                         if cls in TFCLASS_MODULE_MAP:
                             RESULT_MAP[cls] = TFCLASS_MODULE_MAP[cls]
@@ -47,11 +46,8 @@ def _build_class_module_map(keras_module):
 def build_map():
   # Build the module Map
   _build_class_module_map(MODULE)
-  # print(TFCLASS_MODULE_MAP)
   abs_path = os.path.abspath(__file__)
-  # print(abs_path)
   root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(abs_path)))))
-  # print(root_path)
   path = os.path.join(root_path, 'tfjs-layers')
   _build_ts_class_module_map(path)
 
