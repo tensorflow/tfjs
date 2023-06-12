@@ -59,9 +59,8 @@ export function sparseSegmentReduce(
   const sparseSegmentIdCount =
       fill({backend, attrs: {shape: [outputRows], value: 0, dtype: 'int32'}});
   program = new SparseSegmentIdCountProgram(outputRows, segmentIds.shape);
-  uniformData = [{type: 'int32', data: [numIndices]}];
   const $sparseSegmentIdCount = backend.runWebGPUProgram(
-      program, [segmentIds], 'int32', uniformData, sparseSegmentIdCount);
+      program, [segmentIds], 'int32', null, sparseSegmentIdCount);
 
   const sparseSegmentMean =
       fill({backend, attrs: {shape: outputShape, value: 0, dtype}});

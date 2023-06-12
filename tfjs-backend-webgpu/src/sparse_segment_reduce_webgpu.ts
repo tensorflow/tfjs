@@ -69,7 +69,6 @@ export class SparseSegmentIdCountProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'segmentIdsSize : i32,';
   workgroupSize: [number, number, number] = [64, 1, 1];
   atomic = true;
 
@@ -85,7 +84,7 @@ export class SparseSegmentIdCountProgram implements WebGPUProgram {
   getUserCode(): string {
     const userCode = `
     ${main('index')} {
-      if (index < uniforms.segmentIdsSize) {
+      if (index < uniforms.segmentIdsShape) {
         let segmentId = segmentIds[index];
         ${atomicAddSnippet('&result[segmentId]', '1', 'int32')}
       }
