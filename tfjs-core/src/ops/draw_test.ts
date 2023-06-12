@@ -36,13 +36,10 @@ function readPixelsFromCanvas(
   return actualData;
 }
 
-//  'rgba8unorm' is not supported as the context format on OS X.
-//  (https://bugs.chromium.org/p/chromium/issues/detail?id=1298618).
 const BROWSER_CPU_WEBGPU_ENVS: Constraints = {
   predicate: (env) =>
       ((env.backendName === 'cpu' || env.backendName === 'webgpu') &&
-       tf.env().platformName === 'browser' &&
-       navigator.userAgent.search('OS X') < 0)
+       tf.env().platformName === 'browser')
 };
 
 function convertToRGBA(

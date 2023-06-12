@@ -31,7 +31,12 @@ export function draw(
   const {imageOptions} = options || {};
   const alpha = imageOptions ?.alpha || 1;
 
-  const format = 'rgba8unorm';
+  //  'rgba8unorm' should work on macOS according to
+  //  https://bugs.chromium.org/p/chromium/issues/detail?id=1298618. But
+  //  failed on macOS/M2. So use 'bgra8unorm' first when available.
+  const format = backend.device.features.has('bgra8unorm-storage') ?
+      'bgra8unorm' :
+      'rgba8unorm';
   const outShape = [height, width];
   const program = new DrawProgram(outShape, image.dtype, format);
   canvas.width = width;
