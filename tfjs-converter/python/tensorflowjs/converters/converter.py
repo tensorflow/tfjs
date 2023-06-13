@@ -28,9 +28,9 @@ import tempfile
 import h5py
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+
 from tensorflowjs import quantization
 from tensorflowjs import version
-
 from tensorflowjs.converters import common
 from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
