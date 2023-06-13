@@ -26,7 +26,7 @@ import datetime
 import six
 import tensorflow.compat.v2 as tf
 import build_module_map
-import keras_h5_conversion
+from tensorflowjs.converters import keras_h5_conversion
 from build_module_map import RESULT_MAP
 from tensorflowjs import read_weights
 
