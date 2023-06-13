@@ -412,7 +412,7 @@ limitations under the License.
       tbody.appendChild(tr);
     }
 
-    async function measureFistPredictTime() {
+    async function measureFirstPredictTime() {
       let predictFn;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(
@@ -793,7 +793,7 @@ limitations under the License.
       }
       await showBenchmarkingParameters();
 
-      await measureFistPredictTime();
+      await measureFirstPredictTime();
       await warmUp();
       await measureAveragePredictTime();
       await profileMemoryAndKernelTime();
