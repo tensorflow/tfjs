@@ -53,7 +53,8 @@ const TFJS_REPOS: Repo[] = [
   {name: 'Node', identifier: 'tfjs', path: 'tfjs-node'},
   {name: 'Wasm', identifier: 'tfjs', path: 'tfjs-backend-wasm'},
   {name: 'Cpu', identifier: 'tfjs', path: 'tfjs-backend-cpu'},
-  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'}
+  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'},
+  {name: 'WebGPU', identifier: 'tfjs', path: 'tfjs-backend-webgpu'},
 ];
 
 const VIS_REPO: Repo = {
