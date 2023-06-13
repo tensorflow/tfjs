@@ -21,7 +21,7 @@ import {symbolicallyComputeStrides} from './shader_util';
 
 export enum PixelsOpType {
   FROM_PIXELS,
-  TO_PIXELS
+  DRAW
 }
 
 export interface WebGPUProgram {

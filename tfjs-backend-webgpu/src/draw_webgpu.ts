@@ -30,7 +30,7 @@ export class DrawProgram implements WebGPUProgram {
   workgroupSize: [number, number, number] = [64, 1, 1];
   type: DataType;
   textureFormat: GPUTextureFormat;
-  pixelsOpType = PixelsOpType.TO_PIXELS;
+  pixelsOpType = PixelsOpType.DRAW;
   size = true;
 
   constructor(

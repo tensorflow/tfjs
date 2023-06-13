@@ -60,6 +60,7 @@ export function draw(
   const output = backend.makeTensorInfo(outShape, outputDtype);
   const info = backend.tensorMap.get(output.dataId);
   info.resource = gpuContext.getCurrentTexture();
+  info.external = true;
 
   const uniformData =
       [{type: 'uint32', data: [numChannels]}, {type: 'float32', data: [alpha]}];

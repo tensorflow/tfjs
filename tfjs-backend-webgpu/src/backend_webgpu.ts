@@ -990,7 +990,7 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram ||
         env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
             number <= this.dispatchCountInPass ||
-        program.pixelsOpType === webgpu_program.PixelsOpType.TO_PIXELS) {
+        program.pixelsOpType === webgpu_program.PixelsOpType.DRAW) {
       this.endComputePassEncoder();
       if (shouldTimeProgram) {
         this.activeTimers.push(
