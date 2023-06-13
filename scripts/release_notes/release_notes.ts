@@ -38,12 +38,13 @@
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
+import * as path from 'path';
 import {$, Commit, Repo, RepoCommits} from './util';
 
 // tslint:disable-next-line:no-require-imports
 const octokit = require('@octokit/rest')();
 
-const OUT_FILE = 'release-notes.md';
+const OUT_FILE = path.resolve('release-notes.md');
 
 const TFJS_REPOS: Repo[] = [
   {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
@@ -310,10 +311,10 @@ async function generateNotes(repositories: util.Repo[]) {
   let token = process.env.GITHUB_TOKEN;
   if (token == null) {
     token = await util.question(
-      'Enter GitHub token (https://github.com/settings/tokens): ');
-	 
+        'Enter GitHub token (https://github.com/settings/tokens): ');
+
   } else {
-    console.log("The GITHUB_TOKEN is present as environment variable");
+    console.log('The GITHUB_TOKEN is present as environment variable');
   }
   octokit.authenticate({type: 'token', token});
 
