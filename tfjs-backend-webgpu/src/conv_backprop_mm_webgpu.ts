@@ -71,13 +71,15 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
       return ${typeSnippet(innerElementSize)}(0.0);`;
 
   const userCode = `
-  fn mm_readA(batch: i32, row : i32, col : i32) -> ${
+  fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${
       typeSnippet(innerElementSize)} {
+    let col = colIn * ${innerElementSize};
     ${sampleA}
   }
 
-  fn mm_readB(batch: i32, row : i32, col : i32) -> ${
+  fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${
       typeSnippet(innerElementSize)} {
+    let col = colIn * ${innerElementSize};
     let coordX = uniforms.filterDims.x - 1 -
         row / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
     let coordY = uniforms.filterDims.y - 1 -
@@ -91,9 +93,11 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
     return ${typeSnippet(innerElementSize)}(0.0);
   }
 
-  fn mm_write(batch: i32, row : i32, col : i32, valueInput : ${
+  fn mm_write(batch: i32, row : i32, colIn : i32, valueInput : ${
       typeSnippet(innerElementSize)}) {
-    if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
+    let col = colIn * ${innerElementSize};
+    if (row < uniforms.dimAOuter && (col + ${
+      innerElementSize - 1}) < uniforms.dimBOuter) {
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,
