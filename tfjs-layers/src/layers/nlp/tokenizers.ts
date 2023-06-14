@@ -26,7 +26,7 @@ import { Layer } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
 
 export declare interface TokenizerOptions {
-  mode?: 'tokenize' | 'detokenize'
+  mode?: 'tokenize' | 'detokenize';
 }
 
 /**
@@ -112,7 +112,7 @@ export abstract class Tokenizer extends Layer {
       return this.detokenize(inputs);
     }
 
-    throw new ValueError(`Input mode=${kwargs.mode} is not supported.`)
+    throw new ValueError(`Input mode=${kwargs.mode} is not supported.`);
   }
 }
 
@@ -126,7 +126,8 @@ export class WhiteSpaceTokenizer extends Tokenizer {
   }
 
   override detokenize(inputs: Tensor1D[]): Tensor1D {
-    const stringInputs = inputs.map(input => input.dataSync() as unknown as string[]);
+    const stringInputs = inputs.map(
+      input => input.dataSync() as unknown as string[]);
     return tensor1d(stringInputs.map(str => str.join(' ')));
   }
 }

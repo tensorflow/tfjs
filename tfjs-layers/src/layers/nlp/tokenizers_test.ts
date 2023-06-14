@@ -22,14 +22,14 @@
 import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
 
 import { WhiteSpaceTokenizer } from './tokenizers';
-import { expectTensorsClose } from '../../../src/utils/test_utils';
+import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('White Space Tokenizer', () => {
   const tokenizer = new WhiteSpaceTokenizer();
 
   it('tokenize', () => {
-    const inputData = tensor1d(["the quick brown fox"]);
-    const expectedOutput = [tensor1d(["the", "quick", "brown", "fox"])];
+    const inputData = tensor1d(['the quick brown fox']);
+    const expectedOutput = [tensor1d(['the', 'quick', 'brown', 'fox'])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
     const callOutput = tokenizer.call(inputData) as Tensor1D[];
@@ -42,18 +42,19 @@ describe('White Space Tokenizer', () => {
   });
 
   it('detokenize', () => {
-    const inputData = [tensor1d(["the", "quick", "brown", "fox"])];
-    const expectedOutput = tensor1d(["the quick brown fox"]);
+    const inputData = [tensor1d(['the', 'quick', 'brown', 'fox'])];
+    const expectedOutput = tensor1d(['the quick brown fox']);
 
     const detokenizeOutput = tokenizer.detokenize(inputData);
-    const callOutput = tokenizer.call(inputData, {mode: 'detokenize'}) as Tensor1D;
+    const callOutput = tokenizer.call(
+      inputData, {mode: 'detokenize'}) as Tensor1D;
 
     expectTensorsClose(detokenizeOutput, expectedOutput);
     expectTensorsClose(callOutput, expectedOutput);
   });
 
   it('detokenize(tokenize) composition', () => {
-    const inputData = tensor1d(["the quick brown fox"]);
+    const inputData = tensor1d(['the quick brown fox']);
 
     expectTensorsClose(
       tokenizer.detokenize(tokenizer.tokenize(inputData)), inputData);
