@@ -19,7 +19,7 @@
  * Unit Tests for Tokenizer Layers.
  */
 
-import { Tensor1D, serialization, tensor1d } from '@tensorflow/tfjs-core';
+import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
@@ -39,7 +39,6 @@ class SimpleTokenizer extends Tokenizer {
     return tensor1d(stringInputs.map(str => str.join(' ')));
   }
 }
-serialization.registerClass(SimpleTokenizer);
 
 describe('Tokenizer', () => {
   let tokenizer: SimpleTokenizer;
