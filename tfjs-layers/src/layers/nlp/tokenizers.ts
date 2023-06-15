@@ -133,7 +133,7 @@ export abstract class Tokenizer extends Layer {
     );
   }
 
-  override call(inputs: Tensor1D|Tensor1D[], kwargs: TokenizerOptions={mode: 'tokenize'}): Tensor1D|Tensor1D[] {
+  override call(inputs: Tensor1D|Tensor1D[], {mode = 'tokenize'}: TokenizerOptions): Tensor1D|Tensor1D[] {
     if (kwargs.mode === 'tokenize') {
       if (inputs instanceof Array) {
         throw new ValueError(`tokenize expects Tensor1D, not Tensor1D[].`);
