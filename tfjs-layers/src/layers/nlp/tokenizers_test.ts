@@ -53,8 +53,7 @@ describe('Tokenizer', () => {
     const expectedOutput = [tensor1d(['the', 'quick', 'brown', 'fox'])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
-    const callOutput = tokenizer.call(
-      inputData, {mode: 'tokenize'}) as Tensor1D[];
+    const callOutput = tokenizer.call(inputData) as Tensor1D[];
 
     expect(tokenizeOutput.length).toBe(1);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
