@@ -25,9 +25,9 @@ import zipfile
 import datetime
 import six
 import tensorflow.compat.v2 as tf
-from tensorflowjs.converters import build_module_map
+from tensorflowjs.converters import tf_module_mapper
 from tensorflowjs.converters import keras_h5_conversion
-from tensorflowjs.converters.build_module_map import RESULT_MAP
+from tensorflowjs.converters.tf_module_mapper import TFCLASS_MODULE_MAP
 from tensorflowjs import read_weights
 
 _CONFIG_FILENAME = "config.json"
@@ -123,7 +123,7 @@ def _deserialize_keras_v3_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    build_module_map.build_map()
+    tf_module_mapper.build_map()
     _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
 
@@ -190,7 +190,7 @@ def _generate_meta_json(version_number):
   meta_data['date_saved'] = datetime.datetime.now().strftime("%Y-%m-%d@%H:%M:%S")
 
 def _get_module(class_name):
-  module_path = build_module_map.get_module_path(class_name)
+  module_path = tf_module_mapper.get_module_path(class_name)
   return module_path
 
 
