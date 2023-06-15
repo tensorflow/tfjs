@@ -27,7 +27,7 @@ import six
 import tensorflow.compat.v2 as tf
 from tensorflowjs.converters import build_module_map
 from tensorflowjs.converters import keras_h5_conversion
-from build_module_map import RESULT_MAP
+from tensorflowjs.converters.build_module_map import RESULT_MAP
 from tensorflowjs import read_weights
 
 _CONFIG_FILENAME = "config.json"

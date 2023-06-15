@@ -38,7 +38,7 @@ fi
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
-PLATFORM="$(python -m platform)"
+PLATFORM="$(python3 -m platform)"
 if [[ $PLATFORM =~ "Windows" ]]
 then
   python -m virtualenv -p python3 "${VENV_DIR}"

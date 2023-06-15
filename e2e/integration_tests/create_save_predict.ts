@@ -60,6 +60,8 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, (env) => {
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
       let kerasOutputShapes: number[][];
+      // let kerasV3OutputData: tfc.TypedArray[];
+      // let kerasV3OutputShapes: number[][];
 
       [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
           await Promise.all([
@@ -89,6 +91,14 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, (env) => {
         tfc.test_util.expectArraysClose(
             await y.data(), kerasOutputData[i], 0.005);
       }
+
+      // // Validate outputs with keras v3 results.
+      // for (let i = 0; i < ys.length; i++) {
+      //   const y = ys[i];
+      //   expect(y.shape).toEqual(kerasV3OutputShapes[i]);
+      //   tfc.test_util.expectArraysClose(
+      //       await y.data(), kerasV3OutputData[i], 0.005);
+      // }
 
       // Dispose all tensors;
       xs.forEach(tensor => tensor.dispose());
