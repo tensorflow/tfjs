@@ -32,8 +32,44 @@ export declare interface TokenizerOptions {
 /**
  * Base class for Tokenizers.
  *
- * Subclassers should always implement the `tokenize()` method, which will also
- * be the default when calling the layer directly on inputs.
+ *  Tokenizers in the tfjs library should all subclass this layer.
+ *  The class provides two core methods `tokenize()` and `detokenize()` for
+ *  going from plain text to sequences and back. A tokenizer is a subclass of
+ *  `Layer` and can be combined with other layers in a `tf.sequential` model.
+ *
+ *  Subclassers should always implement the `tokenize()` method, which will also
+ *  be the default when calling the layer directly on inputs.
+ *
+ *  Subclassers can optionally implement the `detokenize()` method if the
+ *  tokenization is reversible. Otherwise, this can be skipped.
+ *
+ *  Subclassers should implement `get_vocabulary()`, `vocabulary_size()`,
+ *  `token_to_id()` and `id_to_token()` if applicable. For some simple
+ *  "vocab free" tokenizers, such as a whitespace splitter shown below, these
+ *  methods do not apply and can be skipped.
+ *
+ *  Example:
+ *
+ *  ```js
+ *  class WhitespaceSplitterTokenizer extends Tokenizer {
+ *    tokenize(inputs: Tensor1D): Tensor1D[] {
+ *      const stringInputs = inputs.dataSync() as unknown as string[];
+ *      return stringInputs.map(input => tensor1d(input.split(' ')));
+ *    }
+ *
+ *    override detokenize(inputs: Tensor1D[]): Tensor1D {
+ *      const stringInputs = inputs.map(
+ *        input => input.dataSync() as unknown as string[]);
+ *      return tensor1d(stringInputs.map(str => str.join(' ')));
+ *    }
+ *  }
+ *
+ * const tokenizer = new WhitespaceSplitterTokenizer();
+ *
+ * tokenizer.tokenize(tensor1d(['this is a test']));
+ *
+ * tokenizer.detokenize([tensor1d(['this', 'is', 'a', 'test'])]);
+ * ```
  */
 export abstract class Tokenizer extends Layer {
   /**
@@ -97,42 +133,30 @@ export abstract class Tokenizer extends Layer {
     );
   }
 
-  override call(inputs: Tensor1D|Tensor1D[], kwargs: TokenizerOptions={mode: 'tokenize'}): Tensor1D|Tensor1D[] {
-    if (kwargs.mode === 'tokenize') {
+  override call(
+    inputs: Tensor1D|Tensor1D[],
+    {mode = 'tokenize'}: TokenizerOptions={}
+  ): Tensor1D|Tensor1D[] {
+
+    if (mode === 'tokenize') {
       if (inputs instanceof Array) {
         throw new ValueError(`tokenize expects Tensor1D, not Tensor1D[].`);
       }
       return this.tokenize(inputs);
     }
 
-    if (kwargs.mode === 'detokenize') {
+    if (mode === 'detokenize') {
       if (!(inputs instanceof Array)) {
         throw new ValueError(`detokenize expects Tensor1D[], not Tensor1D.`);
       }
       return this.detokenize(inputs);
     }
 
-    throw new ValueError(`Input mode=${kwargs.mode} is not supported.`);
+    throw new ValueError(`Input mode=${mode} is not supported.`);
   }
 }
 
-export class WhiteSpaceTokenizer extends Tokenizer {
-  /** @nocollapse */
-  static readonly className = 'WhiteSpaceTokenizer';
-
-  tokenize(inputs: Tensor1D): Tensor1D[] {
-    const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor1d(input.split(' ')));
-  }
-
-  override detokenize(inputs: Tensor1D[]): Tensor1D {
-    const stringInputs = inputs.map(
-      input => input.dataSync() as unknown as string[]);
-    return tensor1d(stringInputs.map(str => str.join(' ')));
-  }
-}
-serialization.registerClass(WhiteSpaceTokenizer);
-
+/* Original source: keras-nlp/byte_pair_tokenizer.py */
 export declare interface BytePairTokenizerArgs extends LayerArgs {
   /**
    * Maps token to integer ids
@@ -150,14 +174,24 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
 export class BytePairTokenizer extends Tokenizer {
   /** @nocollapse */
   static readonly className = 'BytePairTokenizer';
+
   private _vocabulary: Map<string, number>;
+  private merges: string[];
 
   constructor(args?: BytePairTokenizerArgs) {
     super(args == null ? {} : args);
     if (args != null) {
       // TODO(orderique): Parse out filename inputs for vocabulary and merge.
       this._vocabulary = new Map(args.vocabulary);
+      this.merges = [...args.merges];
+
+      // TODO(orderique): Add sequenceLength, addPrefixSpace, etc.
+
+      // Create byte <=> unicode mapping. This is useful for handling
+      // whitespace tokens.
+
       this._vocabulary;
+      this.merges;
 
       // LEFT OFF HERE: ADD THE CONSTRUCTOR!!!!!!! THEN WRITE TESTS!!!!!!!!!!!
       // add this._merges
@@ -175,5 +209,4 @@ export class BytePairTokenizer extends Tokenizer {
     return tensor1d(stringInputs.map(str => str.join(' ')));
   }
 }
-
 serialization.registerClass(BytePairTokenizer);
