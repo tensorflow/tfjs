@@ -77,30 +77,6 @@ def _load_predict_save(model_path):
     with open(ys_shape_path, 'w') as f:
       f.write(json.dumps(ys_shape))
 
-  # with tf.Graph().as_default(), session:
-  #   model_json_path = os.path.join(_tmp_dir, model_path, 'model.json')
-  #   print('Loading model from path %s' % model_json_path)
-  #   model = tfjs.converters.load_keras_v3_model(model_json_path)
-  #   ys_v3 = model.predict(xs)
-
-  #   ys_data = None
-  #   ys_shape = None
-
-  #   if isinstance(ys_v3, list):
-  #     ys_data = [y.tolist() for y in ys_v3]
-  #     ys_shape = [list(y.shape) for y in ys_v3]
-  #   else:
-  #     ys_data = ys_v3.tolist()
-  #     ys_shape = [list(ys_v3.shape)]
-
-  #   ys_data_path = os.path.join(
-  #     _tmp_dir, model_path + '.ys-v3-data.json')
-  #   ys_shape_path = os.path.join(
-  #     _tmp_dir, model_path + '.ys-v3-shapes.json')
-  #   with open(ys_data_path, 'w') as f:
-  #     f.write(json.dumps(ys_data))
-  #   with open(ys_shape_path, 'w') as f:
-  #     f.write(json.dumps(ys_shape))
 
 
 def main():
