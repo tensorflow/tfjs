@@ -66,9 +66,9 @@ export declare interface TokenizerOptions {
  *
  * const tokenizer = new WhitespaceSplitterTokenizer();
  *
- * tokenizer.tokenize(tensor1d(['this is a test']));
+ * tokenizer.tokenize(tensor1d(['this is a test']))[0].print();
  *
- * tokenizer.detokenize([tensor1d(['this', 'is', 'a', 'test'])]);
+ * tokenizer.detokenize([tensor1d(['this', 'is', 'a', 'test'])]).print();
  * ```
  */
 export abstract class Tokenizer extends Layer {
