@@ -21,8 +21,21 @@
 
 import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
 
-import { WhiteSpaceTokenizer } from './tokenizers';
+import { Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
+
+class WhiteSpaceTokenizer extends Tokenizer {
+  tokenize(inputs: Tensor1D): Tensor1D[] {
+    const stringInputs = inputs.dataSync() as unknown as string[];
+    return stringInputs.map(input => tensor1d(input.split(' ')));
+  }
+
+  override detokenize(inputs: Tensor1D[]): Tensor1D {
+    const stringInputs = inputs.map(
+      input => input.dataSync() as unknown as string[]);
+    return tensor1d(stringInputs.map(str => str.join(' ')));
+  }
+}
 
 describe('White Space Tokenizer', () => {
   const tokenizer = new WhiteSpaceTokenizer();

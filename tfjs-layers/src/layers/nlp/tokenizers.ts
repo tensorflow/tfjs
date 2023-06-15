@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/tokenizer.py */
-import { Tensor1D, serialization, tensor1d } from '@tensorflow/tfjs-core';
+import { Tensor1D } from '@tensorflow/tfjs-core';
 
 import { Layer } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
@@ -115,21 +115,3 @@ export abstract class Tokenizer extends Layer {
     throw new ValueError(`Input mode=${kwargs.mode} is not supported.`);
   }
 }
-
-export class WhiteSpaceTokenizer extends Tokenizer {
-  /** @nocollapse */
-  static readonly className = 'WhiteSpaceTokenizer';
-
-  tokenize(inputs: Tensor1D): Tensor1D[] {
-    const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor1d(input.split(' ')));
-  }
-
-  override detokenize(inputs: Tensor1D[]): Tensor1D {
-    const stringInputs = inputs.map(
-      input => input.dataSync() as unknown as string[]);
-    return tensor1d(stringInputs.map(str => str.join(' ')));
-  }
-}
-
-serialization.registerClass(WhiteSpaceTokenizer);
