@@ -1,31 +1,25 @@
+# Copyright 2018 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
 import tensorflow.keras as keras
 import inspect
-import os
-import re
 
 from tensorflow.python.util import tf_export
 
 
 TFCLASS_MODULE_MAP = {}
-RESULT_MAP = {}
 MODULE = keras
-
-def _build_ts_class_module_map(folder_path):
-    """Build the map between TFJS classes and corresponding module path in TF.
-
-    Args:
-      folder_path: folder path of tfjs-layers
-    """
-    for root, dirs, files in os.walk(folder_path):
-        for file in files:
-            if file.endswith(".ts"):
-                file_path = os.path.join(root, file)
-                with open(file_path, "r") as f:
-                    file_contents = f.read()
-                    matches = re.findall(r"class\s+(\w+)", file_contents)
-                    for cls in matches:
-                        if cls in TFCLASS_MODULE_MAP:
-                            RESULT_MAP[cls] = TFCLASS_MODULE_MAP[cls]
 
 def _build_class_module_map(keras_module):
     """Build the map between TFJS classes and corresponding module path in TF.
@@ -44,12 +38,7 @@ def _build_class_module_map(keras_module):
             _build_class_module_map(obj)
 
 def build_map():
-  # Build the module Map
   _build_class_module_map(MODULE)
-  abs_path = os.path.abspath(__file__)
-  root_path = os.path.dirname(os.path.dirname(os.path.dirname(abs_path)))
-  path = os.path.join(root_path, 'tfjs-layers')
-  _build_ts_class_module_map(path)
 
 def get_module_path(key):
     """Get the module path base on input key
@@ -59,16 +48,8 @@ def get_module_path(key):
     Return:
       RESULT_MAP[key]: the corresponding module path in TF.
     """
-    if not RESULT_MAP:
-        raise Exception("Cannot find mapping, please build the map first.")
-    if key not in RESULT_MAP:
+    if not TFCLASS_MODULE_MAP:
+        build_map()
+    if key not in TFCLASS_MODULE_MAP:
         raise KeyError(f"Cannot find the module path for {key} class.")
-    return RESULT_MAP[key]
-
-
-
-
-
-
-
-
+    return TFCLASS_MODULE_MAP[key]
