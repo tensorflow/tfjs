@@ -37,7 +37,7 @@ class SimpleTokenizer extends Tokenizer {
   }
 }
 
-describe('White Space Tokenizer', () => {
+describe('Tokenizer', () => {
   const tokenizer = new SimpleTokenizer();
 
   it('tokenize', () => {
