@@ -134,20 +134,20 @@ export abstract class Tokenizer extends Layer {
   }
 
   override call(inputs: Tensor1D|Tensor1D[], {mode = 'tokenize'}: TokenizerOptions): Tensor1D|Tensor1D[] {
-    if (kwargs.mode === 'tokenize') {
+    if (mode === 'tokenize') {
       if (inputs instanceof Array) {
         throw new ValueError(`tokenize expects Tensor1D, not Tensor1D[].`);
       }
       return this.tokenize(inputs);
     }
 
-    if (kwargs.mode === 'detokenize') {
+    if (mode === 'detokenize') {
       if (!(inputs instanceof Array)) {
         throw new ValueError(`detokenize expects Tensor1D[], not Tensor1D.`);
       }
       return this.detokenize(inputs);
     }
 
-    throw new ValueError(`Input mode=${kwargs.mode} is not supported.`);
+    throw new ValueError(`Input mode=${mode} is not supported.`);
   }
 }
