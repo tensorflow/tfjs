@@ -1,0 +1,40 @@
+<html>
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@4.6.0"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@4.6.0"></script>
+  <script src="./dist/bin/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
+
+  <script>
+    async function exportCache() {
+      window.localStorage.clear()
+      await tf.setBackend('webgpu');
+      await modelInference();
+      const cache = tf.backend().exportCache();
+      window.localStorage.setItem('webgpuCache', JSON.stringify(cache));
+    }
+
+    function importCache() {
+      const cache = JSON.parse(window.localStorage.getItem('webgpuCache'));
+      tf.backend().importCache(cache);
+    }
+
+    async function modelInference() {
+      const modelUrl = 'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/deeplab/pascal/1/quantized/2/1/model.json';
+      const input = tf.ones([1, 227, 500, 3], 'int32');
+      const model = await tf.loadGraphModel(modelUrl);
+      await model.predict(input).data();
+    }
+
+    async function benchmark(useCache = false) {
+      await tf.setBackend('webgpu');
+
+      const time1 = performance.now();
+      if (useCache) {
+        importCache();
+      }
+      const time2 = performance.now();
+      await modelInference();
+      const time3 = performance.now();
+      console.log(`Cache time: ${time2 - time1}, inference time: ${time3 - time2}`);
+    }
+  </script>
+</html>
