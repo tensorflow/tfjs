@@ -334,7 +334,6 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
   groups = [] if split_by_layer else [[]]
 
   model_weights = h5file['_layer_checkpoint_dependencies']
-  actual_names = _get_actual_layer_name_list(config)
   layer_names = [as_text(n) for n in model_weights]
 
   for index, layer_name in enumerate(layer_names):
