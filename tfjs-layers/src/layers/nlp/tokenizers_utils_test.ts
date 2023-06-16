@@ -64,7 +64,7 @@ describe('bytesToUnicode', () => {
   });
 });
 
-describe('createHashtable', () => {
+describe('createStaticHashtable', () => {
   it('creates StaticHashTable<number, string> correctly', () => {
     const [bytesList, charsList] = bytesToUnicode();
     const byte2Unicode = createStaticHashtable(
