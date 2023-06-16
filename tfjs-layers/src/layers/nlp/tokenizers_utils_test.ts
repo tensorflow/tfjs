@@ -17,7 +17,7 @@
 
 import { tensor1d, test_util } from '@tensorflow/tfjs-core';
 
-import { bytesToUnicode, createStaticHashtable } from './tokenizers_utils';
+import { BytePairTokenizerCache, bytesToUnicode, createStaticHashtable } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -88,4 +88,27 @@ describe('createStaticHashtable', () => {
     expectTensorsClose(
       unicode2Byte.lookup([tensor1d(['!', '{'])])[0], tensor1d([33, 123]));
   });
+
+  describe('BytePairTokenizerCache', () => {
+    let cache: BytePairTokenizerCache;
+
+    beforeEach(() => {
+      cache = new BytePairTokenizerCache();
+    });
+
+    it('inserts strings and retrieves correctly', () => {
+      cache.insert(['butterfly', 'dragonfly'], ['but ter fly', 'dragon fly']);
+
+      test_util.expectArraysEqual(cache.lookup(['butterfly']), ['but ter fly']);
+    });
+
+    it('inserts tensors and retrieves correctly', () => {
+      cache.insert(
+        tensor1d(['butterfly', 'dragonfly']), ['but ter fly', 'dragon fly']);
+
+      test_util.expectArraysEqual(
+        cache.lookup(tensor1d(['dragonfly'])), ['dragon fly']);
+    });
+  });
+
 });
