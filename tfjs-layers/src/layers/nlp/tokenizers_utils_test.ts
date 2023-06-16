@@ -132,6 +132,6 @@ describe('removeStringsFromInputs', () => {
 
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor1d(['butterfly']));
-    expectTensorsClose(result[1], tensor1d(['']));
+    expectTensorsClose(result[1], tensor1d([]));
   });
 });
