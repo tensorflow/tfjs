@@ -17,17 +17,17 @@
 
 /* Original source: keras-nlp/byte_pair_tokenizer.py */
 
-import { Tensor, tensor1d } from '@tensorflow/tfjs-core';
+import { Tensor, tensor } from '@tensorflow/tfjs-core';
 import { ValueError } from '../../errors';
 
 export function bytesToUnicode(): [Uint8Array, string[]] {
-  const range = (start: number, end: number) =>
+  const inclusiveRange = (start: number, end: number) =>
     Array.from({ length: (end - start + 1) }, (v, k) => k + start);
 
   const bs = [
-    ...range('!'.charCodeAt(0), '~'.charCodeAt(0)),
-    ...range('¡'.charCodeAt(0), '¬'.charCodeAt(0)),
-    ...range('®'.charCodeAt(0), 'ÿ'.charCodeAt(0))
+    ...inclusiveRange('!'.charCodeAt(0), '~'.charCodeAt(0)),
+    ...inclusiveRange('¡'.charCodeAt(0), '¬'.charCodeAt(0)),
+    ...inclusiveRange('®'.charCodeAt(0), 'ÿ'.charCodeAt(0))
   ];
 
   const cs = [...bs];
@@ -51,7 +51,7 @@ export function bytesToUnicode(): [Uint8Array, string[]] {
 }
 
 /**
- * StaticHashTable extends Map and includes a `lookup` function that
+ * StaticHashTable includes a `lookup` function for multiple keys at once.
  */
 class StaticHashTable<K, V extends number|string> {
   private _map: Map<K, V>;
@@ -73,25 +73,28 @@ class StaticHashTable<K, V extends number|string> {
   }
 
   get(key: K): V {
-    return this._map.get(key) || this.defaultValue;
+    if (this._map.has(key)) {
+      return this._map.get(key);
+    }
+    return this.defaultValue;
   }
 
-  lookup(keys: Tensor[]): Tensor[] {
-    const values = keys.map(tensor => {
+  async lookup(keys: Tensor[]): Promise<Tensor[]> {
+    const values = keys.map(async t => {
       const innerValues: V[] = [];
-      for (const key of tensor.dataSync() as unknown as K[]) {
+      for (const key of await t.data() as unknown as K[]) {
         innerValues.push(this.get(key));
       }
 
-      return tensor1d(innerValues as string[]|number[]);
+      return tensor(innerValues, t.shape);
     });
 
-    return values;
+    return Promise.all(values);
   }
 }
 
-export function createStaticHashtable<T1, T2 extends number|string>(
-  keys: T1[], values: T2[], defaultVal: T2): StaticHashTable<T1, T2> {
+export function createStaticHashtable<K, V extends number|string>(
+  keys: K[], values: V[], defaultVal: V): StaticHashTable<K, V> {
 
   return new StaticHashTable(keys, values, defaultVal);
 }
@@ -104,7 +107,7 @@ export function createStaticHashtable<T1, T2 extends number|string>(
  *
  * Examples:
  *
- * ```
+ * ```js
  * const cache = new BytePairTokenizerCache();
  * cache.insert(["butterfly", "dragonfly"], ["but ter fly", "dragon fly"]);
  * cache.lookup(["butterfly"]);
@@ -120,9 +123,10 @@ export class BytePairTokenizerCache {
   /**
    * Insert token <=> encoded outputs pairs.
    */
-  insert(keys: Tensor|string[], values: string[]): BytePairTokenizerCache {
+  async insert(
+    keys: Tensor|string[], values: string[]): Promise<BytePairTokenizerCache> {
     const arrKeys = keys instanceof Tensor ?
-      keys.dataSync() as unknown as string[] : keys;
+      await keys.data() as unknown as string[] : keys;
 
     arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
     return this;
@@ -131,9 +135,9 @@ export class BytePairTokenizerCache {
   /**
    * Look up the encoded outputs of given tokens.
    */
-  lookup(keys: Tensor|string[]): string[] {
+  async lookup(keys: Tensor|string[]): Promise<string[]> {
     const arrKeys = keys instanceof Tensor ?
-      keys.dataSync() as unknown as string[] : keys;
+      await keys.data() as unknown as string[] : keys;
     return arrKeys.map(key => this._cache.get(key));
   }
 }

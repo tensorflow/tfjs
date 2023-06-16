@@ -65,7 +65,7 @@ describe('bytesToUnicode', () => {
 });
 
 describe('createStaticHashtable', () => {
-  it('creates StaticHashTable<number, string> correctly', () => {
+  it('creates StaticHashTable<number, string> correctly', async () => {
     const [bytesList, charsList] = bytesToUnicode();
     const byte2Unicode = createStaticHashtable(
       Array.from(bytesList), charsList, '');
@@ -74,10 +74,11 @@ describe('createStaticHashtable', () => {
     expect(byte2Unicode.get(-1)).toBe('');
 
     expectTensorsClose(
-      byte2Unicode.lookup([tensor1d([33, 133])])[0], tensor1d(['!', '\x85']));
+      (await byte2Unicode.lookup([tensor1d([33, 133])]))[0],
+      tensor1d(['!', '\x85']));
   });
 
-  it('creates StaticHashTable<string, number> correctly', () => {
+  it('creates StaticHashTable<string, number> correctly', async () => {
     const [bytesList, charsList] = bytesToUnicode();
     const unicode2Byte = createStaticHashtable(
       charsList, Array.from(bytesList), -1);
@@ -86,7 +87,8 @@ describe('createStaticHashtable', () => {
     expect(unicode2Byte.get('😁')).toBe(-1);
 
     expectTensorsClose(
-      unicode2Byte.lookup([tensor1d(['!', '{'])])[0], tensor1d([33, 123]));
+      (await unicode2Byte.lookup([tensor1d(['!', '{'])]))[0],
+      tensor1d([33, 123]));
   });
 });
 
@@ -97,18 +99,20 @@ describe('BytePairTokenizerCache', () => {
     cache = new BytePairTokenizerCache();
   });
 
-  it('inserts strings and retrieves correctly', () => {
-    cache.insert(['butterfly', 'dragonfly'], ['but ter fly', 'dragon fly']);
+  it('inserts strings and retrieves correctly', async () => {
+    await cache.insert(
+      ['butterfly', 'dragonfly'], ['but ter fly', 'dragon fly']);
 
-    test_util.expectArraysEqual(cache.lookup(['butterfly']), ['but ter fly']);
+    test_util.expectArraysEqual(
+      await cache.lookup(['butterfly']), ['but ter fly']);
   });
 
-  it('inserts tensors and retrieves correctly', () => {
-    cache.insert(
+  it('inserts tensors and retrieves correctly', async () => {
+    await cache.insert(
       tensor1d(['butterfly', 'dragonfly']), ['but ter fly', 'dragon fly']);
 
     test_util.expectArraysEqual(
-      cache.lookup(tensor1d(['dragonfly'])), ['dragon fly']);
+      await cache.lookup(tensor1d(['dragonfly'])), ['dragon fly']);
   });
 });
 
