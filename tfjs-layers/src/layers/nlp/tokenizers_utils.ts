@@ -145,14 +145,14 @@ export class BytePairTokenizerCache {
 /**
  * Remove certain strgins from input tensor.
  */
-export function removeStringsFromInputs(
-  inputs: Tensor[], stringToRemove: string): Tensor[] {
-    const filteredInputs = inputs
-      .map(input => tensor1d(
-        (input.dataSync() as unknown as string[])
-        .filter(str => str !== stringToRemove)));
+export async function removeStringsFromInputs(
+  inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
+    const filteredInputs = inputs.map(async input => tensor(
+        (await input.data() as unknown as string[])
+          .filter(str => str !== stringToRemove),
+        input.shape));
 
-  return filteredInputs;
+  return Promise.all(filteredInputs);
 }
 
 /**

@@ -117,22 +117,22 @@ describe('BytePairTokenizerCache', () => {
 });
 
 describe('removeStringsFromInputs', () => {
-  it ('removes nothing successfully', () => {
+  it ('removes nothing successfully', async () => {
     const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
     const stringToRemove = '६';
 
-    const result = removeStringsFromInputs(inputs, stringToRemove);
+    const result = await removeStringsFromInputs(inputs, stringToRemove);
 
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor1d(['butterfly']));
     expectTensorsClose(result[1], tensor1d(['butter']));
   });
 
-  it ('removes strings successfully', () => {
+  it ('removes strings successfully', async () => {
     const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
     const stringToRemove = 'butter';
 
-    const result = removeStringsFromInputs(inputs, stringToRemove);
+    const result = await removeStringsFromInputs(inputs, stringToRemove);
 
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor1d(['butterfly']));
