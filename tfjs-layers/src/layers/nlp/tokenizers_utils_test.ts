@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { tensor1d, test_util } from '@tensorflow/tfjs-core';
+import { tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizerCache, bytesToUnicode, createAltsForUnsplittableTokens, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
@@ -74,8 +74,8 @@ describe('createStaticHashtable', () => {
     expect(byte2Unicode.get(-1)).toBe('');
 
     expectTensorsClose(
-      (await byte2Unicode.lookup([tensor1d([33, 133])]))[0],
-      tensor1d(['!', '\x85']));
+      (await byte2Unicode.lookup([tensor([33, 133])]))[0],
+      tensor(['!', '\x85']));
   });
 
   it('creates StaticHashTable<string, number> correctly', async () => {
@@ -87,8 +87,8 @@ describe('createStaticHashtable', () => {
     expect(unicode2Byte.get('😁')).toBe(-1);
 
     expectTensorsClose(
-      (await unicode2Byte.lookup([tensor1d(['!', '{'])]))[0],
-      tensor1d([33, 123]));
+      (await unicode2Byte.lookup([tensor(['!', '{'])]))[0],
+      tensor([33, 123]));
   });
 });
 
@@ -109,34 +109,34 @@ describe('BytePairTokenizerCache', () => {
 
   it('inserts tensors and retrieves correctly', async () => {
     await cache.insert(
-      tensor1d(['butterfly', 'dragonfly']), ['but ter fly', 'dragon fly']);
+      tensor(['butterfly', 'dragonfly']), ['but ter fly', 'dragon fly']);
 
     test_util.expectArraysEqual(
-      await cache.lookup(tensor1d(['dragonfly'])), ['dragon fly']);
+      await cache.lookup(tensor(['dragonfly'])), ['dragon fly']);
   });
 });
 
 describe('removeStringsFromInputs', () => {
   it ('removes nothing successfully', async () => {
-    const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
+    const inputs = [tensor(['butterfly']), tensor(['butter'])];
     const stringToRemove = '६';
 
     const result = await removeStringsFromInputs(inputs, stringToRemove);
 
     expect(result.length).toBe(2);
-    expectTensorsClose(result[0], tensor1d(['butterfly']));
-    expectTensorsClose(result[1], tensor1d(['butter']));
+    expectTensorsClose(result[0], tensor(['butterfly']));
+    expectTensorsClose(result[1], tensor(['butter']));
   });
 
   it ('removes strings successfully', async () => {
-    const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
+    const inputs = [tensor(['butterfly']), tensor(['butter'])];
     const stringToRemove = 'butter';
 
     const result = await removeStringsFromInputs(inputs, stringToRemove);
 
     expect(result.length).toBe(2);
-    expectTensorsClose(result[0], tensor1d(['butterfly']));
-    expectTensorsClose(result[1], tensor1d([]));
+    expectTensorsClose(result[0], tensor(['butterfly']));
+    expectTensorsClose(result[1], tensor([]));
   });
 });
 

@@ -149,8 +149,7 @@ export async function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
     const filteredInputs = inputs.map(async input => tensor(
         (await input.data() as unknown as string[])
-          .filter(str => str !== stringToRemove),
-        input.shape));
+          .filter(str => str !== stringToRemove)));
 
   return Promise.all(filteredInputs);
 }
