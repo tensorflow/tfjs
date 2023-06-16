@@ -594,13 +594,37 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
-    for (const layer of this.layers) {
-      for (const weight of layer.weights) {
-        if (nameToWeight[weight.originalName] != null) {
-          throw new ValueError(`Duplicate weight name: ${weight.originalName}`);
+    // get weights key from tensor map in order to check if it is from keras v3.
+    // e.g. dense/0
+    const key = Object.keys(weights)[0].split('/');
+
+    // Check if weights from keras v3.
+    if (this.isV3(key[key.length - 1])) {
+      for (const layer of this.layers) {
+        layer.weights.forEach((weight, index) => {
+          // Parse the name to layerName/index.
+          // e.g. dense/0, dense/1, dense_1/0, dense_1/1
+          const parsedName =
+              weight.name.split('/').slice(0, -1).join('/') + '/' + index;
+          // console.log('parsed name: ', parsedName);
+          // nameToWeight[counter] = weight;
+          if (nameToWeight[parsedName] != null) {
+            throw new ValueError(`Duplicate weight name: ${parsedName}`);
+          }
+          nameToWeight[parsedName] = weight;
+          totalWeightsCount++;
+        })
+      }
+    } else {
+      for (const layer of this.layers) {
+        for (const weight of layer.weights) {
+          if (nameToWeight[weight.originalName] != null) {
+            throw new ValueError(
+                `Duplicate weight name: ${weight.originalName}`);
+          }
+          nameToWeight[weight.originalName] = weight;
+          totalWeightsCount++;
         }
-        nameToWeight[weight.originalName] = weight;
-        totalWeightsCount++;
       }
     }
 
@@ -640,6 +664,10 @@ export abstract class Container extends Layer {
     }
 
     batchSetValue(weightValueTuples);
+  }
+
+  private isV3(str: string): boolean {
+    return !isNaN(parseInt(str));
   }
 
   /**
