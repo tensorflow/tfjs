@@ -95,3 +95,45 @@ export function createStaticHashtable<T1, T2 extends number|string>(
 
   return new StaticHashTable(keys, values, defaultVal);
 }
+
+/**
+ * Cache that stores the encoded result of seen tokens.
+ *
+ * The cache key is string tensor or python strings, and the value is split
+ * tokens joined by whitespace. For example, "dragonfly" => "dragon fly"
+ *
+ * Examples:
+ *
+ * ```
+ * const cache = new BytePairTokenizerCache();
+ * cache.insert(["butterfly", "dragonfly"], ["but ter fly", "dragon fly"]);
+ * cache.lookup(["butterfly"]);
+ * ```
+ */
+export class BytePairTokenizerCache {
+  private _cache: Map<string, string>;
+
+  constructor() {
+    this._cache = new Map();
+  }
+
+  /**
+   * Insert token <=> encoded outputs pairs.
+   */
+  insert(keys: Tensor|string[], values: string[]): BytePairTokenizerCache {
+    const arrKeys = keys instanceof Tensor ?
+      keys.dataSync() as unknown as string[] : keys;
+
+    arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
+    return this;
+  }
+
+  /**
+   * Look up the encoded outputs of given tokens.
+   */
+  lookup(keys: Tensor|string[]): string[] {
+    const arrKeys = keys instanceof Tensor ?
+      keys.dataSync() as unknown as string[] : keys;
+    return arrKeys.map(key => this._cache.get(key));
+  }
+}
