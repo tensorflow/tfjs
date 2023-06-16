@@ -20,9 +20,9 @@
  */
 
 /* Original source: keras-nlp/tokenizer.py */
-import { Tensor1D } from '@tensorflow/tfjs-core';
+import { Tensor1D, serialization, tensor1d } from '@tensorflow/tfjs-core';
 
-import { Layer } from '../../engine/topology';
+import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
 
 export declare interface TokenizerOptions {
@@ -155,3 +155,58 @@ export abstract class Tokenizer extends Layer {
     throw new ValueError(`Input mode=${mode} is not supported.`);
   }
 }
+
+/* Original source: keras-nlp/byte_pair_tokenizer.py */
+export declare interface BytePairTokenizerArgs extends LayerArgs {
+  /**
+   * Maps token to integer ids
+   */
+  vocabulary: Map<string, number>;
+  /**
+   * Contains the merge rules.
+   */
+  merges: string[];
+
+  // TODO(orderique): Add optional parameters for sequenceLength, ddPrefixSpace,
+  // and unsplittableTokens
+}
+
+export class BytePairTokenizer extends Tokenizer {
+  /** @nocollapse */
+  static readonly className = 'BytePairTokenizer';
+
+  private _vocabulary: Map<string, number>;
+  private merges: string[];
+
+  constructor(args?: BytePairTokenizerArgs) {
+    super(args == null ? {} : args);
+    if (args != null) {
+      // TODO(orderique): Parse out filename inputs for vocabulary and merge.
+      this._vocabulary = new Map(args.vocabulary);
+      this.merges = [...args.merges];
+
+      // TODO(orderique): Add sequenceLength, addPrefixSpace, etc.
+
+      // Create byte <=> unicode mapping. This is useful for handling
+      // whitespace tokens.
+
+      this._vocabulary;
+      this.merges;
+
+      // LEFT OFF HERE: ADD THE CONSTRUCTOR!!!!!!! THEN WRITE TESTS!!!!!!!!!!!
+      // add this._merges
+    }
+  }
+
+  tokenize(inputs: Tensor1D): Tensor1D[] {
+    const stringInputs = inputs.dataSync() as unknown as string[];
+    return stringInputs.map(input => tensor1d(input.split(' ')));
+  }
+
+  override detokenize(inputs: Tensor1D[]): Tensor1D {
+    const stringInputs = inputs.map(
+      input => input.dataSync() as unknown as string[]);
+    return tensor1d(stringInputs.map(str => str.join(' ')));
+  }
+}
+serialization.registerClass(BytePairTokenizer);
