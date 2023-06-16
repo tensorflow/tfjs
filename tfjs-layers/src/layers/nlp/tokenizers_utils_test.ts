@@ -17,7 +17,7 @@
 
 import { tensor1d, test_util } from '@tensorflow/tfjs-core';
 
-import { bytesToUnicode, createHashtable } from './tokenizers_utils';
+import { bytesToUnicode, createStaticHashtable } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -67,7 +67,7 @@ describe('bytesToUnicode', () => {
 describe('createHashtable', () => {
   it('creates StaticHashTable<number, string> correctly', () => {
     const [bytesList, charsList] = bytesToUnicode();
-    const byte2Unicode = createHashtable(
+    const byte2Unicode = createStaticHashtable(
       Array.from(bytesList), charsList, '');
 
     expect(byte2Unicode.get(33)).toBe('!');
@@ -79,7 +79,7 @@ describe('createHashtable', () => {
 
   it('creates StaticHashTable<string, number> correctly', () => {
     const [bytesList, charsList] = bytesToUnicode();
-    const unicode2Byte = createHashtable(
+    const unicode2Byte = createStaticHashtable(
       charsList, Array.from(bytesList), -1);
 
     expect(unicode2Byte.get('Û')).toBe(219);

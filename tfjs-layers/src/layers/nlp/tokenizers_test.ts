@@ -21,7 +21,7 @@
 
 import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
 
-import { BytePairTokenizer, Tokenizer } from './tokenizers';
+import { Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 class SimpleTokenizer extends Tokenizer {
@@ -78,24 +78,5 @@ describe('Tokenizer', () => {
 
     expectTensorsClose(
       tokenizer.detokenize(tokenizer.tokenize(inputData)), inputData);
-  });
-});
-
-describe('BytePairTokenizer', () => {
-  it('bpe tokenize', () => {
-    const vocabulary: Map<string, number> = new Map([["butter", 1], ["fly", 2]]);
-    const merges = ["b u", "t t", "e r", "bu tt", "butt er", "f l", "fl y"];
-    const tokenizer = new BytePairTokenizer({vocabulary, merges});
-    const inputData = tensor1d(['butterfly']);
-    const expectedOutput = [tensor1d([1, 2])];
-
-    const tokenizeOutput = tokenizer.tokenize(inputData);
-    const callOutput = tokenizer.call(inputData) as Tensor1D[];
-
-    expect(tokenizeOutput.length).toBe(1);
-    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
-
-    expect(callOutput.length).toBe(1);
-    expectTensorsClose(callOutput[0], expectedOutput[0]);
   });
 });

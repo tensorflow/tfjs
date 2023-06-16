@@ -51,9 +51,11 @@ export function bytesToUnicode(): [Uint8Array, string[]] {
 }
 
 /**
- * HashTable extends Map and includes a `lookup` function that
+ * StaticHashTable extends Map and includes a `lookup` function that
  */
-class HashTable<K, V extends number|string> extends Map<K, V> {
+class StaticHashTable<K, V extends number|string> {
+  private _map: Map<K, V>;
+
   constructor(keys: K[], values: V[], private readonly defaultValue: V) {
     if (keys.length !== values.length) {
       throw new ValueError(`keys and values arrays must be same length.
@@ -67,14 +69,11 @@ class HashTable<K, V extends number|string> extends Map<K, V> {
       keyValPairs.push([key, val]);
     }
 
-    super(keyValPairs);
+    this._map = new Map(keyValPairs);
   }
 
-  override get(key: K) {
-    if (!this.has(key)) {
-      this.set(key, this.defaultValue);
-    }
-    return super.get(key);
+  get(key: K): V {
+    return this._map.get(key) || this.defaultValue;
   }
 
   lookup(keys: Tensor[]): Tensor[] {
@@ -91,8 +90,8 @@ class HashTable<K, V extends number|string> extends Map<K, V> {
   }
 }
 
-export function createHashtable<T1, T2 extends number|string>(
-  keys: T1[], values: T2[], defaultVal: T2): HashTable<T1, T2> {
+export function createStaticHashtable<T1, T2 extends number|string>(
+  keys: T1[], values: T2[], defaultVal: T2): StaticHashTable<T1, T2> {
 
-  return new HashTable(keys, values, defaultVal);
+  return new StaticHashTable(keys, values, defaultVal);
 }
