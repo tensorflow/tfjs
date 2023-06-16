@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,9 +36,6 @@ def _build_class_module_map(keras_module):
 
         elif inspect.ismodule(obj):
             _build_class_module_map(obj)
-
-def build_map():
-  _build_class_module_map(MODULE)
 
 def get_module_path(key):
     """Get the module path base on input key
