@@ -123,7 +123,6 @@ def _deserialize_keras_keras_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    tf_module_mapper.build_map()
     _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
 
