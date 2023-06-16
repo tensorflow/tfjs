@@ -17,7 +17,7 @@
 
 import { tensor1d, test_util } from '@tensorflow/tfjs-core';
 
-import { BytePairTokenizerCache, bytesToUnicode, createStaticHashtable } from './tokenizers_utils';
+import { BytePairTokenizerCache, bytesToUnicode, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -109,5 +109,29 @@ describe('BytePairTokenizerCache', () => {
 
     test_util.expectArraysEqual(
       cache.lookup(tensor1d(['dragonfly'])), ['dragon fly']);
+  });
+});
+
+describe('removeStringsFromInputs', () => {
+  it ('removes nothing successfully', () => {
+    const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
+    const stringToRemove = '६';
+
+    const result = removeStringsFromInputs(inputs, stringToRemove);
+
+    expect(result.length).toBe(2);
+    expectTensorsClose(result[0], tensor1d(['butterfly']));
+    expectTensorsClose(result[1], tensor1d(['butter']));
+  });
+
+  it ('removes strings successfully', () => {
+    const inputs = [tensor1d(['butterfly']), tensor1d(['butter'])];
+    const stringToRemove = 'butter';
+
+    const result = removeStringsFromInputs(inputs, stringToRemove);
+
+    expect(result.length).toBe(2);
+    expectTensorsClose(result[0], tensor1d(['butterfly']));
+    expectTensorsClose(result[1], tensor1d(['']));
   });
 });

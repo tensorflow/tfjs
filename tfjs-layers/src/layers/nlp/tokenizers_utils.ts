@@ -137,3 +137,16 @@ export class BytePairTokenizerCache {
     return arrKeys.map(key => this._cache.get(key));
   }
 }
+
+/**
+ * Remove certain strgins from input tensor.
+ */
+export function removeStringsFromInputs(
+  inputs: Tensor[], stringToRemove: string): Tensor[] {
+    const filteredInputs = inputs
+      .map(input => tensor1d(
+        (input.dataSync() as unknown as string[])
+        .filter(str => str != stringToRemove)));
+
+  return filteredInputs;
+}
