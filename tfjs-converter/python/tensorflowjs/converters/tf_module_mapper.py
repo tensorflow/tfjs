@@ -46,7 +46,7 @@ def get_module_path(key):
       RESULT_MAP[key]: the corresponding module path in TF.
     """
     if not TFCLASS_MODULE_MAP:
-        build_map()
+        _build_class_module_map()
     if key not in TFCLASS_MODULE_MAP:
         raise KeyError(f"Cannot find the module path for {key} class.")
     return TFCLASS_MODULE_MAP[key]
