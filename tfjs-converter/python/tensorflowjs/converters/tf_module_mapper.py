@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,9 +37,6 @@ def _build_class_module_map(keras_module):
         elif inspect.ismodule(obj):
             _build_class_module_map(obj)
 
-def build_map():
-  _build_class_module_map(MODULE)
-
 def get_module_path(key):
     """Get the module path base on input key
 
@@ -49,7 +46,7 @@ def get_module_path(key):
       RESULT_MAP[key]: the corresponding module path in TF.
     """
     if not TFCLASS_MODULE_MAP:
-        build_map()
+        _build_class_module_map()
     if key not in TFCLASS_MODULE_MAP:
         raise KeyError(f"Cannot find the module path for {key} class.")
     return TFCLASS_MODULE_MAP[key]
