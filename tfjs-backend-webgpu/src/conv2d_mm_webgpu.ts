@@ -46,7 +46,7 @@ function conv2dCommonSnippet(
       case 1:
         return 'return W[row * uniforms.wShape[3] + col];';
       case 4:
-        return 'return W[(row * uniforms.wShape[3] + col) / 4];';
+        return 'return W[row * uniforms.wShape[3] / 4 + col / 4];';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
