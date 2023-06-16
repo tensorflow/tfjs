@@ -86,10 +86,10 @@ class StaticHashTable<K, V extends number|string> {
         innerValues.push(this.get(key));
       }
 
-      return tensor(innerValues as V[], t.shape);
+      return tensor(innerValues, t.shape);
     });
 
-    return await Promise.all(values)
+    return Promise.all(values);
   }
 }
 
@@ -123,7 +123,8 @@ export class BytePairTokenizerCache {
   /**
    * Insert token <=> encoded outputs pairs.
    */
-  async insert(keys: Tensor|string[], values: string[]): Promise<BytePairTokenizerCache> {
+  async insert(
+    keys: Tensor|string[], values: string[]): Promise<BytePairTokenizerCache> {
     const arrKeys = keys instanceof Tensor ?
       await keys.data() as unknown as string[] : keys;
 
