@@ -150,3 +150,18 @@ export function removeStringsFromInputs(
 
   return filteredInputs;
 }
+
+/**
+ * Create alternates for all special tokens that will be not split during
+ * tokenization.
+ */
+export function createAltsForUnsplittableTokens(
+  unsplittableTokens: string[]): string[] {
+
+  const prefix = 'ĵ';
+
+  // Trim out splitters.
+  const replacePattern: RegExp = /'|\s+|[^\p{L}\p{N}]+/;
+  return unsplittableTokens.map(
+    token => prefix + token.replace(replacePattern, ''));
+}

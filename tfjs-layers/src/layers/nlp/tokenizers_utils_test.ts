@@ -17,7 +17,7 @@
 
 import { tensor1d, test_util } from '@tensorflow/tfjs-core';
 
-import { BytePairTokenizerCache, bytesToUnicode, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
+import { BytePairTokenizerCache, bytesToUnicode, createAltsForUnsplittableTokens, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -133,5 +133,25 @@ describe('removeStringsFromInputs', () => {
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor1d(['butterfly']));
     expectTensorsClose(result[1], tensor1d([]));
+  });
+});
+
+describe('createAltsForUnsplittableTokens', () => {
+  it ('creates alts with no matching regex pattern', () => {
+    const unsplittableTokens = ['s', 'p'];
+
+    const result = createAltsForUnsplittableTokens(unsplittableTokens);
+
+    expect(result.length).toBe(2);
+    test_util.expectArraysEqual(result, ['ĵs', 'ĵp']);
+  });
+
+  it ('creates alts with matching regex pattern', () => {
+    const unsplittableTokens = [' s', 'p'];
+
+    const result = createAltsForUnsplittableTokens(unsplittableTokens);
+
+    expect(result.length).toBe(2);
+    test_util.expectArraysEqual(result, ['ĵs', 'ĵp']);
   });
 });
