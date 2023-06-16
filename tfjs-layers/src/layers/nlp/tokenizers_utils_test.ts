@@ -154,4 +154,13 @@ describe('createAltsForUnsplittableTokens', () => {
     expect(result.length).toBe(2);
     test_util.expectArraysEqual(result, ['ĵs', 'ĵp']);
   });
+
+  it ('regex works correctly', () => {
+    const unsplittableTokens = ['😊,_五خَمْسَة$ñü]aA5{\'\n~`'];
+
+    const result = createAltsForUnsplittableTokens(unsplittableTokens);
+
+    expect(result.length).toBe(1);
+    test_util.expectArraysEqual(result, ['ĵ五خَمْسَةñü]aA5']);
+  });
 });

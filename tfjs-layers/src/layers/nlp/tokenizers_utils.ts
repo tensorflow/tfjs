@@ -146,7 +146,7 @@ export function removeStringsFromInputs(
     const filteredInputs = inputs
       .map(input => tensor1d(
         (input.dataSync() as unknown as string[])
-        .filter(str => str != stringToRemove)));
+        .filter(str => str !== stringToRemove)));
 
   return filteredInputs;
 }
@@ -161,7 +161,7 @@ export function createAltsForUnsplittableTokens(
   const prefix = 'ĵ';
 
   // Trim out splitters.
-  const replacePattern: RegExp = /'|\s+|[^\p{L}\p{N}]+/;
+  const replacePattern: RegExp = /'|\s+|[^\p{L}\p{N}]+/gu;
   return unsplittableTokens.map(
     token => prefix + token.replace(replacePattern, ''));
 }
