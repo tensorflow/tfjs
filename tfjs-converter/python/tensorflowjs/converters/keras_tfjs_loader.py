@@ -148,6 +148,8 @@ def _deserialize_keras_keras_model(model_topology_json,
     for name in weight_names:
       if name in weights_dict:
         weights_list.append(weights_dict[name])
+      else:
+        raise Exception(f"${name} does not exist in weights entries.")
 
     model.set_weights(weights_list)
 
