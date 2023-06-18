@@ -14,7 +14,7 @@ A 2-step process to import your model:
 1. A python pip package to convert a TensorFlow SavedModel or TensorFlow Hub
 module to a web friendly format. If you already have a converted model, or are
 using an already hosted model (e.g. MobileNet), skip this step.
-2. [JavaScript API](./src/executor/tf_model.ts), for loading and running
+2. [JavaScript API](./src/executor/graph_model.ts), for loading and running
 inference.
 
 ## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
