@@ -280,6 +280,7 @@ py_binary(
         ":common",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
+        ":tf_module_mapper",
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
