@@ -17,7 +17,9 @@
 
 import { tensor, test_util } from '@tensorflow/tfjs-core';
 
-import { BytePairTokenizerCache, bytesToUnicode, createAltsForUnsplittableTokens, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
+import { BytePairTokenizerCache, bytesToUnicode,
+  createAltsForUnsplittableTokens, createStaticHashtable, regexSplit,
+  removeStringsFromInputs } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -166,5 +168,22 @@ describe('createAltsForUnsplittableTokens', () => {
 
     expect(result.length).toBe(1);
     test_util.expectArraysEqual(result, ['ĵ五ñüaA5']);
+  });
+});
+
+describe('regexSplit', () => {
+  it ('splits with regex and string', () => {
+    const strResult = regexSplit(['hello there'], /\s/);
+    const regexResult = regexSplit(['hello there'], " ");
+    const expected = [['hello', 'there']];
+
+    test_util.expectArraysEqual(strResult, expected);
+    test_util.expectArraysEqual(regexResult, expected);
+  });
+
+  it ('keeps delimiter', () => {
+    test_util.expectArraysEqual(regexSplit(['sp'], 's', 's'), [['s', 'p']]);
+    test_util.expectArraysEqual(
+      regexSplit(['\xc4\xb4s', 'p'], 'p', 'p'), [['Ä´s'], ['p']] );
   });
 });

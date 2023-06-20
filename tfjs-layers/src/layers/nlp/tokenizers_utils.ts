@@ -177,12 +177,27 @@ const SPECIAL_WHITESPACES = /\u00A0\u2009\u202f\u3000/;
 // String splitting regex pattern.
 const SPLIT_PATTERN_1 = new RegExp(
   `'s|'t|'re|'ve|'m|'ll|'d`
-  + `|[\s{specialSpaces}]+[\n\r\t\f६{specialSpaces}]| ?\p{L}+|`
-  + ' ?[\p{N}]+| ?[^\s\p{L}\p{N}{special_spaces}]+',
-  'gu'.replace('{specialSpaces}', SPECIAL_WHITESPACES.source)
+  + `|[\\s<specialSpaces>]+[\\n\\r\\t\\f६<specialSpaces>]| ?\\p{L}+|`
+  + ' ?[\\p{N}]+| ?[^\\s\p{L}\\p{N}<specialSpaces>]+'.replace(
+    '<specialSpaces>', SPECIAL_WHITESPACES.source),
+  'gu'
 );
 
 const SPLIT_PATTERN_2 = new RegExp(`[\s६${SPECIAL_WHITESPACES.source}]\$`);
+
+export function regexSplit(
+  strs: string[],
+  delimRegexPattern: RegExp|string,
+  keepDelimRegexPattern?: RegExp|string): string[][] {
+
+  if (keepDelimRegexPattern) {
+    delimRegexPattern = delimRegexPattern instanceof RegExp ?
+      delimRegexPattern.source : delimRegexPattern;
+    delimRegexPattern = new RegExp(`(${delimRegexPattern})`, 'g');
+  }
+
+  return strs.map(str => str.split(delimRegexPattern).filter(s => s));
+}
 
 export async function splitStringForBpe(
   inputs: Tensor, unsplittableTokens?: string[]): Promise<Tensor[]> {
@@ -207,9 +222,5 @@ export async function splitStringForBpe(
     });
   }
 
-  function regexSplit(strs: string[], pattern: RegExp): string[][] {
-    return strs.map(str => str.split(pattern));
-  }
-  regexSplit;
   return [];
 }
