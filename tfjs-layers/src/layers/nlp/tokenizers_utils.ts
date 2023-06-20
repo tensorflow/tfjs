@@ -143,16 +143,21 @@ export class BytePairTokenizerCache {
 }
 
 /**
- * Remove certain strgins from input tensor.
+ * Remove certain strings from input tensor.
  */
 export async function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
-    const filteredInputs = inputs.map(async input => tensor(
-        (await input.data() as unknown as string[])
-          .filter(str => str !== stringToRemove),
-        input.shape));
 
-  return Promise.all(filteredInputs);
+  const stringArrInputs = await Promise.all(inputs.map(async input =>
+    (await input.data() as unknown as string[])));
+
+  const filteredStrArrays = stringArrInputs
+    .map(arr => arr.filter(s => s !== stringToRemove))
+    .filter(arr => arr.length > 0);
+
+  const filteredTensors = filteredStrArrays.map(arr => tensor(arr));
+
+  return filteredTensors;
 }
 
 /**
@@ -214,13 +219,40 @@ export async function splitStringForBpe(
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
+  let alts: string[];
+  let rawTokens: string[][];
+
+  function flatten<T>(inputs: T[][]): T[] {
+    return inputs.reduce(
+      (accumulator, value) => accumulator.concat(value), []);
+  }
+
   if (unsplittableTokens && unsplittableTokens.length > 0) {
-    const alts = createAltsForUnsplittableTokens(unsplittableTokens);
+    alts = createAltsForUnsplittableTokens(unsplittableTokens);
     unsplittableTokens.forEach((token, idx) => {
+      const alt = alts[idx];
       const escapedToken = token.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      SPLIT_PATTERN_1; SPLIT_PATTERN_2; inputsStr; alts; idx; escapedToken;
+
+      rawTokens = regexSplit(inputsStr, escapedToken, escapedToken);
+      rawTokens = rawTokens.map(
+        arr => arr.map(t => t.replace(escapedToken, alt)));
+
+      inputsStr = flatten(rawTokens);
+    });
+  }
+  rawTokens = regexSplit(inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+  // Second pass splits out the last whilespace char or "६".
+  rawTokens = regexSplit(flatten(rawTokens), SPLIT_PATTERN_2, SPLIT_PATTERN_2);
+
+  if (unsplittableTokens && unsplittableTokens.length > 0) {
+    // Replace special tokens alternate with originals.
+    unsplittableTokens.forEach((token, idx) => {
+      const alt = alts[idx];
+      const escapedAlt = alt.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      rawTokens = rawTokens.map(
+        arr => arr.map(t => t.replace(escapedAlt, token)));
     });
   }
 
-  return [];
+  return removeStringsFromInputs(rawTokens.map(arr => tensor(arr)), '६');
 }

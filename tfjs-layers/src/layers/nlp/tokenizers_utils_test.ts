@@ -136,9 +136,8 @@ describe('removeStringsFromInputs', () => {
 
     const result = await removeStringsFromInputs(inputs, stringToRemove);
 
-    expect(result.length).toBe(2);
+    expect(result.length).toBe(1);
     expectTensorsClose(result[0], tensor(['butterfly']));
-    expectTensorsClose(result[1], tensor([]));
   });
 });
 
