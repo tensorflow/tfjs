@@ -101,7 +101,7 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
 
   return model_json, groups
 
-def dispatch_keras_v3_to_tfjs_layers_model_conversion(
+def dispatch_keras_keras_to_tfjs_layers_model_conversion(
     v3_path,
     output_dir=None,
     quantization_dtype_map=None,
@@ -138,7 +138,7 @@ def dispatch_keras_v3_to_tfjs_layers_model_conversion(
           "directory: %s" % v3_path
       )
   file_path = str(v3_path)
-  if not str(file_path).endswith(".keras"):
+  if not file_path.endswith(".keras"):
       raise ValueError(
           "Invalid `filepath` argument: expected a `.keras` extension. "
           f"Received: filepath={file_path}"
@@ -245,6 +245,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
   # Clean up the temporary SavedModel directory.
   shutil.rmtree(temp_savedmodel_dir)
 
+
 def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     keras_saved_model_path, output_dir, quantization_dtype_map=None,
     split_weights_by_layer=False,
@@ -329,7 +330,7 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     model.save(h5_path)
 
-def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
+def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
   """Converts a TensorFlow.js Layers model format to Keras V3 format.
 
   Args:
@@ -343,12 +344,12 @@ def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
   """
   if os.path.isdir(config_json_path):
     raise ValueError(
-        'For input_type=tfjs_layers_model & output_format=keras_v3, '
+        'For input_type=tfjs_layers_model & output_format=keras_keras, '
         'the input path should be a model.json '
         'file, but received a directory.')
   if os.path.isdir(v3_path):
     raise ValueError(
-        'For input_type=tfjs_layers_model & output_format=keras_v3, '
+        'For input_type=tfjs_layers_model & output_format=keras_keras, '
         'the output path should be the path to an .keras file, '
         'but received an existing directory (%s).' % v3_path)
 
@@ -358,11 +359,11 @@ def dispatch_tensorflowjs_to_keras_v3_conversion(config_json_path, v3_path):
       json.load(f)
     except (ValueError, IOError):
       raise ValueError(
-          'For input_type=tfjs_layers_model & output_format=keras_v3, '
+          'For input_type=tfjs_layers_model & output_format=keras_keras, '
           'the input path is expected to contain valid JSON content, '
           'but cannot read valid JSON content from %s.' % config_json_path)
 
-  model = keras_tfjs_loader.load_keras_v3_model(config_json_path)
+  model = keras_tfjs_loader.load_keras_keras_model(config_json_path)
   tf.keras.saving.save_model(model, v3_path, save_format="keras")
 
 
@@ -621,9 +622,9 @@ def _dispatch_converter(input_format,
         split_weights_by_layer=args.split_weights_by_layer,
         weight_shard_size_bytes=weight_shard_size_bytes,
         metadata=metadata_map)
-  elif (input_format == common.KERAS_V3_MODEL and
+  elif (input_format == common.KERAS_KERAS_MODEL and
         output_format == common.TFJS_LAYERS_MODEL):
-    dispatch_keras_v3_to_tfjs_layers_model_conversion(
+    dispatch_keras_keras_to_tfjs_layers_model_conversion(
         args.input_path, output_dir=args.output_path,
         quantization_dtype_map=quantization_dtype_map,
         split_weights_by_layer=args.split_weights_by_layer,
@@ -682,8 +683,8 @@ def _dispatch_converter(input_format,
     dispatch_tensorflowjs_to_keras_h5_conversion(args.input_path,
                                                  args.output_path)
   elif (input_format == common.TFJS_LAYERS_MODEL and
-        output_format == common.KERAS_V3_MODEL):
-    dispatch_tensorflowjs_to_keras_v3_conversion(args.input_path,
+        output_format == common.KERAS_KERAS_MODEL):
+    dispatch_tensorflowjs_to_keras_keras_conversion(args.input_path,
                                                  args.output_path)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_SAVED_MODEL):
@@ -745,7 +746,7 @@ def get_arg_parser():
       type=str,
       required=False,
       default=common.TF_SAVED_MODEL,
-      choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL, common.KERAS_V3_MODEL,
+      choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL, common.KERAS_KERAS_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
                    common.TFJS_LAYERS_MODEL, common.TF_FROZEN_MODEL]),
       help='Input format. '
@@ -767,7 +768,7 @@ def get_arg_parser():
       type=str,
       required=False,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
-                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL, common.KERAS_V3_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL, common.KERAS_KERAS_MODEL]),
       help='Output format. Default: tfjs_graph_model.')
   parser.add_argument(
       '--%s' % common.SIGNATURE_NAME,
@@ -880,7 +881,6 @@ def get_arg_parser():
   return parser
 
 def convert(arguments):
-  print("---------->Arguments: ", arguments)
   args = get_arg_parser().parse_args(arguments)
 
   if args.show_version:

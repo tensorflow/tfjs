@@ -98,7 +98,7 @@ def _deserialize_keras_model(model_topology_json,
 
   return model
 
-def _deserialize_keras_v3_model(model_topology_json,
+def _deserialize_keras_keras_model(model_topology_json,
                              weight_entries=None,
                              use_unique_name_scope=False):
   """Internal helper method for deserializing a Keras V3 Model.
@@ -123,7 +123,6 @@ def _deserialize_keras_v3_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    tf_module_mapper.build_map()
     _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
 
@@ -308,7 +307,7 @@ def load_keras_model(config_json_path,
                                   weight_entries=weight_entries,
                                   use_unique_name_scope=use_unique_name_scope)
 
-def load_keras_v3_model(config_json_path,
+def load_keras_keras_model(config_json_path,
                      weights_path_prefix=None,
                      weights_data_buffers=None,
                      load_weights=True,
@@ -371,6 +370,6 @@ def load_keras_v3_model(config_json_path,
                                                    weights_data_buffers,
                                                    flatten=True)
 
-  return _deserialize_keras_v3_model(config_json['modelTopology'],
+  return _deserialize_keras_keras_model(config_json['modelTopology'],
                                      weight_entries=weight_entries,
                                      use_unique_name_scope=use_unique_name_scope)
