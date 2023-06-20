@@ -149,7 +149,8 @@ export async function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
     const filteredInputs = inputs.map(async input => tensor(
         (await input.data() as unknown as string[])
-          .filter(str => str !== stringToRemove)));
+          .filter(str => str !== stringToRemove),
+        input.shape));
 
   return Promise.all(filteredInputs);
 }
@@ -167,4 +168,48 @@ export function createAltsForUnsplittableTokens(
   const replacePattern: RegExp = /'|\s+|[^\p{L}\p{N}]+/gu;
   return unsplittableTokens.map(
     token => prefix + token.replace(replacePattern, ''));
+}
+
+// Typescript and TF handles special spaces differently, we need to
+// manually handle special spaces during string split.
+const SPECIAL_WHITESPACES = /\u00A0\u2009\u202f\u3000/;
+
+// String splitting regex pattern.
+const SPLIT_PATTERN_1 = new RegExp(
+  `'s|'t|'re|'ve|'m|'ll|'d`
+  + `|[\s{specialSpaces}]+[\n\r\t\f६{specialSpaces}]| ?\p{L}+|`
+  + ' ?[\p{N}]+| ?[^\s\p{L}\p{N}{special_spaces}]+',
+  'gu'.replace('{specialSpaces}', SPECIAL_WHITESPACES.source)
+);
+
+const SPLIT_PATTERN_2 = new RegExp(`[\s६${SPECIAL_WHITESPACES.source}]\$`);
+
+export async function splitStringForBpe(
+  inputs: Tensor, unsplittableTokens?: string[]): Promise<Tensor[]> {
+
+  // We need to recreate the exact behavior of token presplitting in the
+  // original gpt2 implementation which uses a lookahead. We are using an
+  // alternative by inserting a special token "६" before leading space of
+  // non-space characters and after the trailing space, e.g.,
+  // " tf" will be "६ tf".
+  const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
+  const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
+
+  let inputsStr = (await inputs.data() as unknown as string[]).map(str =>
+    str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
+  );
+
+  if (unsplittableTokens && unsplittableTokens.length > 0) {
+    const alts = createAltsForUnsplittableTokens(unsplittableTokens);
+    unsplittableTokens.forEach((token, idx) => {
+      const escapedToken = token.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      SPLIT_PATTERN_1; SPLIT_PATTERN_2; inputsStr; alts; idx; escapedToken;
+    });
+  }
+
+  function regexSplit(strs: string[], pattern: RegExp): string[][] {
+    return strs.map(str => str.split(pattern));
+  }
+  regexSplit;
+  return [];
 }
