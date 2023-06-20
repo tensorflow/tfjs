@@ -32,7 +32,7 @@ def _export_mlp_model(export_path, model_name):
   model.add(keras.layers.Dense(8, activation='softmax'))
   model.build([1, 10])
 
-  print(model.get_config())
+  # print(model.get_config())
 
 
   save_model_and_random_inputs(model, export_path, model_name)
@@ -78,11 +78,6 @@ def main():
   parser = argparse.ArgumentParser(description='Create a keras model in python.')
   parser.add_argument('--test_data_dir', help='Input a directory name', default='test_data_dir')
   args = parser.parse_args()
-  temp_dir = args.test_data_dir
-  # if os.path.exists(_tmp_dir):
-  #   os.rmdir(_tmp_dir)
-  #   os.mkdir(_tmp_dir)
-  # else:
   os.mkdir(_tmp_dir)
   _export_mlp_model(os.path.join(_tmp_dir, 'mlp'), 'mlp')
 
