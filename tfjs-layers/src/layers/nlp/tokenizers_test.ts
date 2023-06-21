@@ -19,7 +19,7 @@
  * Unit Tests for Tokenizer Layers.
  */
 
-import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
+import { Tensor, tensor } from '@tensorflow/tfjs-core';
 
 import { Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
@@ -28,15 +28,15 @@ class SimpleTokenizer extends Tokenizer {
   /** @nocollapse */
   static className = 'SimpleTokenizer';
 
-  tokenize(inputs: Tensor1D): Tensor1D[] {
+  tokenize(inputs: Tensor): Tensor[] {
     const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor1d(input.split(' ')));
+    return stringInputs.map(input => tensor(input.split(' ')));
   }
 
-  override detokenize(inputs: Tensor1D[]): Tensor1D {
+  override detokenize(inputs: Tensor[]): Tensor {
     const stringInputs = inputs.map(
       input => input.dataSync() as unknown as string[]);
-    return tensor1d(stringInputs.map(str => str.join(' ')));
+    return tensor(stringInputs.map(str => str.join(' ')));
   }
 }
 
@@ -48,11 +48,11 @@ describe('Tokenizer', () => {
   });
 
   it('tokenize', () => {
-    const inputData = tensor1d(['the quick brown fox']);
-    const expectedOutput = [tensor1d(['the', 'quick', 'brown', 'fox'])];
+    const inputData = tensor(['the quick brown fox']);
+    const expectedOutput = [tensor(['the', 'quick', 'brown', 'fox'])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
-    const callOutput = tokenizer.call(inputData) as Tensor1D[];
+    const callOutput = tokenizer.call(inputData) as Tensor[];
 
     expect(tokenizeOutput.length).toBe(1);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
@@ -62,19 +62,19 @@ describe('Tokenizer', () => {
   });
 
   it('detokenize', () => {
-    const inputData = [tensor1d(['the', 'quick', 'brown', 'fox'])];
-    const expectedOutput = tensor1d(['the quick brown fox']);
+    const inputData = [tensor(['the', 'quick', 'brown', 'fox'])];
+    const expectedOutput = tensor(['the quick brown fox']);
 
     const detokenizeOutput = tokenizer.detokenize(inputData);
     const callOutput = tokenizer.call(
-      inputData, {mode: 'detokenize'}) as Tensor1D;
+      inputData, {mode: 'detokenize'}) as Tensor;
 
     expectTensorsClose(detokenizeOutput, expectedOutput);
     expectTensorsClose(callOutput, expectedOutput);
   });
 
   it('detokenize(tokenize) composition', () => {
-    const inputData = tensor1d(['the quick brown fox']);
+    const inputData = tensor(['the quick brown fox']);
 
     expectTensorsClose(
       tokenizer.detokenize(tokenizer.tokenize(inputData)), inputData);

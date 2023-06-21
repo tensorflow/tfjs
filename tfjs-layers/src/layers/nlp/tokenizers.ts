@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/tokenizer.py */
-import { Tensor1D} from '@tensorflow/tfjs-core';
+import { Tensor} from '@tensorflow/tfjs-core';
 
 import { Layer } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
@@ -52,23 +52,23 @@ export declare interface TokenizerOptions {
  *
  *  ```js
  *  class WhitespaceSplitterTokenizer extends Tokenizer {
- *    tokenize(inputs: Tensor1D): Tensor1D[] {
+ *    tokenize(inputs: Tensor): Tensor[] {
  *      const stringInputs = inputs.dataSync() as unknown as string[];
- *      return stringInputs.map(input => tensor1d(input.split(' ')));
+ *      return stringInputs.map(input => Tensor(input.split(' ')));
  *    }
  *
- *    override detokenize(inputs: Tensor1D[]): Tensor1D {
+ *    override detokenize(inputs: Tensor[]): Tensor {
  *      const stringInputs = inputs.map(
  *        input => input.dataSync() as unknown as string[]);
- *      return tensor1d(stringInputs.map(str => str.join(' ')));
+ *      return Tensor(stringInputs.map(str => str.join(' ')));
  *    }
  *  }
  *
  * const tokenizer = new WhitespaceSplitterTokenizer();
  *
- * tokenizer.tokenize(tensor1d(['this is a test']))[0].print();
+ * tokenizer.tokenize(Tensor(['this is a test']))[0].print();
  *
- * tokenizer.detokenize([tensor1d(['this', 'is', 'a', 'test'])]).print();
+ * tokenizer.detokenize([Tensor(['this', 'is', 'a', 'test'])]).print();
  * ```
  */
 export abstract class Tokenizer extends Layer {
@@ -78,7 +78,7 @@ export abstract class Tokenizer extends Layer {
    * @param inputs Input tensor.
    * @param kwargs Additional keyword arguments.
    */
-  abstract tokenize(inputs: Tensor1D): Tensor1D[];
+  abstract tokenize(inputs: Tensor): Tensor[];
 
   /**
    * Transform tokens back into strings.
@@ -86,7 +86,7 @@ export abstract class Tokenizer extends Layer {
    * @param inputs Input tensor.
    * @param kwargs Additional keyword arguments.
    */
-  detokenize(inputs: Tensor1D[]): Tensor1D {
+  detokenize(inputs: Tensor[]): Tensor {
     throw new NotImplementedError(
       `No implementation of 'detokenize()' was found for
       ${this.constructor.name}.`
@@ -134,20 +134,20 @@ export abstract class Tokenizer extends Layer {
   }
 
   override call(
-    inputs: Tensor1D|Tensor1D[],
+    inputs: Tensor|Tensor[],
     {mode = 'tokenize'}: TokenizerOptions={}
-  ): Tensor1D|Tensor1D[] {
+  ): Tensor|Tensor[] {
 
     if (mode === 'tokenize') {
       if (inputs instanceof Array) {
-        throw new ValueError(`tokenize expects Tensor1D, not Tensor1D[].`);
+        throw new ValueError(`tokenize expects Tensor, not Tensor[].`);
       }
       return this.tokenize(inputs);
     }
 
     if (mode === 'detokenize') {
       if (!(inputs instanceof Array)) {
-        throw new ValueError(`detokenize expects Tensor1D[], not Tensor1D.`);
+        throw new ValueError(`detokenize expects Tensor[], not Tensor.`);
       }
       return this.detokenize(inputs);
     }
