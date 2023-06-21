@@ -263,6 +263,22 @@ export async function splitStringsForBpe(
       (accumulator, value) => accumulator.concat(value), []);
   }
 
+  function mergeLastTwoDimensions<T>(arr: T[][][]): T[][] {
+    const mergedArray: T[][] = [];
+
+    for (const subArray of arr) {
+      const mergedSubArray: T[] = [];
+
+      for (const innerArray of subArray) {
+        mergedSubArray.push(...innerArray);
+      }
+
+      mergedArray.push(mergedSubArray);
+    }
+
+    return mergedArray;
+  }
+
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     alts = createAltsForUnsplittableTokens(unsplittableTokens);
     unsplittableTokens.forEach((token, idx) => {
@@ -281,7 +297,8 @@ export async function splitStringsForBpe(
   // Second pass splits out the last whilespace char or "६".
   const splitTokens = rawTokens.map(
     token => regexSplit(token, SPLIT_PATTERN_2, SPLIT_PATTERN_2))
-  rawTokens = splitTokens.map(t => flatten(t));
+  // rawTokens = splitTokens.map(t => flatten(t));
+  rawTokens = mergeLastTwoDimensions(splitTokens);
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     // Replace special tokens alternate with originals.
