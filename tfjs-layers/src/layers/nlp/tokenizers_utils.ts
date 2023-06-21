@@ -251,13 +251,17 @@ export async function splitStringsForBpe(
   const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
   const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
 
-  debugger;
   let inputsStr = (await inputs.data() as unknown as string[]).map(str =>
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
   let alts: string[];
   let rawTokens: string[][];
+
+  function flatten<T>(inputs: T[][]): T[] {
+    return inputs.reduce(
+      (accumulator, value) => accumulator.concat(value), []);
+  }
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     alts = createAltsForUnsplittableTokens(unsplittableTokens);
@@ -269,12 +273,15 @@ export async function splitStringsForBpe(
       rawTokens = rawTokens.map(
         arr => arr.map(t => t.replace(escapedToken, alt)));
 
-      inputsStr = rawTokens.flat();
+      inputsStr = flatten(rawTokens);
     });
   }
+  debugger;
   rawTokens = regexSplit(inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
   // Second pass splits out the last whilespace char or "६".
-  rawTokens = regexSplit(rawTokens.flat(), SPLIT_PATTERN_2, SPLIT_PATTERN_2);
+  const splitTokens = rawTokens.map(
+    token => regexSplit(token, SPLIT_PATTERN_2, SPLIT_PATTERN_2))
+  rawTokens = splitTokens.map(t => flatten(t));
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     // Replace special tokens alternate with originals.
@@ -286,5 +293,7 @@ export async function splitStringsForBpe(
     });
   }
 
-  return removeStringsFromInputs([tensor(rawTokens.flat())], '६');
+  //!!! LEFT HERE: Figure out how to make this line work and debug first test
+  // return rawTokens.map(tokens => removeStringsFromInputs(tensor(tokens), '६'));
+  return removeStringsFromInputs([tensor(flatten(rawTokens))], '६');
 }
