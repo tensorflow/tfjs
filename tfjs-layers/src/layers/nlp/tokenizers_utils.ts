@@ -213,7 +213,7 @@ export function regexSplit(
   if (!(delimRegexPattern instanceof RegExp)) {
     if (keepDelimRegexPattern) {
       delimRegexPattern = new RegExp(
-        `(?=[${delimRegexPattern}])|(?<=[${delimRegexPattern}])`);
+        `(${delimRegexPattern})`, 'g');
     }
     return strs.map(str => str.split(delimRegexPattern).filter(s => s));
   }
