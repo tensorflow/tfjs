@@ -180,11 +180,13 @@ export function createAltsForUnsplittableTokens(
 const SPECIAL_WHITESPACES = /\u00A0\u2009\u202f\u3000/;
 
 // String splitting regex pattern.
-const SPLIT_PATTERN_1 = new RegExp(
-  `'s|'t|'re|'ve|'m|'ll|'d`
-  + `|[\\s<specialSpaces>]+[\\n\\r\\t\\f६<specialSpaces>]| ?\\p{L}+|`
-  + ' ?[\\p{N}]+| ?[^\\s\p{L}\\p{N}<specialSpaces>]+'.replace(
-    '<specialSpaces>', SPECIAL_WHITESPACES.source),
+const pL = 'a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒĵ';
+const pN = '0-9'
+export const SPLIT_PATTERN_1 = new RegExp(
+  `'s|'t|'re|'ve|'m|'ll|'d` +
+  `|[\\s${SPECIAL_WHITESPACES.source}]+` +
+  `[\\n\\r\\t\\f६${SPECIAL_WHITESPACES.source}]| ?${pL}+|`+
+  ` ?${pN}+| ?[^\\s${pL}${pN}${SPECIAL_WHITESPACES.source}]+`,
   'gu'
 );
 
@@ -195,16 +197,50 @@ export function regexSplit(
   delimRegexPattern: RegExp|string,
   keepDelimRegexPattern?: RegExp|string): string[][] {
 
-  if (keepDelimRegexPattern) {
-    delimRegexPattern = delimRegexPattern instanceof RegExp ?
-      delimRegexPattern.source : delimRegexPattern;
-    delimRegexPattern = new RegExp(`(${delimRegexPattern})`, 'g');
+
+  if (!(delimRegexPattern instanceof RegExp)) {
+    if (keepDelimRegexPattern) {
+        delimRegexPattern = new RegExp(
+          `(?=[${delimRegexPattern}])|(?<=[${delimRegexPattern}])`);
+    }
+    return strs.map(str => str.split(delimRegexPattern).filter(s => s));
   }
 
-  return strs.map(str => str.split(delimRegexPattern).filter(s => s));
+  let regexPattern = delimRegexPattern as unknown as RegExp;
+  if (!regexPattern.flags.includes('g')) {
+    regexPattern = new RegExp(regexPattern.source, regexPattern.flags + 'g');
+  }
+
+  return strs.map(str => {
+    const matches = str.matchAll(regexPattern);
+
+    const splitString = [];
+    let currIdx = 0;
+    for (const match of matches) {
+      splitString.push(str.slice(currIdx, match.index))
+      if (keepDelimRegexPattern) {
+        splitString.push(
+          str.slice(match.index, match.index! + match[0].length));
+      }
+      currIdx = match.index! + match[0].length
+    }
+    if (currIdx !== str.length) {
+      splitString.push(str.slice(currIdx, str.length))
+    }
+    return splitString.filter(s => s);
+  });
+}
+export async function tensorToStringArr(input: Tensor): Promise<string[]> {
+  return await input.data() as unknown as string[];
 }
 
-export async function splitStringForBpe(
+export async function tensorArrToString2DArr(
+  inputs: Tensor[]): Promise<string[][]> {
+  return Promise.all(inputs.map(
+    async input => await input.data() as unknown as string[]));
+}
+
+export async function splitStringsForBpe(
   inputs: Tensor, unsplittableTokens?: string[]): Promise<Tensor[]> {
 
   // We need to recreate the exact behavior of token presplitting in the
@@ -215,17 +251,13 @@ export async function splitStringForBpe(
   const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
   const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
 
+  debugger;
   let inputsStr = (await inputs.data() as unknown as string[]).map(str =>
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
   let alts: string[];
   let rawTokens: string[][];
-
-  function flatten<T>(inputs: T[][]): T[] {
-    return inputs.reduce(
-      (accumulator, value) => accumulator.concat(value), []);
-  }
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     alts = createAltsForUnsplittableTokens(unsplittableTokens);
@@ -237,12 +269,12 @@ export async function splitStringForBpe(
       rawTokens = rawTokens.map(
         arr => arr.map(t => t.replace(escapedToken, alt)));
 
-      inputsStr = flatten(rawTokens);
+      inputsStr = rawTokens.flat();
     });
   }
   rawTokens = regexSplit(inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
   // Second pass splits out the last whilespace char or "६".
-  rawTokens = regexSplit(flatten(rawTokens), SPLIT_PATTERN_2, SPLIT_PATTERN_2);
+  rawTokens = regexSplit(rawTokens.flat(), SPLIT_PATTERN_2, SPLIT_PATTERN_2);
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     // Replace special tokens alternate with originals.
@@ -254,5 +286,5 @@ export async function splitStringForBpe(
     });
   }
 
-  return removeStringsFromInputs(rawTokens.map(arr => tensor(arr)), '६');
+  return removeStringsFromInputs([tensor(rawTokens.flat())], '६');
 }

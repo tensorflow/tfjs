@@ -17,9 +17,11 @@
 
 import { tensor, test_util } from '@tensorflow/tfjs-core';
 
-import { BytePairTokenizerCache, bytesToUnicode,
+import { BytePairTokenizerCache, SPLIT_PATTERN_1, bytesToUnicode,
   createAltsForUnsplittableTokens, createStaticHashtable, regexSplit,
-  removeStringsFromInputs } from './tokenizers_utils';
+  removeStringsFromInputs,
+  splitStringsForBpe,
+  tensorArrToString2DArr} from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -172,7 +174,7 @@ describe('createAltsForUnsplittableTokens', () => {
 
 describe('regexSplit', () => {
   it ('splits with regex and string', () => {
-    const strResult = regexSplit(['hello there'], /\s/);
+    const strResult = regexSplit(['hello there'], /\s/g);
     const regexResult = regexSplit(['hello there'], " ");
     const expected = [['hello', 'there']];
 
@@ -180,9 +182,46 @@ describe('regexSplit', () => {
     test_util.expectArraysEqual(regexResult, expected);
   });
 
-  it ('keeps delimiter', () => {
+  it ('keeps string delimiter', () => {
     test_util.expectArraysEqual(regexSplit(['sp'], 's', 's'), [['s', 'p']]);
     test_util.expectArraysEqual(
       regexSplit(['\xc4\xb4s', 'p'], 'p', 'p'), [['Ä´s'], ['p']] );
+  });
+
+  it('splits regex delimiter', () => {
+    const result = regexSplit(['ĵs', 'ĵp'], SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+
+    test_util.expectArraysEqual(result, [['ĵs'], ['ĵp']]);
+  });
+
+  it('works with periods', () => {
+    const result = regexSplit(
+      ['brown.', 'black.'], SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+
+    test_util.expectArraysEqual(result, [['brown', '.'], ['black', '.']]);
+  });
+});
+
+describe('splitStringsForBpe', () => {
+  it ('splits with unsplittable tokens', async () => {
+    const inputs = tensor(['sp']);
+    const unsplittableTokens = ['s', 'p'];
+
+    const result = await splitStringsForBpe(inputs, unsplittableTokens);
+
+    expect(result.length).toBe(1);
+    expectTensorsClose(result[0], tensor(['s', 'p']));
+  });
+
+  it ('splits with no unsplittable tokens', async () => {
+    const inputs = tensor(['brown.', 'black.']);
+
+    const result = await splitStringsForBpe(inputs);
+
+    console.log('result', await tensorArrToString2DArr(result));
+
+    expect(result.length).toBe(2);
+    expectTensorsClose(result[0], tensor(['brown', '.']));
+    expectTensorsClose(result[1], tensor(['black', '.']));
   });
 });
