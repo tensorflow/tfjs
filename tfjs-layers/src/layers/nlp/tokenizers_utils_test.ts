@@ -208,7 +208,11 @@ describe('splitStringsForBpe', () => {
     const unsplittableTokens = ['s', 'p'];
 
     const result = await splitStringsForBpe(inputs, unsplittableTokens);
-
+    console.log('result', await tensorArrToString2DArr(result));
+    // currently getting [['s'], ['p]]
+    // need to get [['s', 'p']]
+    // could flatten each ['s'], ['p'] to be come 's' and 'p'?
+    // python uses mergedims(1,2) which make me think they are merging the
     expect(result.length).toBe(1);
     expectTensorsClose(result[0], tensor(['s', 'p']));
   });

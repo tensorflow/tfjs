@@ -190,7 +190,7 @@ export const SPLIT_PATTERN_1 = new RegExp(
   'gu'
 );
 
-const SPLIT_PATTERN_2 = new RegExp(`[\s६${SPECIAL_WHITESPACES.source}]\$`);
+const SPLIT_PATTERN_2 = new RegExp(`[\\s६${SPECIAL_WHITESPACES.source}]\$`);
 
 export function regexSplit(
   strs: string[],
@@ -293,7 +293,5 @@ export async function splitStringsForBpe(
     });
   }
 
-  //!!! LEFT HERE: Figure out how to make this line work and debug first test
-  // return rawTokens.map(tokens => removeStringsFromInputs(tensor(tokens), '६'));
-  return removeStringsFromInputs([tensor(flatten(rawTokens))], '६');
+  return removeStringsFromInputs(rawTokens.map(tokens => tensor(tokens)), '६');
 }
