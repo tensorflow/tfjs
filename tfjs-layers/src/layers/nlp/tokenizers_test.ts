@@ -19,9 +19,9 @@
  * Unit Tests for Tokenizer Layers.
  */
 
-import { Tensor, tensor } from '@tensorflow/tfjs-core';
+import { Tensor, tensor, test_util } from '@tensorflow/tfjs-core';
 
-import { Tokenizer } from './tokenizers';
+import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 class SimpleTokenizer extends Tokenizer {
@@ -78,5 +78,21 @@ describe('Tokenizer', () => {
 
     expectTensorsClose(
       tokenizer.detokenize(tokenizer.tokenize(inputData)), inputData);
+  });
+});
+
+describe('BytePairTokenizer', () => {
+  it('gets correct set up', () => {
+    const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+    const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const config = tokenizer.getConfig();
+
+    expect(tokenizer.vocabulary).toEqual(['butter', 'fly']);
+    expect(tokenizer.vocabularySize).toEqual(2);
+    expect(tokenizer.idToToken(1)).toEqual('butter');
+    expect(tokenizer.idToToken(3)).toEqual(null);
+    expect(tokenizer.tokenToId('butter')).toEqual(1);
+    test_util.expectArraysEqual(config.merges as string[], merges);
   });
 });

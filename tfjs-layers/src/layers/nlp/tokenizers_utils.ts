@@ -53,7 +53,7 @@ export function bytesToUnicode(): [Uint8Array, string[]] {
 /**
  * StaticHashTable includes a `lookup` function for multiple keys at once.
  */
-class StaticHashTable<K, V extends number|string> {
+export class StaticHashTable<K, V extends number|string> {
   private _map: Map<K, V>;
 
   constructor(keys: K[], values: V[], private readonly defaultValue: V) {
