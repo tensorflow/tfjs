@@ -19,9 +19,7 @@ import { tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizerCache, SPLIT_PATTERN_1, bytesToUnicode,
   createAltsForUnsplittableTokens, createStaticHashtable, regexSplit,
-  removeStringsFromInputs,
-  splitStringsForBpe,
-  tensorArrToString2DArr} from './tokenizers_utils';
+  removeStringsFromInputs, splitStringsForBpe } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -175,7 +173,7 @@ describe('createAltsForUnsplittableTokens', () => {
 describe('regexSplit', () => {
   it ('splits with regex and string', () => {
     const strResult = regexSplit(['hello there'], /\s/g);
-    const regexResult = regexSplit(['hello there'], " ");
+    const regexResult = regexSplit(['hello there'], ' ');
     const expected = [['hello', 'there']];
 
     test_util.expectArraysEqual(strResult, expected);
@@ -208,11 +206,7 @@ describe('splitStringsForBpe', () => {
     const unsplittableTokens = ['s', 'p'];
 
     const result = await splitStringsForBpe(inputs, unsplittableTokens);
-    console.log('result', await tensorArrToString2DArr(result));
-    // currently getting [['s'], ['p]]
-    // need to get [['s', 'p']]
-    // could flatten each ['s'], ['p'] to be come 's' and 'p'?
-    // python uses mergedims(1,2) which make me think they are merging the
+
     expect(result.length).toBe(1);
     expectTensorsClose(result[0], tensor(['s', 'p']));
   });
@@ -221,8 +215,6 @@ describe('splitStringsForBpe', () => {
     const inputs = tensor(['brown.', 'black.']);
 
     const result = await splitStringsForBpe(inputs);
-
-    console.log('result', await tensorArrToString2DArr(result));
 
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor(['brown', '.']));

@@ -181,7 +181,7 @@ const SPECIAL_WHITESPACES = /\u00A0\u2009\u202f\u3000/;
 
 // String splitting regex pattern.
 const pL = 'a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒĵ';
-const pN = '0-9'
+const pN = '0-9';
 export const SPLIT_PATTERN_1 = new RegExp(
   `'s|'t|'re|'ve|'m|'ll|'d` +
   `|[\\s${SPECIAL_WHITESPACES.source}]+` +
@@ -192,16 +192,28 @@ export const SPLIT_PATTERN_1 = new RegExp(
 
 const SPLIT_PATTERN_2 = new RegExp(`[\\s६${SPECIAL_WHITESPACES.source}]\$`);
 
-export function regexSplit(
-  strs: string[],
-  delimRegexPattern: RegExp|string,
-  keepDelimRegexPattern?: RegExp|string): string[][] {
+function flatten<T>(inputs: T[][]): T[] {
+  return inputs.reduce(
+    (accumulator, value) => accumulator.concat(value), []);
+}
 
+export function regexSplit(
+  strs: string[]|string[][],
+  delimRegexPattern: RegExp | string,
+  keepDelimRegexPattern?: RegExp | string): string[][] {
+
+  if (strs[0] instanceof Array) {
+    const mapped = strs.map(arr => regexSplit(
+      arr as string[], delimRegexPattern, keepDelimRegexPattern));
+    return mapped.map((doubleArr) => flatten(doubleArr));
+  }
+
+  strs = strs as string[];
 
   if (!(delimRegexPattern instanceof RegExp)) {
     if (keepDelimRegexPattern) {
-        delimRegexPattern = new RegExp(
-          `(?=[${delimRegexPattern}])|(?<=[${delimRegexPattern}])`);
+      delimRegexPattern = new RegExp(
+        `(?=[${delimRegexPattern}])|(?<=[${delimRegexPattern}])`);
     }
     return strs.map(str => str.split(delimRegexPattern).filter(s => s));
   }
@@ -217,19 +229,20 @@ export function regexSplit(
     const splitString = [];
     let currIdx = 0;
     for (const match of matches) {
-      splitString.push(str.slice(currIdx, match.index))
+      splitString.push(str.slice(currIdx, match.index));
       if (keepDelimRegexPattern) {
         splitString.push(
           str.slice(match.index, match.index! + match[0].length));
       }
-      currIdx = match.index! + match[0].length
+      currIdx = match.index! + match[0].length;
     }
     if (currIdx !== str.length) {
-      splitString.push(str.slice(currIdx, str.length))
+      splitString.push(str.slice(currIdx, str.length));
     }
     return splitString.filter(s => s);
   });
 }
+
 export async function tensorToStringArr(input: Tensor): Promise<string[]> {
   return await input.data() as unknown as string[];
 }
@@ -251,33 +264,12 @@ export async function splitStringsForBpe(
   const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
   const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
 
-  let inputsStr = (await inputs.data() as unknown as string[]).map(str =>
+  const inputsStr = (await inputs.data() as unknown as string[]).map(str =>
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
   let alts: string[];
   let rawTokens: string[][];
-
-  function flatten<T>(inputs: T[][]): T[] {
-    return inputs.reduce(
-      (accumulator, value) => accumulator.concat(value), []);
-  }
-
-  function mergeLastTwoDimensions<T>(arr: T[][][]): T[][] {
-    const mergedArray: T[][] = [];
-
-    for (const subArray of arr) {
-      const mergedSubArray: T[] = [];
-
-      for (const innerArray of subArray) {
-        mergedSubArray.push(...innerArray);
-      }
-
-      mergedArray.push(mergedSubArray);
-    }
-
-    return mergedArray;
-  }
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     alts = createAltsForUnsplittableTokens(unsplittableTokens);
@@ -285,20 +277,16 @@ export async function splitStringsForBpe(
       const alt = alts[idx];
       const escapedToken = token.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
-      rawTokens = regexSplit(inputsStr, escapedToken, escapedToken);
+      rawTokens = regexSplit(rawTokens !== undefined ?
+        rawTokens : inputsStr, escapedToken, escapedToken);
       rawTokens = rawTokens.map(
         arr => arr.map(t => t.replace(escapedToken, alt)));
-
-      inputsStr = flatten(rawTokens);
     });
   }
-  debugger;
-  rawTokens = regexSplit(inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+  rawTokens = regexSplit(rawTokens !== undefined ?
+    rawTokens : inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
   // Second pass splits out the last whilespace char or "६".
-  const splitTokens = rawTokens.map(
-    token => regexSplit(token, SPLIT_PATTERN_2, SPLIT_PATTERN_2))
-  // rawTokens = splitTokens.map(t => flatten(t));
-  rawTokens = mergeLastTwoDimensions(splitTokens);
+  rawTokens  = regexSplit(rawTokens, SPLIT_PATTERN_2, SPLIT_PATTERN_2);
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     // Replace special tokens alternate with originals.
