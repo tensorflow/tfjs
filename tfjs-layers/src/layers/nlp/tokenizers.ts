@@ -21,6 +21,7 @@
 
 /* Original source: keras-nlp/tokenizer.py */
 import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
+// import * as tfc from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
@@ -319,7 +320,59 @@ export class BytePairTokenizer extends Tokenizer {
     return config;
   }
 
-  //! LEFT OFF HERE!!! DEFINE private bpeMergeOneStep(words: any, mask: any)
+  private bpeMergeOneStep(
+    words: Tensor[], mask: boolean[]): [Tensor[], boolean[]] {
+
+    // TODO(orderique): Implement.
+    return [[], []];
+  }
+
+  private bpeMerge(words: Tensor[]): Tensor[] {
+    // Notes (to be deleted):
+    // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
+    // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
+    this.bpeMergeAndUpdateCache;
+
+    const numWords = words.length;
+
+    // Merge bytes.
+    function loopCondition(mask: boolean[]): boolean {
+      return mask.some(e => e);
+    }
+
+    const initialMask: boolean[] = Array(numWords).fill(true);
+
+    let mergedWords = words;
+    let mask = initialMask;
+    while (loopCondition(mask)) {
+      [mergedWords, mask] = this.bpeMergeOneStep(mergedWords, mask);
+    }
+
+    return mergedWords;
+  }
+
+  /**
+   * Map token bytes to unicode using `byte2unicode`.
+   */
+  private async transformBytes(tokens: Tensor): Promise<Tensor[]> {
+    const tokensStr = await tokens.data() as unknown as string[];
+
+    const splitBytes = tokensStr.map(
+      token => tensor(token.split('').map(c => c.charCodeAt(0))));
+    const splitUnicode = await this.byte2Unicode.lookup(splitBytes);
+
+    return splitUnicode;
+  }
+
+  /**
+   * Process unseen tokens and add to cache.
+   */
+  private async bpeMergeAndUpdateCache(tokens: Tensor) {
+    // tokens string[]
+    const words = await this.transformBytes(tokens);
+    const tokenizedWords = this.bpeMerge(words);
+    tokenizedWords;
+  }
 
   tokenize(inputs: Tensor): Tensor[] {
     const stringInputs = inputs.dataSync() as unknown as string[];
