@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {matchAll} from "./match_all_polyfill";
+import {matchAll} from './match_all_polyfill';
 
 function format({match, index, input}: {match: string, index: number,
                                         input: string}) {
@@ -34,7 +34,7 @@ describe('matchAll', () => {
       {match: 'asd', index: 4, input},
       {match: 'asd', index: 8, input},
       {match: 'asd', index: 12, input},
-    ].map(format))
+    ].map(format));
   });
 
   it('supports regexp flags', () => {
@@ -51,6 +51,6 @@ describe('matchAll', () => {
       {match: 'ASD', index: 4, input},
       {match: 'asd', index: 8, input},
       {match: 'ASD', index: 12, input},
-    ].map(format))
+    ].map(format));
   });
 });
