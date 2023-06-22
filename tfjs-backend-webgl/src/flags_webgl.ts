@@ -180,7 +180,11 @@ ENV.registerFlag(
       return -1;
     },
     threshold => {
+// TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
+//   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+// @ts-ignore
       if (threshold < 0 && threshold !== -1) {
+
         throw new Error(
             `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never ` +
             `delete) or at least 0, but got ${threshold}.`);
@@ -202,6 +206,9 @@ ENV.registerFlag(
       return device_util.isMobile() ? 1 : -1;
     },
     threshold => {
+    // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
+    //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+    // @ts-ignore
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
             `WEBGL_FLUSH_THRESHOLD must be -1 (indicating never ` +

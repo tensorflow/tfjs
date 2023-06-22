@@ -32,6 +32,9 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
   }
 
   // Limit the number of uploaded textures for optimization.
+  // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
+//   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+ // @ts-ignore
   if (tensors.length > env().get('WEBGL_MAX_TEXTURES_IN_SHADER')) {
     const midIndex = Math.floor(tensors.length / 2);
     const leftSide = addN({inputs: tensors.slice(0, midIndex), backend});
