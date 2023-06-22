@@ -25,7 +25,7 @@ import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
 
 
 export declare interface TokenizerOptions {
@@ -380,10 +380,42 @@ export class BytePairTokenizer extends Tokenizer {
     const minPairRankIndices = maskedPairRanks.map(arr => argMin(arr));
 
     // Get words and pairs to process.
-    //!! LEFT OFF HERE! Python debugger paused at next line
-    // const unfinishedWords = ...
-    minPairRankIndices;
-    return [[], []];
+    const unfinishedWords = wordsStr.filter((_, idx) => mask[idx]);
+
+    const pairLeft = unfinishedWords.map(
+      (word, idx) => word[minPairRankIndices[idx]]);
+
+    const pairRight = unfinishedWords.map(
+      (word, idx) => word[minPairRankIndices[idx] + 1]);
+
+    const mergedPairs = pairLeft.map((left, idx) => {
+      const right = pairRight[idx];
+      return [left, right].join('');
+    });
+    const unfinishedWordsIndices = mask
+      .map((_, idx) => idx)
+      .filter((_, idx) => mask[idx]);
+
+    const mergedPairIndices = unfinishedWordsIndices.map(
+      (index, idx) => [index, minPairRankIndices[idx]]);
+    const emptyStringIndices = unfinishedWordsIndices.map(
+      (index, idx) => [index, minPairRankIndices[idx] + 1]);
+
+    mergedPairIndices.forEach((indices, idx) => {
+      const [wordIdx, charIdx] = indices;
+      const mergedPair = mergedPairs[idx];
+      wordsStr[wordIdx][charIdx] = mergedPair;
+    });
+
+    emptyStringIndices.forEach((indices) => {
+      const [wordIdx, charIdx] = indices;
+      wordsStr[wordIdx][charIdx] = '';
+    });
+
+    words = wordsStr.map(word => tensor(word))
+    words = await removeStringsFromInputs(words, '');
+
+    return [words, mask];
   }
 
   private async bpeMerge(words: Tensor[]): Promise<Tensor[]> {
