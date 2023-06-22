@@ -25,7 +25,7 @@ import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, tensorArrTo2DArr } from './tokenizers_utils';
 
 
 export declare interface TokenizerOptions {
@@ -326,8 +326,7 @@ export class BytePairTokenizer extends Tokenizer {
     // Notes (to be deleted):
     // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
     // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
-    const wordsStr = await Promise.all(words.map(
-      async t => t.data() as unknown as string[]));
+    const wordsStr = await tensorArrTo2DArr<string>(words);
 
     // Get all word pairs.
     const first = wordsStr.map(arr => arr.slice(0, -1));
@@ -355,8 +354,7 @@ export class BytePairTokenizer extends Tokenizer {
     });
     const pairRanksTensor = await this.mergeRanks.lookup(
       pairs.map(arr => tensor(arr)));
-    const pairRanks = await Promise.all(pairRanksTensor.map(
-      async t => t.data() as unknown as number[]));
+    const pairRanks = await tensorArrTo2DArr<number>(pairRanksTensor);
 
     // Get BPE pair ranks.
     const minPairRank = pairRanks.map(arr => Math.min(...arr));
@@ -422,7 +420,6 @@ export class BytePairTokenizer extends Tokenizer {
     // Notes (to be deleted):
     // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
     // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
-    this.bpeMergeAndUpdateCache;
 
     const numWords = words.length;
 
@@ -459,13 +456,20 @@ export class BytePairTokenizer extends Tokenizer {
    * Process unseen tokens and add to cache.
    */
   private async bpeMergeAndUpdateCache(tokens: Tensor) {
-    // tokens string[]
     const words = await this.transformBytes(tokens);
-    const tokenizedWords = this.bpeMerge(words);
-    tokenizedWords;
+    const tokenizedWordsTensor = await this.bpeMerge(words);
+    const tokenizedWords =
+      await tensorArrTo2DArr<string>(tokenizedWordsTensor);
+
+    // For each word, join all its token by a whitespace,
+    // e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
+    const joinedTokens = tokenizedWords.map(word => word.join(' '));
+
+    await this.cache.insert(tokens, joinedTokens);
   }
 
   tokenize(inputs: Tensor): Tensor[] {
+    this.bpeMergeAndUpdateCache;
     const stringInputs = inputs.dataSync() as unknown as string[];
     return stringInputs.map(input => tensor(input.split(' ')));
   }

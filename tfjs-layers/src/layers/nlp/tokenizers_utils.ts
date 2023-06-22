@@ -247,10 +247,10 @@ export async function tensorToStringArr(input: Tensor): Promise<string[]> {
   return await input.data() as unknown as string[];
 }
 
-export async function tensorArrToString2DArr(
-  inputs: Tensor[]): Promise<string[][]> {
+export async function tensorArrTo2DArr<T>(
+  inputs: Tensor[]): Promise<T[][]> {
   return Promise.all(inputs.map(
-    async input => await input.data() as unknown as string[]));
+    async input => await input.data() as unknown as T[]));
 }
 
 export async function splitStringsForBpe(
