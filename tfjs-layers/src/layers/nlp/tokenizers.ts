@@ -372,6 +372,17 @@ export class BytePairTokenizer extends Tokenizer {
       return [words, mask];
     }
 
+    function argMin(arr: number[]): number {
+      return arr.indexOf(Math.min(...arr));
+    }
+
+    const maskedPairRanks = pairRanks.filter((_, idx) => pairFoundMask[idx]);
+    const minPairRankIndices = maskedPairRanks.map(arr => argMin(arr));
+
+    // Get words and pairs to process.
+    //!! LEFT OFF HERE! Python debugger paused at next line
+    // const unfinishedWords = ...
+    minPairRankIndices;
     return [[], []];
   }
 
