@@ -27,7 +27,6 @@ import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
 import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, tensorArrTo2DArr } from './tokenizers_utils';
 
-
 export declare interface TokenizerOptions {
   mode?: 'tokenize' | 'detokenize';
 }
@@ -265,9 +264,7 @@ export class BytePairTokenizer extends Tokenizer {
       this.mergeRanksLookupDefault
     );
 
-    this._dtype;
-    this.byte2Unicode; this.unicode2Byte; this.tokenToIdMap;
-    this.idToTokenMap; this.mergeRanks;
+    this._dtype; this.unicode2Byte; this.tokenToIdMap; this.idToTokenMap;
   }
 
   /**
@@ -323,9 +320,6 @@ export class BytePairTokenizer extends Tokenizer {
   private async bpeMergeOneStep(
     words: Tensor[], mask: boolean[]): Promise<[Tensor[], boolean[]]> {
 
-    // Notes (to be deleted):
-    // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
-    // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
     const wordsStr = await tensorArrTo2DArr<string>(words);
 
     // Get all word pairs.
@@ -410,17 +404,13 @@ export class BytePairTokenizer extends Tokenizer {
       wordsStr[wordIdx][charIdx] = '';
     });
 
-    words = wordsStr.map(word => tensor(word))
+    words = wordsStr.map(word => tensor(word));
     words = await removeStringsFromInputs(words, '');
 
     return [words, mask];
   }
 
   private async bpeMerge(words: Tensor[]): Promise<Tensor[]> {
-    // Notes (to be deleted):
-    // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
-    // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
-
     const numWords = words.length;
 
     // Merge bytes.
