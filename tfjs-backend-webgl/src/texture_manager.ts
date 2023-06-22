@@ -105,9 +105,9 @@ export class TextureManager {
         isPacked);
     const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     if (deleteTexThreshold !== -1 &&
-  // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
-  //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
-  // @ts-ignore.
+      // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
+      //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+      // @ts-ignore.
         this._numBytesAllocated > deleteTexThreshold) {
       this.gpgpu.deleteMatrixTexture(texture.texture);
       this._numBytesAllocated -= texBytes;
