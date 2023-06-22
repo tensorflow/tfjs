@@ -320,14 +320,62 @@ export class BytePairTokenizer extends Tokenizer {
     return config;
   }
 
-  private bpeMergeOneStep(
-    words: Tensor[], mask: boolean[]): [Tensor[], boolean[]] {
+  private async bpeMergeOneStep(
+    words: Tensor[], mask: boolean[]): Promise<[Tensor[], boolean[]]> {
 
-    // TODO(orderique): Implement.
+    // Notes (to be deleted):
+    // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
+    // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
+    const wordsStr = await Promise.all(words.map(
+      async t => t.data() as unknown as string[]));
+
+    // Get all word pairs.
+    const first = wordsStr.map(arr => arr.slice(0, -1));
+    const second = wordsStr.map(arr => arr.slice(1, arr.length));
+
+    // Mask empty.
+    const nonEmptyMask = second.map(arr => arr.length > 0);
+    mask = mask.map((a, idx) => a && nonEmptyMask[idx]);
+    if (!mask.some(e => e)) {
+      return [words, mask];
+    }
+    const nonEmptyIndices = mask
+      .map((bool, idx) => bool ? idx : -1)
+      .filter(e => e !== -1);
+
+    const filteredFirst = nonEmptyIndices.map(idx => first[idx]);
+    const filteredSecond = nonEmptyIndices.map(idx => second[idx]);
+
+    // Get byte pair ranking in merge rules.
+    const pairs: string[][] = filteredFirst.map((firstSubArr, idx) => {
+      const secondSubArr = filteredSecond[idx];
+
+      return firstSubArr.map(
+        (char, idx) => [char, secondSubArr[idx]].join(' '));
+    });
+    const pairRanksTensor = await this.mergeRanks.lookup(
+      pairs.map(arr => tensor(arr)));
+    const pairRanks = await Promise.all(pairRanksTensor.map(
+      async t => t.data() as unknown as number[]));
+
+    // Get BPE pair ranks.
+    const minPairRank = pairRanks.map(arr => Math.min(...arr));
+    const pairFoundMask = minPairRank.map(
+      rank => rank !== this.mergeRanksLookupDefault);
+
+    // Tokens that cannot be further merged are marked as finished.
+    nonEmptyIndices.forEach((index, idx) => {
+      const update = pairFoundMask[idx];
+      mask[index] = update;
+    });
+    if (!mask.some(e => e)) {
+      return [words, mask];
+    }
+
     return [[], []];
   }
 
-  private bpeMerge(words: Tensor[]): Tensor[] {
+  private async bpeMerge(words: Tensor[]): Promise<Tensor[]> {
     // Notes (to be deleted):
     // words: string[][] like [[b'b', b'r', b'o', b'w', b'n'], [b'.'],
     // [b'b', b'l', b'a', b'c', b'k'], [b'.']]
@@ -345,7 +393,7 @@ export class BytePairTokenizer extends Tokenizer {
     let mergedWords = words;
     let mask = initialMask;
     while (loopCondition(mask)) {
-      [mergedWords, mask] = this.bpeMergeOneStep(mergedWords, mask);
+      [mergedWords, mask] = await this.bpeMergeOneStep(mergedWords, mask);
     }
 
     return mergedWords;
