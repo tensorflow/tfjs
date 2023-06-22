@@ -25,7 +25,7 @@ import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, tensorArrTo2DArr } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr } from './tokenizers_utils';
 
 export declare interface TokenizerOptions {
   mode?: 'tokenize' | 'detokenize';
@@ -459,9 +459,81 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   tokenize(inputs: Tensor): Tensor[] {
-    this.bpeMergeAndUpdateCache;
     const stringInputs = inputs.dataSync() as unknown as string[];
     return stringInputs.map(input => tensor(input.split(' ')));
+  }
+
+  async tokenizeAsync(inputs: Tensor): Promise<Tensor[]> {
+    const rawTokensTensor = await splitStringsForBpe(
+      inputs, this.unsplittableTokens);
+    const rawTokens = await tensorArrTo2DArr<string>(rawTokensTensor);
+
+    const tokenRowSplits = [0];
+    rawTokens.forEach((token, idx) => {
+      tokenRowSplits.push(tokenRowSplits[idx] + token.length);
+    });
+
+    const flatTokens = rawTokens.flat();
+
+    // Check cache.
+    const cacheLookup = await this.cache.lookup(flatTokens);
+    const cacheMask = cacheLookup.map(e => e === '');
+
+    const emptyFlatTokensMask = flatTokens.map(e => e !== '');
+    const hasUnseenWords = cacheMask.map(
+      (bool, idx) => bool && emptyFlatTokensMask[idx]).some(e => e);
+
+    const processUnseenTokens = async (): Promise<string[]>  => {
+      const unseenTokens = flatTokens.filter((_, idx) => cacheMask[idx]);
+      this.bpeMergeAndUpdateCache(tensor(unseenTokens));
+      return await this.cache.lookup(flatTokens);
+    };
+
+    // If `has_unseen_words == True`, it means not all tokens are in cache,
+    // we will process the unseen tokens. Otherwise return the cache lookup.
+    const tokenizedWords =
+      hasUnseenWords ? await processUnseenTokens() : cacheLookup;
+
+    debugger;
+    const tokensTensor = await this.tokenToIdMap.lookup(
+      tokenizedWords.map(word => tensor(word.split(' '))));
+    const tokens = await tensorArrTo2DArr<number>(tokensTensor);
+
+    // Unflatten to match input.
+    const newTokenRowSplits = [0];
+    tokens.forEach((token, idx) => {
+      tokenRowSplits.push(tokenRowSplits[idx] + token.length);
+    });
+    const newFlatTokens = tokens.flat();
+    const gatheredIndices =
+      tokenRowSplits.map(index => newTokenRowSplits[index]);
+
+    const token2D: number[][] = [];
+    for (let i = 0; i < gatheredIndices.length - 2; i++) {
+      const [start, end] = [gatheredIndices[i], gatheredIndices[i+1]];
+      const row = newFlatTokens.slice(start, end);
+      token2D.push(row);
+    }
+
+    // Convert to a dense output if `sequence_length` is set.
+    if (this.sequenceLength) {
+      // pad or truncate
+      const maxLength = Math.max(...token2D.map(token => Math.max(...token)));
+      token2D.map(tokenArr => {
+        const pad: number[] = Array(maxLength - tokenArr.length).fill(0);
+
+        const newRow = [];
+        for (let i = 0; i < pad.length; i++) {
+          if (pad[i] === undefined) {
+            break;
+          }
+          newRow.push(tokenArr[i]);
+        }
+        return newRow;
+      });
+    }
+
+    return token2D.map(token => tensor(token));
   }
 
   override detokenize(inputs: Tensor[]): Tensor {

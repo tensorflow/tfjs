@@ -23,6 +23,7 @@ import { Tensor, tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
+import { tensorArrTo2DArr } from './tokenizers_utils';
 
 class SimpleTokenizer extends Tokenizer {
   /** @nocollapse */
@@ -94,5 +95,23 @@ describe('BytePairTokenizer', () => {
     expect(tokenizer.idToToken(3)).toEqual(null);
     expect(tokenizer.tokenToId('butter')).toEqual(1);
     test_util.expectArraysEqual(config.merges as string[], merges);
+  });
+
+  it('tokenize works with few merges', async () => {
+    const vocabulary = new Map([
+      ['br', 0], ['wn', 1], ['ck', 2], ['b', 3], ['r', 4], ['o', 5], ['w', 6],
+      ['n', 7], ['.', 8], ['l', 9], ['a', 10], ['c', 11], ['d', 12]
+    ]);
+    const merges = ["b r", 'w n', 'c k'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const inputData = tensor(["brown.", "black."]);
+    const expectedOutput = [tensor([0, 5, 1, 8]), tensor([3, 9, 10, 2, 8])];
+
+    const tokenizeOutput = await tokenizer.tokenizeAsync(inputData);
+
+    console.log(await tensorArrTo2DArr(tokenizeOutput));
+
+    expect(tokenizeOutput.length).toBe(2);
+    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
   });
 });
