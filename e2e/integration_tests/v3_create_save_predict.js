@@ -16,19 +16,24 @@
  */
 
 /**
- * This file is 2/3 of the test suites for CUJ: create->save->predict.
+ * This file is 2/3 of the test suites for keras v3: create->save->predict.
+ * E2E from Keras model -> TFJS model -> Comparsion between two models.
  *
  * This file does below things:
- * - Create and save models using Layers' API.
- * - Generate random inputs and stored in local file.
+ * - Load the TFJS layers model to runtime.
+ * - Load inputs data.
+ * - Make inference and store in local files.
  */
 const tf = require('@tensorflow/tfjs');
 const tfc = require('@tensorflow/tfjs-core');
+const tfconverter = require('@tensorflow/tfjs-converter');
 const tfl = require('@tensorflow/tfjs-layers');
 const tfjsNode = require('@tensorflow/tfjs-node');
+const ndarray = require('ndarray');
 const fs = require('fs');
 const join = require('path').join;
-const TEST_DATA_DIR = "test_data_dir";
+const TEST_DATA_DIR = "v3_create_save_predict_data";
+const _ = require("zlib")
 
 // process.on('unhandledRejection', ex => {
 //   throw ex;
@@ -41,9 +46,86 @@ async function load_file(file_path, model_name) {
   console.log("Path ==> ", tfjsNode.io.fileSystem(file_path).path);
 
   const model = await tf.loadLayersModel("file://" + tfjsNode.io.fileSystem(file_path).path + "/model.json");
+
+  // const ys = [];
+  // const ysData = [];
+  // const ysShapes = [];
+  const xsDataPath = join(TEST_DATA_DIR, `${model_name}.xs-data.json`);
+  const xsShapesPath = join(TEST_DATA_DIR, `${model_name}.xs-shapes.json`);
+  console.log(xsDataPath);
+  console.log(xsShapesPath);
+  const dataArray = fs.readFileSync(xsDataPath, "utf-8", (_, data) => {
+    const d = JSON.parse(data);
+    return d
+  });
+  const shapeArray = fs.readFileSync(xsShapesPath, "utf-8", (_, data) => {
+    const shape = JSON.parse(data);
+    return shape
+  });
+
+  const parsedShape = JSON.parse(shapeArray);
+  const parsedData = JSON.parse(dataArray);
+  const A = zip(parsedData, parsedShape);
+  const res = [];
+  for (let i = 0; i < A.length; i++) {
+    const value = A[i][0];
+    const shape = A[i][1];
+    res.push(ndarray(value, shape));
+    // ndarray()
+    console.log(i);
+  }
+  console.log("result: ", res);
+  let z;
+  if (res.length == 1) {
+    z = res[0];
+    console.log("Z: ", z);
+  }
+  console.log("Z ==> ", z);
+  const tensor = tfjsNode.tensor(z.data, z.shape);
+  const ys = model.predict(tensor);
+  console.log(ys)
+
+  const resultData = ys.arraySync();
+  const resultShape = [ys.shape];
+  console.log("Result data: ", resultData);
+  console.log("Result shape: ", resultShape);
+  const ysDataPath = join(TEST_DATA_DIR, `${model_name}.ys-data.json`);
+  const ysShapesPath = join(TEST_DATA_DIR, `${model_name}.ys-shapes.json`);
+  fs.writeFileSync(ysDataPath, JSON.stringify(resultData));
+  fs.writeFileSync(ysShapesPath, JSON.stringify(resultShape));
 }
 
+function reshape(array, shape) {
+  const totalSize = shape.reduce((acc, val) => acc * val, 1);
 
+  if (totalSize != array.length) {
+    throw new Error('Error');
+  }
+
+  const reshapeArray = [];
+  let currentIndex = 0;
+
+  for (let i = 0; i < shape.length; i++) {
+    const size = shape[i];
+    const chunk = array.slice(currentIndex, currentIndex + size);
+    reshapeArray.push(chunk);
+    currentIndex += size;
+  }
+
+  return reshapeArray;
+}
+
+function zip(...arrays) {
+  const length = Math.min(...arrays.map(arr => arr.length));
+  const result = [];
+  for (let i = 0; i < length; i++) {
+    const zippedItem = arrays.map(arr => arr[i]);
+    // console.log("zipped item: ", zippedItem);
+    result.push(zippedItem);
+  }
+  // console.log(result);
+  return result;
+}
 console.log(`Using tfjs-core version: ${tfc.version_core}`);
 console.log(`Using tfjs-layers version: ${tfl.version_layers}`);
 console.log(`Using tfjs-node version: ${JSON.stringify(tfjsNode.version)}`);

@@ -31,10 +31,11 @@ export const BACKENDS = ['cpu', 'webgl', 'webgpu'];
 
 /** Testing models for CUJ: create -> save -> predict. */
 export const LAYERS_MODELS = [
-  'mls', 'mlp', 'cnn', 'depthwise_cnn', 'simple_rnn', 'gru',
-  'bidirectional_lstm', 'time_distributed_lstm', 'one_dimensional',
-  'functional_merge'
+  'mlp', 'cnn', 'depthwise_cnn', 'simple_rnn', 'gru', 'bidirectional_lstm',
+  'time_distributed_lstm', 'one_dimensional', 'functional_merge'
 ];
+
+export const V3_LAYERS_MODEL = ['mlp'];
 
 export const CONVERT_PREDICT_MODELS = {
   graph_model: [
