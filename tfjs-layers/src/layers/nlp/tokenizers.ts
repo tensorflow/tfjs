@@ -25,7 +25,7 @@ import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr, tensorToArr } from './tokenizers_utils';
 
 export declare interface TokenizerOptions {
   mode?: 'tokenize' | 'detokenize';
@@ -433,7 +433,7 @@ export class BytePairTokenizer extends Tokenizer {
    * Map token bytes to unicode using `byte2unicode`.
    */
   private transformBytes(tokens: Tensor): Tensor[] {
-    const tokensStr = tokens.data() as unknown as string[];
+    const tokensStr = tensorToArr<string>(tokens);
 
     const splitBytes = tokensStr.map(
       token => tensor(token.split('').map(c => c.charCodeAt(0))));
@@ -469,6 +469,7 @@ export class BytePairTokenizer extends Tokenizer {
     const flatTokens = rawTokens.flat();
 
     // Check cache.
+    debugger;
     const cacheLookup = this.cache.lookup(flatTokens);
     const cacheMask = cacheLookup.map(e => e === '');
 
@@ -487,22 +488,21 @@ export class BytePairTokenizer extends Tokenizer {
     const tokenizedWords =
       hasUnseenWords ? processUnseenTokens() : cacheLookup;
 
-    debugger;
     const tokensTensor = this.tokenToIdMap.lookup(
       tokenizedWords.map(word => tensor(word.split(' '))));
-    const tokens = tensorArrTo2DArr<number>(tokensTensor);
+    const tokens = tokensTensor.map(t => Array.from(t.dataSync()));
 
     // Unflatten to match input.
     const newTokenRowSplits = [0];
     tokens.forEach((token, idx) => {
-      tokenRowSplits.push(tokenRowSplits[idx] + token.length);
+      newTokenRowSplits.push(newTokenRowSplits[idx] + token.length);
     });
     const newFlatTokens = tokens.flat();
     const gatheredIndices =
       tokenRowSplits.map(index => newTokenRowSplits[index]);
 
     const token2D: number[][] = [];
-    for (let i = 0; i < gatheredIndices.length - 2; i++) {
+    for (let i = 0; i < gatheredIndices.length - 1; i++) {
       const [start, end] = [gatheredIndices[i], gatheredIndices[i+1]];
       const row = newFlatTokens.slice(start, end);
       token2D.push(row);

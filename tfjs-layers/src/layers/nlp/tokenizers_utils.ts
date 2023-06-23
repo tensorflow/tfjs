@@ -121,6 +121,13 @@ export class BytePairTokenizerCache {
     this._cache = new Map();
   }
 
+  get(key: string): string {
+    if (this._cache.has(key)) {
+      return this._cache.get(key);
+    }
+    return '';
+  }
+
   /**
    * Insert token <=> encoded outputs pairs.
    */
@@ -139,7 +146,7 @@ export class BytePairTokenizerCache {
   lookup(keys: Tensor|string[]): string[] {
     const arrKeys = keys instanceof Tensor ?
       keys.dataSync() as unknown as string[] : keys;
-    return arrKeys.map(key => this._cache.get(key));
+    return arrKeys.map(key => this.get(key));
   }
 }
 

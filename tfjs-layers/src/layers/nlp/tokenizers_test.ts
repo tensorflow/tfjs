@@ -23,7 +23,6 @@ import { Tensor, tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
-import { tensorArrTo2DArr } from './tokenizers_utils';
 
 class SimpleTokenizer extends Tokenizer {
   /** @nocollapse */
@@ -108,10 +107,12 @@ describe('BytePairTokenizer', () => {
     const expectedOutput = [tensor([0, 5, 1, 8]), tensor([3, 9, 10, 2, 8])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
-
-    console.log(tensorArrTo2DArr(tokenizeOutput));
+    const callOutput = tokenizer.call(inputData) as Tensor[];
 
     expect(tokenizeOutput.length).toBe(2);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+
+    expect(callOutput.length).toBe(2);
+    expectTensorsClose(callOutput[0], expectedOutput[0]);
   });
 });
