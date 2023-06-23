@@ -19,7 +19,8 @@ import { tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizerCache, SPLIT_PATTERN_1, bytesToUnicode,
   createAltsForUnsplittableTokens, createStaticHashtable, regexSplit,
-  removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr, tensorToArr } from './tokenizers_utils';
+  removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr,
+  tensorToArr } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
