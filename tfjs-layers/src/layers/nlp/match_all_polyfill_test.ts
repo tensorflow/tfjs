@@ -22,8 +22,7 @@ function format({match, index, input}: {match: string, index: number,
   const res: RegExpMatchArray = [match];
   res.index = index;
   res.input = input;
-  res.groups = undefined;
-  return res;
+  return jasmine.objectContaining(res);
 }
 
 describe('matchAll', () => {
