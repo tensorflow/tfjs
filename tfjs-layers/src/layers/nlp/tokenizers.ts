@@ -21,7 +21,6 @@
 
 /* Original source: keras-nlp/tokenizer.py */
 import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
-// import * as tfc from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
