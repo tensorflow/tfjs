@@ -317,10 +317,10 @@ export class BytePairTokenizer extends Tokenizer {
     return config;
   }
 
-  private async bpeMergeOneStep(
-    words: Tensor[], mask: boolean[]): Promise<[Tensor[], boolean[]]> {
+  private bpeMergeOneStep(
+    words: Tensor[], mask: boolean[]): [Tensor[], boolean[]] {
 
-    const wordsStr = await tensorArrTo2DArr<string>(words);
+    const wordsStr = tensorArrTo2DArr<string>(words);
 
     // Get all word pairs.
     const first = wordsStr.map(arr => arr.slice(0, -1));
@@ -346,9 +346,9 @@ export class BytePairTokenizer extends Tokenizer {
       return firstSubArr.map(
         (char, idx) => [char, secondSubArr[idx]].join(' '));
     });
-    const pairRanksTensor = await this.mergeRanks.lookup(
+    const pairRanksTensor = this.mergeRanks.lookup(
       pairs.map(arr => tensor(arr)));
-    const pairRanks = await tensorArrTo2DArr<number>(pairRanksTensor);
+    const pairRanks = tensorArrTo2DArr<number>(pairRanksTensor);
 
     // Get BPE pair ranks.
     const minPairRank = pairRanks.map(arr => Math.min(...arr));
@@ -405,12 +405,12 @@ export class BytePairTokenizer extends Tokenizer {
     });
 
     words = wordsStr.map(word => tensor(word));
-    words = await removeStringsFromInputs(words, '');
+    words = removeStringsFromInputs(words, '');
 
     return [words, mask];
   }
 
-  private async bpeMerge(words: Tensor[]): Promise<Tensor[]> {
+  private bpeMerge(words: Tensor[]): Tensor[] {
     const numWords = words.length;
 
     // Merge bytes.
@@ -423,7 +423,7 @@ export class BytePairTokenizer extends Tokenizer {
     let mergedWords = words;
     let mask = initialMask;
     while (loopCondition(mask)) {
-      [mergedWords, mask] = await this.bpeMergeOneStep(mergedWords, mask);
+      [mergedWords, mask] = this.bpeMergeOneStep(mergedWords, mask);
     }
 
     return mergedWords;
@@ -432,12 +432,12 @@ export class BytePairTokenizer extends Tokenizer {
   /**
    * Map token bytes to unicode using `byte2unicode`.
    */
-  private async transformBytes(tokens: Tensor): Promise<Tensor[]> {
-    const tokensStr = await tokens.data() as unknown as string[];
+  private transformBytes(tokens: Tensor): Tensor[] {
+    const tokensStr = tokens.data() as unknown as string[];
 
     const splitBytes = tokensStr.map(
       token => tensor(token.split('').map(c => c.charCodeAt(0))));
-    const splitUnicode = await this.byte2Unicode.lookup(splitBytes);
+    const splitUnicode = this.byte2Unicode.lookup(splitBytes);
 
     return splitUnicode;
   }
@@ -445,28 +445,21 @@ export class BytePairTokenizer extends Tokenizer {
   /**
    * Process unseen tokens and add to cache.
    */
-  private async bpeMergeAndUpdateCache(tokens: Tensor) {
-    const words = await this.transformBytes(tokens);
-    const tokenizedWordsTensor = await this.bpeMerge(words);
-    const tokenizedWords =
-      await tensorArrTo2DArr<string>(tokenizedWordsTensor);
+  private bpeMergeAndUpdateCache(tokens: Tensor) {
+    const words = this.transformBytes(tokens);
+    const tokenizedWordsTensor = this.bpeMerge(words);
+    const tokenizedWords = tensorArrTo2DArr<string>(tokenizedWordsTensor);
 
     // For each word, join all its token by a whitespace,
     // e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
     const joinedTokens = tokenizedWords.map(word => word.join(' '));
 
-    await this.cache.insert(tokens, joinedTokens);
+    this.cache.insert(tokens, joinedTokens);
   }
 
   tokenize(inputs: Tensor): Tensor[] {
-    const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor(input.split(' ')));
-  }
-
-  async tokenizeAsync(inputs: Tensor): Promise<Tensor[]> {
-    const rawTokensTensor = await splitStringsForBpe(
-      inputs, this.unsplittableTokens);
-    const rawTokens = await tensorArrTo2DArr<string>(rawTokensTensor);
+    const rawTokensTensor = splitStringsForBpe(inputs, this.unsplittableTokens);
+    const rawTokens = tensorArrTo2DArr<string>(rawTokensTensor);
 
     const tokenRowSplits = [0];
     rawTokens.forEach((token, idx) => {
@@ -476,28 +469,28 @@ export class BytePairTokenizer extends Tokenizer {
     const flatTokens = rawTokens.flat();
 
     // Check cache.
-    const cacheLookup = await this.cache.lookup(flatTokens);
+    const cacheLookup = this.cache.lookup(flatTokens);
     const cacheMask = cacheLookup.map(e => e === '');
 
     const emptyFlatTokensMask = flatTokens.map(e => e !== '');
     const hasUnseenWords = cacheMask.map(
       (bool, idx) => bool && emptyFlatTokensMask[idx]).some(e => e);
 
-    const processUnseenTokens = async (): Promise<string[]>  => {
+    const processUnseenTokens = (): string[]  => {
       const unseenTokens = flatTokens.filter((_, idx) => cacheMask[idx]);
       this.bpeMergeAndUpdateCache(tensor(unseenTokens));
-      return await this.cache.lookup(flatTokens);
+      return this.cache.lookup(flatTokens);
     };
 
     // If `has_unseen_words == True`, it means not all tokens are in cache,
     // we will process the unseen tokens. Otherwise return the cache lookup.
     const tokenizedWords =
-      hasUnseenWords ? await processUnseenTokens() : cacheLookup;
+      hasUnseenWords ? processUnseenTokens() : cacheLookup;
 
     debugger;
-    const tokensTensor = await this.tokenToIdMap.lookup(
+    const tokensTensor = this.tokenToIdMap.lookup(
       tokenizedWords.map(word => tensor(word.split(' '))));
-    const tokens = await tensorArrTo2DArr<number>(tokensTensor);
+    const tokens = tensorArrTo2DArr<number>(tokensTensor);
 
     // Unflatten to match input.
     const newTokenRowSplits = [0];

@@ -97,7 +97,7 @@ describe('BytePairTokenizer', () => {
     test_util.expectArraysEqual(config.merges as string[], merges);
   });
 
-  it('tokenize works with few merges', async () => {
+  it('tokenize works with few merges', () => {
     const vocabulary = new Map([
       ['br', 0], ['wn', 1], ['ck', 2], ['b', 3], ['r', 4], ['o', 5], ['w', 6],
       ['n', 7], ['.', 8], ['l', 9], ['a', 10], ['c', 11], ['d', 12]
@@ -107,9 +107,9 @@ describe('BytePairTokenizer', () => {
     const inputData = tensor(["brown.", "black."]);
     const expectedOutput = [tensor([0, 5, 1, 8]), tensor([3, 9, 10, 2, 8])];
 
-    const tokenizeOutput = await tokenizer.tokenizeAsync(inputData);
+    const tokenizeOutput = tokenizer.tokenize(inputData);
 
-    console.log(await tensorArrTo2DArr(tokenizeOutput));
+    console.log(tensorArrTo2DArr(tokenizeOutput));
 
     expect(tokenizeOutput.length).toBe(2);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
