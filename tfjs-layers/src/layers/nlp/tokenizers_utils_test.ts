@@ -19,7 +19,7 @@ import { tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizerCache, SPLIT_PATTERN_1, bytesToUnicode,
   createAltsForUnsplittableTokens, createStaticHashtable, regexSplit,
-  removeStringsFromInputs, splitStringsForBpe } from './tokenizers_utils';
+  removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr, tensorToArr } from './tokenizers_utils';
 import { expectTensorsClose } from '../../utils/test_utils';
 
 describe('bytesToUnicode', () => {
@@ -217,5 +217,26 @@ describe('splitStringsForBpe', () => {
     expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor(['brown', '.']));
     expectTensorsClose(result[1], tensor(['black', '.']));
+  });
+});
+
+describe('tensor to array functions', () => {
+  it('tensorToArr', () => {
+    const inputStr = tensor(['these', 'are', 'strings', '.']);
+    const inputNum = tensor([2, 11, 15]);
+
+    test_util.expectArraysEqual(
+      tensorToArr<string>(inputStr), ['these', 'are', 'strings', '.']);
+    test_util.expectArraysEqual(tensorToArr<number>(inputNum), [2, 11, 15]);
+  });
+
+  it('tensorArrTo2DArr', () => {
+    const inputStr = [tensor(['these', 'are']), tensor(['strings', '.'])];
+    const inputNum = [tensor([2, 11]), tensor([15])];
+
+    test_util.expectArraysEqual(
+      tensorArrTo2DArr<string>(inputStr), [['these', 'are'], ['strings', '.']]);
+    test_util.expectArraysEqual(
+      tensorArrTo2DArr<number>(inputNum), [[2, 11], [15]]);
   });
 });
