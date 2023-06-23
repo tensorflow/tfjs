@@ -144,6 +144,36 @@ describe('BytePairTokenizer', () => {
     expectTensorsClose(tokenizeOutput[1], expectedOutput[1]);
 
     expect(callOutput.length).toBe(2);
+    expectTensorsClose(callOutput[0], expectedOutput[0]);
     expectTensorsClose(callOutput[1], expectedOutput[1]);
+  });
+
+  it('tokenize works with prefix space', () => {
+    const vocabulary = new Map([
+      ['br', 0], ['wn', 1], ['ck', 2], ['b', 3], ['r', 4], ['o', 5], ['w', 6],
+      ['n', 7], ['.', 8], ['l', 9], ['a', 10], ['c', 11], ['d', 12]
+    ]);
+    const merges = ['b r', 'w n', 'c k'];
+    const tokenizer = new BytePairTokenizer({
+      vocabulary,
+      merges,
+      addPrefixSpace: true,
+    });
+    const inputData = tensor(['brown.', 'black.']);
+    const expectedOutput = [
+      tensor([-1, 0, 5, 1, 8]),
+      tensor([-1, 3, 9, 10, 2, 8])
+    ];
+
+    const tokenizeOutput = tokenizer.tokenize(inputData);
+    const callOutput = tokenizer.call(inputData) as Tensor[];
+
+    expect(tokenizeOutput.length).toBe(2);
+    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+    expectTensorsClose(tokenizeOutput[1], expectedOutput[1]);
+
+    expect(callOutput.length).toBe(2);
+    expectTensorsClose(callOutput[0], expectedOutput[0]);
+    expectTensorsClose(tokenizeOutput[1], expectedOutput[1]);
   });
 });

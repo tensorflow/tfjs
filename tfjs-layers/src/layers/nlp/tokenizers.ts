@@ -454,6 +454,11 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   tokenize(inputs: Tensor): Tensor[] {
+    if (this.addPrefixSpace) {
+      const strInputs = tensorToArr<string>(inputs);
+      inputs = tensor(strInputs.map(word => ' ' + word));
+    }
+
     const rawTokensTensor = splitStringsForBpe(inputs, this.unsplittableTokens);
     const rawTokens = tensorArrTo2DArr<string>(rawTokensTensor);
 
@@ -465,7 +470,6 @@ export class BytePairTokenizer extends Tokenizer {
     const flatTokens = rawTokens.flat();
 
     // Check cache.
-    debugger;
     const cacheLookup = this.cache.lookup(flatTokens);
     const cacheMask = cacheLookup.map(e => e === '');
 
