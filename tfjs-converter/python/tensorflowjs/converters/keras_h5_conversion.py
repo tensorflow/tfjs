@@ -104,10 +104,6 @@ def _convert_v3_group(group, actual_layer_name):
       return group_out
     name_list = [as_text(name) for name in names]
     weight_values = [np.array(names[weight_name]) for weight_name in name_list]
-    # for index, item in enumerate(name_list):
-    #   # parse the name format to `layer_name/index`
-    #   # name_list[index] = actual_layer_name + "/" + item
-    #   name_list[index] = os.path.join(actual_layer_name, item)
     name_list = [os.path.join(actual_layer_name, item) for item in name_list]
     group_out += [{
     'name': normalize_weight_name(weight_name),
@@ -170,14 +166,6 @@ def _discard_v3_keys(json_dict, keys_to_delete):
   elif isinstance(json_dict, list):
     for item in json_dict:
       _discard_v3_keys(item, keys_to_delete)
-
-# def _get_actual_layer_name_list(config):
-#   config_list = config['config']['layers'][1:]
-#   name_list = []
-#   for i in config_list:
-#     name_list.append(i['config']['name'])
-
-#   return name_list
 
 
 # https://github.com/tensorflow/tfjs/issues/1255, b/124791387
