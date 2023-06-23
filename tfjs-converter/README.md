@@ -2,7 +2,7 @@
 
 **TensorFlow.js converter** is an open source library to load a pretrained
 TensorFlow
-[SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models)
+[SavedModel](https://www.tensorflow.org/api_docs/python/tf/keras/saving/save_model)
 or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
 into the browser and run inference through
 [TensorFlow.js](https://js.tensorflow.org).
