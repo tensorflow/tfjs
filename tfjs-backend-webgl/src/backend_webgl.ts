@@ -998,12 +998,14 @@ export class MathBackendWebGL extends KernelBackend {
     const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
     // Manually GL flush requested
     // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
-    //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+    //   TS2365: Operator '>' cannot be applied to types 'string |
+    //number | boolean' and 'number'.
     // @ts-ignore
     if (glFlushThreshold > 0) {
       const time = util.now();
       // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
-      //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+      //   TS2365: Operator '>' cannot be applied to types 'string |
+      //number | boolean' and 'number'.
       // @ts-ignore
       if ((time - this.lastGlFlushTime) > glFlushThreshold) {
         this.gpgpu.gl.flush();

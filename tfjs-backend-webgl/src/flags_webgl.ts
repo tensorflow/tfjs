@@ -181,7 +181,8 @@ ENV.registerFlag(
     },
     threshold => {
       // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
-      //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+      //   TS2365: Operator '>' cannot be applied to types 'string |
+      //number | boolean' and 'number'.
       // @ts-ignore
       if (threshold < 0 && threshold !== -1) {
 
@@ -207,7 +208,8 @@ ENV.registerFlag(
     },
     threshold => {
     // TODO: go/ts50upgrade - Auto-added to unblock TS5.0 migration
-    //   TS2365: Operator '>' cannot be applied to types 'string | number | boolean' and 'number'.
+    //   TS2365: Operator '>' cannot be applied to types 'string |
+    //number | boolean' and 'number'.
     // @ts-ignore
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
