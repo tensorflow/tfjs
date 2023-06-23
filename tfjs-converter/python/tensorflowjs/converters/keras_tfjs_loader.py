@@ -148,6 +148,8 @@ def _deserialize_keras_keras_model(model_topology_json,
     for name in weight_names:
       if name in weights_dict:
         weights_list.append(weights_dict[name])
+      else:
+        raise Exception(f"${name} does not exist in weights entries.")
 
     model.set_weights(weights_list)
 
@@ -174,7 +176,7 @@ def _generate_v3_keys(config):
     for key in list_of_keys:
       _generate_v3_keys(config[key])
     if 'class_name' in list_of_keys:
-      config['module'] = _get_module(config['class_name'])
+      config['module'] = tf_module_mapper.get_module_path(config['class_name'])
       # Put registred name as None since we do not support
       # custom object saving when we save the model.
       config['registered_name'] = None
@@ -182,15 +184,6 @@ def _generate_v3_keys(config):
   elif isinstance(config, list):
     for item in config:
       _generate_v3_keys(item)
-
-def _generate_meta_json(version_number):
-  meta_data = {}
-  meta_data['keras_version'] = version_number
-  meta_data['date_saved'] = datetime.datetime.now().strftime("%Y-%m-%d@%H:%M:%S")
-
-def _get_module(class_name):
-  module_path = tf_module_mapper.get_module_path(class_name)
-  return module_path
 
 
 def deserialize_keras_model(config_json,
