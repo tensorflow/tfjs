@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/tokenizer.py */
-import { Tensor1D } from '@tensorflow/tfjs-core';
+import { Tensor1D} from '@tensorflow/tfjs-core';
 
 import { Layer } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
