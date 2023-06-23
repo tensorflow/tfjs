@@ -194,8 +194,6 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
    * tokens must still be included in `vocabulary`. Defaults to `None`.
    */
   unsplittableTokens?: string[];
-
-  dtype?: 'string'|'int32';
 }
 
 export class BytePairTokenizer extends Tokenizer {
@@ -208,7 +206,6 @@ export class BytePairTokenizer extends Tokenizer {
   private readonly sequenceLength: number;
   private readonly addPrefixSpace: boolean;
   private readonly unsplittableTokens: string[];
-  private readonly _dtype: 'int32'|'string';
 
   private readonly byte2Unicode: StaticHashTable<number, string>;
   private readonly unicode2Byte: StaticHashTable<string, number>;
@@ -229,7 +226,6 @@ export class BytePairTokenizer extends Tokenizer {
     this.sequenceLength = args.sequenceLength || null;
     this.addPrefixSpace = args.addPrefixSpace || false;
     this.unsplittableTokens = args.unsplittableTokens || null;
-    this._dtype = args.dtype || 'int32';
 
     // Create byte <=> unicode mapping. This is useful for handling
     // whitespace tokens.
@@ -264,7 +260,7 @@ export class BytePairTokenizer extends Tokenizer {
       this.mergeRanksLookupDefault
     );
 
-    this._dtype; this.unicode2Byte; this.tokenToIdMap; this.idToTokenMap;
+    this.unicode2Byte; this.idToTokenMap;
   }
 
   /**
