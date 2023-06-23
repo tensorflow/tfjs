@@ -19,24 +19,25 @@
  * Unit Tests for Tokenizer Layers.
  */
 
-import { Tensor1D, tensor1d } from '@tensorflow/tfjs-core';
+import { Tensor, tensor, test_util } from '@tensorflow/tfjs-core';
 
-import { Tokenizer } from './tokenizers';
+import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
+import { tensorArrTo2DArr } from './tokenizers_utils';
 
 class SimpleTokenizer extends Tokenizer {
   /** @nocollapse */
   static className = 'SimpleTokenizer';
 
-  tokenize(inputs: Tensor1D): Tensor1D[] {
+  tokenize(inputs: Tensor): Tensor[] {
     const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor1d(input.split(' ')));
+    return stringInputs.map(input => tensor(input.split(' ')));
   }
 
-  override detokenize(inputs: Tensor1D[]): Tensor1D {
+  override detokenize(inputs: Tensor[]): Tensor {
     const stringInputs = inputs.map(
       input => input.dataSync() as unknown as string[]);
-    return tensor1d(stringInputs.map(str => str.join(' ')));
+    return tensor(stringInputs.map(str => str.join(' ')));
   }
 }
 
@@ -48,11 +49,11 @@ describe('Tokenizer', () => {
   });
 
   it('tokenize', () => {
-    const inputData = tensor1d(['the quick brown fox']);
-    const expectedOutput = [tensor1d(['the', 'quick', 'brown', 'fox'])];
+    const inputData = tensor(['the quick brown fox']);
+    const expectedOutput = [tensor(['the', 'quick', 'brown', 'fox'])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
-    const callOutput = tokenizer.call(inputData) as Tensor1D[];
+    const callOutput = tokenizer.call(inputData) as Tensor[];
 
     expect(tokenizeOutput.length).toBe(1);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
@@ -62,21 +63,55 @@ describe('Tokenizer', () => {
   });
 
   it('detokenize', () => {
-    const inputData = [tensor1d(['the', 'quick', 'brown', 'fox'])];
-    const expectedOutput = tensor1d(['the quick brown fox']);
+    const inputData = [tensor(['the', 'quick', 'brown', 'fox'])];
+    const expectedOutput = tensor(['the quick brown fox']);
 
     const detokenizeOutput = tokenizer.detokenize(inputData);
     const callOutput = tokenizer.call(
-      inputData, {mode: 'detokenize'}) as Tensor1D;
+      inputData, {mode: 'detokenize'}) as Tensor;
 
     expectTensorsClose(detokenizeOutput, expectedOutput);
     expectTensorsClose(callOutput, expectedOutput);
   });
 
   it('detokenize(tokenize) composition', () => {
-    const inputData = tensor1d(['the quick brown fox']);
+    const inputData = tensor(['the quick brown fox']);
 
     expectTensorsClose(
       tokenizer.detokenize(tokenizer.tokenize(inputData)), inputData);
+  });
+});
+
+describe('BytePairTokenizer', () => {
+  it('gets correct set up', () => {
+    const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+    const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const config = tokenizer.getConfig();
+
+    expect(tokenizer.vocabulary).toEqual(['butter', 'fly']);
+    expect(tokenizer.vocabularySize).toEqual(2);
+    expect(tokenizer.idToToken(1)).toEqual('butter');
+    expect(tokenizer.idToToken(3)).toEqual(null);
+    expect(tokenizer.tokenToId('butter')).toEqual(1);
+    test_util.expectArraysEqual(config.merges as string[], merges);
+  });
+
+  it('tokenize works with few merges', async () => {
+    const vocabulary = new Map([
+      ['br', 0], ['wn', 1], ['ck', 2], ['b', 3], ['r', 4], ['o', 5], ['w', 6],
+      ['n', 7], ['.', 8], ['l', 9], ['a', 10], ['c', 11], ['d', 12]
+    ]);
+    const merges = ["b r", 'w n', 'c k'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const inputData = tensor(["brown.", "black."]);
+    const expectedOutput = [tensor([0, 5, 1, 8]), tensor([3, 9, 10, 2, 8])];
+
+    const tokenizeOutput = await tokenizer.tokenizeAsync(inputData);
+
+    console.log(await tensorArrTo2DArr(tokenizeOutput));
+
+    expect(tokenizeOutput.length).toBe(2);
+    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
   });
 });
