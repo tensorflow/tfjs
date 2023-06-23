@@ -208,28 +208,26 @@ function flatten<T>(inputs: T[][]): T[] {
 export function regexSplit(
   strs: string[]|string[][],
   delimRegexPattern: RegExp | string,
-  keepDelimRegexPattern?: RegExp | string): string[][] {
+  keepDelimRegexPattern = false): string[][] {
 
   if (strs[0] instanceof Array) {
     const mapped = strs.map(arr => regexSplit(
       arr as string[], delimRegexPattern, keepDelimRegexPattern));
-    return mapped.map((doubleArr) => flatten(doubleArr));
+    return mapped.map(flatten);
   }
 
   strs = strs as string[];
 
   if (!(delimRegexPattern instanceof RegExp)) {
     if (keepDelimRegexPattern) {
-      delimRegexPattern = new RegExp(
-        `(${delimRegexPattern})`, 'g');
+      delimRegexPattern = new RegExp(`(${delimRegexPattern})`);
     }
     return strs.map(str => str.split(delimRegexPattern).filter(s => s));
   }
 
-  let regexPattern = delimRegexPattern as unknown as RegExp;
-  if (!regexPattern.flags.includes('g')) {
-    regexPattern = new RegExp(regexPattern.source, regexPattern.flags + 'g');
-  }
+  const regexPattern = delimRegexPattern.flags.includes('g') ?
+    delimRegexPattern
+    : new RegExp(delimRegexPattern.source, delimRegexPattern.flags + 'g');
 
   return strs.map(str => {
     const matches = str.matchAll(regexPattern);
@@ -277,31 +275,35 @@ export function splitStringsForBpe(
   let alts: string[];
   let rawTokens: string[][];
 
+  function escape(input: string): string {
+    return input.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  }
+
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     alts = createAltsForUnsplittableTokens(unsplittableTokens);
-    unsplittableTokens.forEach((token, idx) => {
+    for (const [idx, token] of unsplittableTokens.entries()) {
       const alt = alts[idx];
-      const escapedToken = token.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escapedToken = escape(token);
 
       rawTokens = regexSplit(rawTokens !== undefined ?
-        rawTokens : inputsStr, escapedToken, escapedToken);
+        rawTokens : inputsStr, escapedToken, true);
       rawTokens = rawTokens.map(
         arr => arr.map(t => t.replace(escapedToken, alt)));
-    });
+    }
   }
   rawTokens = regexSplit(rawTokens !== undefined ?
-    rawTokens : inputsStr, SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+    rawTokens : inputsStr, SPLIT_PATTERN_1, true);
   // Second pass splits out the last whilespace char or "६".
-  rawTokens  = regexSplit(rawTokens, SPLIT_PATTERN_2, SPLIT_PATTERN_2);
+  rawTokens  = regexSplit(rawTokens, SPLIT_PATTERN_2, true);
 
   if (unsplittableTokens && unsplittableTokens.length > 0) {
     // Replace special tokens alternate with originals.
-    unsplittableTokens.forEach((token, idx) => {
+    for (const [idx, token] of unsplittableTokens.entries()) {
       const alt = alts[idx];
-      const escapedAlt = alt.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escapedAlt = escape(alt);
       rawTokens = rawTokens.map(
         arr => arr.map(t => t.replace(escapedAlt, token)));
-    });
+    }
   }
 
   return removeStringsFromInputs(rawTokens.map(tokens => tensor(tokens)), '६');

@@ -179,20 +179,20 @@ describe('regexSplit', () => {
   });
 
   it ('keeps string delimiter', () => {
-    test_util.expectArraysEqual(regexSplit(['sp'], 's', 's'), [['s', 'p']]);
+    test_util.expectArraysEqual(regexSplit(['sp'], 's', true), [['s', 'p']]);
     test_util.expectArraysEqual(
-      regexSplit(['\xc4\xb4s', 'p'], 'p', 'p'), [['Ä´s'], ['p']] );
+      regexSplit(['\xc4\xb4s', 'p'], 'p', true), [['Ä´s'], ['p']] );
   });
 
   it('splits regex delimiter', () => {
-    const result = regexSplit(['ĵs', 'ĵp'], SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+    const result = regexSplit(['ĵs', 'ĵp'], SPLIT_PATTERN_1, true);
 
     test_util.expectArraysEqual(result, [['ĵs'], ['ĵp']]);
   });
 
   it('works with periods', () => {
     const result = regexSplit(
-      ['brown.', 'black.'], SPLIT_PATTERN_1, SPLIT_PATTERN_1);
+      ['brown.', 'black.'], SPLIT_PATTERN_1, true);
 
     test_util.expectArraysEqual(result, [['brown', '.'], ['black', '.']]);
   });
