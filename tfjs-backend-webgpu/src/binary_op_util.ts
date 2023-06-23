@@ -41,27 +41,16 @@ export enum BinaryOpType {
   SUB
 }
 
-const CHECK_NAN_SNIPPET = `
-  resultTemp = select(resultTemp, valueForNaN, isNaN | isnan(a) | isnan(b));`;
-
-const CHECK_NAN_SNIPPET_VEC4 = `
-  resultTemp = select(
-      resultTemp, vec4<f32>(valueForNaN),
-      vec4<bool>(isNaN) | isnanVec4(a) | isnanVec4(b));
-  `;
-
-const ADD = 'return a + b;';
-const ATAN2 = 'var resultTemp = atan2(a, b);';
+const ADD = 'let resultTemp = a + b;';
+const ATAN2 = 'let resultTemp = atan2(a, b);';
 // (Ar + Ai)(Br + Bi) =
 // ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
 // Yr = ArBr - AB
 // Yi = ArBi + AiBr
-const COMPLEX_MULTIPLY_REAL = 'return areal * breal - aimag * bimag;';
-const COMPLEX_MULTIPLY_IMAG = 'return areal * bimag + aimag * breal;';
-const DIV = 'return a / b;';
-const ELU_DER = 'return select(a * (b + 1.0), a, b >= 0.);';
-const ELU_DER_VEC4 =
-    'return select(a * (b + vec4<f32>(1.0)), a, b >= vec4<f32>(0.));';
+const COMPLEX_MULTIPLY_REAL = 'let resultTemp = areal * breal - aimag * bimag;';
+const COMPLEX_MULTIPLY_IMAG = 'let resultTemp = areal * bimag + aimag * breal;';
+const DIV = 'let resultTemp = a / b;';
+const ELU_DER = 'let resultTemp = select(a * (b + 1.0), a, b >= b - b);';
 const EQUAL = 'return f32(a == b);';
 const EQUAL_VEC4 = 'return vec4<f32>(a == b);';
 const GREATER = 'return f32(a > b);';
@@ -108,8 +97,8 @@ const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
 const LOGICAL_OR = 'return f32(a >= 1.0 || b >= 1.0);';
 const LOGICAL_OR_VEC4 = `return min(vec4<f32>(a >= vec4<f32>(1.0)) +
   vec4<f32>(b >= vec4<f32>(1.0)), vec4<f32>(1.0));`;
-const MAX = 'var resultTemp = max(a, b);';
-const MIN = 'var resultTemp = min(a, b);';
+const MAX = 'let resultTemp = max(a, b);';
+const MIN = 'let resultTemp = min(a, b);';
 const MOD = `
   let isNaN = b == 0.;
   var resultTemp = a % b;
@@ -132,7 +121,7 @@ const MOD_VEC4 = `
     resultTemp[3] = (resultTemp[3] + b[3]) % b[3];
   }
 `;
-const MUL = 'return a * b;';
+const MUL = 'let resultTemp = a * b;';
 const NOT_EQUAL = `
   var resultTemp = f32(a != b);
   let valueForNaN = 1.0;
@@ -178,14 +167,15 @@ const PRELU_VEC4 = `
   let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
   return (aLessThanZero * (b * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
 `;
-const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-const SUB = 'return a - b;';
+const SQUARED_DIFFERENCE = 'let resultTemp = (a - b) * (a - b);';
+const SUB = 'let resultTemp = a - b;';
 
 export function getBinaryOpString(
     type: BinaryOpType, useVec4?: boolean): string {
+  let doOpSnippet: string;
+
   // Ops with NaN check
   do {
-    let doOpSnippet: string;
     switch (type) {
       case BinaryOpType.ATAN2:
         doOpSnippet = ATAN2;
@@ -208,13 +198,34 @@ export function getBinaryOpString(
       default:
         continue;
     }
+
+    let isNaN: string;
+    let dTypeN: string;
+    let boolN: string;
+    if (useVec4) {
+      isNaN = 'isnanVec4';
+      dTypeN = 'vec4<f32>';
+      boolN = 'vec4<bool>';
+    } else {
+      isNaN = 'isnan';
+      dTypeN = 'f32';
+      boolN = 'bool';
+    }
+
     return `
+      let aIsNaN = ${isNaN}(a);
+      let aPostLegalization = select(a, ${dTypeN}(42), aIsNaN);
+      let bIsNaN = ${isNaN}(b);
+      let bPostLegalization = select(b, ${dTypeN}(42), bIsNaN);
       let isNaN = false;
       let valueForNaN = uniforms.NAN;
       {
+        let a = aPostLegalization;
+        let b = bPostLegalization;
         ${doOpSnippet}
-        ${useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET}
-        return resultTemp;
+        return select(
+            resultTemp, ${dTypeN}(valueForNaN),
+            ${boolN}(isNaN) | aIsNaN | bIsNaN);
       }
     `;
   } while (false);
@@ -222,15 +233,20 @@ export function getBinaryOpString(
   // Ops without NaN check
   switch (type) {
     case BinaryOpType.ADD:
-      return ADD;
+      doOpSnippet = ADD;
+      break;
     case BinaryOpType.COMPLEX_MULTIPLY_IMAG:
-      return COMPLEX_MULTIPLY_IMAG;
+      doOpSnippet = COMPLEX_MULTIPLY_IMAG;
+      break;
     case BinaryOpType.COMPLEX_MULTIPLY_REAL:
-      return COMPLEX_MULTIPLY_REAL;
+      doOpSnippet = COMPLEX_MULTIPLY_REAL;
+      break;
     case BinaryOpType.DIV:
-      return DIV;
+      doOpSnippet = DIV;
+      break;
     case BinaryOpType.ELU_DER:
-      return useVec4 ? ELU_DER_VEC4 : ELU_DER;
+      doOpSnippet = ELU_DER;
+      break;
     case BinaryOpType.EQUAL:
       return useVec4 ? EQUAL_VEC4 : EQUAL;
     case BinaryOpType.GREATER:
@@ -248,14 +264,21 @@ export function getBinaryOpString(
     case BinaryOpType.LOGICAL_OR:
       return useVec4 ? LOGICAL_OR_VEC4 : LOGICAL_OR;
     case BinaryOpType.MUL:
-      return MUL;
+      doOpSnippet = MUL;
+      break;
     case BinaryOpType.PRELU:
       return useVec4 ? PRELU_VEC4 : PRELU;
     case BinaryOpType.SQUARED_DIFFERENCE:
-      return SQUARED_DIFFERENCE;
+      doOpSnippet = SQUARED_DIFFERENCE;
+      break;
     case BinaryOpType.SUB:
-      return SUB;
+      doOpSnippet = SUB;
+      break;
     default:
-      throw new Error(`BinaryType ${type} is not implemented!`);
+      // throw new Error(`BinaryType ${type} is not implemented!`);
   }
+  return `
+    ${doOpSnippet}
+    return resultTemp;
+  `;
 }

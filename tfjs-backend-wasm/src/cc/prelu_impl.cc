@@ -60,9 +60,8 @@ void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
     const size_t strides = channels;
 
     const uint32_t flags = 0;
-    xnn_status status = xnn_create_prelu_nc_f32(
-        channels, strides, strides, weights_buf, flags,
-        /*code_cache=*/nullptr, /*weights_cache=*/nullptr, &prelu_op);
+    xnn_status status = xnn_create_prelu_nc_f32(channels, strides, strides,
+                                                weights_buf, flags, &prelu_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
