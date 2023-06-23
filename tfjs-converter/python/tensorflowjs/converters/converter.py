@@ -146,9 +146,6 @@ def dispatch_keras_keras_to_tfjs_layers_model_conversion(
   with ZipFile(v3_path, "r") as zip_file:
       zip_file.extractall(path=os.path.dirname(v3_path))
   dir_path = os.path.dirname(file_path)
-  # meta_data_json_path = (dir_path + "metadata.json") if not dir_path else dir_path + "/metadata.json"
-  # config_json_path = (dir_path + "config.json") if not dir_path else dir_path + "/config.json"
-  # model_weights_path = (dir_path + "model.weights.h5") if not dir_path else dir_path + "/model.weights.h5"
   meta_data_json_path = os.path.join(dir_path, "metadata.json")
   config_json_path = os.path.join(dir_path, "config.json")
   model_weights_path = os.path.join(dir_path, "model.weights.h5")
