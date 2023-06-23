@@ -79,17 +79,17 @@ export class StaticHashTable<K, V extends number|string> {
     return this.defaultValue;
   }
 
-  async lookup(keys: Tensor[]): Promise<Tensor[]> {
-    const values = keys.map(async t => {
+  lookup(keys: Tensor[]): Tensor[] {
+    const values = keys.map(t => {
       const innerValues: V[] = [];
-      for (const key of await t.data() as unknown as K[]) {
+      for (const key of t.dataSync() as unknown as K[]) {
         innerValues.push(this.get(key));
       }
 
       return tensor(innerValues, t.shape);
     });
 
-    return Promise.all(values);
+    return values;
   }
 }
 
@@ -114,6 +114,7 @@ export function createStaticHashtable<K, V extends number|string>(
  * ```
  */
 export class BytePairTokenizerCache {
+  // TODO(orderique): modify to use id2value map. Debug for correct behavior.
   private _cache: Map<string, string>;
 
   constructor() {
@@ -123,10 +124,10 @@ export class BytePairTokenizerCache {
   /**
    * Insert token <=> encoded outputs pairs.
    */
-  async insert(
-    keys: Tensor|string[], values: string[]): Promise<BytePairTokenizerCache> {
+  insert(
+    keys: Tensor|string[], values: string[]): BytePairTokenizerCache {
     const arrKeys = keys instanceof Tensor ?
-      await keys.data() as unknown as string[] : keys;
+      keys.dataSync() as unknown as string[] : keys;
 
     arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
     return this;
@@ -135,9 +136,9 @@ export class BytePairTokenizerCache {
   /**
    * Look up the encoded outputs of given tokens.
    */
-  async lookup(keys: Tensor|string[]): Promise<string[]> {
+  lookup(keys: Tensor|string[]): string[] {
     const arrKeys = keys instanceof Tensor ?
-      await keys.data() as unknown as string[] : keys;
+      keys.dataSync() as unknown as string[] : keys;
     return arrKeys.map(key => this._cache.get(key));
   }
 }
@@ -145,11 +146,11 @@ export class BytePairTokenizerCache {
 /**
  * Remove certain strings from input tensor.
  */
-export async function removeStringsFromInputs(
-  inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
+export function removeStringsFromInputs(
+  inputs: Tensor[], stringToRemove: string): Tensor[] {
 
-  const stringArrInputs = await Promise.all(inputs.map(async input =>
-    (await input.data() as unknown as string[])));
+  const stringArrInputs =
+    inputs.map(input => input.dataSync() as unknown as string[]);
 
   const filteredStrArrays = stringArrInputs
     .map(arr => arr.filter(s => s !== stringToRemove))
@@ -243,18 +244,16 @@ export function regexSplit(
   });
 }
 
-export async function tensorToStringArr(input: Tensor): Promise<string[]> {
-  return await input.data() as unknown as string[];
+export function tensorToArr<T>(input: Tensor): T[] {
+  return input.dataSync() as unknown as T[];
 }
 
-export async function tensorArrTo2DArr<T>(
-  inputs: Tensor[]): Promise<T[][]> {
-  return Promise.all(inputs.map(
-    async input => await input.data() as unknown as T[]));
+export function tensorArrTo2DArr<T>(inputs: Tensor[]): T[][] {
+  return inputs.map(input => tensorToArr<T>(input));
 }
 
-export async function splitStringsForBpe(
-  inputs: Tensor, unsplittableTokens?: string[]): Promise<Tensor[]> {
+export function splitStringsForBpe(
+  inputs: Tensor, unsplittableTokens?: string[]): Tensor[] {
 
   // We need to recreate the exact behavior of token presplitting in the
   // original gpt2 implementation which uses a lookahead. We are using an
@@ -264,7 +263,7 @@ export async function splitStringsForBpe(
   const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
   const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
 
-  const inputsStr = (await inputs.data() as unknown as string[]).map(str =>
+  const inputsStr = tensorToArr<string>(inputs).map(str =>
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
