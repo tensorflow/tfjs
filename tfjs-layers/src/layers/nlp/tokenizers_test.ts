@@ -96,14 +96,44 @@ describe('BytePairTokenizer', () => {
     test_util.expectArraysEqual(config.merges as string[], merges);
   });
 
+  it('tokenize works with special tokens', () => {
+    const vocabulary = new Map([['sp', 0], ['s', 1], ['p', 2]]);
+    const merges = ['s p'];
+    let tokenizer = new BytePairTokenizer({
+      vocabulary,
+      merges,
+      unsplittableTokens: ['s', 'p'],
+    });
+    const inputData = tensor(['sp']);
+    const expectedOutput = [tensor([1, 2])];
+
+    const tokenizeOutput = tokenizer.tokenize(inputData);
+    const callOutput = tokenizer.call(inputData) as Tensor[];
+
+    expect(tokenizeOutput.length).toBe(1);
+    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+
+    expect(callOutput.length).toBe(1);
+    expectTensorsClose(callOutput[0], expectedOutput[0]);
+
+    // If not setting special tokens, "sp" is one token.
+    tokenizer = new BytePairTokenizer({
+      vocabulary,
+      merges,
+    });
+    const output = tokenizer.tokenize(inputData);
+    expect(output.length).toBe(1);
+    expectTensorsClose(output[0], tensor([0]));
+  });
+
   it('tokenize works with few merges', () => {
     const vocabulary = new Map([
       ['br', 0], ['wn', 1], ['ck', 2], ['b', 3], ['r', 4], ['o', 5], ['w', 6],
       ['n', 7], ['.', 8], ['l', 9], ['a', 10], ['c', 11], ['d', 12]
     ]);
-    const merges = ["b r", 'w n', 'c k'];
+    const merges = ['b r', 'w n', 'c k'];
     const tokenizer = new BytePairTokenizer({vocabulary, merges});
-    const inputData = tensor(["brown.", "black."]);
+    const inputData = tensor(['brown.', 'black.']);
     const expectedOutput = [tensor([0, 5, 1, 8]), tensor([3, 9, 10, 2, 8])];
 
     const tokenizeOutput = tokenizer.tokenize(inputData);
@@ -111,8 +141,9 @@ describe('BytePairTokenizer', () => {
 
     expect(tokenizeOutput.length).toBe(2);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+    expectTensorsClose(tokenizeOutput[1], expectedOutput[1]);
 
     expect(callOutput.length).toBe(2);
-    expectTensorsClose(callOutput[0], expectedOutput[0]);
+    expectTensorsClose(callOutput[1], expectedOutput[1]);
   });
 });
