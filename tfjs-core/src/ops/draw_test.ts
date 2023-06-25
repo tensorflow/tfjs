@@ -16,7 +16,7 @@
  */
 
 import * as tf from '../index';
-import {Constraints, describeWithFlags} from '../jasmine_util';
+import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 function readPixelsFromCanvas(
@@ -25,9 +25,9 @@ function readPixelsFromCanvas(
   let actualData;
   if (contextType === '2d') {
     const ctx = canvas.getContext(contextType);
-    actualData = ctx.getImageData(0, 0, height, width).data;
+    actualData = ctx.getImageData(0, 0, width, height).data;
   } else {
-    const offscreenCanvas = new OffscreenCanvas(height, width);
+    const offscreenCanvas = new OffscreenCanvas(width, height);
     const ctx = offscreenCanvas.getContext('2d');
     ctx.drawImage(canvas, 0, 0);
     actualData = new Uint8ClampedArray(
@@ -35,12 +35,6 @@ function readPixelsFromCanvas(
   }
   return actualData;
 }
-
-const BROWSER_CPU_WEBGPU_ENVS: Constraints = {
-  predicate: (env) =>
-      ((env.backendName === 'cpu' || env.backendName === 'webgpu') &&
-       tf.env().platformName === 'browser')
-};
 
 function convertToRGBA(
     data: number[], shape: number[], dtype: string, alpha = 1) {
@@ -90,7 +84,7 @@ function convertToRGBA(
 function drawAndReadback(
     contextType: string, data: number[], shape: number[], dtype: string,
     alpha = 1, canvasUsedAs2d = false) {
-  const [width, height] = shape.slice(0, 2);
+  const [height, width] = shape.slice(0, 2);
   let img;
   if (shape.length === 3) {
     img = tf.tensor3d(
@@ -116,7 +110,7 @@ function drawAndReadback(
 // after each draw and read back. The empirical value is 3.0.
 const DRAW_EPSILON = 3.0;
 
-describeWithFlags('draw on canvas context', BROWSER_CPU_WEBGPU_ENVS, (env) => {
+describeWithFlags('draw on canvas context', BROWSER_ENVS, (env) => {
   let contextType: string;
   beforeAll(async () => {
     await tf.setBackend(env.name);
