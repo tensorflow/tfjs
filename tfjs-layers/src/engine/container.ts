@@ -606,7 +606,6 @@ export abstract class Container extends Layer {
         const parsedName = isKerasV3 ?
             `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
             weight.originalName;
-        console.log('parsed name: ', parsedName);
         if (nameToWeight[parsedName] != null) {
           throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
