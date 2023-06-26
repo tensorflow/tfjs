@@ -321,7 +321,7 @@ export class BytePairTokenizer extends Tokenizer {
   private async bpeMergeOneStep(
     words: Tensor[], mask: boolean[]): Promise<[Tensor[], boolean[]]> {
 
-    const wordsStr = await tensorArrTo2DArr<string>(words);
+    const wordsStr = await tensorArrTo2DArr(words) as string[][];
 
     // Get all word pairs.
     const first = wordsStr.map(arr => arr.slice(0, -1));
@@ -348,7 +348,7 @@ export class BytePairTokenizer extends Tokenizer {
     });
     const pairRanksTensor = await this.mergeRanks.lookup(
       pairs.map(arr => tensor(arr)));
-    const pairRanks = await tensorArrTo2DArr<number>(pairRanksTensor);
+    const pairRanks = await tensorArrTo2DArr(pairRanksTensor) as number[][];
 
     // Get BPE pair ranks.
     const minPairRank = pairRanks.map(
@@ -450,7 +450,7 @@ export class BytePairTokenizer extends Tokenizer {
     const words = await this.transformBytes(tokens);
     const tokenizedWordsTensor = await this.bpeMerge(words);
     const tokenizedWords =
-      await tensorArrTo2DArr<string>(tokenizedWordsTensor);
+      await tensorArrTo2DArr(tokenizedWordsTensor) as string[][];
 
     // For each word, join all its token by a whitespace,
     // e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
