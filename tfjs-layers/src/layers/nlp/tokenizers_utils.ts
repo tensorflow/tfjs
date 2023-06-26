@@ -19,6 +19,7 @@
 
 import { Tensor, tensor } from '@tensorflow/tfjs-core';
 import { ValueError } from '../../errors';
+import { matchAll } from './match_all_polyfill';
 
 export function bytesToUnicode(): [Uint8Array, string[]] {
   const inclusiveRange = (start: number, end: number) =>
@@ -230,7 +231,7 @@ export function regexSplit(
     : new RegExp(delimRegexPattern.source, delimRegexPattern.flags + 'g');
 
   return strs.map(str => {
-    const matches = str.matchAll(regexPattern);
+    const matches = matchAll(str, regexPattern);
 
     const splitString = [];
     let currIdx = 0;
