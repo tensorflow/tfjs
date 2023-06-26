@@ -263,9 +263,6 @@ export class BytePairTokenizer extends Tokenizer {
       [...Array(this.merges.length).keys()],
       this.mergeRanksLookupDefault
     );
-    throw new NotImplementedError(
-      `Class not fully implemented yet. Will use ${this._dtype},
-      ${this.unicode2Byte}, ${this.tokenToIdMap}, ${this.idToTokenMap}`);
   }
 
   /**
@@ -461,7 +458,9 @@ export class BytePairTokenizer extends Tokenizer {
 
   tokenize(inputs: Tensor): Tensor[] {
     throw new NotImplementedError(
-      `Not implemented yet. Will depend on ${this.bpeMergeAndUpdateCache}`);
+      `Not implemented yet. Will depend on ${this.bpeMergeAndUpdateCache},
+       ${this._dtype}, ${this.unicode2Byte}, ${this.tokenToIdMap},
+       ${this.idToTokenMap}`);
   }
 
   override detokenize(inputs: Tensor[]): Tensor {

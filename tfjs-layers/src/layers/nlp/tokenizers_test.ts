@@ -91,7 +91,7 @@ describe('BytePairTokenizer', () => {
     expect(tokenizer.vocabulary).toEqual(['butter', 'fly']);
     expect(tokenizer.vocabularySize).toEqual(2);
     expect(tokenizer.idToToken(1)).toEqual('butter');
-    expect(tokenizer.idToToken(3)).toEqual(null);
+    expect(tokenizer.idToToken(3)).toEqual(undefined);
     expect(tokenizer.tokenToId('butter')).toEqual(1);
     test_util.expectArraysEqual(config.merges as string[], merges);
   });
