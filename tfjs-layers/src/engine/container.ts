@@ -604,8 +604,9 @@ export abstract class Container extends Layer {
         // Parse the name to layerName/index.
         // e.g. dense/0, dense/1, dense_1/0, dense_1/1
         const parsedName = isKerasV3 ?
-            `${weight.name.split('/').slice(0, -1).join('/') + '/'} ${index}` :
+            `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
             weight.originalName;
+        console.log('parsed name: ', parsedName);
         if (nameToWeight[parsedName] != null) {
           throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
