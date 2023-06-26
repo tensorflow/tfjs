@@ -129,7 +129,9 @@ export class BytePairTokenizerCache {
     const arrKeys = keys instanceof Tensor ?
       await keys.data() as unknown as string[] : keys;
 
-    arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
+    for (const [idx, key] of arrKeys.entries()) {
+      this._cache.set(key, values[idx])
+    }
     return this;
   }
 
