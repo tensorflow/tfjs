@@ -35,6 +35,7 @@ from tensorflowjs.converters import common
 from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from zipfile import ZipFile, is_zipfile
 
 
 def dispatch_keras_h5_to_tfjs_layers_model_conversion(
@@ -100,6 +101,88 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
 
   return model_json, groups
 
+def dispatch_keras_keras_to_tfjs_layers_model_conversion(
+    v3_path,
+    output_dir=None,
+    quantization_dtype_map=None,
+    split_weights_by_layer=False,
+    weight_shard_size_bytes=1024 * 1024 * 4,
+    metadata=None,
+):
+  """Converts a Keras v3 .keras file to TensorFlow.js format.
+
+  Args:
+    v3_path: path to an .keras file containing keras model data as a `str`.
+    output_dir: Output directory to which the TensorFlow.js-format model JSON
+      file and weights files will be written. If the directory does not exist,
+      it will be created.
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
+    split_weights_by_layer: Whether to split the weights into separate weight
+      groups (corresponding to separate binary weight files) layer by layer
+      (Default: `False`).
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
+
+  Returns:
+    (model_json, groups)
+      model_json: a json dictionary (empty if unused) for model topology.
+      groups: an array of weight_groups as defined in tfjs weights_writer.
+  """
+  if not os.path.exists(v3_path):
+      raise ValueError("Nonexistent path to .keras file: %s" % v3_path)
+  if os.path.isdir(v3_path):
+      raise ValueError(
+          "Expected path to point to an .keras file, but it points to a "
+          "directory: %s" % v3_path
+      )
+  file_path = str(v3_path)
+  if not file_path.endswith(".keras"):
+      raise ValueError(
+          "Invalid `filepath` argument: expected a `.keras` extension. "
+          f"Received: filepath={file_path}"
+      )
+  with ZipFile(v3_path, "r") as zip_file:
+      zip_file.extractall(path=os.path.dirname(v3_path))
+  dir_path = os.path.dirname(file_path)
+  meta_data_json_path = os.path.join(dir_path, "metadata.json")
+  config_json_path = os.path.join(dir_path, "config.json")
+  model_weights_path = os.path.join(dir_path, "model.weights.h5")
+  h5_file = h5py.File(model_weights_path, "r")
+  with open(config_json_path, "rt") as conf:
+      try:
+          config_file = json.load(conf)
+      except (ValueError, IOError):
+          raise ValueError(
+              "The input path is expected to contain valid JSON content, "
+              "but cannot read valid JSON content from %s." % config_json_path
+          )
+
+  with open(meta_data_json_path, "rt") as meta_json:
+      try:
+          meta_file = json.load(meta_json)
+      except (ValueError, IOError):
+          raise ValueError(
+              "The input path is expected to contain valid JSON content, "
+              "but cannot read valid JSON content from %s." % meta_data_json_path
+          )
+
+  model_json, groups = conversion.h5_v3_merged_saved_model_to_tfjs_format(
+      h5_file, meta_file, config_file, split_by_layer=split_weights_by_layer
+  )
+
+  if output_dir:
+    if os.path.isfile(output_dir):
+      raise ValueError(
+          'Output path "%s" already exists as a file' % output_dir)
+    if not os.path.isdir(output_dir):
+      os.makedirs(output_dir)
+    conversion.write_artifacts(
+      model_json, groups, output_dir, quantization_dtype_map,
+      weight_shard_size_bytes=weight_shard_size_bytes, metadata=metadata)
+
+  return model_json, groups
 
 def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     h5_path, output_dir=None,
@@ -209,7 +292,6 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     # Delete temporary .h5 file.
     os.remove(temp_h5_path)
 
-
 def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
   """Converts a TensorFlow.js Layers model format to Keras H5.
 
@@ -246,6 +328,42 @@ def dispatch_tensorflowjs_to_keras_h5_conversion(config_json_path, h5_path):
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     model.save(h5_path)
+
+def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
+  """Converts a TensorFlow.js Layers model format to Keras V3 format.
+
+  Args:
+    config_json_path: Path to the JSON file that includes the model's
+      topology and weights manifest, in tensorflowjs format.
+    v3_path: Path for the to-be-created Keras V3 model file.
+
+  Raises:
+    ValueError, if `config_json_path` is not a path to a valid JSON
+      file.
+  """
+  if os.path.isdir(config_json_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model & output_format=keras_keras, '
+        'the input path should be a model.json '
+        'file, but received a directory.')
+  if os.path.isdir(v3_path):
+    raise ValueError(
+        'For input_type=tfjs_layers_model & output_format=keras_keras, '
+        'the output path should be the path to a .keras file, '
+        'but received an existing directory (%s).' % v3_path)
+
+  # Verify that config_json_path points to a JSON file.
+  with open(config_json_path, 'rt') as f:
+    try:
+      json.load(f)
+    except (ValueError, IOError):
+      raise ValueError(
+          'For input_type=tfjs_layers_model & output_format=keras_keras, '
+          'the input path is expected to contain valid JSON content, '
+          'but cannot read valid JSON content from %s.' % config_json_path)
+
+  model = keras_tfjs_loader.load_keras_keras_model(config_json_path)
+  tf.keras.saving.save_model(model, v3_path, save_format="keras")
 
 
 def dispatch_tensorflowjs_to_keras_saved_model_conversion(
@@ -503,6 +621,14 @@ def _dispatch_converter(input_format,
         split_weights_by_layer=args.split_weights_by_layer,
         weight_shard_size_bytes=weight_shard_size_bytes,
         metadata=metadata_map)
+  elif (input_format == common.KERAS_KERAS_MODEL and
+        output_format == common.TFJS_LAYERS_MODEL):
+    dispatch_keras_keras_to_tfjs_layers_model_conversion(
+        args.input_path, output_dir=args.output_path,
+        quantization_dtype_map=quantization_dtype_map,
+        split_weights_by_layer=args.split_weights_by_layer,
+        weight_shard_size_bytes=weight_shard_size_bytes,
+        metadata=metadata_map)
   elif (input_format == common.KERAS_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_keras_h5_to_tfjs_graph_model_conversion(
@@ -554,6 +680,10 @@ def _dispatch_converter(input_format,
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):
     dispatch_tensorflowjs_to_keras_h5_conversion(args.input_path,
+                                                 args.output_path)
+  elif (input_format == common.TFJS_LAYERS_MODEL and
+        output_format == common.KERAS_KERAS_MODEL):
+    dispatch_tensorflowjs_to_keras_keras_conversion(args.input_path,
                                                  args.output_path)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_SAVED_MODEL):
@@ -615,7 +745,7 @@ def get_arg_parser():
       type=str,
       required=False,
       default=common.TF_SAVED_MODEL,
-      choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
+      choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL, common.KERAS_KERAS_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
                    common.TFJS_LAYERS_MODEL, common.TF_FROZEN_MODEL]),
       help='Input format. '
@@ -637,7 +767,7 @@ def get_arg_parser():
       type=str,
       required=False,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
-                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL, common.KERAS_KERAS_MODEL]),
       help='Output format. Default: tfjs_graph_model.')
   parser.add_argument(
       '--%s' % common.SIGNATURE_NAME,
@@ -751,6 +881,7 @@ def get_arg_parser():
 
 def convert(arguments):
   args = get_arg_parser().parse_args(arguments)
+
   if args.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
