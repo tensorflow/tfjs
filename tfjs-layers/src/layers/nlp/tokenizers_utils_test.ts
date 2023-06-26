@@ -135,8 +135,9 @@ describe('removeStringsFromInputs', () => {
 
     const result = removeStringsFromInputs(inputs, stringToRemove);
 
-    expect(result.length).toBe(1);
+    expect(result.length).toBe(2);
     expectTensorsClose(result[0], tensor(['butterfly']));
+    expectTensorsClose(result[1], tensor([]));
   });
 });
 
@@ -227,8 +228,8 @@ describe('tensor to array functions', () => {
     const inputNum = tensor([2, 11, 15]);
 
     test_util.expectArraysEqual(
-      tensorToArr<string>(inputStr), ['these', 'are', 'strings', '.']);
-    test_util.expectArraysEqual(tensorToArr<number>(inputNum), [2, 11, 15]);
+      tensorToArr(inputStr) as string[], ['these', 'are', 'strings', '.']);
+    test_util.expectArraysEqual(tensorToArr(inputNum) as number[], [2, 11, 15]);
   });
 
   it('tensorArrTo2DArr', () => {
@@ -236,8 +237,8 @@ describe('tensor to array functions', () => {
     const inputNum = [tensor([2, 11]), tensor([15])];
 
     test_util.expectArraysEqual(
-      tensorArrTo2DArr<string>(inputStr), [['these', 'are'], ['strings', '.']]);
+      tensorArrTo2DArr(inputStr) as string[][], [['these', 'are'], ['strings', '.']]);
     test_util.expectArraysEqual(
-      tensorArrTo2DArr<number>(inputNum), [[2, 11], [15]]);
+      tensorArrTo2DArr(inputNum) as number[][], [[2, 11], [15]]);
   });
 });
