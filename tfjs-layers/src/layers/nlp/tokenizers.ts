@@ -460,9 +460,9 @@ export class BytePairTokenizer extends Tokenizer {
     const rawTokens = tensorArrTo2DArr(rawTokensTensor) as string[][];
 
     const tokenRowSplits = [0];
-    rawTokens.forEach((token, idx) => {
+    for (const [idx, token] of rawTokens.entries()) {
       tokenRowSplits.push(tokenRowSplits[idx] + token.length);
-    });
+    }
 
     const flatTokens = rawTokens.flat();
 
@@ -491,9 +491,9 @@ export class BytePairTokenizer extends Tokenizer {
 
     // Unflatten to match input.
     const newTokenRowSplits = [0];
-    tokens.forEach((token, idx) => {
+    for (const [idx, token] of tokens.entries()) {
       newTokenRowSplits.push(newTokenRowSplits[idx] + token.length);
-    });
+    }
     const newFlatTokens = tokens.flat();
     const gatheredIndices =
       tokenRowSplits.map(index => newTokenRowSplits[index]);
@@ -508,7 +508,10 @@ export class BytePairTokenizer extends Tokenizer {
     // Convert to a dense output if `sequence_length` is set.
     if (this.sequenceLength) {
       // pad or truncate
-      const maxLength = Math.max(...token2D.map(token => Math.max(...token)));
+      const maxLengths = token2D.map(arr => arr.reduce(
+          (a, b) => Math.max(a, b), -Infinity));
+      const maxLength = maxLengths.reduce((a, b) => Math.max(a, b), -Infinity);
+
       token2D.map(tokenArr => {
         const pad: number[] = Array(maxLength - tokenArr.length).fill(0);
 
