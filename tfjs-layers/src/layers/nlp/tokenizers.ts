@@ -277,7 +277,7 @@ export class BytePairTokenizer extends Tokenizer {
   /**
    * Convert an integer id to a string token.
    */
-  override idToToken(id: number): string {
+  override idToToken(id: number): string | undefined {
     // This will be slow, but keep memory usage down compared to building a
     // dict. Assuming the main use case is looking up a few special tokens
     // early in the vocab, this should be fine.
@@ -287,13 +287,13 @@ export class BytePairTokenizer extends Tokenizer {
         return token;
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
    * Convert a string token to an integer id.
    */
-  override tokenToId(token: string): number {
+  override tokenToId(token: string): number | undefined {
     return this._vocabulary.get(token);
   }
 
@@ -313,7 +313,7 @@ export class BytePairTokenizer extends Tokenizer {
   private bpeMergeOneStep(
     words: Tensor[], mask: boolean[]): [Tensor[], boolean[]] {
 
-    const wordsStr = tensorArrTo2DArr<string>(words);
+    const wordsStr = tensorArrTo2DArr(words) as string[][];
 
     // Get all word pairs.
     const first = wordsStr.map(arr => arr.slice(0, -1));
@@ -336,29 +336,29 @@ export class BytePairTokenizer extends Tokenizer {
     const pairs: string[][] = filteredFirst.map((firstSubArr, idx) => {
       const secondSubArr = filteredSecond[idx];
 
-      return firstSubArr.map(
-        (char, idx) => [char, secondSubArr[idx]].join(' '));
+      return firstSubArr.map((char, idx) => `${char} ${secondSubArr[idx]}`);
     });
     const pairRanksTensor = this.mergeRanks.lookup(
       pairs.map(arr => tensor(arr)));
-    const pairRanks = tensorArrTo2DArr<number>(pairRanksTensor);
+    const pairRanks = tensorArrTo2DArr(pairRanksTensor) as number[][];
 
     // Get BPE pair ranks.
-    const minPairRank = pairRanks.map(arr => Math.min(...arr));
+    const minPairRank = pairRanks.map(
+      arr => arr.reduce((a, b) => Math.min(a, b), Infinity));
     const pairFoundMask = minPairRank.map(
       rank => rank !== this.mergeRanksLookupDefault);
 
     // Tokens that cannot be further merged are marked as finished.
-    nonEmptyIndices.forEach((index, idx) => {
+    for (const [idx, index] of nonEmptyIndices.entries()) {
       const update = pairFoundMask[idx];
       mask[index] = update;
-    });
+    }
     if (!mask.some(e => e)) {
       return [words, mask];
     }
 
     function argMin(arr: number[]): number {
-      return arr.indexOf(Math.min(...arr));
+      return arr.indexOf(arr.reduce((a, b) => Math.min(a, b), Infinity));
     }
 
     const maskedPairRanks = pairRanks.filter((_, idx) => pairFoundMask[idx]);
@@ -375,7 +375,7 @@ export class BytePairTokenizer extends Tokenizer {
 
     const mergedPairs = pairLeft.map((left, idx) => {
       const right = pairRight[idx];
-      return [left, right].join('');
+      return `${left}${right}`;
     });
     const unfinishedWordsIndices = mask
       .map((_, idx) => idx)
@@ -386,16 +386,16 @@ export class BytePairTokenizer extends Tokenizer {
     const emptyStringIndices = unfinishedWordsIndices.map(
       (index, idx) => [index, minPairRankIndices[idx] + 1]);
 
-    mergedPairIndices.forEach((indices, idx) => {
+    for (const [idx, indices] of mergedPairIndices.entries()) {
       const [wordIdx, charIdx] = indices;
       const mergedPair = mergedPairs[idx];
       wordsStr[wordIdx][charIdx] = mergedPair;
-    });
+    }
 
-    emptyStringIndices.forEach((indices) => {
+    for (const indices of emptyStringIndices) {
       const [wordIdx, charIdx] = indices;
       wordsStr[wordIdx][charIdx] = '';
-    });
+    }
 
     words = wordsStr.map(word => tensor(word));
     words = removeStringsFromInputs(words, '');
@@ -426,7 +426,7 @@ export class BytePairTokenizer extends Tokenizer {
    * Map token bytes to unicode using `byte2unicode`.
    */
   private transformBytes(tokens: Tensor): Tensor[] {
-    const tokensStr = tensorToArr<string>(tokens);
+    const tokensStr = tensorToArr(tokens) as string[];
 
     const splitBytes = tokensStr.map(
       token => tensor(token.split('').map(c => c.charCodeAt(0))));
@@ -441,7 +441,7 @@ export class BytePairTokenizer extends Tokenizer {
   private bpeMergeAndUpdateCache(tokens: Tensor) {
     const words = this.transformBytes(tokens);
     const tokenizedWordsTensor = this.bpeMerge(words);
-    const tokenizedWords = tensorArrTo2DArr<string>(tokenizedWordsTensor);
+    const tokenizedWords = tensorArrTo2DArr(tokenizedWordsTensor) as string[][];
 
     // For each word, join all its token by a whitespace,
     // e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
@@ -452,12 +452,12 @@ export class BytePairTokenizer extends Tokenizer {
 
   tokenize(inputs: Tensor): Tensor[] {
     if (this.addPrefixSpace) {
-      const strInputs = tensorToArr<string>(inputs);
+      const strInputs = tensorToArr(inputs) as string[];
       inputs = tensor(strInputs.map(word => ' ' + word));
     }
 
     const rawTokensTensor = splitStringsForBpe(inputs, this.unsplittableTokens);
-    const rawTokens = tensorArrTo2DArr<string>(rawTokensTensor);
+    const rawTokens = tensorArrTo2DArr(rawTokensTensor) as string[][];
 
     const tokenRowSplits = [0];
     rawTokens.forEach((token, idx) => {
@@ -527,9 +527,7 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
-    const stringInputs = inputs.map(
-      input => input.dataSync() as unknown as string[]);
-    return tensor(stringInputs.map(str => str.join(' ')));
+    throw new NotImplementedError(`Not implemented yet.`);
   }
 }
 serialization.registerClass(BytePairTokenizer);

@@ -137,7 +137,9 @@ export class BytePairTokenizerCache {
     const arrKeys = keys instanceof Tensor ?
       keys.dataSync() as unknown as string[] : keys;
 
-    arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
+    for (const [idx, key] of arrKeys.entries()) {
+      this._cache.set(key, values[idx]);
+    }
     return this;
   }
 
@@ -161,8 +163,7 @@ export function removeStringsFromInputs(
     inputs.map(input => input.dataSync() as unknown as string[]);
 
   const filteredStrArrays = stringArrInputs
-    .map(arr => arr.filter(s => s !== stringToRemove))
-    .filter(arr => arr.length > 0);
+    .map(arr => arr.filter(s => s !== stringToRemove));
 
   const filteredTensors = filteredStrArrays.map(arr => tensor(arr));
 
@@ -250,12 +251,12 @@ export function regexSplit(
   });
 }
 
-export function tensorToArr<T>(input: Tensor): T[] {
-  return input.dataSync() as unknown as T[];
+export function tensorToArr(input: Tensor): unknown[] {
+  return input.dataSync() as unknown as unknown[];
 }
 
-export function tensorArrTo2DArr<T>(inputs: Tensor[]): T[][] {
-  return inputs.map(input => tensorToArr<T>(input));
+export function tensorArrTo2DArr(inputs: Tensor[]): unknown[][] {
+  return inputs.map(input => tensorToArr(input));
 }
 
 export function splitStringsForBpe(
@@ -269,7 +270,7 @@ export function splitStringsForBpe(
   const pattern1 = new RegExp(`( )([^\s${SPECIAL_WHITESPACES}])`);
   const pattern2 = new RegExp(`(\s${SPECIAL_WHITESPACES})\$`);
 
-  const inputsStr = tensorToArr<string>(inputs).map(str =>
+  const inputsStr = (tensorToArr(inputs) as string[]).map(str =>
     str.replace(pattern1, `६$1$2`).replace(pattern2, `$1६`)
   );
 
