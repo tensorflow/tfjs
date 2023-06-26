@@ -263,8 +263,9 @@ export class BytePairTokenizer extends Tokenizer {
       [...Array(this.merges.length).keys()],
       this.mergeRanksLookupDefault
     );
-
-    this._dtype; this.unicode2Byte; this.tokenToIdMap; this.idToTokenMap;
+    throw new NotImplementedError(
+      `Class not fully implemented yet. Will use ${this._dtype},
+      ${this.unicode2Byte}, ${this.tokenToIdMap}, ${this.idToTokenMap}`);
   }
 
   /**
@@ -284,7 +285,7 @@ export class BytePairTokenizer extends Tokenizer {
   /**
    * Convert an integer id to a string token.
    */
-  override idToToken(id: number): string {
+  override idToToken(id: number): string | undefined {
     // This will be slow, but keep memory usage down compared to building a
     // dict. Assuming the main use case is looking up a few special tokens
     // early in the vocab, this should be fine.
@@ -294,13 +295,13 @@ export class BytePairTokenizer extends Tokenizer {
         return token;
       }
     }
-    return null;
+    return undefined;
   }
 
   /**
    * Convert a string token to an integer id.
    */
-  override tokenToId(token: string): number {
+  override tokenToId(token: string): number | undefined {
     return this._vocabulary.get(token);
   }
 
@@ -343,15 +344,15 @@ export class BytePairTokenizer extends Tokenizer {
     const pairs: string[][] = filteredFirst.map((firstSubArr, idx) => {
       const secondSubArr = filteredSecond[idx];
 
-      return firstSubArr.map(
-        (char, idx) => [char, secondSubArr[idx]].join(' '));
+      return firstSubArr.map((char, idx) => `${char} ${secondSubArr[idx]}`);
     });
     const pairRanksTensor = await this.mergeRanks.lookup(
       pairs.map(arr => tensor(arr)));
     const pairRanks = await tensorArrTo2DArr<number>(pairRanksTensor);
 
     // Get BPE pair ranks.
-    const minPairRank = pairRanks.map(arr => Math.min(...arr));
+    const minPairRank = pairRanks.map(
+      arr => arr.reduce((a, b) => Math.min(a, b), Infinity));
     const pairFoundMask = minPairRank.map(
       rank => rank !== this.mergeRanksLookupDefault);
 
@@ -365,7 +366,7 @@ export class BytePairTokenizer extends Tokenizer {
     }
 
     function argMin(arr: number[]): number {
-      return arr.indexOf(Math.min(...arr));
+      return arr.indexOf(arr.reduce((a, b) => Math.min(a, b), Infinity));
     }
 
     const maskedPairRanks = pairRanks.filter((_, idx) => pairFoundMask[idx]);
@@ -382,7 +383,7 @@ export class BytePairTokenizer extends Tokenizer {
 
     const mergedPairs = pairLeft.map((left, idx) => {
       const right = pairRight[idx];
-      return [left, right].join('');
+      return `${left}${right}`;
     });
     const unfinishedWordsIndices = mask
       .map((_, idx) => idx)
@@ -393,16 +394,16 @@ export class BytePairTokenizer extends Tokenizer {
     const emptyStringIndices = unfinishedWordsIndices.map(
       (index, idx) => [index, minPairRankIndices[idx] + 1]);
 
-    mergedPairIndices.forEach((indices, idx) => {
+    for (const [idx, indices] of mergedPairIndices.entries()) {
       const [wordIdx, charIdx] = indices;
       const mergedPair = mergedPairs[idx];
       wordsStr[wordIdx][charIdx] = mergedPair;
-    });
+    }
 
-    emptyStringIndices.forEach((indices) => {
+    for (const indices of emptyStringIndices) {
       const [wordIdx, charIdx] = indices;
       wordsStr[wordIdx][charIdx] = '';
-    });
+    }
 
     words = wordsStr.map(word => tensor(word));
     words = await removeStringsFromInputs(words, '');
@@ -459,15 +460,12 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   tokenize(inputs: Tensor): Tensor[] {
-    this.bpeMergeAndUpdateCache;
-    const stringInputs = inputs.dataSync() as unknown as string[];
-    return stringInputs.map(input => tensor(input.split(' ')));
+    throw new NotImplementedError(
+      `Not implemented yet. Will depend on ${this.bpeMergeAndUpdateCache}`);
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
-    const stringInputs = inputs.map(
-      input => input.dataSync() as unknown as string[]);
-    return tensor(stringInputs.map(str => str.join(' ')));
+    throw new NotImplementedError(`Not implemented yet.`);
   }
 }
 serialization.registerClass(BytePairTokenizer);

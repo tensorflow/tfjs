@@ -153,8 +153,7 @@ export async function removeStringsFromInputs(
     (await input.data() as unknown as string[])));
 
   const filteredStrArrays = stringArrInputs
-    .map(arr => arr.filter(s => s !== stringToRemove))
-    .filter(arr => arr.length > 0);
+    .map(arr => arr.filter(s => s !== stringToRemove));
 
   const filteredTensors = filteredStrArrays.map(arr => tensor(arr));
 
