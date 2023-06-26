@@ -4,6 +4,7 @@ const TMP_DIR = '/tmp/tfjs-pypi';
 import * as shell from 'shelljs';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
+import * as fs from 'fs';
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -45,6 +46,33 @@ async function main() {
       const targetDir = `${TMP_DIR}/tfjs-converter/python`;
       shell.cd(targetDir);
       console.log(chalk.blue.bold('Current directory:', shell.pwd().toString()));
+      const executeCommand = (code, stdout, stderr) => {
+        if (code !== 0) {
+          console.error(`Error executing the command: ${stderr}`);
+          return;
+        }
+        console.log(stdout);
+      };
+      shell.exec('bazel clean', executeCommand);
+      shell.exec('bazel build python3_wheel', executeCommand);
+
+      // Remove dist folder if it exists
+      if (fs.existsSync('./dist')) {
+        fs.rmdirSync('./dist', { recursive: true });
+      }
+
+      const command = './build-pip-package.sh --upload ./dist';
+      shell.exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing the command: ${error.message}`);
+          return;
+        }
+        console.log('stdout:', stdout);
+        console.error('stderr:', stderr);
+      });
+
+      // Command executed successfully
+      console.log('Command executed successfully');
     } else {
       console.log('Aborted.');
     }
