@@ -357,10 +357,10 @@ export class BytePairTokenizer extends Tokenizer {
       rank => rank !== this.mergeRanksLookupDefault);
 
     // Tokens that cannot be further merged are marked as finished.
-    nonEmptyIndices.forEach((index, idx) => {
+    for (const [idx, index] of nonEmptyIndices.entries()) {
       const update = pairFoundMask[idx];
       mask[index] = update;
-    });
+    }
     if (!mask.some(e => e)) {
       return [words, mask];
     }
