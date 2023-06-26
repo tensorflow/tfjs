@@ -207,11 +207,10 @@ export class BytePairTokenizer extends Tokenizer {
   private readonly unsplittableTokens: string[];
 
   private readonly byte2Unicode: StaticHashTable<number, string>;
-  // private readonly unicode2Byte: StaticHashTable<string, number>;
   private readonly cache = new BytePairTokenizerCache();
 
   private readonly tokenToIdMap: StaticHashTable<string, number>;
-  // private readonly idToTokenMap: StaticHashTable<number, string>;
+  private readonly idToTokenMap: StaticHashTable<number, string>;
 
   private readonly mergeRanksLookupDefault: number;
   private readonly mergeRanks: StaticHashTable<string, number>;
@@ -231,8 +230,6 @@ export class BytePairTokenizer extends Tokenizer {
     const [byteList, unicodeList] = bytesToUnicode();
     this.byte2Unicode = createStaticHashtable(
       Array.from(byteList), unicodeList, '');
-    // this.unicode2Byte = createStaticHashtable(
-    //   unicodeList, Array.from(byteList), -1);
 
     if (this.unsplittableTokens) {
       // Put unsplittable tokens into cache, so it won't be further split and
@@ -247,8 +244,8 @@ export class BytePairTokenizer extends Tokenizer {
     this.tokenToIdMap = createStaticHashtable(
       bytePairs, bytePairEncodingIndicies, -1);
 
-    // this.idToTokenMap = createStaticHashtable(
-    //   bytePairEncodingIndicies, bytePairs, '');
+    this.idToTokenMap = createStaticHashtable(
+      bytePairEncodingIndicies, bytePairs, '');
 
     // Create ranking of merge rules, this is the same as order of merge pairs
     // in `this.merges`.
@@ -527,9 +524,10 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
-    const stringInputs = inputs.map(
-      input => input.dataSync() as unknown as string[]);
-    return tensor(stringInputs.map(str => str.join(' ')));
+    const unicodeText = this.idToTokenMap.lookup(inputs)
+      .map(t => tensorToArr<string>(t).join(''));
+
+    return tensor(unicodeText);
   }
 }
 serialization.registerClass(BytePairTokenizer);
