@@ -464,7 +464,7 @@ export class BytePairTokenizer extends Tokenizer {
       tokenRowSplits.push(tokenRowSplits[idx] + token.length);
     }
 
-    const flatTokens = rawTokens.flat();
+    const flatTokens = rawTokens.reduce((acc, e) => acc.concat(e), []);
 
     // Check cache.
     const cacheLookup = this.cache.lookup(flatTokens);
@@ -494,7 +494,7 @@ export class BytePairTokenizer extends Tokenizer {
     for (const [idx, token] of tokens.entries()) {
       newTokenRowSplits.push(newTokenRowSplits[idx] + token.length);
     }
-    const newFlatTokens = tokens.flat();
+    const newFlatTokens = tokens.reduce((acc, e) => acc.concat(e), []);
     const gatheredIndices =
       tokenRowSplits.map(index => newTokenRowSplits[index]);
 
