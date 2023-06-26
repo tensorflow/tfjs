@@ -130,7 +130,7 @@ export class BytePairTokenizerCache {
       await keys.data() as unknown as string[] : keys;
 
     for (const [idx, key] of arrKeys.entries()) {
-      this._cache.set(key, values[idx])
+      this._cache.set(key, values[idx]);
     }
     return this;
   }
