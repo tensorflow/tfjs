@@ -310,6 +310,9 @@ export class BytePairTokenizer extends Tokenizer {
     return config;
   }
 
+  /**
+   * Perform one step of byte-pair merge.
+   */
   private bpeMergeOneStep(
     words: Tensor[], mask: boolean[]): [Tensor[], boolean[]] {
 
@@ -403,6 +406,9 @@ export class BytePairTokenizer extends Tokenizer {
     return [words, mask];
   }
 
+  /**
+   * Perform byte-pair merge for each word in the inputs.
+   */
   private bpeMerge(words: Tensor[]): Tensor[] {
     const numWords = words.length;
 
