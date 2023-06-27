@@ -28,6 +28,13 @@ py_library(
 )
 
 py_library(
+    name = "tf_module_mapper",
+    srcs = ["tf_module_mapper.py"],
+    srcs_version = "PY3",
+    deps = [],
+)
+
+py_library(
     name = "keras_h5_conversion",
     srcs = ["keras_h5_conversion.py"],
     srcs_version = "PY3",
@@ -74,6 +81,7 @@ py_test(
     deps = [
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
+        ":tf_module_mapper",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
@@ -272,6 +280,7 @@ py_binary(
         ":common",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
+        ":tf_module_mapper",
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
