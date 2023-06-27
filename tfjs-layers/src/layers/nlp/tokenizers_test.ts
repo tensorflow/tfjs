@@ -95,6 +95,7 @@ describe('BytePairTokenizer', () => {
     expect(tokenizer.tokenToId('butter')).toEqual(1);
     test_util.expectArraysEqual(config.merges as string[], merges);
   });
+<<<<<<< HEAD
 
   it('tokenize with special tokens', () => {
     const vocabulary = new Map([['sp', 0], ['s', 1], ['p', 2]]);
@@ -184,4 +185,6 @@ describe('BytePairTokenizer', () => {
     expect(tokenizeOutput.length).toBe(1);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
   });
+=======
+>>>>>>> main
 });
