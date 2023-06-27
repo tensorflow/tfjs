@@ -54,7 +54,7 @@ export function bytesToUnicode(): [Uint8Array, string[]] {
 /**
  * StaticHashTable includes a `lookup` function for multiple keys at once.
  */
-class StaticHashTable<K, V extends number|string> {
+export class StaticHashTable<K, V extends number|string> {
   private _map: Map<K, V>;
 
   constructor(keys: K[], values: V[], private readonly defaultValue: V) {
@@ -129,7 +129,9 @@ export class BytePairTokenizerCache {
     const arrKeys = keys instanceof Tensor ?
       await keys.data() as unknown as string[] : keys;
 
-    arrKeys.forEach((key, idx) => this._cache.set(key, values[idx]));
+    for (const [idx, key] of arrKeys.entries()) {
+      this._cache.set(key, values[idx]);
+    }
     return this;
   }
 
@@ -149,11 +151,10 @@ export class BytePairTokenizerCache {
 export async function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
 
-  const stringArrInputs = await tensorArrToString2DArr(inputs);
+  const stringArrInputs = await tensorArrTo2DArr(inputs) as string[][];
 
   const filteredStrArrays = stringArrInputs
-    .map(arr => arr.filter(s => s !== stringToRemove))
-    .filter(arr => arr.length > 0);
+    .map(arr => arr.filter(s => s !== stringToRemove));
 
   const filteredTensors = filteredStrArrays.map(arr => tensor(arr));
 
@@ -245,8 +246,8 @@ export async function tensorToStringArr(input: Tensor): Promise<string[]> {
   return await input.data() as unknown as string[];
 }
 
-export async function tensorArrToString2DArr(
-  inputs: Tensor[]): Promise<string[][]> {
+export async function tensorArrTo2DArr(
+  inputs: Tensor[]): Promise<unknown[][]> {
   return Promise.all(inputs.map(
     async input => tensorToStringArr(input)));
 }
