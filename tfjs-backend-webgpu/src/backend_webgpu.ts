@@ -909,24 +909,26 @@ export class WebGPUBackend extends KernelBackend {
     // program size, program defined uniforms.
     let programUniform: ProgramUniform = [];
     let bufferShapes: number[][] = [];
+    const uniformsType = 'int32';
     if (!program.isFromPixels) {
       programUniform.push(
           {type: 'float32', data: [NaN]}, {type: 'float32', data: [Infinity]});
       bufferShapes = inputs.concat(output).map(d => d.shape);
-      const uniformsType = 'int32';
       bufferShapes.map(d => {
         programUniform.push({type: uniformsType, data: d});
         const strides = util.computeStrides(d);
         programUniform.push({type: uniformsType, data: strides});
       });
-      if (program.size) {
-        const size = util.sizeFromShape(program.outputShape);
-        programUniform.push({
-          type: uniformsType,
-          data:
-              [program.outputComponent ? size / program.outputComponent : size]
-        });
-      }
+    } else {
+      const strides = util.computeStrides(output.shape);
+      programUniform.push({type: uniformsType, data: strides});
+    }
+    if (program.size) {
+      const size = util.sizeFromShape(program.outputShape);
+      programUniform.push({
+        type: uniformsType,
+        data: [program.outputComponent ? size / program.outputComponent : size]
+      });
     }
 
     if (programDefinedUniform) {

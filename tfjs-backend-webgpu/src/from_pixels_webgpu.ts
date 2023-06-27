@@ -26,8 +26,10 @@ export class FromPixelsProgram implements WebGPUProgram {
   shaderKey: string;
   importVideo: boolean;
   variableNames: string[] = [];
+  uniforms = 'numChannels : i32,';
   workgroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
+  size = true;
 
   constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;
