@@ -281,6 +281,63 @@ async function timeInference(predict, numRuns = 1) {
 }
 
 /**
+ * Time one model inference with parallel compilation feature, based on the
+ * current backend.
+ *
+ * The inference time contains the time spent by both `predict()` and `data()`
+ * called by tensors in the prediction.
+ *
+ * ```js
+ * // Benchmark the first infernece time with parallel compilation.
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const firstInferenceTime =
+ *    await timeFirstInference(() => model.predict(zeros), true);
+ * ```
+ *
+ * @param predict The predict function to execute and time for.
+ * @param parallelCompile The boolean value to indicate whether to use parallel
+ *     compilation. This currently only has effect for WebGL backend and WebGPU
+ * backend.
+ */
+async function timeFirstInference(predict, parallelCompile = false) {
+  const start = performance.now();
+
+  // Parallel Compile
+  if (parallelCompile && tf.getBackend() === 'webgl') {
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    const compileRes = predict();
+    tf.env().set('ENGINE_COMPILE_ONLY', false);
+    await tf.backend().checkCompileCompletionAsync();
+    tf.backend().getUniformLocations();
+    tf.dispose(compileRes);
+  } else if (parallelCompile && tf.getBackend() === 'webgpu') {
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', true);
+    const compileRes = predict();
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', false);
+    await tf.backend().checkCompileCompletionAsync();
+    tf.dispose(compileRes);
+  } else if (parallelCompile && isTflite()) {
+    throw new Error('Parallel Compilation for TFlite is not supported.');
+  }
+
+  // First inference
+  let res = predict();
+  if (parallelCompile && res instanceof Promise) {
+    throw new Error(
+        'Parallel Compilation for async function is not supported.');
+  }
+  res = await res;
+  await downloadValuesFromTensorContainer(res);
+  const elapsedTime = performance.now() - start;
+
+  tf.dispose(res);
+  return elapsedTime;
+}
+
+/**
  * Downloads the values from the `tensorContainer` from any `tf.Tensor`s found
  * within the `tensorContainer`. Returns a promise of `TypedArray` or
  * `TypedArray[]` that resolves when the computation has finished.
