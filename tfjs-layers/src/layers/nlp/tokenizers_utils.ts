@@ -149,8 +149,7 @@ export class BytePairTokenizerCache {
 export async function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Promise<Tensor[]> {
 
-  const stringArrInputs = await Promise.all(inputs.map(async input =>
-    (await input.data() as unknown as string[])));
+  const stringArrInputs = await tensorArrToString2DArr(inputs);
 
   const filteredStrArrays = stringArrInputs
     .map(arr => arr.filter(s => s !== stringToRemove))
@@ -249,7 +248,7 @@ export async function tensorToStringArr(input: Tensor): Promise<string[]> {
 export async function tensorArrToString2DArr(
   inputs: Tensor[]): Promise<string[][]> {
   return Promise.all(inputs.map(
-    async input => await input.data() as unknown as string[]));
+    async input => tensorToStringArr(input)));
 }
 
 export async function splitStringsForBpe(
