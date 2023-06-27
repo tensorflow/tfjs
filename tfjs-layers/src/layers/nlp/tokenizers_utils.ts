@@ -159,9 +159,7 @@ export class BytePairTokenizerCache {
 export function removeStringsFromInputs(
   inputs: Tensor[], stringToRemove: string): Tensor[] {
 
-  const stringArrInputs =
-    inputs.map(input => input.dataSync() as unknown as string[]);
-
+  const stringArrInputs = tensorArrTo2DArr(inputs) as string[][];
   const filteredStrArrays = stringArrInputs
     .map(arr => arr.filter(s => s !== stringToRemove));
 
