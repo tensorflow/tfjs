@@ -94,6 +94,7 @@ limitations under the License.
     let runTimes = 50;
     let profileTimes = 1;
     let warmupTimes = 1;
+    let paralllelCompile = false;
     // Default do not run any task.
     let task = '';
     function getURLState(url) {
@@ -113,6 +114,9 @@ limitations under the License.
       if (params.has('task')) {
         task = params.get('task');
       }
+      if (params.has('parallelCompile')) {
+        paralllelCompile = Boolean(params.get('parallelCompile'));
+      }
       return params;
     }
     // Controllers can be updated by URI or clicked by user.
@@ -120,6 +124,7 @@ limitations under the License.
     let numWarmupsController = null;
     let numRunsController = null;
     let numProfilesController = null;
+    let parallelCompileController = null;
     let modelParameterFolder = null;
     let runButton = null;
     let correctnessButton = null;
@@ -189,6 +194,7 @@ limitations under the License.
       numWarmups: warmupTimes,
       numRuns: runTimes,
       numProfiles: profileTimes,
+      parallelCompile: paralllelCompile,
       benchmark: 'MobileNetV3',
       run: (v) => {
         runBenchmark().catch(e => {
@@ -406,7 +412,27 @@ limitations under the License.
       tbody.appendChild(tr);
     }
 
-    async function warmUpAndRecordTime() {
+    async function measureFirstPredictTime() {
+      let predictFn;
+      if (state.benchmark === 'custom') {
+        const input = generateInputFromDef(
+            state.inputs, model instanceof tf.GraphModel);
+        predictFn = isTflite() ?
+            () => predict(undefined, input) :
+            getPredictFnForModel(model, input);
+      } else {
+        predictFn = () => predict(model);
+      }
+
+      const firstInferenceTime = await timeFirstInference(
+          predictFn, state.parallelCompile);
+      const tag = '1st inference time' +
+          (state.parallelCompile ? ' (parallel compile)' : '');
+      appendRow(timeTable, 'backend', state.backend);
+      appendRow(timeTable, tag, printTime(firstInferenceTime));
+    }
+
+    async function warmUp() {
       const numWarmups = state.numWarmups;
       if (numWarmups == 0) {
         await showMsg('Skip warming up');
@@ -416,23 +442,19 @@ limitations under the License.
       }
       await showMsg(`Warming up for ${numWarmups} time(s)`);
 
-      let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = isTflite() ?
+          isTflite() ?
               await timeInference(() => predict(undefined, input), numWarmups) :
               await timeModelInference(model, input, numWarmups);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await timeInference(() => predict(model), numWarmups);
+        await timeInference(() => predict(model), numWarmups);
       }
-
       await showMsg(null);
-      appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, 'Warmup time', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
@@ -771,7 +793,8 @@ limitations under the License.
       }
       await showBenchmarkingParameters();
 
-      await warmUpAndRecordTime();
+      await measureFirstPredictTime();
+      await warmUp();
       await measureAveragePredictTime();
       await profileMemoryAndKernelTime();
       urlState = null;
@@ -919,6 +942,7 @@ limitations under the License.
       numRunsController = parameterFolder.add(state, 'numRuns');
       numProfilesController = parameterFolder.add(state, 'numProfiles');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
+      parallelCompileController = parameterFolder.add(state, 'parallelCompile');
       parameterFolder.open();
 
       // Show model parameter UI when loading the page.
@@ -960,6 +984,8 @@ limitations under the License.
           // Remove the "Test correctness" button which doesn't apply to tfjs-tflite.
           correctnessButton.destroy();
           correctnessButton = null;
+          parallelCompileController.destroy();
+          parallelCompileController = null;
 
           // Update models drop down to only show models that support tflite.
           const tfliteBenchmarks = Object.keys(benchmarks)
@@ -973,6 +999,7 @@ limitations under the License.
           // tflite to non-tflite backend.
           if (correctnessButton == null) {
             correctnessButton = gui.add(state, 'testCorrectness');
+            parallelCompileController = parameterFolder.add(state, 'parallelCompile');
             const allBenchmarks = Object.keys(benchmarks);
             updateModelsDropdown(allBenchmarks);
             modelController.setValue(allBenchmarks[0]);
