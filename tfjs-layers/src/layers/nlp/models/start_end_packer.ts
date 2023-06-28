@@ -51,13 +51,6 @@ export declare interface StartEndPackerArgs extends LayerArgs {
    * will be added depending on the dtype of the input tensor.
    */
   padValue?: number|string;
-
-  /**
-   * Boolean. Whether to return a boolean padding mask of all locations that are
-   * filled in with the `padValue`.
-   * Defaults to false.
-   */
-  returnPaddingMask?: boolean;
 }
 
 export declare interface StartEndPackerOptions {
@@ -98,7 +91,6 @@ export class StartEndPacker extends Layer {
   private startValue: number|string;
   private endValue: number|string;
   private padValue: number|string;
-  private returnPaddingMask: boolean;
 
   constructor(args: StartEndPackerArgs) {
     super(args);
@@ -107,13 +99,24 @@ export class StartEndPacker extends Layer {
     this.startValue = args.startValue;
     this.endValue = args.endValue;
     this.padValue = args.padValue;
-    this.returnPaddingMask = args.returnPaddingMask || false;
   }
 
   override call(
     inputs: Tensor|Tensor[],
     kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
   ): Tensor|Tensor[] {
+    return this.callAndReturnPaddingMask(inputs, kwargs)[0];
+  }
+
+  /**
+   * Exactly like `call` except also returns a boolean padding mask of all
+   * locations that are filled in with the `padValue`.
+   */
+  callAndReturnPaddingMask(
+    inputs: Tensor|Tensor[],
+    kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
+  ): [Tensor|Tensor[], Tensor|Tensor[]] {
+
     // Add a new axis at the beginning if needed.
     let x = inputs instanceof Tensor ? [inputs] : inputs;
 
@@ -158,9 +161,18 @@ export class StartEndPacker extends Layer {
       return tensor(strInput.slice(0, strInput.length - length));
     }
 
-    const outputs = x.map(t => padEnd(t, sequenceLength, this.padValue));
+    let mask: Tensor|Tensor[] = x.map(t => {
+      // `onesLike` not used since it does not support string tensors.
+      const ones = tensor(Array(t.shape[0]).fill(1));
+      return padEnd(ones, sequenceLength, 0).cast('bool')
+    });
+    mask = inputIs1d ? mask[0] : mask;
 
-    return inputIs1d ? outputs[0] : outputs;
+    let outputs: Tensor|Tensor[] =
+      x.map(t => padEnd(t, sequenceLength, this.padValue));
+    outputs = inputIs1d ? outputs[0] : outputs;
+
+    return [outputs, mask];
   }
 
   override getConfig(): serialization.ConfigDict {
@@ -169,7 +181,6 @@ export class StartEndPacker extends Layer {
       startValue: this.startValue,
       endValue: this.endValue,
       padValue: this.padValue,
-      returnPaddingMask: this.returnPaddingMask,
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);

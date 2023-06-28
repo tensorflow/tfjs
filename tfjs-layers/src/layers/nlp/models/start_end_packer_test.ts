@@ -149,6 +149,24 @@ describe('StartEndPacker', () => {
     expectTensorsClose(output[1], expectedOutput[1]);
   });
 
+  it('correct mask', () => {
+    const inputData = [tensor([5, 6]), tensor([8, 9, 10, 11])];
+    const startEndPacker = new StartEndPacker({
+      sequenceLength: 6, startValue: 1, endValue: 2
+    });
+
+    const outputMask =
+      startEndPacker.callAndReturnPaddingMask(inputData)[1] as Tensor[];
+    const expectedMask = [
+      tensor([true, true, true, true, false, false]),
+      tensor([true, true, true, true, true, true]),
+    ];
+
+    expect(outputMask.length).toBe(2);
+    expectTensorsClose(outputMask[0], expectedMask[0]);
+    expectTensorsClose(outputMask[1], expectedMask[1]);
+  });
+
   it('correct getConfig', () => {
     const startEndPacker = new StartEndPacker({
       sequenceLength: 512,
