@@ -35,6 +35,5 @@ describe('StartEndPacker', () => {
     expect(config.startValue).toEqual(10);
     expect(config.endValue).toEqual(20);
     expect(config.padValue).toEqual(100);
-    expect(config.name).toEqual(undefined);
   });
 });

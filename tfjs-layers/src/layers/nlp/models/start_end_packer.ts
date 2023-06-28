@@ -97,11 +97,11 @@ export class StartEndPacker extends Layer {
 
   override getConfig(): serialization.ConfigDict {
     const config = {
-      sequence_length: this.sequenceLength,
-      start_value: this.startValue,
-      end_value: this.endValue,
-      pad_value: this.padValue,
-      return_padding_mask: this.returnPaddingMask,
+      sequenceLength: this.sequenceLength,
+      startValue: this.startValue,
+      endValue: this.endValue,
+      padValue: this.padValue,
+      returnPaddingMask: this.returnPaddingMask,
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
