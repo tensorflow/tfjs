@@ -20,10 +20,10 @@
  */
 
 /* Original source: keras-nlp/start_end_packer.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, concat, serialization, tensor } from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../../engine/topology';
-import { NotImplementedError } from '../../../errors';
+import { ValueError } from '../../../errors';
 
 export declare interface StartEndPackerArgs extends LayerArgs {
   /**
@@ -60,6 +60,25 @@ export declare interface StartEndPackerArgs extends LayerArgs {
   returnPaddingMask?: boolean;
 }
 
+export declare interface StartEndPackerOptions {
+  /**
+   * Pass to override the configured `sequenceLength` of the layer.
+   */
+  sequenceLength?: number;
+
+  /**
+   * Pass `false` to not append a start value for this input.
+   * Defaults to true.
+   */
+  addStartValue?: boolean;
+
+  /**
+   * Pass `false` to not append an end value for this input.
+   * Defaults to true.
+   */
+  addEndValue?: boolean;
+}
+
 /**
  * Adds start and end tokens to a sequence and pads to a fixed length.
  *
@@ -91,8 +110,57 @@ export class StartEndPacker extends Layer {
     this.returnPaddingMask = args.returnPaddingMask || false;
   }
 
-  override call(inputs: Tensor|Tensor[]): Tensor|Tensor[] {
-    throw new NotImplementedError(`Call method not implemented `);
+  override call(
+    inputs: Tensor|Tensor[],
+    kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
+  ): Tensor|Tensor[] {
+    // Add a new axis at the beginning if needed.
+    let x = inputs instanceof Tensor ? [inputs] : inputs;
+
+    const inputIs1d = inputs instanceof Tensor && inputs.rank === 1;
+
+    if (x.some(t => t.rank !== 1)) {
+      throw new ValueError(
+        'Input must either be a rank 1 Tensor or an array of rank 1 Tensors.');
+    }
+    const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
+
+    // Concatenate start and end tokens.
+    if (kwargs.addStartValue && this.startValue !== undefined) {
+      const startTokenIdTensor = tensor([this.startValue]);
+      x = x.map(t => concat([startTokenIdTensor, t]));
+    }
+    if (kwargs.addEndValue && this.endValue !== undefined) {
+      const endTokenIdTensor = tensor([this.endValue]);
+      // Trim to leave room for end token.
+      x = x.map(t => t.slice(0, Math.min(t.shape[0], sequenceLength - 1)));
+      x = x.map(t => concat([t, endTokenIdTensor]));
+    }
+
+    // tf.pad does not allow padding on Tensors with dtype='string'
+    function padEnd(
+      input: Tensor, length: number, padValue?: string|number) {
+      if (padValue === undefined) {
+        padValue = input.dtype === 'string' ? '' : 0;
+      }
+      if (typeof padValue === 'number') {
+        return input.pad([[0, length - input.size]], padValue);
+      }
+
+      // TODO(orderique): use tensorToStringArr here once its no longer async.
+      const strInput = input.dataSync() as unknown as string[];
+
+      if (strInput.length <= length) {
+        const pads = Array(length - strInput.length).fill(padValue);
+        return tensor(strInput.concat(pads));
+      }
+
+      return tensor(strInput.slice(0, strInput.length - length));
+    }
+
+    const outputs = x.map(t => padEnd(t, sequenceLength, this.padValue));
+
+    return inputIs1d ? outputs[0] : outputs;
   }
 
   override getConfig(): serialization.ConfigDict {
