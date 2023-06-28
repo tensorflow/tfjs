@@ -164,7 +164,7 @@ export class StartEndPacker extends Layer {
     let mask: Tensor|Tensor[] = x.map(t => {
       // `onesLike` not used since it does not support string tensors.
       const ones = tensor(Array(t.shape[0]).fill(1));
-      return padEnd(ones, sequenceLength, 0).cast('bool')
+      return padEnd(ones, sequenceLength, 0).cast('bool');
     });
     mask = inputIs1d ? mask[0] : mask;
 
