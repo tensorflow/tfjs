@@ -85,9 +85,6 @@ export class StartEndPacker extends Layer {
     super(args);
 
     this.sequenceLength = args.sequenceLength;
-    this.startValue = args.startValue || null;
-    this.endValue = args.endValue || null;
-    this.padValue = args.padValue || null;
     this.returnPaddingMask = args.returnPaddingMask || false;
   }
 
