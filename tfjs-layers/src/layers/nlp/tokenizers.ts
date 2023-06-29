@@ -67,9 +67,9 @@ export declare interface TokenizerOptions {
  *
  * const tokenizer = new WhitespaceSplitterTokenizer();
  *
- * tokenizer.tokenize(Tensor(['this is a test']))[0].print();
+ * tokenizer.tokenize(tensor(['this is a test']))[0].print();
  *
- * tokenizer.detokenize([Tensor(['this', 'is', 'a', 'test'])]).print();
+ * tokenizer.detokenize([tensor(['this', 'is', 'a', 'test'])]).print();
  * ```
  */
 export abstract class Tokenizer extends Layer {
@@ -195,6 +195,40 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
   unsplittableTokens?: string[];
 }
 
+/**
+ * Byte-pair encoding tokenizer layer.
+ *
+ * This BPE tokenizer provides the same functionality as the official GPT-2
+ * tokenizer. Given the same `vocabulary` which maps tokens to ids, and `merges`
+ * which describes BPE merge rules, it should provide the same output as OpenAI
+ * implementation (https://github.com/openai/gpt-2/blob/master/src/encoder.py).
+ *
+ * If input is a batch of strings (rank > 0):
+ * By default, the layer will output a `Tensor[]` where the last.
+ * If `sequenceLength` is set, the layer will output a `tf.Tensor[]` where all
+ * inputs have been padded or truncated to `sequenceLength`.
+ *
+ * Examples:
+ *
+ * Tokenize
+ * ```js
+ * const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+ * const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+ * const tokenizer = new BytePairTokenizer({vocabulary, merges});
+ *
+ * tokenizer.tokenize(tensor(['butterfly']))[0].print(); // [1, 2]
+ * tokenizer.tokenize(tensor(['butterfly, butter']))[1].print(); // [1]
+ * ```
+ *
+ * Detokenize
+ * ```js
+ * const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+ * const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+ * const tokenizer = new BytePairTokenizer({vocabulary, merges});
+ *
+ * tokenizer.detokenize([[1, 2]])[0].print(); // 'butterfly'
+ * ```
+ */
 export class BytePairTokenizer extends Tokenizer {
   /** @nocollapse */
   static readonly className = 'BytePairTokenizer';
