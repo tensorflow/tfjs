@@ -211,6 +211,16 @@ describe('splitStringsForBpe', () => {
     expectTensorsClose(result[0], tensor(['s', 'p']));
   });
 
+  it ('splits with multicharacter unsplittable tokens', () => {
+    const inputs = tensor(['butterfly<|endOfText|>']);
+    const unsplittableTokens = ['<|endOfText|>'];
+
+    const result = splitStringsForBpe(inputs, unsplittableTokens);
+
+    expect(result.length).toBe(1);
+    expectTensorsClose(result[0], tensor(['butterfly', '<|endOfText|>']));
+  });
+
   it ('splits with no unsplittable tokens', () => {
     const inputs = tensor(['brown.', 'black.']);
 
