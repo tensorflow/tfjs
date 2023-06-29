@@ -288,7 +288,7 @@ export function splitStringsForBpe(
       rawTokens = regexSplit(rawTokens !== undefined ?
         rawTokens : inputsStr, escapedToken, true);
       rawTokens = rawTokens.map(
-        arr => arr.map(t => t.replace(escapedToken, alt)));
+        arr => arr.map(t => t.replace(new RegExp(escapedToken), alt)));
     }
   }
   rawTokens = regexSplit(rawTokens !== undefined ?
@@ -302,7 +302,7 @@ export function splitStringsForBpe(
       const alt = alts[idx];
       const escapedAlt = escape(alt);
       rawTokens = rawTokens.map(
-        arr => arr.map(t => t.replace(escapedAlt, token)));
+        arr => arr.map(t => t.replace(new RegExp(escapedAlt), token)));
     }
   }
 
