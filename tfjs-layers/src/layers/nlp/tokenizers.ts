@@ -216,8 +216,8 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
  * const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
  * const tokenizer = new BytePairTokenizer({vocabulary, merges});
  *
- * tokenizer.tokenize(tensor(['butterfly']))[0].print(); // [1, 2]
- * tokenizer.tokenize(tensor(['butterfly, butter']))[1].print(); // [1]
+ * tokenizer.tokenize(tensor(['butterfly']))[0].print();
+ * tokenizer.tokenize(tensor(['butterfly, butter']))[1].print();
  * ```
  *
  * Detokenize
@@ -226,7 +226,7 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
  * const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
  * const tokenizer = new BytePairTokenizer({vocabulary, merges});
  *
- * tokenizer.detokenize([[1, 2]])[0].print(); // 'butterfly'
+ * tokenizer.detokenize([[1, 2]]).print();
  * ```
  */
 export class BytePairTokenizer extends Tokenizer {
