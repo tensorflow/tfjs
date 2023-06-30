@@ -21,7 +21,7 @@ import { serialization } from '@tensorflow/tfjs-core';
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { Kwargs } from '../../../types';
 import { Tokenizer } from '../tokenizers';
-import { NotImplementedError } from 'tfjs-layers/src/errors';
+import { NotImplementedError } from '../../../errors';
 
 /**
  * Base class for model Preprocessors.
