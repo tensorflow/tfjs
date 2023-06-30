@@ -18,7 +18,7 @@
 /* Original source: keras-nlp/models/preprocessor.py */
 import { serialization } from '@tensorflow/tfjs-core';
 
-import { Layer } from '../../../engine/topology';
+import { Layer, LayerArgs } from '../../../engine/topology';
 import { Kwargs } from '../../../types';
 import { Tokenizer } from '../tokenizers';
 import { NotImplementedError } from 'tfjs-layers/src/errors';
@@ -32,7 +32,7 @@ export class Preprocessor extends Layer {
 
   private _tokenizer: Tokenizer;
 
-  constructor(args: Kwargs) {
+  constructor(args: LayerArgs) {
     super(args);
   }
 
