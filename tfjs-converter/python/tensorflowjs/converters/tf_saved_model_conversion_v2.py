@@ -127,6 +127,36 @@ def _run_grappler(config, graph_def, graph, signature_def):
   return tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
+def get_output_node_names(node_map, target):
+  output_node_names = []
+  for name, node in node_map.items():
+    for input_name in node.input:
+      if target == input_name:
+        output_node_names.append(name)
+  return output_node_names
+
+
+def normalize_biasAdd_op(input_graph_def):
+  input_node_map = {}
+  for node in input_graph_def.node:
+    if node.name not in input_node_map:
+      input_node_map[node.name] = node
+    else:
+      raise ValueError('Duplicate node names detected for ', node.name)
+
+  for node in input_graph_def.node:
+    if node.op == 'AddV2':
+      ancestor_node_name = node.input[0]
+      ancestor_node = graph_rewrite_util.node_from_map(input_node_map,
+                                                       ancestor_node_name)
+      if (ancestor_node.op == 'Conv2D' \
+            or ancestor_node.op == 'DepthwiseConv2dNative') \
+          and len(get_output_node_names(input_node_map, ancestor_node_name)):
+            node.op = 'BiasAdd'
+            node.attr['data_format'].s = bytes('NHWC', 'utf-8')
+  return input_graph_def
+
+
 def optimize_graph(graph, signature_def,
                    skip_op_check=False, strip_debug_ops=False,
                    experiments=False):
@@ -168,6 +198,8 @@ def optimize_graph(graph, signature_def,
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
+
+  optimized_graph = normalize_biasAdd_op(optimized_graph)
 
   # set the device to CPU for all Conv2d and MatMul nodes, since grappler
   # remap optimizer only support FusedConv2D and FusedMatMul for CPU.
