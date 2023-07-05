@@ -39,7 +39,7 @@ const customInclude = (testName: string) => {
     'throws when index is out of bound',
     // otsu tests for threshold op is failing on windows
     'method otsu',
-    'Draw on 2d context',
+    'draw on canvas context',
     // https://github.com/tensorflow/tfjs/issues/7618
     'numbers exceed float32 precision',
   ];
