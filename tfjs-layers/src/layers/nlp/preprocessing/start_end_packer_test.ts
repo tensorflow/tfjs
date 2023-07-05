@@ -23,17 +23,15 @@ import { StartEndPacker } from './start_end_packer';
 
 describe('StartEndPacker', () => {
   it('correct getConfig', () => {
-    const startEndPacker = new StartEndPacker({
+    const config = {
       sequenceLength: 512,
       startValue: 10,
       endValue: 20,
       padValue: 100,
-    });
-    const config = startEndPacker.getConfig();
+    };
+    const startEndPacker = new StartEndPacker(config);
+    const outputConfig = startEndPacker.getConfig();
 
-    expect(config.sequenceLength).toEqual(512);
-    expect(config.startValue).toEqual(10);
-    expect(config.endValue).toEqual(20);
-    expect(config.padValue).toEqual(100);
+    expect(outputConfig).toEqual(jasmine.objectContaining(config));
   });
 });

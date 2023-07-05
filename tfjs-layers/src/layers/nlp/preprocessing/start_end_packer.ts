@@ -76,9 +76,9 @@ export class StartEndPacker extends Layer {
   static readonly className = 'StartEndPacker';
 
   private sequenceLength: number;
-  private startValue: number|string;
-  private endValue: number|string;
-  private padValue: number|string;
+  private startValue: number|string|undefined;
+  private endValue: number|string|undefined;
+  private padValue: number|string|undefined;
   private returnPaddingMask: boolean;
 
   constructor(args: StartEndPackerArgs) {
