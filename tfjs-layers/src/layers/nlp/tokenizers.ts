@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/tokenizer.py */
-import { Tensor, serialization, tensor} from '@tensorflow/tfjs-core';
+import { Tensor, serialization, tensor, tidy} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
@@ -204,8 +204,8 @@ export declare interface BytePairTokenizerArgs extends LayerArgs {
  * implementation (https://github.com/openai/gpt-2/blob/master/src/encoder.py).
  *
  * If input is a batch of strings (rank > 0):
- * By default, the layer will output a `Tensor[]` where the last.
- * If `sequenceLength` is set, the layer will output a `tf.Tensor[]` where all
+ * By default, the layer will output a `Tensor[]`.
+ * If `sequenceLength` is set, the layer will output a `Tensor[]` where all
  * inputs have been padded or truncated to `sequenceLength`.
  *
  * Examples:
@@ -484,82 +484,77 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   tokenize(inputs: Tensor): Tensor[] {
-    if (this.addPrefixSpace) {
-      const strInputs = tensorToArr(inputs) as string[];
-      inputs = tensor(strInputs.map(word => ' ' + word));
-    }
+    return tidy(() => {
+      if (this.addPrefixSpace) {
+        const strInputs = tensorToArr(inputs) as string[];
+        inputs = tensor(strInputs.map(word => ' ' + word));
+      }
 
-    const rawTokensTensor = splitStringsForBpe(inputs, this.unsplittableTokens);
-    const rawTokens = tensorArrTo2DArr(rawTokensTensor) as string[][];
+      const rawTokensTensor =
+        splitStringsForBpe(inputs, this.unsplittableTokens);
+      const rawTokens = tensorArrTo2DArr(rawTokensTensor) as string[][];
 
-    const tokenRowSplits = [0];
-    for (const [idx, token] of rawTokens.entries()) {
-      tokenRowSplits.push(tokenRowSplits[idx] + token.length);
-    }
+      const tokenRowSplits = [0];
+      for (const [idx, token] of rawTokens.entries()) {
+        tokenRowSplits.push(tokenRowSplits[idx] + token.length);
+      }
 
-    const flatTokens = rawTokens.reduce((acc, e) => acc.concat(e), []);
+      const flatTokens = rawTokens.reduce((acc, e) => acc.concat(e), []);
 
-    // Check cache.
-    const cacheLookup = this.cache.lookup(flatTokens);
-    const cacheMask = cacheLookup.map(e => e === '');
+      // Check cache.
+      const cacheLookup = this.cache.lookup(flatTokens);
+      const cacheMask = cacheLookup.map(e => e === '');
 
-    const emptyFlatTokensMask = flatTokens.map(e => e !== '');
-    const hasUnseenWords = cacheMask.map(
-      (bool, idx) => bool && emptyFlatTokensMask[idx]).some(e => e);
+      const hasUnseenWords = cacheMask.some(
+        (bool, idx) => bool && flatTokens[idx] !== '');
 
-    const processUnseenTokens = (): string[]  => {
-      const unseenTokens = flatTokens.filter((_, idx) => cacheMask[idx]);
-      this.bpeMergeAndUpdateCache(tensor(unseenTokens));
-      return this.cache.lookup(flatTokens);
-    };
+      const processUnseenTokens = (): string[]  => {
+        const unseenTokens = flatTokens.filter((_, idx) => cacheMask[idx]);
+        this.bpeMergeAndUpdateCache(tensor(unseenTokens));
+        return this.cache.lookup(flatTokens);
+      };
 
-    // If `has_unseen_words == True`, it means not all tokens are in cache,
-    // we will process the unseen tokens. Otherwise return the cache lookup.
-    const tokenizedWords =
-      hasUnseenWords ? processUnseenTokens() : cacheLookup;
+      // If `has_unseen_words == True`, it means not all tokens are in cache,
+      // we will process the unseen tokens. Otherwise return the cache lookup.
+      const tokenizedWords =
+        hasUnseenWords ? processUnseenTokens() : cacheLookup;
 
-    const tokensTensor = this.tokenToIdMap.lookup(
-      tokenizedWords.map(word => tensor(word.split(' '))));
-    const tokens = tokensTensor.map(t => Array.from(t.dataSync()));
+      const tokensTensor = this.tokenToIdMap.lookup(
+        tokenizedWords.map(word => tensor(word.split(' '))));
+      const tokens = tokensTensor.map(t => Array.from(t.dataSync()));
 
-    // Unflatten to match input.
-    const newTokenRowSplits = [0];
-    for (const [idx, token] of tokens.entries()) {
-      newTokenRowSplits.push(newTokenRowSplits[idx] + token.length);
-    }
-    const newFlatTokens = tokens.reduce((acc, e) => acc.concat(e), []);
-    const gatheredIndices =
-      tokenRowSplits.map(index => newTokenRowSplits[index]);
+      // Unflatten to match input.
+      const newTokenRowSplits = [0];
+      for (const [idx, token] of tokens.entries()) {
+        newTokenRowSplits.push(newTokenRowSplits[idx] + token.length);
+      }
+      const newFlatTokens = tokens.reduce((acc, e) => acc.concat(e), []);
+      const gatheredIndices =
+        tokenRowSplits.map(index => newTokenRowSplits[index]);
 
-    const token2D: number[][] = [];
-    for (let i = 0; i < gatheredIndices.length - 1; i++) {
-      const [start, end] = [gatheredIndices[i], gatheredIndices[i+1]];
-      const row = newFlatTokens.slice(start, end);
-      token2D.push(row);
-    }
+      let tokens2D: Tensor[] = [];
+      for (let i = 0; i < gatheredIndices.length - 1; i++) {
+        const [start, end] = [gatheredIndices[i], gatheredIndices[i+1]];
+        const row = newFlatTokens.slice(start, end);
+        tokens2D.push(tensor(row));
+      }
 
-    // Convert to a dense output if `sequence_length` is set.
-    if (this.sequenceLength) {
-      // pad or truncate
-      const maxLengths = token2D.map(arr => arr.reduce(
-          (a, b) => Math.max(a, b), -Infinity));
-      const maxLength = maxLengths.reduce((a, b) => Math.max(a, b), -Infinity);
-
-      token2D.map(tokenArr => {
-        const pad: number[] = Array(maxLength - tokenArr.length).fill(0);
-
-        const newRow = [];
-        for (let i = 0; i < pad.length; i++) {
-          if (pad[i] === undefined) {
-            break;
+      // Convert to a dense output if `sequenceLength` is set.
+      if (this.sequenceLength) {
+        // pad or truncate
+        tokens2D = tokens2D.map(t => {
+          if (t.size === this.sequenceLength) {
+            return t;
+          } else if (t.size > this.sequenceLength) {
+            return t.slice(0, this.sequenceLength);
+          } else {
+            return t.pad([[0, this.sequenceLength - t.size]]);
           }
-          newRow.push(tokenArr[i]);
-        }
-        return newRow;
-      });
-    }
+        });
+      }
 
-    return token2D.map(token => tensor(token));
+      return tokens2D;
+    });
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
