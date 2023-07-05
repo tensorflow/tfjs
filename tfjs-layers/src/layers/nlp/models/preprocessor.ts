@@ -21,7 +21,7 @@ import { serialization } from '@tensorflow/tfjs-core';
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { Tokenizer } from '../tokenizers';
 import { Kwargs } from '../../../types';
-import { deserializeKerasObject } from '../../../utils/generic_utils';
+import { deserializeKerasObject, serializeKerasObject } from '../../../utils/generic_utils';
 
 /**
  * Base class for model Preprocessors.
@@ -48,11 +48,8 @@ export class Preprocessor extends Layer {
   }
 
   override getConfig(): serialization.ConfigDict {
-    const config = {
-      tokenizer: this._tokenizer.getClassName(),
-    };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
+    const config = super.getConfig();
+    config.tokenizer = serializeKerasObject(this.tokenizer);
     return config;
   }
 
