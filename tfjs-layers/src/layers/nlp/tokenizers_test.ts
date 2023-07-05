@@ -215,7 +215,7 @@ describe('BytePairTokenizer', () => {
     expectTensorsClose(tokenizeOutput[2], expectedOutput[2]);
   });
 
-  it('tokenize with does not leak memory', () => {
+  it('tokenize does not leak memory', () => {
     const vocabulary = new Map([['butter', 1], ['fly', 2]]);
     const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
     const tokenizer = new BytePairTokenizer({vocabulary, merges});
