@@ -173,6 +173,13 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       // float32 inputs with nonzero fractional part should not be rounded
       'floorDiv float32',
+    ]
+  },
+  {
+    startsWith: 'raggedRange ',
+    excludes: [
+      'RangeSizeOverflow',
+      'InvalidArgsZeroDelta',
     ],
   },
 
@@ -181,7 +188,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: ' webgpu ',
     excludes: [
       'raggedGather ',
-      'raggedRange ',
       'raggedTensorToTensor ',
       'method otsu',  // round
       'sparseFillEmptyRows ',
