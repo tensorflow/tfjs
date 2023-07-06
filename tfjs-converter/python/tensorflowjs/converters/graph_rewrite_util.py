@@ -129,3 +129,11 @@ def rename_constants(node_list, prefix):
           if input_node.startswith(name):
             new_node.input[i] = prefix + '/' + input_node
   return nodes
+
+def get_output_node_names(node_map, target):
+  output_node_names = []
+  for name, node in node_map.items():
+    for input_name in node.input:
+      if target == input_name:
+        output_node_names.append(name)
+  return output_node_names
