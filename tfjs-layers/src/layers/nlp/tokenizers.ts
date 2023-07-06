@@ -244,6 +244,7 @@ export class BytePairTokenizer extends Tokenizer {
   private readonly cache = new BytePairTokenizerCache();
 
   private readonly tokenToIdMap: StaticHashTable<string, number>;
+  private readonly idToTokenMap: StaticHashTable<number, string>;
 
   private readonly mergeRanksLookupDefault: number;
   private readonly mergeRanks: StaticHashTable<string, number>;
@@ -276,6 +277,9 @@ export class BytePairTokenizer extends Tokenizer {
 
     this.tokenToIdMap = createStaticHashtable(
       bytePairs, bytePairEncodingIndicies, -1);
+
+    this.idToTokenMap = createStaticHashtable(
+      bytePairEncodingIndicies, bytePairs, '');
 
     // Create ranking of merge rules, this is the same as order of merge pairs
     // in `this.merges`.
@@ -558,7 +562,10 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
-    throw new NotImplementedError(`Not implemented yet.`);
+    const unicodeText = this.idToTokenMap.lookup(inputs)
+      .map(t => (tensorToArr(t) as string[]).join(''));
+
+    return tensor(unicodeText);
   }
 }
 serialization.registerClass(BytePairTokenizer);
