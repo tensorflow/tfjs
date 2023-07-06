@@ -52,7 +52,7 @@ from packaging import version
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
-from tensorflowjs.converters import normalize_biasAdd
+from tensorflowjs.converters import normalize_bias_add
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
@@ -170,7 +170,7 @@ def optimize_graph(graph, signature_def,
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
 
-  optimized_graph = normalize_biasAdd.normalize_biasAdd_op(optimized_graph)
+  optimized_graph = normalize_bias_add.normalize_bias_add_op(optimized_graph)
 
   # set the device to CPU for all Conv2d and MatMul nodes, since grappler
   # remap optimizer only support FusedConv2D and FusedMatMul for CPU.

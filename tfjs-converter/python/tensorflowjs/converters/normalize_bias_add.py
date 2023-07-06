@@ -20,7 +20,7 @@ from __future__ import print_function
 
 from tensorflowjs.converters import graph_rewrite_util
 
-def normalize_biasAdd_op(input_graph_def):
+def normalize_bias_add_op(input_graph_def):
   """Convert AddV2 ops to BiasAdd if they could be fused with the ancestor node.
 
   The grappler or the TFJS's fusing pass for DepthwiseConv2D could only fuse
