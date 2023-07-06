@@ -597,13 +597,13 @@ export abstract class Container extends Layer {
     // get weights key from tensor map in order to check if it is from keras v3.
     // e.g. dense/0
     const key = Object.keys(weights)[0].split('/');
-    const isKerasFormat = this.isKerasKerasFormat(key[key.length - 1]);
+    const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
     // Check if weights from keras v3.
     for (const layer of this.layers) {
-      layer.weights.forEach((weight, index) => {
+      for (const [index, weight] of layer.weights.entries()) {
         // Parse the name to layerName/index.
         // e.g. dense/0, dense/1, dense_1/0, dense_1/1
-        const parsedName = isKerasFormat ?
+        const parsedName = isKerasSavedModelFormat ?
             `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
             weight.originalName;
         if (nameToWeight[parsedName] != null) {
@@ -611,7 +611,7 @@ export abstract class Container extends Layer {
         }
         nameToWeight[parsedName] = weight;
         totalWeightsCount++;
-      });
+      }
     }
 
     const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
@@ -650,16 +650,6 @@ export abstract class Container extends Layer {
     }
 
     batchSetValue(weightValueTuples);
-  }
-
-  /**
-   * Helper function to check whether the string is from keras keras format.
-   * keras-keras format naming the weights as 'layerName/Index' instead of
-   * "layerName/weightName".
-   * @returns Boolean to indicate whether in Keras keras format.
-   */
-  private isKerasKerasFormat(str: string): boolean {
-    return !isNaN(parseInt(str, 10));
   }
 
   /**
