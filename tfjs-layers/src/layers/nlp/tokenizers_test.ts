@@ -19,7 +19,7 @@
  * Unit Tests for Tokenizer Layers.
  */
 
-import { Tensor, tensor, test_util } from '@tensorflow/tfjs-core';
+import { Tensor, memory, tensor, test_util } from '@tensorflow/tfjs-core';
 
 import { BytePairTokenizer, Tokenizer } from './tokenizers';
 import { expectTensorsClose } from '../../utils/test_utils';
@@ -197,6 +197,35 @@ describe('BytePairTokenizer', () => {
 
     expect(tokenizeOutput.length).toBe(1);
     expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+  });
+
+  it('tokenize with sequence length', () => {
+    const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+    const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+    const tokenizer = new BytePairTokenizer({
+      vocabulary, merges, sequenceLength: 2});
+    const inputData = tensor(['butterfly', 'butter', 'butterflybutter']);
+    const expectedOutput = [tensor([1, 2]), tensor([1, 0]), tensor([1, 2])];
+
+    const tokenizeOutput = tokenizer.tokenize(inputData);
+
+    expect(tokenizeOutput.length).toBe(3);
+    expectTensorsClose(tokenizeOutput[0], expectedOutput[0]);
+    expectTensorsClose(tokenizeOutput[1], expectedOutput[1]);
+    expectTensorsClose(tokenizeOutput[2], expectedOutput[2]);
+  });
+
+  it('tokenize does not leak memory', () => {
+    const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+    const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const inputData = tensor(['butterfly']);
+
+    const numTensorsBefore = memory().numTensors;
+    tokenizer.tokenize(inputData);
+    const numTensorsAfter = memory().numTensors;
+
+    expect(numTensorsAfter).toEqual(numTensorsBefore + 1);
   });
 
   it('detokenize with multiple inputs', () => {
