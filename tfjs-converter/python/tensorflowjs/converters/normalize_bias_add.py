@@ -21,13 +21,14 @@ from __future__ import print_function
 from tensorflowjs.converters import graph_rewrite_util
 
 def normalize_bias_add_op(input_graph_def):
-  """Convert AddV2 ops to BiasAdd if they could be fused with the ancestor node.
+  """Convert AddV2 ops and Add ops to BiasAdd if they could be fused with the
+  ancestor node.
 
   The grappler or the TFJS's fusing pass for DepthwiseConv2D could only fuse
   BiasAdd op, but some AddV2 ops in the graph have the same functionality and
   could be fused with MatMul, Conv2D and DepthwiseConv2D ops. This function
-  finds out the AddV2 ops in the graph that could be fused (satisfy the
-  following conditions) and converts their op to BiasAdd to be fused in the
+  finds out the AddV2 ops and Add ops in the graph that could be fused (satisfy
+  the following conditions) and converts their op to BiasAdd to be fused in the
   following passes:
     * The ancestor node has to be MatMul, Conv2D or DepthwiseConv op.
     * The current node is the only successor of the ancestor (MatMul, Conv2D or
@@ -37,7 +38,7 @@ def normalize_bias_add_op(input_graph_def):
     input_graph_def: A GraphDef containing a model.
 
   Returns:
-    Modified graph with fusable AddV2 converted to BiasAdd.
+    Modified graph with fusable AddV2 and Add converted to BiasAdd.
 
   Raises:
     ValueError: If the graph is badly formed with duplicate node names.
@@ -50,7 +51,7 @@ def normalize_bias_add_op(input_graph_def):
       raise ValueError('Duplicate node names detected for ', node.name)
 
   for node in input_graph_def.node:
-    if node.op == 'AddV2':
+    if node.op == 'AddV2' or node.op == 'Add':
       ancestor_node_name = node.input[0]
       ancestor_node = graph_rewrite_util.node_from_map(input_node_map,
                                                        ancestor_node_name)
