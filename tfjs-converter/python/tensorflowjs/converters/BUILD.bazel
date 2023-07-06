@@ -187,8 +187,8 @@ py_test(
     srcs_version = "PY3",
     tags = ["ci"],
     deps = [
-        ":normalize_bias_add",
         ":graph_rewrite_util",
+        ":normalize_bias_add",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
