@@ -227,4 +227,15 @@ describe('BytePairTokenizer', () => {
 
     expect(numTensorsAfter).toEqual(numTensorsBefore + 1);
   });
+
+  it('detokenize with multiple inputs', () => {
+    const vocabulary = new Map([['butter', 1], ['fly', 2]]);
+    const merges = ['b u', 't t', 'e r', 'bu tt', 'butt er', 'f l', 'fl y'];
+    const tokenizer = new BytePairTokenizer({vocabulary, merges});
+    const inputData = tensor(['butterfly', 'butter']);
+
+    const output = tokenizer.detokenize(tokenizer.tokenize(inputData));
+
+    expectTensorsClose(output, inputData);
+  });
 });
