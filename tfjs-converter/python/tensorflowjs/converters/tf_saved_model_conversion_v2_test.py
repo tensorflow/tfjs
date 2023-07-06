@@ -181,19 +181,19 @@ class ConvertTest(tf.test.TestCase):
     """Test a basic model with fusable addV2."""
     @tf.function
     def conv2d_addV2_depthwise_addV2(x):
-      filter = tf.ones([1,1,1,1])
+      filter = tf.ones([1, 1, 1, 1])
       bias = tf.constant([100], dtype=dtypes.float32)
       res = tf.raw_ops.Conv2D(
-        input=x, filter=filter, strides=[1,1,1,1], padding="VALID")
+        input=x, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
       res = tf.raw_ops.AddV2(x=res, y=bias)
       res = tf.raw_ops.DepthwiseConv2dNative(
-        input=res, filter=filter, strides=[1,1,1,1], padding="VALID")
+        input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
       res = tf.raw_ops.AddV2(x=res, y=bias)
       return res
     root = tracking.AutoTrackable()
     root.f = conv2d_addV2_depthwise_addV2
     to_save = root.f.get_concrete_function(
-        tensor_spec.TensorSpec([1,1,1,1], dtypes.float32))
+        tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
 
@@ -202,15 +202,15 @@ class ConvertTest(tf.test.TestCase):
     @tf.function
     def addV2_conv2d(x):
       bias = tf.constant([100], dtype=dtypes.float32)
-      filter = tf.ones([1,1,1,1])
+      filter = tf.ones([1, 1, 1, 1])
       res = tf.raw_ops.AddV2(x=x, y=bias)
       res = tf.raw_ops.Conv2D(
-        input=res, filter=filter, strides=[1,1,1,1], padding="VALID")
+        input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
       return res
     root = tracking.AutoTrackable()
     root.f = addV2_conv2d
     to_save = root.f.get_concrete_function(
-        tensor_spec.TensorSpec([1,1,1,1], dtypes.float32))
+        tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
 
@@ -877,6 +877,7 @@ class ConvertTest(tf.test.TestCase):
     fused_depthwise_op = None
     for node in nodes:
       self.assertNotEqual('Conv2D', node['op'])
+      self.assertNotEqual('DepthwiseConv2dNative', node['op'])
       self.assertNotEqual('AddV2', node['op'])
       self.assertNotEqual('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_CONV2D:

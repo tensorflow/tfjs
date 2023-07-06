@@ -55,7 +55,8 @@ def normalize_bias_add_op(input_graph_def):
       ancestor_node = graph_rewrite_util.node_from_map(input_node_map,
                                                        ancestor_node_name)
       if (ancestor_node.op == 'Conv2D' \
-            or ancestor_node.op == 'DepthwiseConv2dNative') \
+            or ancestor_node.op == 'DepthwiseConv2dNative'
+            or ancestor_node.op == 'MatMul') \
           and len(graph_rewrite_util.get_output_node_names(input_node_map, ancestor_node_name)):
             node.op = 'BiasAdd'
             node.attr['data_format'].s = bytes('NHWC', 'utf-8')
