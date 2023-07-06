@@ -24,6 +24,7 @@ import { Tensor, concat, serialization, tensor } from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { ValueError } from '../../../errors';
+import { tensorToArr } from '../tokenizers_utils';
 
 export declare interface StartEndPackerArgs extends LayerArgs {
   /**
@@ -88,9 +89,9 @@ export class StartEndPacker extends Layer {
   static readonly className = 'StartEndPacker';
 
   private sequenceLength: number;
-  private startValue: number|string|undefined;
-  private endValue: number|string|undefined;
-  private padValue: number|string|undefined;
+  private startValue?: number|string;
+  private endValue?: number|string;
+  private padValue?: number|string;
 
   constructor(args: StartEndPackerArgs) {
     super(args);
@@ -136,8 +137,11 @@ export class StartEndPacker extends Layer {
     if (kwargs.addEndValue && this.endValue !== undefined) {
       const endTokenIdTensor = tensor([this.endValue]);
       // Trim to leave room for end token.
-      x = x.map(t => t.slice(0, Math.min(t.shape[0], sequenceLength - 1)));
-      x = x.map(t => concat([t, endTokenIdTensor]));
+      x = x.map(t => {
+        const sliced = t.slice(0, Math.min(t.shape[0], sequenceLength - 1));
+        const padded = concat([sliced, endTokenIdTensor]);
+        return padded;
+      });
     }
 
     // tf.pad does not allow padding on Tensors with dtype='string'
@@ -150,8 +154,7 @@ export class StartEndPacker extends Layer {
         return input.pad([[0, length - input.size]], padValue);
       }
 
-      // TODO(orderique): use tensorToStringArr here once its no longer async.
-      const strInput = input.dataSync() as unknown as string[];
+      const strInput = tensorToArr(input) as string[];
 
       if (strInput.length <= length) {
         const pads = Array(length - strInput.length).fill(padValue);
