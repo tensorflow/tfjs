@@ -98,6 +98,9 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         // 95% of the data is within the range of 2 stds above and
         // below the mean. So 95% of the data falls in the range of
         // 4 stds.
+        if (inputShape != null && inputShape[0] === -1) {
+          inputShape[0] = 64;
+        }
         const min = inputDef.range[0];
         const max = inputDef.range[1];
         const mean = (min + max) / 2;
@@ -107,10 +110,16 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         // the data generated maybe outside of [min, max].
         inputTensor = tf.clipByValue(generatedRaw, min, max);
         generatedRaw.dispose();
+      } else if (inputDef.dtype === 'string') {
+        let str = [];
+        for (let i = 0; i < 64; i++) {
+          str.push("cat")
+        }
+        inputTensor = tf.tensor(str);
       } else {
         throw new Error(
-            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
-            `at model.inputs[${inputDefIndex}] is not supported.`);
+          `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+          `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
@@ -162,8 +171,8 @@ function getPredictFnForModel(model, input) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-        'Predict function was not found. Please provide a tf.GraphModel or ' +
-        'tf.LayersModel');
+      'Predict function was not found. Please provide a tf.GraphModel or ' +
+      'tf.LayersModel');
   }
   return predict;
 }
@@ -241,8 +250,8 @@ async function timeModelInference(model, input, numRuns = 1) {
 async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   const times = [];
@@ -265,8 +274,8 @@ async function timeInference(predict, numRuns = 1) {
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
   const averageTimeExclFirst = times.length > 1 ?
-      times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
-      'NA';
+    times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+    'NA';
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
   const timeInfo = {
@@ -327,7 +336,7 @@ async function timeFirstInference(predict, parallelCompile = false) {
   let res = predict();
   if (parallelCompile && res instanceof Promise) {
     throw new Error(
-        'Parallel Compilation for async function is not supported.');
+      'Parallel Compilation for async function is not supported.');
   }
   res = await res;
   await downloadValuesFromTensorContainer(res);
@@ -460,8 +469,8 @@ async function profileModelInference(model, input, numProfiles = 1) {
 async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   let kernelInfo = {};
@@ -499,7 +508,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
     kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
-      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+    kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -519,13 +528,13 @@ function aggregateKernelTime(kernels) {
       aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
     } else {
       aggregatedKernelTime[kernel.name] =
-          oldAggregatedKernelTime + kernel.kernelTimeMs;
+        oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-      .map(([name, timeMs]) => ({name, timeMs}))
-      .sort((a, b) => b.timeMs - a.timeMs);
+    .map(([name, timeMs]) => ({ name, timeMs }))
+    .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -581,7 +590,7 @@ async function setEnvFlags(flagConfig) {
     return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
-        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
   }
 
   // Check the validation of flags and values.
@@ -592,9 +601,8 @@ async function setEnvFlags(flagConfig) {
     }
     if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
       throw new Error(
-          `${flag} value is expected to be in the range [${
-              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-          ' is found.');
+        `${flag} value is expected to be in the range [${TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+        ' is found.');
     }
   }
 

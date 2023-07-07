@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -35,15 +35,21 @@ export function gatherV2(args: {
 
   // Throw error when any index is out of bound.
   const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-  const indicesVals = backend.data.get(indices.dataId).values as TypedArray;
-  const axisDim = x.shape[parsedAxis];
-  for (let i = 0; i < indicesVals.length; ++i) {
-    const index = indicesVals[i];
-    util.assert(
-        index <= axisDim - 1 && index >= 0,
-        () =>
-            `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+  // const indicesVals = backend.data.get(indices.dataId).values as TypedArray;
+  if (env().get('DEBUG')) {
+    const indicesVals = backend.readSync(indices.dataId) as TypedArray;
+    const axisDim = x.shape[parsedAxis];
+    console.log('indices length: ', indicesVals.length);
+    console.log('axisDim: ', axisDim);
+    for (let i = 0; i < indicesVals.length; ++i) {
+      const index = indicesVals[i];
+      util.assert(
+          index <= axisDim - 1 && index >= 0,
+          () => `GatherV2: the index value ${index} is not in [0, ${
+              axisDim - 1}]`);
+    }
   }
+
 
   let $batchDims = batchDims;
 
