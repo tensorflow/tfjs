@@ -124,7 +124,8 @@ export class StartEndPacker extends Layer {
 
       if (x.some(t => t.rank !== 1)) {
         throw new ValueError(
-          'Input must either be a rank 1 Tensor or an array of rank 1 Tensors.');
+          'Input must either be a rank 1 Tensor or an array of rank 1 Tensors.'
+        );
       }
       const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
 
