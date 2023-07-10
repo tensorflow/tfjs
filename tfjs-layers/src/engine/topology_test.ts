@@ -1094,6 +1094,7 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
     const model = tfl.model({inputs: inputTensor, outputs: output});
 
     const namedWeightsMap: NamedTensorMap = {};
+
     namedWeightsMap[denseLayer.weights[0].originalName.split('/')[0] + '/0'] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName.split('/')[0] + '/1'] =

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,14 +24,16 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
+import {KARMA_SERVER, REGRESSION, V3_LAYERS_MODEL} from './constants';
 import {createInputTensors} from './test_util';
 
 /** Directory that stores the model. */
-const DATA_URL = 'create_save_predict_data';
+const DATA_URL = 'v3_create_save_predict_data';
+
 
 /**
- *  This file is 3/3 of the test suites for CUJ: create->save->predict.
+ *  This file is 3/3 of the test suites for keras v3: create->save->predict.
+ *  E2E from Keras model -> TFJS model -> Comparsion between two models.
  *
  *  This file test below things:
  *  - Load layers models using Layers api.
@@ -39,7 +41,7 @@ const DATA_URL = 'create_save_predict_data';
  *  - Make inference using each backends, and validate the results against
  *    Keras results.
  */
-describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, (env) => {
+describeWithFlags(`${REGRESSION} v3_create_save_predict`, ALL_ENVS, (env) => {
   let originalTimeout: number;
 
   beforeAll(() => {
@@ -52,16 +54,14 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, (env) => {
   });
 
   afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
-
-  LAYERS_MODELS.forEach(model => {
+  // const mod = ['mlp'];
+  V3_LAYERS_MODEL.forEach(model => {
     it(`${model}.`, async () => {
       await tfc.setBackend(env.name);
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
       let kerasOutputShapes: number[][];
-      // let kerasV3OutputData: tfc.TypedArray[];
-      // let kerasV3OutputShapes: number[][];
 
       [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
           await Promise.all([

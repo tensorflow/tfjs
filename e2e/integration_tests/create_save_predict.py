@@ -77,7 +77,10 @@ def _load_predict_save(model_path):
     with open(ys_shape_path, 'w') as f:
       f.write(json.dumps(ys_shape))
 
+
+
 def main():
+  # _load_predict_save('mls')
   _load_predict_save('mlp')
   _load_predict_save('cnn')
   _load_predict_save('depthwise_cnn')

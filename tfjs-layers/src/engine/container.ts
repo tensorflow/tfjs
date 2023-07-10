@@ -652,6 +652,10 @@ export abstract class Container extends Layer {
     batchSetValue(weightValueTuples);
   }
 
+  private isV3(str: string): boolean {
+    return !isNaN(parseInt(str));
+  }
+
   /**
    * Util shared between different serialization methods.
    * @returns LayersModel config with Keras version information added.
