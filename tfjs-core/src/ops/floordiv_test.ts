@@ -37,4 +37,13 @@ describeWithFlags('floorDiv', ALL_ENVS, () => {
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(await result.data(), [1, 1, -3, -8]);
   });
+
+  it('floorDiv float32', async () => {
+    const a = tf.tensor1d([0.0, -6.0, 5.9, -5.9], 'float32');
+    const b = tf.tensor1d([3.0, 3.0, -3.1, -3.1], 'float32');
+    const result = tf.floorDiv(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(await result.data(), [0, -2, -2, 1]);
+  });
 });
