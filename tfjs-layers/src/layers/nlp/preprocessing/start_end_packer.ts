@@ -145,7 +145,7 @@ export class StartEndPacker extends Layer {
     }
 
     // tf.pad does not allow padding on Tensors with dtype='string'
-    function padEnd(
+    function ensureLength(
       input: Tensor, length: number, padValue?: string|number) {
       if (padValue === undefined) {
         padValue = input.dtype === 'string' ? '' : 0;
@@ -167,12 +167,12 @@ export class StartEndPacker extends Layer {
     let mask: Tensor|Tensor[] = x.map(t => {
       // `onesLike` not used since it does not support string tensors.
       const ones = tensor(Array(t.shape[0]).fill(1));
-      return padEnd(ones, sequenceLength, 0).cast('bool');
+      return ensureLength(ones, sequenceLength, 0).cast('bool');
     });
     mask = inputIs1d ? mask[0] : mask;
 
     let outputs: Tensor|Tensor[] =
-      x.map(t => padEnd(t, sequenceLength, this.padValue));
+      x.map(t => ensureLength(t, sequenceLength, this.padValue));
     outputs = inputIs1d ? outputs[0] : outputs;
 
     return [outputs, mask];

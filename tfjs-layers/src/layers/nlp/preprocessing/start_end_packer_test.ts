@@ -80,6 +80,20 @@ describe('StartEndPacker', () => {
         'Input must either be a rank 1 Tensor or an array of rank 1 Tensors.'));
   });
 
+  it('start only', () => {
+    const inputData = [tensor([5, 6, 7]), tensor([8, 9, 10, 11])];
+    const startEndPacker = new StartEndPacker({
+      sequenceLength: 3, startValue: -1
+    });
+
+    const output = startEndPacker.call(inputData) as Tensor[];
+    const expectedOutput = [tensor([-1, 5, 6]), tensor([-1, 8, 9])];
+
+    expect(output.length).toBe(2);
+    expectTensorsClose(output[0], expectedOutput[0]);
+    expectTensorsClose(output[1], expectedOutput[1]);
+  });
+
   it('start end token', () => {
     const inputData = [tensor([5, 6, 7]), tensor([8, 9, 10, 11])];
     const startEndPacker = new StartEndPacker({
