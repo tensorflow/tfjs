@@ -21,6 +21,7 @@ import os
 from tensorflow import keras
 from tensorflowjs.converters.converter import dispatch_keras_keras_to_tfjs_layers_model_conversion
 
+print('tf-version: ', tf.version.VERSION)
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 _tmp_dir = os.path.join(curr_dir, 'v3_create_save_predict_data')
 

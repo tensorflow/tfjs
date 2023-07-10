@@ -62,8 +62,6 @@ describeWithFlags(`${REGRESSION} v3_create_save_predict`, ALL_ENVS, (env) => {
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
       let kerasOutputShapes: number[][];
-      // let kerasV3OutputData: tfc.TypedArray[];
-      // let kerasV3OutputShapes: number[][];
 
       [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
           await Promise.all([
