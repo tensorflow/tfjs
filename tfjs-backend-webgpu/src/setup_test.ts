@@ -168,6 +168,13 @@ const TEST_FILTERS: TestFilter[] = [
       'indices invalid',
     ],
   },
+  {
+    startsWith: 'floorDiv ',
+    excludes: [
+      // float32 inputs with nonzero fractional part should not be rounded
+      'floorDiv float32',
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {
