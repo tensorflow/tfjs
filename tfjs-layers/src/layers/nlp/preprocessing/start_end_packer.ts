@@ -24,7 +24,6 @@ import { Tensor, Tensor1D, Tensor2D, concat, serialization, stack, tensor } from
 
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { ValueError } from '../../../errors';
-import { tensorToArr } from '../tokenizers_utils';
 
 export declare interface StartEndPackerArgs extends LayerArgs {
   /**
@@ -130,11 +129,11 @@ export class StartEndPacker extends Layer {
     const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
 
     // Concatenate start and end tokens.
-    if (kwargs.addStartValue && this.startValue !== undefined) {
+    if (kwargs.addStartValue && this.startValue != null) {
       const startTokenIdTensor = tensor([this.startValue]);
       x = x.map(t => concat([startTokenIdTensor, t]));
     }
-    if (kwargs.addEndValue && this.endValue !== undefined) {
+    if (kwargs.addEndValue && this.endValue != null) {
       const endTokenIdTensor = tensor([this.endValue]);
       // Trim to leave room for end token.
       x = x.map(t => {
@@ -154,7 +153,7 @@ export class StartEndPacker extends Layer {
         return input.pad([[0, length - input.size]], padValue);
       }
 
-      const strInput = tensorToArr(input) as string[];
+      const strInput = input.arraySync() as unknown as string[];
 
       if (strInput.length <= length) {
         const pads = Array(length - strInput.length).fill(padValue);
