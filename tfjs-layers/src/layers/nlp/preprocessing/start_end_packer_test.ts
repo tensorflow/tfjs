@@ -19,7 +19,7 @@
  * Unit Tests for StartEndPacker Layer.
  */
 
-import { Tensor1D, Tensor2D, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { Tensor1D, Tensor2D, memory, tensor, tensor2d } from '@tensorflow/tfjs-core';
 
 import { StartEndPacker } from './start_end_packer';
 import { expectTensorsClose } from '../../../utils/test_utils';
@@ -161,6 +161,19 @@ describe('StartEndPacker', () => {
     ]);
 
     expectTensorsClose(outputMask, expectedMask);
+  });
+
+  it('does not leak memory', () => {
+    const inputData = [tensor([5, 6]), tensor([8, 9, 10, 11])];
+    const startEndPacker = new StartEndPacker({
+      sequenceLength: 6, startValue: 1, endValue: 2
+    });
+
+    const numTensorsBefore = memory().numTensors;
+    startEndPacker.callAndReturnPaddingMask(inputData);
+    const numTensorsAfter = memory().numTensors;
+
+    expect(numTensorsAfter).toEqual(numTensorsBefore + 2);
   });
 
   it('correct getConfig', () => {
