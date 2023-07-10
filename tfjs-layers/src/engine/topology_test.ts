@@ -1087,24 +1087,23 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
     expectTensorsClose(denseLayer.weights[1].read(), tensor1d([10, 20]));
   });
 
-  fit('load v3 weights', () => {
+  it('load keras weights', () => {
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
     const output = denseLayer.apply(inputTensor) as SymbolicTensor;
     const model = tfl.model({inputs: inputTensor, outputs: output});
 
     const namedWeightsMap: NamedTensorMap = {};
-    console.log('original name: ', denseLayer.weights[0].originalName);
+
     namedWeightsMap[denseLayer.weights[0].originalName.split('/')[0] + '/0'] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     namedWeightsMap[denseLayer.weights[1].originalName.split('/')[0] + '/1'] =
         tensor1d([10, 20]);
-    console.log()
     model.loadWeights(namedWeightsMap);
     expectTensorsClose(
         denseLayer.weights[0].read(), tensor2d([1, 2, 3, 4, 5, 6], [3, 2]));
     expectTensorsClose(denseLayer.weights[1].read(), tensor1d([10, 20]));
-  })
+  });
 
   it('Mismatching shape throws an error even in non-strict mode', () => {
     const denseLayer =

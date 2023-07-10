@@ -127,12 +127,6 @@ const TEST_FILTERS: TestFilter[] = [
     ],
   },
   {
-    startsWith: 'Draw',
-    excludes: [
-      'on 2d context',
-    ]
-  },
-  {
     startsWith: 'sign ',
     excludes: [
       // Failing on Linux
@@ -172,6 +166,13 @@ const TEST_FILTERS: TestFilter[] = [
       // Currently, cannot transfer the error from gpu to cpu
       'segments invalid',
       'indices invalid',
+    ],
+  },
+  {
+    startsWith: 'floorDiv ',
+    excludes: [
+      // float32 inputs with nonzero fractional part should not be rounded
+      'floorDiv float32',
     ],
   },
 

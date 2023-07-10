@@ -146,10 +146,9 @@ def dispatch_keras_keras_to_tfjs_layers_model_conversion(
   with ZipFile(v3_path, "r") as zip_file:
       zip_file.extractall(path=os.path.dirname(v3_path))
   dir_path = os.path.dirname(file_path)
-  meta_data_json_path = (dir_path + "metadata.json") if not dir_path else dir_path + "/metadata.json"
-  config_json_path = (dir_path + "config.json") if not dir_path else dir_path + "/config.json"
-  model_weights_path = (dir_path + "model.weights.h5") if not dir_path else dir_path + "/model.weights.h5"
-
+  meta_data_json_path = os.path.join(dir_path, "metadata.json")
+  config_json_path = os.path.join(dir_path, "config.json")
+  model_weights_path = os.path.join(dir_path, "model.weights.h5")
   h5_file = h5py.File(model_weights_path, "r")
   with open(config_json_path, "rt") as conf:
       try:
@@ -350,7 +349,7 @@ def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
   if os.path.isdir(v3_path):
     raise ValueError(
         'For input_type=tfjs_layers_model & output_format=keras_keras, '
-        'the output path should be the path to an .keras file, '
+        'the output path should be the path to a .keras file, '
         'but received an existing directory (%s).' % v3_path)
 
   # Verify that config_json_path points to a JSON file.
