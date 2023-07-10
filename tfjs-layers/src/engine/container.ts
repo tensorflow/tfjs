@@ -594,12 +594,22 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
+    // get weights key from tensor map in order to check if it is from keras v3.
+    // e.g. dense/0
+    const key = Object.keys(weights)[0].split('/');
+    const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
+    // Check if weights from keras v3.
     for (const layer of this.layers) {
-      for (const weight of layer.weights) {
-        if (nameToWeight[weight.originalName] != null) {
-          throw new ValueError(`Duplicate weight name: ${weight.originalName}`);
+      for (const [index, weight] of layer.weights.entries()) {
+        // Parse the name to layerName/index.
+        // e.g. dense/0, dense/1, dense_1/0, dense_1/1
+        const parsedName = isKerasSavedModelFormat ?
+            `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
+            weight.originalName;
+        if (nameToWeight[parsedName] != null) {
+          throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
-        nameToWeight[weight.originalName] = weight;
+        nameToWeight[parsedName] = weight;
         totalWeightsCount++;
       }
     }
