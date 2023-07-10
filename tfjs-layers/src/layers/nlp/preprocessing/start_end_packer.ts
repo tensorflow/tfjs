@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/start_end_packer.py */
-import { Tensor, concat, serialization, tensor } from '@tensorflow/tfjs-core';
+import { Tensor, Tensor1D, Tensor2D, concat, serialization, stack, tensor } from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { ValueError } from '../../../errors';
@@ -105,7 +105,7 @@ export class StartEndPacker extends Layer {
   override call(
     inputs: Tensor|Tensor[],
     kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
-  ): Tensor|Tensor[] {
+  ): Tensor|Tensor2D {
     return this.callAndReturnPaddingMask(inputs, kwargs)[0];
   }
 
@@ -116,7 +116,7 @@ export class StartEndPacker extends Layer {
   callAndReturnPaddingMask(
     inputs: Tensor|Tensor[],
     kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
-  ): [Tensor|Tensor[], Tensor|Tensor[]] {
+  ): [Tensor1D|Tensor2D, Tensor1D|Tensor2D] {
 
     // Add a new axis at the beginning if needed.
     let x = inputs instanceof Tensor ? [inputs] : inputs;
@@ -164,16 +164,20 @@ export class StartEndPacker extends Layer {
       return tensor(strInput.slice(0, strInput.length - length));
     }
 
-    let mask: Tensor|Tensor[] = x.map(t => {
+    const paddedMask: Tensor[] = x.map(t => {
       // `onesLike` not used since it does not support string tensors.
       const ones = tensor(Array(t.shape[0]).fill(1));
       return ensureLength(ones, sequenceLength, 0).cast('bool');
     });
-    mask = inputIs1d ? mask[0] : mask;
+    const mask = inputIs1d ?
+      paddedMask[0] as Tensor1D
+      : stack(paddedMask) as Tensor2D;
 
-    let outputs: Tensor|Tensor[] =
+    const paddedTensors: Tensor[] =
       x.map(t => ensureLength(t, sequenceLength, this.padValue));
-    outputs = inputIs1d ? outputs[0] : outputs;
+    const outputs = inputIs1d ?
+      paddedTensors[0] as Tensor1D
+      : stack(paddedTensors) as Tensor2D;
 
     return [outputs, mask];
   }
