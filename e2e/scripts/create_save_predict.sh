@@ -23,3 +23,10 @@ rm -rf "$TEST_DATA"
 mkdir "$TEST_DATA"
 
 node integration_tests/create_save_predict.js "$TEST_DATA"
+
+V3_TEST_DATA="integration_tests/v3_create_save_predict_data/"
+
+rm -rf "$V3_TEST_DATA"
+mkdir "$V3_TEST_DATA"
+
+python integration_tests/v3_create_save_predict.py
