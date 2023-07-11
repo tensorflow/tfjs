@@ -62,9 +62,6 @@ def save_model_and_random_inputs(model, export_path, model_name):
     xs.append(xTensor)
     xsData.append(xTensor.numpy()[0])
     xsShapes.append(xTensor.shape)
-    print('xTensor numpy: ',xTensor.numpy()[0])
-    print('xTensor shape: ', xTensor.shape)
-  print('xsData ===> ', xsData)
   xs_data = [x.tolist() for x in xsData]
   xs_shape = [list(x) for x in xsShapes]
 

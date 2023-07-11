@@ -42,18 +42,11 @@ const _ = require("zlib")
 async function load_file(file_path, model_name) {
 
   const p = tfjsNode.io.fileSystem(file_path)
-  console.log("model json ==> ", file_path + "/model.json");
-  console.log("Path ==> ", tfjsNode.io.fileSystem(file_path).path);
 
   const model = await tf.loadLayersModel("file://" + tfjsNode.io.fileSystem(file_path).path + "/model.json");
 
-  // const ys = [];
-  // const ysData = [];
-  // const ysShapes = [];
   const xsDataPath = join(TEST_DATA_DIR, `${model_name}.xs-data.json`);
   const xsShapesPath = join(TEST_DATA_DIR, `${model_name}.xs-shapes.json`);
-  console.log(xsDataPath);
-  console.log(xsShapesPath);
   const dataArray = fs.readFileSync(xsDataPath, "utf-8", (_, data) => {
     const d = JSON.parse(data);
     return d
@@ -71,24 +64,16 @@ async function load_file(file_path, model_name) {
     const value = A[i][0];
     const shape = A[i][1];
     res.push(ndarray(value, shape));
-    // ndarray()
-    console.log(i);
   }
-  console.log("result: ", res);
   let z;
   if (res.length == 1) {
     z = res[0];
-    console.log("Z: ", z);
   }
-  console.log("Z ==> ", z);
   const tensor = tfjsNode.tensor(z.data, z.shape);
   const ys = model.predict(tensor);
-  console.log(ys)
 
   const resultData = ys.arraySync();
   const resultShape = [ys.shape];
-  console.log("Result data: ", resultData);
-  console.log("Result shape: ", resultShape);
   const ysDataPath = join(TEST_DATA_DIR, `${model_name}.ys-data.json`);
   const ysShapesPath = join(TEST_DATA_DIR, `${model_name}.ys-shapes.json`);
   fs.writeFileSync(ysDataPath, JSON.stringify(resultData));
@@ -120,10 +105,8 @@ function zip(...arrays) {
   const result = [];
   for (let i = 0; i < length; i++) {
     const zippedItem = arrays.map(arr => arr[i]);
-    // console.log("zipped item: ", zippedItem);
     result.push(zippedItem);
   }
-  // console.log(result);
   return result;
 }
 console.log(`Using tfjs-core version: ${tfc.version_core}`);
