@@ -20,6 +20,7 @@
 import { Tensor, tensor } from '@tensorflow/tfjs-core';
 import { ValueError } from '../../errors';
 import { matchAll } from './match_all_polyfill';
+import { tensorArrTo2DArr, tensorToArr } from './utils';
 
 export function bytesToUnicode(): [Uint8Array, string[]] {
   const inclusiveRange = (start: number, end: number) =>
@@ -247,14 +248,6 @@ export function regexSplit(
     }
     return splitString.filter(s => s);
   });
-}
-
-export function tensorToArr(input: Tensor): unknown[] {
-  return input.dataSync() as unknown as unknown[];
-}
-
-export function tensorArrTo2DArr(inputs: Tensor[]): unknown[][] {
-  return inputs.map(input => tensorToArr(input));
 }
 
 export function splitStringsForBpe(
