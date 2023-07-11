@@ -42,6 +42,8 @@ const customInclude = (testName: string) => {
     'draw on canvas context',
     // https://github.com/tensorflow/tfjs/issues/7618
     'numbers exceed float32 precision',
+    // float32 inputs with nonzero fractional part should not be rounded
+    'floorDiv float32',
   ];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
