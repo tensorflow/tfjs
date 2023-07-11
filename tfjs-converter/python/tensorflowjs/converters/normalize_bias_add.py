@@ -24,14 +24,14 @@ def normalize_bias_add_op(input_graph_def):
   """Convert AddV2 ops and Add ops to BiasAdd if they could be fused with the
   ancestor node.
 
-  The grappler or the TFJS's fusing pass for DepthwiseConv2D could only fuse
+  Grappler and the TFJS's fusing pass for DepthwiseConv2D can only fuse the
   BiasAdd op, but some AddV2 ops in the graph have the same functionality and
-  could be fused with MatMul, Conv2D and DepthwiseConv2D ops. This function
-  finds out the AddV2 ops and Add ops in the graph that could be fused (satisfy
-  the following conditions) and converts their op to BiasAdd to be fused in the
-  following passes:
-    * The ancestor node has to be MatMul, Conv2D or DepthwiseConv op.
-    * The current node is the only successor of the ancestor (MatMul, Conv2D or
+  can be fused with MatMul, Conv2D and DepthwiseConv2D ops. This function
+  finds which AddV2 and Add ops in the graph can be fused and converts them
+  to BiasAdd, which will be fused in the following passes. The AddV2 and Add ops
+  must satisfy the following conditions to be fused:
+    * The parent node has to be MatMul, Conv2D or DepthwiseConv.
+    * The current node is the only child of the parent (MatMul, Conv2D or
     DepthwiseConv).
 
   Args:
