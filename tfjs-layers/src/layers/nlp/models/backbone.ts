@@ -26,17 +26,6 @@ import { ContainerArgs } from '../../../engine/container';
 import { LayersModel } from '../../../engine/training';
 import { NotImplementedError } from '../../../errors';
 
-/**
- * Adds start and end tokens to a sequence and pads to a fixed length.
- *
- *  This layer is useful when tokenizing inputs for tasks like translation,
- *  where each sequence should include a start and end marker. It should
- *  be called after tokenization. The layer will first trim inputs to fit, then
- *  add start/end tokens, and finally pad, if necessary, to `sequence_length`.
- *
- *  Input should be either a `tf.Tensor[]` or a dense `tf.Tensor`, and
- *  either rank-1 or rank-2.
- */
 export class Backbone extends LayersModel {
 
   constructor(args: ContainerArgs) {
