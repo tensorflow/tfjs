@@ -31,7 +31,7 @@ def normalize_bias_add_op(input_graph_def):
   to BiasAdd, which will be fused in the following passes. The AddV2 and Add ops
   must satisfy the following conditions to be fused:
     * The parent node has to be MatMul, Conv2D or DepthwiseConv.
-    * The current node is the only child of the parent (MatMul, Conv2D or
+    * The current node is the only child of the parent node (MatMul, Conv2D or
     DepthwiseConv).
 
   Args:
@@ -58,7 +58,7 @@ def normalize_bias_add_op(input_graph_def):
       if (ancestor_node.op == 'Conv2D' \
             or ancestor_node.op == 'DepthwiseConv2dNative'
             or ancestor_node.op == 'MatMul') \
-          and len(graph_rewrite_util.get_output_node_names(input_node_map, ancestor_node_name)):
+          and len(graph_rewrite_util.get_output_node_names(input_node_map, ancestor_node_name)) == 1:
             node.op = 'BiasAdd'
             node.attr['data_format'].s = bytes('NHWC', 'utf-8')
   return input_graph_def
