@@ -36,8 +36,6 @@ def _export_mlp_model(export_path, model_name):
   model.add(keras.layers.Dense(8, activation='softmax'))
   model.build(input_shape=[1, 200])
 
-
-
   save_model_and_random_inputs(model, export_path, model_name)
 
 def save_model_and_random_inputs(model, export_path, model_name):
@@ -97,8 +95,6 @@ def save_model_and_random_inputs(model, export_path, model_name):
     f.write(json.dumps(keras_predict_data))
   with open(result_shape_path, 'w') as f:
     f.write(json.dumps(keras_predict_shape))
-
-
 
 
 def main():
