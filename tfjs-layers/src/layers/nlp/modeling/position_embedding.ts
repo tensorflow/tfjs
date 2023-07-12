@@ -70,11 +70,11 @@ export declare interface PositionEmbeddingOptions {
  * const embedDim = 128;
  * const inputs = tf.input({shape: [seqLength]});
  * const tokenEmbeddings = tf.layers.embedding({
- *    inputDim=vocabSize, outputDim=embedDim
- * }).apply(inputs)
+ *     inputDim=vocabSize, outputDim=embedDim
+ * }).apply(inputs);
  * const positionEmbeddings = new PositionEmbedding({
  *     sequenceLength: seqLength
- * }).apply(tokenEmbeddings)
+ * }).apply(tokenEmbeddings);
  * const outputs = tf.add(tokenEmbeddings, positionEmbeddings);
  * ```
  *
