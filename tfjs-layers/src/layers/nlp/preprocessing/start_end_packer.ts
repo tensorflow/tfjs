@@ -20,10 +20,10 @@
  */
 
 /* Original source: keras-nlp/start_end_packer.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, Tensor1D, Tensor2D, concat, serialization, stack, tensor, tidy } from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../../engine/topology';
-import { NotImplementedError } from '../../../errors';
+import { ValueError } from '../../../errors';
 
 export declare interface StartEndPackerArgs extends LayerArgs {
   /**
@@ -51,13 +51,25 @@ export declare interface StartEndPackerArgs extends LayerArgs {
    * will be added depending on the dtype of the input tensor.
    */
   padValue?: number|string;
+}
+
+export declare interface StartEndPackerOptions {
+  /**
+   * Pass to override the configured `sequenceLength` of the layer.
+   */
+  sequenceLength?: number;
 
   /**
-   * Boolean. Whether to return a boolean padding mask of all locations that are
-   * filled in with the `padValue`.
-   * Defaults to false.
+   * Pass `false` to not append a start value for this input.
+   * Defaults to true.
    */
-  returnPaddingMask?: boolean;
+  addStartValue?: boolean;
+
+  /**
+   * Pass `false` to not append an end value for this input.
+   * Defaults to true.
+   */
+  addEndValue?: boolean;
 }
 
 /**
@@ -79,7 +91,6 @@ export class StartEndPacker extends Layer {
   private startValue?: number|string;
   private endValue?: number|string;
   private padValue?: number|string;
-  private returnPaddingMask: boolean;
 
   constructor(args: StartEndPackerArgs) {
     super(args);
@@ -88,11 +99,88 @@ export class StartEndPacker extends Layer {
     this.startValue = args.startValue;
     this.endValue = args.endValue;
     this.padValue = args.padValue;
-    this.returnPaddingMask = args.returnPaddingMask || false;
   }
 
-  override call(inputs: Tensor|Tensor[]): Tensor|Tensor[] {
-    throw new NotImplementedError(`Call method not implemented `);
+  override call(
+    inputs: Tensor|Tensor[],
+    kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
+  ): Tensor|Tensor2D {
+    return this.callAndReturnPaddingMask(inputs, kwargs)[0];
+  }
+
+  /**
+   * Exactly like `call` except also returns a boolean padding mask of all
+   * locations that are filled in with the `padValue`.
+   */
+  callAndReturnPaddingMask(
+    inputs: Tensor|Tensor[],
+    kwargs: StartEndPackerOptions={addStartValue: true, addEndValue: true}
+  ): [Tensor1D|Tensor2D, Tensor1D|Tensor2D] {
+    return tidy(() => {
+      // Add a new axis at the beginning if needed.
+      let x = inputs instanceof Tensor ? [inputs] : inputs;
+
+      const inputIs1d = inputs instanceof Tensor && inputs.rank === 1;
+
+      if (x.some(t => t.rank !== 1)) {
+        throw new ValueError(
+          'Input must either be a rank 1 Tensor or an array of rank 1 Tensors.'
+        );
+      }
+      const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
+
+      // Concatenate start and end tokens.
+      if (kwargs.addStartValue && this.startValue != null) {
+        const startTokenIdTensor = tensor([this.startValue]);
+        x = x.map(t => concat([startTokenIdTensor, t]));
+      }
+      if (kwargs.addEndValue && this.endValue != null) {
+        const endTokenIdTensor = tensor([this.endValue]);
+        // Trim to leave room for end token.
+        x = x.map(t => {
+          const sliced = t.slice(0, Math.min(t.shape[0], sequenceLength - 1));
+          const padded = concat([sliced, endTokenIdTensor]);
+          return padded;
+        });
+      }
+
+      // tf.pad does not allow padding on Tensors with dtype='string'
+      function ensureLength(
+        input: Tensor, length: number, padValue?: string|number) {
+        if (padValue === undefined) {
+          padValue = input.dtype === 'string' ? '' : 0;
+        }
+        if (typeof padValue === 'number') {
+          return input.pad([[0, length - input.size]], padValue);
+        }
+
+        const strInput = input.arraySync() as unknown as string[];
+
+        if (strInput.length <= length) {
+          const pads = Array(length - strInput.length).fill(padValue);
+          return tensor(strInput.concat(pads));
+        }
+
+        return tensor(strInput.slice(0, strInput.length - length));
+      }
+
+      const paddedMask: Tensor[] = x.map(t => {
+        // `onesLike` not used since it does not support string tensors.
+        const ones = tensor(Array(t.shape[0]).fill(1));
+        return ensureLength(ones, sequenceLength, 0).cast('bool');
+      });
+      const mask = inputIs1d ?
+        paddedMask[0] as Tensor1D
+        : stack(paddedMask) as Tensor2D;
+
+      const paddedTensors: Tensor[] =
+        x.map(t => ensureLength(t, sequenceLength, this.padValue));
+      const outputs = inputIs1d ?
+        paddedTensors[0] as Tensor1D
+        : stack(paddedTensors) as Tensor2D;
+
+      return [outputs, mask];
+    });
   }
 
   override getConfig(): serialization.ConfigDict {
@@ -101,7 +189,6 @@ export class StartEndPacker extends Layer {
       startValue: this.startValue,
       endValue: this.endValue,
       padValue: this.padValue,
-      returnPaddingMask: this.returnPaddingMask,
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
