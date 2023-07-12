@@ -25,6 +25,7 @@ import { Tensor, Tensor1D, Tensor2D, serialization } from '@tensorflow/tfjs-core
 import { Shape } from '../../../keras_format/common';
 import { Layer, LayerArgs } from '../../../engine/topology';
 import { NotImplementedError } from '../../../errors';
+import { InitializerIdentifier } from '../../../initializers';
 
 export declare interface PositionEmbeddingArgs extends LayerArgs {
   /**
@@ -36,7 +37,7 @@ export declare interface PositionEmbeddingArgs extends LayerArgs {
    * The initializer to use for the embedding weights.
    * Defaults to `"glorotUniform"`.
    */
-  initializer?: string;
+  initializer?: InitializerIdentifier;
 }
 
 export declare interface PositionEmbeddingOptions {
