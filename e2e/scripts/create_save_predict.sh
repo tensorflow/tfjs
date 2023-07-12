@@ -24,9 +24,9 @@ mkdir "$TEST_DATA"
 
 node integration_tests/create_save_predict.js "$TEST_DATA"
 
-V3_TEST_DATA="integration_tests/v3_create_save_predict_data/"
+TEST_DATA_2="integration_tests/keras_to_tfjs_create_save_predict_data/"
 
-rm -rf "$V3_TEST_DATA"
-mkdir "$V3_TEST_DATA"
+rm -rf "$TEST_DATA_2"
+mkdir "$TEST_DATA_2"
 
-python integration_tests/v3_create_save_predict.py
+python integration_tests/keras_to_tfjs_create_save_predict.py --test_data_dir=$TEST_DATA_2

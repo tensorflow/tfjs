@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2023 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,12 +32,8 @@ const tfjsNode = require('@tensorflow/tfjs-node');
 const ndarray = require('ndarray');
 const fs = require('fs');
 const join = require('path').join;
-const TEST_DATA_DIR = "v3_create_save_predict_data";
+const TEST_DATA_DIR = "keras_to_tfjs_create_save_predict_data";
 const _ = require("zlib")
-
-// process.on('unhandledRejection', ex => {
-//   throw ex;
-// });
 
 async function load_file(file_path, model_name) {
 

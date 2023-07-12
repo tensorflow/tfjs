@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC
+# Copyright 2023 Google LLC
 #
 # Use of this source code is governed by an MIT-style
 # license that can be found in the LICENSE file or at
@@ -15,6 +15,7 @@
 # - Extract data and shape from model and store in local files.
 import argparse
 import json
+import numpy as np
 import tensorflow as tf
 import tempfile
 import os
@@ -23,7 +24,7 @@ from tensorflowjs.converters.converter import dispatch_keras_keras_to_tfjs_layer
 
 print('tf-version: ', tf.version.VERSION)
 curr_dir = os.path.dirname(os.path.realpath(__file__))
-_tmp_dir = os.path.join(curr_dir, 'v3_create_save_predict_data')
+_tmp_dir = os.path.join(curr_dir, 'keras_to_tfjs_create_save_predict_data')
 
 def _export_mlp_model(export_path, model_name):
   model = keras.Sequential()
@@ -58,7 +59,6 @@ def save_model_and_random_inputs(model, export_path, model_name):
     input_shape = input_tensor.shape
     print(input_shape)
     xTensor = tf.random.normal(input_shape)
-    # xTensor
     xs.append(xTensor)
     xsData.append(xTensor.numpy()[0])
     xsShapes.append(xTensor.shape)
@@ -73,6 +73,32 @@ def save_model_and_random_inputs(model, export_path, model_name):
   with open(xs_shape_path, 'w') as f:
     f.write(json.dumps(xs_shape))
 
+  z = [np.array(value, dtype=np.float32).reshape(shape)
+        for value, shape in zip(xs_data, xs_shape)]
+  if len(z) == 1:
+    z = z[0]
+
+  k = model.predict(z)
+  keras_predict_data = None
+  keras_predict_shape = None
+
+  if isinstance(k, list):
+    keras_predict_data = [y.tolist() for y in k]
+    keras_predict_shape = [list(y.shape) for y in k]
+  else:
+    keras_predict_data = k.tolist()
+    keras_predict_shape = [list(k.shape)]
+
+  result_data_path = os.path.join(
+      _tmp_dir, model_name + '.result-from-keras-data.json')
+  result_shape_path = os.path.join(
+      _tmp_dir, model_name + '.result-from-keras-shape.json')
+  with open(result_data_path, 'w') as f:
+    f.write(json.dumps(keras_predict_data))
+  with open(result_shape_path, 'w') as f:
+    f.write(json.dumps(keras_predict_shape))
+
+
 
 
 def main():
@@ -81,7 +107,8 @@ def main():
   parser = argparse.ArgumentParser(description='Create a keras model in python.')
   parser.add_argument('--test_data_dir', help='Input a directory name', default='test_data_dir')
   args = parser.parse_args()
-  _export_mlp_model(os.path.join(_tmp_dir, 'mlp'), 'mlp')
+  folder = args.test_data_dir
+  _export_mlp_model(os.path.join(folder, 'mlp'), 'mlp')
 
 if __name__ == '__main__':
   main()
