@@ -57,7 +57,7 @@ export declare interface CachedMultiHeadAttentionOptions {
 
   /**
    * A dense float Tensor. The key/value cache, of shape
-   * `[B, 2, S, num_heads, key_dims]`, where `S` must agree with the
+   * `[B, 2, S, numHeads, keyDims]`, where `S` must agree with the
    * `attentionMask` shape. This argument is intended for use during
    * generation to avoid recomputing intermediate state.
    */
@@ -79,10 +79,10 @@ export declare interface CachedMultiHeadAttentionOptions {
  * to cache decoder self-attention and cross-attention. The forward pass
  * can happen in one of three modes:
  * - No cache, same as regular multi-head attention.
- * - Static cache (`cache_update_index` is None). In this case, the
+ * - Static cache (`cacheUpdateIndex` is None). In this case, the
  *     cached key/value projections will be used and the input values will
  *     be ignored.
- * - Updated cache (`cache_update_index` is not None). In this case, new
+ * - Updated cache (`cacheUpdateIndex` is not None). In this case, new
  *     key/value projections are computed using the input, and spliced into
  *     the cache at the specified index.
  *
