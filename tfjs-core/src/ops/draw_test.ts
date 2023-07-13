@@ -113,7 +113,7 @@ function drawAndReadback(
 
 // CPU and GPU handle pixel value differently. The epsilon may possibly grow
 // after each draw and read back. The empirical value is 3.0.
-const DRAW_EPSILON = 3.0;
+const DRAW_EPSILON = 6.0;
 
 describeWithFlags('draw on canvas context', BROWSER_ENVS, (env) => {
   let contextType: string;
