@@ -17,10 +17,22 @@
 import * as tf from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
+import {Tensor2D} from '../../tensor';
 
 
 describeWithFlags('RGBToGrayscale', ALL_ENVS, () => {
-  it('should convert ', async () => {
+  it('should return int32 dtype tensor for int32 dtype input', async () => {
+    const rgb = tf.tensor2d([16,24,56,1,2,9], [2,3], 'int32');
+    const grayscale = tf.image.rgbToGrayscale(rgb);
+
+    const expected = [[25],[2]];
+    const grayscaleData = await grayscale.data();
+
+    expect(grayscale.shape).toEqual([2,1]);
+    expectArraysClose(grayscaleData, expected);
+  });
+
+  it('basic 3 rank array conversion', async () => {
     const rgb = [[[1.0, 2.0, 3.0]]];
     const grayscale = tf.image.rgbToGrayscale(rgb);
 
@@ -29,5 +41,30 @@ describeWithFlags('RGBToGrayscale', ALL_ENVS, () => {
 
     expect(grayscale.shape).toEqual([1, 1, 1]);
     expectArraysClose(grayscaleData, expected);
+  });
+
+  it('basic 4 rank array conversion', async () => {
+    const rgb = [[[[1.0, 2.0, 3.0], [2.0, 3.0, 4.0]]]];
+    const grayscale = tf.image.rgbToGrayscale(rgb);
+
+    const expected = [[[[1.8149],[2.8148]]]];
+    const grayscaleData = await grayscale.data();
+
+    expect(grayscale.shape).toEqual([1, 1, 2, 1]);
+    expectArraysClose(grayscaleData, expected);
+  });
+
+  it('should throw an error because of input last dim is not 3', () => {
+    const grayscale = tf.tensor4d([1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, 2]);
+
+    expect(() => tf.image.rgbToGrayscale(grayscale))
+        .toThrowError(/last dimension of an RGB image should be size 3/);
+  });
+
+  it('should throw an error because of image\'s rank is less than 2', () => {
+    const grayscale = tf.tensor1d([1, 2, 3]) as unknown as Tensor2D;
+
+    expect(() => tf.image.rgbToGrayscale(grayscale))
+        .toThrowError(/images must be at least rank 2/);
   });
 });

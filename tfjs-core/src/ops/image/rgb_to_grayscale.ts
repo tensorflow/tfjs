@@ -56,7 +56,24 @@ function rgbToGrayscale_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
 
   const rgbWeights = tensor1d([0.2989, 0.5870, 0.1140]);
 
-  let grayFloat = einsum(',->', fltImage, rgbWeights);
+  let grayFloat;
+  switch ($image.rank) {
+    case 2:
+      grayFloat = einsum('ij,j->i', fltImage, rgbWeights);
+      break;
+    case 3:
+      grayFloat = einsum('ijk,k->ij', fltImage, rgbWeights);
+      break;
+    case 4:
+      grayFloat = einsum('ijkl,l->ijk', fltImage, rgbWeights);
+      break;
+    case 5:
+      grayFloat = einsum('ijklm,m->ijkl', fltImage, rgbWeights);
+      break;
+    case 6:
+      grayFloat = einsum('ijklmn,n->ijklm', fltImage, rgbWeights);
+      break;
+  }
   grayFloat = expandDims(grayFloat, -1);
 
   return cast(grayFloat, origDtype) as T;
