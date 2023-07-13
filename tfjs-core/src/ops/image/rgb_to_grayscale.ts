@@ -73,6 +73,8 @@ function rgbToGrayscale_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
     case 6:
       grayFloat = einsum('ijklmn,n->ijklm', fltImage, rgbWeights);
       break;
+    default:
+      throw new Error('Not a valid tensor rank.');
   }
   grayFloat = expandDims(grayFloat, -1);
 

@@ -19,7 +19,6 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 import {Tensor2D} from '../../tensor';
 
-
 describeWithFlags('RGBToGrayscale', ALL_ENVS, () => {
   it('should return int32 dtype tensor for int32 dtype input', async () => {
     const rgb = tf.tensor2d([16,24,56,1,2,9], [2,3], 'int32');
