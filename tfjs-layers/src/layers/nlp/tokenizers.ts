@@ -24,7 +24,8 @@ import { Tensor, serialization, tensor, tidy} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr, tensorToArr } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe } from './tokenizers_utils';
+import { tensorToArr, tensorArrTo2DArr } from './utils';
 
 export declare interface TokenizerOptions {
   mode?: 'tokenize' | 'detokenize';

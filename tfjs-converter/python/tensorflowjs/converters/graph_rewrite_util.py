@@ -22,6 +22,7 @@ from tensorflow.python.framework import tensor_util
 FUSED_DEPTHWISE_CONV2D = 'FusedDepthwiseConv2dNative'
 # The grappler op name for fused MatMul which starts with '_'
 FUSED_MATMUL = '_FusedMatMul'
+FUSED_CONV2D = '_FusedConv2D'
 
 def node_from_map(node_map, name):
   """Pulls a node def from a dictionary for a given name.
@@ -128,3 +129,11 @@ def rename_constants(node_list, prefix):
           if input_node.startswith(name):
             new_node.input[i] = prefix + '/' + input_node
   return nodes
+
+def get_output_node_names(node_map, target):
+  output_node_names = []
+  for name, node in node_map.items():
+    for input_name in node.input:
+      if target == input_name:
+        output_node_names.append(name)
+  return output_node_names

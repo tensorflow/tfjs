@@ -18,9 +18,8 @@
 // TODO(mattSoulanille): Replace this with automatic polyfilling using core-js.
 export function *matchAll(str: string, regexp: RegExp): IterableIterator<RegExpMatchArray> {
   // Remove the global flag since str.match does not work with it.
-  const flags = new Set(regexp.flags.split(''));
-  flags.delete('g');
-  regexp = new RegExp(regexp, [...flags].join(''));
+  const flags = regexp.flags.replace(/g/g, '');
+  regexp = new RegExp(regexp, flags);
 
   let match = str.match(regexp);
   let offset = 0;
