@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_preprocessor.py */
-import { Tensor, Tensor2D, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, Tensor2D, serialization, tidy } from '@tensorflow/tfjs-core';
 
 import { LayerArgs } from '../../../../engine/topology';
 import { Preprocessor } from '../preprocessor';
@@ -170,32 +170,34 @@ export class GPT2Preprocessor extends Preprocessor {
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
   ): PreprocessorOutputs {
-    if (inputs instanceof Array) {
-      if (inputs.length !== 1) {
-        throw new ValueError(
-          'GPT2 requires each input feature to contain only ' +
-          `one segment, but received ${inputs.length}. If you are using GPT2 ` +
-          'for a multi-segment classification task, please refer to ' +
-          'classification models like BERT or RoBERTa.'
-        );
+    return tidy(() => {
+      if (inputs instanceof Array) {
+        if (inputs.length !== 1) {
+          throw new ValueError(
+            'GPT2 requires each input feature to contain only ' +
+            `one segment, but received ${inputs.length}. If you are using GPT2 ` +
+            'for a multi-segment classification task, please refer to ' +
+            'classification models like BERT or RoBERTa.'
+          );
+        }
+        inputs = inputs[0];
       }
-      inputs = inputs[0];
-    }
 
-    const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
-    const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
-      this.tokenizer.call(inputs),
-      {
-        sequenceLength,
-        addStartValue: this.addStartToken,
-        addEndValue: this.addEndToken
-      }
-    );
+      const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
+      const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
+        this.tokenizer.call(inputs),
+        {
+          sequenceLength,
+          addStartValue: this.addStartToken,
+          addEndValue: this.addEndToken
+        }
+      );
 
-    return {
-      tokenIds: tokenIds as Tensor2D,
-      paddingMask: paddingMask as Tensor2D
-    };
+      return {
+        tokenIds: tokenIds as Tensor2D,
+        paddingMask: paddingMask as Tensor2D
+      };
+    });
   }
 
   /**

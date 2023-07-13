@@ -19,7 +19,7 @@
  * Unit Tests for GPT2Preprocessor.
  */
 
-import { Tensor, serialization, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { Tensor, memory, serialization, tensor, tensor2d } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
 import { GPT2Tokenizer } from './gpt2_tokenizer';
@@ -111,6 +111,15 @@ describe('GPT2Preprocessor', () => {
     ) as PreprocessorOutputs;
 
     expectTensorsClose(output.tokenIds, tensor2d([[6, 1, 3, 6]]));
+  });
+
+  it('does not leak memory', () => {
+    const inputData = tensor(['airplane at airport']);
+
+    const numTensorsBefore = memory().numTensors;
+    preprocessor.callAndPackArgs(inputData, {sequenceLength: 4});
+    const numTensorsAfter = memory().numTensors;
+    expect(numTensorsAfter).toEqual(numTensorsBefore + 2);
   });
 
   it('serialization round-trip', () => {
