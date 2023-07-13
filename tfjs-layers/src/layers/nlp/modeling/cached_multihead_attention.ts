@@ -36,7 +36,7 @@ export declare interface CachedMultiHeadAttentionOptions {
    * not `null`, `S*` can be any length less than `S`, and the computed
    * value will be spliced into `cache` at `cacheUpdateIndex`.
    */
-  value: Tensor,
+  value: Tensor;
 
   /**
    * Key `Tensor` of shape `(B, S*, dim)`.  If `cache` is `null`, `S*` must
@@ -44,7 +44,7 @@ export declare interface CachedMultiHeadAttentionOptions {
    * `S*` can be any length less than `S`, and the computed value will be
    * spliced into `cache` at `cacheUpdateIndex`.
    */
-  key?: Tensor,
+  key?: Tensor;
 
   /**
    * A boolean mask of shape `(B, T, S)`. `attentionMask` prevents
@@ -53,7 +53,7 @@ export declare interface CachedMultiHeadAttentionOptions {
    * attention and 0 indicates no attention. Broadcasting can happen for
    * the missing batch dimensions and the head dimension.
    */
-  attentionMask?: Tensor,
+  attentionMask?: Tensor;
 
   /**
    * A dense float Tensor. The key/value cache, of shape
@@ -61,7 +61,7 @@ export declare interface CachedMultiHeadAttentionOptions {
    * `attentionMask` shape. This argument is intended for use during
    * generation to avoid recomputing intermediate state.
    */
-  cache?: Tensor
+  cache?: Tensor;
 
   /**
    * Integer or Integer `Tensor`. The index at which to update `cache`
@@ -69,7 +69,7 @@ export declare interface CachedMultiHeadAttentionOptions {
    * generation). If `cacheUpdateIndex=null` while `cache` is set, the cache
    * will not be updated.
    */
-  cacheUpdateIndex?: number|Tensor
+  cacheUpdateIndex?: number|Tensor;
 }
 
 /**
