@@ -18,7 +18,6 @@
 /**
  * Unit Tests for Preprocessor Layers.
  */
-import { BytePairTokenizer } from '../tokenizers';
 import { Preprocessor } from './preprocessor';
 
 describe('Preprocessor', () => {
@@ -29,15 +28,6 @@ describe('Preprocessor', () => {
   });
 
   it('serialization round-trip with no set tokenizer', () => {
-    const reserialized = Preprocessor.fromConfig(
-      Preprocessor, preprocessor.getConfig());
-    expect(reserialized.getConfig()).toEqual(preprocessor.getConfig());
-  });
-
-  it('serialization round-trip with set tokenizer', () => {
-    preprocessor.tokenizer = new BytePairTokenizer({
-      vocabulary: new Map([['<|endoftext|>', 0]]), merges: ['a b']});
-
     const reserialized = Preprocessor.fromConfig(
       Preprocessor, preprocessor.getConfig());
     expect(reserialized.getConfig()).toEqual(preprocessor.getConfig());

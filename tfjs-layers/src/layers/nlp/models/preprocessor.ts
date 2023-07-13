@@ -62,8 +62,10 @@ export class Preprocessor extends Layer {
     if (config.tokenizer != null && !(config.tokenizer instanceof Tokenizer)) {
       const tokenizerConfigDict = config.tokenizer as serialization.ConfigDict;
 
-      kwargs.tokenizer =
-        deserializeKerasObject(tokenizerConfigDict);
+      kwargs.tokenizer = deserializeKerasObject(
+        tokenizerConfigDict,
+        serialization.SerializationMap.getMap().classNameMap,
+        {}, 'preprocessor');
     }
     return new cls(kwargs);
   }
