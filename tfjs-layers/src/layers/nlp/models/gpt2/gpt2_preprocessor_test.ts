@@ -19,10 +19,10 @@
  * Unit Tests for GPT2Preprocessor.
  */
 
-import { Tensor, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { Tensor, serialization, tensor, tensor2d } from '@tensorflow/tfjs-core';
 
-import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
+import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { expectTensorsClose } from '../../../../utils/test_utils';
 
 describe('GPT2Preprocessor', () => {
@@ -74,7 +74,7 @@ describe('GPT2Preprocessor', () => {
       tokenIds: tensor2d(Array<number[]>(4).fill([1, 3, 4, 2, 5, 0, 0, 0])),
       paddingMask: tensor2d(
         Array<number[]>(4).fill([1, 1, 1, 1, 1, 0, 0, 0]), [4, 8], 'bool'),
-    }
+    };
 
     const output =
       preprocessor.callAndPackArgs(inputData, {}) as PreprocessorOutputs;
@@ -111,5 +111,21 @@ describe('GPT2Preprocessor', () => {
     ) as PreprocessorOutputs;
 
     expectTensorsClose(output.tokenIds, tensor2d([[6, 1, 3, 6]]));
+  });
+
+  it('serialization round-trip', () => {
+    const reserialized = GPT2Preprocessor.fromConfig(
+      GPT2Preprocessor, preprocessor.getConfig());
+
+    const originalConfig = preprocessor.getConfig();
+    const reserializedConfig = reserialized.getConfig();
+
+    // TODO(pforderique): Verify any tokenizer name consistency issues.
+    delete (originalConfig['tokenizer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict ['name'];
+    delete (reserializedConfig['tokenizer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict ['name'];
+
+    expect(reserializedConfig).toEqual(originalConfig);
   });
 });

@@ -73,8 +73,8 @@ export declare interface GPT2PreprocessorOptions {
 }
 
 export declare interface PreprocessorOutputs {
-  tokenIds: Tensor2D,
-  paddingMask: Tensor2D
+  tokenIds: Tensor2D;
+  paddingMask: Tensor2D;
 }
 
 function packXYSampleWeight(
@@ -186,7 +186,7 @@ export class GPT2Preprocessor extends Preprocessor {
     const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
       this.tokenizer.call(inputs),
       {
-        sequenceLength: sequenceLength,
+        sequenceLength,
         addStartValue: this.addStartToken,
         addEndValue: this.addEndToken
       }
