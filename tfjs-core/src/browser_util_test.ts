@@ -29,7 +29,7 @@ describeWithFlags('nextFrame', ALL_ENVS, () => {
     const t1 = tf.util.now();
 
     // tf.nextFrame may take no more than 1ms to complete, so this test is
-    // meaningful only if the precision of tf.util.now is better than 0.1ms.
+    // meaningful only if the precision of tf.util.now is better than 1ms.
     // After version 59, the precision of Firefox's tf.util.now becomes 2ms by
     // default for security issues, https://caniuse.com/?search=performance.now.
     // Then, this test is dropped for Firefox, even though it could be
