@@ -27,11 +27,12 @@ describeWithFlags('nextFrame', ALL_ENVS, () => {
     const t0 = tf.util.now();
     await tf.nextFrame();
     const t1 = tf.util.now();
+
     // tf.nextFrame may take no more than 1ms to complete, so this test is
     // meaningful only if the precision of tf.util.now is better than 0.1ms.
     // After version 59, the precision of Firefox's tf.util.now becomes 2ms by
     // default for security issues, https://caniuse.com/?search=performance.now.
-    // Then, this test has to be dropped for Firefox, even though it could be
+    // Then, this test is dropped for Firefox, even though it could be
     // set to better precision through browser setting,
     // https://github.com/lumen/threading-benchmarks/issues/7.
     if (isFloat(t0) || isFloat(t1)) {
