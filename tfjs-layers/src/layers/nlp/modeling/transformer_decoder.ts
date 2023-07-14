@@ -49,7 +49,7 @@ export declare interface TransformerDecoderArgs extends LayerArgs {
    * The activation function of feedforward network.
    * Defaults to `"relu"`.
    */
-  activation?: ActivationIdentifier
+  activation?: ActivationIdentifier;
 
   /**
    * The eps value in layer normalization components.
@@ -107,11 +107,11 @@ export declare interface TransformerDecoderOptions {
    * A boolean Tensor, the padding mask of encoder sequence, must be of shape
    * `[batchSize, encoderSequenceLength]`.
    */
-  encoderPaddingMask?: Tensor
+  encoderPaddingMask?: Tensor;
 
   /**
    * A boolean Tensor. Customized encoder sequence mask, must be of shape
-    `[batchSize, encoderSequenceLength, encoderSequenceLength]`.
+   * `[batchSize, encoderSequenceLength, encoderSequenceLength]`.
    */
   encoderAttentionMask?: Tensor;
 

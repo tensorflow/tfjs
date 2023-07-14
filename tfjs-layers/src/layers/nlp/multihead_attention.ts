@@ -36,7 +36,7 @@ import { Kwargs } from '../../types';
  * Query, key, value inputs after projection are expected to have the shape as:
  * `(bs, <non-attention dims>, <attention dims>, num_heads, channels)`.
  * `bs` and `<non-attention dims>` are treated as `<batch dims>`.
-
+ *
  * The attention operations can be generalized:
  * (1) Query-key dot product:
  * `(<batch dims>, <query attention dims>, num_heads, channels), (<batch dims>,
@@ -53,7 +53,7 @@ import { Kwargs } from '../../types';
  * @returns Einsum equations.
  */
 function buildAttentionEquation(
-  rank: number, attnAxes: Array<number>
+  rank: number, attnAxes: number[]
 ): [string, string, string] {
   throw new NotImplementedError('Not implemented yet.');
 }
@@ -77,80 +77,80 @@ export declare interface MultiHeadAttentionArgs extends LayerArgs {
   /**
    * Integer. Number of attention heads.
    */
-  numHeads: number,
+  numHeads: number;
 
   /**
    * Integer. Size of each attention head for query and key.
    */
-  keyDim: number,
+  keyDim: number;
 
   /**
    * Integer. Size of each attention head for value.
    * Defaults to `keyDim`.
    */
-  valueDim?: number,
+  valueDim?: number;
 
   /**
    * Dropout probability.
    * Defaults to 0.0.
    */
-  dropout?: number,
+  dropout?: number;
 
   /**
    * Whether the dense layers use bias vectors/matrices.
    * Defaults to true.
    */
-  useBias?: boolean,
+  useBias?: boolean;
 
   /**
    * The expected shape of an output tensor, besides the batch
    * and sequence dims. If not specified, projects back to the query
    * feature dim (the query input's last dimension).
    */
-  outputShape?: Shape,
+  outputShape?: Shape;
 
   /**
    * Axes over which the attention is applied. `null` means attention over
    * all axes, but batch, heads, and features.
    */
-  attentionAxes: Array<number>,
+  attentionAxes: number[];
 
   /**
    * Initializer for dense layer kernels.
    * Defaults to `"glorotUniform"`.
    */
-  kernelInitializer?: InitializerIdentifier,
+  kernelInitializer?: InitializerIdentifier;
 
   /**
    * Initializer for dense layer biases.
    * Defaults to `"zeros"`.
    */
-  biasInitializer?: InitializerIdentifier,
+  biasInitializer?: InitializerIdentifier;
 
   /**
    * Regularizer for dense layer kernels.
    */
-  kernelRegularizer?: RegularizerIdentifier,
+  kernelRegularizer?: RegularizerIdentifier;
 
   /**
    * Regularizer for dense layer biases.
    */
-  biasRegularizer?: RegularizerIdentifier,
+  biasRegularizer?: RegularizerIdentifier;
 
   /**
    * Regularizer for dense layer activity.
    */
-  activityRegularizer?: RegularizerIdentifier,
+  activityRegularizer?: RegularizerIdentifier;
 
   /**
    * Constraint for dense layer kernels.
    */
-  kernelConstraint?: ConstraintIdentifier,
+  kernelConstraint?: ConstraintIdentifier;
 
   /**
    * Constraint for dense layer kernels.
    */
-  biasConstraint?: ConstraintIdentifier,
+  biasConstraint?: ConstraintIdentifier;
 }
 
 export declare interface MultiHeadAttentionOptions {
@@ -161,13 +161,13 @@ export declare interface MultiHeadAttentionOptions {
   /**
    * Value `Tensor` of shape `(B, S, dim)`.
    */
-  value: Tensor,
+  value: Tensor;
 
   /**
    * Key `Tensor` of shape `(B, S, dim)`. If not given, will use `value` for
    * both `key` and `value`, which is the most common case.
    */
-  key?: Tensor,
+  key?: Tensor;
 
   /**
    * A boolean mask of shape `(B, T, S)`, that prevents
@@ -176,7 +176,7 @@ export declare interface MultiHeadAttentionOptions {
    * attention and 0 indicates no attention. Broadcasting can happen for
    * the missing batch dimensions and the head dimension.
    */
-  attentionMask?: Tensor,
+  attentionMask?: Tensor;
 
   /**
    * Indicates whether the layer should behave in training mode
@@ -184,14 +184,14 @@ export declare interface MultiHeadAttentionOptions {
    * Will go with either using the training mode of the parent
    * layer/model, or false (inference) if there is no parent layer.
    */
-  training?: boolean,
+  training?: boolean;
 
   /**
    * Indicates whether to apply a causal mask to prevent tokens from attending
    * to future tokens (e.g., used in a decoder Transformer).
    * Defaults to false.
    */
-  useCausalMask?: boolean,
+  useCausalMask?: boolean;
 }
 
 /**
@@ -216,7 +216,7 @@ export declare interface MultiHeadAttentionOptions {
  *
  * Finally, the result tensor with the last dimension as valueDim can take an
  * linear projection and return.
-
+ *
  * When using `MultiHeadAttention` inside a custom layer, the custom layer must
  * implement its own `build()` method and call `MultiHeadAttention`'s
  * `buildFromSignature()` there.
