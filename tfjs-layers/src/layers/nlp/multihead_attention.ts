@@ -227,9 +227,9 @@ export declare interface MultiHeadAttentionOptions {
  * Performs 1D cross-attention over two sequence inputs with an attention mask.
  * Returns the additional attention weights over heads.
  *
- * const layer = new MultiHeadAttention({numHeads=2, keyDim=2});
- * const target = tf.keras.Input(shape=[8, 16]);
- * const source = tf.keras.Input(shape=[4, 16]);
+ * const layer = new MultiHeadAttention({numHeads: 2, keyDim: 2});
+ * const target = tf.input({shape: [8, 16]});
+ * const source = tf.input({shape: [4, 16]});
  * const outputTensor, weights = layer.callAndReturnAttentionScores(
  *     target, {value: source});
  * console.log(outputTensor.shape);  // [null, 8, 16]

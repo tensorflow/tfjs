@@ -29,7 +29,7 @@ import { InitializerIdentifier } from '../../initializers';
 import { ActivationIdentifier } from '../../keras_format/activation_config';
 import { Shape } from '../../keras_format/common';
 import { RegularizerIdentifier } from '../../regularizers';
-import { Kwargs } from 'tfjs-layers/src/types';
+import { Kwargs } from '../../types';
 
 export declare interface EinsumDenseArgs extends LayerArgs {
   /**
