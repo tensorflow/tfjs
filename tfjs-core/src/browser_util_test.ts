@@ -19,7 +19,7 @@ import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
 function isFloat(num: number) {
-  return num.toString().includes('.');
+  return num % 1 !== 0;
 }
 
 describeWithFlags('nextFrame', ALL_ENVS, () => {
