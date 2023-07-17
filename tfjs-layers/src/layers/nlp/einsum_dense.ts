@@ -31,6 +31,32 @@ import { Shape } from '../../keras_format/common';
 import { RegularizerIdentifier } from '../../regularizers';
 import { Kwargs } from '../../types';
 
+/**
+ * Analyzes an einsum string to determine the required weight shape.
+ */
+export function analyzeEinsumString(
+  equation: string,
+  biasAxes: string,
+  inputShape: Shape,
+  outputShape: Shape
+): [Shape, Shape, Shape] {
+  throw new NotImplementedError(
+    `Not implmented yet. Uses ${analyzeSplitString}.`);
+}
+
+/**
+ * Analyze an pre-split einsum string to find the weight shape.
+ */
+function analyzeSplitString(
+  splitString: [string, string, string],
+  biasAxes: string,
+  inputShape: Shape,
+  outputShape: Shape,
+  leftElided?: boolean
+): [Shape, Shape, Shape] {
+  throw new NotImplementedError(`Not implmented yet.`);
+}
+
 export declare interface EinsumDenseArgs extends LayerArgs {
   /**
    * An equation describing the einsum to perform. This equation must be a
@@ -159,7 +185,7 @@ export class EinsumDense extends Layer {
 
   override build(inputShape: Shape | Shape[]): void {
     throw new NotImplementedError(
-      `Not implmented yet. Uses ${this.analyzeEinsumString}`);
+      `Not implmented yet. Uses ${analyzeEinsumString}`);
   }
 
   override getConfig(): serialization.ConfigDict {
@@ -167,32 +193,6 @@ export class EinsumDense extends Layer {
   }
 
   override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor2D {
-    throw new NotImplementedError(`Not implmented yet.`);
-  }
-
-  /**
-   * Analyzes an einsum string to determine the required weight shape.
-   */
-  private analyzeEinsumString(
-    equation: string,
-    biasAxes: string,
-    inputShape: Shape,
-    outputShape: Shape
-  ): [Shape, Shape, Shape] {
-    throw new NotImplementedError(
-      `Not implmented yet. Uses ${this.analyzeSplitString}.`);
-  }
-
-  /**
-   * Analyze an pre-split einsum string to find the weight shape.
-   */
-  private analyzeSplitString(
-    splitString: [string, string, string],
-    biasAxes: string,
-    inputShape: Shape,
-    outputShape: Shape,
-    leftElided?: boolean
-  ): [Shape, Shape, Shape] {
     throw new NotImplementedError(`Not implmented yet.`);
   }
 }
