@@ -98,25 +98,6 @@ export declare interface EinsumDenseArgs extends LayerArgs {
   biasConstraint?: ConstraintIdentifier;
 }
 
-export declare interface EinsumDenseOptions {
-  /**
-   * Pass to override the configured `sequenceLength` of the layer.
-   */
-  sequenceLength?: number;
-
-  /**
-   * Pass `false` to not append a start value for this input.
-   * Defaults to true.
-   */
-  addStartValue?: boolean;
-
-  /**
-   * Pass `false` to not append an end value for this input.
-   * Defaults to true.
-   */
-  addEndValue?: boolean;
-}
-
 /**
  * A layer that uses `tf.einsum` as the backing computation.
  *
