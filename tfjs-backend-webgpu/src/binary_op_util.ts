@@ -23,9 +23,9 @@ export enum BinaryOpType {
   DIV,
   ELU_DER,
   EQUAL,
+  FLOOR_DIV,
   GREATER,
   GREATER_EQUAL,
-  INT_DIV,
   LESS,
   LESS_EQUAL,
   LOGICAL_AND,
@@ -56,6 +56,13 @@ const EQUAL = `
   let one = sign(b) * 0 + 1;
   let resultTemp = select(zero, one, a == b);
 `;
+const FLOOR_DIV = `
+  let remainder =
+      select(a % b, round(a % b), (round(a) == a) & (round(b) == b));
+  let quotient = (a - remainder) / b;
+  let resultTemp =
+      round(select(quotient, quotient - 1, sign(remainder) == -sign(b)));
+`;
 const GREATER = `
   let zero = sign(a) * 0 + 0;
   let one = sign(b) * 0 + 1;
@@ -66,36 +73,6 @@ const GREATER_EQUAL = `
   let one = sign(b) * 0 + 1;
   let resultTemp = select(zero, one, a >= b);
 `;
-
-const INT_DIV = `
-  let s = sign(a) * sign(b);
-  let ia = i32(round(a));
-  let ib = i32(round(b));
-  return f32(idiv(ia, ib, s));
-`;
-const INT_DIV_VEC4 = `
-  let ia = vec4<i32>(round(a));
-  let ib = vec4<i32>(round(b));
-  let cond = ib != vec4<i32>(0);
-  var resultTemp = vec4<i32>(0);
-  let s = sign(a) * sign(b);
-
-  // Windows (D3D) wants guaranteed non-zero int division at compile-time.
-  if (cond[0]) {
-    resultTemp[0] = idiv(ia[0], ib[0], s[0]);
-  }
-  if (cond[1]) {
-    resultTemp[1] = idiv(ia[1], ib[1], s[1]);
-  }
-  if (cond[2]) {
-    resultTemp[2] = idiv(ia[2], ib[2], s[2]);
-  }
-  if (cond[3]) {
-    resultTemp[3] = idiv(ia[3], ib[3], s[3]);
-  }
-  return vec4<f32>(resultTemp);
-`;
-
 const LESS = `
   let zero = sign(a) * 0 + 0;
   let one = sign(b) * 0 + 1;
@@ -265,14 +242,15 @@ export function getBinaryOpString(
     case BinaryOpType.EQUAL:
       doOpSnippet = EQUAL;
       break;
+    case BinaryOpType.FLOOR_DIV:
+      doOpSnippet = FLOOR_DIV;
+      break;
     case BinaryOpType.GREATER:
       doOpSnippet = GREATER;
       break;
     case BinaryOpType.GREATER_EQUAL:
       doOpSnippet = GREATER_EQUAL;
       break;
-    case BinaryOpType.INT_DIV:
-      return useVec4 ? INT_DIV_VEC4 : INT_DIV;
     case BinaryOpType.LESS:
       doOpSnippet = LESS;
       break;
