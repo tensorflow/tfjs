@@ -279,7 +279,7 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
 
   keys_to_remove = ["module", "registered_name", "date_saved"]
   config = _ensure_json_dict(config_file)
-  _discard_v3_keys(config, keys_to_remove)
+  # _discard_v3_keys(config, keys_to_remove)
   model_json['model_config'] = config
   translate_class_names(model_json['model_config'])
   if 'training_config' in h5file.attrs:
@@ -290,16 +290,42 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
 
   model_weights = h5file['_layer_checkpoint_dependencies']
   layer_names = [as_text(n) for n in model_weights]
-
-  for index, layer_name in enumerate(layer_names):
-    group_of_weights = model_weights[layer_name]
-    group = _convert_v3_group(group_of_weights, layer_name)
-    if group:
-      if split_by_layer:
-        groups.append(group)
-      else:
-        groups[0] += group
+  _convert_v3_group_structure_to_weights(groups=groups, group=h5file, split_by_layer=split_by_layer)
+  # for index, layer_name in enumerate(layer_names):
+  #   group_of_weights = model_weights[layer_name]
+  #   group = _convert_v3_group(group_of_weights, layer_name)
+  #   if group:
+  #     if split_by_layer:
+  #       groups.append(group)
+  #     else:
+  #       groups[0] += group
   return model_json, groups
+
+def _convert_v3_group_structure_to_weights(groups, group, split_by_layer, indent=""):
+  for key in group.keys():
+    if isinstance(group[key], h5py.Group):
+      _convert_v3_group_structure_to_weights(groups, group[key], split_by_layer, indent + key + "/")
+    elif isinstance(group[key], h5py.Dataset):
+      group_of_weights = dict()
+      for key in group.keys():
+        group_of_weights[str(indent + key)] = group[key]
+      group_out = _convert_group(group_of_weights)
+      if split_by_layer:
+        groups.append(group_out)
+      else:
+        groups[0] += group_out
+      break
+
+
+def _convert_group(group_dict):
+  group_out = []
+  for key in group_dict.keys():
+    name = key
+    weights_value = np.array(group_dict[key])
+    group_out += [{'name': name, 'data' : weights_value}]
+
+  return group_out
+
 
 def h5_weights_to_tfjs_format(h5file, split_by_layer=False):
   """Load weight values from a Keras HDF5 file and to a binary format.
