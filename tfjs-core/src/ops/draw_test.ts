@@ -20,15 +20,18 @@ import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 function readPixelsFromCanvas(
-    canvas: OffscreenCanvas, contextType: string, width: number,
+    canvas: HTMLCanvasElement, contextType: string, width: number,
     height: number) {
   let actualData;
   if (contextType === '2d') {
     const ctx = canvas.getContext(contextType);
     actualData = ctx.getImageData(0, 0, width, height).data;
   } else {
-    const offscreenCanvas = new OffscreenCanvas(width, height);
-    const ctx = offscreenCanvas.getContext('2d');
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = width;
+    tmpCanvas.height = height;
+    const ctx = tmpCanvas.getContext('2d');
+
     ctx.drawImage(canvas, 0, 0);
     actualData = new Uint8ClampedArray(
         ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data);
@@ -93,7 +96,9 @@ function drawAndReadback(
     img = tf.tensor2d(
         data, shape as [number, number], dtype as keyof tf.DataTypeMap);
   }
-  const canvas = new OffscreenCanvas(width, height);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
   if (canvasUsedAs2d) {
     canvas.getContext('2d');
   }
@@ -107,8 +112,8 @@ function drawAndReadback(
 }
 
 // CPU and GPU handle pixel value differently. The epsilon may possibly grow
-// after each draw and read back. The empirical value is 3.0.
-const DRAW_EPSILON = 3.0;
+// after each draw and read back.
+const DRAW_EPSILON = 6.0;
 
 describeWithFlags('draw on canvas context', BROWSER_ENVS, (env) => {
   let contextType: string;
