@@ -29,6 +29,8 @@ from tensorflowjs.converters import tf_module_mapper
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters.tf_module_mapper import TFCLASS_MODULE_MAP
 from tensorflowjs import read_weights
+from keras.src.saving import object_registration
+from keras.src.saving.serialization_lib import deserialize_keras_object
 
 _CONFIG_FILENAME = "config.json"
 _METADATA_FILENAME = "metadata.json"
@@ -123,9 +125,14 @@ def _deserialize_keras_keras_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    _generate_v3_keys(model_topology_json['model_config'])
+    if 'registered_name' not in model_topology_json['model_config']:
+      _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
 
+  v3 = True
+  if v3:
+    model = deserialize_keras_object(model_topology_json)
+    return model
   model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
