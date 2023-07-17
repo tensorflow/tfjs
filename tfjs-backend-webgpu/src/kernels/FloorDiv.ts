@@ -21,9 +21,11 @@ import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {floorDivImplCPU} from '../kernel_utils/shared';
 
-export const floorDiv =
-    binaryKernelFunc({opType: BinaryOpType.INT_DIV,
-                      cpuKernelImpl: floorDivImplCPU, dtype: 'int32'});
+export const floorDiv = binaryKernelFunc({
+  opType: BinaryOpType.FLOOR_DIV,
+  cpuKernelImpl: floorDivImplCPU,
+  dtype: 'int32'
+});
 
 export const floorDivConfig: KernelConfig = {
   kernelName: FloorDiv,
