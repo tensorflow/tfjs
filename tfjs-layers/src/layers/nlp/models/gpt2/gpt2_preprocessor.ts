@@ -175,8 +175,8 @@ export class GPT2Preprocessor extends Preprocessor {
         if (inputs.length !== 1) {
           throw new ValueError(
             'GPT2 requires each input feature to contain only ' +
-            `one segment, but received ${inputs.length}. If you are using GPT2 ` +
-            'for a multi-segment classification task, please refer to ' +
+            `one segment, but received ${inputs.length}. If you are using ` +
+            'GPT2 for a multi-segment classification task, please refer to ' +
             'classification models like BERT or RoBERTa.'
           );
         }

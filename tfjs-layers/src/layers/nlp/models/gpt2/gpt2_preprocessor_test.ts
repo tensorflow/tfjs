@@ -130,10 +130,10 @@ describe('GPT2Preprocessor', () => {
     const reserializedConfig = reserialized.getConfig();
 
     // TODO(pforderique): Verify any tokenizer name consistency issues.
-    delete (originalConfig['tokenizer'] as serialization.ConfigDict
-      )['config'] as serialization.ConfigDict ['name'];
-    delete (reserializedConfig['tokenizer'] as serialization.ConfigDict
-      )['config'] as serialization.ConfigDict ['name'];
+    delete ((originalConfig['tokenizer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict) ['name'];
+    delete ((reserializedConfig['tokenizer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict) ['name'];
 
     expect(reserializedConfig).toEqual(originalConfig);
   });
