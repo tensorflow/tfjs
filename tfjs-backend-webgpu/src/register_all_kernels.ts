@@ -65,6 +65,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {drawConfig} from './kernels/Draw';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -155,6 +156,8 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
+import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
@@ -227,6 +230,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
@@ -320,6 +324,8 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  sparseSegmentMeanConfig,
+  sparseSegmentSumConfig,
   sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,

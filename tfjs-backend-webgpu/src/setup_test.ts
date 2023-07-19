@@ -127,12 +127,6 @@ const TEST_FILTERS: TestFilter[] = [
     ],
   },
   {
-    startsWith: 'Draw',
-    excludes: [
-      'on 2d context',
-    ]
-  },
-  {
     startsWith: 'sign ',
     excludes: [
       // Failing on Linux
@@ -160,6 +154,20 @@ const TEST_FILTERS: TestFilter[] = [
       'bitwiseAnd',
     ],
   },
+  {
+    startsWith: 'sparseSegmentMean',
+    excludes: [
+      'throw error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
+  },
+  {
+    startsWith: 'sparseSegmentSum',
+    excludes: [
+      // Currently, cannot transfer the error from gpu to cpu
+      'segments invalid',
+      'indices invalid',
+    ],
+  },
 
   // exclude unsupported kernels and to be fixed cases
   {
@@ -171,8 +179,6 @@ const TEST_FILTERS: TestFilter[] = [
       'method otsu',  // round
       'sparseFillEmptyRows ',
       'sparseReshape ',
-      'sparseSegmentMean ',
-      'sparseSegmentSum ',
       'staticRegexReplace ',
       'stringSplit ',
       'stringToHashBucketFast ',

@@ -594,12 +594,22 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
+    // get weights key from tensor map in order to check if it is from keras v3.
+    // e.g. dense/0
+    const key = Object.keys(weights)[0].split('/');
+    const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
+    // Check if weights from keras v3.
     for (const layer of this.layers) {
-      for (const weight of layer.weights) {
-        if (nameToWeight[weight.originalName] != null) {
-          throw new ValueError(`Duplicate weight name: ${weight.originalName}`);
+      for (const [index, weight] of layer.weights.entries()) {
+        // Parse the name to layerName/index.
+        // e.g. dense/0, dense/1, dense_1/0, dense_1/1
+        const parsedName = isKerasSavedModelFormat ?
+            `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
+            weight.originalName;
+        if (nameToWeight[parsedName] != null) {
+          throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
-        nameToWeight[weight.originalName] = weight;
+        nameToWeight[parsedName] = weight;
         totalWeightsCount++;
       }
     }
@@ -972,27 +982,37 @@ export abstract class Container extends Layer {
    *    subclasses: ['LayersModel']
    * }
    */
-  getLayer(name?: string, index?: number): Layer {
+  getLayer(name: string): Layer;
+  getLayer(index: number): Layer;
+  getLayer(name: string, index: number): Layer;
+  getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-            `Was asked to retrieve layer at index ${index}, but model only ` +
-            `has ${this.layers.length} layer(s).`);
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
+      }
+      if (typeof nameOrIndex === 'number') {
+        return this.findLayer(nameOrIndex);
       }
     }
 
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+
+  findLayer(index: number): Layer {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+          `Was asked to retrieve layer at index ${index}, but model only ` +
+          `has ${this.layers.length} layer(s).`);
+    } else {
+      return this.layers[index];
+    }
   }
 
   /**

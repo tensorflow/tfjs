@@ -236,7 +236,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
         stride_height, stride_width, dilation_height, dilation_width, groups,
         group_input_channels, group_output_channels, input_pixel_stride,
         output_pixel_stride, filter_xnn, bias_buf, output_min, output_max,
-        flags, /*code_cache=*/nullptr, /*weights_cache=*/nullptr, &conv2d_op);
+        flags, &conv2d_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_convolution2d_nhwc_f32 is not successful. "

@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "bbea764c57af830e761f1fb8600d42dc303aa63ffd43647694eda5b8b757b469",
-    strip_prefix = "emsdk-3.1.35/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.35.tar.gz"],
+    sha256 = "b8270749b99d8d14922d1831b93781a5560fba6f7bce65cd477fc1b6aa262535",
+    strip_prefix = "emsdk-3.1.28/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.28.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -124,9 +124,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "fa94f297e58c1e139ca64f78786df3744f557819",
+    commit = "5e8033a72a8d0f1c2b1f06e29137cc697c6b661d",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1683912990 -0700",
+    shallow_since = "1643627844 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -136,10 +136,10 @@ git_repository(
 http_archive(
     name = "FP16",
     build_file = "@xnnpack//third_party:FP16.BUILD",
-    sha256 = "e66e65515fa09927b348d3d584c68be4215cfe664100d01c9dbc7655a5716d70",
-    strip_prefix = "FP16-0a92994d729ff76a58f692d3028ca1b64b145d91",
+    sha256 = "0d56bb92f649ec294dbccb13e04865e3c82933b6f6735d1d7145de45da700156",
+    strip_prefix = "FP16-3c54eacb74f6f5e39077300c5564156c424d77ba",
     urls = [
-        "https://github.com/Maratyszcza/FP16/archive/0a92994d729ff76a58f692d3028ca1b64b145d91.zip",
+        "https://github.com/Maratyszcza/FP16/archive/3c54eacb74f6f5e39077300c5564156c424d77ba.zip",
     ],
 )
 
@@ -156,35 +156,61 @@ http_archive(
 # pthreadpool library, used for parallelization
 http_archive(
     name = "pthreadpool",
-    sha256 = "e6370550a1abf1503daf3c2c196e0a1c2b253440c39e1a57740ff49af2d8bedf",
-    strip_prefix = "pthreadpool-43edadc654d6283b4b6e45ba09a853181ae8e850",
+    sha256 = "8461f6540ae9f777ce20d1c0d1d249e5e61c438744fb390c0c6f91940aa69ea3",
+    strip_prefix = "pthreadpool-545ebe9f225aec6dca49109516fac02e973a3de2",
     urls = [
-        "https://github.com/Maratyszcza/pthreadpool/archive/43edadc654d6283b4b6e45ba09a853181ae8e850.zip",
+        "https://github.com/Maratyszcza/pthreadpool/archive/545ebe9f225aec6dca49109516fac02e973a3de2.zip",
+    ],
+)
+
+# clog library, used for logging
+http_archive(
+    name = "clog",
+    build_file = "@xnnpack//third_party:clog.BUILD",
+    sha256 = "3f2dc1970f397a0e59db72f9fca6ff144b216895c1d606f6c94a507c1e53a025",
+    strip_prefix = "cpuinfo-d5e37adf1406cf899d7d9ec1d317c47506ccb970",
+    urls = [
+        "https://github.com/pytorch/cpuinfo/archive/d5e37adf1406cf899d7d9ec1d317c47506ccb970.tar.gz",
     ],
 )
 
 # cpuinfo library, used for detecting processor characteristics
 http_archive(
     name = "cpuinfo",
-    sha256 = "ba668f9f8ea5b4890309b7db1ed2e152aaaf98af6f9a8a63dbe1b75c04e52cb9",
-    strip_prefix = "cpuinfo-3dc310302210c1891ffcfb12ae67b11a3ad3a150",
+    build_file = "@xnnpack//third_party:cpuinfo.BUILD",
+    patches = ["@xnnpack//third_party:cpuinfo.patch"],
+    sha256 = "a7f9a188148a1660149878f737f42783e72f33a4f842f3e362fee2c981613e53",
+    strip_prefix = "cpuinfo-ed8b86a253800bafdb7b25c5c399f91bff9cb1f3",
     urls = [
-        "https://github.com/pytorch/cpuinfo/archive/3dc310302210c1891ffcfb12ae67b11a3ad3a150.zip",
+        "https://github.com/pytorch/cpuinfo/archive/ed8b86a253800bafdb7b25c5c399f91bff9cb1f3.zip",
     ],
 )
 
-# Google Test framework, used by most unit-tests.
+# psimd library, used for fallback 128-bit SIMD micro-kernels
 http_archive(
+    name = "psimd",
+    build_file = "@xnnpack//third_party:psimd.BUILD",
+    sha256 = "dc615342bcbe51ca885323e51b68b90ed9bb9fa7df0f4419dbfa0297d5e837b7",
+    strip_prefix = "psimd-072586a71b55b7f8c584153d223e95687148a900",
+    urls = [
+        "https://github.com/Maratyszcza/psimd/archive/072586a71b55b7f8c584153d223e95687148a900.zip",
+    ],
+)
+
+git_repository(
     name = "com_google_googletest",
-    sha256 = "5cb522f1427558c6df572d6d0e1bf0fd076428633d080e88ad5312be0b6a8859",
-    strip_prefix = "googletest-e23cdb78e9fef1f69a9ef917f447add5638daf2a",
-    urls = ["https://github.com/google/googletest/archive/e23cdb78e9fef1f69a9ef917f447add5638daf2a.zip"],
+    commit = "cd17fa2abda2a2e4111cdabd62a87aea16835014",
+    remote = "https://github.com/google/googletest.git",
+    shallow_since = "1570558426 -0400",
 )
 
 http_archive(
     name = "rules_cc",
-    strip_prefix = "rules_cc-main",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/main.zip"],
+    sha256 = "90d5a66950b492cbf86201cdc49c4b59796a85a4eb9fd63c07afe5f7132ea623",
+    strip_prefix = "rules_cc-8346df34b6593b051403b8e429db15c7f4ead937",
+    urls = [
+        "https://github.com/bazelbuild/rules_cc/archive/8346df34b6593b051403b8e429db15c7f4ead937.zip",
+    ],
 )
 
 http_archive(

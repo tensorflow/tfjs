@@ -33,15 +33,15 @@ if (isWebGPUSupported()) {
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
-    // Note that timestamp-query-inside-passes is not formally in spec as
-    // timestamp within a pass is not generally supported on all the platforms.
-    // More details can be found at
-    // https://github.com/gpuweb/gpuweb/blob/main/proposals/timestamp-query-inside-passes.md
-    if (adapter.features.has('timestamp-query-inside-passes')) {
-      deviceDescriptor.requiredFeatures =
-          // tslint:disable-next-line:no-any
-          ['timestamp-query-inside-passes' as any];
+    const requiredFeatures = [];
+    if (adapter.features.has('timestamp-query')) {
+      requiredFeatures.push('timestamp-query');
     }
+    if (adapter.features.has('bgra8unorm-storage')) {
+      requiredFeatures.push(['bgra8unorm-storage']);
+    }
+    deviceDescriptor.requiredFeatures =
+        requiredFeatures as Iterable<GPUFeatureName>;
 
     const adapterLimits = adapter.limits;
     deviceDescriptor.requiredLimits = {

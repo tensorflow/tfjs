@@ -38,11 +38,13 @@
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
+import * as path from 'path';
 import {$, Commit, Repo, RepoCommits} from './util';
+
 // tslint:disable-next-line:no-require-imports
 const octokit = require('@octokit/rest')();
 
-const OUT_FILE = 'release-notes.md';
+const OUT_FILE = path.resolve('release-notes.md');
 
 const TFJS_REPOS: Repo[] = [
   {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
@@ -52,7 +54,8 @@ const TFJS_REPOS: Repo[] = [
   {name: 'Node', identifier: 'tfjs', path: 'tfjs-node'},
   {name: 'Wasm', identifier: 'tfjs', path: 'tfjs-backend-wasm'},
   {name: 'Cpu', identifier: 'tfjs', path: 'tfjs-backend-cpu'},
-  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'}
+  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'},
+  {name: 'WebGPU', identifier: 'tfjs', path: 'tfjs-backend-webgpu'},
 ];
 
 const VIS_REPO: Repo = {
@@ -303,8 +306,16 @@ async function generateNotes(repositories: util.Repo[]) {
   });
 
   // Ask for github token.
-  const token = await util.question(
-      'Enter GitHub token (https://github.com/settings/tokens): ');
+
+  // Getting the github token.
+  let token = process.env.GITHUB_TOKEN;
+  if (token == null) {
+    token = await util.question(
+        'Enter GitHub token (https://github.com/settings/tokens): ');
+
+  } else {
+    console.log('The GITHUB_TOKEN is present as environment variable');
+  }
   octokit.authenticate({type: 'token', token});
 
   const notes = await util.getReleaseNotesDraft(octokit, repoCommits);

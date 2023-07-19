@@ -284,9 +284,12 @@ function runBrowserStackBenchmark(tabId) {
     if (cliArgs.localBuild) {
       args.push(`--localBuild=${cliArgs.localBuild}`)
     };
+    if (cliArgs.npmVersion) {
+      args.push(`--npmVersion=${cliArgs.npmVersion}`)
+    };
+    
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
-
     execFile('yarn', args, { timeout: 3e5 }, (error, stdout, stderr) => {
       if (error) {
         console.log(`\n${error}`);
@@ -415,6 +418,13 @@ function setupHelpMessage() {
       'Example: --localBuild=webgl,core.',
     type: 'string',
     default: '',
+    action: 'store'
+  });
+  parser.add_argument('--npmVersion', {
+    help: 'specify the npm version of TFJS library to benchmark.' +
+      'By default the latest version of TFJS will be benchmarked' +
+      'Example: --npmVersion=4.4.0.',
+    type: 'string',
     action: 'store'
   });
   cliArgs = parser.parse_args();

@@ -14,9 +14,9 @@
   "jsdelivr": "dist/tf-backend-wasm.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "build": "bazel build -c opt --config=xnnpack-opt :tfjs-backend-wasm_pkg",
+    "build": "bazel build -c opt :tfjs-backend-wasm_pkg",
     "build-dbg": "bazel build -c dbg :tfjs-backend-wasm_pkg",
-    "publish-npm": "bazel run -c opt --config=xnnpack-opt :tfjs-backend-wasm_pkg.publish",
+    "publish-npm": "bazel run -c opt :tfjs-backend-wasm_pkg.publish",
     "clean": "bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
     "test": "bazel test -c dbg :tests --test_output=all",

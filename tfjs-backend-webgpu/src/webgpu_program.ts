@@ -19,6 +19,11 @@ import {backend_util, DataType, DataTypeMap, env, Rank, TensorInfo, util} from '
 
 import {symbolicallyComputeStrides} from './shader_util';
 
+export enum PixelsOpType {
+  FROM_PIXELS,
+  DRAW
+}
+
 export interface WebGPUProgram {
   // Whether to use atomic built-in functions.
   atomic?: boolean;
@@ -27,10 +32,10 @@ export interface WebGPUProgram {
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  isFromPixels?: boolean;
   // By default, the output data component is 1.
   outputComponent?: number;
   outputShape: number[];
+  pixelsOpType?: PixelsOpType;
   // The unique key to distinguish different shader source code.
   shaderKey: string;
   // Whether to use output size for bounds checking.
@@ -219,16 +224,23 @@ function makeShader(
       }
     `);
 
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
+    const inoutSnippet = program.pixelsOpType === PixelsOpType.FROM_PIXELS ?
+        `@group(0) @binding(0) var<storage, read_write> result: array<${
+            dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;` :
+        `@group(0) @binding(1) var<storage, read> inBuf : array<${
+            dataTypeToGPUType(inputInfo[0].dtype, program.outputComponent)}>;`;
+    const outShapeStridesType =
+        outputData.shape.length === 3 ? 'vec2<i32>' : 'i32';
     prefixSnippets.push(`
         struct Uniform {
+          outShapeStrides : ${outShapeStridesType},
           size            : i32,
           numChannels     : i32,
-          outShapeStrides : vec2<i32>,
+          alpha           : f32,
         };
 
-        @group(0) @binding(0) var<storage, read_write> result: array<${
-        dataTypeToGPUType(outputData.dtype, program.outputComponent)}>;
+        ${inoutSnippet}
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
     const useGlobalIndex = isFlatDispatchLayout(program);
@@ -339,7 +351,7 @@ export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, inputsData: InputInfo[],
     output: TensorInfo): string {
   let key = program.shaderKey;
-  if (program.isFromPixels) {
+  if (program.pixelsOpType != null) {
     return key;
   }
 
@@ -405,15 +417,6 @@ const commonSnippet = `
     return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
   }
 
-  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
-    var res: i32 = a / b;
-    let modulo: i32 = a % b;
-    if (sign < 0. && modulo != 0) {
-      res = res - 1;
-    }
-    return res;
-  }
-
   // NaN defination in IEEE 754-1985 is :
   //   - sign = either 0 or 1.
   //   - biased exponent = all 1 bits.
@@ -444,7 +447,7 @@ type InputInfo = {
  * with each stride and decrements the index until the index equals the final
  * dimension coordinate.
  */
-function getCoordsFromIndexSnippet(shape: number[], name = ''): string {
+export function getCoordsFromIndexSnippet(shape: number[], name = ''): string {
   const rank = shape.length;
   const funcName = name !== '' ?
       `get${name.charAt(0).toUpperCase() + name.slice(1)}CoordsFromIndex` :
