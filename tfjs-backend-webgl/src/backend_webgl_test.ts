@@ -630,11 +630,8 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     const time = await tf.time(() => a.square()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs === 0);
-    if (typeof time.kernelMs !== 'number') {
-      throw new Error(time.kernelMs.error);
-    }
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
+    expect(time.kernelMs).toBeGreaterThan(0);
+    expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
 
   it('upload + compute + dataSync', async () => {
@@ -642,11 +639,8 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     const time = await tf.time(() => a.square().dataSync()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
-    if (typeof time.kernelMs !== 'number') {
-      throw new Error(time.kernelMs.error);
-    }
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
+    expect(time.kernelMs).toBeGreaterThan(0);
+    expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
 
   it('upload + compute + data', async () => {
@@ -655,11 +649,8 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
         await tf.time(async () => a.square().data()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
-    if (typeof time.kernelMs !== 'number') {
-      throw new Error(time.kernelMs.error);
-    }
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
+    expect(time.kernelMs).toBeGreaterThan(0);
+    expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
 
   it('preupload (not included) + compute + data', async () => {
@@ -670,11 +661,8 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     // The tensor was already on gpu.
     expect(time.uploadWaitMs === 0);
     expect(time.downloadWaitMs === 0);
-    if (typeof time.kernelMs !== 'number') {
-      throw new Error(time.kernelMs.error);
-    }
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
+    expect(time.kernelMs).toBeGreaterThan(0);
+    expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
 
   it('returns error for kernelMs if query timer extension is unavailable',

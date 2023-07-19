@@ -76,11 +76,8 @@ describeWithFlags('time cpu', NODE_ENVS, () => {
   it('simple upload', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(() => a.square());
-    if (!(typeof time.kernelMs === 'number')) {
-      throw new Error(time.kernelMs.error);
-    }
-    expect(time.kernelMs > 0);
-    expect(time.wallMs >= time.kernelMs);
+    expect(time.kernelMs).toBeGreaterThan(0);
+    expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
 });
 
