@@ -102,6 +102,7 @@ function getWebGLRenderingContext(
 
   if (webGLVersion === 1) {
     return (
+        // tslint:disable-next-line
         canvas.getContext('webgl', WEBGL_ATTRIBUTES) as WebGLRenderingContext ||
         (canvas as HTMLCanvasElement)
             .getContext('experimental-webgl',
