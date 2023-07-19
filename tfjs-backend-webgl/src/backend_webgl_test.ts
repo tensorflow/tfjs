@@ -624,7 +624,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('time webgl', WEBGL_ENVS, () => {
+describeWithFlags('time webgl', WEBGL2_ENVS, () => {
   it('upload + compute', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(() => a.square()) as WebGLTimingInfo;
