@@ -624,12 +624,18 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 });
 
+const TIMERS_UNSUPPORTED =
+  'WebGL query timers are not supported in this environment.';
 describeWithFlags('time webgl', WEBGL2_ENVS, () => {
   it('upload + compute', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(() => a.square()) as WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs === 0);
+    if (typeof time.kernelMs !== 'number' &&
+      time.kernelMs.error === TIMERS_UNSUPPORTED) {
+      return;
+    }
     expect(time.kernelMs).toBeGreaterThan(0);
     expect(time.kernelMs).toBeLessThanOrEqual(time.wallMs);
   });
@@ -637,6 +643,10 @@ describeWithFlags('time webgl', WEBGL2_ENVS, () => {
   it('upload + compute + dataSync', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(() => a.square().dataSync()) as WebGLTimingInfo;
+    if (typeof time.kernelMs !== 'number' &&
+      time.kernelMs.error === TIMERS_UNSUPPORTED) {
+      return;
+    }
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
     expect(time.kernelMs).toBeGreaterThan(0);
@@ -647,6 +657,10 @@ describeWithFlags('time webgl', WEBGL2_ENVS, () => {
     const a = tf.zeros([10, 10]);
     const time =
         await tf.time(async () => a.square().data()) as WebGLTimingInfo;
+    if (typeof time.kernelMs !== 'number' &&
+      time.kernelMs.error === TIMERS_UNSUPPORTED) {
+      return;
+    }
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
     expect(time.kernelMs).toBeGreaterThan(0);
@@ -658,6 +672,10 @@ describeWithFlags('time webgl', WEBGL2_ENVS, () => {
     // Pre-upload a on gpu.
     a.square();
     const time = await tf.time(() => a.sqrt()) as WebGLTimingInfo;
+    if (typeof time.kernelMs !== 'number' &&
+      time.kernelMs.error === TIMERS_UNSUPPORTED) {
+      return;
+    }
     // The tensor was already on gpu.
     expect(time.uploadWaitMs === 0);
     expect(time.downloadWaitMs === 0);
