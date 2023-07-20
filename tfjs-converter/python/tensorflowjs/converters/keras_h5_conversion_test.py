@@ -25,7 +25,6 @@ import shutil
 import tempfile
 import unittest
 import six
-import keras
 import h5py
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -136,7 +135,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'layers-model')
     self.assertEqual(model_json['generatedBy'],
-                     'keras v%s' % keras.__version__)
+                     'keras v%s' % tf.keras.__version__)
     self.assertEqual(
         model_json['convertedBy'],
         'TensorFlow.js Converter v%s' % version.version)
@@ -193,7 +192,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check the loaded weights.
     # By default, all weights of the model ought to be put in the same group.
     self.assertEqual(1, len(groups))
-    self.assertEqual(keras.__version__, out['keras_version'])
+    self.assertEqual(tf.keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
     weight_group = groups[0]
     self.assertEqual(3, len(weight_group))
@@ -246,7 +245,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # because the model has two layers.
     self.assertEqual(2, len(groups))
 
-    self.assertEqual(keras.__version__, out['keras_version'])
+    self.assertEqual(tf.keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
     self.assertEqual(2, len(groups[0]))
     kernel1 = groups[0][0]
