@@ -131,9 +131,12 @@ def _deserialize_keras_keras_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    if 'registered_name' not in model_topology_json['model_config']:
+    if 'module' not in model_topology_json['model_config']:
       _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
+  else:
+    raise Exception("'model_config' does not exist in json file.")
+
 
   custom_model = True
   if custom_model:
@@ -291,8 +294,10 @@ def _generate_v3_keys(config):
     list_of_keys = list(config.keys())
     for key in list_of_keys:
       _generate_v3_keys(config[key])
+    print('keys: ', list_of_keys)
     if 'class_name' in list_of_keys:
       config['module'] = tf_module_mapper.get_module_path(config['class_name'])
+      print(tf_module_mapper.get_module_path(config['class_name']))
       # Put registred name as None since we do not support
       # custom object saving when we save the model.
       config['registered_name'] = None
