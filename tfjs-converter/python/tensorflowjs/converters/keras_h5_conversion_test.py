@@ -25,7 +25,7 @@ import shutil
 import tempfile
 import unittest
 import six
-
+import keras
 import h5py
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -136,7 +136,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'layers-model')
     self.assertEqual(model_json['generatedBy'],
-                     'keras v%s' % tf.keras.__version__)
+                     'keras v%s' % keras.__version__)
     self.assertEqual(
         model_json['convertedBy'],
         'TensorFlow.js Converter v%s' % version.version)
@@ -170,6 +170,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    # Ensure matching legacy serialization format
+    model.use_legacy_config = True
+
     if six.PY3:
       config_json = json.loads(model.to_json())
     else:
@@ -180,6 +183,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
         h5py.File(h5_path))
     saved_topology = out['model_config']
 
+    # keys_to_remove = ["module", "registered_name", "date_saved", "build_config"]
+    # conversion._discard_v3_keys(config_json, keys_to_remove)
+    # conversion._discard_v3_keys(saved_topology, keys_to_remove)
     # check the model topology was stored
     self.assertEqual(config_json['class_name'], saved_topology['class_name'])
     self.assertEqual(config_json['config'], saved_topology['config'])
@@ -187,8 +193,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check the loaded weights.
     # By default, all weights of the model ought to be put in the same group.
     self.assertEqual(1, len(groups))
-
-    self.assertEqual(tf.keras.__version__, out['keras_version'])
+    self.assertEqual(keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
     weight_group = groups[0]
     self.assertEqual(3, len(weight_group))
@@ -219,6 +224,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    # Ensure matching legacy serialization format
+    model.use_legacy_config = True
+
     if six.PY3:
       config_json = json.loads(model.to_json())
     else:
@@ -238,7 +246,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # because the model has two layers.
     self.assertEqual(2, len(groups))
 
-    self.assertEqual(tf.keras.__version__, out['keras_version'])
+    self.assertEqual(keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
     self.assertEqual(2, len(groups[0]))
     kernel1 = groups[0][0]
