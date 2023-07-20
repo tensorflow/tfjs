@@ -25,6 +25,7 @@ import shutil
 import tempfile
 import unittest
 import six
+
 import h5py
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -182,9 +183,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
         h5py.File(h5_path))
     saved_topology = out['model_config']
 
-    # keys_to_remove = ["module", "registered_name", "date_saved", "build_config"]
-    # conversion._discard_v3_keys(config_json, keys_to_remove)
-    # conversion._discard_v3_keys(saved_topology, keys_to_remove)
     # check the model topology was stored
     self.assertEqual(config_json['class_name'], saved_topology['class_name'])
     self.assertEqual(config_json['config'], saved_topology['config'])
@@ -192,6 +190,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Check the loaded weights.
     # By default, all weights of the model ought to be put in the same group.
     self.assertEqual(1, len(groups))
+
     self.assertEqual(tf.keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
     weight_group = groups[0]
