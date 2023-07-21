@@ -331,7 +331,7 @@ export class BytePairTokenizer extends Tokenizer {
 
   override getConfig(): serialization.ConfigDict {
     const config = {
-      vocabulary: this.vocabulary,
+      vocabulary: Array.from(this._vocabulary.entries()),
       merges: this.merges,
       sequenceLength: this.sequenceLength,
       addPrefixSpace: this.addPrefixSpace,
