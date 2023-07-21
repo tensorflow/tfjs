@@ -995,7 +995,7 @@ export class MathBackendWebGL extends KernelBackend {
           {name: program.constructor.name, query: this.getQueryTime(query)});
     }
 
-    const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
+    const glFlushThreshold = env().getNumber('WEBGL_FLUSH_THRESHOLD');
     // Manually GL flush requested
     if (glFlushThreshold > 0) {
       const time = util.now();
