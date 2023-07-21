@@ -354,6 +354,8 @@ def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
         'but received an existing directory (%s).' % v3_path)
 
   # Verify that config_json_path points to a JSON file.
+  p = os.getcwd()
+  print(config_json_path)
   with open(config_json_path, 'rt') as f:
     try:
       json.load(f)

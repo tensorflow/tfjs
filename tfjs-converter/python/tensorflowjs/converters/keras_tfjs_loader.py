@@ -25,6 +25,7 @@ import zipfile
 import datetime
 import six
 import h5py
+import keras_nlp
 import tensorflow.compat.v2 as tf
 from tensorflowjs.converters import tf_module_mapper
 from tensorflowjs.converters import keras_h5_conversion
@@ -131,7 +132,7 @@ def _deserialize_keras_keras_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    if 'module' not in model_topology_json['model_config']:
+    if ('module' or 'registered_name') not in model_topology_json['model_config']:
       _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
   else:
@@ -294,13 +295,19 @@ def _generate_v3_keys(config):
     list_of_keys = list(config.keys())
     for key in list_of_keys:
       _generate_v3_keys(config[key])
-    print('keys: ', list_of_keys)
     if 'class_name' in list_of_keys:
-      config['module'] = tf_module_mapper.get_module_path(config['class_name'])
-      print(tf_module_mapper.get_module_path(config['class_name']))
-      # Put registred name as None since we do not support
-      # custom object saving when we save the model.
-      config['registered_name'] = None
+      try:
+        config['module'] = tf_module_mapper.get_module_path(config['class_name'])
+        # Set registered name to None since it is not custom class.
+        config['registered_name'] = None
+      except Exception:
+        if config['class_name'] in keras_nlp.models.__dict__:
+          obj = keras_nlp.models.__dict__.get(config['class_name'])
+          config['module'] = obj.__module__
+          # Set registered name of custom class.
+          config['registered_name'] = object_registration.get_registered_name(obj)
+        else:
+          raise KeyError(f"Unknown class name {config['class_name']}")
 
   elif isinstance(config, list):
     for item in config:
