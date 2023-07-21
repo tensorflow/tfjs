@@ -81,4 +81,6 @@ function stridedSlice_(
       attrs as unknown as NamedAttrMap);
 }
 
-export const stridedSlice = /* @__PURE__ */ op({stridedSlice_});
+export const stridedSlice = /* @__PURE__ */ op({stridedSlice_}, () => {
+  return ENGINE.isKernelRecordingBuiltin(StridedSlice) ? 'builtin' : 'auto';
+});

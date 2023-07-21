@@ -32,5 +32,8 @@ export const addKernelFunc = binaryKernelFunc({
 export const addConfig: KernelConfig = {
   kernelName: Add,
   backendName: 'webgl',
-  kernelFunc: addKernelFunc
+  kernelFunc: addKernelFunc,
+  // NOTE: Mark builtin recording since we manually check all paths in
+  // `binaryKernelFunc` are builtin recording.
+  isRecordingBuiltin: true,
 };

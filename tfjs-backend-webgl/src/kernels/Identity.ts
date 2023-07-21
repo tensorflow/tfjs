@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {ClosureCommand, Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
@@ -24,13 +24,15 @@ export function identity(
   const {inputs, backend} = args;
   const {x} = inputs;
 
-  backend.incRef(x.dataId);
-
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+  return ClosureCommand.record([x], ([x]) => {
+    backend.incRef(x.dataId);
+    return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+  }, {backend});
 }
 
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
   backendName: 'webgl',
-  kernelFunc: identity as unknown as KernelFunc
+  kernelFunc: identity as unknown as KernelFunc,
+  isRecordingBuiltin: true,
 };

@@ -93,4 +93,4 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
       attr as unknown as NamedAttrMap);
 }
 
-export const concat = /* @__PURE__ */ op({concat_});
+export const concat = /* @__PURE__ */ op({concat_}, 'auto');

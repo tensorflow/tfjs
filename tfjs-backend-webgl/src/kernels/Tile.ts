@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {buffer, KernelConfig, KernelFunc, TensorInfo, Tile, TileAttrs, TileInputs, TypedArray, util} from '@tensorflow/tfjs-core';
+import {buffer, ClosureCommand, KernelConfig, KernelFunc, TensorInfo, Tile, TileAttrs, TileInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {tileImplCPU} from '../kernel_utils/shared';
@@ -32,13 +32,15 @@ export function tile(
   if (x.dtype === 'string' || x.shape.length > 5) {
     // Even thought string tensor is always on CPU, just to be consistent on how
     // to access tensor data.
-    const data = backend.readSync(x.dataId);
-    const value = x.dtype === 'string' ?
-        (data as Uint8Array[]).map(d => util.decodeString(d)) :
-        data as TypedArray;
-    const buf = buffer(x.shape, x.dtype, value);
-    const outBuf = tileImplCPU(buf, reps);
-    return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+    return ClosureCommand.record([x], ([x]) => {
+      const data = backend.readSync(x.dataId);
+      const value = x.dtype === 'string' ?
+          (data as Uint8Array[]).map(d => util.decodeString(d)) :
+          data as TypedArray;
+      const buf = buffer(x.shape, x.dtype, value);
+      const outBuf = tileImplCPU(buf, reps);
+      return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+    }, {backend});
   }
 
   const program = new TileProgram(x.shape, reps);
@@ -51,4 +53,5 @@ export const tileConfig: KernelConfig = {
   kernelName: Tile,
   backendName: 'webgl',
   kernelFunc: tile as unknown as KernelFunc,
+  isRecordingBuiltin: true,
 };

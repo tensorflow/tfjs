@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Scalar, Tensor, Tensor1D, tidy, util} from '@tensorflow/tfjs-core';
+import {ClosureCommand, Scalar, Tensor, Tensor1D, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -113,19 +113,23 @@ export const executeOp: InternalOpExecutor =
                 getParamValue('axis', node, tensorMap, context) as number;
             const tensors =
                 getParamValue('tensors', node, tensorMap, context) as Tensor[];
-            // Reshape the tensors to the first tensor's shape if they don't
-            // match.
             const shape = tensors[0].shape;
             const squeezedShape = ops.squeeze(tensors[0]).shape;
-            const mapped = tensors.map(tensor => {
-              const sameShape = util.arraysEqual(tensor.shape, shape);
-              if (!sameShape &&
-                  !util.arraysEqual(ops.squeeze(tensor).shape, squeezedShape)) {
-                throw new Error('the input tensors shape does not match');
-              }
-              return sameShape ? tensor : ops.reshape(tensor, shape);
-            });
-            return [ops.stack(mapped, axis)];
+
+            return ClosureCommand.record(tensors, (tensors: Tensor[]) => {
+              // Reshape the tensors to the first tensor's shape if they don't
+              // match.
+              const mapped = tensors.map(tensor => {
+                const sameShape = util.arraysEqual(tensor.shape, shape);
+                if (!sameShape &&
+                    !util.arraysEqual(
+                        ops.squeeze(tensor).shape, squeezedShape)) {
+                  throw new Error('the input tensors shape does not match');
+                }
+                return sameShape ? tensor : ops.reshape(tensor, shape);
+              });
+              return [ops.stack(mapped, axis)];
+            }, {convertInputsToTensor: true});
           });
         }
         case 'Unpack': {

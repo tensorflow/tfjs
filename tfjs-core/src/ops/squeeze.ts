@@ -40,7 +40,8 @@ import {reshape} from './reshape';
  */
 function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
   const $x = convertToTensor(x, 'x', 'squeeze', 'string_or_numeric');
-  return reshape($x, squeezeShape($x.shape, axis).newShape) as T;
+  const newShape = squeezeShape($x.shape, axis).newShape;
+  return reshape(x, newShape) as T;
 }
 
-export const squeeze = /* @__PURE__ */ op({squeeze_});
+export const squeeze = /* @__PURE__ */ op({squeeze_}, 'auto');

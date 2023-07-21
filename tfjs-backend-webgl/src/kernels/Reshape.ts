@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {ClosureCommand, KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {packedReshape} from '../kernel_utils/reshape';
@@ -44,16 +44,19 @@ export function reshape(args: {
   const xTexData = webglBackend.texData.get(x.dataId);
   if (xTexData.isPacked && !isReshapeFree(x.shape, $shape) &&
       !(xTexData.texture !== null && isReshapeFree(xTexData.shape, $shape))) {
+    // packedReshape should be auto recorded.
     return packedReshape(x, $shape, webglBackend);
   }
 
-  webglBackend.incRef(x.dataId);
-
-  return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
+  return ClosureCommand.record([x], ([x]) => {
+    webglBackend.incRef(x.dataId);
+    return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
+  }, {backend});
 }
 
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'webgl',
-  kernelFunc: reshape as unknown as KernelFunc
+  kernelFunc: reshape as unknown as KernelFunc,
+  isRecordingBuiltin: true,
 };

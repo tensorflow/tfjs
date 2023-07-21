@@ -47,4 +47,4 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
   return ENGINE.runKernel(Identity, inputs as unknown as NamedTensorMap);
 }
 
-export const clone = /* @__PURE__ */ op({clone_});
+export const clone = /* @__PURE__ */ op({clone_}, 'auto');

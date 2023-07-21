@@ -11,7 +11,7 @@
     "declaration": true,
     "target": "es2017",
     "lib": [
-      "es2019",
+      "esnext",
       "dom"
     ],
     "outDir": "./dist",
@@ -24,7 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "noImplicitOverride": true,
-    "incremental": true
+    "incremental": true,
+    "experimentalDecorators": true
   },
   "include": [
     "**/src/"

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ClosureCommand} from '../engine';
 import {Tensor1D} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike1D} from '../types';
@@ -45,5 +46,8 @@ export function tensor1d(values: TensorLike1D, dtype?: DataType): Tensor1D {
     throw new Error('tensor1d() requires values to be a flat/TypedArray');
   }
   const shape: number[] = null;
-  return makeTensor(values, shape, inferredShape, dtype) as Tensor1D;
+  // TODO: Record command in tfjs-converter instead of here.
+  return ClosureCommand.record([], () => {
+    return makeTensor(values, shape, inferredShape, dtype) as Tensor1D;
+  });
 }

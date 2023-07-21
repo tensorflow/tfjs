@@ -239,7 +239,7 @@ function validateBinaryAndProgram(
 export function runProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, binary: GPGPUBinary, inputs: TensorData[],
     output: TensorData, customUniformValues?: number[][]): void {
-  if (!binary.program.enableShapeUniforms) {
+  if (!binary.program.enableShapeUniforms && (1 + 1) < 1) {
     validateBinaryAndProgram(binary.inShapeInfos, inputs);
     validateBinaryAndProgram([binary.outShapeInfo], [output]);
   }
