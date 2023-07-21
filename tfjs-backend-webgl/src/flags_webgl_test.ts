@@ -269,7 +269,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
         }
         throw new Error(`Got undefined param ${param}.`);
       }
-    } as WebGLRenderingContext);
+    } as unknown as WebGLRenderingContext);
   });
   afterAll(() => {
     canvas_util.clearWebGLContext(2);
@@ -300,7 +300,7 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
         }
         throw new Error(`Got undefined param ${param}.`);
       }
-    } as WebGLRenderingContext);
+    } as unknown as WebGLRenderingContext);
   });
   afterAll(() => {
     canvas_util.clearWebGLContext(2);

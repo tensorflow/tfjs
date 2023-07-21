@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {CompositeArrayBuffer} from '@tensorflow/tfjs-core/dist/io/io';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -140,7 +141,7 @@ describe('File Handler', () => {
         }
       ]);
       tf.test_util.expectArraysClose(
-          new Float32Array(modelArtifacts.weightData),
+          new Float32Array(CompositeArrayBuffer.join(modelArtifacts.weightData)),
           new Float32Array([-1.1, -3.3, -3.3, -7.7]));
     });
     it('loading from nonexistent model.json path fails', async () => {
