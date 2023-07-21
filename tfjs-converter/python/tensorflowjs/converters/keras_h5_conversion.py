@@ -279,7 +279,7 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
 
   keys_to_remove = ["module", "registered_name", "date_saved"]
   config = _ensure_json_dict(config_file)
-  # _discard_v3_keys(config, keys_to_remove)
+  _discard_v3_keys(config, keys_to_remove)
   model_json['model_config'] = config
   translate_class_names(model_json['model_config'])
   if 'training_config' in h5file.attrs:
