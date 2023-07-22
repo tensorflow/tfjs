@@ -36,6 +36,17 @@ export interface ContainerArgs {
   name?: string;
 }
 
+// get weights key from tensor map in order to check if it is from keras v3.
+// e.g. dense/0
+const isKerasSavedModelFormat = (weights: NamedTensorMap): boolean => {
+  const keys = Object.keys(weights);
+  if (keys.length === 0) {
+    return false;
+  }
+  const key = keys[0].split('/');
+  return !isNaN(parseInt(key[key.length - 1], 10));
+};
+
 /**
  * A Container is a directed acyclic graph of layers.
  *
@@ -594,16 +605,13 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
-    // get weights key from tensor map in order to check if it is from keras v3.
-    // e.g. dense/0
-    const key = Object.keys(weights)[0].split('/');
-    const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
+    const modelIsKerasSavedModelFormat = isKerasSavedModelFormat(weights);
     // Check if weights from keras v3.
     for (const layer of this.layers) {
       for (const [index, weight] of layer.weights.entries()) {
         // Parse the name to layerName/index.
         // e.g. dense/0, dense/1, dense_1/0, dense_1/1
-        const parsedName = isKerasSavedModelFormat ?
+        const parsedName = modelIsKerasSavedModelFormat ?
             `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
             weight.originalName;
         if (nameToWeight[parsedName] != null) {

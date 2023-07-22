@@ -15,6 +15,7 @@ import * as tfl from './index';
 import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version} from './version';
 
+
 describeMathCPUAndGPU('LayersModel.save', () => {
   class IOHandlerForTest implements io.IOHandler {
     savedArtifacts: io.ModelArtifacts;
@@ -119,6 +120,38 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     model1.add(
         tfl.layers.dense({units: 2, inputShape: [2], activation: 'relu'}));
     model1.add(tfl.layers.dense({units: 1, useBias: false}));
+
+    // Use a randomly generated model path to prevent collision.
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+
+    // First save the model to local storage.
+    const modelURL = `localstorage://${path}`;
+    await model1.save(modelURL);
+    // Once the saving succeeds, load the model back.
+    const model2 = await tfl.loadLayersModel(modelURL);
+    // Verify that the topology of the model is correct.
+    expect(model2.toJSON(null, false)).toEqual(model1.toJSON(null, false));
+
+    // Check the equality of the two models' weights.
+    const weights1 = model1.getWeights();
+    const weights2 = model2.getWeights();
+    expect(weights2.length).toEqual(weights1.length);
+    for (let i = 0; i < weights1.length; ++i) {
+      expectTensorsClose(weights1[i], weights2[i]);
+    }
+  });
+
+  it('loadLayersModel: save and load a model with empty weights', async () => {
+    // https://github.com/tensorflow/tfjs/issues/7865
+    // Models without weights should still be valid models
+    const model1 = tfl.sequential();
+    model1.add(
+      tfl.layers.upSampling2d({
+        size: [2, 2],
+        dataFormat: "channelsLast",
+        inputShape: [null, null, 3],
+      })
+    );
 
     // Use a randomly generated model path to prevent collision.
     const path = `testModel${new Date().getTime()}_${Math.random()}`;
@@ -456,6 +489,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     // Assert the orthogonal initializer has been called.
     expect(qrSpy).toHaveBeenCalled();
   });
+
 
   it('Load model artifact with ndarray-format scalar objects', async () => {
     // The following model config contains a scalar parameter serialized in the
