@@ -596,6 +596,7 @@ export abstract class Container extends Layer {
     let totalWeightsCount = 0;
     // get weights key from tensor map in order to check if it is from keras v3.
     // e.g. dense/0
+    this.parseWeights(weights);
     const key = Object.keys(weights)[0].split('/');
     const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
     // Check if weights from keras v3.
@@ -650,6 +651,25 @@ export abstract class Container extends Layer {
     }
 
     batchSetValue(weightValueTuples);
+  }
+
+  protected parseWeights(weights: NamedTensorMap) {
+    Object.keys(weights).forEach(function(key) {
+      const listParts = key.split('/');
+      const list = ['vars', 'layer_checkpoint_dependencies'];
+      const newKey = listParts
+                         .map(str => {
+                           if (str.startsWith('_')) {
+                             return str.slice(1);
+                           }
+                           return str;
+                         })
+                         .filter(str => !list.includes(str))
+                         .join('/');
+
+      weights[newKey] = weights[key];
+      delete weights[key];
+    })
   }
 
   /**
