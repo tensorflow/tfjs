@@ -29,4 +29,4 @@ TEST_DATA_2="integration_tests/keras_to_tfjs_create_save_predict_data/"
 rm -rf "$TEST_DATA_2"
 mkdir "$TEST_DATA_2"
 
-python integration_tests/keras_to_tfjs_create_save_predict.py --test_data_dir=$TEST_DATA_2
+python integration_tests/keras_to_tfjs_create_save_predict_test.py --test_data_dir=$TEST_DATA_2
