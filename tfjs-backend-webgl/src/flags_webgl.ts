@@ -180,6 +180,10 @@ ENV.registerFlag(
       return -1;
     },
     threshold => {
+      if (!(typeof threshold === 'number')) {
+        throw new Error('WEBGL_DELETE_TEXTURE_THRESHOLD must be a number but ' +
+            `got ${threshold}.`);
+      }
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
             `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never ` +
@@ -202,6 +206,10 @@ ENV.registerFlag(
       return device_util.isMobile() ? 1 : -1;
     },
     threshold => {
+      if (!(typeof threshold === 'number')) {
+        throw new Error('WEBGL_FLUSH_THRESHOLD must be a number but got ' +
+            `${threshold}.`);
+      }
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
             `WEBGL_FLUSH_THRESHOLD must be -1 (indicating never ` +
