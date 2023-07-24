@@ -49,21 +49,22 @@ async function load_file(file_path, model_name) {
     return JSON.parse(data);
   });
 
-  // const parsedShape = JSON.parse(shapeArray);
-  // const parsedData = JSON.parse(dataArray);
-  const zippedArray = zip(dataArray, shapeArray);
+  const parsedShape = JSON.parse(shapeArray);
+  const parsedData = JSON.parse(dataArray);
+  const zippedArray = zip(parsedData, parsedShape);
+  console.log("zipped Array: ", zippedArray);
   const res = [];
   for (let i = 0; i < zippedArray.length; i++) {
     const value = zippedArray[i][0];
     const shape = zippedArray[i][1];
-    // res.push(ndarray(value, shape));
-    res.push(tfjsNode.tensor(value, shape));
+    res.push(ndarray(value, shape));
+    // res.push(tfjsNode.tensor(value, shape));
   }
   let z;
   if (res.length == 1) {
     z = res[0];
   } else {
-    throw Error(`Expected one tensor. Got ${res.length}`);
+    z = res;
   }
   const tensor = tfjsNode.tensor(z.data, z.shape);
   const ys = model.predict(tensor);
