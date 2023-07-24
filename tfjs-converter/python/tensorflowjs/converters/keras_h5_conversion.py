@@ -288,20 +288,7 @@ def h5_v3_merged_saved_model_to_tfjs_format(h5file, meta_file, config_file,split
 
   groups = [] if split_by_layer else [[]]
 
-  isCustom = True
-  if isCustom:
-    _convert_v3_group_structure_to_weights(groups=groups, group=h5file, split_by_layer=split_by_layer)
-  else:
-    model_weights = h5file['_layer_checkpoint_dependencies']
-    layer_names = [as_text(n) for n in model_weights]
-    for index, layer_name in enumerate(layer_names):
-      group_of_weights = model_weights[layer_name]
-      group = _convert_v3_group(group_of_weights, layer_name)
-      if group:
-        if split_by_layer:
-          groups.append(group)
-        else:
-          groups[0] += group
+  _convert_v3_group_structure_to_weights(groups=groups, group=h5file, split_by_layer=split_by_layer)
   return model_json, groups
 
 def _convert_v3_group_structure_to_weights(groups, group, split_by_layer, indent=""):

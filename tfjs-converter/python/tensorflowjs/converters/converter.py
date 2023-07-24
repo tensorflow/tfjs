@@ -169,7 +169,7 @@ def dispatch_keras_keras_to_tfjs_layers_model_conversion(
               "but cannot read valid JSON content from %s." % meta_data_json_path
           )
 
-  model_json, groups = keras_h5_conversion.h5_v3_merged_saved_model_to_tfjs_format(
+  model_json, groups = conversion.h5_v3_merged_saved_model_to_tfjs_format(
       h5_file, meta_file, config_file, split_by_layer=split_weights_by_layer
   )
 
