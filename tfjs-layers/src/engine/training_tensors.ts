@@ -44,7 +44,7 @@ export interface ModelFitArgs {
    *     In the browser: no action. This is the default.
    * 2 - Not implemented yet.
    */
-  verbose?: ModelLoggingVerbosity;
+  verbose?: ModelLoggingVerbosity | 2;
 
   /**
    * List of callbacks to be called during training.
