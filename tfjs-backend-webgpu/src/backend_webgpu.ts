@@ -419,8 +419,6 @@ export class WebGPUBackend extends KernelBackend {
 
     this.endComputePassEncoder();
     const context = stagingDeviceStorage.getContext('webgpu');
-    // TODO: use rgba8unorm format when this format is supported on Mac.
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=1298618
     context.configure({
       device: this.device,
       format: 'rgba8unorm',
