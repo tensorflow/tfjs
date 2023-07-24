@@ -15,7 +15,6 @@ import * as tfl from './index';
 import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version} from './version';
 
-
 describeMathCPUAndGPU('LayersModel.save', () => {
   class IOHandlerForTest implements io.IOHandler {
     savedArtifacts: io.ModelArtifacts;
@@ -148,7 +147,7 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     model1.add(
       tfl.layers.upSampling2d({
         size: [2, 2],
-        dataFormat: "channelsLast",
+        dataFormat: 'channelsLast',
         inputShape: [null, null, 3],
       })
     );
@@ -489,7 +488,6 @@ describeMathCPUAndWebGL2('Save-load round trips', () => {
     // Assert the orthogonal initializer has been called.
     expect(qrSpy).toHaveBeenCalled();
   });
-
 
   it('Load model artifact with ndarray-format scalar objects', async () => {
     // The following model config contains a scalar parameter serialized in the
