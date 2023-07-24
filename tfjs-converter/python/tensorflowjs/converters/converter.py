@@ -33,7 +33,6 @@ from tensorflowjs import quantization
 from tensorflowjs import version
 from tensorflowjs.converters import common
 from tensorflowjs.converters import keras_h5_conversion as conversion
-import keras_h5_conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from zipfile import ZipFile, is_zipfile
