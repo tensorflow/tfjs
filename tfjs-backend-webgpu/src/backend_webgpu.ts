@@ -447,13 +447,13 @@ export class WebGPUBackend extends KernelBackend {
           this.submitQueue();
 
           const gl = stagingHostStorage.getContext('webgl2');
-          let glTex = gl.createTexture();
+          const glTex = gl.createTexture();
           gl.bindTexture(gl.TEXTURE_2D, glTex);
           gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
           gl.texImage2D(
               gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE,
               stagingDeviceStorage);
-          let fb = gl.createFramebuffer();
+          const fb = gl.createFramebuffer();
           gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
           gl.framebufferTexture2D(
               gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glTex, 0);
@@ -483,7 +483,7 @@ export class WebGPUBackend extends KernelBackend {
     if (width > 0) {
       // Read the buffer data, which not fully fill one row of canvas.
       readDataGPUToCPU(width, 1, offset);
-    };
+    }
 
     const vals =
         util.convertBackendValuesAndArrayBuffer(valsGPU, tensorData.dtype);
