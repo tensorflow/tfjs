@@ -137,48 +137,18 @@ def _deserialize_keras_keras_model(model_topology_json,
   else:
     raise Exception("'model_config' does not exist in json file.")
 
-
-  custom_model = True
-  if custom_model:
-    model = deserialize_keras_object(model_topology_json)
-    if weight_entries:
-      weights_dict = dict()
-      for weight_entry in weight_entries:
-        weights_dict[weight_entry['name']] = weight_entry['data']
-    _load_state(model,
-                weights_dict=weights_dict,
-                inner_path="",
-                visited_trackables=set())
-    os.remove('temp.h5')
-    return model
-  else:
-    model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
-
+  model = deserialize_keras_object(model_topology_json)
   if weight_entries:
     weights_dict = dict()
     for weight_entry in weight_entries:
       weights_dict[weight_entry['name']] = weight_entry['data']
-
-    # Collect weight names from the model, in the same order as the internal
-    # ordering of model.set_weights() used below.
-
-    weight_names = []
-    for layer in model.layers:
-      for index, w in enumerate(layer.weights):
-        weight_names.append(layer.name + '/' + str(index))
-
-
-    # Prepare list of weight values for calling set_weights().
-    weights_list = []
-
-    for name in weight_names:
-      if name in weights_dict:
-        weights_list.append(weights_dict[name])
-      else:
-        raise Exception(f"${name} does not exist in weights entries.")
-
-    model.set_weights(weights_list)
-
+  _load_state(model,
+              weights_dict=weights_dict,
+              inner_path="",
+              visited_trackables=set())
+  if not weights_dict:
+    raise Exception('Unassigned weights for the model.')
+  os.remove('temp.h5')
   return model
 
 def _load_state(trackable, weights_dict, inner_path, visited_trackables=None):
@@ -200,6 +170,7 @@ def _load_state(trackable, weights_dict, inner_path, visited_trackables=None):
     h5f = h5py.File('temp.h5', 'w')
     for i in filter_list:
       index = i.split('/')[-1]
+      # Create temp dataset named with index.
       h5f.create_dataset(f'{index}', data=weights_dict[i])
       del weights_dict[i]
     trackable.load_own_variables(h5f)
