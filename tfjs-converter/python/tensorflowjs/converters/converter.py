@@ -33,8 +33,7 @@ from tensorflowjs import quantization
 from tensorflowjs import version
 from tensorflowjs.converters import common
 from tensorflowjs.converters import keras_h5_conversion as conversion
-# from tensorflowjs.converters import keras_tfjs_loader
-import keras_tfjs_loader
+from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from zipfile import ZipFile, is_zipfile
 
@@ -354,8 +353,6 @@ def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
         'but received an existing directory (%s).' % v3_path)
 
   # Verify that config_json_path points to a JSON file.
-  p = os.getcwd()
-  print(config_json_path)
   with open(config_json_path, 'rt') as f:
     try:
       json.load(f)
@@ -884,7 +881,6 @@ def get_arg_parser():
 
 def convert(arguments):
   args = get_arg_parser().parse_args(arguments)
-  print('Args ====> ', args)
   if args.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')

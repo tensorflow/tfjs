@@ -42,7 +42,6 @@ from keras import losses
 _CONFIG_FILENAME = "config.json"
 _METADATA_FILENAME = "metadata.json"
 _VARS_FNAME = "model.weights"
-_FLAG = True
 
 def _deserialize_keras_model(model_topology_json,
                              weight_entries=None,
@@ -298,13 +297,13 @@ def _generate_v3_keys(config):
     if 'class_name' in list_of_keys:
       try:
         config['module'] = tf_module_mapper.get_module_path(config['class_name'])
-        # Set registered name to None since it is not custom class.
+        # Set registered name to None since it is not a custom class.
         config['registered_name'] = None
       except Exception:
         if config['class_name'] in keras_nlp.models.__dict__:
           obj = keras_nlp.models.__dict__.get(config['class_name'])
           config['module'] = obj.__module__
-          # Set registered name of custom class.
+          # Set registered name of custom class in keras_nlp.
           config['registered_name'] = object_registration.get_registered_name(obj)
         else:
           raise KeyError(f"Unknown class name {config['class_name']}")
