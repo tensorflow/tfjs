@@ -170,6 +170,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    # Ensure matching legacy serialization format
+    model.use_legacy_config = True
+
     if six.PY3:
       config_json = json.loads(model.to_json())
     else:
@@ -219,6 +222,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    # Ensure matching legacy serialization format
+    model.use_legacy_config = True
+
     if six.PY3:
       config_json = json.loads(model.to_json())
     else:
