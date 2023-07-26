@@ -116,7 +116,8 @@ export function analyzeSplitString(
       inputSpecArr.map((dim, i) => {
         // This converts any negative indices to positive ones.
         const idx = i + elided - inputShape.length;
-        const positiveIdx = idx < 0 ? inputShape.length + idx : idx;
+        const positiveIdx =
+          ((idx % inputShape.length) + inputShape.length) % inputShape.length;
         return [dim, positiveIdx];
       })
     );
@@ -201,7 +202,7 @@ export function analyzeSplitString(
     );
 
     if (!leftElided) {
-      for (let _ = 0; _ < elided; _++) {
+      for (let i = 0; i < elided; i++) {
         biasShape.push(1);
       }
     }
