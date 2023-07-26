@@ -417,15 +417,6 @@ const commonSnippet = `
     return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
   }
 
-  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
-    var res: i32 = a / b;
-    let modulo: i32 = a % b;
-    if (sign < 0. && modulo != 0) {
-      res = res - 1;
-    }
-    return res;
-  }
-
   // NaN defination in IEEE 754-1985 is :
   //   - sign = either 0 or 1.
   //   - biased exponent = all 1 bits.
