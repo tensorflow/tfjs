@@ -36,23 +36,23 @@ export function tensorArrTo2DArr(inputs: Tensor[]): unknown[][] {
  * @returns a new tensor with the modification.
  */
 export function sliceUpdate(
-  inputs: Tensor, startIndices: number[], updates: Tensor): Tensor {
-const indices: number[][] = [];
-function createIndices(idx: number, curr: number[]): void {
-  if (curr.length === startIndices.length) {
-    indices.push(curr.slice());
-    return;
+    inputs: Tensor, startIndices: number[], updates: Tensor): Tensor {
+  const indices: number[][] = [];
+  function createIndices(idx: number, curr: number[]): void {
+    if (curr.length === startIndices.length) {
+      indices.push(curr.slice());
+      return;
+    }
+    const s = startIndices[idx];
+    const e = s + updates.shape[idx];
+    for (let i = s; i < e; i++) {
+      curr.push(i);
+      createIndices(idx + 1, curr);
+      curr.pop();
+    }
   }
-  const s = startIndices[idx];
-  const e = s + updates.shape[idx];
-  for (let i = s; i < e; i++) {
-    curr.push(i);
-    createIndices(idx + 1, curr);
-    curr.pop();
-  }
-}
-createIndices(0, []);
-// Flatten the updates to match length of its update indices.
-updates = updates.reshape([updates.size]);
-return tensorScatterUpdate(inputs, indices, updates);
+  createIndices(0, []);
+  // Flatten the updates to match length of its update indices.
+  updates = updates.reshape([updates.size]);
+  return tensorScatterUpdate(inputs, indices, updates);
 }
