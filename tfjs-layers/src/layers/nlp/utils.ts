@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { Tensor, tensorScatterUpdate } from '@tensorflow/tfjs-core';
+import { Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
 
 export function tensorToArr(input: Tensor): unknown[] {
   return Array.from(input.dataSync()) as unknown as unknown[];
@@ -37,22 +37,28 @@ export function tensorArrTo2DArr(inputs: Tensor[]): unknown[][] {
  */
 export function sliceUpdate(
     inputs: Tensor, startIndices: number[], updates: Tensor): Tensor {
-  const indices: number[][] = [];
-  function createIndices(idx: number, curr: number[]): void {
-    if (curr.length === startIndices.length) {
-      indices.push(curr.slice());
-      return;
+  return tidy(() => {
+    const indices: number[][] = [];
+    /**
+     * Computes the update indices by iterating through all indices from
+     * `startIndices` to `startIndices + updates.shape`.
+     */
+    function createIndices(idx: number, curr: number[]): void {
+      if (curr.length === startIndices.length) {
+        indices.push(curr.slice());
+        return;
+      }
+      const start = startIndices[idx];
+      const end = start + updates.shape[idx];
+      for (let i = start; i < end; i++) {
+        curr.push(i);
+        createIndices(idx + 1, curr);
+        curr.pop();
+      }
     }
-    const s = startIndices[idx];
-    const e = s + updates.shape[idx];
-    for (let i = s; i < e; i++) {
-      curr.push(i);
-      createIndices(idx + 1, curr);
-      curr.pop();
-    }
-  }
-  createIndices(0, []);
-  // Flatten the updates to match length of its update indices.
-  updates = updates.reshape([updates.size]);
-  return tensorScatterUpdate(inputs, indices, updates);
+    createIndices(0, []);
+    // Flatten the updates to match length of its update indices.
+    updates = updates.reshape([updates.size]);
+    return tensorScatterUpdate(inputs, indices, updates);
+  });
 }
