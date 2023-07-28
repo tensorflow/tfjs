@@ -52,6 +52,21 @@ export function expectTensorsClose(
 }
 
 /**
+ * Expect values are not close between a Tensor or number array.
+ * @param t1
+ * @param t2
+ */
+export function expectTensorsNotClose(
+  t1: Tensor|number[], t2: Tensor|number[], epsilon?: number) {
+try {
+  expectTensorsClose(t1, t2, epsilon);
+} catch (error) {
+  return;
+}
+throw new Error('The two values are close at all elements.');
+}
+
+/**
  * Expect values in array are within a specified range, boundaries inclusive.
  * @param actual
  * @param expected
