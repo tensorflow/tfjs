@@ -27,7 +27,7 @@ import { computeCausalMask, mergePaddingAndAttentionMask } from './transformer_l
 describe('TransformerLayerUtils', () => {
   it('compute causal mask', () => {
     const mask = computeCausalMask(1, 2, 2);
-    expectTensorsClose(mask, tensor([[[1, 0], [1, 1]]]));
+    expect(mask.arraySync()).toEqual([[[1, 0], [1, 1]]]);
   });
 
   it('merge padding and attention mask', () => {
@@ -38,7 +38,10 @@ describe('TransformerLayerUtils', () => {
     const mergedMask =
       mergePaddingAndAttentionMask(inputs, paddingMask, attentionMask);
 
-    expectTensorsClose(mergedMask, tensor([[[0, 0, 0], [0, 1, 0], [1, 0, 0]]]));
+    expectTensorsClose(
+      mergedMask,
+      tensor([[[0, 0, 0], [0, 1, 0], [1, 0, 0]]], null, 'int32')
+    );
   });
 
   it('bad mask shapes', () => {

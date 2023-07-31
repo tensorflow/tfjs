@@ -83,9 +83,9 @@ export function computeCausalMask(
  *
  * @param inputs the input sequence.
  * @param paddingMask the 1D padding mask, of shape
-            [batchSize, sequenceLength].
+ *          [batchSize, sequenceLength].
  * @param attentionMask the 2D customized mask, of shape
-            [batchSize, sequenceLength, sequence2_length].
+ *          [batchSize, sequenceLength, sequence2_length].
  * @returns
  *  A merged 2D mask or null. If only `paddingMask` is provided, the
  *  returned mask is paddingMask with one additional axis.
