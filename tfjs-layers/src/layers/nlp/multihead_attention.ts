@@ -815,7 +815,7 @@ export class MultiHeadAttention extends Layer {
 
       if (useCausalMask) {
         // the shape of the causal mask is [1, T, S]
-        const mask = this.computeCasualMask(query, value);
+        const mask = this.computeCausalMask(query, value);
         autoMask = mask;
       }
 
@@ -847,7 +847,7 @@ export class MultiHeadAttention extends Layer {
    * @returns mask: A boolean `Tensor` of shape [1, T, S] containing a lower
    *    triangular matrix of shape [T, S].
    */
-  private computeCasualMask(query: Tensor, value?: Tensor): Tensor {
+  private computeCausalMask(query: Tensor, value?: Tensor): Tensor {
     return tidy(() => {
       const qSeqLength = query.shape[1];
       const vSeqLength = value ? value.shape[1] : qSeqLength;
