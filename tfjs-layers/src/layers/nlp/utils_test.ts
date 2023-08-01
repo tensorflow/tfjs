@@ -51,7 +51,7 @@ describe('sliceUpdate', () => {
 
     const result = sliceUpdate(inputs, startIndices, updates);
 
-    expectTensorsClose(result, expected, 0);
+    expectTensorsClose(result, expected);
   });
 
   it('2D', () => {
@@ -67,7 +67,7 @@ describe('sliceUpdate', () => {
     ]);
     const result = sliceUpdate(inputs, startIndices, updates);
 
-    expectTensorsClose(result, expected, 0);
+    expectTensorsClose(result, expected);
   });
 
   it('3D', () => {
@@ -84,6 +84,6 @@ describe('sliceUpdate', () => {
     ]);
     const result = sliceUpdate(inputs, startIndices, updates);
 
-    expectTensorsClose(result, expected, 0);
+    expectTensorsClose(result, expected);
   });
 });
