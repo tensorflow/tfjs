@@ -26,6 +26,7 @@ describeMathCPUAndGPU('LayersModel.save', () => {
   }
 
   class EmptyIOHandler implements io.IOHandler {}
+
   it('Model artifacts contains meta-information: Sequential', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
