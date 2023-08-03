@@ -16,7 +16,6 @@ import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} fro
 import {version} from './version';
 
 describeMathCPUAndGPU('LayersModel.save', () => {
-  let originalTimeout: number;
   class IOHandlerForTest implements io.IOHandler {
     savedArtifacts: io.ModelArtifacts;
 
@@ -27,14 +26,6 @@ describeMathCPUAndGPU('LayersModel.save', () => {
   }
 
   class EmptyIOHandler implements io.IOHandler {}
-  beforeEach(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
-  });
-
-  afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
   it('Model artifacts contains meta-information: Sequential', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
