@@ -12,7 +12,7 @@
  *  Advanced activation layers.
  */
 
-import {cast, clipByValue, elu, greater, leakyRelu, mul, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {add, cast, clipByValue, elu, exp, greater, leakyRelu, logSumExp, mul, ones, prelu, relu, scalar, serialization, sub, Tensor} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
@@ -306,13 +306,13 @@ export declare interface SoftmaxLayerArgs extends LayerArgs {
    * Integer, axis along which the softmax normalization is applied.
    * Defaults to `-1` (i.e., the last axis).
    */
-  axis?: number;
+  axis?: number|number[];
 }
 
 export class Softmax extends Layer {
   /** @nocollapse */
   static className = 'Softmax';
-  readonly axis: number;
+  readonly axis: number|number[];
   readonly softmax: (t: Tensor, a?: number) => Tensor;
   readonly DEFAULT_AXIS = 1.0;
 
@@ -326,7 +326,27 @@ export class Softmax extends Layer {
   }
 
   override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = getExactlyOneTensor(inputs);
+    // TODO(pforderique): Add tests for when `this.axis` is a number[].
+    let x = getExactlyOneTensor(inputs);
+    const mask = kwargs['mask'] as Tensor;
+    if (mask != null) {
+      // Since mask is 1.0 for positions we want to keep and 0.0 for masked
+      // positions, this operation will create a tensor which is 0.0 for
+      // positions we want to attend and -1e.9 for masked positions.
+      const adder =
+        mul(sub(ones(x.shape), cast(mask, x.dtype)), scalar(-1e9));
+
+      // Since we are adding it to the raw scores before the softmax, this
+      // is effectively the same as removing these entirely.
+      x = add(x, adder);
+    }
+    if (this.axis instanceof Array) {
+      if (this.axis.length > 1) {
+        return exp(sub(x, logSumExp(x, this.axis, true)));
+      } else {
+        return this.softmax(x, this.axis[0]);
+      }
+    }
     return this.softmax(x, this.axis);
   }
 
