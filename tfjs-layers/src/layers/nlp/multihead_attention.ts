@@ -468,7 +468,7 @@ export class MultiHeadAttention extends Layer {
    *
    * Once the method is called, this.builtFromSignature will be set to true.
    */
-  protected buildFromSignature(
+  buildFromSignature(
     queryShape: Shape,
     valueShape: Shape,
     keyShape?: Shape
