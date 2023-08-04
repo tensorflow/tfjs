@@ -18,7 +18,7 @@
 /**
  * Unit Tests for Transformer Decoder.
  */
-import { Tensor, memory, randomUniform, randomUniformInt, zeros, zerosLike } from '@tensorflow/tfjs-core';
+import { Tensor, memory, randomUniform, randomUniformInt, serialization, zeros, zerosLike } from '@tensorflow/tfjs-core';
 
 import { SymbolicTensor } from '../../../engine/topology';
 import { input, model } from '../../../exports';
@@ -27,7 +27,6 @@ import { Dense } from '../../core';
 import { sliceUpdate } from '../utils';
 
 import { TransformerDecoder } from './transformer_decoder';
-import { ConfigDict } from '@tensorflow/tfjs-core/dist/serialization';
 
 describe('TransformerDecoder', () => {
   let originalTimeout: number;
@@ -72,7 +71,7 @@ describe('TransformerDecoder', () => {
     const decoderInput = zeros([4, 6]);
 
     // Without cross-attention.
-    let decoder = new TransformerDecoder({intermediateDim: 4, numHeads: 2});
+    const decoder = new TransformerDecoder({intermediateDim: 4, numHeads: 2});
     decoder.apply(decoderInput);
 
     // Should raise ValueError if encoderInput is provided.
@@ -114,10 +113,10 @@ describe('TransformerDecoder', () => {
     const restored = TransformerDecoder.fromConfig(TransformerDecoder, config);
 
     // Initializers don't get serailized with customObjects.
-    delete ((config['kernelInitializer'] as ConfigDict
-      )['config'] as ConfigDict)['customObjects'];
-    delete ((config['biasInitializer'] as ConfigDict
-      )['config'] as ConfigDict)['customObjects'];
+    delete ((config['kernelInitializer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict)['customObjects'];
+    delete ((config['biasInitializer'] as serialization.ConfigDict
+      )['config'] as serialization.ConfigDict)['customObjects'];
 
     expect(restored.getConfig()).toEqual(config);
   });
