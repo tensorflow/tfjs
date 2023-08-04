@@ -656,7 +656,7 @@ export abstract class Container extends Layer {
   }
 
   protected parseWeights(weights: NamedTensorMap) {
-    for (let key in Object.keys(weights)) {
+    for (const key in Object.keys(weights)) {
       const listParts = key.split('/');
       const list = ['vars', 'layer_checkpoint_dependencies'];
       // For keras v3, the weights name are saved based on the folder structure.
