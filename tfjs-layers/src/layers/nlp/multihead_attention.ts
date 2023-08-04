@@ -475,7 +475,7 @@ export class MultiHeadAttention extends Layer {
   ) {
     this.builtFromSignature = true;
 
-    if (keyShape === null) {
+    if (keyShape == null) {
       keyShape = valueShape;
     }
 
