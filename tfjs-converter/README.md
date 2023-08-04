@@ -56,9 +56,9 @@ __2. Run the converter script provided by the pip package:__
 
 There are three way to trigger the model conversion, explain below:
 
-- The conversion wizard: `tensorflowjs_wizard` ([go to section](#conversion-wizard-tensorflowjswizard))
-- Regular conversion script: `tensorflowjs_converter` ([go to section](#regular-conversion-script-tensorflowjsconverter))
-- Calling a converter function in Python (Flax/JAX) ([go to section](#calling-a-converter-function-in-python))
+- The conversion wizard: `tensorflowjs_wizard` ([go to section](https://github.com/tensorflow/tfjs/blob/master/tfjs-converter/README.md#conversion-wizard-tensorflowjs_wizard))
+- Regular conversion script: `tensorflowjs_converter` ([go to section](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter#regular-conversion-script-tensorflowjs_converter))
+- Calling a converter function in Python (Flax/JAX) ([go to section](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter#calling-a-converter-function-in-python-flaxjax))
 
 ## Conversion wizard: `tensorflowjs_wizard`
 
