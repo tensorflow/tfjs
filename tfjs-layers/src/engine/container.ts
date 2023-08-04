@@ -656,9 +656,16 @@ export abstract class Container extends Layer {
   }
 
   protected parseWeights(weights: NamedTensorMap) {
-    Object.keys(weights).forEach((key) => {
+    for (let key in Object.keys(weights)) {
       const listParts = key.split('/');
       const list = ['vars', 'layer_checkpoint_dependencies'];
+      // For keras v3, the weights name are saved based on the folder structure.
+      // e.g. _backbone/_layer_checkpoint_dependencies/transformer/_self../
+      // _output_dense/vars/0
+      // Therefore we discard the `vars` and `layer_checkpoint_depencies` within
+      // the saved name and only keeps the layer name and weights.
+      // This can help to mapping the actual name of the layers and load each
+      // weight accordingly.
       const newKey = listParts
                          .map(str => {
                            if (str.startsWith('_')) {
@@ -672,7 +679,7 @@ export abstract class Container extends Layer {
         weights[newKey] = weights[key];
         delete weights[key];
       }
-    });
+    }
   }
 
   /**
