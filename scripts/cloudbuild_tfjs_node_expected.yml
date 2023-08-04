@@ -150,7 +150,6 @@ steps:
       - test-ci
     waitFor:
       - yarn-tfjs-node
-      - build-addon-tfjs-node
       - lint-tfjs-node
       - yarn-common
       - yarn-link-package-build
