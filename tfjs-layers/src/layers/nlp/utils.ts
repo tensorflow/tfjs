@@ -15,7 +15,13 @@
  * =============================================================================
  */
 
-import { Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+import { ModelPredictConfig, Rank, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+
+import { ContainerArgs } from '../../engine/container';
+import { LayersModel, ModelEvaluateArgs } from '../../engine/training';
+import { NotImplementedError } from '../../errors';
+import { History } from 'tfjs-layers/src/base_callbacks';
+import { ModelFitArgs } from 'tfjs-layers/src/engine/training_tensors';
 
 export function tensorToArr(input: Tensor): unknown[] {
   return Array.from(input.dataSync()) as unknown as unknown[];
@@ -61,4 +67,79 @@ export function sliceUpdate(
     updates = updates.reshape([updates.size]);
     return tensorScatterUpdate(inputs, indices, updates);
   });
+}
+
+/**
+ * A model which allows automatically applying preprocessing.
+ */
+export interface PipelineModelArgs extends ContainerArgs {
+  /**
+   * Defaults to true.
+   */
+  includePreprocessing: boolean;
+}
+
+export class PipelineModel extends LayersModel {
+  protected includePreprocessing: boolean;
+
+  constructor(args: PipelineModelArgs) {
+    super(args);
+    this.includePreprocessing = args.includePreprocessing ?? true;
+  }
+
+  /**
+   * An overridable function which preprocesses features.
+   */
+  preprocessFeatures(x: Tensor) {
+    return x;
+  }
+
+  /**
+   * An overridable function which preprocesses labels.
+   */
+  preprocessLabels(y: Tensor) {
+    return y;
+  }
+
+  /**
+   * An overridable function which preprocesses entire samples.
+   */
+  preprocessSamples(x: Tensor, y?: Tensor, sampleWeight?: Tensor) {
+    throw new NotImplementedError();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Below are overrides to LayersModel methods to apply the functions above.
+  // ---------------------------------------------------------------------------
+  override fit(
+    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    args: ModelFitArgs = {}
+  ): Promise<History> {
+    throw new NotImplementedError();
+  }
+
+  override evaluate(
+    x: Tensor|Tensor[],
+    y: Tensor|Tensor[],
+    args?: ModelEvaluateArgs
+  ): Scalar | Scalar[] {
+    throw new NotImplementedError();
+  }
+
+  override predict(x: Tensor<Rank> | Tensor<Rank>[], args?: ModelPredictConfig): Tensor<Rank> | Tensor<Rank>[] {
+    throw new NotImplementedError();
+  }
+
+  override trainOnBatch(
+    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    sampleWeight?: Tensor
+  ): Promise<number|number[]> {
+    throw new NotImplementedError();
+  }
+
+  override predictOnBatch(x: Tensor|Tensor[]): Tensor|Tensor[] {
+    throw new NotImplementedError();
+  }
 }
