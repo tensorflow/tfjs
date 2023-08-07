@@ -91,7 +91,8 @@ class JaxConversionTest(tf.test.TestCase):
         {'w': 0.5},
         input_signatures=[tf.TensorSpec((None, 3), tf.float32)],
         polymorphic_shapes=['(b, 3)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   def test_convert_tf_poly_mismatch_raises(self):
     apply_fn = lambda params, x: jnp.sum(x) * params['w']
@@ -121,7 +122,8 @@ class JaxConversionTest(tf.test.TestCase):
         input_signatures=[tf.TensorSpec((None, 3), tf.float32),
                           tf.TensorSpec((None, 6), tf.float32)],
         polymorphic_shapes=['(b, 3)', '(b, 6)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   def test_convert_flax(self):
     m, x = FlaxModule(), jnp.zeros((3, 4))
@@ -140,7 +142,8 @@ class JaxConversionTest(tf.test.TestCase):
         variables,
         input_signatures=[tf.TensorSpec((None, 4), tf.float32)],
         polymorphic_shapes=['(b, 4)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   # TODO(marcvanzee): This test currently fails due to
   # https://github.com/google/jax/issues/11804.
