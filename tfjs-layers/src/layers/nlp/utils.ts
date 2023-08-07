@@ -17,11 +17,11 @@
 
 import { ModelPredictConfig, Rank, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
 
+import { History } from '../../base_callbacks';
 import { ContainerArgs } from '../../engine/container';
 import { LayersModel, ModelEvaluateArgs } from '../../engine/training';
+import { ModelFitArgs } from '../../engine/training_tensors';
 import { NotImplementedError } from '../../errors';
-import { History } from 'tfjs-layers/src/base_callbacks';
-import { ModelFitArgs } from 'tfjs-layers/src/engine/training_tensors';
 
 export function tensorToArr(input: Tensor): unknown[] {
   return Array.from(input.dataSync()) as unknown as unknown[];
@@ -104,7 +104,10 @@ export class PipelineModel extends LayersModel {
   /**
    * An overridable function which preprocesses entire samples.
    */
-  preprocessSamples(x: Tensor, y?: Tensor, sampleWeight?: Tensor) {
+  preprocessSamples(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
+    Tensor
+    | [Tensor, Tensor]
+    | [Tensor, Tensor, Tensor] {
     throw new NotImplementedError();
   }
 
