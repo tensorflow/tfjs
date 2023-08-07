@@ -69,6 +69,31 @@ export function sliceUpdate(
   });
 }
 
+
+function packXYSampleWeight(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
+  Tensor
+  | [Tensor, Tensor]
+  | [Tensor, Tensor, Tensor] {
+  throw new NotImplementedError();
+}
+
+function unPackXYSampleWeight(
+  data: [Tensor]|[Tensor, Tensor]|[Tensor, Tensor, Tensor]
+) {
+  throw new NotImplementedError();
+}
+
+// TODO(pforderique): Figure out a workaround for `tf.data.Dataset`.
+function convertInputsToDataset(
+  x?: Tensor, y?: Tensor, sampleWeight?: Tensor, batchSize?: number
+) {
+  throw new NotImplementedError();
+}
+
+function trainValidationSplit(arrays: Tensor[], validationSplit: number) {
+  throw new NotImplementedError();
+}
+
 /**
  * A model which allows automatically applying preprocessing.
  */
@@ -119,7 +144,9 @@ export class PipelineModel extends LayersModel {
     y: Tensor|Tensor[]|{[inputName: string]: Tensor},
     args: ModelFitArgs = {}
   ): Promise<History> {
-    throw new NotImplementedError();
+    throw new NotImplementedError(
+      `Uses ${convertInputsToDataset}, ${trainValidationSplit} ` +
+      `${packXYSampleWeight}, and ${unPackXYSampleWeight}`);
   }
 
   override evaluate(
