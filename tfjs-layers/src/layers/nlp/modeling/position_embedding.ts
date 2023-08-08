@@ -20,12 +20,14 @@
  */
 
 /* Original source: keras_nlp/layers/modeling/position_embedding.py */
-import { Tensor, Tensor1D, Tensor2D, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, serialization, tidy } from '@tensorflow/tfjs-core';
 
 import { Shape } from '../../../keras_format/common';
 import { Layer, LayerArgs } from '../../../engine/topology';
-import { NotImplementedError } from '../../../errors';
-import { InitializerIdentifier } from '../../../initializers';
+import { ValueError } from '../../../errors';
+import { Initializer, InitializerIdentifier, getInitializer, serializeInitializer } from '../../../initializers';
+import { getExactlyOneTensor } from '../../../utils/types_utils';
+import { LayerVariable } from '../../../variables';
 
 export declare interface PositionEmbeddingArgs extends LayerArgs {
   /**
@@ -37,7 +39,7 @@ export declare interface PositionEmbeddingArgs extends LayerArgs {
    * The initializer to use for the embedding weights.
    * Defaults to `"glorotUniform"`.
    */
-  initializer?: InitializerIdentifier;
+  initializer?: Initializer|InitializerIdentifier;
 }
 
 export declare interface PositionEmbeddingOptions {
@@ -84,26 +86,62 @@ export declare interface PositionEmbeddingOptions {
 export class PositionEmbedding extends Layer {
   /** @nocollapse */
   static readonly className = 'PositionEmbedding';
+  private sequenceLength: number;
+  private initializer: Initializer;
+  protected positionEmbeddings: LayerVariable;
 
   constructor(args: PositionEmbeddingArgs) {
     super(args);
-
-    throw new NotImplementedError('PositionEmbedding not implemented yet.');
+    if (args.sequenceLength == null) {
+      throw new ValueError(
+        '`sequenceLength` must be an Integer, received `null`.');
+    }
+    this.sequenceLength = args.sequenceLength;
+    this.initializer = getInitializer(args.initializer || 'glorotUniform');
   }
 
   override getConfig(): serialization.ConfigDict {
-    throw new NotImplementedError('Not implemented yet.');
+    const config = {
+      'sequenceLength': this.sequenceLength,
+      'initializer': serializeInitializer(this.initializer),
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
   }
 
-  override build(inputShape: Shape | Shape[]): void {
-    throw new NotImplementedError('Not implemented yet.');
+  override build(inputShape: Shape): void {
+    const featureSize = inputShape[inputShape.length - 1];
+    this.positionEmbeddings = this.addWeight(
+      'embeddings',
+      [this.sequenceLength, featureSize],
+      null,
+      this.initializer,
+      null,
+      true
+    );
+    super.build(inputShape);
   }
 
   override call(
     inputs: Tensor|Tensor[],
-    kwargs: PositionEmbeddingOptions={startIndex: 0}
-  ): Tensor1D|Tensor2D {
-    throw new NotImplementedError('Not implemented yet.');
+    kwargs?: PositionEmbeddingOptions
+  ): Tensor {
+    return tidy(() => {
+      kwargs.startIndex = kwargs.startIndex ?? 0;
+      const shape = getExactlyOneTensor(inputs).shape;
+      const featureLength = shape[shape.length - 1];
+      const sequenceLength = shape[shape.length - 2];
+      // trim to match the length of the input sequence, which might be less
+      // than the sequence_length of the layer.
+      const positionEmbeddings = this.positionEmbeddings.read().slice(
+        [kwargs.startIndex, 0], [sequenceLength, featureLength]);
+      return positionEmbeddings.broadcastTo(shape);
+    });
+  }
+
+  override computeOutputShape(inputShape: Shape): Shape {
+    return inputShape;
   }
 }
 serialization.registerClass(PositionEmbedding);
