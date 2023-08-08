@@ -83,9 +83,9 @@ py_library(
 py_library(
     name = "expect_keras_nlp_installed",
     # This is a dummy rule used as a tensorflow dependency in open-source.
-    # We expect keras_nlp to already be installed on the system, e.g. via
-    # `pip install keras_nlp`.
-    deps = [requirement("keras_nlp")],
+    # We expect keras-nlp to already be installed on the system, e.g. via
+    # `pip install keras-nlp`.
+    deps = [requirement("keras-nlp")],
 )
 
 py_library(
