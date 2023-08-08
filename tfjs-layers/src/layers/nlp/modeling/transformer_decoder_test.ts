@@ -56,14 +56,8 @@ describe('TransformerDecoder', () => {
       });
     }
 
-    const params: Array<[string, boolean]> = [
-      ['without_norm_first', false],
-      ['with_norm_first', true],
-    ];
-
-    for (const [testcaseName, normalizeFirst] of params) {
-      testValidCallWithoutCrossAttention(testcaseName, normalizeFirst);
-    }
+    testValidCallWithoutCrossAttention('without_norm_first', false);
+    testValidCallWithoutCrossAttention('with_norm_first', true);
   });
 
   it('invalid call', () => {
