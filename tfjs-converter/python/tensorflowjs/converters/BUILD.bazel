@@ -69,8 +69,8 @@ py_library(
     srcs_version = "PY3",
     deps = [
         ":keras_h5_conversion",
-        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         ":tf_module_mapper",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:read_weights",
     ],
