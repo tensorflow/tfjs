@@ -315,6 +315,7 @@ py_binary(
         ":tf_module_mapper",
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
         "//tfjs-converter/python/tensorflowjs:version",
     ],
@@ -352,7 +353,6 @@ sh_test(
     data = [
         ":converter",
         ":generate_test_model",
-        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
     ],
     tags = ["ci"],
 )
