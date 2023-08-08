@@ -370,9 +370,9 @@ export class TransformerDecoder extends Layer {
       )) {
         throw new ValueError(
           'When calling `TransformerDecoder` with cross-attention (with both ' +
-          '`encoderSequence` and `decoderSequence`), `selfAttentionCache` and ' +
-          '`crossAttentionCache` should both be set or both be `null`. One ' +
-          'cannot be `null` while the other is not. Received: ' +
+          '`encoderSequence` and `decoderSequence`), `selfAttentionCache` ' +
+          'and `crossAttentionCache` should both be set or both be `null`.  ' +
+          'One cannot be `null` while the other is not. Received: ' +
           `selfAttentionCache=${kwargs.selfAttentionCache}, ` +
           `crossAttentionCache=${kwargs.crossAttentionCache}.`
         );

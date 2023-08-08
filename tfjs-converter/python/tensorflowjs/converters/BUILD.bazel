@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
 package(
     default_visibility = [
         "//tfjs-converter/python/tensorflowjs:__subpackages__",
