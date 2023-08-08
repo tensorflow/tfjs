@@ -37,6 +37,11 @@ py_library(
 )
 
 py_library(
+    name = "keras-nlp",
+    deps = ["keras-nlp"],
+)
+
+py_library(
     name = "keras_h5_conversion",
     srcs = ["keras_h5_conversion.py"],
     srcs_version = "PY3",
