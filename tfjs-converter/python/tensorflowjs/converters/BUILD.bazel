@@ -38,7 +38,7 @@ py_library(
 
 py_library(
     name = "keras-nlp",
-    deps = ["keras-nlp"],
+    deps = [requirement("keras-nlp")],
 )
 
 py_library(
