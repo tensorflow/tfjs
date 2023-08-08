@@ -87,7 +87,7 @@ py_test(
     srcs_version = "PY3",
     tags = ["ci"],
     deps = [
-        "keras-nlp",
+        ":keras-nlp",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_module_mapper",
@@ -274,7 +274,7 @@ py_test(
     srcs_version = "PY3",
     tags = ["ci"],
     deps = [
-        "keras-nlp",
+        ":keras-nlp",
         ":wizard",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
@@ -314,8 +314,8 @@ py_binary(
     srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
-        "keras-nlp",
         ":common",
+        ":keras-nlp",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_module_mapper",
