@@ -112,7 +112,7 @@ describe('PipelineModel', () => {
   it('predict with preprocessing', () => {
     const x = tensor(['Boston', 'New York', 'San Francisco']);
     const model = new FeaturePipeline({inputs: [], outputs: []});
-    model.compile({loss: 'mse', optimizer: null});
+    model.compile({loss: 'mse', optimizer: 'adam'});
 
     expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
   });
@@ -124,7 +124,7 @@ describe('PipelineModel', () => {
       outputs: [],
       includePreprocessing: false
     });
-    model.compile({loss: 'mse', optimizer: null});
+    model.compile({loss: 'mse', optimizer: 'adam'});
 
     expect(() => model.predict(x, {batchSize: 8})).not.toThrow();
   });
