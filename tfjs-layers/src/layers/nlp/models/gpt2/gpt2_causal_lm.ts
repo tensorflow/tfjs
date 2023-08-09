@@ -22,13 +22,13 @@
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
 import { Tensor, serialization } from '@tensorflow/tfjs-core';
 
-import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
+import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
 import { LayerArgs } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
-import { GenerativeTask } from '../generative_task';
+import { GPT2TensorMap, GenerativeTask } from '../generative_task';
 import { GPT2Backbone } from './gpt2_backbone';
 import { PipelineModelArgs } from '../../utils';
 
@@ -53,8 +53,6 @@ class ReverseEmbedding extends Layer {
   }
 
 }
-
-export declare type GPT2Inputs = PreprocessorOutputs;
 
 export declare interface GPT2PreprocessorOptions {
   /**
@@ -231,7 +229,10 @@ export class GPTCausalLM extends GenerativeTask {
    * @param endTokenId The id of the end token to stop on. If all
    *  sequences have produced a new `endTokenId`, generation will stop.
    */
-  override generateStep(inputs: GPT2Inputs, endTokenId: number): GPT2Inputs {
+  override generateStep(
+    inputs: GPT2TensorMap,
+    endTokenId: number
+  ): GPT2TensorMap {
     throw new NotImplementedError(`Uses ${this.buildCache}`);
   }
 }

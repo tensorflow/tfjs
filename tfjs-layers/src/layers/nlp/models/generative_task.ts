@@ -26,7 +26,6 @@ import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
 
 import { Task } from './task';
-import { PreprocessorOutputs } from './gpt2/gpt2_preprocessor';
 
 export type GPT2TensorMap = {
   tokenIds: Tensor;
@@ -50,9 +49,9 @@ export class GenerativeTask extends Task {
    * Run the generation on a single batch of input.
    */
   generateStep(
-    inputs: PreprocessorOutputs,
+    inputs: GPT2TensorMap,
     endTokenId: number
-  ): PreprocessorOutputs {
+  ): GPT2TensorMap {
     throw new NotImplementedError();
   }
 
