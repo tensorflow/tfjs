@@ -15,9 +15,13 @@
  * =============================================================================
  */
 
-import { ones, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
-import { sliceUpdate, tensorArrTo2DArr, tensorToArr } from './utils';
+import { Tensor, ones, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
+import { PipelineModel, PipelineModelArgs, sliceUpdate, tensorArrTo2DArr, tensorToArr } from './utils';
 import { expectTensorsClose } from '../../utils/test_utils';
+import { dense } from 'tfjs-layers/src/exports_layers';
+import { createHash } from 'crypto';
+import { Dense } from '../core';
+import { Kwargs } from 'tfjs-layers/src/types';
 
 describe('tensor to array functions', () => {
   it('tensorToArr', () => {
@@ -85,5 +89,36 @@ describe('sliceUpdate', () => {
     const result = sliceUpdate(inputs, startIndices, updates);
 
     expectTensorsClose(result, expected);
+  });
+});
+
+describe('PipelineModel', () => {
+  class FeaturePipeline extends PipelineModel {
+    private hash = createHash('sha256');
+    private dense: Dense;
+
+    constructor(args: PipelineModelArgs) {
+      super(args);
+      this.dense = dense({units: 1});
+    }
+
+    override preprocessFeatures(x: Tensor): Tensor {
+      const output = x.arraySync() as unknown as string[];
+      return tensor(
+        output.map(val => Number(this.hash.update(val).digest())
+      ));
+    }
+
+    override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+      return this.dense.apply(inputs) as Tensor|Tensor[];
+    }
+  }
+
+  it('predict with preprocessing', () => {
+    const x = tensor(['Boston', 'New York', 'San Francisco']);
+    const model = new FeaturePipeline({inputs: null, outputs: null});
+    model.compile({loss: 'mse', optimizer: null});
+
+    expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
   });
 });
