@@ -21,6 +21,7 @@ import { expectTensorsClose } from '../../utils/test_utils';
 import { dense, input } from '../../exports_layers';
 import { Dense } from '../core';
 import { Kwargs } from '../../types';
+import { SymbolicTensor } from 'tfjs-layers/src/engine/topology';
 
 describe('tensor to array functions', () => {
   it('tensorToArr', () => {
@@ -111,10 +112,9 @@ describe('PipelineModel', () => {
 
   it('predict with preprocessing', () => {
     const x = tensor(['Boston', 'New York', 'San Francisco']);
-    const model = new FeaturePipeline({
-      inputs: input({shape: [3]}),
-      outputs: input({shape: [3]}),
-    });
+    const inputs = input({shape: [3]});
+    const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
+    const model = new FeaturePipeline({inputs, outputs});
     model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
 
     expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
@@ -122,9 +122,11 @@ describe('PipelineModel', () => {
 
   it('predict no preprocessing', () => {
     const x = randomUniform([100, 5]);
+    const inputs = input({shape: [3]});
+    const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
     const model = new FeaturePipeline({
-      inputs: input({shape: [100, 5]}),
-      outputs: input({shape: [100, 5]}),
+      inputs,
+      outputs,
       includePreprocessing: false
     });
     model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
