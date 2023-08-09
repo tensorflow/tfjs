@@ -39,7 +39,7 @@ export class GenerativeTask extends Task {
   }
 
   /**
-   * Run the gneneration on a single batch of input.
+   * Run the generation on a single batch of input.
    */
   generateStep(
     inputs: PreprocessorOutputs,
