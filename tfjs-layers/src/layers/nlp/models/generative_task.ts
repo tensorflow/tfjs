@@ -26,25 +26,32 @@ import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
 
 import { Task } from './task';
-import { PreprocessorOutputs } from './gpt2/gpt2_preprocessor';
 
-export type GenerateFn = (inputs: Tensor, endTokenId?: number) => Tensor;
+export type GPT2TensorMap = {
+  tokenIds: Tensor;
+  paddingMask: Tensor;
+}
+
+export type GenerateFn =
+  (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
 
 /**
  *  Base class for Generative Task models.
  */
 export class GenerativeTask extends Task {
+  protected generateFunction: GenerateFn;
+
   override compile(args: ModelCompileArgs): void {
     throw new NotImplementedError();
   }
 
   /**
-   * Run the gneneration on a single batch of input.
+   * Run the generation on a single batch of input.
    */
   generateStep(
-    inputs: PreprocessorOutputs,
+    inputs: GPT2TensorMap,
     endTokenId: number
-  ): PreprocessorOutputs {
+  ): GPT2TensorMap {
     throw new NotImplementedError();
   }
 
