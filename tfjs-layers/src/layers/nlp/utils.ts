@@ -74,7 +74,13 @@ function packXYSampleWeight(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
   Tensor
   | [Tensor, Tensor]
   | [Tensor, Tensor, Tensor] {
-  throw new NotImplementedError();
+  if (y === undefined) {
+    return x;
+  } else if (sampleWeight === undefined) {
+    return [x, y];
+  } else {
+    return [x, y, sampleWeight];
+  }
 }
 
 function unPackXYSampleWeight(

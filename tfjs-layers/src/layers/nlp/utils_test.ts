@@ -111,18 +111,17 @@ describe('PipelineModel', () => {
   }
 
   it('predict with preprocessing', () => {
-    const x = tensor(['Boston', 'New York', 'San Francisco']);
+    const x = tensor(['Boston', 'New York', 'San Francisco'], [1, 3]);
     const inputs = input({shape: [3]});
     const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
     const model = new FeaturePipeline({inputs, outputs});
     model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
-
     expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
   });
 
   it('predict no preprocessing', () => {
     const x = randomUniform([100, 5]);
-    const inputs = input({shape: [3]});
+    const inputs = input({shape: [5]});
     const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
     const model = new FeaturePipeline({
       inputs,
