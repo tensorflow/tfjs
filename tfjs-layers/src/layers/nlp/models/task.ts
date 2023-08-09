@@ -29,6 +29,7 @@ import { Backbone } from './backbone';
 import { Preprocessor } from './preprocessor';
 import { ModelCompileArgs } from '../../../engine/training';
 import { LossOrMetricFn } from '../../../types';
+import { deserializeKerasObject, serializeKerasObject } from 'tfjs-layers/src/utils/generic_utils';
 
 export class Task extends PipelineModel {
   protected _backbone: Backbone;
@@ -52,7 +53,7 @@ export class Task extends PipelineModel {
 
   override preprocessSamples(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
       Tensor | [Tensor, Tensor] | [Tensor, Tensor, Tensor] {
-    throw new NotImplementedError();
+    return this.preprocessor.apply(x, {y, sampleWeight}) as Tensor;
   }
 
   /**
@@ -81,14 +82,30 @@ export class Task extends PipelineModel {
   override getConfig(): serialization.ConfigDict {
     // Don't chain to super here. The default `getConfig()` for functional
     // models is nested and cannot be passed to our Task constructors.
-    throw new NotImplementedError();
+    return {
+      'backbone': serializeKerasObject(this.backbone),
+      'preprocessor': serializeKerasObject(this.preprocessor),
+      'name': this.name,
+    };
   }
 
   static override fromConfig<T extends serialization.Serializable>(
     cls: serialization.SerializableConstructor<T>,
     config: serialization.ConfigDict
   ): T {
-    throw new NotImplementedError();
+    // The default `fromConfig()` for functional models will return a
+    // vanilla `LayersModel`. We override it to get a subclass instance back.
+    if ('backbone' in config && !(config['backbone'] instanceof Backbone)) {
+      config["backbone"] =
+        deserializeKerasObject(config['backbone'] as serialization.ConfigDict);
+    }
+    if ('preprocessor' in config &&
+        !(config['preprocessor'] instanceof Preprocessor)) {
+      config['preprocessor'] = deserializeKerasObject(
+        config['preprocessor'] as serialization.ConfigDict
+      );
+    }
+    return new cls(config)
   }
 
   static backboneCls<T extends serialization.Serializable>(
