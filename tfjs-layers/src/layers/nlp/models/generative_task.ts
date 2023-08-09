@@ -26,44 +26,32 @@ import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
 
 import { Task } from './task';
+import { PreprocessorOutputs } from './gpt2/gpt2_preprocessor';
 
-export interface GenerativeTaskCompileArgs extends ModelCompileArgs {
-  // TODO(pforderique): Figure out if TFJS supports eager tensors.
-  /**
-   * Defaults to false.
-   */
-  runEagerly: boolean;
-
-  // TODO(pforderique): We may not need this.
-  /**
-   * Defaults to true.
-   */
-  jitCompile: boolean;
-
-  // TODO(pforderique): This may not be supported.
-  sampler: string;
-}
+export type GenerateFn = (inputs: Tensor, endTokenId?: number) => Tensor;
 
 /**
  *  Base class for Generative Task models.
  */
 export class GenerativeTask extends Task {
-  override compile(args: GenerativeTaskCompileArgs): void {
+  override compile(args: ModelCompileArgs): void {
     throw new NotImplementedError();
   }
 
   /**
    * Run the gneneration on a single batch of input.
    */
-  generateStep() {
+  generateStep(
+    inputs: PreprocessorOutputs,
+    endTokenId: number
+  ): PreprocessorOutputs {
     throw new NotImplementedError();
   }
 
   /**
    * Create or return the compiled generation function.
    */
-  makeGenerateFunction():
-    (inputs: Tensor, endTokenId?: number) => Tensor {
+  makeGenerateFunction(): GenerateFn {
     throw new NotImplementedError();
   }
 

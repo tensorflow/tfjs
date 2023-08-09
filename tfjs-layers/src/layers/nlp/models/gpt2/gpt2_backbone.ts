@@ -212,8 +212,8 @@ export class GPT2Backbone extends Backbone {
     return config;
   }
 
-  override get tokenEmbedding() {
-    return this.getLayer('token_embedding');
+  override get tokenEmbedding(): Embedding {
+    return this.getLayer('token_embedding') as Embedding;
   }
 
   static presets(cls: serialization.SerializableConstructor<GPT2Backbone>) {

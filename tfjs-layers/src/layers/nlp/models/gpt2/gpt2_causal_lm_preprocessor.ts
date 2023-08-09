@@ -19,11 +19,11 @@
  * GPT2 Causal LM preprocessor layer.
  */
 
-/* Original source: keras-nlp/models/gpt2/gpt2_preprocessor.py */
+/* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
 import { Tensor, serialization } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
-import { NotImplementedError } from 'tfjs-layers/src/errors';
+import { NotImplementedError } from '../../../../errors';
 
 function packXYSampleWeight(
   x: PreprocessorOutputs, y?: Tensor, sampleWeight?: Tensor):
