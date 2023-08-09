@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { ModelPredictConfig, Rank, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+import { ModelPredictConfig, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
 
 import { History } from '../../base_callbacks';
 import { ContainerArgs } from '../../engine/container';
@@ -83,14 +83,16 @@ function unPackXYSampleWeight(
   throw new NotImplementedError();
 }
 
-// TODO(pforderique): Figure out a workaround for `tf.data.Dataset`.
 function convertInputsToDataset(
   x?: Tensor, y?: Tensor, sampleWeight?: Tensor, batchSize?: number
-) {
+): Tensor[] {
   throw new NotImplementedError();
 }
 
-function trainValidationSplit(arrays: Tensor[], validationSplit: number) {
+function trainValidationSplit(
+  arrays: [Tensor, Tensor, Tensor],
+  validationSplit: number
+): [Tensor, Tensor, Tensor] {
   throw new NotImplementedError();
 }
 
@@ -133,15 +135,19 @@ export class PipelineModel extends LayersModel {
     Tensor
     | [Tensor, Tensor]
     | [Tensor, Tensor, Tensor] {
-    throw new NotImplementedError();
+    x = this.preprocessFeatures(x);
+    if (y != null) {
+      y = this.preprocessLabels(y);
+    }
+    return packXYSampleWeight(x, y, sampleWeight);
   }
 
   // ---------------------------------------------------------------------------
   // Below are overrides to LayersModel methods to apply the functions above.
   // ---------------------------------------------------------------------------
   override fit(
-    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
-    y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    x: Tensor|Tensor[],
+    y: Tensor|Tensor[],
     args: ModelFitArgs = {}
   ): Promise<History> {
     throw new NotImplementedError(
@@ -157,8 +163,14 @@ export class PipelineModel extends LayersModel {
     throw new NotImplementedError();
   }
 
-  override predict(x: Tensor<Rank> | Tensor<Rank>[], args?: ModelPredictConfig): Tensor<Rank> | Tensor<Rank>[] {
-    throw new NotImplementedError();
+  override predict(
+    x: Tensor | Tensor[], args?: ModelPredictConfig
+  ): Tensor | Tensor[] {
+    x = Array.isArray(x) ? x : [x];
+    if (this.includePreprocessing) {
+      x = x.map(t => this.preprocessSamples(t) as Tensor);
+    }
+    return super.predict(x, {batchSize: null, ...args});
   }
 
   override trainOnBatch(
