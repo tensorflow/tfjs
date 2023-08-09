@@ -101,7 +101,7 @@ export interface PipelineModelArgs extends ContainerArgs {
   /**
    * Defaults to true.
    */
-  includePreprocessing: boolean;
+  includePreprocessing?: boolean;
 }
 
 export class PipelineModel extends LayersModel {
