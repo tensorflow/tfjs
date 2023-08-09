@@ -28,7 +28,7 @@ import { Layer } from '../../../../exports_layers';
 import { LayerArgs } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
-import { GenerateFn, GenerativeTask } from '../generative_task';
+import { GenerativeTask } from '../generative_task';
 import { GPT2Backbone } from './gpt2_backbone';
 import { PipelineModelArgs } from '../../utils';
 
@@ -176,7 +176,6 @@ export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
  * ```
  */
 export class GPTCausalLM extends GenerativeTask {
-  protected generateFunction: GenerateFn;
 
   constructor(args: GPT2CausalLMArgs) {
     super(args);

@@ -28,12 +28,20 @@ import { ModelCompileArgs } from '../../../engine/training';
 import { Task } from './task';
 import { PreprocessorOutputs } from './gpt2/gpt2_preprocessor';
 
-export type GenerateFn = (inputs: Tensor, endTokenId?: number) => Tensor;
+export type GPT2TensorMap = {
+  tokenIds: Tensor;
+  paddingMask: Tensor;
+}
+
+export type GenerateFn =
+  (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
 
 /**
  *  Base class for Generative Task models.
  */
 export class GenerativeTask extends Task {
+  protected generateFunction: GenerateFn;
+
   override compile(args: ModelCompileArgs): void {
     throw new NotImplementedError();
   }
