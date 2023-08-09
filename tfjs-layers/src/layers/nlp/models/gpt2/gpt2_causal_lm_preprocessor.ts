@@ -93,17 +93,6 @@ export declare interface GPT2PreprocessorOptions {
  */
 export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
 
-  override getConfig(): serialization.ConfigDict {
-    const config = {
-      sequenceLength: this.sequenceLength,
-      addStartToken: this.addStartToken,
-      addEndToken: this.addEndToken,
-    };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
-  }
-
   override call(
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
