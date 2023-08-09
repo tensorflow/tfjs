@@ -21,7 +21,7 @@ import { expectTensorsClose } from '../../utils/test_utils';
 import { dense, input } from '../../exports_layers';
 import { Dense } from '../core';
 import { Kwargs } from '../../types';
-import { SymbolicTensor } from 'tfjs-layers/src/engine/topology';
+import { SymbolicTensor } from '../../engine/topology';
 
 describe('tensor to array functions', () => {
   it('tensorToArr', () => {
