@@ -129,10 +129,10 @@ function packXYSampleWeight(
  * ```
  */
 export class GPT2Preprocessor extends Preprocessor {
-  private readonly sequenceLength: number;
-  private readonly addStartToken: boolean;
-  private readonly addEndToken: boolean;
-  private readonly packer: StartEndPacker;
+  protected readonly sequenceLength: number;
+  protected readonly addStartToken: boolean;
+  protected readonly addEndToken: boolean;
+  protected readonly packer: StartEndPacker;
 
   constructor(args: GPT2PreprocessorArgs) {
     super(args);
