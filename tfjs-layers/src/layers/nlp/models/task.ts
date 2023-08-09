@@ -29,7 +29,7 @@ import { Backbone } from './backbone';
 import { Preprocessor } from './preprocessor';
 import { ModelCompileArgs } from '../../../engine/training';
 import { LossOrMetricFn } from '../../../types';
-import { deserializeKerasObject, serializeKerasObject } from 'tfjs-layers/src/utils/generic_utils';
+import { deserializeKerasObject, serializeKerasObject } from '../../../utils/generic_utils';
 
 export class Task extends PipelineModel {
   protected _backbone: Backbone;

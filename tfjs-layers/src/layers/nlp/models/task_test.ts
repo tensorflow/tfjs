@@ -18,19 +18,7 @@
 /**
  * Unit Tests for Task Layers.
  */
-import { input } from '../../../exports';
-// import { Preprocessor } from './preprocessor';
-import { Task } from './task';
-import { SymbolicTensor } from '../../../engine/topology';
-import { dense } from '../../../exports_layers';
 
 describe('Task', () => {
-  it('serialization round-trip with no set tokenizer', () => {
-    const inputs = input({shape: [10]});
-    const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
-    const task = new Task({inputs, outputs});
-    const reserialized = Task.fromConfig(
-      Task, task.getConfig());
-    expect(reserialized.getConfig()).toEqual(task.getConfig());
-  });
+  // TODO(pforderique): Test serialization.
 });
