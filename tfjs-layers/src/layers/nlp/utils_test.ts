@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-import { Tensor, ones, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
+import { Tensor, ones, randomUniform, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
 import { PipelineModel, PipelineModelArgs, sliceUpdate, tensorArrTo2DArr, tensorToArr } from './utils';
 import { expectTensorsClose } from '../../utils/test_utils';
-import { dense } from 'tfjs-layers/src/exports_layers';
-import { createHash } from 'crypto';
+import { dense } from '../../exports_layers';
 import { Dense } from '../core';
-import { Kwargs } from 'tfjs-layers/src/types';
+import { Kwargs } from '../../types';
 
 describe('tensor to array functions', () => {
   it('tensorToArr', () => {
@@ -94,7 +93,6 @@ describe('sliceUpdate', () => {
 
 describe('PipelineModel', () => {
   class FeaturePipeline extends PipelineModel {
-    private hash = createHash('sha256');
     private dense: Dense;
 
     constructor(args: PipelineModelArgs) {
@@ -103,10 +101,7 @@ describe('PipelineModel', () => {
     }
 
     override preprocessFeatures(x: Tensor): Tensor {
-      const output = x.arraySync() as unknown as string[];
-      return tensor(
-        output.map(val => Number(this.hash.update(val).digest())
-      ));
+      return randomUniform(x.shape);
     }
 
     override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
@@ -120,5 +115,17 @@ describe('PipelineModel', () => {
     model.compile({loss: 'mse', optimizer: null});
 
     expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
+  });
+
+  it('predict no preprocessing', () => {
+    const x = randomUniform([100, 5]);
+    const model = new FeaturePipeline({
+      inputs: null,
+      outputs: null,
+      includePreprocessing: false
+    });
+    model.compile({loss: 'mse', optimizer: null});
+
+    expect(() => model.predict(x, {batchSize: 8})).not.toThrow();
   });
 });
