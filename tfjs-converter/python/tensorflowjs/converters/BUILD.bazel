@@ -37,11 +37,6 @@ py_library(
 )
 
 py_library(
-    name = "keras-nlp",
-    deps = [requirement("keras-nlp")],
-)
-
-py_library(
     name = "keras_h5_conversion",
     srcs = ["keras_h5_conversion.py"],
     srcs_version = "PY3",
@@ -87,10 +82,10 @@ py_test(
     srcs_version = "PY3",
     tags = ["ci"],
     deps = [
-        ":keras-nlp",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_module_mapper",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
@@ -274,8 +269,8 @@ py_test(
     srcs_version = "PY3",
     tags = ["ci"],
     deps = [
-        ":keras-nlp",
         ":wizard",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
@@ -315,12 +310,12 @@ py_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":common",
-        ":keras-nlp",
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_module_mapper",
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
         "//tfjs-converter/python/tensorflowjs:version",
     ],
