@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import { ModelPredictConfig, Rank, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+import { ModelPredictConfig, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
 
 import { History } from '../../base_callbacks';
 import { ContainerArgs } from '../../engine/container';
@@ -68,7 +68,6 @@ export function sliceUpdate(
     return tensorScatterUpdate(inputs, indices, updates);
   });
 }
-
 
 function packXYSampleWeight(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
   Tensor
@@ -157,7 +156,10 @@ export class PipelineModel extends LayersModel {
     throw new NotImplementedError();
   }
 
-  override predict(x: Tensor<Rank> | Tensor<Rank>[], args?: ModelPredictConfig): Tensor<Rank> | Tensor<Rank>[] {
+  override predict(
+    x: Tensor | Tensor[],
+    args?: ModelPredictConfig
+  ): Tensor | Tensor[] {
     throw new NotImplementedError();
   }
 
