@@ -110,7 +110,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * padding and start/end tokens, and then converting the integer sequence
    * back to a string.
    */
-  generatePostprocess(x: Tensor): GPT2TensorMap {
+  generatePostprocess(x: GPT2TensorMap): Tensor {
     throw new NotImplementedError();
   }
 
