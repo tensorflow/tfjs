@@ -20,17 +20,18 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, reverse, serialization } from '@tensorflow/tfjs-core';
 
-import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
 import { LayerArgs } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
+
 import { GPT2TensorMap, GenerativeTask } from '../generative_task';
-import { GPT2Backbone } from './gpt2_backbone';
 import { PipelineModelArgs } from '../../utils';
+import { GPT2Backbone } from './gpt2_backbone';
+import { GPT2Preprocessor } from './gpt2_preprocessor';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -44,8 +45,9 @@ class ReverseEmbedding extends Layer {
     this.embedding = args.embedding;
   }
 
-  override call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    throw new NotImplementedError();
+  override call(inputs: Tensor, kwargs: any): Tensor|Tensor[] {
+    // TODO(pforderique): Verify functionality.
+    return this.embedding.call(reverse(inputs), {});
   }
 
   override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
