@@ -20,11 +20,11 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { Tensor, reverse, serialization } from '@tensorflow/tfjs-core';
+import { AdamOptimizer, Tensor, serialization } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
-import { LayerArgs } from '../../../../engine/topology';
+import { LayerArgs, SymbolicTensor } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
 
@@ -32,6 +32,7 @@ import { GPT2TensorMap, GenerativeTask } from '../generative_task';
 import { PipelineModelArgs } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
 import { GPT2Preprocessor } from './gpt2_preprocessor';
+import { sparseCategoricalCrossentropy } from 'tfjs-layers/src/losses';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -46,12 +47,12 @@ class ReverseEmbedding extends Layer {
   }
 
   override call(inputs: Tensor, kwargs: any): Tensor|Tensor[] {
-    // TODO(pforderique): Verify functionality.
-    return this.embedding.call(reverse(inputs), {});
+    const kernel = this.embedding.embeddings.read().transpose();
+    return inputs.matMul(kernel);
   }
 
-  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    throw new NotImplementedError();
+  override computeOutputShape(inputShape: Shape): Shape|Shape[] {
+    return [inputShape[0], this.embedding.embeddings.shape[0]];
   }
 
 }
@@ -161,6 +162,31 @@ export class GPTCausalLM extends GenerativeTask {
 
   constructor(args: GPT2CausalLMArgs) {
     super(args);
+    const inputs = args.backbone.input;
+    const x = args.backbone.apply(inputs) as SymbolicTensor;
+    // Use token embedding weights to project from the token representation
+    // to vocabulary logits.
+    const outputs = new ReverseEmbedding({
+      embedding: args.backbone.tokenEmbedding,
+      name: 'reverse_embedding',
+    }).apply(x) as SymbolicTensor;
+
+    // Instantiate using Functional API Model constructor.
+    super({
+      inputs,
+      outputs,
+      includePreprocessing: args.preprocessor != null,
+      ...args,
+    });
+    this.backbone = args.backbone;
+    this.preprocessor = args.preprocessor;
+
+    // Default complation.
+    this.compile({
+      loss: (yTrue: Tensor, yPred: Tensor) => sparseCategoricalCrossentropy(yTrue, yPred, true),
+      optimizer: new AdamOptimizer(2e-5, 0.9, 0.999),
+      metrics: ['sparseCategoricalCrossentropy'],
+    });
     throw new NotImplementedError(`Uses ${ReverseEmbedding}.`);
   }
 

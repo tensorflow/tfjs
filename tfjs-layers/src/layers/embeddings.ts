@@ -82,7 +82,7 @@ export class Embedding extends Layer {
   private maskZero: boolean;
   private inputLength: number|number[];
 
-  private embeddings: LayerVariable = null;
+  embeddings: LayerVariable = null;
 
   readonly DEFAULT_EMBEDDINGS_INITIALIZER: InitializerIdentifier =
       'randomUniform';
