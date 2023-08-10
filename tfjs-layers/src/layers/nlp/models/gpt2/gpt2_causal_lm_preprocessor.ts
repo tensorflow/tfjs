@@ -20,11 +20,11 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { Tensor, serialization, tidy, zeros } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor, GPT2PreprocessorOptions, packXYSampleWeight } from './gpt2_preprocessor';
-import { NotImplementedError } from '../../../../errors';
 import { GPT2TensorMap } from '../generative_task';
+import { GPT2Tokenizer } from './gpt2_tokenizer';
 
 /**
   * GPT2 Causal LM preprocessor.
@@ -65,11 +65,13 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
   ): Tensor|Tensor[] {
-    const output = this.callAndPackArgs(inputs, kwargs);
-    if (kwargs.y) {
-      return (output as [GPT2TensorMap, Tensor])[0]['tokenIds'];
-    }
-    return (output as GPT2TensorMap)['tokenIds'];
+    return tidy(() => {
+      const output = this.callAndPackArgs(inputs, kwargs);
+      if (kwargs.y) {
+        return (output as [GPT2TensorMap, Tensor])[0]['tokenIds'];
+      }
+      return (output as GPT2TensorMap)['tokenIds'];
+    });
   }
 
   /**
@@ -83,12 +85,39 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     GPT2TensorMap
     | [GPT2TensorMap, Tensor]
     | [GPT2TensorMap, Tensor, Tensor] {
+    return tidy(() => {
+      const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
 
-    throw new NotImplementedError(`Uses ${packXYSampleWeight}`);
+      let x = Array.isArray(inputs) ? inputs : [inputs];
+      x = this.tokenizer.apply(x) as Tensor[];
+      // Pad with one extra token to account for the truncation below.
+      const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
+        x,
+        {
+          sequenceLength: sequenceLength + 1,
+          addStartValue: this.addStartToken,
+          addEndValue: this.addEndToken,
+        }
+      );
+      // The last token does not have a next token, so we truncate it out.
+      // Target `y` will be the next token.
+      const tokenIdsXLength = tokenIds.shape[1] - 1;
+      const paddingMaskXLength = paddingMask.shape[1] - 1;
+      const [tokenIdsX, y] = tokenIds.split([tokenIdsXLength, 1], -1);
+      const [paddingMaskX, sampleWeight] = paddingMask.split(
+        [paddingMaskXLength, 1], -1
+      );
+      const output = {
+        tokenIds: tokenIdsX,
+        paddingMask: paddingMaskX,
+      };
+
+      return packXYSampleWeight(output, y, sampleWeight);
+    });
   }
 
   /**
-   * Covert strings to integer token input for generation.
+   * Convert strings to integer token input for generation.
    *
    * Similar to calling the layer for training, this method takes in strings
    * or tensor strings, tokenizes and packs the input, and computes a padding
@@ -100,19 +129,38 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * inputted prompt).
    */
   generatePreprocess(x: Tensor, sequenceLength?: number): GPT2TensorMap {
-    throw new NotImplementedError();
+    return tidy(() => {
+      x = this.tokenizer.apply(x) as Tensor;
+      const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
+        x,
+        {
+          sequenceLength,
+          addStartValue: this.addStartToken,
+        }
+      );
+      return {tokenIds, paddingMask};
+    });
   }
 
   /**
-   * Covert integer token output to strings for generation.
+   * Convert integer token output to strings for generation.
    *
    * This method reverses `generatePreprocess()`, by first removing all
    * padding and start/end tokens, and then converting the integer sequence
    * back to a string.
    */
-  generatePostprocess(x: Tensor): GPT2TensorMap {
-    throw new NotImplementedError();
+  generatePostprocess(x: GPT2TensorMap): Tensor {
+    return tidy(() => {
+      let [tokenIds, paddingMask] = [x.tokenIds, x.paddingMask];
+      // Strip any special tokens during detokenization (e.g. the start and
+      // end markers). In the future we could make this configurable.
+      const zerosTensor = zeros(tokenIds.shape, 'int32');
+      paddingMask = paddingMask.logicalAnd(
+        tokenIds.notEqual((this.tokenizer as GPT2Tokenizer).endTokenId)
+      );
+      tokenIds = tokenIds.where(paddingMask.cast('bool'), zerosTensor);
+      return this.tokenizer.detokenize([tokenIds]);
+    });
   }
-
 }
 serialization.registerClass(GPT2Preprocessor);
