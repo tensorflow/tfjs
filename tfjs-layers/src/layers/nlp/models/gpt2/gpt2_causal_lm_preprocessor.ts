@@ -27,37 +27,37 @@ import { NotImplementedError } from '../../../../errors';
 import { GPT2TensorMap } from '../generative_task';
 
 /**
-  * GPT2 Causal LM preprocessor.
-  *
-  * This preprocessing layer is meant for use with
-  * `GPT2CausalLM`. By default, it will take in batches of
-  * strings, and return outputs in a `[x, y, sampleWeight]` format, where the
-  * `y` label is the next token id in the `x` sequence.
-  *
-  * For use with generation, the layer also exposes two methods
-  * generatePreprocess()` and `generatePostprocess()`. When this preprocessor
-  * is attached to a `GPT2CausalLM` instance, these methods
-  * will be called implicitly in `generate()`. They can also be called
-  * standalone (e.g. to precompute preprocessing inputs for generation in a
-  * separate process).
-  *
-  * Examples:
-  * ```js
-  * // Load the preprocessor from a preset.
-  * const preprocessor = GPT2CausalLMPreprocessor.from_preset('gpt2_base_en');
-  *
-  * // Tokenize and pack a single sentence.
-  * const sentence = tf.scalar('League of legends');
-  * preprocessor.apply(sentence);
-  * // Same output.
-  * preprocessor('League of legends');
-  *
-  * // Tokenize a batch of sentences.
-  * const sentences = tf.constant(['Taco tuesday', 'Fish taco please!']);
-  * preprocessor.apply(sentences);
-  * // Same output.
-  * preprocessor.apply(['Taco tuesday', 'Fish taco please!']);
-  * ```
+ * GPT2 Causal LM preprocessor.
+ *
+ * This preprocessing layer is meant for use with
+ * `GPT2CausalLM`. By default, it will take in batches of
+ * strings, and return outputs in a `[x, y, sampleWeight]` format, where the
+ * `y` label is the next token id in the `x` sequence.
+ *
+ * For use with generation, the layer also exposes two methods
+ * generatePreprocess()` and `generatePostprocess()`. When this preprocessor
+ * is attached to a `GPT2CausalLM` instance, these methods
+ * will be called implicitly in `generate()`. They can also be called
+ * standalone (e.g. to precompute preprocessing inputs for generation in a
+ * separate process).
+ *
+ * Examples:
+ * ```js
+ * // Load the preprocessor from a preset.
+ * const preprocessor = GPT2CausalLMPreprocessor.from_preset('gpt2_base_en');
+ *
+ * // Tokenize and pack a single sentence.
+ * const sentence = tf.scalar('League of legends');
+ * preprocessor.apply(sentence);
+ * // Same output.
+ * preprocessor('League of legends');
+ *
+ * // Tokenize a batch of sentences.
+ * const sentences = tf.constant(['Taco tuesday', 'Fish taco please!']);
+ * preprocessor.apply(sentences);
+ * // Same output.
+ * preprocessor.apply(['Taco tuesday', 'Fish taco please!']);
+ * ```
  */
 export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
 
