@@ -273,6 +273,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
               1, use_bias=False, kernel_initializer='ones', name='Dense2')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
       sequential_model.save(h5_path)
+      # Ensure matching legacy serialization format
+      sequential_model.use_legacy_config = True
       converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=self._tmp_dir)
       old_model_json = sequential_model.to_json()
