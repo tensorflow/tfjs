@@ -30,8 +30,8 @@ import { GPT2CausalLMPreprocessor } from './gpt2/gpt2_causal_lm_preprocessor';
 import { GPT2Tokenizer } from './gpt2/gpt2_tokenizer';
 
 export type GPT2TensorMap = {
-  [name: string]: Tensor
-}
+  [name: string]: Tensor;
+};
 
 export type GenerateFn =
   (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
@@ -43,7 +43,9 @@ export class GenerativeTask extends Task {
   protected generateFunction: GenerateFn;
 
   override compile(args: ModelCompileArgs): void {
-    throw new NotImplementedError();
+    super.compile(args);
+    // Clear the compiled generate function.
+    this.generateFunction = null;
   }
 
   /**
@@ -126,7 +128,7 @@ export class GenerativeTask extends Task {
 
   /**
    * Generate text given prompt `inputs`.
-
+   *
    * This method generates text based on given `inputs`. The sampling method
    * used for generation can be set via the `compile()` method.
    *
@@ -170,11 +172,11 @@ export class GenerativeTask extends Task {
       );
     }
 
-    function generate(x: Tensor) {
-      return generateFunction({tokenIds: x, paddingMask: null}, endTokenId);
+    function generate(x: GPT2TensorMap) {
+      return generateFunction(x, endTokenId);
     }
 
-    function postprocess(x: Tensor) {
+    function postprocess(x: GPT2TensorMap) {
       // TODO(pforderique): Generalize for other models' preprocessors.
       return (preprocessor as GPT2CausalLMPreprocessor).generatePostprocess(x);
     }
@@ -183,14 +185,15 @@ export class GenerativeTask extends Task {
     let inputIsScalar: boolean;
     [inputs, inputIsScalar] = this.normalizeGenerateInputs(inputs);
 
+    let inputsDict: GPT2TensorMap;
     if (this.preprocessor != null) {
-      inputs = preprocess(inputs).tokenIds;
+      inputsDict = preprocess(inputs);
     }
 
-    let outputs = generate(inputs).tokenIds;
-
+    let outputsDict = generate(inputsDict);
+    let outputs: Tensor;
     if (this.preprocessor != null) {
-      outputs = postprocess(outputs).tokenIds;
+      outputs = postprocess(outputsDict);
     }
 
     return this.normalizeGenerateOutputs(outputs, inputIsScalar);

@@ -33,6 +33,7 @@ import { PipelineModelArgs } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
 import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { sparseCategoricalCrossentropy } from 'tfjs-layers/src/losses';
+import { Kwargs } from '../../../../types';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -46,7 +47,7 @@ class ReverseEmbedding extends Layer {
     this.embedding = args.embedding;
   }
 
-  override call(inputs: Tensor, kwargs: any): Tensor|Tensor[] {
+  override call(inputs: Tensor, kwargs: Kwargs): Tensor|Tensor[] {
     const kernel = this.embedding.embeddings.read().transpose();
     return inputs.matMul(kernel);
   }

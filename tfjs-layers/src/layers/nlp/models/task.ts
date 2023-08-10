@@ -131,10 +131,10 @@ export class Task extends PipelineModel {
   }
 
   override summary(
-    lineLength?: number,
-    positions?: number[],
-    printFn?: (message?: any, ...optionalParams: any[]) => void
-  ): void {
+    lineLength?: number, positions?: number[],
+    printFn:
+        // tslint:disable-next-line:no-any
+    (message?: any, ...optionalParams: any[]) => void = console.log) {
     throw new NotImplementedError();
   }
 }

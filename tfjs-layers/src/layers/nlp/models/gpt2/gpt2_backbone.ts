@@ -245,7 +245,7 @@ export class GPT2Backbone extends Backbone {
         mergesHash: '75a37753dd7a28a2c5df80c28bf06e4e',
       },
       // TODO(pforderique): Add more presets and discuss model loading.
-    }
+    };
   }
 
 }

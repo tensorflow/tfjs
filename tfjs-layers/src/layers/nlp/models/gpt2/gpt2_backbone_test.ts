@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import { Tensor, memory, ones } from "@tensorflow/tfjs-core";
-import { GPT2Backbone } from "./gpt2_backbone";
+import { Tensor, memory, ones } from '@tensorflow/tfjs-core';
+import { GPT2Backbone } from './gpt2_backbone';
 
 /**
  *  Tests for GPT-2 backbone models.
@@ -73,7 +73,7 @@ describe('GPT2Backbone', () => {
 
   it('does not leak memory', () => {
     const numTensors = memory().numTensors;
-    backbone.apply(inputBatch)
+    backbone.apply(inputBatch);
 
     expect(memory().numTensors).toEqual(numTensors + 1);
   });
