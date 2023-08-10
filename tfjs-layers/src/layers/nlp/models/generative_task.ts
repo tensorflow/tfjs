@@ -29,6 +29,10 @@ import { Task } from './task';
 import { GPT2CausalLMPreprocessor } from './gpt2/gpt2_causal_lm_preprocessor';
 import { GPT2Tokenizer } from './gpt2/gpt2_tokenizer';
 
+// export type GPT2TensorMap = {
+//   tokenIds: Tensor;
+//   paddingMask: Tensor;
+// }
 export type GPT2TensorMap = {
   [name: string]: Tensor
  }
