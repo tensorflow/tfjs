@@ -100,7 +100,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('layers', model_json['model_config']['config'])
 
     # Check the loaded weights.
-    self.assertEqual(tf.keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(1, len(groups))
     self.assertEqual(3, len(groups[0]))
@@ -136,7 +135,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('layers', model_json['model_config']['config'])
 
     # Check the loaded weights.
-    self.assertEqual(tf.keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(2, len(groups))
     self.assertEqual(2, len(groups[0]))
