@@ -28,9 +28,8 @@ import { ModelCompileArgs } from '../../../engine/training';
 import { Task } from './task';
 
 export type GPT2TensorMap = {
-  tokenIds: Tensor;
-  paddingMask: Tensor;
-}
+  [name: string]: Tensor
+ }
 
 export type GenerateFn =
   (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
