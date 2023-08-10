@@ -170,11 +170,11 @@ export class GenerativeTask extends Task {
       );
     }
 
-    function generate(x: Tensor) {
-      return generateFunction({tokenIds: x, paddingMask: null}, endTokenId);
+    function generate(x: GPT2TensorMap) {
+      return generateFunction(x, endTokenId);
     }
 
-    function postprocess(x: Tensor) {
+    function postprocess(x: GPT2TensorMap) {
       // TODO(pforderique): Generalize for other models' preprocessors.
       return (preprocessor as GPT2CausalLMPreprocessor).generatePostprocess(x);
     }
@@ -183,14 +183,15 @@ export class GenerativeTask extends Task {
     let inputIsScalar: boolean;
     [inputs, inputIsScalar] = this.normalizeGenerateInputs(inputs);
 
+    let inputsDict: GPT2TensorMap;
     if (this.preprocessor != null) {
-      inputs = preprocess(inputs).tokenIds;
+      inputsDict = preprocess(inputs);
     }
 
-    let outputs = generate(inputs).tokenIds;
-
+    let outputsDict = generate(inputsDict);
+    let outputs: Tensor;
     if (this.preprocessor != null) {
-      outputs = postprocess(outputs).tokenIds;
+      outputs = postprocess(outputsDict);
     }
 
     return this.normalizeGenerateOutputs(outputs, inputIsScalar);
