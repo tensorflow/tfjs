@@ -95,7 +95,7 @@ describe('GPT2CausalLMPreprocessorTest', () => {
   });
 
   it('tokenize labeled batch', () => {
-    let inputData = tensor(Array<string>(4).fill('airplane at airport'));
+    const inputData = tensor(Array<string>(4).fill('airplane at airport'));
     let y = tensor([1, 1, 1, 1]);  // Ignored.
     let sw = tensor([1., 1., 1., 1.]);  // Ignored.
     const expectedX = {
