@@ -59,16 +59,16 @@ describe('GPT2CausalLMPreprocessorTest', () => {
       inputData, {}
     ) as [GPT2TensorMap, Tensor, Tensor];
 
-    expectTensorsClose(x.tokenIds, tensor([[6, 1, 3, 4, 2, 5, 6, 0]]));
+    expectTensorsClose(x.tokenIds, tensor([6, 1, 3, 4, 2, 5, 6, 0]));
     expectTensorsClose(
-      x.paddingMask, tensor2d([[1, 1, 1, 1, 1, 1, 1, 0]], [1, 8], 'bool'));
-    expectTensorsClose(y, tensor([[1, 3, 4, 2, 5, 6, 0, 0]]));
-    expectTensorsClose(sw, tensor([[1, 1, 1, 1, 1, 1, 0, 0]]));
+      x.paddingMask, tensor([1, 1, 1, 1, 1, 1, 1, 0], [8], 'bool'));
+    expectTensorsClose(y, tensor([1, 3, 4, 2, 5, 6, 0, 0]));
+    expectTensorsClose(sw, tensor([1, 1, 1, 1, 1, 1, 0, 0], [8], 'bool'));
   });
 
   it('no start end token', () => {
     const inputData = tensor(Array<string>(4).fill('airplane at airport'));
-    preprocessor = new GPT2CausalLMPreprocessor({
+    const preprocessor = new GPT2CausalLMPreprocessor({
       tokenizer: new GPT2Tokenizer({vocabulary, merges}),
       sequenceLength: 8,
       addStartToken: false,
@@ -82,7 +82,7 @@ describe('GPT2CausalLMPreprocessorTest', () => {
     const expectedY = tensor2d(
       Array<number[]>(4).fill([3, 4, 2, 5, 0, 0, 0, 0]));
     const expectedSW = tensor2d(
-      Array<number[]>(4).fill([1, 1, 1, 1, 0, 0, 0, 0]));
+      Array<number[]>(4).fill([1, 1, 1, 1, 0, 0, 0, 0]), [4, 8], 'bool');
 
     const [x, y, sw] = preprocessor.callAndPackArgs(
       inputData, {}
@@ -107,7 +107,7 @@ describe('GPT2CausalLMPreprocessorTest', () => {
     const expectedY = tensor2d(
       Array<number[]>(4).fill([1, 3, 4, 2, 5, 6, 0, 0]));
     const expectedSW = tensor2d(
-      Array<number[]>(4).fill([1, 1, 1, 1, 1, 1, 0, 0]));
+      Array<number[]>(4).fill([1, 1, 1, 1, 1, 1, 0, 0]), [4, 8], 'bool');
 
     let x: GPT2TensorMap;
     [x, y, sw] = preprocessor.callAndPackArgs(
@@ -124,9 +124,9 @@ describe('GPT2CausalLMPreprocessorTest', () => {
     const inputData = tensor(['airplane at airport']);
     const x = preprocessor.generatePreprocess(inputData);
 
-    expectTensorsClose(x.tokenIds, tensor2d([[6, 1, 3, 4, 2, 5, 0, 0]]));
-    expectTensorsClose(x.paddingMask, tensor2d(
-      [[1, 1, 1, 1, 1, 1, 0, 0]], [1, 8], 'bool'));
+    expectTensorsClose(x.tokenIds, tensor([6, 1, 3, 4, 2, 5, 0, 0]));
+    expectTensorsClose(
+      x.paddingMask, tensor([1, 1, 1, 1, 1, 1, 0, 0], [8], 'bool'));
   });
 
   it('generate postprocess', () => {
