@@ -22,23 +22,9 @@
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
 import { Tensor, serialization } from '@tensorflow/tfjs-core';
 
-import { GPT2Preprocessor, GPT2PreprocessorOptions, PreprocessorOutputs } from './gpt2_preprocessor';
+import { GPT2Preprocessor, GPT2PreprocessorOptions, packXYSampleWeight } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
-
-function packXYSampleWeight(
-  x: PreprocessorOutputs, y?: Tensor, sampleWeight?: Tensor):
-  PreprocessorOutputs
-  | [PreprocessorOutputs, Tensor]
-  | [PreprocessorOutputs, Tensor, Tensor] {
-
-  if (y === undefined) {
-    return x;
-  } else if (sampleWeight === undefined) {
-    return [x, y];
-  } else {
-    return [x, y, sampleWeight];
-  }
-}
+import { GPT2TensorMap } from '../generative_task';
 
 /**
   * GPT2 Causal LM preprocessor.
@@ -81,19 +67,22 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
   ): Tensor|Tensor[] {
     const output = this.callAndPackArgs(inputs, kwargs);
     if (kwargs.y) {
-      return (output as [PreprocessorOutputs, Tensor])[0].tokenIds;
+      return (output as [GPT2TensorMap, Tensor])[0]['tokenIds'];
     }
-    return (output as PreprocessorOutputs).tokenIds;
+    return (output as GPT2TensorMap)['tokenIds'];
   }
 
   /**
    * Calls the layer and returns extra information like the paddingMask used to
    * pack the sequence, the label data, and the sample weights used.
    */
-  override callAndPackArgs(inputs: Tensor|Tensor[], kwargs: GPT2PreprocessorOptions):
-    PreprocessorOutputs
-    | [PreprocessorOutputs, Tensor]
-    | [PreprocessorOutputs, Tensor, Tensor] {
+  override callAndPackArgs(
+    inputs: Tensor|Tensor[],
+    kwargs: GPT2PreprocessorOptions
+  ):
+    GPT2TensorMap
+    | [GPT2TensorMap, Tensor]
+    | [GPT2TensorMap, Tensor, Tensor] {
 
     throw new NotImplementedError(`Uses ${packXYSampleWeight}`);
   }
@@ -110,7 +99,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * the sequence (as generation is expected to continue at the end of the
    * inputted prompt).
    */
-  generatePreprocess(x: Tensor, sequenceLength?: number): PreprocessorOutputs {
+  generatePreprocess(x: Tensor, sequenceLength?: number): GPT2TensorMap {
     throw new NotImplementedError();
   }
 
@@ -121,7 +110,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * padding and start/end tokens, and then converting the integer sequence
    * back to a string.
    */
-  generatePostprocess(x: Tensor): PreprocessorOutputs {
+  generatePostprocess(x: Tensor): GPT2TensorMap {
     throw new NotImplementedError();
   }
 
