@@ -43,7 +43,9 @@ export class GenerativeTask extends Task {
   protected generateFunction: GenerateFn;
 
   override compile(args: ModelCompileArgs): void {
-    throw new NotImplementedError();
+    super.compile(args);
+    // Clear the compiled generate function.
+    this.generateFunction = null;
   }
 
   /**
