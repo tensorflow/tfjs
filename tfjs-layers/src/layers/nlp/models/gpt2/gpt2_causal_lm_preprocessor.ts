@@ -22,7 +22,7 @@
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
 import { Tensor, serialization } from '@tensorflow/tfjs-core';
 
-import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
+import { GPT2Preprocessor, GPT2PreprocessorOptions, PreprocessorOutputs } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
 
 function packXYSampleWeight(
@@ -38,24 +38,6 @@ function packXYSampleWeight(
   } else {
     return [x, y, sampleWeight];
   }
-}
-
-export declare interface GPT2PreprocessorOptions {
-  /**
-   * Label data. Should always be `null` as the layer generates labels.
-   */
-  y?: Tensor;
-
-  /**
-   * Label weights. Should always be `null` as the layer generates label
-   *  weights.
-   */
-  sampleWeight?: Tensor;
-
-  /**
-   * Pass to override the configured `sequenceLength` of the layer.
-   */
-  sequenceLength?: number;
 }
 
 /**

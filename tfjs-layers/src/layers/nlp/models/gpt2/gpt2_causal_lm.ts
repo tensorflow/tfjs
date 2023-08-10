@@ -54,24 +54,6 @@ class ReverseEmbedding extends Layer {
 
 }
 
-export declare interface GPT2PreprocessorOptions {
-  /**
-   * Label data. Should always be `null` as the layer generates labels.
-   */
-  y?: Tensor;
-
-  /**
-   * Label weights. Should always be `null` as the layer generates label
-   *  weights.
-   */
-  sampleWeight?: Tensor;
-
-  /**
-   * Pass to override the configured `sequenceLength` of the layer.
-   */
-  sequenceLength?: number;
-}
-
 export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
   /**
    * A `GPT2Backbone` instance.
