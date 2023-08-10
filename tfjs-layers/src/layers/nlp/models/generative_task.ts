@@ -20,16 +20,21 @@
  */
 
 /* Original source: keras_nlp/models/generative_task.py */
-import { Tensor } from '@tensorflow/tfjs-core';
+import { Tensor, tensor } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
 
 import { Task } from './task';
+import { GPT2CausalLMPreprocessor } from './gpt2/gpt2_causal_lm_preprocessor';
+import { GPT2Tokenizer } from './gpt2/gpt2_tokenizer';
 
+// export type GPT2TensorMap = {
+//   tokenIds: Tensor;
+//   paddingMask: Tensor;
+// }
 export type GPT2TensorMap = {
-  tokenIds: Tensor;
-  paddingMask: Tensor;
+ [name: string]: Tensor
 }
 
 export type GenerateFn =
@@ -59,7 +64,10 @@ export class GenerativeTask extends Task {
    * Create or return the compiled generation function.
    */
   makeGenerateFunction(): GenerateFn {
-    throw new NotImplementedError();
+    if (this.generateFunction == null) {
+      this.generateFunction = this.generateStep;
+    }
+    return this.generateFunction;
   }
 
   /**
@@ -68,8 +76,31 @@ export class GenerativeTask extends Task {
    * This function converts all inputs to tensors, adds a batch dimension if
    * necessary, and returns a iterable "dataset like" object.
    */
-  protected normalizeGenerateInputs(inputs: Tensor): [[Tensor], boolean] {
-    throw new NotImplementedError();
+  protected normalizeGenerateInputs(
+    inputs: Tensor|GPT2TensorMap
+  ): [Tensor, boolean] {
+    let inputIsScalar = false;
+
+    function normalize(x: string|string[]|Tensor): [Tensor, boolean] {
+      let xIsScalar = false;
+      if (typeof x === 'string' || Array.isArray(x)) {
+        x = tensor(x);
+      }
+      if (x instanceof Tensor && x.rank === 0) {
+        xIsScalar = true;
+        x = x.reshape([1, ...x.shape]);
+      }
+      return [x, xIsScalar];
+    }
+
+    if (!(inputs instanceof Tensor)) {
+      for (const key in inputs) {
+        [inputs[key], inputIsScalar] = normalize(inputs[key]);
+      }
+    } else {
+      [inputs, inputIsScalar] = normalize(inputs);
+    }
+    return [inputs as Tensor, inputIsScalar]
   }
 
   /**
@@ -80,11 +111,21 @@ export class GenerativeTask extends Task {
    * the input, it is removed from the output (so generate can be string in,
    * string out).
    */
-  protected normalizeGenerateOutptus(
-    outputs: Tensor,
+  protected normalizeGenerateOutputs(
+    outputs: Tensor|GPT2TensorMap,
     inputIsScalar: boolean
-    ): [[Tensor], boolean] {
-    throw new NotImplementedError();
+  ): Tensor {
+    function normalize(x: Tensor): Tensor {
+      return inputIsScalar ? x.squeeze([0]) : x;
+    }
+    if (!(outputs instanceof Tensor)) {
+      const normalized: GPT2TensorMap = {};
+      for (const key in outputs) {
+        normalized[key] = normalize(outputs[key]);
+      }
+      return normalized.tokenIds;
+    }
+    return normalize(outputs);
   }
 
   /**
@@ -112,7 +153,50 @@ export class GenerativeTask extends Task {
    *  should be padded to the desired maximum length and this argument
    *  will be ignored.
    */
-  generate(inputs: Tensor, maxLength?: number) {
-    throw new NotImplementedError();
+  generate(inputs: Tensor, maxLength?: number): Tensor {
+    // Setup our three main passes.
+    // 1. Optionally preprocessing strings to dense integer tensors.
+    // 2. Generate new tokens via a compiled function on dense tensors.
+    // 3. Optionally postprocess dense integer tensors back to string.
+    const generateFunction = this.makeGenerateFunction();
+    let endTokenId: number;
+
+    const preprocessor = this.preprocessor;
+    if (preprocessor != null) {
+      // TODO(pforderique): Add default `get endTokenId()` to `Tokenizer`.
+      endTokenId = (this.preprocessor.tokenizer as GPT2Tokenizer).endTokenId;
+    }
+
+    function preprocess(x: Tensor) {
+      // TODO(pforderique): Generalize for other models' preprocessors.
+      return (preprocessor as GPT2CausalLMPreprocessor).generatePreprocess(
+        x, maxLength
+      );
+    }
+
+    function generate(x: Tensor) {
+      return generateFunction({tokenIds: x, paddingMask: null}, endTokenId);
+    }
+
+    function postprocess(x: Tensor) {
+      // TODO(pforderique): Generalize for other models' preprocessors.
+      return (preprocessor as GPT2CausalLMPreprocessor).generatePostprocess(x);
+    }
+
+    // Normalize inputs, apply our three passes, and normalize outputs.
+    let inputIsScalar: boolean;
+    [inputs, inputIsScalar] = this.normalizeGenerateInputs(inputs);
+
+    if (this.preprocessor != null) {
+      inputs = preprocess(inputs).tokenIds;
+    }
+
+    let outputs = generate(inputs).tokenIds;
+
+    if (this.preprocessor != null) {
+      outputs = postprocess(outputs).tokenIds;
+    }
+
+    return this.normalizeGenerateOutputs(outputs, inputIsScalar);
   }
 }
