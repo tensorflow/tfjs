@@ -309,9 +309,8 @@ jaxlib==0.3.25 \
     # via
     #   chex
     #   optax
-keras==2.13.1 \
-    --hash=sha256:5ce5f706f779fa7330e63632f327b75ce38144a120376b2ae1917c00fa6136af \
-    --hash=sha256:5df12cc241a015a11b65ddb452c0eeb2744fce21d9b54ba48db87492568ccc68
+keras==2.12.0 \
+    --hash=sha256:35c39534011e909645fb93515452e98e1a0ce23727b55d4918b9c58b2308c15e
     # via tensorflow
 keras-core==0.1.4 \
     --hash=sha256:1692caa745d636bfd9325b9baf344593ccadd530d30a6a7e6f51410a5906dc90 \
@@ -1006,27 +1005,23 @@ tensorboard-data-server==0.7.0 \
     --hash=sha256:753d4214799b31da7b6d93837959abebbc6afa86e69eacf1e9a317a48daa31eb \
     --hash=sha256:eb7fa518737944dbf4f0cf83c2e40a7ac346bf91be2e6a0215de98be74e85454
     # via tensorboard
-tensorflow==2.13.0 \
-    --hash=sha256:00060c5516a61e30c51936084ebc37091d116efe9ae74b2818cbd8b2006218e7 \
-    --hash=sha256:06559eeaa69e6561cccbe2d02b015bcec663e875c8bbc4643f55692476e52147 \
-    --hash=sha256:076d953a1508dc58bf95f30f58bcc9ee364b1353c61e143cb20c2dada91afb05 \
-    --hash=sha256:11ad6a7ff49b4a690fbf37a5adaf28ba2686350a859c5f13c58dc8d2cc670375 \
-    --hash=sha256:19ee67901702b26787ad685cca65730c163c101c0c2f238a2584d714e0fa8c25 \
-    --hash=sha256:2822ac48c38d69b7fb104e606dacbd763c4bf5d3b20791f25be16a5076d01912 \
-    --hash=sha256:5e0fdadec59de3d11c5b5129ddc38e739bde7aa13095b82e19d4380e14d04999 \
-    --hash=sha256:6fff426661d286a4c634da44275d2ea2b951f392f3e65c8603681e7cb040586a \
-    --hash=sha256:72d68b8c2f382e2d01b956c8ba516c0a7d5dad98111dd351bf82bfa646aa1c72 \
-    --hash=sha256:7a08c0e2938ed5b642a8787678123827477b81d316055d5073fff82fa183eb82 \
-    --hash=sha256:89125443e998548059c4e4a129dfab2b1ff7f2fd4c8eaed97842c3cd9b663101 \
-    --hash=sha256:948003b5a23b72b3d89746d729e62ec5f01e47460f05521b2211d95069f569ba \
-    --hash=sha256:9c04bc3023b6c4cfb9ee9759c3f03f21993891b4c345df52eb5519204fbf28c0 \
-    --hash=sha256:b2978b39e8b3919059b5fd9e28508d50a77965d06ed0b537ed71c97de22dabdf \
-    --hash=sha256:cbb83561bb7d55859eaefc70c674e58713d4e10c10927423ed836a5289bbfa86 \
-    --hash=sha256:de77306c0c22c9d8754f54700752ac3a1efee895c5357308e6594436404bfbc0 \
-    --hash=sha256:e0cf94d36ceaba8f158c6e15404a81fd5b3aa4cb04147c674cf55bd1aec78154 \
-    --hash=sha256:e8f0b69ee2f800399fc6bc7ec55fecfa33662d136e425485959d90638f32a32a \
-    --hash=sha256:fa7abe265cc3ebccc9b405a280bf674824c6d85df5e6ccfa985987b3c9d265b4 \
-    --hash=sha256:fb2ff1129c93e853c19897d6a22ed0ec56387f5c6290ec03dec1c6f7b80bc396
+tensorflow==2.12.0 \
+    --hash=sha256:020d6a54cb26020bdc71a7bae8ee35be05096f63e773dc517f6e87c49de62c50 \
+    --hash=sha256:23850332f1f9f778d697c9dba63ca52be72cb73363e75ad358f07ddafef63c01 \
+    --hash=sha256:31f81eb8adaeb558963f5d8b47dbfcc398d898f0857bf3de6b6484350236b7b5 \
+    --hash=sha256:357d9d2851188a8d27ee195345b4d175cad970150d1344ba9d9fcc4bf2b68336 \
+    --hash=sha256:42fc2635e9420faee781a16bd393126f29cd39aa2b9d02901f24d8497bd6f958 \
+    --hash=sha256:4afc2dd57435f29ebe249eb5f595d89b0e73be94922eeb7110aa6280a332837c \
+    --hash=sha256:6e7641e2a6e32f31ff233495478a9cc86b7c038140eab714a61eeddbbbb327c3 \
+    --hash=sha256:6ec4a2934ea19e92f27a9668ece43025ed5efe14b5d19be53b07692bc8a4189d \
+    --hash=sha256:76414355e420edb9154b4e72113eef5813ccb71701fda959afbbc1eebe3099bd \
+    --hash=sha256:91dccda42c03569d8c787190482a11ecae3b9b173aaa9166f0ab20cecc9c31f4 \
+    --hash=sha256:9f70a8f9ab46e5ed436850aa60d1cd40645f5c669e14bcad48915dc1f597dda2 \
+    --hash=sha256:a7194e744c5a7f3e759ecb949527b4a07718a6d1110e6e82fd4ce0c5586a7d4a \
+    --hash=sha256:be4ac0dfcc7a16f6df2bc19bd322e312235ab3f7b0c7297f96c92c44bb14d2a1 \
+    --hash=sha256:c5193ddb3bb5120cb445279beb08ed9e74a85a4eeb2485550d6fb707a89d9a88 \
+    --hash=sha256:c8001210df7202ef6267150865b0b79f834c3ca69ee3132277de8eeb994dffde \
+    --hash=sha256:e29fcf6cfd069aefb4b44f357cccbb4415a5a3d7b5b516eaf4450062fe40021e
     # via
     #   -r tfjs-converter/python/requirements.txt
     #   tensorflow-decision-forests
@@ -1045,8 +1040,8 @@ tensorflow-decision-forests==1.5.0 \
     --hash=sha256:f5d8c3730578bda55a8f520ae39b0c9b2560d69bd53b57882e5371c1a82ba098 \
     --hash=sha256:fbd403acf736bb9b4afd2985d9056e6d5043fc4b9a31bd05e5fcae2b1d413dc3
     # via -r tfjs-converter/python/requirements.txt
-tensorflow-estimator==2.13.0 \
-    --hash=sha256:6f868284eaa654ae3aa7cacdbef2175d0909df9fcf11374f5166f8bf475952aa
+tensorflow-estimator==2.12.0 \
+    --hash=sha256:59b191bead4883822de3d63ac02ace11a83bfe6c10d64d0c4dfde75a50e60ca1
     # via tensorflow
 tensorflow-hub==0.13.0 ; python_version >= "3" \
     --hash=sha256:3544f4fd9fd99e4eeb6da1b5b5320e4a2dbdef7f9bb778f66f76d6790f32dd65

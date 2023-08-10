@@ -277,7 +277,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
       sequential_model.use_legacy_config = True
       converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=self._tmp_dir)
-      old_model_json = sequential_model.to_json()
+      old_model_json = json.loads(sequential_model.to_json())
 
     # Convert the tensorflowjs artifacts to a new H5 file.
     new_h5_path = os.path.join(self._tmp_dir, 'new.h5')
