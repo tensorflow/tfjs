@@ -68,7 +68,7 @@ export class GenerativeTask extends Task {
    * This function converts all inputs to tensors, adds a batch dimension if
    * necessary, and returns a iterable "dataset like" object.
    */
-  protected normalizeGenerateInputs(inputs: Tensor): [[Tensor], boolean] {
+  protected normalizeGenerateInputs(inputs: Tensor): [Tensor, boolean] {
     throw new NotImplementedError();
   }
 
@@ -80,10 +80,10 @@ export class GenerativeTask extends Task {
    * the input, it is removed from the output (so generate can be string in,
    * string out).
    */
-  protected normalizeGenerateOutptus(
+  protected normalizeGenerateOutputs(
     outputs: Tensor,
     inputIsScalar: boolean
-    ): [[Tensor], boolean] {
+  ): Tensor {
     throw new NotImplementedError();
   }
 
