@@ -85,7 +85,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     GPT2TensorMap
     | [GPT2TensorMap, Tensor]
     | [GPT2TensorMap, Tensor, Tensor] {
-    // return tidy(() => {
+    return tidy(() => {
       const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
 
       let x: Tensor|Tensor[] = Array.isArray(inputs) ? inputs[0] : inputs;
@@ -117,7 +117,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
       };
 
       return packXYSampleWeight(output, y, sampleWeight);
-    // });
+    });
   }
 
   /**
