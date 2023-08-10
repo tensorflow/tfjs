@@ -30,8 +30,8 @@ import { GPT2CausalLMPreprocessor } from './gpt2/gpt2_causal_lm_preprocessor';
 import { GPT2Tokenizer } from './gpt2/gpt2_tokenizer';
 
 export type GPT2TensorMap = {
-  [name: string]: Tensor
-}
+  [name: string]: Tensor;
+};
 
 export type GenerateFn =
   (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
@@ -126,7 +126,7 @@ export class GenerativeTask extends Task {
 
   /**
    * Generate text given prompt `inputs`.
-
+   *
    * This method generates text based on given `inputs`. The sampling method
    * used for generation can be set via the `compile()` method.
    *

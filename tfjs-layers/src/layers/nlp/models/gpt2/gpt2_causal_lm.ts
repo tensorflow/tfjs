@@ -31,6 +31,7 @@ import { Shape } from '../../../../keras_format/common';
 import { GPT2TensorMap, GenerativeTask } from '../generative_task';
 import { GPT2Backbone } from './gpt2_backbone';
 import { PipelineModelArgs } from '../../utils';
+import { Kwargs } from '../../../../types';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -44,7 +45,7 @@ class ReverseEmbedding extends Layer {
     this.embedding = args.embedding;
   }
 
-  override call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     throw new NotImplementedError();
   }
 

@@ -69,7 +69,6 @@ export function sliceUpdate(
   });
 }
 
-
 function packXYSampleWeight(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
   Tensor
   | [Tensor, Tensor]
