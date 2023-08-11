@@ -435,7 +435,6 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       meta_graph_def = g.as_graph_def()
       if not meta_graph_def.HasField('library'):
         meta_graph_def.library.CopyFrom(function_pb2.FunctionDefLibrary())
-      print(meta_graph_def.library)
 
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
           sess, meta_graph_def, output_node_names)
