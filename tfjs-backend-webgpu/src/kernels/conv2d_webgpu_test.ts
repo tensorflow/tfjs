@@ -287,6 +287,13 @@ describeWebGPU('conv2d vec4', () => {
   });
 
   it('bool cast float32 + conv2d', async () => {
+    const im2colFlag = tf.env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER');
+    const thresholdFlag =
+        tf.env().getBool('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+    tf.env().set('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', false);
+    // Setting the threshold to 0 is like skipping the corresponding
+    // optimization.
+    tf.env().set('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', 0);
     const a1 = tf.tensor4d([3, 2, 3, 4, 3, 2], [1, 2, 3, 1]);
     const b1 = tf.tensor4d([2, 2, 2, 1, 4, 1], [1, 2, 3, 1]);
     // Generate a bool tensor and have data in GPU.
@@ -297,6 +304,9 @@ describeWebGPU('conv2d vec4', () => {
     const res = tf.conv2d(x, w, 1, 0);
     const resData = await res.data();
     test_util.expectArraysClose(resData, new Float32Array([6, 8, 10, 12]));
+    tf.env().set('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', im2colFlag);
+    tf.env().set(
+        'WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', thresholdFlag);
   });
 
   it('x=[1,9,9,3] f=[3,3,3,4] s=[2,2] d=1 p=valid NCHW', async () => {
