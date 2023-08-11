@@ -24,6 +24,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import keras
 
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -98,8 +99,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIsInstance(model_json['model_config'], dict)
     self.assertIsInstance(model_json['model_config']['config'], dict)
     self.assertIn('layers', model_json['model_config']['config'])
-
     # Check the loaded weights.
+    self.assertEqual(keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(1, len(groups))
     self.assertEqual(3, len(groups[0]))
@@ -135,6 +136,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('layers', model_json['model_config']['config'])
 
     # Check the loaded weights.
+    self.assertEqual(keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(2, len(groups))
     self.assertEqual(2, len(groups[0]))
