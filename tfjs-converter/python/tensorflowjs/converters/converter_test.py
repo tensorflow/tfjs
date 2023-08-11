@@ -100,7 +100,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('layers', model_json['model_config']['config'])
 
     # Check the loaded weights.
-    self.assertEqual(tf.keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(1, len(groups))
     self.assertEqual(3, len(groups[0]))
@@ -136,7 +135,6 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIn('layers', model_json['model_config']['config'])
 
     # Check the loaded weights.
-    self.assertEqual(tf.keras.__version__, model_json['keras_version'])
     self.assertEqual('tensorflow', model_json['backend'])
     self.assertEqual(2, len(groups))
     self.assertEqual(2, len(groups[0]))
@@ -274,6 +272,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
           tf.keras.layers.Dense(
               1, use_bias=False, kernel_initializer='ones', name='Dense2')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.use_legacy_config = True
       sequential_model.save(h5_path)
       converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
           h5_path, output_dir=self._tmp_dir)
@@ -287,6 +286,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     # Load the new H5 and compare the model JSONs.
     with tf.Graph().as_default(), tf.compat.v1.Session():
       new_model = tf.keras.models.load_model(new_h5_path)
+      new_model.use_legacy_config = True
       self.assertEqual(old_model_json, new_model.to_json())
 
   def testTensorflowjsToKerasConversionFailsOnDirInputPath(self):
