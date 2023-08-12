@@ -124,9 +124,9 @@ export interface GPT2BackboneArgs  {
  */
 export class GPT2Backbone extends Backbone {
   private vocabularySize: number;
-  private numLayers: number;
-  private numHeads: number;
-  private hiddenDim: number;
+  numLayers: number;
+  numHeads: number;
+  hiddenDim: number;
   private intermediateDim: number;
   private dropout: number;
   private maxSequenceLength: number;

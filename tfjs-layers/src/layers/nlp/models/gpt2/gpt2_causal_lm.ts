@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { AdamOptimizer, Tensor, serialization } from '@tensorflow/tfjs-core';
+import { AdamOptimizer, Tensor, logicalAnd, onesLike, scalar, serialization, softmax, stack, tensor, topk, zeros, zerosLike } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
@@ -29,11 +29,12 @@ import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
 
 import { GPT2TensorMap, GenerativeTask } from '../generative_task';
-import { PipelineModelArgs } from '../../utils';
+import { PipelineModelArgs, sliceUpdate } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
 import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { sparseCategoricalCrossentropy } from 'tfjs-layers/src/losses';
 import { Kwargs } from '../../../../types';
+import { TransformerDecoder } from '../../modeling/transformer_decoder';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -184,11 +185,11 @@ export class GPTCausalLM extends GenerativeTask {
 
     // Default complation.
     this.compile({
-      loss: (yTrue: Tensor, yPred: Tensor) => sparseCategoricalCrossentropy(yTrue, yPred, true),
+      loss: (yTrue: Tensor, yPred: Tensor) =>
+        sparseCategoricalCrossentropy(yTrue, yPred, true),
       optimizer: new AdamOptimizer(2e-5, 0.9, 0.999),
       metrics: ['sparseCategoricalCrossentropy'],
     });
-    throw new NotImplementedError(`Uses ${ReverseEmbedding}.`);
   }
 
   static override presets<T extends serialization.Serializable>(
@@ -219,14 +220,55 @@ export class GPTCausalLM extends GenerativeTask {
     cache: Tensor,
     cacheUpdateIndex: number
   ): [Tensor, Tensor, Tensor] {
-    throw new NotImplementedError();
+    const tokenEmbedding = this.backbone.getLayer('token_embedding')
+      .apply(tokenIds) as Tensor;
+    const positionEmbedding = this.backbone.getLayer('position_embedding')
+      .apply(tokenEmbedding, {startIndex: cacheUpdateIndex}) as Tensor;
+    let x = this.backbone.getLayer('embeddings_add')
+      .apply([tokenEmbedding, positionEmbedding]) as Tensor;
+    x = this.backbone.getLayer('embeddings_dropout')
+      .apply(x) as Tensor;
+
+    // Each decoder layer has a cache; we update them separately.
+    const caches = [];
+    let currentCache: Tensor;
+    let nextCache: Tensor;
+    for (let i = 0; i < (this.backbone as GPT2Backbone).numLayers; i++) {
+      currentCache = cache.gather([0], 1).squeeze();
+      [x, nextCache] = (
+        this.backbone.getLayer(`transformer_layer_${i}`) as TransformerDecoder
+      ).callAndReturnCaches(
+        x,
+        {
+          selfAttentionCache: currentCache,
+          selfAttentionCacheUpdateIndex: cacheUpdateIndex
+        }
+      );
+      caches.push(nextCache);
+    }
+    cache = stack(caches, 1);
+    x = this.backbone.getLayer('layer_norm').apply(x) as Tensor;
+    const hiddenStates = x;
+    const logits = this.getLayer('reverse_embedding').apply(x) as Tensor;
+    return [logits, hiddenStates, cache];
   }
 
   /**
    * Build an empty cache for use with `callWithCache()`.
    */
   private buildCache(tokenIds: Tensor): [Tensor, Tensor] {
-    throw new NotImplementedError();
+    const batchSize = tokenIds.shape[0];
+    const maxLength = tokenIds.shape[1];
+    const numLayers = (this.backbone as GPT2Backbone).numLayers;
+    const numHeads = (this.backbone as GPT2Backbone).numHeads;
+    const headDim = (this.backbone as GPT2Backbone).hiddenDim / numHeads;
+    const shape = [batchSize, numLayers, 2, maxLength, numHeads, headDim];
+    let cache = zeros(shape);
+    // Seed the cache.
+    const cacheCall = this.callWithCache(tokenIds, cache, 0);
+    const hiddenStates = cacheCall[1];
+    cache = cacheCall[2];
+    return [hiddenStates, cache];
   }
 
   /**
@@ -242,8 +284,127 @@ export class GPTCausalLM extends GenerativeTask {
    */
   override generateStep(
     inputs: GPT2TensorMap,
-    endTokenId: number
+    endTokenId?: number
   ): GPT2TensorMap {
-    throw new NotImplementedError(`Uses ${this.buildCache}`);
+    let tokenIds = inputs.tokenIds;
+    let paddingMask = inputs.paddingMask;
+    // Create and seed cache with a single forward pass.
+    const [hiddenStates, cache] = this.buildCache(tokenIds);
+    // Compute the lengths of all user inputted tokens ids.
+    const rowLengths = paddingMask.cast('int32').sum(-1);
+    // Start at the first index that has no user inputted id.
+    const index = rowLengths.min().arraySync() as number;
+
+    const self = this;
+    function next(
+      prompt: Tensor,
+      cache: Tensor,
+      index: number
+    ): [Tensor, Tensor, Tensor] {
+      // The cache index is the index of our previous token.
+      const cacheUpdateIndex = index - 1;
+      const batchSize = prompt.shape[0];
+      prompt = prompt.slice([0, cacheUpdateIndex], [batchSize, 1]);
+      let logits: Tensor;
+      let hiddenStates: Tensor;
+      [logits, hiddenStates, cache] =
+        self.callWithCache(prompt, cache, cacheUpdateIndex);
+      return [
+        logits.squeeze([1]),
+        hiddenStates.squeeze([1]),
+        cache
+      ];
+    }
+    tokenIds =
+      this.sampler(next, tokenIds, cache, index, paddingMask, endTokenId, hiddenStates);
+
+    // Compute an output padding mask with the token ids we updated.
+    if (endTokenId != null) {
+      // Build a mask of `endTokenId` locations not in the original
+      // prompt (not in locations where `paddingMask` is True).
+      let endLocations = logicalAnd(
+        tokenIds.equal(endTokenId),
+        paddingMask.logicalNot(),
+      );
+      endLocations = endLocations.cast('int32');
+      // Use cumsum to get ones in all locations after end_locations.
+      const cumsum = endLocations.cumsum(-1).cast('int32');
+      const overflow = cumsum.sub(endLocations);
+      // Our padding mask is the inverse of these overflow locations.
+      paddingMask = overflow.cast('bool').logicalNot();
+    } else {
+      // Without early stopping, all locations will have been updated.
+      paddingMask = onesLike(tokenIds).cast('bool');
+    }
+    return {tokenIds, paddingMask};
+  }
+
+  private sampler(
+    next: (prompt: Tensor, cache: Tensor, index: number)
+      => [Tensor, Tensor, Tensor],
+    prompt: Tensor,
+    cache?: Tensor,
+    index?: number,
+    mask?: Tensor,
+    endTokenId?: number,
+    hiddenStates?: Tensor
+  ): Tensor {
+    const temperature = 1.0;
+    const maxLength = prompt.shape[prompt.shape.length - 1];
+    index = index ?? 0;
+    mask = mask == null ? zerosLike(prompt).cast('bool') : mask.cast('bool');
+    cache = cache ?? tensor([]);
+
+    function cond(prompt: Tensor): boolean {
+      if (endTokenId == null) {
+        return true;
+      }
+      // Stop if all sequences have produced a *new* endTokenId.
+      const endTokens = prompt.equal(endTokenId).logicalAnd(mask.logicalNot());
+      const promptDone = endTokens.any(-1);
+      return promptDone.all().logicalNot().arraySync() as number === 1;
+    }
+
+    function generateNextToken(probabilities: Tensor): Tensor {
+      // Filter out top-k tokens.
+      const k = 5;
+      const {values, indices} = topk(probabilities, k, false);
+
+      function randomSample(values: Tensor, probabilities: Tensor): number {
+        const probabilitiesArr = probabilities.arraySync() as number[];
+        let sample = Math.random() * probabilitiesArr.reduce((a, b) => a + b, 0);
+        const value = (values.arraySync() as number[]).find((val, index) => {
+          return (sample -= probabilitiesArr[index]) <= 0;
+        });
+        return value;
+      }
+      // Sample the indices with the distribution.
+      const nextToken = randomSample(indices, values);
+      const nextTokenTensor = scalar(nextToken, 'int32');
+      return nextTokenTensor;
+    }
+
+    let iter = 0;
+    let logits: Tensor;
+    while (iter < maxLength - index && cond(prompt)) {
+      // Compute the softmax distribution for the next token.
+      [logits, hiddenStates, cache] = next(prompt, cache, index);
+      let probabilities = softmax(logits.div(temperature));
+      // Compute next token.
+      let nextToken = generateNextToken(probabilities);
+      // Don't overwrite anywhere mask is True.
+      nextToken = nextToken.cast(prompt.dtype);
+      nextToken = nextToken.where(
+        mask.gather([index], 1).squeeze(),
+        prompt.gather([index], 1).squeeze()
+      );
+      // Update the prompt with the next token.
+      nextToken = nextToken.expandDims(-1);
+      prompt = sliceUpdate(prompt, [0, index], nextToken);
+
+      index += 1;
+      iter += 1;
+    }
+    return prompt;
   }
 }
