@@ -128,7 +128,7 @@ export class GPT2Preprocessor extends Preprocessor {
   protected readonly sequenceLength: number;
   protected readonly addStartToken: boolean;
   protected readonly addEndToken: boolean;
-  protected readonly packer: StartEndPacker;
+  packer: StartEndPacker;
 
   constructor(args: GPT2PreprocessorArgs) {
     super(args);

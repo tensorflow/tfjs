@@ -29,12 +29,12 @@ import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
 
 import { GPT2TensorMap, GenerativeTask } from '../generative_task';
-import { PipelineModelArgs, sliceUpdate } from '../../utils';
+import { sliceUpdate } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
-import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { sparseCategoricalCrossentropy } from 'tfjs-layers/src/losses';
 import { Kwargs } from '../../../../types';
 import { TransformerDecoder } from '../../modeling/transformer_decoder';
+import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
 
 declare interface ReverseEmbeddingArgs extends LayerArgs {
   embedding: Embedding;
@@ -59,7 +59,7 @@ class ReverseEmbedding extends Layer {
 
 }
 
-export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
+export declare interface GPT2CausalLMArgs {
   /**
    * A `GPT2Backbone` instance.
    */
@@ -70,7 +70,7 @@ export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
    * If `null`, this model will not apply preprocessing, and inputs should be
    * preprocessed before calling the model.
    */
-  preprocessor?: GPT2Preprocessor;
+  preprocessor?: GPT2CausalLMPreprocessor;
 }
 
 /**
@@ -160,10 +160,9 @@ export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
  * gpt2LM.fit(features, {batch_size: 2});
  * ```
  */
-export class GPTCausalLM extends GenerativeTask {
+export class GPT2CausalLM extends GenerativeTask {
 
   constructor(args: GPT2CausalLMArgs) {
-    super(args);
     const inputs = args.backbone.input;
     const x = args.backbone.apply(inputs) as SymbolicTensor;
     // Use token embedding weights to project from the token representation
