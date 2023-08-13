@@ -19,14 +19,14 @@
  * Tests for GPT2 causal LM model.
  */
 
-import { Tensor, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { Tensor, tensor } from '@tensorflow/tfjs-core';
 
 import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
 import { GPT2Backbone } from './gpt2_backbone';
 import { GPT2CausalLM } from './gpt2_causal_lm';
 
-describe('GPT2CausalLM', () => {
+describe('fab! GPT2CausalLM', () => {
   let vocabulary: Map<string, number>;
   let merges: string[];
   let preprocessor: GPT2CausalLMPreprocessor;
@@ -63,7 +63,7 @@ describe('GPT2CausalLM', () => {
       maxSequenceLength: preprocessor.packer.sequenceLength,
     });
     causalLM = new GPT2CausalLM({backbone, preprocessor});
-    rawBatch = tensor2d([' airplane at airport',' airplane at airport']);
+    rawBatch = tensor([' airplane at airport',' airplane at airport']);
     preprocessedBatch = (preprocessor.apply(rawBatch) as [Tensor, Tensor])[0];
   });
 
