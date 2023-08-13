@@ -64,7 +64,9 @@ describe('fab! GPT2CausalLM', () => {
     });
     causalLM = new GPT2CausalLM({backbone, preprocessor});
     rawBatch = tensor([' airplane at airport',' airplane at airport']);
-    preprocessedBatch = (preprocessor.apply(rawBatch) as [Tensor, Tensor])[0];
+    preprocessedBatch = preprocessor.call(rawBatch, {}) as Tensor;
+    rawBatch.print();
+    preprocessedBatch.print();
   });
 
   it('valid call causal lm', () => {
