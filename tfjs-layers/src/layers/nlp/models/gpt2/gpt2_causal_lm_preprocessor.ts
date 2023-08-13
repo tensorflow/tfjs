@@ -67,10 +67,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
   ): Tensor|Tensor[] {
     return tidy(() => {
       const output = this.callAndPackArgs(inputs, kwargs);
-      if (kwargs.y) {
-        return (output as [GPT2TensorMap, Tensor])[0]['tokenIds'];
-      }
-      return (output as GPT2TensorMap)['tokenIds'];
+      return (output as [GPT2TensorMap, Tensor, Tensor])[0]['tokenIds'];
     });
   }
 
