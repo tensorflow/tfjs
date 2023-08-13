@@ -43,7 +43,9 @@ export class Task extends PipelineModel {
     loss: string|string[]|{[outputName: string]: string}|LossOrMetricFn|
           LossOrMetricFn[]|{[outputName: string]: LossOrMetricFn}
   ) {
-    throw new NotImplementedError();
+    // TODO(pforderique): Returning for now, but should be implemented once
+    // user facing.
+    return;
   }
 
   override compile(args: ModelCompileArgs): void {
