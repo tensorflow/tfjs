@@ -31,7 +31,7 @@ import { Shape } from '../../../../keras_format/common';
 import { GPT2TensorMap, GenerativeTask } from '../generative_task';
 import { sliceUpdate } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
-import { sparseCategoricalCrossentropy } from 'tfjs-layers/src/losses';
+import { sparseCategoricalCrossentropy } from '../../../../losses';
 import { Kwargs } from '../../../../types';
 import { TransformerDecoder } from '../../modeling/transformer_decoder';
 import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
