@@ -88,7 +88,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     return tidy(() => {
       const sequenceLength = kwargs.sequenceLength ?? this.sequenceLength;
 
-      let x = Array.isArray(inputs) ? inputs : [inputs];
+      let x: Tensor|Tensor[] = Array.isArray(inputs) ? inputs[0] : inputs;
       x = this.tokenizer.apply(x) as Tensor[];
       // Pad with one extra token to account for the truncation below.
       const [tokenIds, paddingMask] = this.packer.callAndReturnPaddingMask(
@@ -100,16 +100,20 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
         }
       );
       // The last token does not have a next token, so we truncate it out.
+      const newTokenIdsShape = tokenIds.shape.slice();
+      newTokenIdsShape[newTokenIdsShape.length - 1] -= 1;
+      const newTokenIds = tokenIds.slice([0], newTokenIdsShape);
+      const newPaddingMask = paddingMask.slice([0], newTokenIdsShape);
+
       // Target `y` will be the next token.
-      const tokenIdsXLength = tokenIds.shape[1] - 1;
-      const paddingMaskXLength = paddingMask.shape[1] - 1;
-      const [tokenIdsX, y] = tokenIds.split([tokenIdsXLength, 1], -1);
-      const [paddingMaskX, sampleWeight] = paddingMask.split(
-        [paddingMaskXLength, 1], -1
-      );
+      const nextTokenStart = Array<number>(tokenIds.rank).fill(0);
+      nextTokenStart[nextTokenStart.length - 1] = 1;
+      const y = tokenIds.slice(nextTokenStart, [-1]);
+      const sampleWeight = paddingMask.slice(nextTokenStart, [-1]);
+
       const output = {
-        tokenIds: tokenIdsX,
-        paddingMask: paddingMaskX,
+        tokenIds: newTokenIds,
+        paddingMask: newPaddingMask,
       };
 
       return packXYSampleWeight(output, y, sampleWeight);
