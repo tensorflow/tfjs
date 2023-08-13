@@ -18,7 +18,5 @@
 /**
  * Unit Tests for Task Layers.
  */
-
-describe('Task', () => {
-  // TODO(pforderique): Test serialization.
-});
+// TODO(pforderique): Test serialization.
+// describe('Task', () => {});
