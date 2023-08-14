@@ -46,6 +46,7 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def _saveKerasModelForTest(self, path):
     model = tf.keras.Sequential()
+    model.use_legacy_config = True
     model.add(tf.keras.layers.Dense(
         2, input_shape=[12], bias_initializer='random_normal', name='dense'))
     model.add(tf.keras.layers.Dense(
@@ -58,6 +59,7 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def _saveRNNKerasModelForTest(self, path):
     model = tf.keras.Sequential()
+    model.use_legacy_config = True
     model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
     model.add(tf.keras.layers.SimpleRNN(4))
     keras_h5_conversion.save_keras_model(model, path)
@@ -75,7 +77,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'))
-
+      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -98,7 +100,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'))
-
+      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -127,6 +129,7 @@ class LoadKerasModelTest(tf.test.TestCase):
 
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(buff.read())
+      model2.use_legacy_config = True
 
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
@@ -145,7 +148,7 @@ class LoadKerasModelTest(tf.test.TestCase):
 
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(config_json)
-
+      model2.use_legacy_config = True
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
 
@@ -171,6 +174,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(
           json_buff, weight_data=weight_buffers)
+      model2.use_legacy_config = True
 
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
@@ -200,6 +204,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(
           json_file, weight_files)
+      model2.use_legacy_config = True
 
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
@@ -225,7 +230,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # Use a relative path under the current working directory.
       model2 = keras_tfjs_loader.load_keras_model('model.json')
-
+      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -247,6 +252,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'), load_weights=False)
+      model2.use_legacy_config = True
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
       for model1_weight_value, model2_weight_value in zip(
@@ -276,7 +282,7 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           new_model_json_path, weights_path_prefix=tfjs_path)
-
+      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -329,7 +335,7 @@ class LoadKerasModelTest(tf.test.TestCase):
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'),
           weights_data_buffers=data_buffers)
-
+      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
