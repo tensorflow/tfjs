@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
-import { Tensor, serialization, tidy, zeros } from '@tensorflow/tfjs-core';
+import { Tensor, serialization, tensor, tidy } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor, GPT2PreprocessorOptions, packXYSampleWeight } from './gpt2_preprocessor';
 import { GPT2TensorMap } from '../generative_task';
@@ -155,12 +155,22 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
       let [tokenIds, paddingMask] = [x.tokenIds, x.paddingMask];
       // Strip any special tokens during detokenization (e.g. the start and
       // end markers). In the future we could make this configurable.
-      const zerosTensor = zeros(tokenIds.shape, 'int32');
+      const markedTensor = tensor(
+        Array(tokenIds.shape[0]).fill([])
+          .map(() => Array(tokenIds.shape[1]).fill(-1)),
+        tokenIds.shape,
+        'int32',
+      );
       paddingMask = paddingMask.logicalAnd(
         tokenIds.notEqual((this.tokenizer as GPT2Tokenizer).endTokenId)
       );
-      tokenIds = tokenIds.where(paddingMask.cast('bool'), zerosTensor);
-      return this.tokenizer.detokenize([tokenIds]);
+      tokenIds = tokenIds.where(paddingMask.cast('bool'), markedTensor);
+
+      const filteredTokens = [];
+      for (const tokens of tokenIds.arraySync() as number[][]) {
+        filteredTokens.push(tensor(tokens.filter(e => e !== -1)));
+      }
+      return this.tokenizer.detokenize(filteredTokens);
     });
   }
 }
