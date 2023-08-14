@@ -76,7 +76,7 @@ export class GenerativeTask extends Task {
    */
   protected normalizeGenerateInputs(
     inputs: Tensor|GPT2TensorMap
-  ): [Tensor, boolean] {
+  ): [Tensor|GPT2TensorMap, boolean] {
     let inputIsScalar = false;
 
     function normalize(x: string|string[]|Tensor): [Tensor, boolean] {
@@ -98,7 +98,7 @@ export class GenerativeTask extends Task {
     } else {
       [inputs, inputIsScalar] = normalize(inputs);
     }
-    return [inputs as Tensor, inputIsScalar]
+    return [inputs, inputIsScalar]
   }
 
   /**
@@ -151,12 +151,12 @@ export class GenerativeTask extends Task {
    *  should be padded to the desired maximum length and this argument
    *  will be ignored.
    */
-  generate(inputs: Tensor, maxLength?: number): Tensor {
+  generate(inputs: Tensor|GPT2TensorMap, maxLength?: number): Tensor {
     // Setup our three main passes.
     // 1. Optionally preprocessing strings to dense integer tensors.
     // 2. Generate new tokens via a compiled function on dense tensors.
     // 3. Optionally postprocess dense integer tensors back to string.
-    const generateFunction = this.makeGenerateFunction();
+    const generateFunction = this.makeGenerateFunction().bind(this);
     let endTokenId: number;
 
     const preprocessor = this.preprocessor;
@@ -187,7 +187,9 @@ export class GenerativeTask extends Task {
 
     let inputsDict: GPT2TensorMap;
     if (this.preprocessor != null) {
-      inputsDict = preprocess(inputs);
+      inputsDict = preprocess(inputs as Tensor);
+    } else {
+      inputsDict = inputs as GPT2TensorMap;
     }
 
     let outputsDict = generate(inputsDict);
