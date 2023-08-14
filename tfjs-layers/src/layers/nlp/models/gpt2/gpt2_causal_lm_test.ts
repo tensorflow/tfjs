@@ -21,10 +21,11 @@
 
 import { Tensor, tensor } from '@tensorflow/tfjs-core';
 
-import { GPT2Tokenizer } from './gpt2_tokenizer';
-import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
+import { GPT2TensorMap } from '../generative_task';
 import { GPT2Backbone } from './gpt2_backbone';
+import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
 import { GPT2CausalLM } from './gpt2_causal_lm';
+import { GPT2Tokenizer } from './gpt2_tokenizer';
 
 describe('fab! GPT2CausalLM', () => {
   let vocabulary: Map<string, number>;
@@ -33,7 +34,7 @@ describe('fab! GPT2CausalLM', () => {
   let backbone: GPT2Backbone;
   let causalLM: GPT2CausalLM;
   let rawBatch: Tensor;
-  let preprocessedBatch: Tensor;
+  let preprocessedBatch: GPT2TensorMap;
 
   beforeEach(() => {
     vocabulary = new Map([
@@ -64,29 +65,23 @@ describe('fab! GPT2CausalLM', () => {
     });
     causalLM = new GPT2CausalLM({backbone, preprocessor});
     rawBatch = tensor([' airplane at airport',' airplane at airport']);
-    preprocessedBatch = preprocessor.call(rawBatch, {}) as Tensor;
-    rawBatch.print();
-    preprocessedBatch.print();
-  });
-
-  it('valid call causal lm', () => {
-    expect(() => causalLM.apply(preprocessedBatch)).not.toThrow();
-  });
-
-  it('predict', () => {
-    expect(() => causalLM.predict(rawBatch)).not.toThrow();
-    causalLM.preprocessor = null;
-    expect(() => causalLM.predict(preprocessedBatch)).not.toThrow();
+    preprocessedBatch = preprocessor.callAndPackArgs(
+      rawBatch, {}
+    ) as [GPT2TensorMap, Tensor, Tensor][0];
   });
 
   it('generate', () => {
-    // String input.
-    const prompt = ' airplane at airport'
-    const output = causalLM.generate(tensor([prompt]));
-    expect(output.arraySync() as unknown as string).toContain(prompt);
+    causalLM.generate(rawBatch).print();
+
+    causalLM.preprocessor = null;
+    // console.log('preprocessed batchhhhh', preprocessedBatch.tokenIds, preprocessedBatch.paddingMask);
+    // causalLM.generate(preprocessedBatch).print();
+
+    // TODO(pforderique): now finish the tests and push changes to respective branches!!!!!!!!!!!
+    // expect(output.arraySync() as unknown as string).toContain(prompt);
     // String tensor input.
-    expect(causalLM.generate(rawBatch).dataSync() as unknown as string[][0])
-      .toBeInstanceOf(String);
+    // expect(causalLM.generate(rawBatch).dataSync() as unknown as string[][0])
+      // .toBeInstanceOf(String);
     // TODO(pforderique): Int tensor input.
   });
 

@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { AdamOptimizer, Tensor, logicalAnd, onesLike, scalar, serialization, softmax, stack, tensor, topk, zeros, zerosLike } from '@tensorflow/tfjs-core';
+import { AdamOptimizer, Tensor, logicalAnd, onesLike, serialization, softmax, stack, tensor, topk, where, zeros, zerosLike } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
@@ -326,9 +326,8 @@ export class GPT2CausalLM extends GenerativeTask {
         paddingMask.logicalNot(),
       );
       endLocations = endLocations.cast('int32');
-      // Use cumsum to get ones in all locations after end_locations.
-      const cumsum = endLocations.cumsum(-1).cast('int32');
-      const overflow = cumsum.sub(endLocations);
+      // Use cumsum to get ones in all locations after endLocations.
+      const overflow = endLocations.cumsum(1, true);
       // Our padding mask is the inverse of these overflow locations.
       paddingMask = overflow.cast('bool').logicalNot();
     } else {
@@ -369,23 +368,28 @@ export class GPT2CausalLM extends GenerativeTask {
       const k = 5;
       const {values, indices} = topk(probabilities, k, false);
 
-      function randomSample(values: Tensor, probabilities: Tensor): number {
-        const probabilitiesArr = probabilities.arraySync() as number[];
-        let sample = Math.random() * probabilitiesArr.reduce((a, b) => a + b, 0);
-        const value = (values.arraySync() as number[]).find((val, index) => {
-          return (sample -= probabilitiesArr[index]) <= 0;
-        });
-        return value;
+      function randomSample(probabilities: Tensor): Tensor {
+        const probabilitiesArr = probabilities.arraySync() as number[][];
+        const samplesArr = [];
+
+        for (const probDistribution of probabilitiesArr) {
+          let sample =
+            Math.random() * probDistribution.reduce((a, b) => a + b, 0);
+          const sampleIdx = probDistribution.findIndex(val => {
+            return (sample -= val) <= 0;
+          });
+          samplesArr.push(sampleIdx);
+        }
+        return tensor(samplesArr, null, 'int32');
       }
-      // Sample the indices with the distribution.
-      const nextToken = randomSample(indices, values);
-      const nextTokenTensor = scalar(nextToken, 'int32');
-      return nextTokenTensor;
+      // Sample the nextToken from the probability distribution.
+      const nextToken = randomSample(values);
+      return indices.gather(nextToken, 1, 1);
     }
 
     let iter = 0;
     let logits: Tensor;
-    while (iter < maxLength - index && cond(prompt)) {
+    while (iter <= maxLength - index && cond(prompt)) {
       // Compute the softmax distribution for the next token.
       [logits, hiddenStates, cache] = next(prompt, cache, index);
       let probabilities = softmax(logits.div(temperature));
@@ -393,9 +397,10 @@ export class GPT2CausalLM extends GenerativeTask {
       let nextToken = generateNextToken(probabilities);
       // Don't overwrite anywhere mask is True.
       nextToken = nextToken.cast(prompt.dtype);
-      nextToken = nextToken.where(
+      nextToken = where(
         mask.gather([index], 1).squeeze(),
-        prompt.gather([index], 1).squeeze()
+        prompt.gather([index], 1).squeeze(),
+        nextToken,
       );
       // Update the prompt with the next token.
       nextToken = nextToken.expandDims(-1);
