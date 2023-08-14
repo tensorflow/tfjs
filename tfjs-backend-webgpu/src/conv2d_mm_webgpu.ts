@@ -31,11 +31,11 @@ function conv2dCommonSnippet(
   const getXSnippet = (innerElementSize: number) => {
     switch (innerElementSize) {
       case 1:
-        return 'resData = x[xIndex];';
+        return 'resData = f32(x[xIndex]);';
       case 3:
         return 'resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);';
       case 4:
-        return 'resData = x[xIndex / 4];';
+        return 'resData = vec4<f32>(x[xIndex / 4]);';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
@@ -44,9 +44,9 @@ function conv2dCommonSnippet(
   const getWSnippet = (innerElementSize: number) => {
     switch (innerElementSize) {
       case 1:
-        return 'return W[row * uniforms.wShape[3] + col];';
+        return 'return f32(W[row * uniforms.wShape[3] + col]);';
       case 4:
-        return 'return W[(row * uniforms.wShape[3] + col) / 4];';
+        return 'return vec4<f32>(W[(row * uniforms.wShape[3] + col) / 4]);';
       default:
         throw new Error(
             `innerElementSize ${innerElementSize} is not supported.`);
