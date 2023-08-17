@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
 package(
     default_visibility = [
         "//tfjs-converter/python/tensorflowjs:__subpackages__",
@@ -67,6 +69,7 @@ py_library(
     srcs_version = "PY3",
     deps = [
         ":keras_h5_conversion",
+        ":tf_module_mapper",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:read_weights",
     ],
