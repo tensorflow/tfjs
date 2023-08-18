@@ -60,6 +60,8 @@ import { GPT2Tokenizer } from './gpt2_tokenizer';
  * ```
  */
 export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
+  /** @nocollapse */
+  static override className = 'GPT2CausalLMPreprocessor';
 
   override call(
     inputs: Tensor|Tensor[],
@@ -174,4 +176,4 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     });
   }
 }
-serialization.registerClass(GPT2Preprocessor);
+serialization.registerClass(GPT2CausalLMPreprocessor);

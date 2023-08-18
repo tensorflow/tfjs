@@ -123,6 +123,9 @@ export interface GPT2BackboneArgs  {
  * ```
  */
 export class GPT2Backbone extends Backbone {
+  /** @nocollapse */
+  static override className = 'GPT2Backbone';
+
   private vocabularySize: number;
   numLayers: number;
   numHeads: number;
@@ -215,38 +218,5 @@ export class GPT2Backbone extends Backbone {
   override get tokenEmbedding(): Embedding {
     return this.getLayer('token_embedding') as Embedding;
   }
-
-  static presets(cls: serialization.SerializableConstructor<GPT2Backbone>) {
-    return {
-      gpt2_base_en: {
-        metadata: {
-          description: '12-layer GPT-2 model where case is maintained.' +
-            'Trained on WebText.',
-          params: 124439808,
-          official_name: 'GPT-2',
-          path: 'gpt2',
-          modelCard: 'https://github.com/openai/gpt-2/blob/master/model_card.md',
-        },
-        config: {
-          vocabularySize: 50257,
-          numLayers: 12,
-          numHeads: 12,
-          hiddenDim: 768,
-          intermediateDim: 3072,
-          dropout: 0.1,
-          maxSequenceLength: 1024,
-        },
-        preprocessorConfig: {},
-        weightsUrl: 'https://storage.googleapis.com/keras-nlp/models/gpt2_base_en/v1/model.h5',
-        weightsHash: 'f4ea6e1b214516dd7de452461ee6e16e',
-        vocabularyUrl: 'https://storage.googleapis.com/keras-nlp/models/gpt2_base_en/v1/vocab.json',
-        vocabularyHash: 'dffec25a898b1f5e569bec4dffd7e5c0',
-        mergesUrl: 'https://storage.googleapis.com/keras-nlp/models/gpt2_base_en/v1/merges.txt',
-        mergesHash: '75a37753dd7a28a2c5df80c28bf06e4e',
-      },
-      // TODO(pforderique): Add more presets and discuss model loading.
-    };
-  }
-
 }
 serialization.registerClass(GPT2Backbone);

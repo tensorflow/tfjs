@@ -40,6 +40,9 @@ export type GenerateFn =
  *  Base class for Generative Task models.
  */
 export class GenerativeTask extends Task {
+  /** @nocollapse */
+  static override className = 'GenerativeTask';
+
   protected generateFunction: GenerateFn;
 
   override compile(args: ModelCompileArgs): void {

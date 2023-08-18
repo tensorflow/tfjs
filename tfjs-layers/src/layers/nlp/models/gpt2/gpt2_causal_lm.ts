@@ -161,6 +161,8 @@ export declare interface GPT2CausalLMArgs {
  * ```
  */
 export class GPT2CausalLM extends GenerativeTask {
+  /** @nocollapse */
+  static override className = 'GPT2CausalLM';
 
   constructor(args: GPT2CausalLMArgs) {
     const inputs = args.backbone.input;
@@ -412,3 +414,4 @@ export class GPT2CausalLM extends GenerativeTask {
     return prompt;
   }
 }
+serialization.registerClass(GPT2CausalLM);

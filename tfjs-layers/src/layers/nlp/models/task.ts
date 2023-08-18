@@ -32,6 +32,9 @@ import { LossOrMetricFn } from '../../../types';
 import { deserializeKerasObject, serializeKerasObject } from '../../../utils/generic_utils';
 
 export class Task extends PipelineModel {
+  /** @nocollapse */
+  static override className = 'Task';
+
   protected _backbone: Backbone;
   protected _preprocessor: Preprocessor;
 
