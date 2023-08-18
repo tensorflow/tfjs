@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, serialization } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
@@ -28,7 +28,7 @@ import { Layer } from '../../../../exports_layers';
 import { LayerArgs } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
-import { GPT2TensorMap, GenerativeTask } from '../generative_task';
+import { GenerativeTask } from '../generative_task';
 import { GPT2Backbone } from './gpt2_backbone';
 import { PipelineModelArgs } from '../../utils';
 import { Kwargs } from '../../../../types';
@@ -215,9 +215,9 @@ export class GPT2CausalLM extends GenerativeTask {
    *  sequences have produced a new `endTokenId`, generation will stop.
    */
   override generateStep(
-    inputs: GPT2TensorMap,
+    inputs: NamedTensorMap,
     endTokenId: number
-  ): GPT2TensorMap {
+  ): NamedTensorMap {
     throw new NotImplementedError(`Uses ${this.buildCache}`);
   }
 }

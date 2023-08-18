@@ -20,19 +20,15 @@
  */
 
 /* Original source: keras_nlp/models/generative_task.py */
-import { Tensor } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
 
 import { Task } from './task';
 
-export type GPT2TensorMap = {
-  [name: string]: Tensor;
-};
-
 export type GenerateFn =
-  (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
+  (inputs: NamedTensorMap, endTokenId?: number) => NamedTensorMap;
 
 /**
  *  Base class for Generative Task models.
@@ -51,9 +47,9 @@ export class GenerativeTask extends Task {
    * Run the generation on a single batch of input.
    */
   generateStep(
-    inputs: GPT2TensorMap,
+    inputs: NamedTensorMap,
     endTokenId: number
-  ): GPT2TensorMap {
+  ): NamedTensorMap {
     throw new NotImplementedError();
   }
 
