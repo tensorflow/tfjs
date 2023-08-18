@@ -19,14 +19,13 @@
  * Tests for GPT2 causal LM preprocessor layer.
  */
 
-import { Tensor, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, tensor, tensor2d } from '@tensorflow/tfjs-core';
 
 import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { expectTensorsClose } from '../../../../utils/test_utils';
-import { GPT2TensorMap } from '../generative_task';
 import { GPT2CausalLMPreprocessor } from './gpt2_causal_lm_preprocessor';
 
-describe('GPT2CausalLMPreprocessorTest', () => {
+describe('GPT2CausalLMPreprocessor', () => {
   let vocabulary: Map<string, number>;
   let merges: string[];
   let preprocessor: GPT2CausalLMPreprocessor;
@@ -57,7 +56,7 @@ describe('GPT2CausalLMPreprocessorTest', () => {
 
     const [x, y, sw] = preprocessor.callAndPackArgs(
       inputData, {}
-    ) as [GPT2TensorMap, Tensor, Tensor];
+    ) as [NamedTensorMap, Tensor, Tensor];
 
     expectTensorsClose(x.tokenIds, tensor([6, 1, 3, 4, 2, 5, 6, 0]));
     expectTensorsClose(
@@ -86,7 +85,7 @@ describe('GPT2CausalLMPreprocessorTest', () => {
 
     const [x, y, sw] = preprocessor.callAndPackArgs(
       inputData, {}
-    ) as [GPT2TensorMap, Tensor, Tensor];
+    ) as [NamedTensorMap, Tensor, Tensor];
 
     expectTensorsClose(x.tokenIds, expectedX.tokenIds);
     expectTensorsClose(x.paddingMask, expectedX.paddingMask);
@@ -109,10 +108,10 @@ describe('GPT2CausalLMPreprocessorTest', () => {
     const expectedSW = tensor2d(
       Array<number[]>(4).fill([1, 1, 1, 1, 1, 1, 0, 0]), [4, 8], 'bool');
 
-    let x: GPT2TensorMap;
+    let x: NamedTensorMap;
     [x, y, sw] = preprocessor.callAndPackArgs(
       inputData, {y, sampleWeight: sw}
-    ) as [GPT2TensorMap, Tensor, Tensor];
+    ) as [NamedTensorMap, Tensor, Tensor];
 
     expectTensorsClose(x.tokenIds, expectedX.tokenIds);
     expectTensorsClose(x.paddingMask, expectedX.paddingMask);

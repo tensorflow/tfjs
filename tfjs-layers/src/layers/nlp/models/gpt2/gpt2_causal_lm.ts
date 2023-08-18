@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm.py */
-import { AdamOptimizer, Tensor, logicalAnd, onesLike, serialization, softmax, stack, tensor, topk, where, zeros, zerosLike } from '@tensorflow/tfjs-core';
+import { AdamOptimizer, NamedTensorMap, Tensor, logicalAnd, onesLike, serialization, softmax, stack, tensor, topk, where, zeros, zerosLike } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../../errors';
 import { Layer } from '../../../../exports_layers';
@@ -28,7 +28,7 @@ import { LayerArgs, SymbolicTensor } from '../../../../engine/topology';
 import { Embedding } from '../../../../layers/embeddings';
 import { Shape } from '../../../../keras_format/common';
 
-import { GPT2TensorMap, GenerativeTask } from '../generative_task';
+import { GenerativeTask } from '../generative_task';
 import { sliceUpdate } from '../../utils';
 import { GPT2Backbone } from './gpt2_backbone';
 import { sparseCategoricalCrossentropy } from '../../../../losses';
@@ -284,9 +284,9 @@ export class GPT2CausalLM extends GenerativeTask {
    *  sequences have produced a new `endTokenId`, generation will stop.
    */
   override generateStep(
-    inputs: GPT2TensorMap,
+    inputs: NamedTensorMap,
     endTokenId?: number
-  ): GPT2TensorMap {
+  ): NamedTensorMap {
     let tokenIds = inputs.tokenIds;
     let paddingMask = inputs.paddingMask;
     // Create and seed cache with a single forward pass.
