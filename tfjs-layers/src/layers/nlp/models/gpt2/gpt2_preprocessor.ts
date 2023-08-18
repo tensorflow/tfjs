@@ -125,6 +125,9 @@ export function packXYSampleWeight(
  * ```
  */
 export class GPT2Preprocessor extends Preprocessor {
+  /** @nocollapse */
+  static override className = 'GPT2Preprocessor';
+
   protected readonly sequenceLength: number;
   protected readonly addStartToken: boolean;
   protected readonly addEndToken: boolean;

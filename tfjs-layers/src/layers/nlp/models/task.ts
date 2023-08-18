@@ -31,6 +31,9 @@ import { ModelCompileArgs } from '../../../engine/training';
 import { LossOrMetricFn } from '../../../types';
 
 export class Task extends PipelineModel {
+  /** @nocollapse */
+  static override className = 'Task';
+
   protected _backbone: Backbone;
   protected _preprocessor: Preprocessor;
 
