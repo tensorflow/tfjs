@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras_nlp/models/generative_task.py */
-import { Tensor, tensor } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, tensor } from '@tensorflow/tfjs-core';
 
 import { NotImplementedError } from '../../../errors';
 import { ModelCompileArgs } from '../../../engine/training';
@@ -29,12 +29,8 @@ import { Task } from './task';
 import { GPT2CausalLMPreprocessor } from './gpt2/gpt2_causal_lm_preprocessor';
 import { GPT2Tokenizer } from './gpt2/gpt2_tokenizer';
 
-export type GPT2TensorMap = {
-  [name: string]: Tensor;
-};
-
 export type GenerateFn =
-  (inputs: GPT2TensorMap, endTokenId?: number) => GPT2TensorMap;
+  (inputs: NamedTensorMap, endTokenId?: number) => NamedTensorMap;
 
 /**
  *  Base class for Generative Task models.
@@ -55,9 +51,9 @@ export class GenerativeTask extends Task {
    * Run the generation on a single batch of input.
    */
   generateStep(
-    inputs: GPT2TensorMap,
+    inputs: NamedTensorMap,
     endTokenId: number
-  ): GPT2TensorMap {
+  ): NamedTensorMap {
     throw new NotImplementedError();
   }
 
@@ -78,8 +74,8 @@ export class GenerativeTask extends Task {
    * necessary, and returns a iterable "dataset like" object.
    */
   protected normalizeGenerateInputs(
-    inputs: Tensor|GPT2TensorMap
-  ): [Tensor|GPT2TensorMap, boolean] {
+    inputs: Tensor|NamedTensorMap
+  ): [Tensor|NamedTensorMap, boolean] {
     let inputIsScalar = false;
 
     function normalize(x: string|string[]|Tensor): [Tensor, boolean] {
@@ -113,14 +109,14 @@ export class GenerativeTask extends Task {
    * string out).
    */
   protected normalizeGenerateOutputs(
-    outputs: Tensor|GPT2TensorMap,
+    outputs: Tensor|NamedTensorMap,
     inputIsScalar: boolean
   ): Tensor {
     function normalize(x: Tensor): Tensor {
       return inputIsScalar ? x.squeeze([0]) : x;
     }
     if (!(outputs instanceof Tensor)) {
-      const normalized: GPT2TensorMap = {};
+      const normalized: NamedTensorMap = {};
       for (const key in outputs) {
         normalized[key] = normalize(outputs[key]);
       }
@@ -154,7 +150,7 @@ export class GenerativeTask extends Task {
    *  should be padded to the desired maximum length and this argument
    *  will be ignored.
    */
-  generate(inputs: Tensor|GPT2TensorMap, maxLength?: number): Tensor {
+  generate(inputs: Tensor|NamedTensorMap, maxLength?: number): Tensor {
     // Setup our three main passes.
     // 1. Optionally preprocessing strings to dense integer tensors.
     // 2. Generate new tokens via a compiled function on dense tensors.
@@ -175,11 +171,11 @@ export class GenerativeTask extends Task {
       );
     }
 
-    function generate(x: GPT2TensorMap) {
+    function generate(x: NamedTensorMap) {
       return generateFunction(x, endTokenId);
     }
 
-    function postprocess(x: GPT2TensorMap) {
+    function postprocess(x: NamedTensorMap) {
       // TODO(pforderique): Generalize for other models' preprocessors.
       return (preprocessor as GPT2CausalLMPreprocessor).generatePostprocess(x);
     }
@@ -188,11 +184,11 @@ export class GenerativeTask extends Task {
     let inputIsScalar: boolean;
     [inputs, inputIsScalar] = this.normalizeGenerateInputs(inputs);
 
-    let inputsDict: GPT2TensorMap;
+    let inputsDict: NamedTensorMap;
     if (this.preprocessor != null) {
       inputsDict = preprocess(inputs as Tensor);
     } else {
-      inputsDict = inputs as GPT2TensorMap;
+      inputsDict = inputs as NamedTensorMap;
     }
 
     let outputsDict = generate(inputsDict);

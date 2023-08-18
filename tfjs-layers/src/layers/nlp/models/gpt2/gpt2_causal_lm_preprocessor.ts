@@ -20,11 +20,10 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_causal_lm_preprocessor.py */
-import { Tensor, serialization } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, serialization } from '@tensorflow/tfjs-core';
 
 import { GPT2Preprocessor, GPT2PreprocessorOptions, packXYSampleWeight } from './gpt2_preprocessor';
 import { NotImplementedError } from '../../../../errors';
-import { GPT2TensorMap } from '../generative_task';
 
 /**
  * GPT2 Causal LM preprocessor.
@@ -69,9 +68,9 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
   ): Tensor|Tensor[] {
     const output = this.callAndPackArgs(inputs, kwargs);
     if (kwargs.y) {
-      return (output as [GPT2TensorMap, Tensor])[0]['tokenIds'];
+      return (output as [NamedTensorMap, Tensor])[0]['tokenIds'];
     }
-    return (output as GPT2TensorMap)['tokenIds'];
+    return (output as NamedTensorMap)['tokenIds'];
   }
 
   /**
@@ -82,9 +81,9 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
   ):
-    GPT2TensorMap
-    | [GPT2TensorMap, Tensor]
-    | [GPT2TensorMap, Tensor, Tensor] {
+    NamedTensorMap
+    | [NamedTensorMap, Tensor]
+    | [NamedTensorMap, Tensor, Tensor] {
 
     throw new NotImplementedError(`Uses ${packXYSampleWeight}`);
   }
@@ -101,7 +100,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * the sequence (as generation is expected to continue at the end of the
    * inputted prompt).
    */
-  generatePreprocess(x: Tensor, sequenceLength?: number): GPT2TensorMap {
+  generatePreprocess(x: Tensor, sequenceLength?: number): NamedTensorMap {
     throw new NotImplementedError();
   }
 
@@ -112,7 +111,7 @@ export class GPT2CausalLMPreprocessor extends GPT2Preprocessor {
    * padding and start/end tokens, and then converting the integer sequence
    * back to a string.
    */
-  generatePostprocess(x: GPT2TensorMap): Tensor {
+  generatePostprocess(x: NamedTensorMap): Tensor {
     throw new NotImplementedError();
   }
 
