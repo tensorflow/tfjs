@@ -15,7 +15,13 @@
  * =============================================================================
  */
 
-import { Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+import { ModelPredictConfig, Scalar, Tensor, tensorScatterUpdate, tidy } from '@tensorflow/tfjs-core';
+
+import { History } from '../../base_callbacks';
+import { ContainerArgs } from '../../engine/container';
+import { LayersModel, ModelEvaluateArgs } from '../../engine/training';
+import { ModelFitArgs } from '../../engine/training_tensors';
+import { NotImplementedError } from '../../errors';
 
 export function tensorToArr(input: Tensor): unknown[] {
   return Array.from(input.dataSync()) as unknown as unknown[];
@@ -61,4 +67,129 @@ export function sliceUpdate(
     updates = updates.reshape([updates.size]);
     return tensorScatterUpdate(inputs, indices, updates);
   });
+}
+
+function packXYSampleWeight(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
+  Tensor
+  | [Tensor, Tensor]
+  | [Tensor, Tensor, Tensor] {
+  if (y === undefined) {
+    return x;
+  } else if (sampleWeight === undefined) {
+    return [x, y];
+  } else {
+    return [x, y, sampleWeight];
+  }
+}
+
+function unPackXYSampleWeight(
+  data: [Tensor]|[Tensor, Tensor]|[Tensor, Tensor, Tensor]
+) {
+  throw new NotImplementedError();
+}
+
+function convertInputsToDataset(
+  x?: Tensor, y?: Tensor, sampleWeight?: Tensor, batchSize?: number
+): Tensor[] {
+  throw new NotImplementedError();
+}
+
+function trainValidationSplit(
+  arrays: [Tensor, Tensor, Tensor],
+  validationSplit: number
+): [Tensor, Tensor, Tensor] {
+  throw new NotImplementedError();
+}
+
+/**
+ * A model which allows automatically applying preprocessing.
+ */
+export interface PipelineModelArgs extends ContainerArgs {
+  /**
+   * Defaults to true.
+   */
+  includePreprocessing?: boolean;
+}
+
+export class PipelineModel extends LayersModel {
+  /** @nocollapse */
+  static override className = 'PipelineModel';
+
+  protected includePreprocessing: boolean;
+
+  constructor(args: PipelineModelArgs) {
+    super(args);
+    this.includePreprocessing = args.includePreprocessing ?? true;
+  }
+
+  /**
+   * An overridable function which preprocesses features.
+   */
+  preprocessFeatures(x: Tensor) {
+    return x;
+  }
+
+  /**
+   * An overridable function which preprocesses labels.
+   */
+  preprocessLabels(y: Tensor) {
+    return y;
+  }
+
+  /**
+   * An overridable function which preprocesses entire samples.
+   */
+  preprocessSamples(x: Tensor, y?: Tensor, sampleWeight?: Tensor):
+    Tensor
+    | [Tensor, Tensor]
+    | [Tensor, Tensor, Tensor] {
+    x = this.preprocessFeatures(x);
+    if (y != null) {
+      y = this.preprocessLabels(y);
+    }
+    return packXYSampleWeight(x, y, sampleWeight);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Below are overrides to LayersModel methods to apply the functions above.
+  // ---------------------------------------------------------------------------
+  override fit(
+    x: Tensor|Tensor[],
+    y: Tensor|Tensor[],
+    args: ModelFitArgs = {}
+  ): Promise<History> {
+    throw new NotImplementedError(
+      `Uses ${convertInputsToDataset}, ${trainValidationSplit} ` +
+      `${packXYSampleWeight}, and ${unPackXYSampleWeight}`);
+  }
+
+  override evaluate(
+    x: Tensor|Tensor[],
+    y: Tensor|Tensor[],
+    args?: ModelEvaluateArgs
+  ): Scalar | Scalar[] {
+    throw new NotImplementedError();
+  }
+
+  override predict(
+    x: Tensor | Tensor[], args?: ModelPredictConfig
+  ): Tensor | Tensor[] {
+    x = Array.isArray(x) ? x : [x];
+    if (this.includePreprocessing) {
+      x = x.map(t => this.preprocessSamples(t) as Tensor);
+    }
+    return super.predict(x, {batchSize: null, ...args});
+  }
+
+  override trainOnBatch(
+    x: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    y: Tensor|Tensor[]|{[inputName: string]: Tensor},
+    sampleWeight?: Tensor
+  ): Promise<number|number[]> {
+    throw new NotImplementedError();
+  }
+
+  override predictOnBatch(x: Tensor|Tensor[]): Tensor|Tensor[] {
+    throw new NotImplementedError();
+  }
 }

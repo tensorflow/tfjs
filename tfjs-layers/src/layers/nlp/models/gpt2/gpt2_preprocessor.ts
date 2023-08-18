@@ -27,6 +27,7 @@ import { Preprocessor } from '../preprocessor';
 import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { StartEndPacker } from '../../preprocessing/start_end_packer';
 import { ValueError } from '../../../../errors';
+import { GPT2TensorMap } from '../generative_task';
 
 export declare interface GPT2PreprocessorArgs extends LayerArgs {
   /**
@@ -72,16 +73,11 @@ export declare interface GPT2PreprocessorOptions {
   sequenceLength?: number;
 }
 
-export declare interface PreprocessorOutputs {
-  tokenIds: Tensor2D;
-  paddingMask: Tensor2D;
-}
-
-function packXYSampleWeight(
-  x: PreprocessorOutputs, y?: Tensor, sampleWeight?: Tensor):
-  PreprocessorOutputs
-  | [PreprocessorOutputs, Tensor]
-  | [PreprocessorOutputs, Tensor, Tensor] {
+export function packXYSampleWeight(
+  x: GPT2TensorMap, y?: Tensor, sampleWeight?: Tensor):
+  GPT2TensorMap
+  | [GPT2TensorMap, Tensor]
+  | [GPT2TensorMap, Tensor, Tensor] {
 
   if (y === undefined) {
     return x;
@@ -129,10 +125,13 @@ function packXYSampleWeight(
  * ```
  */
 export class GPT2Preprocessor extends Preprocessor {
-  private readonly sequenceLength: number;
-  private readonly addStartToken: boolean;
-  private readonly addEndToken: boolean;
-  private readonly packer: StartEndPacker;
+  /** @nocollapse */
+  static override className = 'GPT2Preprocessor';
+
+  protected readonly sequenceLength: number;
+  protected readonly addStartToken: boolean;
+  protected readonly addEndToken: boolean;
+  protected readonly packer: StartEndPacker;
 
   constructor(args: GPT2PreprocessorArgs) {
     super(args);
@@ -169,7 +168,7 @@ export class GPT2Preprocessor extends Preprocessor {
   private callAndReturnPaddingMask(
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
-  ): PreprocessorOutputs {
+  ): GPT2TensorMap {
     return tidy(() => {
       if (inputs instanceof Array) {
         if (inputs.length !== 1) {
@@ -205,9 +204,9 @@ export class GPT2Preprocessor extends Preprocessor {
    * pack the sequence, the label data, and the sample weights used.
    */
   callAndPackArgs(inputs: Tensor|Tensor[], kwargs: GPT2PreprocessorOptions):
-    PreprocessorOutputs
-    | [PreprocessorOutputs, Tensor]
-    | [PreprocessorOutputs, Tensor, Tensor] {
+    GPT2TensorMap
+    | [GPT2TensorMap, Tensor]
+    | [GPT2TensorMap, Tensor, Tensor] {
     const x = this.callAndReturnPaddingMask(inputs, kwargs);
     return packXYSampleWeight(x, kwargs.y, kwargs.sampleWeight);
   }

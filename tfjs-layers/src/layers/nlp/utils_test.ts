@@ -15,9 +15,13 @@
  * =============================================================================
  */
 
-import { ones, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
-import { sliceUpdate, tensorArrTo2DArr, tensorToArr } from './utils';
+import { Tensor, ones, randomUniform, tensor, test_util, zeros } from '@tensorflow/tfjs-core';
+import { PipelineModel, PipelineModelArgs, sliceUpdate, tensorArrTo2DArr, tensorToArr } from './utils';
 import { expectTensorsClose } from '../../utils/test_utils';
+import { dense, input } from '../../exports_layers';
+import { Dense } from '../core';
+import { Kwargs } from '../../types';
+import { SymbolicTensor } from '../../engine/topology';
 
 describe('tensor to array functions', () => {
   it('tensorToArr', () => {
@@ -85,5 +89,47 @@ describe('sliceUpdate', () => {
     const result = sliceUpdate(inputs, startIndices, updates);
 
     expectTensorsClose(result, expected);
+  });
+});
+
+describe('PipelineModel', () => {
+  class FeaturePipeline extends PipelineModel {
+    private dense: Dense;
+
+    constructor(args: PipelineModelArgs) {
+      super(args);
+      this.dense = dense({units: 1});
+    }
+
+    override preprocessFeatures(x: Tensor): Tensor {
+      return randomUniform(x.shape);
+    }
+
+    override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+      return this.dense.apply(inputs) as Tensor|Tensor[];
+    }
+  }
+
+  it('predict with preprocessing', () => {
+    const x = tensor(['Boston', 'New York', 'San Francisco'], [1, 3]);
+    const inputs = input({shape: [3]});
+    const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
+    const model = new FeaturePipeline({inputs, outputs});
+    model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
+    expect(() => model.predict(x, {batchSize: 2})).not.toThrow();
+  });
+
+  it('predict no preprocessing', () => {
+    const x = randomUniform([100, 5]);
+    const inputs = input({shape: [5]});
+    const outputs = dense({units: 1}).apply(inputs) as SymbolicTensor;
+    const model = new FeaturePipeline({
+      inputs,
+      outputs,
+      includePreprocessing: false
+    });
+    model.compile({loss: 'meanSquaredError', optimizer: 'adam'});
+
+    expect(() => model.predict(x, {batchSize: 8})).not.toThrow();
   });
 });
