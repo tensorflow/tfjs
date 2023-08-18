@@ -156,7 +156,9 @@ export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
  * gpt2LM.fit(features, {batch_size: 2});
  * ```
  */
-export class GPTCausalLM extends GenerativeTask {
+export class GPT2CausalLM extends GenerativeTask {
+  /** @nocollapse */
+  static override className = 'GPT2CausalLM';
 
   constructor(args: GPT2CausalLMArgs) {
     super(args);
@@ -219,3 +221,4 @@ export class GPTCausalLM extends GenerativeTask {
     throw new NotImplementedError(`Uses ${this.buildCache}`);
   }
 }
+serialization.registerClass(GPT2CausalLM);

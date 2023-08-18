@@ -104,6 +104,9 @@ export interface PipelineModelArgs extends ContainerArgs {
 }
 
 export class PipelineModel extends LayersModel {
+  /** @nocollapse */
+  static override className = 'PipelineModel';
+
   protected includePreprocessing: boolean;
 
   constructor(args: PipelineModelArgs) {
