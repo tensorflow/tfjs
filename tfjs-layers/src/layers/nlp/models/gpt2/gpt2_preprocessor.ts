@@ -20,14 +20,13 @@
  */
 
 /* Original source: keras-nlp/models/gpt2/gpt2_preprocessor.py */
-import { Tensor, Tensor2D, serialization, tidy } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, Tensor2D, serialization, tidy } from '@tensorflow/tfjs-core';
 
 import { LayerArgs } from '../../../../engine/topology';
 import { Preprocessor } from '../preprocessor';
 import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { StartEndPacker } from '../../preprocessing/start_end_packer';
 import { ValueError } from '../../../../errors';
-import { GPT2TensorMap } from '../generative_task';
 
 export declare interface GPT2PreprocessorArgs extends LayerArgs {
   /**
@@ -74,10 +73,10 @@ export declare interface GPT2PreprocessorOptions {
 }
 
 export function packXYSampleWeight(
-  x: GPT2TensorMap, y?: Tensor, sampleWeight?: Tensor):
-  GPT2TensorMap
-  | [GPT2TensorMap, Tensor]
-  | [GPT2TensorMap, Tensor, Tensor] {
+  x: NamedTensorMap, y?: Tensor, sampleWeight?: Tensor):
+  NamedTensorMap
+  | [NamedTensorMap, Tensor]
+  | [NamedTensorMap, Tensor, Tensor] {
 
   if (y === undefined) {
     return x;
@@ -168,7 +167,7 @@ export class GPT2Preprocessor extends Preprocessor {
   private callAndReturnPaddingMask(
     inputs: Tensor|Tensor[],
     kwargs: GPT2PreprocessorOptions
-  ): GPT2TensorMap {
+  ): NamedTensorMap {
     return tidy(() => {
       if (inputs instanceof Array) {
         if (inputs.length !== 1) {
@@ -204,9 +203,9 @@ export class GPT2Preprocessor extends Preprocessor {
    * pack the sequence, the label data, and the sample weights used.
    */
   callAndPackArgs(inputs: Tensor|Tensor[], kwargs: GPT2PreprocessorOptions):
-    GPT2TensorMap
-    | [GPT2TensorMap, Tensor]
-    | [GPT2TensorMap, Tensor, Tensor] {
+    NamedTensorMap
+    | [NamedTensorMap, Tensor]
+    | [NamedTensorMap, Tensor, Tensor] {
     const x = this.callAndReturnPaddingMask(inputs, kwargs);
     return packXYSampleWeight(x, kwargs.y, kwargs.sampleWeight);
   }
