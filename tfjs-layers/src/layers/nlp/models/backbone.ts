@@ -28,6 +28,8 @@ import { NotImplementedError } from '../../../errors';
 import { Embedding } from '../../embeddings';
 
 export class Backbone extends LayersModel {
+  /** @nocollapse */
+  static override className = 'Backbone';
 
   constructor(args: ContainerArgs) {
     super(args);
