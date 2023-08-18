@@ -123,6 +123,9 @@ export interface GPT2BackboneArgs  {
  * ```
  */
 export class GPT2Backbone extends Backbone {
+  /** @nocollapse */
+  static override className = 'GPT2Backbone';
+
   private vocabularySize: number;
   private numLayers: number;
   private numHeads: number;
