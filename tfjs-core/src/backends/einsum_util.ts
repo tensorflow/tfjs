@@ -20,8 +20,9 @@
  * based on Einstein summation.)
  */
 
+import {dispose, matMul, Rank, reshape, transpose} from '../base';
 import {Tensor} from '../tensor';
-import {assert} from '../util_base';
+import {arraysEqual, assert} from '../util_base';
 
 const ARROW = '->';
 const ARROW_REGEX = /->/g;
@@ -80,6 +81,9 @@ export function decodeEinsumEquation(equation: string, numTensors: number): {
     }
     if (allDims.indexOf(dimName) === -1) {
       allDims.push(dimName);
+    } else {
+      throw new Error(
+          `Output subscripts contain the duplicated label ${dimName}.`);
     }
   }
   for (let i = 0; i < inputString.length; ++i) {
@@ -217,4 +221,67 @@ function findTermsWithDim(idDims: number[][], dim: number): number[] {
     }
   }
   return termIndices;
+}
+
+export function transformEinsumInput(
+    tensor: Tensor<Rank>, encodedDims: number[], sharedDims: number[],
+    summedDim: number) {
+  const intermediates = [];
+  let resultTensor = tensor;
+  const {transposeOrder, isSumDimLast} =
+      getTransposeOrder(encodedDims, sharedDims, summedDim);
+  if (!isIdentityPermutation(transposeOrder)) {
+    resultTensor = transpose(tensor, transposeOrder);
+    intermediates.push(resultTensor);
+  }
+  const sharedDimSize =
+      resultTensor.shape.slice(0, sharedDims.length)
+          .reduce((prev: number, cur: number) => prev * cur, 1);
+  const summedDimSize = isSumDimLast ?
+      resultTensor.shape[resultTensor.shape.length - 1] :
+      resultTensor.shape[sharedDims.length];
+  const aShape = isSumDimLast ?
+      [
+        sharedDimSize, resultTensor.size / sharedDimSize / summedDimSize,
+        summedDimSize
+      ] :
+      [
+        sharedDimSize, summedDimSize,
+        resultTensor.size / sharedDimSize / summedDimSize
+      ];
+  resultTensor = reshape(resultTensor, aShape);
+
+  for (const tensor of intermediates) {
+    dispose(tensor);
+  }
+  return {resultTensor, isSumDimLast};
+}
+
+function getTransposeOrder(
+    source: number[], target: number[], summedDim: number) {
+  const transposeOrder = [];
+  let isSumDimLast: boolean;
+  for (let index = 0; index < target.length; index++) {
+    const dim = target[index];
+    transposeOrder.push(source.indexOf(dim));
+  }
+  const newDims = [];
+  for (let index = 0; index < source.length; index++) {
+    const dim = source[index];
+    if (target.indexOf(dim) === -1) {
+      newDims.push(index);
+    }
+  }
+  const summedDimIndex = source.indexOf(summedDim);
+  if (summedDimIndex !== newDims[0] &&
+      summedDimIndex !== newDims[newDims.length - 1]) {
+    transposeOrder.push(summedDimIndex);
+    transposeOrder.push(...(newDims.filter(v => v !== summedDimIndex)));
+    isSumDimLast = false;
+  } else {
+    transposeOrder.push(...newDims);
+    isSumDimLast = (summedDimIndex !== newDims[0]);
+  }
+
+  return {transposeOrder, isSumDimLast};
 }

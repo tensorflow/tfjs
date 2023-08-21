@@ -15,14 +15,19 @@
  * =============================================================================
  */
 
+import {decodeEinsumEquation, getEinsumPermutation, isIdentityPermutation, transformEinsumInput} from '../backends/einsum_util';
 import {ENGINE} from '../engine';
+import {dispose} from '../globals';
 import {Einsum, EinsumAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
+import {matMul} from './mat_mul';
 
 import {op} from './operation';
+import {reshape} from './reshape';
+import {transpose} from './transpose';
 
 /**
  * Tensor contraction over specified indices and outer product.
@@ -103,6 +108,97 @@ import {op} from './operation';
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   const $tensors =
       tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'einsum'));
+
+  if ($tensors.length === 2) {
+    const {allDims, summedDims, idDims} = decodeEinsumEquation(equation, 2);
+    if (summedDims.length === 1) {
+      // If the einsum has two operands and has one dimension to be summed, it
+      // could be reduced as a BatchMatMul.
+      // The dimensions of each operand could be divided into three categories:
+      // shared dimensions (both the two operands have), summed dimension (both
+      // the two operands have and it's the dimension to sum on), distinguished
+      // dimensions (an operand exclusively has), which are corresponding to
+      // Batch, K and M(N) dimensions of BatchMatMul. The einsum could be
+      // reduced as BatchMatMul with the following steps:
+      //   1. Transpose the two operands' dimensions to the order of
+      //   [...sharedDimensions, ...distinguishedDimensions, summed dimension].
+      //   2. Reshape the first operands' shape as [sharedDimensionsProduct,
+      //   distinguishedDimensionsProduct, summedDim], while reshape and
+      //   transpose the second operands' shape as [sharedDimensionsProduct,
+      //   summedDim distinguishedDimensionsProduct], Which are corresponding to
+      //   [Batch, M, K] X [Batch, K, N].
+      //   3. Compute BatchMatMul.
+      //   4. Transpose and reshape the result [Batch, M, N] to the target
+      //   shape.
+      const summedDim = summedDims[0];
+
+      const sharedDims: number[] = [];
+      const outputShape: number[] = new Array<number>(allDims.length - 1);
+      outputShape.fill(-1);
+      const distinguishedDimsA: number[] = [];
+      const distinguishedDimsB: number[] = [];
+
+      for (let i = 0; i < $tensors[0].rank; i++) {
+        const dim = idDims[0][i];
+        if (dim === summedDim) {
+          continue;
+        } else if (idDims[1].indexOf(dim) !== -1) {
+          sharedDims.push(dim);
+        } else {
+          distinguishedDimsA.push(dim);
+        }
+        outputShape[dim] = $tensors[0].shape[i];
+      }
+
+      let isReducible = true;
+      for (let i = 0; i < $tensors[1].rank; i++) {
+        const dim = idDims[1][i];
+        const dimSize = $tensors[1].shape[i];
+        if (dim === summedDim) {
+          continue;
+        } else if (idDims[1].indexOf(dim) !== -1) {
+          sharedDims.push(dim);
+          if (outputShape[dim] !== dimSize) {
+            isReducible = false;
+            break;
+          }
+        } else {
+          distinguishedDimsB.push(dim);
+          outputShape[dim] = dimSize;
+        }
+      }
+
+      if (isReducible) {
+        const intermediates = [];
+        const {resultTensor: tensorA, isSumDimLast: aSumDimLast} =
+            transformEinsumInput($tensors[0], idDims[0], sharedDims, summedDim);
+        const {resultTensor: tensorB, isSumDimLast: bSumDimLast} =
+            transformEinsumInput($tensors[1], idDims[1], sharedDims, summedDim);
+        intermediates.push(tensorA);
+        intermediates.push(tensorB);
+
+        let res = matMul(tensorA, tensorB, !aSumDimLast, bSumDimLast);
+        const outputIdDims =
+            sharedDims.concat(distinguishedDimsA).concat(distinguishedDimsB);
+        const outputShape: number[] = outputIdDims.map(dim => outputShape[dim]);
+        intermediates.push(res);
+        res = reshape(res, outputShape);
+        if (!isIdentityPermutation(outputIdDims)) {
+          const {permutationIndices} =
+              getEinsumPermutation(outputIdDims.length, outputIdDims);
+          intermediates.push(res);
+          res = transpose(res, permutationIndices);
+        }
+
+        for (const tensor of intermediates) {
+          dispose(tensor);
+        }
+        return res;
+      }
+    }
+  }
+
+
   const attrs: EinsumAttrs = {equation};
   return ENGINE.runKernel(
       Einsum, $tensors as unknown as NamedTensorMap,
