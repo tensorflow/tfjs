@@ -273,4 +273,15 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     const expectedRes = await tf.matMul(reshapedX, reshapedY).data();
     expectArraysClose(actualRes.slice(0, 10), expectedRes.slice(0, 10));
   });
+
+  it('reduce einsum to batch matmul with two dims to reduce', async () => {
+    const x = tf.randomNormal([2, 1024, 12, 64]);
+    const y = tf.randomNormal([12, 64, 768]);
+    const actualRes = await tf.einsum('abcd,cde->abe', x, y).data();
+
+    const reshapedX = tf.reshape(x, [1, 2 * 1024, 12 * 64]);
+    const reshapedY = tf.reshape(y, [1, 12 * 64, 768]);
+    const expectedRes = await tf.matMul(reshapedX, reshapedY).data();
+    expectArraysClose(actualRes.slice(0, 10), expectedRes.slice(0, 10));
+  });
 });

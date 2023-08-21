@@ -223,30 +223,21 @@ function findTermsWithDim(idDims: number[][], dim: number): number[] {
 }
 
 export function getTransposeOrder(
-    source: number[], target: number[], summedDim: number) {
+    source: number[], target: number[], summedDims: number[]) {
   const transposeOrder = [];
-  let isSumDimLast: boolean;
   for (let index = 0; index < target.length; index++) {
     const dim = target[index];
     transposeOrder.push(source.indexOf(dim));
   }
-  const newDims = [];
+  for (let index = 0; index < summedDims.length; index++) {
+    const dim = summedDims[index];
+    transposeOrder.push(source.indexOf(dim));
+  }
   for (let index = 0; index < source.length; index++) {
     const dim = source[index];
-    if (target.indexOf(dim) === -1) {
-      newDims.push(index);
+    if (target.indexOf(dim) === -1 && summedDims.indexOf(dim) === -1) {
+      transposeOrder.push(source.indexOf(dim));
     }
   }
-  const summedDimIndex = source.indexOf(summedDim);
-  if (summedDimIndex !== newDims[0] &&
-      summedDimIndex !== newDims[newDims.length - 1]) {
-    transposeOrder.push(summedDimIndex);
-    transposeOrder.push(...(newDims.filter(v => v !== summedDimIndex)));
-    isSumDimLast = false;
-  } else {
-    transposeOrder.push(...newDims);
-    isSumDimLast = (summedDimIndex !== newDims[0]);
-  }
-
-  return {transposeOrder, isSumDimLast};
+  return {transposeOrder, isSumDimLast: false};
 }
