@@ -263,7 +263,7 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expect(() => tf.einsum('ij,jk->ik->i', x, y)).toThrowError(/exactly one/);
   });
 
-  fit('reduce einsum to batch matmul', async () => {
+  it('reduce einsum to batch matmul', async () => {
     const x = tf.randomNormal([2, 1024, 768]);
     const y = tf.randomNormal([768, 12, 64]);
     const actualRes = await tf.einsum('abc,cde->abde', x, y).data();
