@@ -163,7 +163,7 @@ and <a href="https://js.tensorflow.org/api/latest/">documentation</a> for more d
 ## Importing pre-trained models
 
 We support porting pre-trained models from:
-- [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter)
+- [TensorFlow SavedModel](https://www.tensorflow.org/js/tutorials/conversion/import_saved_model)
 - [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
 
 ## Various ops supported in different backends
