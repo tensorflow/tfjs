@@ -23,7 +23,6 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank} from '../types';
 import {matMul} from './mat_mul';
 
 import {op} from './operation';
@@ -110,7 +109,8 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   const $tensors =
       tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'einsum'));
 
-  if ($tensors.length === 2) {
+  if ($tensors.length === 2 && $tensors[0].shape.length > 0 &&
+      $tensors[1].shape.length > 0) {
     const {allDims, summedDims, idDims} = decodeEinsumEquation(equation, 2);
     if (summedDims.length === 1) {
       // If the einsum has two operands and has one dimension to be summed, it
@@ -157,8 +157,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
         const dimSize = $tensors[1].shape[i];
         if (dim === summedDim) {
           continue;
-        } else if (idDims[1].indexOf(dim) !== -1) {
-          sharedDims.push(dim);
+        } else if (idDims[0].indexOf(dim) !== -1) {
           if (outputShape[dim] !== dimSize) {
             isReducible = false;
             break;
@@ -181,9 +180,9 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
         let res = matMul(tensorA, tensorB, !aSumDimLast, bSumDimLast);
         const outputIdDims =
             sharedDims.concat(distinguishedDimsA).concat(distinguishedDimsB);
-        const outputShape: number[] = outputIdDims.map(dim => outputShape[dim]);
+        const resShape: number[] = outputIdDims.map(dim => outputShape[dim]);
         intermediates.push(res);
-        res = reshape(res, outputShape);
+        res = reshape(res, resShape);
         if (!isIdentityPermutation(outputIdDims)) {
           const {permutationIndices} =
               getEinsumPermutation(outputIdDims.length, outputIdDims);
