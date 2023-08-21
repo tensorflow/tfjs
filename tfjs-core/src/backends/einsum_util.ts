@@ -20,9 +20,8 @@
  * based on Einstein summation.)
  */
 
-import {dispose, matMul, Rank, reshape, transpose} from '../base';
 import {Tensor} from '../tensor';
-import {arraysEqual, assert} from '../util_base';
+import {assert} from '../util_base';
 
 const ARROW = '->';
 const ARROW_REGEX = /->/g;
@@ -223,41 +222,7 @@ function findTermsWithDim(idDims: number[][], dim: number): number[] {
   return termIndices;
 }
 
-export function transformEinsumInput(
-    tensor: Tensor<Rank>, encodedDims: number[], sharedDims: number[],
-    summedDim: number) {
-  const intermediates = [];
-  let resultTensor = tensor;
-  const {transposeOrder, isSumDimLast} =
-      getTransposeOrder(encodedDims, sharedDims, summedDim);
-  if (!isIdentityPermutation(transposeOrder)) {
-    resultTensor = transpose(tensor, transposeOrder);
-    intermediates.push(resultTensor);
-  }
-  const sharedDimSize =
-      resultTensor.shape.slice(0, sharedDims.length)
-          .reduce((prev: number, cur: number) => prev * cur, 1);
-  const summedDimSize = isSumDimLast ?
-      resultTensor.shape[resultTensor.shape.length - 1] :
-      resultTensor.shape[sharedDims.length];
-  const aShape = isSumDimLast ?
-      [
-        sharedDimSize, resultTensor.size / sharedDimSize / summedDimSize,
-        summedDimSize
-      ] :
-      [
-        sharedDimSize, summedDimSize,
-        resultTensor.size / sharedDimSize / summedDimSize
-      ];
-  resultTensor = reshape(resultTensor, aShape);
-
-  for (const tensor of intermediates) {
-    dispose(tensor);
-  }
-  return {resultTensor, isSumDimLast};
-}
-
-function getTransposeOrder(
+export function getTransposeOrder(
     source: number[], target: number[], summedDim: number) {
   const transposeOrder = [];
   let isSumDimLast: boolean;

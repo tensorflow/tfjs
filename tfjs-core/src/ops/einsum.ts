@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {decodeEinsumEquation, getEinsumPermutation, isIdentityPermutation, transformEinsumInput} from '../backends/einsum_util';
+import {decodeEinsumEquation, getEinsumPermutation, getTransposeOrder, isIdentityPermutation} from '../backends/einsum_util';
 import {ENGINE} from '../engine';
 import {dispose} from '../globals';
 import {Einsum, EinsumAttrs} from '../kernel_names';
@@ -23,6 +23,7 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
+import {Rank} from '../types';
 import {matMul} from './mat_mul';
 
 import {op} from './operation';
@@ -198,11 +199,44 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     }
   }
 
-
   const attrs: EinsumAttrs = {equation};
   return ENGINE.runKernel(
       Einsum, $tensors as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
+}
+
+export function transformEinsumInput(
+    tensor: Tensor, encodedDims: number[], sharedDims: number[],
+    summedDim: number) {
+  const intermediates = [];
+  let resultTensor = tensor;
+  const {transposeOrder, isSumDimLast} =
+      getTransposeOrder(encodedDims, sharedDims, summedDim);
+  if (!isIdentityPermutation(transposeOrder)) {
+    resultTensor = transpose(tensor, transposeOrder);
+    intermediates.push(resultTensor);
+  }
+  const sharedDimSize =
+      resultTensor.shape.slice(0, sharedDims.length)
+          .reduce((prev: number, cur: number) => prev * cur, 1);
+  const summedDimSize = isSumDimLast ?
+      resultTensor.shape[resultTensor.shape.length - 1] :
+      resultTensor.shape[sharedDims.length];
+  const aShape = isSumDimLast ?
+      [
+        sharedDimSize, resultTensor.size / sharedDimSize / summedDimSize,
+        summedDimSize
+      ] :
+      [
+        sharedDimSize, summedDimSize,
+        resultTensor.size / sharedDimSize / summedDimSize
+      ];
+  resultTensor = reshape(resultTensor, aShape);
+
+  for (const tensor of intermediates) {
+    dispose(tensor);
+  }
+  return {resultTensor, isSumDimLast};
 }
 
 export const einsum = /* @__PURE__ */ op({einsum_});
