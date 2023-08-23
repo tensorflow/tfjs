@@ -60,7 +60,7 @@ export interface WebGPUTimingInfo extends TimingInfo {
   downloadWaitMs: number;
 }
 
-type ProgramUniform = Array<{type: string; data: number[]}>;
+export type ProgramUniform = Array<{type: string; data: number[]}>;
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
@@ -882,8 +882,8 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
 
-    program.shaderKey =
-        webgpu_program.makeShaderKey(program, inputsData, output);
+    program.shaderKey = webgpu_program.makeShaderKey(
+        program, inputsData, output, programDefinedUniform);
 
     const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
     if (!(program.shaderKey in this.pipelineCache)) {
