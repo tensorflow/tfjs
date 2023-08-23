@@ -357,7 +357,7 @@ export function makeShaderKey<R extends Rank>(
   }
 
   const shapes: number[][] = [];
-  const types: Array<keyof DataTypeMap> = [];
+  const types: Array<string> = [];
   inputsData.forEach(element => {
     shapes.push(element.shape);
     types.push(element.dtype);
