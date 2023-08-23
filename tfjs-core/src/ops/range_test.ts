@@ -148,4 +148,12 @@ describeWithFlags('range', ALL_ENVS, () => {
     expect(a.dtype).toEqual('int32');
     expect(a.shape).toEqual([3]);
   });
+
+  it('should support large number for int32 dtype', async () => {
+    const length = Math.pow(2, 24) + 100;
+    const a = tf.range(1, length, undefined, 'int32');
+    expectArraysEqual(await tf.max(a).data(), [length - 1]);
+    expect(a.dtype).toEqual('int32');
+    expect(a.shape).toEqual([length - 1]);
+  });
 });
