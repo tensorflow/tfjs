@@ -121,8 +121,8 @@ export abstract class Sampler {
       // Don't overwrite anywhere mask is True.
       nextToken = nextToken.cast(prompt.dtype);
       nextToken = where(
-        mask.gather([index], 1, mask.shape[0]),
-        prompt.gather([index], 1, prompt.shape[0]),
+        mask.gather(index, 1),
+        prompt.gather(index, 1),
         nextToken,
       );
       // Update the prompt with the next token.
