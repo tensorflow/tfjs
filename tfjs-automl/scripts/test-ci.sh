@@ -29,4 +29,4 @@ yarn run-flaky "yarn run-browserstack --browsers=bs_chrome_mac"
 npm-run-all -p -c --aggregate-output \
   # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
   # "run-flaky \"yarn run-browserstack --browsers=bs_firefox_mac\"" \
-  "run-flaky \"yarn run-browserstack --browsers=bs_safari_mac  --testEnv webgl1\""
+  "run-flaky \"yarn run-browserstack --browsers=bs_safari_mac --testEnv webgl1\""
