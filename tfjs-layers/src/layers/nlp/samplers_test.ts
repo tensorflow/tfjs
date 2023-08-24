@@ -39,7 +39,6 @@ describeMathCPU('TopKSampler', () => {
   };
 
   beforeAll(() => {
-    // setBackend('cpu');
     const charCodes = Array(26);
     for (const charCode of charCodes.keys()) {
       const char = String.fromCharCode(charCode + 97);
