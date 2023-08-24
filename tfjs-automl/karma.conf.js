@@ -71,7 +71,7 @@ module.exports = function(config) {
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
-    port: 9876,
+    port: 9200,
     colors: true,
     browsers: ['Chrome'],
     client: {jasmine: {random: false}, args: args},

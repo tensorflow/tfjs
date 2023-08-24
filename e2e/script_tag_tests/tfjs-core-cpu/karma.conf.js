@@ -43,7 +43,7 @@ module.exports = function(config) {
   };
 
   const browserstackConfig =
-      {...devConfig, hostname: 'bs-local.com', singleRun: true, port: 9876};
+      {...devConfig, hostname: 'bs-local.com', singleRun: true, port: 9200};
 
   if (config.grep) {
     args.push('--grep', config.grep);
