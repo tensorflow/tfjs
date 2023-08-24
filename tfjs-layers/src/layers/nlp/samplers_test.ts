@@ -58,7 +58,7 @@ describeMathCPU('TopKSampler', () => {
       const hiddenStates = ones([batchSize, 5]);
       // Return a distribution favoring the next char in cache.
       const logits =
-        oneHot(cache.gather([index], 1, cache.shape[0]), vocabSize).mul(1e9);
+        oneHot(cache.gather(index, 1), vocabSize).mul(1e9);
       return [logits, hiddenStates, cache];
     }
 
@@ -120,5 +120,18 @@ describeMathCPU('TopKSampler', () => {
     expect(
       outputIds.map(i => [0, 1, 2, 3, 4].includes(i)).includes(false)
     ).toBeFalse();
+  });
+
+  it('larger batch', () => {
+    const cacheChars = 'sequentially'.split('');
+    const cacheCharIds = cacheChars.map(c => charLookup[c]);
+    const cache = tensor([cacheCharIds, cacheCharIds], null, 'int32');
+    const prompt = fill([2, length], charLookup['z']);
+    const output = sampler.apply(next, prompt, cache);
+
+    test_util.expectArraysEqual(
+      joinAsString(output),
+      ['sequentially', 'sequentially']
+    );
   });
 });
