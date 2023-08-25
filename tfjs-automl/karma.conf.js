@@ -78,7 +78,7 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      timeout: 30,  // Seconds
+      timeout: 900,  // Seconds
       tunnelIdentifier:
           `tfjs_automl_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
