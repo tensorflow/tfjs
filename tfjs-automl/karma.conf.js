@@ -94,21 +94,21 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Ventura'
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Ventura'
       },
       bs_safari_mac: {
         base: 'BrowserStack',
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Ventura'
       },
       bs_ios_12: {
         base: 'BrowserStack',
