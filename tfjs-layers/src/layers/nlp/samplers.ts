@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras_nlp/samplers/sampler.py */
-import { Tensor, serialization, softmax, tensor, topk, where, zerosLike } from '@tensorflow/tfjs-core';
+import { Tensor, serialization, softmax, tensor, tidy, topk, where, zerosLike } from '@tensorflow/tfjs-core';
 import { sliceUpdate } from './utils';
 
 export type NextFn =
@@ -85,16 +85,14 @@ export abstract class Sampler {
   apply(
     next: NextFn,
     prompt: Tensor,
-    cache?: Tensor,
-    index?: number,
+    cache: Tensor = tensor([]),
+    index: number = 0,
     mask?: Tensor,
     endTokenId?: number,
     hiddenStates?: Tensor
   ): Tensor {
     const maxLength = prompt.shape[prompt.shape.length - 1];
-    index = index ?? 0;
     mask = mask == null ? zerosLike(prompt).cast('bool') : mask.cast('bool');
-    cache = cache ?? tensor([]);
 
     function cond(prompt: Tensor, index: number): boolean {
       if (index >= maxLength) {
@@ -113,24 +111,34 @@ export abstract class Sampler {
     let logits: Tensor;
     const maxIterations = maxLength - index;
     while (iter <= maxIterations && cond(prompt, index)) {
-      // Compute the softmax distribution for the next token.
-      [logits, hiddenStates, cache] = next(prompt, cache, index);
-      const probabilities = softmax(logits.div(this.temperature));
-      // Compute next token.
-      let nextToken = this.getNextToken(probabilities);
-      // Don't overwrite anywhere mask is True.
-      nextToken = nextToken.cast(prompt.dtype);
-      nextToken = where(
-        mask.gather(index, 1),
-        prompt.gather(index, 1),
-        nextToken,
-      );
-      // Update the prompt with the next token.
-      nextToken = nextToken.expandDims(-1);
-      prompt = sliceUpdate(prompt, [0, index], nextToken);
+      tidy(() => {
+        // Compute the softmax distribution for the next token.
+        const oldCache = cache;
+        [logits, hiddenStates, cache] = next(prompt, cache, index);
+        oldCache.dispose();
 
-      index += 1;
-      iter += 1;
+        const probabilities = softmax(logits.div(this.temperature));
+        // Compute next token.
+        let nextToken = this.getNextToken(probabilities);
+        // Don't overwrite anywhere mask is True.
+        nextToken = nextToken.cast(prompt.dtype);
+        nextToken = where(
+          mask.gather(index, 1),
+          prompt.gather(index, 1),
+          nextToken,
+        );
+        // Update the prompt with the next token.
+        nextToken = nextToken.expandDims(-1);
+        const oldPrompt = prompt;
+        prompt = sliceUpdate(prompt, [0, index], nextToken);
+        oldPrompt.dispose();
+
+        index += 1;
+        iter += 1;
+
+        // Keep these tensors.
+        return {prompt, cache};
+      });
     }
     return prompt;
   }
@@ -186,15 +194,15 @@ export class TopKSampler extends Sampler {
 
   constructor(args: TopKSamplerArgs) {
     super(args);
-    this.k = args.k;
+    this.k = args.k ?? 5;
     this.seed = args.seed;
   }
 
   override getNextToken(probabilities: Tensor): Tensor {
     // Filter out top-k tokens.
-    const k = 5;
-    const {values, indices} = topk(probabilities, k, false);
+    const {values, indices} = topk(probabilities, this.k, false);
 
+    // TODO(mattSoulanille): Investigate whether this should use binsearch.
     function randomSample(probabilities: Tensor): Tensor {
       const probabilitiesArr = probabilities.arraySync() as number[][];
       const samplesArr = [];
