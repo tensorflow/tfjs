@@ -108,7 +108,7 @@ const browserstackConfig = {
   // breaks WASM file serving.
   // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9876
+  port: 9200
 };
 
 const chromeWebgpuFlags = [

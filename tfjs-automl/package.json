@@ -15,7 +15,7 @@
     "test-node": "tsc && ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/test_node.ts",
     "coverage": "KARMA_COVERAGE=1 karma start --singleRun",
     "run-flaky": "node ../scripts/run_flaky.js",
-    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
+    "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack'",
     "test-ci": "./scripts/test-ci.sh",
     "build-npm": "./scripts/build-npm.sh"
   },

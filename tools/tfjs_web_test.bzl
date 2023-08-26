@@ -122,7 +122,8 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
 
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
-        "bs_firefox_mac",
+        # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
+        # "bs_firefox_mac",
         "bs_safari_mac",
         "bs_ios_12",
         "bs_android_10",

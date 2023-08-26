@@ -107,7 +107,8 @@ tfjs_web_test(
     browsers = [
         # TODO: Support Safari.
         "bs_chrome_mac",
-        "bs_firefox_mac",
+        # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
+        # "bs_firefox_mac",
         "bs_android_10",
         "win_10_chrome",
     ],
