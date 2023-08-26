@@ -127,9 +127,9 @@ export class GPT2Backbone extends Backbone {
   static override className = 'GPT2Backbone';
 
   private vocabularySize: number;
-  private numLayers: number;
-  private numHeads: number;
-  private hiddenDim: number;
+  numLayers: number;
+  numHeads: number;
+  hiddenDim: number;
   private intermediateDim: number;
   private dropout: number;
   private maxSequenceLength: number;
@@ -215,8 +215,8 @@ export class GPT2Backbone extends Backbone {
     return config;
   }
 
-  override get tokenEmbedding() {
-    return this.getLayer('token_embedding');
+  override get tokenEmbedding(): Embedding {
+    return this.getLayer('token_embedding') as Embedding;
   }
 }
 serialization.registerClass(GPT2Backbone);

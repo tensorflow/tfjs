@@ -87,7 +87,7 @@ export class StartEndPacker extends Layer {
   /** @nocollapse */
   static readonly className = 'StartEndPacker';
 
-  private sequenceLength: number;
+  sequenceLength: number;
   private startValue?: number|string;
   private endValue?: number|string;
   private padValue?: number|string;
