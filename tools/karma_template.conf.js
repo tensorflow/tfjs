@@ -162,6 +162,13 @@ module.exports = function(config) {
     if (!username || !accessKey) {
       process.exit(1);
     }
+    if (browserLauncher.browser === 'safari' || browserLauncher.os === 'ios') {
+      // This is necessary for non-flaky Safari tests. They usually pass just
+      // fine without it, but sometimes, Safari will fail to connect to Karma.
+      // If you want to remove this, prove that it's not flaky by running
+      // bazel test //tfjs-core/src:bs_safari_mac_from_pixels_worker_test --runs_per_test=100
+      extraConfig.hostname = 'bs-local.com';
+    }
 
     Object.assign(extraConfig, browserstackConfig);
     extraConfig.browserStack = {
