@@ -19,9 +19,9 @@
  * Unit Tests for GPT2Preprocessor.
  */
 
-import { Tensor, memory, serialization, tensor, tensor2d } from '@tensorflow/tfjs-core';
+import { NamedTensorMap, Tensor, memory, serialization, tensor, tensor2d } from '@tensorflow/tfjs-core';
 
-import { GPT2Preprocessor, PreprocessorOutputs } from './gpt2_preprocessor';
+import { GPT2Preprocessor } from './gpt2_preprocessor';
 import { GPT2Tokenizer } from './gpt2_tokenizer';
 import { expectTensorsClose } from '../../../../utils/test_utils';
 
@@ -55,7 +55,7 @@ describe('GPT2Preprocessor', () => {
     const inputData = tensor(['airplane at airport']);
 
     const output =
-      preprocessor.callAndPackArgs(inputData, {}) as PreprocessorOutputs;
+      preprocessor.callAndPackArgs(inputData, {}) as NamedTensorMap;
 
     expectTensorsClose(output.tokenIds, tensor2d([[6, 1, 3, 4, 2, 5, 6, 0]]));
     expectTensorsClose(
@@ -77,7 +77,7 @@ describe('GPT2Preprocessor', () => {
     };
 
     const output =
-      preprocessor.callAndPackArgs(inputData, {}) as PreprocessorOutputs;
+      preprocessor.callAndPackArgs(inputData, {}) as NamedTensorMap;
 
     expectTensorsClose(output.tokenIds, expectedOutput.tokenIds);
     expectTensorsClose(output.paddingMask, expectedOutput.paddingMask);
@@ -95,7 +95,7 @@ describe('GPT2Preprocessor', () => {
 
     const output = preprocessor.callAndPackArgs(
       inputData, {y: yIn, sampleWeight: swIn}
-    ) as [PreprocessorOutputs, Tensor, Tensor];
+    ) as [NamedTensorMap, Tensor, Tensor];
 
     expectTensorsClose(output[0].tokenIds, expectedX.tokenIds);
     expectTensorsClose(output[0].paddingMask, expectedX.paddingMask);
@@ -108,7 +108,7 @@ describe('GPT2Preprocessor', () => {
 
     const output = preprocessor.callAndPackArgs(
       inputData, {sequenceLength: 4}
-    ) as PreprocessorOutputs;
+    ) as NamedTensorMap;
 
     expectTensorsClose(output.tokenIds, tensor2d([[6, 1, 3, 6]]));
   });

@@ -27,7 +27,7 @@ module.exports = function(config) {
         {tsconfig: 'tsconfig.json', compilerOptions: {module: 'commonjs'}},
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
-    port: 9876,
+    port: 9200,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
