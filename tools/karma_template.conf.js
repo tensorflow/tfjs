@@ -16,7 +16,12 @@
  */
 
 const browserstackConfig = {
-  port: 9876,
+  // Browserstack only supports a certain range of ports for safari.
+  // Karma will automatically use the next available port if the
+  // chosen one is in use. Starting at 9200 gives us the largest
+  // range of ports (9200 - 9400).
+  // https://www.browserstack.com/question/39572
+  port: 9200,
 };
 
 // Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
