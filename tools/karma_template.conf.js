@@ -22,6 +22,11 @@ const browserstackConfig = {
   // range of ports (9200 - 9400).
   // https://www.browserstack.com/question/39572
   port: 9200,
+  // This is necessary for non-flaky Safari tests. They usually pass just
+  // fine without it, but sometimes, Safari will fail to connect to Karma.
+  // If you want to remove this, prove that it's not flaky by running
+  // bazel test //tfjs-core/src:bs_safari_mac_from_pixels_worker_test --runs_per_test=100
+  hostname: 'bs-local.com',
 };
 
 // Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
