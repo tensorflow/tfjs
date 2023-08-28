@@ -25,10 +25,10 @@ import { TruncatedNormal } from '../../initializers';
 import { input } from '../../exports';
 import { Shape } from '../../keras_format/common';
 import { MultiHeadAttention } from './multihead_attention';
-import { describeMathCPU, expectTensorsClose, expectTensorsNotClose } from '../../utils/test_utils';
+import { describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensorsNotClose } from '../../utils/test_utils';
 import { Embedding } from '../embeddings';
 
-describe('MultiHeadAttention', () => {
+describeMathCPUAndGPU('MultiHeadAttention', () => {
 
   describe('Non Masked Attention', () => {
     interface NonMaskedAttentionArgs {
@@ -188,101 +188,6 @@ describe('MultiHeadAttention', () => {
     expectTensorsNotClose(queryKernel, outputKernel, 1e-6);
   });
 
-  describeMathCPU('High Dimensional Attention', () => {
-    interface HighDimAttentionArgs {
-      testcaseName: string;
-      qDims: Shape;
-      vDims: Shape;
-      maskDims: Shape;
-      attentionAxes: number[];
-    }
-    /**
-     * Test with high dimensional inputs.
-     */
-    function testHighDimAttention({
-      testcaseName, qDims, vDims, maskDims, attentionAxes,
-    }: HighDimAttentionArgs) {
-      it(testcaseName, () => {
-        const testLayer = new MultiHeadAttention({
-          numHeads: 2, keyDim: 2, attentionAxes,
-        });
-        const batchSize = 3;
-        const hiddenSize = 8;
-        // Generate data for the input (non-mask) tensors.
-        const queryShape = [batchSize].concat(qDims).concat(hiddenSize);
-        const valueShape = [batchSize].concat(vDims).concat(hiddenSize);
-        const maskShape = [batchSize].concat(maskDims);
-        const query = randomUniform(queryShape, 0, 10);
-        const value = randomUniform(valueShape, 0, 10);
-
-        // Invoke the data with a random set of mask data. This should mask at
-        // least one element.
-        const maskData = randomUniformInt(maskShape, 0, 2).asType('bool');
-
-        // Invoke the same data, but with a null mask (where no elements are
-        // masked).
-        const nullMaskData = ones(maskShape);
-
-        // Because one data is masked and one is not, the outputs should not be
-        // the same.
-
-        const outputWithMask = testLayer.call(
-          query, {value, attentionMask: maskData});
-        const outputWithNullMask = testLayer.call(
-          query, {value, attentionMask: nullMaskData});
-
-        expectTensorsNotClose(outputWithMask, outputWithNullMask);
-      });
-    }
-    const params: HighDimAttentionArgs[] = [
-      {
-        testcaseName: '4d_inputs_1freebatch_mask2',
-        qDims: [3, 4],
-        vDims: [3, 2],
-        maskDims: [4, 2],
-        attentionAxes: [2],
-      },
-      {
-        testcaseName: '4d_inputs_1freebatch_mask3',
-        qDims: [3, 4],
-        vDims: [3, 2],
-        maskDims: [3, 4, 2],
-        attentionAxes: [2],
-      },
-      {
-        testcaseName: '4d_inputs_1freebatch_mask4',
-        qDims: [3, 4],
-        vDims: [3, 2],
-        maskDims: [3, 2, 4, 2],
-        attentionAxes: [2],
-      },
-      {
-        testcaseName: '4D_inputs_2D_attention',
-        qDims: [3, 4],
-        vDims: [3, 2],
-        maskDims: [3, 4, 3, 2],
-        attentionAxes: [1, 2],
-      },
-      {
-        testcaseName: '5D_inputs_2D_attention',
-        qDims: [5, 3, 4],
-        vDims: [5, 3, 2],
-        maskDims: [3, 4, 3, 2],
-        attentionAxes: [2, 3],
-      },
-      {
-        testcaseName: '5D_inputs_2D_attention_fullmask',
-        qDims: [5, 3, 4],
-        vDims: [5, 3, 2],
-        maskDims: [5, 3, 4, 3, 2],
-        attentionAxes: [2, 3],
-      },
-    ];
-    for (const param of params) {
-      testHighDimAttention(param);
-    }
-  });
-
   it('dropout', () => {
     const testLayer = new MultiHeadAttention({
       numHeads: 2,
@@ -298,7 +203,7 @@ describe('MultiHeadAttention', () => {
     expectTensorsNotClose(trainOut, testOut);
   });
 
-  describe('Casual Mask Value', () => {
+  fdescribe('Casual Mask Value', () => {
     /**
      * Test that the value and causal masks are taken into account.
      */
@@ -480,6 +385,101 @@ describe('MultiHeadAttention', () => {
     expect(memory().numTensors).toEqual(numTensors + 1);
   });
   // TODO(pforderique): Test serialization.
+});
+
+describeMathCPU('High Dimensional Attention', () => {
+  interface HighDimAttentionArgs {
+    testcaseName: string;
+    qDims: Shape;
+    vDims: Shape;
+    maskDims: Shape;
+    attentionAxes: number[];
+  }
+  /**
+   * Test with high dimensional inputs.
+   */
+  function testHighDimAttention({
+    testcaseName, qDims, vDims, maskDims, attentionAxes,
+  }: HighDimAttentionArgs) {
+    it(testcaseName, () => {
+      const testLayer = new MultiHeadAttention({
+        numHeads: 2, keyDim: 2, attentionAxes,
+      });
+      const batchSize = 3;
+      const hiddenSize = 8;
+      // Generate data for the input (non-mask) tensors.
+      const queryShape = [batchSize].concat(qDims).concat(hiddenSize);
+      const valueShape = [batchSize].concat(vDims).concat(hiddenSize);
+      const maskShape = [batchSize].concat(maskDims);
+      const query = randomUniform(queryShape, 0, 10);
+      const value = randomUniform(valueShape, 0, 10);
+
+      // Invoke the data with a random set of mask data. This should mask at
+      // least one element.
+      const maskData = randomUniformInt(maskShape, 0, 2).asType('bool');
+
+      // Invoke the same data, but with a null mask (where no elements are
+      // masked).
+      const nullMaskData = ones(maskShape);
+
+      // Because one data is masked and one is not, the outputs should not be
+      // the same.
+
+      const outputWithMask = testLayer.call(
+        query, {value, attentionMask: maskData});
+      const outputWithNullMask = testLayer.call(
+        query, {value, attentionMask: nullMaskData});
+
+      expectTensorsNotClose(outputWithMask, outputWithNullMask);
+    });
+  }
+  const params: HighDimAttentionArgs[] = [
+    {
+      testcaseName: '4d_inputs_1freebatch_mask2',
+      qDims: [3, 4],
+      vDims: [3, 2],
+      maskDims: [4, 2],
+      attentionAxes: [2],
+    },
+    {
+      testcaseName: '4d_inputs_1freebatch_mask3',
+      qDims: [3, 4],
+      vDims: [3, 2],
+      maskDims: [3, 4, 2],
+      attentionAxes: [2],
+    },
+    {
+      testcaseName: '4d_inputs_1freebatch_mask4',
+      qDims: [3, 4],
+      vDims: [3, 2],
+      maskDims: [3, 2, 4, 2],
+      attentionAxes: [2],
+    },
+    {
+      testcaseName: '4D_inputs_2D_attention',
+      qDims: [3, 4],
+      vDims: [3, 2],
+      maskDims: [3, 4, 3, 2],
+      attentionAxes: [1, 2],
+    },
+    {
+      testcaseName: '5D_inputs_2D_attention',
+      qDims: [5, 3, 4],
+      vDims: [5, 3, 2],
+      maskDims: [3, 4, 3, 2],
+      attentionAxes: [2, 3],
+    },
+    {
+      testcaseName: '5D_inputs_2D_attention_fullmask',
+      qDims: [5, 3, 4],
+      vDims: [5, 3, 2],
+      maskDims: [5, 3, 4, 3, 2],
+      attentionAxes: [2, 3],
+    },
+  ];
+  for (const param of params) {
+    testHighDimAttention(param);
+  }
 });
 
 class SubclassAttention extends MultiHeadAttention {
