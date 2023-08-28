@@ -25,7 +25,7 @@ import { serialization } from '@tensorflow/tfjs-core';
 import { ContainerArgs } from '../../../engine/container';
 import { LayersModel } from '../../../engine/training';
 import { NotImplementedError } from '../../../errors';
-import { Layer } from '../../../exports_layers';
+import { Embedding } from '../../embeddings';
 
 export class Backbone extends LayersModel {
   /** @nocollapse */
@@ -38,7 +38,7 @@ export class Backbone extends LayersModel {
   /**
    * A `tf.layers.embedding` instance for embedding token ids.
    */
-  get tokenEmbedding(): Layer {
+  get tokenEmbedding(): Embedding {
     throw new NotImplementedError();
   }
 

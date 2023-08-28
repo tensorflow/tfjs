@@ -28,7 +28,7 @@ import { deserializeKerasObject, serializeKerasObject } from '../../../utils/gen
  */
 export class Preprocessor extends Layer {
   /** @nocollapse */
-  static readonly className = 'Preprocessor';
+  static className = 'Preprocessor';
 
   private _tokenizer: Tokenizer;
 
