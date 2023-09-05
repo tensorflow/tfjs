@@ -57,8 +57,10 @@ export const gatherGradConfig: GradConfig = {
       const valuesTranspose = transpose(values, transposeDims);
       let paramsGrad = unsortedSegmentSum(
           valuesTranspose, reshapedIndices as Tensor1D, x.shape[parsedAxis]);
+
       const invertTransposeDims = getUndoAxesPermutation(transposeDims);
       paramsGrad = transpose(paramsGrad, invertTransposeDims);
+
       return paramsGrad;
     };
 
@@ -98,7 +100,7 @@ export const gatherGradConfig: GradConfig = {
       const derXBatched = () => {
         const stacked = stack(
           xBatch.map((x, i) => {
-            return derXIndividual(x, indices.slice(i,1).reshape([1]), dy.slice(i,1))();
+            return derXIndividual(x, indices.slice(i,1), dy.slice(i,1))();
           }))
         return stacked.reshape(x.shape);
     };
