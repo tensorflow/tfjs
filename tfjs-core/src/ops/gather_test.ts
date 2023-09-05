@@ -319,6 +319,7 @@ describeWithFlags('gather', ALL_ENVS, (env) => {
       [3, 4]]));
     console.log("TCL ~ t:", t.shape, t.arraySync());
     const indices = tf.tensor([0, 1, 0, 1], [4, 1], 'int32');
+    const dy = tf.tensor([1, 1, 1, 1], [4, 1]);
     console.log("TCL ~ indices:", indices.shape, indices.arraySync());
     const axis = 1;
     const gathered = tf.gather(t, indices, axis, 1);
@@ -340,22 +341,38 @@ describeWithFlags('gather', ALL_ENVS, (env) => {
     expect(gatheredOwn.shape).toEqual([4, 1]);
     expect(gatheredOwn.arraySync()).toEqual([[0], [2], [2], [4]]);
 
-    // const gradients = tf.grad(t => gatherOwn(t, indices))(t);
-    const gradients = tf.grad(t => tf.gather(t, indices, axis, 1))(t);
+    // const gradientsOwn = tf.grad(t => gatherOwn(t, indices))(t);
+    // console.log("TCL ~ gradientsOwn:", gradientsOwn.shape, gradientsOwn.arraySync());
+    // const gradientsOwnTransposed = gradientsOwn.transpose();
+    // console.log("TCL ~ gradientsOwnTransposed:", gradientsOwnTransposed.shape, gradientsOwnTransposed.arraySync());
+    // // we want [ 4, 2 ] [ [ 1, 0 ], [ 0, 1 ], [ 1, 0 ], [ 0, 1 ] ]
+    // expect(gradientsOwn.shape).toEqual(t.shape);
+    // expectArraysClose(await gradientsOwn.data(), [1, 0, 0, 1, 1, 0, 0, 1]);
+
+    const gradients = tf.grad(t => tf.gather(t, indices, axis, 1))(t, dy);
     console.log("TCL ~ gradients:", gradients.shape, gradients.arraySync());
-    // we want [4, 2]
+    // [0, 1, 0, 1]
+    // transposed: [ 2, 4 ] [ [ 1, 0, 1, 0 ], [ 0, 1, 0, 1 ] ]
+    // we want     [ 4, 2 ] [ [ 1, 0 ], [ 0, 1 ], [ 1, 0 ], [ 0, 1 ] ]
     expect(gradients.shape).toEqual(t.shape);
     expectArraysClose(await gradients.data(), [1, 0, 0, 1, 1, 0, 0, 1]);
-
-    // const loss = () => {
-    //   return tf.tidy(() => {
-    //     return tf.gather(t, indices, axis).sum().asScalar()
-    //   })
-    // }
-
-    // const grad = tf.variableGrads(loss)
-    // console.log("TCL ~ grad:", grad.grads['1'].shape, grad.grads['1'].dataSync());
   });
+
+  // fit('gradient 2D (gather) axis=1 shape=[2, 2] 1D indices no dy', async () => {
+  //   const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+  //   console.log("TCL ~ t:", t.shape, t.arraySync())
+  //   const indices = tf.tensor1d([1, 0, 0, 1], 'int32');
+  //   const axis = 1;
+
+  //   const gathered = tf.gather(t, indices, axis);
+  //   console.log("TCL ~ gathered:", gathered.shape, gathered.arraySync());
+
+  //   const gradients = tf.grad(t => tf.gather(t, indices, axis))(t);
+  //   console.log("TCL ~ gradients:", gradients.shape, gradients.arraySync());
+
+  //   expect(gradients.shape).toEqual(t.shape);
+  //   expectArraysClose(await gradients.data(), [9, 9, 17, 17]);
+  // });
 
   it('gradient 2D (gather) axis=1 shape=[2, 2] 1D indices', async () => {
     const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);

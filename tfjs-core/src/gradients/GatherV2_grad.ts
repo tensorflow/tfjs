@@ -19,6 +19,7 @@ import {GatherV2, GatherV2Attrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {getUndoAxesPermutation} from '../ops/axis_util';
 import {reshape} from '../ops/reshape';
+import { stack } from '../ops/stack';
 import {transpose} from '../ops/transpose';
 import {unsortedSegmentSum} from '../ops/unsorted_segment_sum';
 import {Tensor, Tensor1D} from '../tensor';
@@ -29,13 +30,24 @@ export const gatherGradConfig: GradConfig = {
   inputsToSave: ['x', 'indices'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, indices] = saved;
-    const {axis} = attrs as unknown as GatherV2Attrs;
+    const {axis, batchDims} = attrs as unknown as GatherV2Attrs;
 
     const parsedAxis = parseAxisParam(axis, x.shape)[0];
 
     const derX = () => {
       const paramsShape = x.shape;
+      console.log("TCL ~ x:", x.shape, x.arraySync())
+      // console.log("TCL ~ dy:", dy.shape, dy.arraySync())
+      // console.log("TCL ~ batchDims, parsedAxis:", batchDims, parsedAxis)
       const indicesSize = indices.size;
+      // console.log("TCL ~ indicesSize:", indicesSize)
+
+      let $batchDims = batchDims;
+
+      if (batchDims == null) {
+        $batchDims = 0;
+      }
+      console.log("TCL ~ $batchDims:", $batchDims)
 
       const outerShape = paramsShape.slice(0, parsedAxis);
       const outerDims = outerShape.length;
@@ -56,13 +68,59 @@ export const gatherGradConfig: GradConfig = {
       const valuesTranspose = transpose(values, transposeDims);
       let paramsGrad = unsortedSegmentSum(
           valuesTranspose, reshapedIndices as Tensor1D, x.shape[parsedAxis]);
-
+      console.log("TCL ~ paramsGrad:", paramsGrad.shape, paramsGrad.dataSync())
       const invertTransposeDims = getUndoAxesPermutation(transposeDims);
       paramsGrad = transpose(paramsGrad, invertTransposeDims);
-
+      console.log("TCL ~ paramsGrad:", paramsGrad.shape, paramsGrad.dataSync())
       return paramsGrad;
     };
-    return {x: derX, indices: () => indices};
+
+    const derXIndividual = (x: Tensor, indices: Tensor, dy: Tensor) => {
+      console.log("TCL ~ dy:", dy, dy.shape, dy.dataSync())
+      return function(): Tensor {
+        const paramsShape = x.shape;
+        const indicesSize = indices.size;
+
+        const outerShape = paramsShape.slice(0, parsedAxis);
+        const outerDims = outerShape.length;
+        const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
+        const innerDims = innerShape.length;
+
+        const outerAxesIndices = arrayRange(0, outerDims);
+        const innerAxesIndices =
+            arrayRange(outerDims + 1, outerDims + 1 + innerDims);
+
+        const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
+
+        const values = reshape(dy, valuesShape);
+        const reshapedIndices = reshape(indices, [indicesSize]);
+
+        const transposeDims =
+            arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
+        const valuesTranspose = transpose(values, transposeDims);
+        let paramsGrad = unsortedSegmentSum(
+            valuesTranspose, reshapedIndices as Tensor1D, x.shape[parsedAxis]);
+        const invertTransposeDims = getUndoAxesPermutation(transposeDims);
+        paramsGrad = transpose(paramsGrad, invertTransposeDims);
+        return paramsGrad;
+      }
+    };
+
+    if(batchDims === 1) {
+      console.log("TCL ~ dy:", dy, dy.shape, dy.dataSync())
+      const batchSize = x.shape[0];
+      const xBatch = x.split(batchSize, 0);
+      const derXBatched = () => {
+        const stacked = stack(
+          xBatch.map((x, i) => {
+            return derXIndividual(x, indices.slice(i,1).reshape([1]), dy.slice(i,1))();
+          }))
+        return stacked.reshape(x.shape);
+    };
+      return {x: derXBatched, indices: () => indices};
+    } else {
+      return {x: derX, indices: () => indices};
+    }
   }
 };
 
