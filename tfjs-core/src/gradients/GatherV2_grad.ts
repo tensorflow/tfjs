@@ -34,37 +34,7 @@ export const gatherGradConfig: GradConfig = {
 
     const parsedAxis = parseAxisParam(axis, x.shape)[0];
 
-    const derX = () => {
-      const paramsShape = x.shape;
-      const indicesSize = indices.size;
-
-      const outerShape = paramsShape.slice(0, parsedAxis);
-      const outerDims = outerShape.length;
-      const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
-      const innerDims = innerShape.length;
-
-      const outerAxesIndices = arrayRange(0, outerDims);
-      const innerAxesIndices =
-          arrayRange(outerDims + 1, outerDims + 1 + innerDims);
-
-      const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
-
-      const values = reshape(dy, valuesShape);
-      const reshapedIndices = reshape(indices, [indicesSize]);
-
-      const transposeDims =
-          arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-      const valuesTranspose = transpose(values, transposeDims);
-      let paramsGrad = unsortedSegmentSum(
-          valuesTranspose, reshapedIndices as Tensor1D, x.shape[parsedAxis]);
-
-      const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-      paramsGrad = transpose(paramsGrad, invertTransposeDims);
-
-      return paramsGrad;
-    };
-
-    const derXIndividual = (x: Tensor, indices: Tensor, dy: Tensor) => {
+    const derXBatch = (x: Tensor, indices: Tensor, dy: Tensor) => {
       return function(): Tensor {
         const paramsShape = x.shape;
         const indicesSize = indices.size;
@@ -100,13 +70,13 @@ export const gatherGradConfig: GradConfig = {
       const derXBatched = () => {
         const stacked = stack(
           xBatch.map((x, i) => {
-            return derXIndividual(x, indices.slice(i,1), dy.slice(i,1))();
+            return derXBatch(x, indices.slice(i,1), dy.slice(i,1))();
           }))
         return stacked.reshape(x.shape);
     };
       return {x: derXBatched, indices: () => indices};
     } else {
-      return {x: derX, indices: () => indices};
+      return {x: derXBatch(x, indices, dy), indices: () => indices};
     }
   }
 };
