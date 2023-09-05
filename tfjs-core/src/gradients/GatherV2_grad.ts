@@ -36,18 +36,7 @@ export const gatherGradConfig: GradConfig = {
 
     const derX = () => {
       const paramsShape = x.shape;
-      console.log("TCL ~ x:", x.shape, x.arraySync())
-      // console.log("TCL ~ dy:", dy.shape, dy.arraySync())
-      // console.log("TCL ~ batchDims, parsedAxis:", batchDims, parsedAxis)
       const indicesSize = indices.size;
-      // console.log("TCL ~ indicesSize:", indicesSize)
-
-      let $batchDims = batchDims;
-
-      if (batchDims == null) {
-        $batchDims = 0;
-      }
-      console.log("TCL ~ $batchDims:", $batchDims)
 
       const outerShape = paramsShape.slice(0, parsedAxis);
       const outerDims = outerShape.length;
@@ -68,15 +57,12 @@ export const gatherGradConfig: GradConfig = {
       const valuesTranspose = transpose(values, transposeDims);
       let paramsGrad = unsortedSegmentSum(
           valuesTranspose, reshapedIndices as Tensor1D, x.shape[parsedAxis]);
-      console.log("TCL ~ paramsGrad:", paramsGrad.shape, paramsGrad.dataSync())
       const invertTransposeDims = getUndoAxesPermutation(transposeDims);
       paramsGrad = transpose(paramsGrad, invertTransposeDims);
-      console.log("TCL ~ paramsGrad:", paramsGrad.shape, paramsGrad.dataSync())
       return paramsGrad;
     };
 
     const derXIndividual = (x: Tensor, indices: Tensor, dy: Tensor) => {
-      console.log("TCL ~ dy:", dy, dy.shape, dy.dataSync())
       return function(): Tensor {
         const paramsShape = x.shape;
         const indicesSize = indices.size;
@@ -107,7 +93,6 @@ export const gatherGradConfig: GradConfig = {
     };
 
     if(batchDims === 1) {
-      console.log("TCL ~ dy:", dy, dy.shape, dy.dataSync())
       const batchSize = x.shape[0];
       const xBatch = x.split(batchSize, 0);
       const derXBatched = () => {
