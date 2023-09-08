@@ -28,7 +28,7 @@ import { MultiHeadAttention } from './multihead_attention';
 import { describeMathCPU, expectTensorsClose, expectTensorsNotClose } from '../../utils/test_utils';
 import { Embedding } from '../embeddings';
 
-describe('MultiHeadAttention', () => {
+describe('fab MultiHeadAttention', () => {
 
   describe('Non Masked Attention', () => {
     interface NonMaskedAttentionArgs {
@@ -124,8 +124,8 @@ describe('MultiHeadAttention', () => {
         });
         // Create a 3-dimensional input (the first dimension is implicit).
         const batchSize = 4;
-        const query = randomUniform([batchSize, 4, 8]);
-        const value = randomUniform([batchSize, 2, 8]);
+        const query = randomUniform([batchSize, 4, 8]).mul(10);
+        const value = randomUniform([batchSize, 2, 8]).mul(10);
 
         // Invoke the data with a random set of mask data. This should mask at
         // least one element.
@@ -315,7 +315,7 @@ describe('MultiHeadAttention', () => {
           {inputDim: 6, outputDim: 8, maskZero: true}).apply(value) as Tensor;
 
         const output = testLayer.call(
-          maskedQuery, {value: maskedValue, useCausalMask: true});
+          maskedQuery, {value: maskedValue, useCausalMask});
 
         let mask = tensor([
           Array<boolean[]>(3).fill([true, true, false]).concat(
@@ -332,18 +332,15 @@ describe('MultiHeadAttention', () => {
         }
 
         const outputWithManualMask = testLayer.call(
-          maskedQuery, {value: maskedValue, attentionMask: mask});
-
-        expectTensorsClose(output, outputWithManualMask);
+          maskedQuery,
+          {value: maskedValue, attentionMask: mask, useCausalMask}
+        );
+        expectTensorsClose(output, outputWithManualMask, 1e-06);
       });
     }
 
-    const params: Array<[string, boolean]> = [
-      ['casual', true], ['not_casual', false]
-    ];
-    for (const [testName, useMask] of params) {
-      testValueMask(testName, useMask);
-    }
+    testValueMask('casual', true);
+    testValueMask('not_casual', false);
   });
 
   describe('Compute Output Shape', () => {
