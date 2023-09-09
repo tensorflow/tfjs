@@ -60,7 +60,7 @@ export interface ModelFitArgs {
    *      as in `onBatchEnd()`. Note that `onYield` can skip batches or
    *      epochs. See also docs for `yieldEvery` below.
    */
-  callbacks?: BaseCallback[]|CustomCallbackArgs|CustomCallbackArgs[];
+  callbacks?: CustomCallbackArgs|Array<BaseCallback|CustomCallbackArgs>;
 
   /**
    * Float between 0 and 1: fraction of the training data

@@ -14,7 +14,7 @@
 
 import {scalar, zeros} from '@tensorflow/tfjs-core';
 
-import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, History} from './base_callbacks';
+import {BaseCallback, BaseLogger, CallbackConstructorRegistry, CallbackList, History, standardizeCallbacks, CustomCallback} from './base_callbacks';
 import {Callback} from './callbacks';
 import {LayersModel} from './engine/training';
 import * as tfl from './index';
@@ -375,5 +375,81 @@ describeMathCPUAndGPU('LayersModel.fit and CallbackConstructorRegistry', () => {
     await model.fit(xs, ys, {epochs: 3, verbose: 1});
     expect(fake1Epochs).toEqual([0, 1, 2]);
     expect(fake2Epochs).toEqual([]);
+  });
+});
+
+describe('standardizeCallbacks', () => {
+  it('standardize a single BaseCallback', () => {
+    const callback = new CustomCallback({});
+
+    const standardized = standardizeCallbacks(callback, 'never');
+
+    expect(standardized).toEqual([callback]);
+  });
+
+  it('standardize an array of BaseCallback', () => {
+    const callbacks = [
+      new CustomCallback({}),
+      new CustomCallback({}),
+    ];
+
+    const standardized = standardizeCallbacks(callbacks, 'never');
+
+    expect(standardized).toEqual(callbacks);
+  });
+
+  it ('standardize a single CustomCallbackArgs', async () => {
+    const args = { onEpochEnd: () => {} };
+    const spy = spyOn(args, 'onEpochEnd');
+
+    const standardized = standardizeCallbacks(args, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toBe(1);
+    expect(standardized[0] instanceof BaseCallback).toBe(true);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('standardize an array of CustomCallbackArgs', async () => {
+    const argsArray = [
+      { onEpochEnd: () => {} },
+      { onEpochEnd: () => {} },
+    ];
+    const spies = argsArray.map(args => spyOn(args, 'onEpochEnd'));
+
+    const standardized = standardizeCallbacks(argsArray, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toBe(argsArray.length);
+    standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
+    spies.forEach(spy => expect(spy).toHaveBeenCalled());
+  });
+
+  it('standardize a mixed array starting with BaseCallback', async () => {
+    const callback = new CustomCallback({}), args = { onEpochEnd: () => {} };
+    const spy = spyOn(args, 'onEpochEnd');
+    const mixedArray = [callback, args];
+
+    const standardized = standardizeCallbacks(mixedArray, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toEqual(mixedArray.length);
+    standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
+    expect(mixedArray[0]).toBe(callback);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('standardize a mixed array starting with CustomCallbackArgs', async () => {
+    const args = { onEpochEnd: () => {} }, callback = new CustomCallback({});
+    const spy = spyOn(args, 'onEpochEnd');
+    const mixedArray = [args, callback];
+
+    const standardized = standardizeCallbacks(mixedArray, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toEqual(mixedArray.length);
+    standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
+    expect(spy).toHaveBeenCalled();
+    expect(mixedArray[1]).toBe(callback);
   });
 });
