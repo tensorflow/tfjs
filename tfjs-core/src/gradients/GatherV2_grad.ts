@@ -19,7 +19,7 @@ import {GatherV2, GatherV2Attrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {getUndoAxesPermutation} from '../ops/axis_util';
 import {reshape} from '../ops/reshape';
-import { stack } from '../ops/stack';
+import {stack} from '../ops/stack';
 import {transpose} from '../ops/transpose';
 import {unsortedSegmentSum} from '../ops/unsorted_segment_sum';
 import {Tensor, Tensor1D} from '../tensor';
@@ -35,7 +35,7 @@ export const gatherGradConfig: GradConfig = {
     const parsedAxis = parseAxisParam(axis, x.shape)[0];
 
     const derXBatch = (x: Tensor, indices: Tensor, dy: Tensor) => {
-      return function(): Tensor {
+      return (): Tensor => {
         const paramsShape = x.shape;
         const indicesSize = indices.size;
 
@@ -48,7 +48,8 @@ export const gatherGradConfig: GradConfig = {
         const innerAxesIndices =
             arrayRange(outerDims + 1, outerDims + 1 + innerDims);
 
-        const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
+        const valuesShape = arrayConcat([outerShape, [indicesSize],
+                                         innerShape]);
 
         const values = reshape(dy, valuesShape);
         const reshapedIndices = reshape(indices, [indicesSize]);
@@ -61,19 +62,19 @@ export const gatherGradConfig: GradConfig = {
         const invertTransposeDims = getUndoAxesPermutation(transposeDims);
         paramsGrad = transpose(paramsGrad, invertTransposeDims);
         return paramsGrad;
-      }
+      };
     };
 
-    if(batchDims === 1) {
+    if (batchDims === 1) {
       const batchSize = x.shape[0];
       const xBatch = x.split(batchSize, 0);
       const derXBatched = () => {
         const stacked = stack(
           xBatch.map((x, i) => {
             return derXBatch(x, indices.slice(i,1), dy.slice(i,1))();
-          }))
+          }));
         return stacked.reshape(x.shape);
-    };
+      };
       return {x: derXBatched, indices: () => indices};
     } else {
       return {x: derXBatch(x, indices, dy), indices: () => indices};
