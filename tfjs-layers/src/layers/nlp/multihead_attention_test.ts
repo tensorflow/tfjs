@@ -203,52 +203,59 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
     expectTensorsNotClose(trainOut, testOut);
   });
 
-  fdescribe('Casual Mask Value', () => {
+  fdescribe('Causal Mask Value', () => {
+    let testLayer: MultiHeadAttention;
+    let maskedQuery: Tensor;
+    let maskedValue: Tensor;
+    let mask: Tensor;
+
+    beforeEach(() => {
+      testLayer = new MultiHeadAttention({numHeads: 2, keyDim: 2});
+      const query = tensor2d([
+        [1, 2, 3, 0, 0], [3, 3, 1, 1, 2], [1, 0, 0, 0, 0]
+      ]);
+      maskedQuery = new Embedding(
+        {inputDim: 4, outputDim: 8, maskZero: true}).apply(query) as Tensor;
+      const value = tensor2d([[5, 4, 0], [3, 0, 0], [2, 1, 1]]);
+      maskedValue = new Embedding(
+        {inputDim: 6, outputDim: 8, maskZero: true}).apply(value) as Tensor;
+
+      mask = tensor([
+        Array<boolean[]>(3).fill([true, true, false]).concat(
+          Array<boolean[]>(2).fill([false, false, false])),
+        Array<boolean[]>(5).fill([true, false, false]),
+        [[true, true, true]].concat(
+          Array<boolean[]>(4).fill([false, false, false]))
+      ]);
+    });
+
     /**
      * Test that the value and causal masks are taken into account.
      */
-    function testValueMask(testcaseName: string, useCausalMask: boolean) {
-      it(testcaseName, () => {
-        const testLayer = new MultiHeadAttention({numHeads: 2, keyDim: 2});
-        const query = tensor2d([
-          [1, 2, 3, 0, 0], [3, 3, 1, 1, 2], [1, 0, 0, 0, 0]
-        ]);
-        const maskedQuery = new Embedding(
-          {inputDim: 4, outputDim: 8, maskZero: true}).apply(query) as Tensor;
-        const value = tensor2d([[5, 4, 0], [3, 0, 0], [2, 1, 1]]);
-        const maskedValue = new Embedding(
-          {inputDim: 6, outputDim: 8, maskZero: true}).apply(value) as Tensor;
+    fit('causal', () => {
+      const output = testLayer.call(
+        maskedQuery, {value: maskedValue, useCausalMask: true});
 
-        const output = testLayer.call(
-          maskedQuery, {value: maskedValue, useCausalMask: true});
+      const outputWithManualMask = testLayer.call(
+        maskedQuery, {value: maskedValue, attentionMask: mask});
 
-        let mask = tensor([
-          Array<boolean[]>(3).fill([true, true, false]).concat(
-            Array<boolean[]>(2).fill([false, false, false])),
-          Array<boolean[]>(5).fill([true, false, false]),
-          [[true, true, true]].concat(
-            Array<boolean[]>(4).fill([false, false, false]))
-        ]);
-        if (useCausalMask) {
-          mask = mask.logicalAnd(tensor([
-            [[true, false, false], [true, true, false]].concat(
-            [[true, true, true], [true, true, true], [true, true, true]])
-          ]));
-        }
+      expectTensorsClose(output, outputWithManualMask);
+    });
 
-        const outputWithManualMask = testLayer.call(
-          maskedQuery, {value: maskedValue, attentionMask: mask});
+    it('not_causal', () => {
+      const output = testLayer.call(
+        maskedQuery, {value: maskedValue, useCausalMask: true});
 
-        expectTensorsClose(output, outputWithManualMask);
-      });
-    }
+      mask = mask.logicalAnd(tensor([
+        [[true, false, false], [true, true, false]].concat(
+          [[true, true, true], [true, true, true], [true, true, true]])
+      ]));
 
-    const params: Array<[string, boolean]> = [
-      ['casual', true], ['not_casual', false]
-    ];
-    for (const [testName, useMask] of params) {
-      testValueMask(testName, useMask);
-    }
+      const outputWithManualMask = testLayer.call(
+        maskedQuery, {value: maskedValue, attentionMask: mask});
+
+      expectTensorsClose(output, outputWithManualMask);
+    });
   });
 
   describe('Compute Output Shape', () => {
