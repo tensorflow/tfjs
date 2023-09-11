@@ -17,12 +17,16 @@
 
 import {KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {Fill, FillAttrs} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 export function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
-  const {attrs: {shape, value, dtype}, backend} = args;
-  const out = backend.makeOutput(shape, dtype);
+  const {attrs, backend} = args;
+  const {shape, value, dtype} = attrs;
+  const $dtype = dtype || util.inferDtype(value);
+
+  const out = backend.makeOutput(shape, $dtype);
   const outVals = backend.typedArrayFromHeap(out);
   outVals.fill(value as number);
   return out;
