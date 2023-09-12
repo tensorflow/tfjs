@@ -51,8 +51,7 @@ tfjs_web_test(
     ],
     browsers = [
         "bs_chrome_mac",
-        # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
-        # "bs_firefox_mac",
+        "bs_firefox_mac",
         # disabled android test due to training flakiness
         # "bs_android_10",
         "win_10_chrome",
@@ -75,8 +74,8 @@ tfjs_web_test(
         "webgl1",
     ],
     browsers = [
-        "bs_safari_mac",
         "bs_ios_12",
+        "bs_safari_mac",
     ],
     headless = False,
     seed = "12345",
