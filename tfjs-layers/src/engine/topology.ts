@@ -1018,7 +1018,31 @@ export abstract class Layer extends serialization.Serializable {
       // Actually call the layer, collecting output(s), mask(s), and shape(s).
       if (noneAreSymbolic) {
         let output = this.call(inputs as Tensor | Tensor[], kwargs);
-        // TODO(michaelterry): Compute the outputMask
+
+        // Apply masks to the output tensors if the layer supports it.
+        if (this.supportsMasking) {
+          // TODO(mattsoulanille): pass the input tensors' masks to computeMask
+          const outputMask = this.computeMask(inputs as Tensor | Tensor[]);
+          if (output instanceof Array && outputMask instanceof Array) {
+            if (output.length !== outputMask.length) {
+              throw new Error(`${this.name} output ${output.length} tensors `
+                + `but ${outputMask.length} masks for those tensors`);
+            }
+            for (let i = 0; i < output.length; i++) {
+              output[i].keras_mask = outputMask[i];
+            }
+          } else if (outputMask instanceof Array) {
+            throw new Error(`{this.name} output a single tensor `
+              + `but ${outputMask.length} masks`);
+          } else if (output instanceof Array) {
+            for (const out of output) {
+              out.keras_mask = outputMask.clone();
+            }
+            outputMask.dispose(); // Only keep the clones to avoid leaking
+          } else {
+            output.keras_mask = outputMask;
+          }
+        }
 
         // If the layer returns tensors from its inputs, unmodified,
         // we copy them to avoid loss of tensor metadata.

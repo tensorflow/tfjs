@@ -20,7 +20,7 @@
  */
 
 /* Original source: keras/layers/attention/multi_head_attention.py */
-import { Tensor, einsum, linalg, mul, ones, serialization, tidy } from '@tensorflow/tfjs-core';
+import { Tensor, einsum, linalg, logicalAnd, mul, ones, serialization, tidy } from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import { arraysEqual } from '@tensorflow/tfjs-core/dist/util_base';
 
@@ -813,12 +813,20 @@ export class MultiHeadAttention extends Layer {
     return tidy(() => {
       let autoMask: Tensor;
 
+      const queryMask = query.keras_mask;
+      const valueMask = value.keras_mask;
+      if (queryMask != null) {
+        autoMask = queryMask.expandDims(2); // Shape is [B, T, 1]
+      }
+      if (valueMask != null) {
+        const mask = valueMask.expandDims(1); // Shape is [B, 1, S]
+        autoMask = autoMask ? logicalAnd(autoMask, mask) : mask;
+      }
       if (useCausalMask) {
         // the shape of the causal mask is [1, T, S]
         const mask = this.computeCausalMask(query, value);
-        autoMask = mask;
+        autoMask = autoMask ? logicalAnd(autoMask, mask) : mask;
       }
-
       if (autoMask != null) {
         // Merge attentionMask & automatic mask, to shape [B, T, S]
         attentionMask = attentionMask ?

@@ -203,7 +203,7 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
     expectTensorsNotClose(trainOut, testOut);
   });
 
-  fdescribe('Causal Mask Value', () => {
+  describe('Causal Mask Value', () => {
     let testLayer: MultiHeadAttention;
     let maskedQuery: Tensor;
     let maskedValue: Tensor;
@@ -214,8 +214,9 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
       const query = tensor2d([
         [1, 2, 3, 0, 0], [3, 3, 1, 1, 2], [1, 0, 0, 0, 0]
       ]);
-      maskedQuery = new Embedding(
-        {inputDim: 4, outputDim: 8, maskZero: true}).apply(query) as Tensor;
+      const maskedQueryLayer = new Embedding(
+        {inputDim: 4, outputDim: 8, maskZero: true});
+      maskedQuery = maskedQueryLayer.apply(query) as Tensor;
       const value = tensor2d([[5, 4, 0], [3, 0, 0], [2, 1, 1]]);
       maskedValue = new Embedding(
         {inputDim: 6, outputDim: 8, maskZero: true}).apply(value) as Tensor;
@@ -232,9 +233,14 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
     /**
      * Test that the value and causal masks are taken into account.
      */
-    fit('causal', () => {
+    it('causal', () => {
       const output = testLayer.call(
         maskedQuery, {value: maskedValue, useCausalMask: true});
+
+      mask = mask.logicalAnd(tensor([
+        [[true, false, false], [true, true, false]].concat(
+          [[true, true, true], [true, true, true], [true, true, true]])
+      ]));
 
       const outputWithManualMask = testLayer.call(
         maskedQuery, {value: maskedValue, attentionMask: mask});
@@ -244,12 +250,7 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
 
     it('not_causal', () => {
       const output = testLayer.call(
-        maskedQuery, {value: maskedValue, useCausalMask: true});
-
-      mask = mask.logicalAnd(tensor([
-        [[true, false, false], [true, true, false]].concat(
-          [[true, true, true], [true, true, true], [true, true, true]])
-      ]));
+        maskedQuery, {value: maskedValue, useCausalMask: false});
 
       const outputWithManualMask = testLayer.call(
         maskedQuery, {value: maskedValue, attentionMask: mask});
