@@ -813,8 +813,8 @@ export class MultiHeadAttention extends Layer {
     return tidy(() => {
       let autoMask: Tensor;
 
-      const queryMask = query.keras_mask;
-      const valueMask = value.keras_mask;
+      const queryMask = query.kerasMask;
+      const valueMask = value.kerasMask;
       if (queryMask != null) {
         autoMask = queryMask.expandDims(2); // Shape is [B, T, 1]
       }

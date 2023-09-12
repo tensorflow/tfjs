@@ -1029,18 +1029,18 @@ export abstract class Layer extends serialization.Serializable {
                 + `but ${outputMask.length} masks for those tensors`);
             }
             for (let i = 0; i < output.length; i++) {
-              output[i].keras_mask = outputMask[i];
+              output[i].kerasMask = outputMask[i];
             }
           } else if (outputMask instanceof Array) {
             throw new Error(`{this.name} output a single tensor `
               + `but ${outputMask.length} masks`);
           } else if (output instanceof Array) {
             for (const out of output) {
-              out.keras_mask = outputMask.clone();
+              out.kerasMask = outputMask.clone();
             }
             outputMask.dispose(); // Only keep the clones to avoid leaking
           } else {
-            output.keras_mask = outputMask;
+            output.kerasMask = outputMask;
           }
         }
 
