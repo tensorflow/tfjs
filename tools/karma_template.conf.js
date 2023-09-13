@@ -62,6 +62,13 @@ const CUSTOM_LAUNCHERS = {
     os_version: '12.3',
     real_mobile: true
   },
+  bs_ios_15: {
+    base: 'BrowserStack',
+    device: 'iPhone 11 Pro',
+    os: 'ios',
+    os_version: '15',
+    real_mobile: true
+  },
   bs_android_10: {
     base: 'BrowserStack',
     device: 'Google Pixel 4 XL',

@@ -26,9 +26,6 @@ yarn run-flaky "yarn run-browserstack --browsers=bs_chrome_mac"
 
 # Run the rest of the karma tests in parallel. These runs will reuse the
 # already downloaded binary.
-yarn run-flaky "yarn run-browserstack --browsers=bs_safari_mac"
-#npm-run-all -p -c --aggregate-output \
-  #"run-flaky \"yarn run-browserstack --browsers=bs_safari_mac\""
-  # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
-  # "run-flaky \"yarn run-browserstack --browsers=bs_firefox_mac\"" \
-
+npm-run-all -p -c --aggregate-output \
+  "run-flaky \"yarn run-browserstack --browsers=bs_firefox_mac\"" \
+  "run-flaky \"yarn run-browserstack --browsers=bs_safari_mac\""
