@@ -76,7 +76,7 @@ export function singletonOrArray<T>(xs: T[]): T|T[] {
  * @param x target object to be normalized.
  */
 // tslint:disable-next-line:no-any
-export function toList(x: any): any[] {
+export function toList<T>(x: T|T[]): T[] {
   if (Array.isArray(x)) {
     return x;
   }
