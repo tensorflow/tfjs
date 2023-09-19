@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, env, Rank, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, DataTypeMap, env, Rank, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {symbolicallyComputeStrides} from './shader_util';
 
