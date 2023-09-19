@@ -106,4 +106,10 @@ describeWithFlags('any', ALL_ENVS, () => {
     expect(() => tf.any(['a']))
         .toThrowError(/Argument 'x' passed to 'any' must be bool tensor/);
   });
+
+  it('returns a boolean tensor', () => {
+    const a = tf.tensor1d([1, 0], 'bool');
+    const r = tf.any(a);
+    expect(r.dtype).toEqual('bool');
+  });
 });

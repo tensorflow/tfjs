@@ -901,7 +901,7 @@ export class WebGPUBackend extends KernelBackend {
   private recordAndSubmit(
       program: webgpu_program.WebGPUProgram, output: TensorInfo,
       inputs: TensorInfo[], programDefinedUniform?: ProgramUniform) {
-    if (program.pipeline instanceof Promise<GPUComputePipeline>) {
+    if (program.pipeline instanceof Promise) {
       throw new Error(
           'Please call checkCompileCompletionAsync to ensure parallel compilation is done!');
     }
