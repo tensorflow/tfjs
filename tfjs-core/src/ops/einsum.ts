@@ -125,7 +125,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     //   2. Reshape the first operands' shape as [sharedDimensionsProduct,
     //   distinguishedDimensionsProduct, summedDim], while reshape and
     //   transpose the second operands' shape as [sharedDimensionsProduct,
-    //   summedDim distinguishedDimensionsProduct], Which are corresponding to
+    //   summedDim, distinguishedDimensionsProduct], Which are corresponding to
     //   [Batch, M, K] X [Batch, K, N].
     //   3. Compute BatchMatMul.
     //   4. Transpose and reshape the result [Batch, M, N] to the target
@@ -174,15 +174,15 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       checkEinsumDimSizes(allDims.length, idDims, $tensors);
       const intermediates = [];
       // Step 1 and step 2: transform the two operand tensors.
-      const {resultTensor: tensorA, isSumDimLast: aSumDimLast} =
+      const tensorA =
           transformEinsumInput($tensors[0], idDims[0], sharedDims, summedDims);
-      const {resultTensor: tensorB, isSumDimLast: bSumDimLast} =
+      const tensorB =
           transformEinsumInput($tensors[1], idDims[1], sharedDims, summedDims);
       intermediates.push(tensorA);
       intermediates.push(tensorB);
 
       // Step 3: compute BatchMatMul.
-      let res = matMul(tensorA, tensorB, !aSumDimLast, bSumDimLast);
+      let res = matMul(tensorA, tensorB, true, false);
 
       // Step 4: Transform the output tensor to the target shape.
       const outputIdDims =
@@ -210,13 +210,16 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       attrs as unknown as NamedAttrMap);
 }
 
+/**
+ * Transform (transpose and reshape) the input tensor to the shape of
+ * [sharedDimensionsProduct, summedDim, distinguishedDimensionsProduct].
+ */
 export function transformEinsumInput(
     tensor: Tensor, encodedDims: number[], sharedDims: number[],
     summedDims: number[]) {
   const intermediates = [];
   let resultTensor = tensor;
-  const {transposeOrder, isSumDimLast} =
-      getTransposeOrder(encodedDims, sharedDims, summedDims);
+  const transposeOrder = getTransposeOrder(encodedDims, sharedDims, summedDims);
   if (!isIdentityPermutation(transposeOrder)) {
     resultTensor = transpose(tensor, transposeOrder);
     intermediates.push(resultTensor);
@@ -224,33 +227,20 @@ export function transformEinsumInput(
   const sharedDimSize =
       resultTensor.shape.slice(0, sharedDims.length)
           .reduce((prev: number, cur: number) => prev * cur, 1);
-  // const summedDimSize = isSumDimLast ?
-  //     resultTensor.shape[resultTensor.shape.length - 1] :
-  //     resultTensor.shape[sharedDims.length];
-  const summedDimSize = isSumDimLast ?
-      resultTensor.shape
-          .slice(
-              resultTensor.shape.length - summedDims.length,
-              resultTensor.shape.length)
-          .reduce((prev: number, cur: number) => prev * cur, 1) :
+  const summedDimSize =
       resultTensor.shape
           .slice(sharedDims.length, sharedDims.length + summedDims.length)
           .reduce((prev: number, cur: number) => prev * cur, 1);
-  const aShape = isSumDimLast ?
-      [
-        sharedDimSize, resultTensor.size / sharedDimSize / summedDimSize,
-        summedDimSize
-      ] :
-      [
-        sharedDimSize, summedDimSize,
-        resultTensor.size / sharedDimSize / summedDimSize
-      ];
-  resultTensor = reshape(resultTensor, aShape);
+  const targetShape = [
+    sharedDimSize, summedDimSize,
+    resultTensor.size / sharedDimSize / summedDimSize
+  ];
+  resultTensor = reshape(resultTensor, targetShape);
 
   for (const tensor of intermediates) {
     dispose(tensor);
   }
-  return {resultTensor, isSumDimLast};
+  return resultTensor;
 }
 
 export const einsum = /* @__PURE__ */ op({einsum_});

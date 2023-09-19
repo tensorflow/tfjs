@@ -222,22 +222,26 @@ function findTermsWithDim(idDims: number[][], dim: number): number[] {
   return termIndices;
 }
 
+/**
+ * Get the transpose order to transpose the tensor of `curDimOrder` dimensions
+ * to align with [...sharedDims, ...summedDims, ...distinguishedDims].
+ */
 export function getTransposeOrder(
-    source: number[], target: number[], summedDims: number[]) {
+    curDims: number[], sharedDims: number[], summedDims: number[]) {
   const transposeOrder = [];
-  for (let index = 0; index < target.length; index++) {
-    const dim = target[index];
-    transposeOrder.push(source.indexOf(dim));
+  for (let index = 0; index < sharedDims.length; index++) {
+    const dim = sharedDims[index];
+    transposeOrder.push(curDims.indexOf(dim));
   }
   for (let index = 0; index < summedDims.length; index++) {
     const dim = summedDims[index];
-    transposeOrder.push(source.indexOf(dim));
+    transposeOrder.push(curDims.indexOf(dim));
   }
-  for (let index = 0; index < source.length; index++) {
-    const dim = source[index];
-    if (target.indexOf(dim) === -1 && summedDims.indexOf(dim) === -1) {
-      transposeOrder.push(source.indexOf(dim));
+  for (let index = 0; index < curDims.length; index++) {
+    const dim = curDims[index];
+    if (sharedDims.indexOf(dim) === -1 && summedDims.indexOf(dim) === -1) {
+      transposeOrder.push(curDims.indexOf(dim));
     }
   }
-  return {transposeOrder, isSumDimLast: false};
+  return transposeOrder;
 }
