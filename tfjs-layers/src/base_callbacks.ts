@@ -488,7 +488,8 @@ export function standardizeCallbacks(
   }
   // Convert custom callback configs to custom callback objects.
   const callbackConfigs =
-      generic_utils.toList(callbacks) as CustomCallbackArgs[];
+      generic_utils.toList<BaseCallback | CustomCallbackArgs>(
+        callbacks) as CustomCallbackArgs[];
   return callbackConfigs.map(
       callbackConfig => new CustomCallback(callbackConfig, yieldEvery));
 }
