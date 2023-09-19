@@ -17,7 +17,6 @@
 
 import {backend_util, DataType, env, Rank, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {ProgramUniform} from './backend_webgpu';
 import {symbolicallyComputeStrides} from './shader_util';
 
 export enum PixelsOpType {
@@ -349,8 +348,8 @@ function makeShader(
 }
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, inputsData: InputInfo[], output: TensorInfo,
-    programDefinedUniform?: ProgramUniform): string {
+    program: WebGPUProgram, inputsData: InputInfo[],
+    output: TensorInfo): string {
   let key = program.shaderKey;
   if (program.pixelsOpType != null) {
     return key;
@@ -362,13 +361,6 @@ export function makeShaderKey<R extends Rank>(
     shapes.push(element.shape);
     types.push(element.dtype);
   });
-  const uniformLengths: number[] = [];
-  if (programDefinedUniform != null) {
-    programDefinedUniform.forEach(element => {
-      uniformLengths.push(element.data.length);
-      types.push(element.type);
-    });
-  }
   shapes.push(output.shape);
   types.push(output.dtype);
 
@@ -381,8 +373,8 @@ export function makeShaderKey<R extends Rank>(
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
 
   key += '_' + (program.workgroupSize ? program.workgroupSize.join(',') : '') +
-      shapes.map(shape => shape.length).join(',') + uniformLengths.join(',') +
-      types.join(',') + program.variableNames.join(',') + broadcastDimsKey +
+      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;
 
   return key;
