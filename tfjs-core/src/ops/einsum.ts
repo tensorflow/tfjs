@@ -111,15 +111,15 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
 
   if ($tensors.length === 2 && $tensors[0].shape.length > 0 &&
       $tensors[1].shape.length > 0) {
-    const {allDims, summedDims, idDims} = decodeEinsumEquation(equation, 2);
-    // If the einsum has two operands and has one dimension to be summed, it
-    // could be reduced as a BatchMatMul.
-    // The dimensions of each operand could be divided into three categories:
-    // shared dimensions (both the two operands have), summed dimension (both
-    // the two operands have and it's the dimension to sum on), distinguished
-    // dimensions (an operand exclusively has), which are corresponding to
-    // Batch, K and M(N) dimensions of BatchMatMul. The einsum could be
-    // reduced as BatchMatMul with the following steps:
+    // If the einsum has two operands and all dimensions to be reduced are
+    // reduced by sum instead of discarding, it could be reduced as a
+    // BatchMatMul. The dimensions of each operand could be divided into three
+    // categories: shared dimensions (both the two operands have), summed
+    // dimension (both the two operands have and it's the dimension to sum on),
+    // distinguished dimensions (an operand exclusively has). The three kinds of
+    // dimensions are corresponding to Batch, K and M(N) dimensions of
+    // BatchMatMul. The einsum could be reduced as BatchMatMul with the
+    // following steps:
     //   1. Transpose the two operands' dimensions to the order of
     //   [...sharedDimensions, ...distinguishedDimensions, summed dimension].
     //   2. Reshape the first operands' shape as [sharedDimensionsProduct,
@@ -131,12 +131,14 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     //   4. Transpose and reshape the result [Batch, M, N] to the target
     //   shape.
 
+    const {allDims, summedDims, idDims} = decodeEinsumEquation(equation, 2);
+    const outputShape: number[] =
+        new Array<number>(allDims.length - 1).fill(-1);
+
+    // Categorize the dimensions of the two operands into the three kinds.
     const sharedDims: number[] = [];
-    const outputShape: number[] = new Array<number>(allDims.length - 1);
-    outputShape.fill(-1);
     const distinguishedDimsA: number[] = [];
     const distinguishedDimsB: number[] = [];
-
     for (let i = 0; i < $tensors[0].rank; i++) {
       const dim = idDims[0][i];
       if (summedDims.indexOf(dim) !== -1) {
@@ -149,6 +151,8 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       outputShape[dim] = $tensors[0].shape[i];
     }
 
+    // Check if any dimensions to be reduced are directly discarded. If yes, the
+    // einsum is not reducible to BatchMatMul.
     let isReducible = true;
     for (let i = 0; i < $tensors[1].rank; i++) {
       const dim = idDims[1][i];
@@ -169,6 +173,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     if (isReducible) {
       checkEinsumDimSizes(allDims.length, idDims, $tensors);
       const intermediates = [];
+      // Step 1 and step 2: transform the two operand tensors.
       const {resultTensor: tensorA, isSumDimLast: aSumDimLast} =
           transformEinsumInput($tensors[0], idDims[0], sharedDims, summedDims);
       const {resultTensor: tensorB, isSumDimLast: bSumDimLast} =
@@ -176,7 +181,10 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       intermediates.push(tensorA);
       intermediates.push(tensorB);
 
+      // Step 3: compute BatchMatMul.
       let res = matMul(tensorA, tensorB, !aSumDimLast, bSumDimLast);
+
+      // Step 4: Transform the output tensor to the target shape.
       const outputIdDims =
           sharedDims.concat(distinguishedDimsA).concat(distinguishedDimsB);
       const resShape: number[] = outputIdDims.map(dim => outputShape[dim]);
