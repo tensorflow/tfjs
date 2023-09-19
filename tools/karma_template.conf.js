@@ -16,7 +16,12 @@
  */
 
 const browserstackConfig = {
-  port: 9876,
+  // Browserstack only supports a certain range of ports for safari.
+  // Karma will automatically use the next available port if the
+  // chosen one is in use. Starting at 9200 gives us the largest
+  // range of ports (9200 - 9400).
+  // https://www.browserstack.com/question/39572
+  port: 9200,
 };
 
 // Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
@@ -55,6 +60,13 @@ const CUSTOM_LAUNCHERS = {
     device: 'iPhone XS',
     os: 'ios',
     os_version: '12.3',
+    real_mobile: true
+  },
+  bs_ios_15: {
+    base: 'BrowserStack',
+    device: 'iPhone 11 Pro',
+    os: 'ios',
+    os_version: '15',
     real_mobile: true
   },
   bs_android_10: {
@@ -156,6 +168,13 @@ module.exports = function(config) {
     }
     if (!username || !accessKey) {
       process.exit(1);
+    }
+    if (browserLauncher.browser === 'safari' || browserLauncher.os === 'ios') {
+      // This is necessary for non-flaky Safari tests. They usually pass just
+      // fine without it, but sometimes, Safari will fail to connect to Karma.
+      // If you want to remove this, prove that it's not flaky by running
+      // bazel test //tfjs-core/src:bs_safari_mac_from_pixels_worker_test --runs_per_test=100
+      extraConfig.hostname = 'bs-local.com';
     }
 
     Object.assign(extraConfig, browserstackConfig);

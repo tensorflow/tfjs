@@ -312,6 +312,22 @@ describeWithFlags('gather', ALL_ENVS, (env) => {
     expectArraysClose(await gradients.data(), [26, 36, 0, 0]);
   });
 
+  it('gradient 2D (gather) axis=1 shape=[4, 2] 1D indices batchDims 1',
+     async () => {
+       const t = tf.variable(tf.tensor([[0, 1],
+                                        [1, 2],
+                                        [2, 3],
+                                        [3, 4]]));
+       const indices = tf.tensor([0, 1, 0, 1], [4, 1], 'int32');
+       const dy = tf.tensor([1, 1, 1, 1], [4, 1]);
+       const axis = 1;
+
+       const gradients = tf.grad(t => tf.gather(t, indices, axis, 1))(t, dy);
+
+       expect(gradients.shape).toEqual(t.shape);
+       expectArraysClose(await gradients.data(), [1, 0, 0, 1, 1, 0, 0, 1]);
+     });
+
   it('gradient 2D (gather) axis=1 shape=[2, 2] 1D indices', async () => {
     const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
     const indices = tf.tensor1d([1, 0, 0, 1], 'int32');
