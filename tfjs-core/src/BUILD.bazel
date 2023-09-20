@@ -222,8 +222,7 @@ tfjs_web_test(
     name = "worker_test",
     browsers = [
         "bs_chrome_mac",
-        # TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
-        # "bs_firefox_mac",
+        "bs_firefox_mac",
         "bs_safari_mac",
         # Temporarily disabled because BrowserStack does not support loading
         # absolute paths in iOS, which is required for loading the worker.

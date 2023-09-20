@@ -17,8 +17,7 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# TODO(mattSoulanille): Re-enable firefox once it works on browserstack.
-# node ../scripts/run_flaky.js "yarn karma start --browsers='bs_firefox_mac' --singleRun"
+node ../scripts/run_flaky.js "yarn karma start --browsers='bs_firefox_mac' --singleRun"
 node ../scripts/run_flaky.js "yarn karma start --browsers='bs_chrome_mac' --singleRun"
 yarn test-tools
 
