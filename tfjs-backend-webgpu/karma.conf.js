@@ -67,7 +67,7 @@ module.exports = function(config) {
       require('karma-jasmine-html-reporter'),
     ],
     exclude,
-    port: 9876,
+    port: 9200,
     colors: true,
     autoWatch: false,
     browsers: ['Chrome', 'chrome_webgpu'],

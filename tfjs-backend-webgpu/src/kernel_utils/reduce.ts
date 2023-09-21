@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {reshape} from '../kernels/Reshape';
@@ -26,6 +26,11 @@ import {maxImplCPU} from './shared';
 import {prodImplCPU} from './shared';
 
 type ReduceTypes = 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
+const RETURN_TYPES: {[key in ReduceTypes]?: DataType} = {
+  'mean': 'float32',
+  'all': 'bool',
+  'any': 'bool',
+};
 
 export function reduce(
     x: TensorInfo, axis: number|number[], keepDims: boolean,
@@ -79,7 +84,7 @@ export function reduce(
     const batchSize = xSize / inSize;
 
     const reduceInfo = {windowSize: inSize, inSize, batchSize, outSize: 1};
-    const dtype = reduceType === 'mean' ? 'float32' : sumOutType(x.dtype);
+    const dtype = RETURN_TYPES[reduceType] || sumOutType(x.dtype);
     const uniformData = [
       {type: 'int32', data: [inSize]},
     ];

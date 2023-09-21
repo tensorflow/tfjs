@@ -27,6 +27,7 @@ from zipfile import ZipFile
 # Required to load saved models that use TFDF.
 import tensorflow_decision_forests
 import tensorflow as tf
+from tensorflow.core.framework import function_pb2
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.protobuf import config_pb2
@@ -52,6 +53,7 @@ from packaging import version
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
+from tensorflowjs.converters import normalize_bias_add
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
@@ -168,6 +170,8 @@ def optimize_graph(graph, signature_def,
 
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
+
+  optimized_graph = normalize_bias_add.normalize_bias_add_op(optimized_graph)
 
   # set the device to CPU for all Conv2d and MatMul nodes, since grappler
   # remap optimizer only support FusedConv2D and FusedMatMul for CPU.
@@ -429,6 +433,8 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       meta_graph = loader.load(sess, saved_model_tags, saved_model_dir)
 
       meta_graph_def = g.as_graph_def()
+      if not meta_graph_def.HasField('library'):
+        meta_graph_def.library.CopyFrom(function_pb2.FunctionDefLibrary())
 
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
           sess, meta_graph_def, output_node_names)
