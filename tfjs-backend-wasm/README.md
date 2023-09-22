@@ -245,7 +245,7 @@ which will prevent the Angular compiler from automatically adding
 The benchmarks below show inference times (ms) for two different edge-friendly
 models: MobileNet V2 (a medium-sized model) and Face Detector (a lite model).
 All the benchmarks were run in Chrome 79.0 using
-[this benchmark page](../tfjs-core/benchmarks/index.html) across our three
+[this benchmark page](https://tfjs-benchmarks.web.app/local-benchmark/) across our three
 backends: Plain JS (CPU), WebGL and WASM. Inference times are averaged
 across 200 runs.
 

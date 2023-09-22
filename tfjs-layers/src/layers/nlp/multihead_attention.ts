@@ -20,9 +20,7 @@
  */
 
 /* Original source: keras/layers/attention/multi_head_attention.py */
-import { Tensor, einsum, linalg, logicalAnd, mul, ones, serialization, tidy } from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import { arraysEqual } from '@tensorflow/tfjs-core/dist/util_base';
+import { Tensor, einsum, linalg, logicalAnd, mul, ones, serialization, tidy, util } from '@tensorflow/tfjs-core';
 
 import { cast, expandDims } from '../../backend/tfjs_backend';
 import { Constraint, ConstraintIdentifier, getConstraint, serializeConstraint } from '../../constraints';
@@ -882,7 +880,7 @@ export class MultiHeadAttention extends Layer {
       );
     }
 
-    if (!arraysEqual(valueShape.slice(1, -1), keyShape.slice(1, -1))) {
+    if (!util.arraysEqual(valueShape.slice(1, -1), keyShape.slice(1, -1))) {
       throw new Error(
         `All dimensions of 'value' and 'key', except the last one, must be ` +
         `equal. Received ${valueShape} and ${keyShape}`
