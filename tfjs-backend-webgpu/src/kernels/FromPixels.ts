@@ -63,10 +63,8 @@ export function fromPixels(args: {
       [pixels.width, pixels.height];
   const outputShape = [height, width, numChannels];
 
-  // Disable importExternalTexture temporarily as it has problem in spec and
-  // browser impl
   const importVideo =
-      false && env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
+      env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let resource;
