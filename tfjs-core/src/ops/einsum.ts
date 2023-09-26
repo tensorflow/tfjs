@@ -23,7 +23,6 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {Rank} from '../types';
 import {matMul} from './mat_mul';
 
 import {op} from './operation';
@@ -180,7 +179,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
  *   3. Transpose and reshape the result [Batch, M, N] to the target
  *   shape.
  */
-export function parseEquation(tensors: Tensor<Rank>[], equation: string) {
+export function parseEquation(tensors: Tensor[], equation: string) {
   if (tensors.length !== 2 || tensors[0].shape.length === 0 ||
       tensors[1].shape.length === 0) {
     return {isReducible: false};
