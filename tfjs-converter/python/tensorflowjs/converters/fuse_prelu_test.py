@@ -24,7 +24,7 @@ from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import fuse_prelu
@@ -242,7 +242,7 @@ class FusePreluTest(tf.test.TestCase):
   def testNonPreluPattern(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = constant_op.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v1 = variables.Variable(3.)
     root.v2 = variables.Variable(2.)
 
