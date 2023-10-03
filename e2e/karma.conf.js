@@ -144,6 +144,10 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
+    reporters: [
+      'spec',
+      'jasmine-order',
+    ],
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
@@ -182,9 +186,9 @@ module.exports = function(config) {
       },
       bs_ios_12: {
         base: 'BrowserStack',
-        device: 'iPhone X',
-        os: 'iOS',
-        os_version: '11.0',
+        device: 'iPhone XS',
+        os: 'ios',
+        os_version: '12.3',
         real_mobile: true
       },
       bs_android_10: {
