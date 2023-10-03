@@ -42,7 +42,7 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 import tensorflowjs as tfjs
@@ -182,7 +182,7 @@ def _create_saved_model_v2(save_dir):
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.v1 = variables.Variable(3.)
   root.v2 = variables.Variable(2.)
   root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
@@ -211,7 +211,7 @@ def _create_saved_model_v2_with_control_flow(save_dir):
       v = v + 1
     return v
 
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.f = square_if_positive
   to_save = root.f.get_concrete_function(
       tensor_spec.TensorSpec([], dtypes.float32))
@@ -290,7 +290,7 @@ def _create_saved_model_v2_complex64(save_dir):
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.v1 = variables.Variable(3 + 1j, dtype=tf.complex64)
   root.f = def_function.function(lambda x: tf.complex(x, x) + root.v1)
   to_save = root.f.get_concrete_function(input_data)

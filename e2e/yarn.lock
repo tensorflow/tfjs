@@ -2855,10 +2855,15 @@ karma-chrome-launcher@~3.1.1:
   dependencies:
     which "^1.2.1"
 
+karma-jasmine-order-reporter@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/karma-jasmine-order-reporter/-/karma-jasmine-order-reporter-1.1.0.tgz#3bd4cfd9e5ae53cc0d972905b811a479c127d0a8"
+  integrity sha512-mzC6WfOg7y5kCf7K4W+nB5NHea1ogcDjRpepFLLRjbi4lx08wQG+6EY2zd+mC2ANIvb6+ux2d9mFVtZ3MIwTYg==
+
 karma-jasmine@~1.1.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-1.1.2.tgz#394f2b25ffb4a644b9ada6f22d443e2fd08886c3"
-  integrity sha1-OU8rJf+0pkS5rabyLUQ+L9CIhsM=
+  integrity sha512-SENGE9DhlIIFTSZWiNq4eGeXL8G6z9cqHIOdkx9jh1qhhQqwEy3tAoLRyER0vOcHqdOlKmGpOuXk+HOipIy7sg==
 
 karma-spec-reporter@~0.0.32:
   version "0.0.33"
