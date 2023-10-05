@@ -27,7 +27,7 @@ import {assert} from '../util';
 import {getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
 import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer, streamWeights} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
@@ -44,14 +44,13 @@ export class HTTPRequest implements IOHandler {
   static readonly URL_SCHEME_REGEX = /^https?:\/\//;
 
   private readonly weightPathPrefix: string;
-  private readonly onProgress: OnProgressCallback;
+  private readonly loadOptions: LoadOptions;
 
   constructor(path: string, loadOptions?: LoadOptions) {
     if (loadOptions == null) {
       loadOptions = {};
     }
     this.weightPathPrefix = loadOptions.weightPathPrefix;
-    this.onProgress = loadOptions.onProgress;
     this.weightUrlConverter = loadOptions.weightUrlConverter;
 
     if (loadOptions.fetchFunc != null) {
@@ -84,6 +83,7 @@ export class HTTPRequest implements IOHandler {
           'requestInit is expected to have no pre-existing body, but has one.');
     }
     this.requestInit = loadOptions.requestInit || {};
+    this.loadOptions = loadOptions;
   }
 
   async save(modelArtifacts: ModelArtifacts): Promise<SaveResult> {
@@ -228,13 +228,13 @@ export class HTTPRequest implements IOHandler {
     return fetchURLs;
   }
 
-  private get loadOptions(): LoadOptions {
-    return {
-      requestInit: this.requestInit,
-      fetchFunc: this.fetch,
-      onProgress: this.onProgress
-    };
-  }
+  // private get loadOptions(): LoadOptions {
+  //   return {
+  //     requestInit: this.requestInit,
+  //     fetchFunc: this.fetch,
+  //     onProgress: this.onProgress
+  //   };
+  // }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
     Promise<[WeightsManifestEntry[], WeightData]> {

@@ -185,6 +185,24 @@ const CUSTOM_HTTP_MODEL_LOADER = {
   }
 };
 
+const CUSTOM_STREAMING_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: CUSTOM_OP_MODEL,
+      weightSpecs: weightsManifest,
+      streamWeights: async () => {
+        const data = await bias.data();
+        const blob = new Blob([data]);
+        return blob.stream();
+      },
+      //weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1'
+    };
+  }
+};
+
 const CONTROL_SIGNATURE: tensorflow.ISignatureDef = {
   inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
   outputs: {y: {name: 'Enter:0', dtype: tensorflow.DataType.DT_INT32}}
@@ -774,6 +792,12 @@ describe('Model', () => {
       const url = `${HOST}/model/1`;
       const model = await loadGraphModel(url, {fromTFHub: true}, spyIo);
       expect(model).toBeDefined();
+    });
+
+    it('should stream graph model weights', async () => {
+      const model = await loadGraphModel(MODEL_URL, undefined, spyIo);
+      expect(model).not.toBeUndefined();
+
     });
 
     describe('InferenceModel interface', () => {

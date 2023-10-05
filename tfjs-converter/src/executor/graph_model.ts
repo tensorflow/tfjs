@@ -174,11 +174,10 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    */
   loadSync(artifacts: io.ModelArtifacts) {
     const weightMap = this.io.decodeWeights(
-        this.artifacts.weightData, this.artifacts.weightSpecs);
+        artifacts.weightData, artifacts.weightSpecs);
 
     return this.loadWithWeightMap(artifacts, weightMap);
   }
-
 
   private async loadStreaming(artifacts: io.ModelArtifacts): Promise<boolean> {
     if (artifacts.streamWeights == null) {
