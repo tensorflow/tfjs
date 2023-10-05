@@ -438,7 +438,7 @@ describe('loadGraphModel', () => {
   });
 
   it('Pass a fetchFunc', async () => {
-    const fetchFunc = () => {};
+    const fetchFunc = (() => {}) as unknown as typeof fetch;
     spyIo.getLoadHandlers.and.returnValue([CUSTOM_HTTP_MODEL_LOADER]);
     await loadGraphModel(MODEL_URL, {fetchFunc}, spyIo);
     expect(spyIo.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});

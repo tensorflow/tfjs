@@ -28,7 +28,7 @@ import {getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForM
 import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
-import {loadWeightsAsArrayBuffer} from './weights_loader';
+import {loadWeightsAsArrayBuffer, streamWeights} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
 const JSON_TYPE = 'application/json';
@@ -36,7 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly path: string;
   protected readonly requestInit: RequestInit;
 
-  private readonly fetch: Function;
+  private readonly fetch: typeof fetch;
   private readonly weightUrlConverter: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
@@ -135,22 +135,14 @@ export class HTTPRequest implements IOHandler {
     }
   }
 
-  /**
-   * Load model artifacts via HTTP request(s).
-   *
-   * See the documentation to `tf.io.http` for details on the saved
-   * artifacts.
-   *
-   * @returns The loaded model artifacts (if loading succeeds).
-   */
-  async load(): Promise<ModelArtifacts> {
+  private async loadModelJSON(): Promise<ModelJSON> {
     const modelConfigRequest = await this.fetch(this.path, this.requestInit);
 
     if (!modelConfigRequest.ok) {
       throw new Error(
-          `Request to ${this.path} failed with status code ` +
-          `${modelConfigRequest.status}. Please verify this URL points to ` +
-          `the model JSON of the model to load.`);
+        `Request to ${this.path} failed with status code ` +
+        `${modelConfigRequest.status}. Please verify this URL points to ` +
+        `the model JSON of the model to load.`);
     }
     let modelJSON: ModelJSON;
     try {
@@ -161,14 +153,14 @@ export class HTTPRequest implements IOHandler {
       // .pb files are mostly gone.
       if (this.path.endsWith('.pb')) {
         message += ' Your path contains a .pb file extension. ' +
-            'Support for .pb models have been removed in TensorFlow.js 1.0 ' +
-            'in favor of .json models. You can re-convert your Python ' +
-            'TensorFlow model using the TensorFlow.js 1.0 conversion scripts ' +
-            'or you can convert your.pb models with the \'pb2json\'' +
-            'NPM script in the tensorflow/tfjs-converter repository.';
+          'Support for .pb models have been removed in TensorFlow.js 1.0 ' +
+          'in favor of .json models. You can re-convert your Python ' +
+          'TensorFlow model using the TensorFlow.js 1.0 conversion scripts ' +
+          'or you can convert your.pb models with the \'pb2json\'' +
+          'NPM script in the tensorflow/tfjs-converter repository.';
       } else {
         message += ' Please make sure the server is serving valid ' +
-            'JSON for this request.';
+          'JSON for this request.';
       }
       throw new Error(message);
     }
@@ -178,21 +170,45 @@ export class HTTPRequest implements IOHandler {
     const weightsManifest = modelJSON.weightsManifest;
     if (modelTopology == null && weightsManifest == null) {
       throw new Error(
-          `The JSON from HTTP path ${this.path} contains neither model ` +
-          `topology or manifest for weights.`);
+        `The JSON from HTTP path ${this.path} contains neither model ` +
+        `topology or manifest for weights.`);
     }
 
+    return modelJSON;
+  }
+
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `tf.io.http` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load(): Promise<ModelArtifacts> {
+    if (this.loadOptions.streamWeights) {
+      return this.loadStream();
+    }
+    const modelJSON = await this.loadModelJSON();
     return getModelArtifactsForJSON(
         modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
   }
 
-  private async loadWeights(weightsManifest: WeightsManifestConfig):
-    Promise<[WeightsManifestEntry[], WeightData]> {
+  private async loadStream(): Promise<ModelArtifacts> {
+    const modelJSON = await this.loadModelJSON();
+    const fetchURLs = await this.getWeightUrls(modelJSON.weightsManifest);
+    const stream = () => streamWeights(fetchURLs, this.loadOptions);
+    return {
+      ...modelJSON,
+      streamWeights: stream,
+    };
+  }
+
+  private async getWeightUrls(weightsManifest: WeightsManifestConfig):
+    Promise<string[]> {
     const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
-
-    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
     const urlPromises: Array<Promise<string>> = [];
@@ -209,12 +225,23 @@ export class HTTPRequest implements IOHandler {
     if (this.weightUrlConverter) {
       fetchURLs.push(...await Promise.all(urlPromises));
     }
+    return fetchURLs;
+  }
 
-    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
+  private get loadOptions(): LoadOptions {
+    return {
       requestInit: this.requestInit,
       fetchFunc: this.fetch,
       onProgress: this.onProgress
-    });
+    };
+  }
+
+  private async loadWeights(weightsManifest: WeightsManifestConfig):
+    Promise<[WeightsManifestEntry[], WeightData]> {
+    const fetchURLs = await this.getWeightUrls(weightsManifest);
+    const weightSpecs = getWeightSpecs(weightsManifest);
+
+    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, this.loadOptions);
     return [weightSpecs, buffers];
   }
 }

@@ -23,6 +23,7 @@ import {sizeFromShape} from '../util';
 
 import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightData, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {CompositeArrayBuffer} from './composite_array_buffer';
+import {Tensor} from '../tensor';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -231,6 +232,175 @@ export function decodeWeights(
     }
   }
   return out;
+}
+
+function getWeightBytelength(spec: WeightsManifestEntry,
+                             firstFourBytes: ArrayBuffer): number {
+  const size = sizeFromShape(spec.shape);
+  let bytesPerValue: number;
+  if ('quantization' in spec) {
+    const quantization = spec.quantization;
+    bytesPerValue = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
+  } else if (spec.dtype === 'string') {
+    // Can not statically determine string length.
+    const byteLength = new Uint32Array(
+      firstFourBytes.slice(0, NUM_BYTES_STRING_LENGTH))[0];
+    return NUM_BYTES_STRING_LENGTH + byteLength;
+  } else {
+    bytesPerValue = DTYPE_VALUE_SIZE_MAP[spec.dtype];
+  }
+
+  return size * bytesPerValue;
+}
+
+function decodeWeight(
+  spec: WeightsManifestEntry,
+  byteBuffer: ArrayBuffer): Tensor {
+
+  const name = spec.name;
+  const dtype = spec.dtype;
+  const shape = spec.shape;
+  const size = sizeFromShape(shape);
+  let values: TypedArray | string[] | Uint8Array[];
+  let offset = 0;
+
+  if ('quantization' in spec) {
+    const quantization = spec.quantization;
+    if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
+      if (!('min' in quantization && 'scale' in quantization)) {
+        throw new Error(
+          `Weight ${spec.name} with quantization ${quantization.dtype} ` +
+          `doesn't have corresponding metadata min and scale.`);
+      }
+    } else if (quantization.dtype === 'float16') {
+      if (dtype !== 'float32') {
+        throw new Error(
+          `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
+          `which only supports weights of type float32 not ${dtype}.`);
+      }
+    } else {
+      throw new Error(
+        `Weight ${spec.name} has unknown ` +
+        `quantization dtype ${quantization.dtype}. ` +
+        `Supported quantization dtypes are: ` +
+        `'uint8', 'uint16', and 'float16'.`);
+    }
+    const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
+    const quantizedArray = (quantization.dtype === 'uint8') ?
+      new Uint8Array(byteBuffer) :
+      new Uint16Array(byteBuffer);
+    if (dtype === 'float32') {
+      if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
+        values = new Float32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = v * quantization.scale + quantization.min;
+        }
+      } else if (quantization.dtype === 'float16') {
+        // TODO: This is inefficient. Make getFloat16Decoder efficient.
+        const float16Decode = getFloat16Decoder();
+        values = float16Decode(quantizedArray as Uint16Array);
+      } else {
+        throw new Error(
+          `Unsupported quantization type ${quantization.dtype} ` +
+          `for weight type float32.`);
+      }
+    } else if (dtype === 'int32') {
+      if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
+        throw new Error(
+          `Unsupported quantization type ${quantization.dtype} ` +
+          `for weight type int32.`);
+      }
+      values = new Int32Array(quantizedArray.length);
+      for (let i = 0; i < quantizedArray.length; i++) {
+        const v = quantizedArray[i];
+        values[i] = Math.round(v * quantization.scale + quantization.min);
+      }
+    } else {
+      throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
+    }
+    offset += size * quantizationSizeFactor;
+  } else if (dtype === 'string') {
+    const size = sizeFromShape(spec.shape);
+    values = [];
+    for (let i = 0; i < size; i++) {
+      const byteLength = new Uint32Array(
+        byteBuffer.slice(offset, offset + NUM_BYTES_STRING_LENGTH))[0];
+      offset += NUM_BYTES_STRING_LENGTH;
+      const bytes = new Uint8Array(
+        byteBuffer.slice(offset, offset + byteLength));
+      (values as Uint8Array[]).push(bytes);
+      offset += byteLength;
+    }
+  } else {
+    const dtypeFactor = DTYPE_VALUE_SIZE_MAP[dtype];
+    if (dtype === 'float32') {
+      values = new Float32Array(byteBuffer);
+    } else if (dtype === 'int32') {
+      values = new Int32Array(byteBuffer);
+    } else if (dtype === 'bool') {
+      values = new Uint8Array(byteBuffer);
+    } else if (dtype === 'complex64') {
+      values = new Float32Array(byteBuffer);
+      const real = new Float32Array(values.length / 2);
+      const image = new Float32Array(values.length / 2);
+      for (let i = 0; i < real.length; i++) {
+        real[i] = values[i * 2];
+        image[i] = values[i * 2 + 1];
+      }
+      const realTensor = tensor(real, shape, 'float32');
+      const imageTensor = tensor(image, shape, 'float32');
+      const complexTensor = complex(realTensor, imageTensor);
+      realTensor.dispose();
+      imageTensor.dispose();
+      return complexTensor;
+    } else {
+      throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
+    }
+    offset += size * dtypeFactor;
+  }
+  return tensor(values, shape, dtype);
+}
+
+async function readToLength(reader: ReadableStreamDefaultReader<ArrayBuffer>,
+                            initialData: ArrayBuffer,
+                            length: number): Promise<ArrayBuffer> {
+  let data = new Uint8Array(initialData);
+
+  while (data.byteLength < length) {
+    const {done, value} = await reader.read();
+    if (done && value == null) {
+      const missing  = length - data.byteLength;
+      throw new Error(`Reader is done but ${missing} bytes are still expected`);
+    }
+
+    // TODO: Don't create a new array every loop.
+    const newData = new Uint8Array(data.length + value.byteLength);
+    newData.set(data, 0);
+    newData.set(new Uint8Array(value), data.length);
+    data = newData;
+  }
+
+  return data.buffer;
+}
+
+export async function decodeWeightsStream(
+  weightStream: ReadableStream<ArrayBuffer>,
+  specs: WeightsManifestEntry[]): Promise<NamedTensorMap> {
+
+  const tensors: NamedTensorMap = {};
+  const reader = weightStream.getReader();
+  let data = new ArrayBuffer(0);
+
+  for (let spec of specs) {
+    data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
+    const byteLength = getWeightBytelength(spec, data);
+    data = await readToLength(reader, data, byteLength);
+    tensors[spec.name] = decodeWeight(spec, data);
+    // TODO: eager push to GPU
+  }
+
+  return tensors;
 }
 
 /**
