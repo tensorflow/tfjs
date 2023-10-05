@@ -24,6 +24,8 @@ import {sizeFromShape} from '../util';
 import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightData, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {CompositeArrayBuffer} from './composite_array_buffer';
 import {Tensor} from '../tensor';
+import {backend} from '../globals';
+import {DataId} from '../tensor_info';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -396,8 +398,14 @@ export async function decodeWeightsStream(
     data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
     const byteLength = getWeightBytelength(spec, data);
     data = await readToLength(reader, data, byteLength);
-    tensors[spec.name] = decodeWeight(spec, data);
-    // TODO: eager push to GPU
+    const weightTensor = decodeWeight(spec, data);
+    tensors[spec.name] = weightTensor;
+
+    // TODO(mattsoulanille): Better way to call uploadToGPU.
+    const b = backend();
+    if ('uploadToGPU' in b) {
+      (b.uploadToGPU as (dataId: DataId) => void)(weightTensor.dataId);
+    }
   }
 
   return tensors;

@@ -185,7 +185,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     }
 
     const weightMap = await decodeWeightsStream(
-      artifacts.streamWeights(), this.artifacts.weightSpecs);
+      artifacts.streamWeights(), artifacts.weightSpecs);
 
     return this.loadWithWeightMap(artifacts, weightMap);
   }
