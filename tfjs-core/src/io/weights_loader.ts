@@ -77,7 +77,7 @@ export function streamWeights(fetchURLs: string[], loadOptions: LoadOptions): Re
 
   let fetchIndex = 0;
   let chunkReader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  loadOptions.onProgress(0);
+  loadOptions.onProgress?.(0);
   return new ReadableStream<Uint8Array>({
     pull: async (controller) => {
       while (fetchIndex < fetchURLs.length) {

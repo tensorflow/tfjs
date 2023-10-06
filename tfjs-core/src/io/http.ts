@@ -197,9 +197,12 @@ export class HTTPRequest implements IOHandler {
   private async loadStream(): Promise<ModelArtifacts> {
     const modelJSON = await this.loadModelJSON();
     const fetchURLs = await this.getWeightUrls(modelJSON.weightsManifest);
+    const weightSpecs = getWeightSpecs(modelJSON.weightsManifest);
     const stream = () => streamWeights(fetchURLs, this.loadOptions);
+
     return {
       ...modelJSON,
+      weightSpecs,
       streamWeights: stream,
     };
   }

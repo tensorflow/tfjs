@@ -26,6 +26,7 @@ import {CompositeArrayBuffer} from './composite_array_buffer';
 import {Tensor} from '../tensor';
 import {backend} from '../globals';
 import {DataId} from '../tensor_info';
+import { env } from '../environment';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -398,12 +399,20 @@ export async function decodeWeightsStream(
     data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
     const byteLength = getWeightBytelength(spec, data);
     data = await readToLength(reader, data, byteLength);
-    const weightTensor = decodeWeight(spec, data);
+
+    // Slice the tensor out
+    const tensorData = data.slice(0, byteLength);
+    data = data.slice(byteLength);
+
+    const weightTensor = decodeWeight(spec, tensorData);
     tensors[spec.name] = weightTensor;
 
     // TODO(mattsoulanille): Better way to call uploadToGPU.
     const b = backend();
-    if ('uploadToGPU' in b) {
+    // TODO(mattsoulanille): Make this work for webgl too.
+    if ('uploadToGPU' in b &&
+      sizeFromShape(weightTensor.shape) >= (env()
+        .get('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD') as number)) {
       (b.uploadToGPU as (dataId: DataId) => void)(weightTensor.dataId);
     }
   }
