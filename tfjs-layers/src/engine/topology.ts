@@ -1066,8 +1066,8 @@ export abstract class Layer extends serialization.Serializable {
           If the input tensor(s) had no previous history,
           this does nothing.
         */
-        this.addInboundNode(inputs, output, null, null,
-            inputShape, outputShape, kwargs);
+        this.addInboundNode(
+            inputs, output, null, null, inputShape, outputShape, kwargs);
         this._refCount++;
 
         if (this.activityRegularizer != null) {
@@ -1387,29 +1387,24 @@ export abstract class Layer extends serialization.Serializable {
     return mask;
   }
 
-  private setMaskMetadata(inputs: Tensor|Tensor[], outputs: Tensor|Tensor[],
-                          previousMask?: Tensor|Tensor[]): void {
+  private setMaskMetadata(
+      inputs: Tensor|Tensor[], outputs: Tensor|Tensor[],
+      previousMask?: Tensor|Tensor[]): void {
     if (!this.supportsMasking) {
       return;
     }
 
     const outputMasks = this.computeMask(inputs, previousMask);
-    if (outputs instanceof Array && outputMasks instanceof Array) {
-      if (outputs.length !== outputMasks.length) {
-        throw new Error(`${this.name} outputs ${outputs.length} tensors `
-          + `but ${outputMasks.length} masks for those tensors`);
-      }
-      for (let i = 0; i < outputs.length; i++) {
-        outputs[i].kerasMask = outputMasks[i];
-      }
-    } else if (outputMasks instanceof Array) {
-      throw new Error(`{this.name} outputs a single tensor `
-        + `but ${outputMasks.length} masks`);
-    } else if (outputs instanceof Array) {
-      throw new Error(`{this.name} outputs ${outputs.length} tensors `
-        + `but only one mask`);
-    } else {
-      outputs.kerasMask = outputMasks;
+    const outputsList = generic_utils.toList(outputs);
+    const outputMasksList = generic_utils.toList(outputMasks);
+
+    if (outputsList.length !== outputMasksList.length) {
+      throw new Error(
+          `${this.name} outputs ${outputsList.length} tensors ` +
+          `but ${outputsList.length} masks for those tensors`);
+    }
+    for (let i = 0; i < outputsList.length; i++) {
+      outputsList[i].kerasMask = outputMasksList[i];
     }
   }
 
@@ -1661,10 +1656,10 @@ export function getSourceInputs(
   }
 }
 
-type MaybeSymbolic = SymbolicTensor | Tensor;
+type MaybeSymbolic = SymbolicTensor|Tensor;
 
-function checkAllSymbolic(tensors: MaybeSymbolic | MaybeSymbolic[]
-                         ): tensors is SymbolicTensor | SymbolicTensor[] {
+function checkAllSymbolic(tensors: MaybeSymbolic|MaybeSymbolic[]):
+    tensors is SymbolicTensor|SymbolicTensor[] {
   let allAreSymbolic = true;
   for (const tensor of generic_utils.toList(tensors)) {
     if (!(tensor instanceof SymbolicTensor)) {
@@ -1675,8 +1670,8 @@ function checkAllSymbolic(tensors: MaybeSymbolic | MaybeSymbolic[]
   return allAreSymbolic;
 }
 
-function checkNoneSymbolic(tensors: MaybeSymbolic | MaybeSymbolic[]
-                          ): tensors is Tensor | Tensor[] {
+function checkNoneSymbolic(tensors: MaybeSymbolic|
+                           MaybeSymbolic[]): tensors is Tensor|Tensor[] {
   let noneAreSymbolic = true;
   for (const tensor of generic_utils.toList(tensors)) {
     if (tensor instanceof SymbolicTensor) {
