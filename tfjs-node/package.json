@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@mapbox/node-pre-gyp": "1.0.9",
-    "@tensorflow/tfjs": "4.12.0",
+    "@tensorflow/tfjs": "4.12.0-rc.0",
     "adm-zip": "^0.5.2",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
