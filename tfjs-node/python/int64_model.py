@@ -21,12 +21,12 @@ from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.saved_model.save import save
 
 """Test a basic model with functions to make sure functions are inlined."""
 input_data = constant_op.constant(1, shape=[2], dtype=tf.int64)
-root = tracking.AutoTrackable()
+root = autotrackable.AutoTrackable()
 root.v1 = variables.Variable(3, dtype=tf.int64)
 root.v2 = variables.Variable(2, dtype=tf.int64)
 root.f = def_function.function(lambda x: root.v1 * root.v2 * x)

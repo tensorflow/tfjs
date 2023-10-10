@@ -30,7 +30,7 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
@@ -190,7 +190,7 @@ class ConvertTest(tf.test.TestCase):
         input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
       res = tf.raw_ops.AddV2(x=res, y=bias)
       return res
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.f = conv2d_addV2_depthwise_addV2
     to_save = root.f.get_concrete_function(
         tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
@@ -207,7 +207,7 @@ class ConvertTest(tf.test.TestCase):
       res = tf.raw_ops.Conv2D(
         input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
       return res
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.f = addV2_conv2d
     to_save = root.f.get_concrete_function(
         tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
@@ -247,7 +247,7 @@ class ConvertTest(tf.test.TestCase):
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = constant_op.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v1 = variables.Variable(3.)
     root.v2 = variables.Variable(2.)
     root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
@@ -260,7 +260,7 @@ class ConvertTest(tf.test.TestCase):
     """Test a fusable matmul model."""
     input_data = constant_op.constant(1., shape=[1, 1])
     bias_data = constant_op.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v2 = variables.Variable([[2.]])
     root.f = def_function.function(
         lambda x: tf.nn.relu(tf.nn.bias_add(tf.matmul(x, root.v2),
@@ -278,7 +278,7 @@ class ConvertTest(tf.test.TestCase):
       while tf.equal(v1 % 2, 0):
         v1 = v1 + 1
       return v1
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.f = find_next_odd
     to_save = root.f.get_concrete_function(
         tensor_spec.TensorSpec([], dtypes.int32))
@@ -303,7 +303,7 @@ class ConvertTest(tf.test.TestCase):
     model.save(save_dir)
 
   def _create_unsupported_saved_model(self):
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.w = variables.Variable(tf.random.uniform([2, 2]))
 
     @def_function.function
@@ -322,7 +322,7 @@ class ConvertTest(tf.test.TestCase):
     save(root, save_dir, to_save)
 
   def _create_saved_model_with_debug_ops(self):
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.w = variables.Variable(tf.random.uniform([2, 2]))
 
     @def_function.function
