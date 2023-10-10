@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "4.12.0",
+  "version": "4.12.0-rc.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -42,7 +42,7 @@
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "4.12.0",
+    "@tensorflow/tfjs-core": "4.12.0-rc.0",
     "@types/jasmine": "~4.0.3",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
