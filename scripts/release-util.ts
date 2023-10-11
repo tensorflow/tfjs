@@ -601,6 +601,8 @@ export async function getNpmVersion(pkg: string, registry?: string,
 export function getTagFromVersion(version: string): string {
   if (version.includes('dev')) {
     return 'nightly';
+  }else if (version.includes('rc')) {
+    return 'next';
   }
   return 'latest';
 }
