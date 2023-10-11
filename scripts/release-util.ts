@@ -602,6 +602,9 @@ export function getTagFromVersion(version: string): string {
   if (version.includes('dev')) {
     return 'nightly';
   }
+  if (version.includes('rc')) {
+    return 'next';
+  }
   return 'latest';
 }
 
