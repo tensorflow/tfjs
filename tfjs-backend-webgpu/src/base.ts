@@ -20,6 +20,7 @@ import './flags_webgpu';
 import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
+import * as platform from './base_platform';
 import {isWebGPUSupported} from './webgpu_util';
 
 if (isWebGPUSupported()) {
@@ -30,7 +31,8 @@ if (isWebGPUSupported()) {
           'high-performance'
     };
 
-    const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
+    const adapter = await platform.requestAdapter(gpuDescriptor);
+
     const deviceDescriptor: GPUDeviceDescriptor = {};
 
     const requiredFeatures = [];
