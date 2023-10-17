@@ -107,6 +107,11 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         // the data generated maybe outside of [min, max].
         inputTensor = tf.clipByValue(generatedRaw, min, max);
         generatedRaw.dispose();
+      } else if (inputDef.dtype === 'string') {
+        size = tf.util.sizeFromShape(inputDef.shape);
+        data = [...Array(size)].map(
+            () => Math.random().toString(36).substring(2, 7));
+        inputTensor = tf.tensor(data, inputShape, inputDef.dtype);
       } else {
         throw new Error(
             `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
