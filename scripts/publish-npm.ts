@@ -110,7 +110,9 @@ parser.addArgument(['--auto-publish-local-newer'], {
 
 parser.addArgument(['--ci'], {
   action: 'storeTrue',
-  help: 'Enable CI bazel flags for faster compilation. No effect on results.',
+  help: 'Enable CI bazel flags for faster compilation and don\'t ask for user '
+      + 'input before closing the verdaccio server once tests are done. '
+      + 'Has no effect on results.',
 });
 
 parser.addArgument(['packages'], {
@@ -375,7 +377,9 @@ async function main() {
 
   if (args.dry) {
     console.log('Not publishing packages due to \'--dry\'');
-    await question('Press enter to quit verdaccio.');
+    if (!args.ci) {
+      await question('Press enter to quit verdaccio.');
+    }
     killVerdaccio();
   } else {
     // Publish all built packages to the selected registry
