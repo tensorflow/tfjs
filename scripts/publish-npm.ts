@@ -221,6 +221,8 @@ async function publish(pkg: string, registry: string, otp?: string,
 async function main() {
   const args = parser.parseArgs();
 
+  const killVerdaccio = await runVerdaccio();
+
   let releaseUnits: ReleaseUnit[];
   if (args.release_this_branch) {
     console.log('Releasing current branch');
@@ -359,19 +361,22 @@ async function main() {
   // Build and publish all packages to a local Verdaccio repo for staging.
   console.log(
     chalk.magenta.bold('~~~ Staging packages locally in Verdaccio ~~~'));
-  const killVerdaccio = await runVerdaccio();
+
   try {
     for (const pkg of packages) {
       await publish(pkg, VERDACCIO_REGISTRY);
     }
-  } finally {
+  } catch (e) {
     // Make sure to kill the verdaccio server before exiting even if publish
     // throws an error. Otherwise, it blocks the port for the next run.
     killVerdaccio();
+    throw e;
   }
 
   if (args.dry) {
     console.log('Not publishing packages due to \'--dry\'');
+    await question('Press enter to quit verdaccio.');
+    killVerdaccio();
   } else {
     // Publish all built packages to the selected registry
     let otp = '';
@@ -379,6 +384,8 @@ async function main() {
       otp = await question(`Enter one-time password from your authenticator: `);
     }
     console.log(`Publishing packages to ${args.registry}`);
+
+    killVerdaccio();
 
     const toPublish = [...packages];
     while (toPublish.length > 0) {
