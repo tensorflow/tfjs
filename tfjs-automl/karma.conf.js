@@ -39,11 +39,8 @@ const karmaTypescriptConfig = {
 const coverageEnabled = !!process.env.KARMA_COVERAGE;
 if (coverageEnabled) {
   karmaTypescriptConfig.coverageOptions.instrumentation = true;
-  karmaTypescriptConfig.coverageOptions.exclude = [
-    /test_browser\.ts/,
-    /test_util\.ts/,
-    /_test\.ts/
-  ];
+  karmaTypescriptConfig.coverageOptions.exclude =
+      [/test_browser\.ts/, /test_util\.ts/, /_test\.ts/];
   karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
 }
 
@@ -108,13 +105,13 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Mojave'
       },
       bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
-        os_version: '11.0',
+        os_version: '12.3',
         real_mobile: true
       },
     }

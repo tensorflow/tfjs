@@ -87,13 +87,13 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Mojave'
       },
       bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
-        os_version: '11.0',
+        os_version: '12.0',
         real_mobile: true
       },
       bs_android_9: {
