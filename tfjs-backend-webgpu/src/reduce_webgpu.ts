@@ -24,21 +24,32 @@ export class ReduceProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'reduceSize : i32,';
-  reduceType: 'max'|'mean'|'min'|'prod'|'sum';
+  reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
-      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
+      reduceType: 'all'|'any'|'max'|'mean'|'min'|'prod'|'sum',
+      maxComputeWorkgroupSizeX: number) {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-
+    // If reduceSize |reduceInfo.inSize| is very large, the I/O accessing will
+    // become the bottleneck. Increasing workgroupSize can reduce the times of
+    // accessing global memory. The threshold value is just to make sure the
+    // reduceSize is large enough for a bigger workgroupSize.
+    if (reduceInfo.inSize >= 32768 && maxComputeWorkgroupSizeX >= 512) {
+      this.workgroupSize = [512, 1, 1];
+    } else if (reduceInfo.inSize >= 4096) {
+      this.workgroupSize = [256, 1, 1];
+    } else {
+      this.workgroupSize = [64, 1, 1];
+    }
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     // A work group only outputs a data, so we transfer [1, 1, 1] to compute
     // dispatch size.
@@ -52,6 +63,7 @@ export class ReduceProgram implements WebGPUProgram {
   getUserCode(): string {
     let reduceOp = ``;
     let initValue = '0.0';
+    const workgroupSizeX = this.workgroupSize[0];
     if (this.reduceType === 'min' || this.reduceType === 'max') {
       reduceOp = `
          if (isnan(candidate)) {
@@ -65,6 +77,12 @@ export class ReduceProgram implements WebGPUProgram {
     } else if (this.reduceType === 'prod') {
       reduceOp = ' bestValue = bestValue * candidate; ';
       initValue = '1.0';
+    } else if (this.reduceType === 'all') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 && candidate >= 1.0); ';
+      initValue = '1.0';
+    } else if (this.reduceType === 'any') {
+      reduceOp = ' bestValue = f32(bestValue >= 1.0 || candidate >= 1.0); ';
+      initValue = '0.0';
     }
 
     const outputSnippet = this.reduceType === 'mean' ?
@@ -73,7 +91,7 @@ export class ReduceProgram implements WebGPUProgram {
         `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
-         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+         var<workgroup> xBestValues : array<f32, ${workgroupSizeX}>;
        `;
 
     const userCode = `
@@ -91,20 +109,20 @@ export class ReduceProgram implements WebGPUProgram {
           return offset;
        }
        ${main('index')} {
-         let outputIndex = index / i32(workGroupSizeX);
+         let outputIndex = index / ${workgroupSizeX};
          let offset = getOffset(outputIndex);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
-         let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
+         let WorkPerThread = DIV_CEIL(u32(Length), ${workgroupSizeX}u);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
-             k = k + i32(workGroupSizeX)) {
+             k = k + ${workgroupSizeX}) {
            let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;
          workgroupBarrier();
 
-         var reduceSize = min(u32(Length), workGroupSizeX);
+         var reduceSize = min(u32(Length), ${workgroupSizeX}u);
          for (var currentSize = reduceSize / 2u; reduceSize > 1u;
              currentSize = reduceSize / 2u) {
            let interval = DIV_CEIL(reduceSize, 2u);

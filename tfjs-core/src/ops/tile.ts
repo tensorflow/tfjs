@@ -38,13 +38,13 @@ import {op} from './operation';
  * ```js
  * const a = tf.tensor1d([1, 2]);
  *
- * a.tile([2]).print();    // or a.tile([2])
+ * a.tile([2]).print();    // or tf.tile(a, [2])
  * ```
  *
  * ```js
  * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
  *
- * a.tile([1, 2]).print();  // or a.tile([1, 2])
+ * a.tile([1, 2]).print();  // or tf.tile(a, [1,2])
  * ```
  * @param x The tensor to tile.
  * @param reps Determines the number of replications per dimension.
@@ -66,4 +66,4 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
       attrs as unknown as NamedAttrMap);
 }
 
-export const tile = op({tile_});
+export const tile = /* @__PURE__ */ op({tile_});

@@ -160,4 +160,4 @@ function otsu(histogram: Tensor1D, total: number):Tensor1D {
     return bestThresh;
 }
 
-export const threshold = op({ threshold_ });
+export const threshold = /* @__PURE__ */ op({ threshold_ });

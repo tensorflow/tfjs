@@ -26,74 +26,11 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
-  // skip test cases include gradients webgpu
-  {
-    include: 'gradients webgpu',
-    excludes: ['webgpu '],
-  },
-
   // skip specific test cases for supported kernels
-  {
-    startsWith: 'abs ',
-    excludes: [
-      'complex64',  // Kernel 'ComplexAbs' not registered.
-      'gradient',   // Step kernel not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'atan2 ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'avgPool ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'batchToSpaceND ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'conv2d ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'conv2dTranspose ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'cumprod ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'prod ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
   {
     startsWith: 'cumsum ',
     excludes: [
       'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'elu ',
-    excludes: [
-      'selu',        // Not yet implemented.
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
     ]
   },
   {
@@ -103,71 +40,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'fused conv2d ',
-    excludes: [
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented
-      'backProp',  // Conv2DBackpropFilter not yet
-                   // implemented
-    ]
-  },
-  {
-    startsWith: 'fused depthwiseConv2D ',
-    excludes: [
-      'gradient',  // DepthwiseConv2dNativeBackpropInput
-    ]
-  },
-  {
-    startsWith: 'fused matmul ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'gather ',
     excludes: [
       'throws when index is out of bound',
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'matmul',
-    excludes: [
-      'has zero in its shape',  // Test times out.
-      'valueAndGradients',      // backend.sum() not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'maxPool ',
-    excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
-      'maxPool3d',         // Not yet implemented.
-      'maxPoolWithArgmax'  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'max ',
-    excludes: [
-      'AdamaxOptimizer',    // gradient function not found.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
-  },
-  {
-    startsWith: 'mean ',
-    excludes: [
-      'meanSquaredError',
-    ]
-  },
-  {
-    startsWith: 'min ',
-    excludes: [
-      'stft',  // FFT' not registered.
-    ]
-  },
-  {
-    startsWith: 'mul ',
-    excludes: [
-      'broadcast',  // Various: Actual != Expected, compile fails, etc.
     ]
   },
   {
@@ -177,151 +52,137 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'pool ',
-    excludes: [
-      'poolBackprop',  // maxPoolBackprop not yet implemented.
-    ]
-  },
-  {
     startsWith: 'prod ',
     excludes: [
       'gradients',  // Not yet implemented
     ]
   },
   {
-    startsWith: 'range ',
+    startsWith: 'cos ',
     excludes: [
-      'bincount',           // Not yet implemented.
-      'denseBincount',      // Not yet implemented.
-      'oneHot',             // Not yet implemented.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
+      'gradients',             // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
   },
   {
-    startsWith: 'relu ',
+    startsWith: 'tan ',
     excludes: [
-      'valueAndGradients',  // gradient function not found.
-      'propagates NaNs',    // Arrays differ.
-      'derivative',         // gradient function not found.
-      'gradient'            // gradient function not found.
-    ]
+      'gradients',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+      // https://github.com/tensorflow/tfjs/issues/7618
+      'numbers exceed float32 precision',
+    ],
+  },
+  {
+    startsWith: 'acosh ',
+    excludes: [
+      'propagates NaNs',       // Failing on MacOS
+      'gradient with clones',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'asinh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'atanh ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'sigmoid ',
+    excludes: [
+      'propagates NaNs',  // Failing on MacOS
+      //'gradient with clones', // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'unsortedSegmentSum ',
+    excludes: [
+      'ignores negative segmentIds',  // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'log ',
+    excludes: [
+      'log propagates NaNs',  // Failing on MacOS
+    ],
   },
   {
     startsWith: 'softmax ',
     excludes: [
-      'MEAN',
-      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
-    ]
+      'Propagates NaNs',  // Failing on MacOS
+    ],
   },
   {
-    startsWith: 'spaceToBatchND ',
+    startsWith: 'fromPixels ',
     excludes: [
-      'tensor4d',
+      'HTMLVideoElement',        // Device is lost on Linux
+      'canvas and image match',  // Failing on Linux
+    ],
+  },
+  {
+    startsWith: 'sign ',
+    excludes: [
+      // Failing on Linux
+      'basic',
+      'does not propagate NaNs',
       'accepts a tensor-like object',
-    ]
+    ],
   },
   {
-    startsWith: 'square ',
+    startsWith: 'broadcastArgs ',
     excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
+      'error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
   },
   {
-    startsWith: 'squaredDifference ',
+    startsWith: 'tensor.data ',
     excludes: [
-      'dilation2d',  // 'dilation2d' not yet implemented.
-    ]
+      '.data() postpones disposal of tensor',
+      'calling .data() twice works',
+    ],
   },
   {
-    startsWith: 'tensor ',
+    startsWith: 'bitwiseAnd',
     excludes: [
-      'bool tensor'  // Expected object not to have properties.
-    ]
+      'bitwiseAnd',
+    ],
   },
   {
-    startsWith: 'transpose ',
+    startsWith: 'sparseSegmentMean',
     excludes: [
-      'oneHot',  // Not yet implemented.
-      'fused',   // Not yet implemented.
-    ]
+      'throw error',  // Currently, cannot transfer the error from gpu to cpu
+    ],
+  },
+  {
+    startsWith: 'sparseSegmentSum',
+    excludes: [
+      // Currently, cannot transfer the error from gpu to cpu
+      'segments invalid',
+      'indices invalid',
+    ],
   },
 
   // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
-      // Not implemented kernel list.
-      'acos ',
-      'acosh ',
-      'all webgpu ',
-      'any webgpu ',
-      'asin ',
-      'asinh ',
-      'atanh ',
-      'avgPool3d ',
-      'avgPool3dBackprop ',
-      'bincount ',
-      'broadcastArgs ',
-      'conv2DBackpropFilter ',
-      'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
-      'conv1d gradients',  // Conv2DBackpropFilter
-      'conv3d ',
-      'conv3dTranspose ',
-      'decodeWeights ',
-      'denseBincount ',
-      'diag ',
-      'dilation2d ',
-      'encodeWeights ',
-      'erf ',
-      'FFT ',
-      'IRFFT ',
-      'isFinite ',
-      'isInf ',
-      'linspace ',
-      'localResponseNormalization ',
-      'log1p ',
-      'logSigmoid ',
-      'logicalOr ',
-      'logicalXor ',
-      'lowerBound',
-      'maxPool3d ',
-      'maxPool3dBackprop ',
-      'maxPoolBackprop ',
-      'maxPoolWithArgmax ',
-      'mod ',
-      'multinomial ',
-      'oneHot ',
-      'confusionMatrix ',  // oneHot
-      'poolBackprop ',
-      'reverse1d ',
-      'reverse2d ',
-      'reverse3d ',
-      'reverse4d ',
-      'reverse webgpu',
       'raggedGather ',
+      'raggedRange ',
       'raggedTensorToTensor ',
-      'RFFT ',
-      'round webgpu',
       'method otsu',  // round
-      'searchSorted',
-      'selu ',
-      'sign webgpu',
-      'stft ',
-      'softplus ',
-      'sigmoidCrossEntropy ',
       'sparseFillEmptyRows ',
       'sparseReshape ',
-      'sparseSegmentMean ',
-      'sparseSegmentSum ',
-      'step kernel',
-      'gradients: relu6',  // Step
+      'staticRegexReplace ',
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tan webgpu',
       'unique ',
-      'unsortedSegmentSum ',
-      'upperBound',
-      'valueAndGradients ',
     ]
   },
 ];
@@ -351,7 +212,7 @@ if (typeof __karma__ !== 'undefined') {
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
-// Import and run tests from webgl.
+// Import and run tests from webgpu.
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('./tests');

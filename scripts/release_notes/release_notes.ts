@@ -38,11 +38,13 @@
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
+import * as path from 'path';
 import {$, Commit, Repo, RepoCommits} from './util';
+
 // tslint:disable-next-line:no-require-imports
 const octokit = require('@octokit/rest')();
 
-const OUT_FILE = 'release-notes.md';
+const OUT_FILE = path.resolve('release-notes.md');
 
 const TFJS_REPOS: Repo[] = [
   {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
@@ -52,7 +54,8 @@ const TFJS_REPOS: Repo[] = [
   {name: 'Node', identifier: 'tfjs', path: 'tfjs-node'},
   {name: 'Wasm', identifier: 'tfjs', path: 'tfjs-backend-wasm'},
   {name: 'Cpu', identifier: 'tfjs', path: 'tfjs-backend-cpu'},
-  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'}
+  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'},
+  {name: 'WebGPU', identifier: 'tfjs', path: 'tfjs-backend-webgpu'},
 ];
 
 const VIS_REPO: Repo = {
@@ -65,6 +68,12 @@ const RN_REPO: Repo = {
   name: 'tfjs-react-native',
   identifier: 'tfjs-react-native',
   path: 'tfjs-react-native',
+};
+
+const TFDF_REPO: Repo = {
+  name: 'tfjs-tfdf',
+  identifier: 'tfjs-tfdf',
+  path: 'tfjs-tfdf',
 };
 
 const TFLITE_REPO: Repo = {
@@ -175,6 +184,21 @@ async function generateReactNativeNotes() {
   await generateNotes([RN_REPO]);
 }
 
+async function generateTfdfNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tfdf');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tfdf');
+
+  // Get tfjs-tfdf start version and end version.
+  TFDF_REPO.startVersion = startVersion;
+  TFDF_REPO.endVersion = endVersion;
+  TFDF_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFDF_REPO.identifier, TFDF_REPO.startVersion)}`);
+
+  await generateNotes([TFDF_REPO]);
+}
+
 async function generateTfliteNotes() {
   // Get start version and end version.
   const versions = getTaggedVersions('tfjs-tflite');
@@ -282,8 +306,16 @@ async function generateNotes(repositories: util.Repo[]) {
   });
 
   // Ask for github token.
-  const token = await util.question(
-      'Enter GitHub token (https://github.com/settings/tokens): ');
+
+  // Getting the github token.
+  let token = process.env.GITHUB_TOKEN;
+  if (token == null) {
+    token = await util.question(
+        'Enter GitHub token (https://github.com/settings/tokens): ');
+
+  } else {
+    console.log('The GITHUB_TOKEN is present as environment variable');
+  }
   octokit.authenticate({type: 'token', token});
 
   const notes = await util.getReleaseNotesDraft(octokit, repoCommits);
@@ -300,9 +332,9 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu|automl. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tfdf|tflite|webgpu|automl. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu', 'automl']
+  choices: ['union', 'vis', 'rn', 'tfdf', 'tflite', 'webgpu', 'automl']
 });
 
 const args = parser.parseArgs();
@@ -313,6 +345,8 @@ if (args.project === 'union') {
   generateVisNotes();
 } else if (args.project === 'rn') {
   generateReactNativeNotes();
+} else if (args.project === 'tfdf') {
+  generateTfdfNotes();
 } else if (args.project === 'tflite') {
   generateTfliteNotes();
 } else if (args.project === 'webgpu') {

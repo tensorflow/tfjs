@@ -1,0 +1,49 @@
+{
+  "name": "@tensorflow/tfjs-tfdf",
+  "version": "0.0.1",
+  "description": "TensorFlow Decision Forests support for TensorFlow.js",
+  "main": "dist/tf-tfdf.node.js",
+  "module": "dist/tf-tfdf.fesm.js",
+  "jsdelivr": "dist/tf-tfdf.min.js",
+  "unpkg": "dist/tf-tfdf.min.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/tf-tfdf.fesm.js",
+      "require": "./dist/tf-tfdf.node.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-tfdf"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter"
+  },
+  "devDependencies": {
+    "@bazel/bazelisk": "^1.12.0"
+  },
+  "scripts": {
+    "prep": "./scripts/download-tfdf-web-api.sh",
+    "build": "bazel build :tfjs-tfdf_pkg",
+    "build-ci": "yarn build",
+    "bundle": "bazel build :tfjs-tfdf_pkg",
+    "bundle-ci": "yarn bundle",
+    "build-link-package": "cd ../link-package && yarn build",
+    "build-deps": "yarn build-link-package",
+    "build-npm": "bazel build :tfjs-tfdf_pkg",
+    "publish-npm": "bazel run :tfjs-tfdf_pkg.publish",
+    "test": "bazel test :tests --test_output=all",
+    "test-ci": "yarn test",
+    "test-debug": "bazel run :tfjs-tfdf_test"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
+  }
+}

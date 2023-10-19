@@ -110,8 +110,8 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  DepthwiseConv2dNative, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  DepthwiseConv2dNative, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -119,4 +119,4 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const depthwiseConv2d = op({depthwiseConv2d_});
+export const depthwiseConv2d = /* @__PURE__ */ op({depthwiseConv2d_});

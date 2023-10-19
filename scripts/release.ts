@@ -28,6 +28,7 @@
 
 import * as argparse from 'argparse';
 import chalk from 'chalk';
+import semver from 'semver';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
 import {RELEASE_UNITS, WEBSITE_RELEASE_UNIT, TMP_DIR, $, question, printReleaseUnit, printPhase, makeReleaseDir, updateDependency, prepareReleaseBuild, createPR, getPatchUpdateVersion, ALPHA_RELEASE_UNIT} from './release-util';
@@ -97,8 +98,10 @@ async function main() {
 
   if (phaseInt !== 0) {
     // Phase0 should be published and release branch should have been created.
-    const firstPackageLatestVersion =
-        $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
+    const firstPackageVersions: string[] = JSON.parse(
+        $(`npm view @tensorflow/${phases[0].packages[0]} versions --json`));
+    const firstPackageLatestVersion = semver.rsort(firstPackageVersions)[0];
+
     releaseBranch = `${name}_${firstPackageLatestVersion}`;
 
     $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
@@ -120,8 +123,9 @@ async function main() {
     const packageJsonPath = `${dir}/${packageName}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
-    const latestVersion =
-        $(`npm view @tensorflow/${packageName} dist-tags.latest`);
+    const packageVersions: string[] =
+        JSON.parse($(`npm view @tensorflow/${packageName} versions --json`));
+    const latestVersion = semver.rsort(packageVersions)[0];
 
     console.log(chalk.magenta.bold(
         `~~~ Processing ${packageName} (${latestVersion}) ~~~`));

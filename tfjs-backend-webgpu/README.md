@@ -14,9 +14,7 @@ the following models:
 - AutoML Object detection
 - Speech commands
 
-Note that WebGPU hasn't been officially supported by browsers. Only Google
-Chrome is well tested, and its Canary Channel is highly recommended for your
-trial. Specify option "--enable-unsafe-webgpu" before you start the Chrome.
+Google Chrome started to support WebGPU by default in M113 on May 2, 2023.
 
 
 ## Importing the backend

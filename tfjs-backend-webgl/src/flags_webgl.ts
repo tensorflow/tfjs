@@ -89,6 +89,9 @@ ENV.registerFlag('WEBGL_LAZILY_UNPACK', () => ENV.getBool('WEBGL_PACK'));
 /** Whether we will use the im2col algorithm to speed up convolutions. */
 ENV.registerFlag('WEBGL_CONV_IM2COL', () => ENV.getBool('WEBGL_PACK'));
 
+/** Whether we will pack conv2dTranspose op. */
+ENV.registerFlag('WEBGL_PACK_CONV2DTRANSPOSE', () => ENV.getBool('WEBGL_PACK'));
+
 /** The maximum texture dimension. */
 ENV.registerFlag(
     'WEBGL_MAX_TEXTURE_SIZE',
@@ -180,6 +183,10 @@ ENV.registerFlag(
       return -1;
     },
     threshold => {
+      if (!(typeof threshold === 'number')) {
+        throw new Error('WEBGL_DELETE_TEXTURE_THRESHOLD must be a number but ' +
+            `got ${threshold}.`);
+      }
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
             `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never ` +
@@ -202,6 +209,10 @@ ENV.registerFlag(
       return device_util.isMobile() ? 1 : -1;
     },
     threshold => {
+      if (!(typeof threshold === 'number')) {
+        throw new Error('WEBGL_FLUSH_THRESHOLD must be a number but got ' +
+            `${threshold}.`);
+      }
       if (threshold < 0 && threshold !== -1) {
         throw new Error(
             `WEBGL_FLUSH_THRESHOLD must be -1 (indicating never ` +
@@ -268,3 +279,12 @@ ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
  * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
 ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
+
+/**
+ * Whether to use the customized isnan. It's only useful for webgl2 since webgl1
+ * doesn't have the builtin isnan.
+ */
+ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
+
+/** Experimental flag, whether enter compile only phase. */
+ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);

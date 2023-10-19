@@ -1,0 +1,88 @@
+load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])  # Apache 2.0
+
+CONSOLE_SCRIPTS = {
+    "tensorflowjs_converter": "tensorflowjs.converters.converter:pip_main",
+    "tensorflowjs_wizard": "tensorflowjs.converters.wizard:pip_main",
+}
+
+compile_pip_requirements(
+    name = "tensorflowjs_deps_requirements",
+    extra_args = ["--allow-unsafe"],  # Allow pinning setuptools
+    requirements_in = "requirements.txt",
+    requirements_txt = "requirements_lock.txt",
+)
+
+compile_pip_requirements(
+    name = "tensorflowjs_dev_deps_requirements",
+    data = [
+        ":requirements.txt",
+    ],
+    extra_args = ["--allow-unsafe"],  # Allow pinning setuptools
+    requirements_in = "requirements-dev.txt",
+    requirements_txt = "requirements-dev_lock.txt",
+)
+
+py_package(
+    name = "tensorflowjs_pkg",
+    # Only include these Python packages.
+    packages = ["tfjs-converter/python/tensorflowjs"],
+    deps = ["//tfjs-converter/python/tensorflowjs"],
+)
+
+py_wheel(
+    name = "python3_wheel",
+    author = "Google LLC",
+    author_email = "opensource@google.com",
+    classifiers = [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: JavaScript",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+    console_scripts = CONSOLE_SCRIPTS,
+    description_file = ":README.md",
+    distribution = "tensorflowjs",
+    extra_requires = {
+        "PyInquirer": ["PyInquirer==1.0.3"],
+        "all": ["PyInquirer==1.0.3"],
+        "wizard": ["PyInquirer==1.0.3"],
+    },
+    homepage = "https://js.tensorflow.org/",
+    license = "Apache 2.0",
+    python_tag = "py3",
+    requires = [
+        "flax>=0.7.2",
+        "importlib_resources>=5.9.0",
+        "jax>=0.4.13",
+        "jaxlib>=0.4.13",
+        "tensorflow>=2.13.0,<3",
+        "tensorflow-decision-forests>=1.5.0",
+        "six>=1.16.0,<2",
+        "tensorflow-hub>=0.14.0",
+        "packaging~=23.1",
+    ],
+    strip_path_prefixes = [
+        "tfjs-converter/python",
+    ],
+    version = "0.0.0",
+    #keywords='tensorflow javascript machine deep learning converter',
+    deps = [
+        ":tensorflowjs_pkg",
+        "//tfjs-converter/python/tensorflowjs",
+    ],
+)

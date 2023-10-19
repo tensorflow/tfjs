@@ -20,6 +20,7 @@
 
 import {getGlobal} from './global_util';
 import {tensorToString} from './tensor_format';
+import {DataId, TensorInfo} from './tensor_info';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
@@ -170,7 +171,6 @@ export interface GPUData {
   texture?: WebGLTexture;
   buffer?: GPUBuffer;
   texShape?: [number, number];
-  bufSize?: number;
 }
 
 export interface TensorTracker {
@@ -238,16 +238,6 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
   deprecationWarningFn = fn;
 }
 
-/**
- * We wrap data id since we use weak map to avoid memory leaks.
- * Since we have our own memory management, we have a reference counter
- * mapping a tensor to its data, so there is always a pointer (even if that
- * data is otherwise garbage collectable).
- * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
- * Global_Objects/WeakMap
- */
-export type DataId = object;  // object instead of {} to force non-primitive.
-
 // Declare this namespace to make Tensor class augmentation work in google3.
 export declare namespace Tensor {}
 /**
@@ -264,7 +254,7 @@ export declare namespace Tensor {}
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-export class Tensor<R extends Rank = Rank> {
+export class Tensor<R extends Rank = Rank> implements TensorInfo {
   /** Unique id of this tensor. */
   readonly id: number;
   /**
@@ -285,6 +275,8 @@ export class Tensor<R extends Rank = Rank> {
   kept = false;
   /** The id of the scope this tensor is being tracked in. */
   scopeId: number;
+  /** The keras mask that some keras layers attach to the tensor */
+  kerasMask?: Tensor;
 
   /**
    * Number of elements to skip in each dimension when indexing. See
@@ -394,12 +386,10 @@ export class Tensor<R extends Rank = Rank> {
    *        texShape: [number, number] // [height, width]
    *     }
    *
-   *     For WebGPU backend, a GPUData contains the new buffer and
-   *     its information.
+   *     For WebGPU backend, a GPUData contains the new buffer.
    *     {
    *        tensorRef: The tensor that is associated with this buffer,
    *        buffer: GPUBuffer,
-   *        bufSize: number
    *     }
    *
    *     Remember to dispose the GPUData after it is used by
@@ -453,6 +443,9 @@ export class Tensor<R extends Rank = Rank> {
   dispose(): void {
     if (this.isDisposed) {
       return;
+    }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
     }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
@@ -603,7 +596,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     trackerFn().incRef(this, null /* backend */);
   }
 
-  dispose(): void {
+  override dispose(): void {
     trackerFn().disposeVariable(this);
     this.isDisposedInternal = true;
   }

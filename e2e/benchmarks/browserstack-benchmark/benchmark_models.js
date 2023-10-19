@@ -49,7 +49,7 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
   const benchmarkSummary = `
   benchmark the ${modelName} on ${envSummary}
   1st inference time: ${printTime(timeInfo.times[0])}
-  Average inference time (${numRuns} runs): ${printTime(timeInfo.averageTime)}
+  Subsequent average inference time (${numRuns} runs): ${printTime(timeInfo.averageTimeExclFirst)}
   Best inference time: ${printTime(timeInfo.minTime)}
   Peak memory: ${printMemory(memoryInfo.peakBytes)}
   `;
@@ -85,8 +85,7 @@ async function benchmarkModel(benchmarkParameters) {
     memoryInfo = await profileModelInference(model, input);
   }
 
-  return `<tfjs_benchmark>${
-      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
+  return { timeInfo, memoryInfo };
 }
 
 async function benchmarkCodeSnippet(benchmarkParameters) {
@@ -98,7 +97,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
 
   if (predict == null) {
     throw new Error(
-        'predict function is suppoed to be defined in codeSnippet.');
+      'predict function is suppoed to be defined in codeSnippet.');
   }
 
   // Warm up.
@@ -108,8 +107,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
   memoryInfo = await profileInference(predict);
 
-  return `<tfjs_benchmark>${
-      JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
+  return { timeInfo, memoryInfo };
 }
 
 describe('BrowserStack benchmark', () => {
@@ -124,18 +122,24 @@ describe('BrowserStack benchmark', () => {
   it(`benchmark`, async () => {
     try {
       // Setup benchmark environments.
-      await tf.setBackend(benchmarkParameters.backend);
+      const targetBackend = benchmarkParameters.backend;
+      await tf.setBackend(targetBackend);
 
       // Run benchmark and stringify results.
-      let resultStr;
+      let resultObj;
       if (benchmarkParameters.model === 'codeSnippet') {
-        resultStr = await benchmarkCodeSnippet(benchmarkParameters);
+        resultObj = await benchmarkCodeSnippet(benchmarkParameters);
       } else {
-        resultStr = await benchmarkModel(benchmarkParameters);
+        resultObj = await benchmarkModel(benchmarkParameters);
       }
 
+      // Get GPU hardware info.
+      resultObj.gpuInfo =
+        targetBackend === 'webgl' ? (await getRendererInfo()) : 'MISS';
+
       // Report results.
-      console.log(resultStr);
+      console.log(
+        `<tfjs_benchmark>${JSON.stringify(resultObj)}</tfjs_benchmark>`);
     } catch (error) {
       console.log(`<tfjs_error>${error}</tfjs_error>`);
     }

@@ -12,7 +12,7 @@ steps:
   dir: 'e2e/benchmarks/browserstack-benchmark'
   entrypoint: 'yarn'
   id: 'test'
-  args: ['run-cloud-benchmarks']
+  args: ['run-cloud-benchmarks-half-month-cycle']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_ACCESS_KEY', 'FIREBASE_KEY']
   waitFor: ['yarn']

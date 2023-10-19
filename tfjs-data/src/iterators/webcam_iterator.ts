@@ -129,7 +129,8 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
       this.webcamVideoElement.srcObject = this.stream;
     } catch (error) {
       console.log(error);
-      this.webcamVideoElement.src = window.URL.createObjectURL(this.stream);
+      this.webcamVideoElement.src = window.URL.createObjectURL(
+        this.stream as unknown as MediaSource);
     }
     // Start the webcam video stream
     this.webcamVideoElement.play();
@@ -217,7 +218,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   }
 
   // Override toArray() function to prevent collecting.
-  toArray(): Promise<Tensor3D[]> {
+  override toArray(): Promise<Tensor3D[]> {
     throw new Error('Can not convert infinite video stream to array.');
   }
 }

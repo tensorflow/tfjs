@@ -158,6 +158,11 @@ export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   }
 }
 
+/// validateProgram is effectively "If we `useProgram(program); drawArrays();`,
+/// give feedback in log about perf/correctness warnings or errors that would
+/// occur."
+/// So make sure we set up all vertex/texture/sampler/uniform data before
+/// calling validateProgram!
 export function validateProgram(
     gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.validateProgram(program));
@@ -486,8 +491,8 @@ export function isReshapeFree(shape1: number[], shape2: number[]): boolean {
   }
 
   if (shape1.length !== shape2.length) {  // One of the shapes is a vector.
-    const shape1Cols = shape1.slice(-1)[0];
-    const shape2Cols = shape2.slice(-1)[0];
+    const shape1Cols = shape1[shape1.length - 1];
+    const shape2Cols = shape2[shape2.length - 1];
     if (shape1Cols === shape2Cols) {
       return true;
     }

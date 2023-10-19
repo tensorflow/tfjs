@@ -54,19 +54,15 @@ describe('logical', () => {
 
     ([
       'Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
-      'LogicalAnd', 'LogicalOr'
+      'LogicalAnd', 'LogicalOr', 'BitwiseAnd'
     ] as const )
         .forEach(op => {
           it('should call tfOps.' + op, () => {
             node.op = op;
-            // TODO(mattsoulanille): Remove type assertions after TS4
-            // tslint:disable-next-line no-any
-            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
-              .and.returnValue({});
+            spyOps[uncapitalize(op)].and.returnValue({});
             executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-            // TODO(mattsoulanille): Remove type assertion after TS4
-            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+            expect(spyOps[uncapitalize(op)])
                 .toHaveBeenCalledWith(input1[0], input2[0]);
           });
         });

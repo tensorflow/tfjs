@@ -23,7 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {eitherStridesOrDilationsAreOne} from './conv_util';
+import {eitherStridesOrDilationsAreOne, stridesOrDilationsArePositive} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -93,6 +93,12 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in conv3d: got dataFormat of ${
           dataFormat} but only NDHWC is currently supported.`);
+  util.assert(
+      stridesOrDilationsArePositive(dilations),
+      () => 'Error in conv3D: Dilated rates should be larger than 0.');
+  util.assert(
+      stridesOrDilationsArePositive(strides),
+      () => 'Error in conv3D: Strides should be larger than 0.');
 
   const inputs: Conv3DInputs = {x: x5D, filter: $filter};
 
@@ -100,8 +106,8 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  Conv3D, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  Conv3D, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -111,4 +117,4 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
   return res;
 }
 
-export const conv3d = op({conv3d_});
+export const conv3d = /* @__PURE__ */ op({conv3d_});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor, util} from '@tensorflow/tfjs-core';
+import {dispose, InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor, util} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
@@ -46,8 +46,10 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   private handler: UrlIOHandler<ModelURL>;
   private artifacts: io.ModelArtifacts;
   private initializer: GraphExecutor;
+  private resourceIdToCapturedInput: {[key: number]: Tensor};
   private resourceManager: ResourceManager;
   private signature: tensorflow.ISignatureDef;
+  private initializerSignature: tensorflow.ISignatureDef;
   private structuredOutputKeys: string[];
   private readonly io: typeof io;
 
@@ -160,7 +162,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
   /**
    * Synchronously construct the in memory weight map and
-   * compile the inference graph. Also initialize hashtable if any.
+   * compile the inference graph.
    *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
@@ -201,7 +203,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
       // hashTables created from when executing the initializer will be stored
       // in the resourceManager.
       this.initializer.resourceManager = this.resourceManager;
-      this.initializer.executeAsync({}, []);
+      this.initializerSignature = artifacts.initializerSignature;
     }
 
     return true;
@@ -274,6 +276,21 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     return handlerOrURL.save(this.artifacts);
   }
 
+  private addStructuredOutputNames(outputTensors: Tensor|Tensor[]) {
+    if (this.structuredOutputKeys) {
+      const outputTensorsArray =
+          outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
+      const outputTensorMap: NamedTensorMap = {};
+
+      outputTensorsArray.forEach(
+          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] =
+              outputTensor);
+
+      return outputTensorMap;
+    }
+    return outputTensors;
+  }
+
   /**
    * Execute the inference for the input tensors.
    *
@@ -316,35 +333,90 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     const outputTensors = this.execute(inputs, this.outputNodes);
-    if (this.structuredOutputKeys) {
-      const outputTensorsArray =
-          outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
-      const outputTensorMap: NamedTensorMap = {};
+    return this.addStructuredOutputNames(outputTensors);
+  }
 
-      outputTensorsArray.forEach(
-          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] =
-              outputTensor);
-
-      return outputTensorMap;
-    }
-    return outputTensors;
+  /**
+   * Execute the inference for the input tensors in async fashion, use this
+   * method when your model contains control flow ops.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs params should be in either `tf.Tensor`[] if the input order is
+   * fixed, or otherwise NamedTensorMap format.
+   *
+   * For model with multiple inputs, we recommend you use NamedTensorMap as the
+   * input type, if you use `tf.Tensor`[], the order of the array needs to
+   * follow the
+   * order of inputNodes array. @see {@link GraphModel.inputNodes}
+   *
+   * You can also feed any intermediate nodes using the NamedTensorMap as the
+   * input type. For example, given the graph
+   *    InputNode => Intermediate => OutputNode,
+   * you can execute the subgraph Intermediate => OutputNode by calling
+   *    model.execute('IntermediateNode' : tf.tensor(...));
+   *
+   * This is useful for models that uses tf.dynamic_rnn, where the intermediate
+   * state needs to be fed manually.
+   *
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size.
+   * Currently the batch size option is ignored for graph model.
+   *
+   * @returns A Promise of inference result tensors. If the model is converted
+   * and it originally had structured_outputs in tensorflow, then a
+   * NamedTensorMap will be returned matching the structured_outputs. If no
+   * structured_outputs are present, the output will be single `tf.Tensor` if
+   * the model has single output node, otherwise Tensor[].
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  async predictAsync(
+      inputs: Tensor|Tensor[]|NamedTensorMap,
+      config?: ModelPredictConfig): Promise<Tensor|Tensor[]|NamedTensorMap> {
+    const outputTensors = await this.executeAsync(inputs, this.outputNodes);
+    return this.addStructuredOutputNames(outputTensors);
   }
 
   private normalizeInputs(inputs: Tensor|Tensor[]|
                           NamedTensorMap): NamedTensorMap {
     if (!(inputs instanceof Tensor) && !Array.isArray(inputs)) {
       // The input is already a NamedTensorMap.
+      const signatureInputs = this.signature?.inputs;
+      if (signatureInputs != null) {
+        for (const input in signatureInputs) {
+          const tensor = signatureInputs[input];
+          if (tensor.resourceId != null) {
+            inputs[input] = this.resourceIdToCapturedInput[tensor.resourceId];
+          }
+        }
+      }
       return inputs;
     }
     inputs = Array.isArray(inputs) ? inputs : [inputs];
-    if (inputs.length !== this.inputNodes.length) {
-      throw new Error(
-          'Input tensor count mismatch,' +
-          `the graph model has ${this.inputNodes.length} placeholders, ` +
-          `while there are ${inputs.length} input tensors.`);
+
+    const numCapturedInputs =
+        Object.keys(this.resourceIdToCapturedInput).length;
+    if (inputs.length + numCapturedInputs !== this.inputNodes.length) {
+      throw new Error(`Input tensor count mismatch, the graph model has ${
+          this.inputNodes.length -
+          numCapturedInputs} non-resource placeholders, while there are ${
+          inputs.length} input tensors provided.`);
     }
-    return this.inputNodes.reduce((map, inputName, i) => {
-      map[inputName] = (inputs as Tensor[])[i];
+
+    let inputIndex = 0;
+    return this.inputNodes.reduce((map, inputName) => {
+      const resourceId = this.signature?.inputs?.[inputName]?.resourceId;
+      if (resourceId != null) {
+        map[inputName] = this.resourceIdToCapturedInput[resourceId];
+      } else {
+        map[inputName] = (inputs as Tensor[])[inputIndex++];
+      }
       return map;
     }, {} as NamedTensorMap);
   }
@@ -352,6 +424,44 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   private normalizeOutputs(outputs: string|string[]): string[] {
     outputs = outputs || this.outputNodes;
     return !Array.isArray(outputs) ? [outputs] : outputs;
+  }
+
+  private executeInitializerGraph() {
+    if (this.initializer == null) {
+      return [];
+    }
+    if (this.initializerSignature == null) {
+      return this.initializer.execute({}, []);
+    } else {
+      return this.initializer.execute(
+          {}, Object.keys(this.initializerSignature.outputs));
+    }
+  }
+
+  private async executeInitializerGraphAsync() {
+    if (this.initializer == null) {
+      return [];
+    }
+    if (this.initializerSignature == null) {
+      return this.initializer.executeAsync({}, []);
+    } else {
+      return this.initializer.executeAsync(
+          {}, Object.keys(this.initializerSignature.outputs));
+    }
+  }
+
+  private setResourceIdToCapturedInput(outputs: Tensor[]) {
+    this.resourceIdToCapturedInput = {};
+
+    if (this.initializerSignature) {
+      const signatureOutputs = this.initializerSignature.outputs;
+      const outputNames = Object.keys(signatureOutputs);
+      for (let i = 0; i < outputNames.length; i++) {
+        const outputName = outputNames[i];
+        const tensorInfo = signatureOutputs[outputName];
+        this.resourceIdToCapturedInput[tensorInfo.resourceId] = outputs[i];
+      }
+    }
   }
 
   /**
@@ -372,11 +482,15 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs?: string|string[]):
       Tensor|Tensor[] {
+    if (this.resourceIdToCapturedInput == null) {
+      this.setResourceIdToCapturedInput(this.executeInitializerGraph());
+    }
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
     const result = this.executor.execute(inputs, outputs);
     return result.length > 1 ? result : result[0];
   }
+
   /**
    * Executes inference for the model for given input tensors in async
    * fashion, use this method when your model contains control flow ops.
@@ -396,6 +510,10 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   async executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
+    if (this.resourceIdToCapturedInput == null) {
+      this.setResourceIdToCapturedInput(
+          await this.executeInitializerGraphAsync());
+    }
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
     const result = await this.executor.executeAsync(inputs, outputs);
@@ -439,6 +557,9 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     if (this.initializer) {
       this.initializer.dispose();
+      if (this.resourceIdToCapturedInput) {
+        dispose(this.resourceIdToCapturedInput);
+      }
     }
 
     this.resourceManager.dispose();
@@ -499,23 +620,58 @@ export async function loadGraphModel(
 /**
  * Load a graph model given a synchronous IO handler with a 'load' method.
  *
- * @param modelSource The `io.IOHandlerSync` that loads the model.
+ * @param modelSource The `io.IOHandlerSync` that loads the model, or the
+ *     `io.ModelArtifacts` that encode the model, or a tuple of
+ *     `[io.ModelJSON, ArrayBuffer]` of which the first element encodes the
+ *      model and the second contains the weights.
  *
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
-
-export function loadGraphModelSync(modelSource: io.IOHandlerSync):
+export function loadGraphModelSync(
+    modelSource: io.IOHandlerSync|
+    io.ModelArtifacts|[io.ModelJSON, /* Weights */ ArrayBuffer]):
     GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
-        'modelUrl in loadGraphModelSync() cannot be null. Please provide a ' +
-        'url or an IOHandler that loads the model');
+        'modelUrl in loadGraphModelSync() cannot be null. Please provide ' +
+        'model artifacts or an IOHandler that loads the model');
   }
-  if (!modelSource.load) {
-    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
-  }
-  const model = new GraphModel(modelSource);
 
+  let ioHandler: io.IOHandlerSync;
+  if (modelSource instanceof Array) {
+    const [modelJSON, weights] = modelSource;
+    if (!modelJSON) {
+      throw new Error('modelJSON must be the first element of the array');
+    }
+    if (!weights || !(weights instanceof ArrayBuffer)) {
+      throw new Error(
+          'An ArrayBuffer of weights must be the second element of' +
+          ' the array');
+    }
+    if (!('modelTopology' in modelJSON)) {
+      throw new Error('Model JSON is missing \'modelTopology\'');
+    }
+    if (!('weightsManifest' in modelJSON)) {
+      throw new Error('Model JSON is missing \'weightsManifest\'');
+    }
+
+    const weightSpecs = io.getWeightSpecs(modelJSON.weightsManifest);
+    const modelArtifacts =
+        io.getModelArtifactsForJSONSync(modelJSON, weightSpecs, weights);
+    ioHandler = io.fromMemorySync(modelArtifacts);
+  } else if ('load' in modelSource) {
+    // Then modelSource is already an IOHandlerSync.
+    ioHandler = modelSource;
+  } else if (
+      'modelTopology' in modelSource && 'weightSpecs' in modelSource &&
+      'weightData' in modelSource) {
+    // modelSource is of type ModelArtifacts.
+    ioHandler = io.fromMemorySync(modelSource);
+  } else {
+    throw new Error('Unknown model format');
+  }
+
+  const model = new GraphModel(ioHandler);
   model.load();
   return model;
 }

@@ -20,7 +20,8 @@ from jax import random
 import jax.numpy as jnp
 import tensorflow as tf
 from tensorflowjs.converters import jax_conversion
-
+import os
+import json
 
 class FlaxModule(nn.Module):
   """A simple Flax Module containing a few Dense layers and ReLUs."""
@@ -68,6 +69,21 @@ class JaxConversionTest(tf.test.TestCase):
         input_signatures=[tf.TensorSpec((2, 3), tf.float32)],
         model_dir=self.get_temp_dir())
 
+  def test_convert_quantize(self):
+    apply_fn = lambda params, x: jnp.sum(x) * params['w']
+    model_dir = self.get_temp_dir()
+    jax_conversion.convert_jax(
+        apply_fn,
+        {'w': 0.5},
+        input_signatures=[tf.TensorSpec((2, 3), tf.float32)],
+        model_dir=model_dir,
+        quantization_dtype_map = {'float16': '*'})
+
+    with open(os.path.join(model_dir, 'model.json'), 'rt') as model:
+      model_json = json.load(model)
+      quantization = model_json['weightsManifest'][0]['weights'][1]['quantization']
+      self.assertEqual(quantization['dtype'], 'float16')
+
   def test_convert_poly(self):
     apply_fn = lambda params, x: jnp.sum(x) * params['w']
     jax_conversion.convert_jax(
@@ -75,12 +91,13 @@ class JaxConversionTest(tf.test.TestCase):
         {'w': 0.5},
         input_signatures=[tf.TensorSpec((None, 3), tf.float32)],
         polymorphic_shapes=['(b, 3)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   def test_convert_tf_poly_mismatch_raises(self):
     apply_fn = lambda params, x: jnp.sum(x) * params['w']
     with self.assertRaisesRegex(
-        ValueError, 'polymorphic shape.* must match .* for argument shape'):
+        ValueError, 'syntax error in polymorphic shape.* in dimension.* Parsed.*, remaining.*'):
       jax_conversion.convert_jax(
           apply_fn,
           {'w': 0.5},
@@ -105,7 +122,8 @@ class JaxConversionTest(tf.test.TestCase):
         input_signatures=[tf.TensorSpec((None, 3), tf.float32),
                           tf.TensorSpec((None, 6), tf.float32)],
         polymorphic_shapes=['(b, 3)', '(b, 6)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   def test_convert_flax(self):
     m, x = FlaxModule(), jnp.zeros((3, 4))
@@ -124,7 +142,8 @@ class JaxConversionTest(tf.test.TestCase):
         variables,
         input_signatures=[tf.TensorSpec((None, 4), tf.float32)],
         polymorphic_shapes=['(b, 4)'],
-        model_dir=self.get_temp_dir())
+        model_dir=self.get_temp_dir(),
+        strip_debug_ops=True)
 
   # TODO(marcvanzee): This test currently fails due to
   # https://github.com/google/jax/issues/11804.

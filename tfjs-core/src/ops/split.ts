@@ -67,8 +67,8 @@ function split_<T extends Tensor>(
   const attr: SplitVAttrs = {numOrSizeSplits, axis};
 
   return ENGINE.runKernel(
-             SplitV, inputs as {} as NamedTensorMap,
-             attr as {} as NamedAttrMap) as {} as T[];
+             SplitV, inputs as unknown as NamedTensorMap,
+             attr as unknown as NamedAttrMap) as unknown as T[];
 }
 
-export const split = op({split_});
+export const split = /* @__PURE__ */ op({split_});

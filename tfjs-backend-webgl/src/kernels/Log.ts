@@ -42,5 +42,5 @@ export const log = unaryKernelFunc(
 export const logConfig: KernelConfig = {
   kernelName: Log,
   backendName: 'webgl',
-  kernelFunc: log as {} as KernelFunc
+  kernelFunc: log as unknown as KernelFunc
 };

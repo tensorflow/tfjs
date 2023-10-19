@@ -25,7 +25,7 @@ export class TransposeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   newDim: number[];
   size = true;
 
@@ -37,7 +37,7 @@ export class TransposeProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
 
     this.newDim = newDim;
@@ -53,7 +53,7 @@ export class TransposeProgram implements WebGPUProgram {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
-            let resRC = getCoordsFromIndex(flatIndex);
+            let coords = getCoordsFromIndex(flatIndex);
             setOutputAtIndex(flatIndex, A[getIndexFromCoords${
         this.outputShape.length}D(
               ${dtype}(${switched}), uniforms.aShape)]);
@@ -65,14 +65,14 @@ export class TransposeProgram implements WebGPUProgram {
   }
 }
 
-function getSwitchedCoords(newDim: number[]): string {
+export function getSwitchedCoords(newDim: number[]): string {
   const rank = newDim.length;
   if (rank > 6) {
     throw Error(`Transpose for rank ${rank} is not yet supported`);
   }
   const switchedCoords = new Array(rank);
   for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
+    switchedCoords[newDim[i]] = `coords.${getCoordsXYZ(i)}`;
   }
 
   return switchedCoords.join();

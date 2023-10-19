@@ -186,7 +186,7 @@ export class ZeroPadding2D extends Layer {
     this.inputSpec = [new InputSpec({ndim: 4})];
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
 
     let rows: number;
@@ -218,13 +218,13 @@ export class ZeroPadding2D extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(
         () => spatial2dPadding(
             getExactlyOneTensor(inputs), this.padding, this.dataFormat));
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       padding: this.padding,
       dataFormat: this.dataFormat,

@@ -43,7 +43,7 @@ export interface ImageClassifierOptions extends CommonTaskLibraryOptions {
  * src/types for more info.
  */
 export class ImageClassifier extends BaseTaskLibraryClient {
-  constructor(protected instance: TaskLibraryImageClassifier) {
+  constructor(protected override instance: TaskLibraryImageClassifier) {
     super(instance);
   }
 

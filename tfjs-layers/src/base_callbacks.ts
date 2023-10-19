@@ -227,12 +227,12 @@ export class BaseLogger extends BaseCallback {
     super();
   }
 
-  async onEpochBegin(epoch: number) {
+  override async onEpochBegin(epoch: number) {
     this.seen = 0;
     this.totals = {};
   }
 
-  async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
+  override async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -262,7 +262,7 @@ export class BaseLogger extends BaseCallback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs != null) {
       for (const key of this.params['metrics'] as string[]) {
         if (this.totals[key] == null) {
@@ -292,12 +292,12 @@ export class History extends BaseCallback {
   epoch: number[];
   history: {[key: string]: Array<number|Tensor>};
 
-  async onTrainBegin(logs?: UnresolvedLogs) {
+  override async onTrainBegin(logs?: UnresolvedLogs) {
     this.epoch = [];
     this.history = {};
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -410,7 +410,8 @@ export class CustomCallback extends BaseCallback {
     await Promise.all(ps);
   }
 
-  async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochBegin(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     this.currentEpoch = epoch;
     if (this.epochBegin != null) {
       await resolveScalarsInLogs(logs);
@@ -418,7 +419,8 @@ export class CustomCallback extends BaseCallback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onEpochEnd(epoch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.epochEnd != null) {
       await resolveScalarsInLogs(logs);
@@ -430,14 +432,16 @@ export class CustomCallback extends BaseCallback {
     await Promise.all(ps);
   }
 
-  async onBatchBegin(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchBegin(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     if (this.batchBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.batchBegin(batch, logs as Logs);
     }
   }
 
-  async onBatchEnd(batch: number, logs?: UnresolvedLogs): Promise<void> {
+  override async onBatchEnd(batch: number, logs?: UnresolvedLogs):
+      Promise<void> {
     const ps: Array<void|Promise<void>> = [];
     if (this.batchEnd != null) {
       await resolveScalarsInLogs(logs);
@@ -451,14 +455,14 @@ export class CustomCallback extends BaseCallback {
     await Promise.all(ps);
   }
 
-  async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
+  override async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainBegin != null) {
       await resolveScalarsInLogs(logs);
       await this.trainBegin(logs as Logs);
     }
   }
 
-  async onTrainEnd(logs?: UnresolvedLogs): Promise<void> {
+  override async onTrainEnd(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainEnd != null) {
       await resolveScalarsInLogs(logs);
       await this.trainEnd(logs as Logs);
@@ -484,7 +488,8 @@ export function standardizeCallbacks(
   }
   // Convert custom callback configs to custom callback objects.
   const callbackConfigs =
-      generic_utils.toList(callbacks) as CustomCallbackArgs[];
+      generic_utils.toList<BaseCallback | CustomCallbackArgs>(
+        callbacks) as CustomCallbackArgs[];
   return callbackConfigs.map(
       callbackConfig => new CustomCallback(callbackConfig, yieldEvery));
 }

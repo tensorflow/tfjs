@@ -69,7 +69,7 @@ function minimum_<T extends Tensor>(
 
   const inputs: MinimumInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernel(Minimum, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Minimum, inputs as unknown as NamedTensorMap);
 }
 
-export const minimum = op({minimum_});
+export const minimum = /* @__PURE__ */ op({minimum_});

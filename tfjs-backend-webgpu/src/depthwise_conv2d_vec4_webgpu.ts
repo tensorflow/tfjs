@@ -17,32 +17,40 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
-import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
-import {computeDispatch} from './webgpu_util';
+import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  uniforms = 'pads : vec2<i32>, inDims : vec2<i32>, virtualWidth : i32,';
+  workgroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
-  isVec4 = true;
+  outputComponent = 4;
+  virtualWidth: number;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
+    this.virtualWidth = Math.ceil(this.outputShape[2] / this.workPerThread) *
+        this.workPerThread;
+    const virtualOutputShape = [
+      this.outputShape[0], this.outputShape[1], this.virtualWidth,
+      this.outputShape[3]
+    ];
+    this.dispatchLayout = flatDispatchLayout(virtualOutputShape);
+
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [4, this.workPerThread, 1]);
+        this.dispatchLayout, virtualOutputShape, this.workgroupSize,
+        [this.outputComponent * this.workPerThread, 1, 1]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -69,6 +77,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   getUserCode(): string {
     const xNumber = (this.workPerThread - 1) * this.convInfo.strideWidth +
         this.convInfo.filterWidth;
+    const strideHeight = this.convInfo.strideHeight;
+    const strideWidth = this.convInfo.strideWidth;
 
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, true, 4)}
@@ -80,15 +90,18 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         return value;
       }
 
-      const strideHeight = ${this.convInfo.strideHeight};
-      const strideWidth = ${this.convInfo.strideWidth};
-      ${getWorkGroupSizeString()}
-      fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
-        let batch = i32(globalId.z) / uniforms.outShape[1];
-        let r = i32(globalId.z) % uniforms.outShape[1];
-        let c = i32(globalId.y) * ${this.workPerThread};
-        let d1 = i32(globalId.x) * 4;
-        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(strideHeight, strideWidth) - uniforms.pad;
+      ${main('index')} {
+        let width0 = uniforms.outShape[3] / ${this.outputComponent};
+        let d1 = (index % width0) * ${this.outputComponent};
+        var index1 = index / width0;
+        let width1 = uniforms.virtualWidth / ${this.workPerThread};
+        let c = (index1 % width1) * ${this.workPerThread};
+        index1 = index1 / width1;
+        let r = index1 % uniforms.outShape[1];
+        let batch = index1 / uniforms.outShape[1];
+
+        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(${strideHeight}, ${
+        strideWidth}) - uniforms.pads;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
@@ -108,7 +121,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
             for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
               let wValue = getW(wR, wC, d1, 0);
               for (var i = 0; i < ${this.workPerThread}; i++) {
-                dotProd[i] = fma(xVals[i * strideWidth + wC], wValue, dotProd[i]);
+                dotProd[i] = fma(xVals[i * ${
+        strideWidth} + wC], wValue, dotProd[i]);
               }
             }
           }

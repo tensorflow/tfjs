@@ -28,14 +28,16 @@ describe('generateCloudbuild', () => {
   it('generates the correct cloudbuild file for e2e', () => {
     const expectedCloudbuild = yaml.load(fs.readFileSync(
       path.join(__dirname, 'cloudbuild_e2e_expected.yml'), 'utf8'));
-    const cloudbuild = generateCloudbuild(['e2e'], /* print */ false);
+    const cloudbuild = generateCloudbuild(['e2e'], /* nightly */ false,
+                                          /* print */ false);
     expect(cloudbuild).toEqual(expectedCloudbuild as CloudbuildYaml);
   });
 
   it('generates the correct cloudbuild file for tfjs-node', () => {
     const expectedCloudbuild = yaml.load(fs.readFileSync(
       path.join(__dirname, 'cloudbuild_tfjs_node_expected.yml'), 'utf8'));
-    const cloudbuild = generateCloudbuild(['tfjs-node'], /* print */ false);
+    const cloudbuild = generateCloudbuild(['tfjs-node'], /* nightly */ false,
+                                          /* print */ false);
     expect(cloudbuild).toEqual(expectedCloudbuild as CloudbuildYaml);
   });
 });

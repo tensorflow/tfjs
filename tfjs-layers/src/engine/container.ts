@@ -36,6 +36,17 @@ export interface ContainerArgs {
   name?: string;
 }
 
+// get weights key from tensor map in order to check if it is from keras v3.
+// e.g. dense/0
+const isKerasSavedModelFormat = (weights: NamedTensorMap): boolean => {
+  const keys = Object.keys(weights);
+  if (keys.length === 0) {
+    return false;
+  }
+  const key = keys[0].split('/');
+  return !isNaN(parseInt(key[key.length - 1], 10));
+};
+
 /**
  * A Container is a directed acyclic graph of layers.
  *
@@ -471,7 +482,7 @@ export abstract class Container extends Layer {
     this._refCount = 1;  // The ref count of a container always start at 1.
   }
 
-  protected assertNotDisposed() {
+  protected override assertNotDisposed() {
     if (this._refCount === 0) {
       throw new Error(`Container '${this.name}' is already disposed.`);
     }
@@ -503,7 +514,7 @@ export abstract class Container extends Layer {
    * @throws {Error} If the layer is not built yet, or if the LayersModel has
    *   already been disposed.
    */
-  dispose(): DisposeResult {
+  override dispose(): DisposeResult {
     this.assertNotDisposed();
     const result:
         DisposeResult = {refCountAfterDispose: null, numDisposedVariables: 0};
@@ -522,11 +533,11 @@ export abstract class Container extends Layer {
     return result;
   }
 
-  get trainable() {
+  override get trainable() {
     return this.trainable_;
   }
 
-  set trainable(trainable: boolean) {
+  override set trainable(trainable: boolean) {
     this.layers.forEach(layer => {
       // tslint:disable-next-line:no-any
       ((layer as any)._trainableWeights as LayerVariable[])
@@ -535,7 +546,7 @@ export abstract class Container extends Layer {
     this.trainable_ = trainable;
   }
 
-  get trainableWeights(): LayerVariable[] {
+  override get trainableWeights(): LayerVariable[] {
     // Porting Note: This check below is to prevent errors where the
     //   _trainableWeights inherited from the parent class (Layer) gets
     //   inadvertently used.
@@ -557,7 +568,7 @@ export abstract class Container extends Layer {
     return weights;
   }
 
-  get nonTrainableWeights(): LayerVariable[] {
+  override get nonTrainableWeights(): LayerVariable[] {
     const weights: LayerVariable[] = [];
     for (const layer of this.layers) {
       weights.push(...layer.nonTrainableWeights);
@@ -572,7 +583,7 @@ export abstract class Container extends Layer {
     return weights;
   }
 
-  get weights(): LayerVariable[] {
+  override get weights(): LayerVariable[] {
     return this.trainableWeights.concat(this.nonTrainableWeights);
   }
 
@@ -594,12 +605,22 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
+    const modelIsKerasSavedModelFormat = isKerasSavedModelFormat(weights);
+    if (modelIsKerasSavedModelFormat) {
+      this.parseWeights(weights);
+    }
+    // Check if weights from keras v3.
     for (const layer of this.layers) {
-      for (const weight of layer.weights) {
-        if (nameToWeight[weight.originalName] != null) {
-          throw new ValueError(`Duplicate weight name: ${weight.originalName}`);
+      for (const [index, weight] of layer.weights.entries()) {
+        // Parse the name to layerName/index.
+        // e.g. dense/0, dense/1, dense_1/0, dense_1/1
+        const parsedName = modelIsKerasSavedModelFormat ?
+            `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
+            weight.originalName;
+        if (nameToWeight[parsedName] != null) {
+          throw new ValueError(`Duplicate weight name: ${parsedName}`);
         }
-        nameToWeight[weight.originalName] = weight;
+        nameToWeight[parsedName] = weight;
         totalWeightsCount++;
       }
     }
@@ -640,6 +661,33 @@ export abstract class Container extends Layer {
     }
 
     batchSetValue(weightValueTuples);
+  }
+
+  protected parseWeights(weights: NamedTensorMap) {
+    for (const key in Object.keys(weights)) {
+      const listParts = key.split('/');
+      const list = ['vars', 'layer_checkpoint_dependencies'];
+      // For keras v3, the weights name are saved based on the folder structure.
+      // e.g. _backbone/_layer_checkpoint_dependencies/transformer/_self../
+      // _output_dense/vars/0
+      // Therefore we discard the `vars` and `layer_checkpoint_depencies` within
+      // the saved name and only keeps the layer name and weights.
+      // This can help to mapping the actual name of the layers and load each
+      // weight accordingly.
+      const newKey = listParts
+                         .map(str => {
+                           if (str.startsWith('_')) {
+                             return str.slice(1);
+                           }
+                           return str;
+                         })
+                         .filter(str => !list.includes(str))
+                         .join('/');
+      if (newKey !== key) {
+        weights[newKey] = weights[key];
+        delete weights[key];
+      }
+    }
   }
 
   /**
@@ -688,7 +736,7 @@ export abstract class Container extends Layer {
    * @return A tensor if there is a single output, or a list of tensors if there
    *   are more than one outputs.
    */
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       inputs = generic_utils.toList(inputs);
       const feedDict = new FeedDict();
@@ -708,7 +756,7 @@ export abstract class Container extends Layer {
    * @return null or a tensor (or list of tensors, one per output tensor of the
    * layer).
    */
-  computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
+  override computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
       |Tensor[] {
     return tidy(() => {
       inputs = generic_utils.toList(inputs);
@@ -732,7 +780,7 @@ export abstract class Container extends Layer {
    *   (one per output tensor of the layer). Shape tuples can include null for
    *   free dimensions, instead of an integer.
    */
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     const inputShapes = types_utils.normalizeShapeList(inputShape);
     if (inputShapes.length !== this.inputLayers.length) {
       throw new ValueError(
@@ -972,27 +1020,37 @@ export abstract class Container extends Layer {
    *    subclasses: ['LayersModel']
    * }
    */
-  getLayer(name?: string, index?: number): Layer {
+  getLayer(name: string): Layer;
+  getLayer(index: number): Layer;
+  getLayer(name: string, index: number): Layer;
+  getLayer(nameOrIndex?: string|number, index?: number): Layer {
     if (index != null) {
-      if (this.layers.length <= index) {
-        throw new ValueError(
-            `Was asked to retrieve layer at index ${index}, but model only ` +
-            `has ${this.layers.length} layer(s).`);
-      } else {
-        return this.layers[index];
-      }
+      return this.findLayer(index);
     } else {
-      if (name == null) {
+      if (nameOrIndex == null) {
         throw new ValueError('Provide either a layer name or layer index');
+      }
+      if (typeof nameOrIndex === 'number') {
+        return this.findLayer(nameOrIndex);
       }
     }
 
     for (const layer of this.layers) {
-      if (layer.name === name) {
+      if (layer.name === nameOrIndex) {
         return layer;
       }
     }
-    throw new ValueError(`No such layer: ${name}`);
+    throw new ValueError(`No such layer: ${nameOrIndex}`);
+  }
+
+  findLayer(index: number): Layer {
+    if (this.layers.length <= index) {
+      throw new ValueError(
+          `Was asked to retrieve layer at index ${index}, but model only ` +
+          `has ${this.layers.length} layer(s).`);
+    } else {
+      return this.layers[index];
+    }
   }
 
   /**
@@ -1000,7 +1058,7 @@ export abstract class Container extends Layer {
    *
    * Used for regularizers during training.
    */
-  calculateLosses(): Scalar[] {
+  override calculateLosses(): Scalar[] {
     // Porting Node: This is an augmentation to Container.loss in PyKeras.
     //   In PyKeras, Container.loss returns symbolic tensors. Here a concrete
     //   Tensor (specifically Scalar) values are returned. This is due to the
@@ -1021,7 +1079,7 @@ export abstract class Container extends Layer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {name: this.name};
 
     // Build a map from layer unique name (self._node_key)
@@ -1136,7 +1194,7 @@ export abstract class Container extends Layer {
    * @throws ValueError: In case of improperly formatted config dict.
    */
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
+  static override fromConfig<T extends serialization.Serializable>(
       cls: serialization.SerializableConstructor<T>,
       config: serialization.ConfigDict,
       customObjects = {} as serialization.ConfigDict,
@@ -1284,7 +1342,7 @@ export abstract class Container extends Layer {
    * Porting Note: this is the equivalent of the stateful @property of
    *   the Container class in PyKeras.
    */
-  get stateful(): boolean {
+  override get stateful(): boolean {
     // Porting Note: This check is to prevent inadvertent setting of the
     //   _stateful property of the Container instance.
     if (this._stateful) {
@@ -1307,7 +1365,7 @@ export abstract class Container extends Layer {
    * Examples of stateful layers include RNN layers whose `stateful` property
    * is set as `true`.
    */
-  resetStates() {
+  override resetStates() {
     tidy(() => {
       this.layers.forEach(layer => {
         // tslint:disable:no-any

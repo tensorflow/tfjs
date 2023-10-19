@@ -18,9 +18,9 @@
 import {backend_util, buffer, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, Rank, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {GatherProgram} from '../gather_webgpu';
 import {gatherV2ImplCPU} from '../kernel_utils/shared';
 
-import {GatherProgram} from '../gather_webgpu';
 import {reshape} from './Reshape';
 
 export function gatherV2(
@@ -68,16 +68,16 @@ export function gatherV2(
   ];
 
   if (backend.shouldExecuteOnCPU([x, indices])) {
-    const indicesBufferInfo = backend.tensorMap.get(flattenIndex.dataId);
-    const indicesValues = indicesBufferInfo.values as TypedArray;
-    const indicesBuf =
+    const indicesTensorData = backend.tensorMap.get(flattenIndex.dataId);
+    const indicesValues = indicesTensorData.values as TypedArray;
+    const indicesBuffer =
         buffer(flattenIndex.shape, flattenIndex.dtype, indicesValues) as
         TensorBuffer<Rank>;
-    const xBufferInfo = backend.tensorMap.get(flattenX.dataId);
-    const xValues = xBufferInfo.values as TypedArray;
-    const xBuf =
+    const flattenXTensorData = backend.tensorMap.get(flattenX.dataId);
+    const xValues = flattenXTensorData.values as TypedArray;
+    const xBuffer =
         buffer(flattenX.shape, flattenX.dtype, xValues) as TensorBuffer<Rank>;
-    const outBuf = gatherV2ImplCPU(xBuf, indicesBuf, flattenOutputShape);
+    const outBuf = gatherV2ImplCPU(xBuffer, indicesBuffer, flattenOutputShape);
 
     toDispose.forEach(t => backend.disposeData(t.dataId));
 
@@ -99,5 +99,5 @@ export function gatherV2(
 export const gatherV2Config: KernelConfig = {
   kernelName: GatherV2,
   backendName: 'webgpu',
-  kernelFunc: gatherV2 as {} as KernelFunc
+  kernelFunc: gatherV2 as unknown as KernelFunc
 };

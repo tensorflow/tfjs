@@ -32,9 +32,9 @@ export function slice(
   slice_util.assertParamsValid(x, $begin, $size);
 
   if (backend.shouldExecuteOnCPU([x]) || x.dtype === 'string') {
-    const xBufferInfo = backend.tensorMap.get(x.dataId);
+    const xTensorData = backend.tensorMap.get(x.dataId);
     const outValues = sliceImplCPU(
-        xBufferInfo.values as TypedArray, $begin, $size, x.shape, x.dtype);
+        xTensorData.values as TypedArray, $begin, $size, x.shape, x.dtype);
     return backend.makeTensorInfo($size, x.dtype, outValues);
   }
 
@@ -51,5 +51,5 @@ export function slice(
 export const sliceConfig: KernelConfig = {
   kernelName: Slice,
   backendName: 'webgpu',
-  kernelFunc: slice as {} as KernelFunc
+  kernelFunc: slice as unknown as KernelFunc
 };

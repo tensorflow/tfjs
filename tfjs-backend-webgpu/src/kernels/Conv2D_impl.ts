@@ -20,6 +20,7 @@ import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from '../conv2d_naive_webgpu';
+import {Im2ColProgram} from '../im2col_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
@@ -169,6 +170,108 @@ function conv2dByMatMul({
   return out;
 }
 
+// Implements the im2col algorithm as outlined in "High Performance
+// Convolutional Neural Networks for Document Processing" (Suvisoft, 2006)
+function conv2dWithIm2Col({
+  x,
+  filter,
+  convInfo,
+  backend,
+  bias = null,
+  preluActivationWeights = null,
+  leakyreluAlpha = 0,
+  activation = null
+}: Conv2DConfig) {
+  // Rearranges conv2d input so each block to be convolved over forms the
+  // row of a new matrix with shape [outHeight * outWidth,
+  // filterWidth * filterHeight * inChannels]. The filter is also rearranged so
+  // each output channel forms a col of a new matrix with shape [
+  // filterWidth * filterHeight * inChannels, outChannels]. The convolution is
+  // then computed by multiplying these matrices and reshaping the result.
+  const {
+    filterWidth,
+    filterHeight,
+    inChannels,
+    strideWidth,
+    strideHeight,
+    padInfo,
+    outWidth,
+    outHeight,
+    dilationWidth,
+    dilationHeight,
+    dataFormat
+  } = convInfo;
+
+  const isChannelsLast = dataFormat === 'channelsLast';
+
+  const sharedDim = filterWidth * filterHeight * inChannels;
+  const numCols = outHeight * outWidth;
+  const x2ColShape = isChannelsLast ? [convInfo.batchSize, numCols, sharedDim] :
+                                      [convInfo.batchSize, sharedDim, numCols];
+
+  const im2ColProgram = new Im2ColProgram(x2ColShape, isChannelsLast);
+  const dimensions = [
+    {type: 'int32', data: [padInfo.top, padInfo.left]},      // Padding.
+    {type: 'int32', data: [strideHeight, strideWidth]},      // Stride.
+    {type: 'int32', data: [dilationHeight, dilationWidth]},  // Dilation.
+    {type: 'int32', data: [outWidth]},
+    {type: 'int32', data: [inChannels * filterWidth]},  // itemsPerBlockRow.
+    {type: 'int32', data: [inChannels]}
+  ];
+  const x2Col =
+      backend.runWebGPUProgram(im2ColProgram, [x], x.dtype, dimensions);
+
+  const intermediates: TensorInfo[] = [];
+  intermediates.push(x2Col);
+
+  const filterReshaped = reshape(
+      {inputs: {x: filter}, backend, attrs: {shape: [1, sharedDim, -1]}});
+  intermediates.push(filterReshaped);
+
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
+  }
+
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
+  }
+
+  const transposeA = isChannelsLast ? false : true;
+  const transposeB = false;
+  const result = batchMatMulImpl({
+    a: isChannelsLast ? x2Col : filterReshaped,
+    b: isChannelsLast ? filterReshaped : x2Col,
+    transposeA,
+    transposeB,
+    backend,
+    bias,
+    activation,
+    preluActivationWeights,
+    leakyreluAlpha
+  });
+  const out = reshape(
+      {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+  intermediates.push(result);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
+
+  return out;
+}
+
 export function conv2DImpl({
   x,
   filter,
@@ -207,6 +310,28 @@ export function conv2DImpl({
     });
   }
 
+  const thresholdFlagValue =
+      env().getNumber('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL');
+  const thresholdToIncreaseWorkgroups = thresholdFlagValue > -1 ?
+      thresholdFlagValue :
+      backend.thresholdToIncreaseWorkgroups;
+  const workgroupsBy32x32 = convInfo.batchSize *
+      Math.ceil((convInfo.outHeight * convInfo.outWidth) / 32) *
+      Math.ceil(convInfo.outChannels / 32);
+  if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') ||
+      workgroupsBy32x32 <= thresholdToIncreaseWorkgroups) {
+    return conv2dWithIm2Col({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      preluActivationWeights,
+      leakyreluAlpha,
+      activation
+    });
+  }
+
   let program: WebGPUProgram;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
@@ -229,9 +354,11 @@ export function conv2DImpl({
         {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
         {type: 'int32', data: [dimInner]});
 
+    // Experiments show that sequential access is more friendly for Intel GPUs.
+    const sequentialAccessByThreads = backend.adapterInfo.isIntel();
     program = new Conv2DMMProgram(
         convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-        hasPreluActivationWeights);
+        hasPreluActivationWeights, sequentialAccessByThreads);
   }
 
   const intermediates: TensorInfo[] = [];

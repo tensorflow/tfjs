@@ -70,7 +70,10 @@ export function getWebGLContext(
 }
 
 function createCanvas(webGLVersion: number) {
-  if (typeof OffscreenCanvas !== 'undefined' && webGLVersion === 2) {
+  // Use canvas element for Safari, since its offscreen canvas does not support
+  // fencing.
+  if (!env().getBool('IS_SAFARI') && typeof OffscreenCanvas !== 'undefined' &&
+      webGLVersion === 2) {
     return new OffscreenCanvas(300, 150);
   } else if (typeof document !== 'undefined') {
     return document.createElement('canvas');
@@ -98,9 +101,12 @@ function getWebGLRenderingContext(
   }
 
   if (webGLVersion === 1) {
-    return (canvas.getContext('webgl', WEBGL_ATTRIBUTES) ||
-            canvas.getContext('experimental-webgl', WEBGL_ATTRIBUTES)) as
-        WebGLRenderingContext;
+    return (
+        // tslint:disable-next-line
+        canvas.getContext('webgl', WEBGL_ATTRIBUTES) as WebGLRenderingContext ||
+        (canvas as HTMLCanvasElement)
+            .getContext('experimental-webgl',
+                        WEBGL_ATTRIBUTES) as WebGLRenderingContext);
   }
   return canvas.getContext('webgl2', WEBGL_ATTRIBUTES) as WebGLRenderingContext;
 }

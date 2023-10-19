@@ -26,7 +26,7 @@ function getBrowserStackConfig() {
     hostname: 'bs-local.com',
     plugins: ['karma-jasmine', 'karma-browserstack-launcher'],
     reporters: ['progress', 'BrowserStack'],
-    port: 9812,
+    port: 9200,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
@@ -66,7 +66,12 @@ module.exports = function(config) {
     if (config.localBuild?.includes(name)) {
       return `../../../dist/bin/${url}`;
     } else {
-      return `https://unpkg.com/@tensorflow/${url.replace('/', '@latest/')}`;
+      if (config.npmVersion){
+        let version = config.npmVersion;
+        return `https://unpkg.com/@tensorflow/${url.replace('/', '@' + version + '/')}`;
+      } else {
+        return `https://unpkg.com/@tensorflow/${url.replace('/', '@latest/')}`;
+      }
     }
   });
 
@@ -75,7 +80,6 @@ module.exports = function(config) {
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@latest/dist/speech-commands.min.js',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@latest/dist/posenet.min.js',
     'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@latest/dist/body-pix.min.js',
-    'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@latest/dist/pose-detection.min.js',
     {pattern: './benchmark_parameters.json', included: false, served: true},
     '../util.js', '../benchmark_util.js', '../model_config.js',
     'benchmark_models.js'

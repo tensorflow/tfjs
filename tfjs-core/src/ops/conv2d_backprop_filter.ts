@@ -88,8 +88,8 @@ function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             Conv2DBackpropFilter, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+             Conv2DBackpropFilter, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const conv2DBackpropFilter = op({conv2DBackpropFilter_});
+export const conv2DBackpropFilter = /* @__PURE__ */ op({conv2DBackpropFilter_});

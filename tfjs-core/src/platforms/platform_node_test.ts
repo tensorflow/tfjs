@@ -16,11 +16,11 @@
  */
 
 import * as tf from '../index';
-import {describeWithFlags, NODE_ENVS} from '../jasmine_util';
 import * as platform_node from './platform_node';
 import {PlatformNode} from './platform_node';
+import * as vm from 'node:vm';
 
-describeWithFlags('PlatformNode', NODE_ENVS, () => {
+describe('PlatformNode', () => {
   it('fetch should use global.fetch if defined', async () => {
     const globalFetch = tf.env().global.fetch;
 
@@ -124,5 +124,34 @@ describeWithFlags('PlatformNode', NODE_ENVS, () => {
         'utf8');
     expect(s.length).toBe(6);
     expect(s).toEqual('Здраво');
+  });
+
+  describe('isTypedArray', () => {
+    let platform: PlatformNode;
+    beforeEach(() => {
+      platform = new PlatformNode();
+    });
+
+    it('returns false if not a typed array', () => {
+      expect(platform.isTypedArray([1, 2, 3])).toBeFalse();
+    });
+
+    for (const typedArrayConstructor of [Float32Array, Int32Array, Uint8Array,
+                                         Uint8ClampedArray]) {
+      it(`returns true if it is a ${typedArrayConstructor.name}`,
+         () => {
+           const array = new typedArrayConstructor([1,2,3]);
+           expect(platform.isTypedArray(array)).toBeTrue();
+         });
+    }
+
+    it('works on values created in a new node context', async () => {
+      const array = await new Promise((resolve) => {
+        const code = `resolve(new Uint8Array([1, 2, 3]));`;
+        vm.runInNewContext(code, {resolve});
+      });
+
+      expect(platform.isTypedArray(array)).toBeTrue();
+    });
   });
 });

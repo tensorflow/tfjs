@@ -110,11 +110,11 @@ tfjs_web_test(
         "//tfjs-core/src:tfjs-core_test_bundle",
     ],
     browsers = [
+        "bs_android_10",
         "bs_chrome_mac",
         "bs_firefox_mac",
-        "bs_safari_mac",
         "bs_ios_12",
-        "bs_android_9",
+        "bs_safari_mac",
         "win_10_chrome",
     ],
     static_files = [

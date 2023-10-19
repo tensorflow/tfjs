@@ -25,7 +25,7 @@ export const uniqueConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as UniqueInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis = 0} = args.attrs as {} as UniqueAttrs;
+    const {axis = 0} = args.attrs as unknown as UniqueAttrs;
 
     const axisTensor = tensor1d([axis], 'int32');
 

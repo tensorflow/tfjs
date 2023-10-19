@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '../environment';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 
 import {PlatformBrowser} from './platform_browser';
@@ -87,4 +88,78 @@ describeWithFlags('PlatformBrowser', BROWSER_ENVS, async () => {
     expect(s.length).toBe(6);
     expect(s).toEqual('Здраво');
   });
+});
+
+describeWithFlags('setTimeout', BROWSER_ENVS, () => {
+  const totalCount = 100;
+  // Skip the first few samples because the browser does not clamp the timeout
+  const skipCount = 5;
+
+  it('setTimeout', (done) => {
+    let count = 0;
+    let startTime = performance.now();
+    let totalTime = 0;
+    setTimeout(_testSetTimeout, 0);
+
+    function _testSetTimeout() {
+      const endTime = performance.now();
+      count++;
+      if (count > skipCount) {
+        totalTime += endTime - startTime;
+      }
+      if (count === totalCount) {
+        const averageTime = totalTime / (totalCount - skipCount);
+        console.log(`averageTime of setTimeout is ${averageTime} ms`);
+        expect(averageTime).toBeGreaterThan(4);
+        done();
+        return;
+      }
+      startTime = performance.now();
+      setTimeout(_testSetTimeout, 0);
+    }
+  });
+
+  it('setTimeoutCustom', (done) => {
+    let count = 0;
+    let startTime = performance.now();
+    let totalTime = 0;
+    let originUseSettimeoutcustom: boolean;
+
+    originUseSettimeoutcustom = env().getBool('USE_SETTIMEOUTCUSTOM');
+    env().set('USE_SETTIMEOUTCUSTOM', true);
+    env().platform.setTimeoutCustom(_testSetTimeoutCustom, 0);
+
+    function _testSetTimeoutCustom() {
+      const endTime = performance.now();
+      count++;
+      if (count > skipCount) {
+        totalTime += endTime - startTime;
+      }
+      if (count === totalCount) {
+        const averageTime = totalTime / (totalCount - skipCount);
+        console.log(`averageTime of setTimeoutCustom is ${averageTime} ms`);
+        expect(averageTime).toBeLessThan(4);
+        done();
+        env().set('USE_SETTIMEOUTCUSTOM', originUseSettimeoutcustom);
+        return;
+      }
+      startTime = performance.now();
+      env().platform.setTimeoutCustom(_testSetTimeoutCustom, 0);
+    }
+  });
+
+  it('isTypedArray returns false if not a typed array', () => {
+    const platform = new PlatformBrowser();
+    expect(platform.isTypedArray([1, 2, 3])).toBeFalse();
+  });
+
+  for (const typedArrayConstructor of [Float32Array, Int32Array, Uint8Array,
+      Uint8ClampedArray]) {
+    it(`isTypedArray returns true if it is a ${typedArrayConstructor.name}`,
+       () => {
+         const platform = new PlatformBrowser();
+         const array = new typedArrayConstructor([1,2,3]);
+         expect(platform.isTypedArray(array)).toBeTrue();
+       });
+  }
 });

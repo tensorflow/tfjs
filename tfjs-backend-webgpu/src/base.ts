@@ -24,10 +24,6 @@ import {isWebGPUSupported} from './webgpu_util';
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
-    // Remove it once we figure out how to correctly read the tensor data
-    // before the tensor is disposed in profiling mode.
-    env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
-
     const gpuDescriptor: GPURequestAdapterOptions = {
       powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ?
           'low-power' :
@@ -35,22 +31,34 @@ if (isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    const adapterLimits = adapter.limits;
     const deviceDescriptor: GPUDeviceDescriptor = {};
-    const supportTimeQuery = adapter.features.has('timestamp-query');
+
+    const requiredFeatures = [];
+    if (adapter.features.has('timestamp-query')) {
+      requiredFeatures.push('timestamp-query');
+    }
+    if (adapter.features.has('bgra8unorm-storage')) {
+      requiredFeatures.push(['bgra8unorm-storage']);
+    }
+    deviceDescriptor.requiredFeatures =
+        requiredFeatures as Iterable<GPUFeatureName>;
+
+    const adapterLimits = adapter.limits;
     deviceDescriptor.requiredLimits = {
       'maxComputeWorkgroupStorageSize':
           adapterLimits.maxComputeWorkgroupStorageSize,
       'maxComputeWorkgroupsPerDimension':
           adapterLimits.maxComputeWorkgroupsPerDimension,
       'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
+      'maxBufferSize': adapterLimits.maxBufferSize,
+      'maxComputeWorkgroupSizeX': adapterLimits.maxComputeWorkgroupSizeX,
+      'maxComputeInvocationsPerWorkgroup':
+          adapterLimits.maxComputeInvocationsPerWorkgroup,
     };
 
-    if (supportTimeQuery) {
-      deviceDescriptor.requiredFeatures = ['timestamp-query'];
-    }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device);
+    const adapterInfo = await adapter.requestAdapterInfo();
+    return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }
 

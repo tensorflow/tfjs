@@ -23,11 +23,18 @@ import {BrowserLocalStorage, BrowserLocalStorageManager} from '../io/local_stora
 import {ModelStoreManagerRegistry} from '../io/model_management';
 
 import {Platform} from './platform';
+import {isTypedArrayBrowser} from './is_typed_array_browser';
 
 export class PlatformBrowser implements Platform {
   // According to the spec, the built-in encoder can do only UTF-8 encoding.
   // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
   private textEncoder: TextEncoder;
+
+  // For setTimeoutCustom
+  private readonly messageName = 'setTimeoutCustom';
+  private functionRefs: Function[] = [];
+  private handledMessageCount = 0;
+  private hasEventListener = false;
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
@@ -49,6 +56,45 @@ export class PlatformBrowser implements Platform {
   }
   decode(bytes: Uint8Array, encoding: string): string {
     return new TextDecoder(encoding).decode(bytes);
+  }
+
+  // If the setTimeout nesting level is greater than 5 and timeout is less
+  // than 4ms, timeout will be clamped to 4ms, which hurts the perf.
+  // Interleaving window.postMessage and setTimeout will trick the browser and
+  // avoid the clamp.
+  setTimeoutCustom(functionRef: Function, delay: number): void {
+    if (typeof window === 'undefined' ||
+        !env().getBool('USE_SETTIMEOUTCUSTOM')) {
+      setTimeout(functionRef, delay);
+      return;
+    }
+
+    this.functionRefs.push(functionRef);
+    setTimeout(() => {
+      window.postMessage(
+          {name: this.messageName, index: this.functionRefs.length - 1}, '*');
+    }, delay);
+
+    if (!this.hasEventListener) {
+      this.hasEventListener = true;
+      window.addEventListener('message', (event: MessageEvent) => {
+        if (event.source === window && event.data.name === this.messageName) {
+          event.stopPropagation();
+          const functionRef = this.functionRefs[event.data.index];
+          functionRef();
+          this.handledMessageCount++;
+          if (this.handledMessageCount === this.functionRefs.length) {
+            this.functionRefs = [];
+            this.handledMessageCount = 0;
+          }
+        }
+      }, true);
+    }
+  }
+
+  isTypedArray(a: unknown): a is Uint8Array | Float32Array | Int32Array
+    | Uint8ClampedArray {
+    return isTypedArrayBrowser(a);
   }
 }
 

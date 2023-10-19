@@ -30,6 +30,7 @@ tfjs-layers/integration/typescript/yarn.lock
 e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
 e2e/integration_tests/metadata
+e2e/integration_tests/graph_model_golden_data/*.golden.json
 e2e/scripts/storage
 e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
@@ -66,6 +67,11 @@ yarn-error.log
 cloudbuild_generated.yml
 wasm-dist/
 .firebase/
+
+# e2e custom modules
+e2e/custom_module/blazeface/custom_tfjs_blazeface
+e2e/custom_module/dense_model/custom_tfjs
+e2e/custom_module/universal_sentence_encoder/custom_tfjs
 
 # User-specific .bazelrc
 .bazelrc.user

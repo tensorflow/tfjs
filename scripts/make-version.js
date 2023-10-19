@@ -19,9 +19,10 @@
 // Where DIR_NAME is the directory name for the package you want to make a
 // version for.
 const fs = require('fs');
+const path = require('path');
 
 const dirName = process.argv[2];
-const packageJsonFile = dirName + '/package.json';
+const packageJsonFile = path.join(dirName, 'package.json');
 if (!fs.existsSync(packageJsonFile)) {
   console.log(
       packageJsonFile, 'does not exist. Please call this script as follows:');
@@ -38,7 +39,7 @@ const version = '${version}';
 export {version};
 `
 
-fs.writeFile(dirName + '/src/version.ts', versionCode, err => {
+fs.writeFile(path.join(dirName, 'src/version.ts'), versionCode, err => {
   if (err) {
     throw new Error(`Could not save version file ${version}: ${err}`);
   }
@@ -53,7 +54,8 @@ version = '${version}'
 `;
 
   fs.writeFile(
-      dirName + '/python/tensorflowjs/version.py', pipVersionCode, err => {
+      path.join(dirName, '/python/tensorflowjs/version.py'),
+      pipVersionCode, err => {
         if (err != null) {
           throw new Error(`Could not save pip version file ${version}: ${err}`);
         }
@@ -61,10 +63,10 @@ version = '${version}'
             `Version file for pip version ${version} saved sucessfully.`);
       });
 
-  const buildFilename = dirName + '/python/BUILD';
+  const buildFilename = path.join(dirName, '/python/BUILD.bazel');
   fs.readFile(buildFilename, 'utf-8', function(err, data) {
     if (err != null) {
-      throw new Error(`Could not update the BUILD file: ${err}`);
+      throw new Error(`Could not update the BUILD.bazel file: ${err}`);
     }
 
     const newValue = data.replace(
@@ -72,6 +74,6 @@ version = '${version}'
     fs.writeFileSync(buildFilename, newValue, 'utf-8');
 
     console.log(
-        `pip version ${version} for BUILD file is updated sucessfully.`);
+        `pip version ${version} for BUILD.bazel file is updated sucessfully.`);
   });
 }

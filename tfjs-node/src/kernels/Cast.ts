@@ -25,7 +25,7 @@ export const castConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as CastInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {dtype} = args.attrs as {} as CastAttrs;
+    const {dtype} = args.attrs as unknown as CastAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('SrcT', x.dtype),

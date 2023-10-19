@@ -17,9 +17,10 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source, matMulReadFnSource} from './matmul_packed_webgpu';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {atomicAddSnippet} from './shader_util';
+import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MatMulSplitKProgram implements WebGPUProgram {
@@ -29,31 +30,28 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [8, 8, 1];
+  workgroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
   atomic = true;
-  batchAEqualOne: boolean;
-  batchBEqualOne: boolean;
-  isVec4 = false;
+  outputComponent: number;
   splitedDimInner = 128;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
-      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false) {
+      transposeA = false, transposeB = false) {
     util.assert(
         outputShape[0] === 1,
         () => 'MatMulSplitKProgram only supports batch = 1.');
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
-    this.isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
-                   !transposeA && dimInner % 4 === 0) &&
+    const isVec4 = (transposeA && this.outputShape[1] % 4 === 0 ||
+                    !transposeA && dimInner % 4 === 0) &&
         this.outputShape[2] % 4 === 0;
     this.elementsPerThread = [4, 4, this.splitedDimInner];
-
-    if (!this.isVec4) {
+    this.outputComponent = isVec4 ? 4 : 1;
+    if (!isVec4) {
       if (this.outputShape[1] < 16) {
         this.elementsPerThread[1] = 1;
       }
@@ -68,62 +66,42 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        this.workGroupSize, this.elementsPerThread);
+        this.workgroupSize, this.elementsPerThread);
 
     this.transposeA = transposeA;
     this.transposeB = transposeB;
-    this.batchAEqualOne = batchAEqualOne;
-    this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey =
-        `matMulSplitK_${transposeA}_${transposeB}_${batchAEqualOne}_${
-            batchBEqualOne}_${this.elementsPerThread}_${this.isVec4}`;
+    this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
+        this.elementsPerThread}_${this.outputComponent}`;
   }
 
   getUserCode(): string {
-    // atomicAdd only supports uint/int type. For float, we use
-    // atomicCompareExchangeWeak to simulate.
-    const atomicAddSnippet = (component: number) => {
-      return `
-      for (var i = 0; i < ${component}; i = i + 1)
-      {
-        var oldValue = atomicLoad(&(result[flatIndex + i]));
-        var exchanged = false;
-        for (; !exchanged;) {
-          let newValueF32 = bitcast<f32>(oldValue) + ${
-          component > 1 ? 'value[i]' : 'value'};
-          let newValue = bitcast<i32>(newValueF32);
-          let res = atomicCompareExchangeWeak(&(result[flatIndex + i]), oldValue, newValue);
-          oldValue = res.old_value;
-          exchanged = res.exchanged;
-        }
-      }
-      `;
-    };
-
-    const component = this.isVec4 ? 4 : 1;
+    const component = this.outputComponent;
     const userCode = `
       ${
         matMulReadFnSource(
-            this.batchAEqualOne, this.batchBEqualOne, false, this.transposeB,
-            false, false, false, component)}
-      fn mm_write(batch: i32, row : i32, colIn : i32, value : ${
+            false, this.transposeB, false, false, false, component)}
+      fn mm_write(batch: i32, row : i32, col : i32, value : ${
         typeSnippet(component)}) {
-        let col = colIn * ${component};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let coords = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(coords);
           // The problem is that we should initialize output to zero before using.
           // Otherwise, the original value will be added to the result.
-          ${atomicAddSnippet(component)}
+          for (var i = 0; i < ${component}; i = i + 1) {
+            ${
+        atomicAddSnippet(
+            '&result[flatIndex + i]', `${component > 1 ? 'value[i]' : 'value'}`,
+            'float32')}
+          }
         }
       }
       ${
-        this.isVec4 ? makeMatMulPackedVec4Source(
-                          this.elementsPerThread, this.workGroupSize,
-                          this.transposeA, 32, true, this.splitedDimInner) :
-                      makeMatMulPackedSource(
-                          this.elementsPerThread, this.workGroupSize,
-                          this.transposeA, 32, true, this.splitedDimInner)}
+        component === 4 ? makeMatMulPackedVec4Source(
+                              this.elementsPerThread, this.workgroupSize,
+                              this.transposeA, 32, true, this.splitedDimInner) :
+                          makeMatMulPackedSource(
+                              this.elementsPerThread, this.workgroupSize,
+                              this.transposeA, 32, true, this.splitedDimInner)}
     `;
     return userCode;
   }
@@ -136,7 +114,7 @@ export class BiasActivationProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   size = true;
   private addBias: boolean;
   private activation: backend_util.Activation;
@@ -149,7 +127,7 @@ export class BiasActivationProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     this.addBias = bias != null;
     this.hasPreluActivationWeights = preluActivationWeights != null;
     this.activation = activation;

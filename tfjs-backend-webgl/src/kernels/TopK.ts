@@ -189,5 +189,5 @@ export function topK(
 export const topKConfig: KernelConfig = {
   kernelName: TopK,
   backendName: 'webgl',
-  kernelFunc: topK as {} as KernelFunc
+  kernelFunc: topK as unknown as KernelFunc
 };

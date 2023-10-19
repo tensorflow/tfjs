@@ -20,6 +20,7 @@ import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {complex, scalar, tensor2d} from './ops/ops';
 import {inferShape} from './tensor_util_env';
 import * as util from './util';
+import {env} from './environment';
 
 describe('Util', () => {
   it('Correctly gets size from shape', () => {
@@ -133,9 +134,30 @@ describe('Util', () => {
     ];
     expect(inferShape(a, 'string')).toEqual([2, 2, 1]);
   });
+  describe('isTypedArray', () => {
+    it('checks if a value is a typed array', () => {
+      expect(util.isTypedArray(new Uint8Array([1,2,3]))).toBeTrue();
+      expect(util.isTypedArray([1,2,3])).toBeFalse();
+    });
+    it('uses fallback if platform is missing isTypedArray', () => {
+      const tmpIsTypedArray = env().platform.isTypedArray;
+      try {
+        env().platform.isTypedArray = null;
+        expect(util.isTypedArray(new Uint8Array([1,2,3]))).toBeTrue();
+        expect(util.isTypedArray([1,2,3])).toBeFalse();
+      } finally {
+        env().platform.isTypedArray = tmpIsTypedArray;
+      }
+    });
+  });
 });
 
 describe('util.flatten', () => {
+  it('empty', () => {
+    const data: number[] = [];
+    expect(util.flatten(data)).toEqual([]);
+  });
+
   it('nested number arrays', () => {
     expect(util.flatten([[1, 2, 3], [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
     expect(util.flatten([[[1, 2], [3, 4], [5, 6], [7, 8]]])).toEqual([
@@ -168,6 +190,20 @@ describe('util.flatten', () => {
       new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]),
       new Uint8Array([7, 8])
     ]);
+  });
+
+  it('Int8Array', () => {
+    const data = [new Int8Array([1, 2])];
+    expect(util.flatten(data)).toEqual([1, 2]);
+  });
+
+  it('index signature', () => {
+    const data: {[index: number]: number} = {0: 1, 1: 2};
+    // Will be ignored since array iteration ignores negatives.
+    data[-1] = -1;
+    // Will be ignored since non-integer array keys are ignored.
+    data[3.2] = 4;
+    expect(util.flatten(data)).toEqual([1, 2]);
   });
 });
 
@@ -584,8 +620,8 @@ describeWithFlags('util.toNestedArray for a complex tensor', ALL_ENVS, () => {
 
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(tf.env().platform, 'fetch').and
-      .callFake(async () => ({} as unknown as Response));
+    spyOn(tf.env().platform, 'fetch')
+        .and.callFake(async () => ({} as unknown as Response));
 
     util.fetch('test/path', {method: 'GET'});
 

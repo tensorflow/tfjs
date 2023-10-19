@@ -23,9 +23,9 @@ export const concatConfig: KernelConfig = {
   kernelName: Concat,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const tensors = args.inputs as {} as ConcatInputs;
+    const tensors = args.inputs as unknown as ConcatInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis} = args.attrs as {} as ConcatAttrs;
+    const {axis} = args.attrs as unknown as ConcatAttrs;
 
     const opAttrs = [
       {name: 'N', type: backend.binding.TF_ATTR_INT, value: tensors.length}, {

@@ -12,7 +12,7 @@
  *  Advanced activation layers.
  */
 
-import {cast, clipByValue, elu, greater, leakyRelu, mul, prelu, relu, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {add, cast, clipByValue, elu, exp, greater, leakyRelu, logSumExp, mul, ones, prelu, relu, scalar, serialization, sub, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
@@ -45,7 +45,7 @@ export class ReLU extends Layer {
     }
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = getExactlyOneTensor(inputs);
     let output = relu(inputs);
     if (this.maxValue != null) {
@@ -54,11 +54,11 @@ export class ReLU extends Layer {
     return output;
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {maxValue: this.maxValue};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -89,16 +89,16 @@ export class LeakyReLU extends Layer {
     this.alpha = args.alpha == null ? this.DEFAULT_ALPHA : args.alpha;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = getExactlyOneTensor(inputs);
     return leakyRelu(x, this.alpha);
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -169,7 +169,7 @@ export class PReLU extends Layer {
     }
   }
 
-  build(inputShape: Shape|Shape[]) {
+  override build(inputShape: Shape|Shape[]) {
     inputShape = getExactlyOneShape(inputShape);
     const paramShape: Shape = inputShape.slice(1);
     if (this.sharedAxes != null) {
@@ -194,12 +194,12 @@ export class PReLU extends Layer {
     this.built = true;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = getExactlyOneTensor(inputs);
     return prelu(inputs, this.alpha.read());
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       alphaInitializer: serializeInitializer(this.alphaInitializer),
       alphaRegularizer: serializeRegularizer(this.alphaRegularizer),
@@ -242,16 +242,16 @@ export class ELU extends Layer {
     this.alpha = args.alpha == null ? this.DEFAULT_ALPHA : args.alpha;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = getExactlyOneTensor(inputs);
     return elu(x);
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -283,16 +283,16 @@ export class ThresholdedReLU extends Layer {
     this.theta = args.theta == null ? this.DEFAULT_THETA : args.theta;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = getExactlyOneTensor(inputs);
     return mul(x, cast(greater(x, this.theta), 'float32'));
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {theta: this.theta};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -306,13 +306,13 @@ export declare interface SoftmaxLayerArgs extends LayerArgs {
    * Integer, axis along which the softmax normalization is applied.
    * Defaults to `-1` (i.e., the last axis).
    */
-  axis?: number;
+  axis?: number|number[];
 }
 
 export class Softmax extends Layer {
   /** @nocollapse */
   static className = 'Softmax';
-  readonly axis: number;
+  readonly axis: number|number[];
   readonly softmax: (t: Tensor, a?: number) => Tensor;
   readonly DEFAULT_AXIS = 1.0;
 
@@ -325,16 +325,38 @@ export class Softmax extends Layer {
     this.axis = args.axis == null ? this.DEFAULT_AXIS : args.axis;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = getExactlyOneTensor(inputs);
-    return this.softmax(x, this.axis);
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    // TODO(pforderique): Add tests for when `this.axis` is a number[].
+    return tidy(() => {
+      let x = getExactlyOneTensor(inputs);
+      const mask = kwargs['mask'] as Tensor;
+      if (mask != null) {
+        // Since mask is 1.0 for positions we want to keep and 0.0 for masked
+        // positions, this operation will create a tensor which is 0.0 for
+        // positions we want to attend and -1e.9 for masked positions.
+        const adder =
+          mul(sub(ones(x.shape), cast(mask, x.dtype)), scalar(-1e9));
+
+        // Since we are adding it to the raw scores before the softmax, this
+        // is effectively the same as removing these entirely.
+        x = add(x, adder);
+      }
+      if (this.axis instanceof Array) {
+        if (this.axis.length > 1) {
+          return exp(sub(x, logSumExp(x, this.axis, true)));
+        } else {
+          return this.softmax(x, this.axis[0]);
+        }
+      }
+      return this.softmax(x, this.axis);
+    });
   }
 
-  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+  override computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {axis: this.axis};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);

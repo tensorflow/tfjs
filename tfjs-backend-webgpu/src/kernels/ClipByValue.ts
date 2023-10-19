@@ -47,5 +47,5 @@ export function clipByValue(args: {
 export const clipByValueConfig: KernelConfig = {
   kernelName: ClipByValue,
   backendName: 'webgpu',
-  kernelFunc: clipByValue as {} as KernelFunc
+  kernelFunc: clipByValue as unknown as KernelFunc
 };

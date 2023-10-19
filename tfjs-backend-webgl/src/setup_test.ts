@@ -22,19 +22,28 @@ import './index';
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
-import {registerTestEnvs} from './backend_webgl_test_registry';
+
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {registerTestEnvs} from './backend_webgl_test_registry';
 
 registerTestEnvs();
 
 const TEST_FILTERS: TestFilter[] = [];
+
 const customInclude = (testName: string) => {
   const toExclude = [
-    'isBrowser: false', 'dilation gradient',
+    'isBrowser: false',
+    'dilation gradient',
     'throws when index is out of bound',
     // otsu tests for threshold op is failing on windows
-    'method otsu'
+    'method otsu',
+    'draw on canvas context',
+    // https://github.com/tensorflow/tfjs/issues/7618
+    'numbers exceed float32 precision',
+    // float32 inputs with nonzero fractional part should not be rounded
+    'floorDiv float32',
   ];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {

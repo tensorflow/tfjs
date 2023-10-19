@@ -67,5 +67,5 @@ export function transform(args: {
 export const transformConfig: KernelConfig = {
   kernelName: Transform,
   backendName: 'webgpu',
-  kernelFunc: transform as {} as KernelFunc
+  kernelFunc: transform as unknown as KernelFunc
 };

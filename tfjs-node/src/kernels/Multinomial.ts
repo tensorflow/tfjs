@@ -25,7 +25,8 @@ export const multinomialConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {logits} = args.inputs as MultinomialInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {numSamples, seed, normalized} = args.attrs as {} as MultinomialAttrs;
+    const {numSamples, seed, normalized} =
+        args.attrs as unknown as MultinomialAttrs;
 
     if (normalized) {
       throw new Error(

@@ -40,6 +40,6 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'log', 'float32');
 
   const inputs: LogInputs = {x: $x};
-  return ENGINE.runKernel(Log, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Log, inputs as unknown as NamedTensorMap);
 }
-export const log = op({log_});
+export const log = /* @__PURE__ */ op({log_});

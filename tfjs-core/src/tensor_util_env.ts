@@ -17,15 +17,24 @@
 
 import {ENGINE} from './engine';
 import {env} from './environment';
-import {Tensor} from './tensor';
-import {DataType, TensorLike} from './types';
+import {getGlobalTensorClass, Tensor} from './tensor';
+import {DataType, isWebGLData, isWebGPUData, TensorLike, WebGLData, WebGPUData} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
+import {bytesPerElement} from './util_base';
 
-export function inferShape(val: TensorLike, dtype?: DataType): number[] {
+export function inferShape(
+    val: TensorLike|WebGLData|WebGPUData, dtype?: DataType): number[] {
   let firstElem: typeof val = val;
 
   if (isTypedArray(val)) {
     return dtype === 'string' ? [] : [val.length];
+  }
+
+  if (isWebGLData(val)) {
+    const usedChannels = val.channels || 'RGBA';
+    return [val.height, val.width * usedChannels.length];
+  } else if (isWebGPUData(val)) {
+    return [val.buffer.size / (dtype == null ? 4 : bytesPerElement(dtype))];
   }
   if (!Array.isArray(val)) {
     return [];  // Scalar.
@@ -89,7 +98,7 @@ function assertDtype(
 export function convertToTensor<T extends Tensor>(
     x: T|TensorLike, argName: string, functionName: string,
     parseAsDtype: DataType|'numeric'|'string_or_numeric' = 'numeric'): T {
-  if (x instanceof Tensor) {
+  if (x instanceof getGlobalTensorClass()) {
     assertDtype(parseAsDtype, x.dtype, argName, functionName);
     return x;
   }

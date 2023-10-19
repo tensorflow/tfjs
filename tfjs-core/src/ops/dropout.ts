@@ -76,4 +76,4 @@ function dropout_(
   return mul($x, multiplier);
 }
 
-export const dropout = op({dropout_});
+export const dropout = /* @__PURE__ */ op({dropout_});

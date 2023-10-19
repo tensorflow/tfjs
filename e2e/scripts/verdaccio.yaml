@@ -13,13 +13,17 @@ uplinks:
   npmjs:
     url: https://registry.npmjs.org/
 
+# Enable messaging so node can tell when verdaccio starts.
+# https://verdaccio.org/docs/verdaccio-programmatically/#using-fork-from-child_process-module
+_debug: true
+
 # Fine-grained control of package access, we set it
 # to allow all users to read and publish all packages.
 packages:
   '@tensorflow/**':
     access: $all
     publish: $all
-    # Don't set proxy to avoid accidentally publishing to npm.
+    proxy: npmjs
   '@*/*':
     access: $all
     publish: $all
@@ -33,3 +37,6 @@ packages:
 # Log settings.
 logs:
   - {type: stdout, format: pretty, level: http}
+
+listen:
+  - 127.0.0.1:4873

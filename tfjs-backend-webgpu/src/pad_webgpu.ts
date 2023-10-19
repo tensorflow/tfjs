@@ -18,6 +18,38 @@
 import {getCoordsDataType, getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
+export function padCommon(shape: number[], fillZero = false): string {
+  const rank = shape.length;
+  const type = getCoordsDataType(rank);
+  const start = shape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
+  const end = shape
+                  .map(
+                      (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
+                          rank > 1 ? `[${i}]` : ''}`)
+                  .join(',');
+  const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
+  const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
+
+  const leftPadCondition =
+      rank > 1 ? `any(paddedCoords < start)` : `paddedCoords < start`;
+  const rightPadCondition =
+      rank > 1 ? `any(paddedCoords >= end)` : `paddedCoords >= end`;
+
+  const unpackedCoords = rank > 1 ?
+      ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
+      'coords';
+  return `
+        let start = ${startValue};
+        let end = ${endValue};
+        if (${leftPadCondition} || ${rightPadCondition}) {
+          setOutputAtIndex(index, ${fillZero ? 0.0 : 'uniforms.constantValue'});
+        } else {
+          let coords = paddedCoords - start;
+          setOutputAtIndex(index, getX(${unpackedCoords}));
+        }
+  `;
+}
+
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -25,7 +57,7 @@ export class PadProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'constantValue : f32,';
-  workGroupSize: [number, number, number] = [64, 1, 1];
+  workgroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size = true;
 
@@ -34,7 +66,7 @@ export class PadProgram implements WebGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workgroupSize);
     paddings.map((_, i) => {
       this.uniforms += ` pad${i} : vec2<i32>,`;
     });
@@ -43,38 +75,11 @@ export class PadProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const rank = this.xShape.length;
-    const type = getCoordsDataType(rank);
-    // The length of paddings are same with the rank of the input tensor.
-    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
-    const end = this.xShape
-                    .map(
-                        (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
-                            rank > 1 ? `[${i}]` : ''}`)
-                    .join(',');
-    const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
-    const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
-
-    const leftPadCondition = rank > 1 ? `any(outC < start)` : `outC < start`;
-    const rightPadCondition = rank > 1 ? `any(outC >= end)` : `outC >= end`;
-
-    const unpackedCoords = rank > 1 ?
-        ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
-        'coords';
-
     const userCode = `
       ${main('index')} {
         if (index < uniforms.size) {
-          let start = ${startValue};
-          let end = ${endValue};
-          let outC = getCoordsFromIndex(index);
-
-          if (${leftPadCondition} || ${rightPadCondition}) {
-            setOutputAtIndex(index, uniforms.constantValue);
-          } else {
-            let coords = outC - start;
-            setOutputAtIndex(index, getX(${unpackedCoords}));
-          }
+          let paddedCoords = getCoordsFromIndex(index);
+          ${padCommon(this.xShape)}
         }
       }
     `;

@@ -40,6 +40,6 @@ function ceil_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'ceil', 'float32');
 
   const inputs: CeilInputs = {x: $x};
-  return ENGINE.runKernel(Ceil, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Ceil, inputs as unknown as NamedTensorMap);
 }
-export const ceil = op({ceil_});
+export const ceil = /* @__PURE__ */ op({ceil_});

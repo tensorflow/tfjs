@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataType, eye, linalg, mul, ones, randomUniform, scalar, serialization, Tensor, Tensor2D, tidy, transpose, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
+import {DataType, eye, linalg, mul, ones, randomUniform, scalar, serialization, Tensor, tidy, truncatedNormal, util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat} from './common';
@@ -94,7 +94,7 @@ export class Constant extends Initializer {
     return tidy(() => mul(scalar(this.value), ones(shape, dtype)));
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       value: this.value,
     };
@@ -128,10 +128,10 @@ export class RandomUniform extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return randomUniform(shape, this.minval, this.maxval, dtype);
+    return randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
 }
@@ -172,7 +172,7 @@ export class RandomNormal extends Initializer {
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
@@ -213,7 +213,7 @@ export class TruncatedNormal extends Initializer {
     return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
@@ -247,7 +247,7 @@ export class Identity extends Initializer {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {gain: this.gain};
   }
 }
@@ -352,11 +352,11 @@ export class VarianceScaling extends Initializer {
       return truncatedNormal(shape, 0, stddev, dtype, this.seed);
     } else {
       const limit = Math.sqrt(3 * scale);
-      return randomUniform(shape, -limit, limit, dtype);
+      return randomUniform(shape, -limit, limit, dtype, this.seed);
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       scale: this.scale,
       mode: this.mode,
@@ -374,7 +374,7 @@ export interface SeedOnlyInitializerArgs {
 
 export class GlorotUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'GlorotUniform';
+  static override className = 'GlorotUniform';
 
   /**
    * Constructor of GlorotUniform
@@ -392,7 +392,7 @@ export class GlorotUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, GlorotUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -403,7 +403,7 @@ serialization.registerClass(GlorotUniform);
 
 export class GlorotNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'GlorotNormal';
+  static override className = 'GlorotNormal';
 
   /**
    * Constructor of GlorotNormal.
@@ -421,7 +421,7 @@ export class GlorotNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, GlorotNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -432,7 +432,7 @@ serialization.registerClass(GlorotNormal);
 
 export class HeNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'HeNormal';
+  static override className = 'HeNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -443,7 +443,7 @@ export class HeNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, HeNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -454,7 +454,7 @@ serialization.registerClass(HeNormal);
 
 export class HeUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'HeUniform';
+  static override className = 'HeUniform';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -465,7 +465,7 @@ export class HeUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, HeUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -476,7 +476,7 @@ serialization.registerClass(HeUniform);
 
 export class LeCunNormal extends VarianceScaling {
   /** @nocollapse */
-  static className = 'LeCunNormal';
+  static override className = 'LeCunNormal';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -487,7 +487,7 @@ export class LeCunNormal extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, LeCunNormal is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -498,7 +498,7 @@ serialization.registerClass(LeCunNormal);
 
 export class LeCunUniform extends VarianceScaling {
   /** @nocollapse */
-  static className = 'LeCunNormal';
+  static override className = 'LeCunUniform';
 
   constructor(args?: SeedOnlyInitializerArgs) {
     super({
@@ -509,7 +509,7 @@ export class LeCunUniform extends VarianceScaling {
     });
   }
 
-  getClassName(): string {
+  override getClassName(): string {
     // In Python Keras, LeCunUniform is not a class, but a helper method
     // that creates a VarianceScaling object. Use 'VarianceScaling' as
     // class name to be compatible with that.
@@ -529,6 +529,7 @@ export class Orthogonal extends Initializer {
   /** @nocollapse */
   static className = 'Orthogonal';
   readonly DEFAULT_GAIN = 1;
+  readonly ELEMENTS_WARN_SLOW = 2000;
   protected readonly gain: number;
   protected readonly seed: number;
 
@@ -536,11 +537,6 @@ export class Orthogonal extends Initializer {
     super();
     this.gain = args.gain == null ? this.DEFAULT_GAIN : args.gain;
     this.seed = args.seed;
-
-    if (this.seed != null) {
-      throw new NotImplementedError(
-          'Random seed is not implemented for Orthogonal Initializer yet.');
-    }
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -548,26 +544,47 @@ export class Orthogonal extends Initializer {
       if (shape.length < 2) {
         throw new NotImplementedError('Shape must be at least 2D.');
       }
-      if (shape[0] * shape[1] > 2000) {
+      if (dtype !== 'int32' && dtype !== 'float32' && dtype !== undefined) {
+        throw new TypeError(`Unsupported data type ${dtype}.`);
+      }
+      dtype = dtype as 'int32' | 'float32' | undefined;
+
+      // flatten the input shape with the last dimension remaining its
+      // original shape so it works for conv2d
+      const numRows = util.sizeFromShape(shape.slice(0, -1));
+      const numCols = shape[shape.length - 1];
+      const numElements = numRows * numCols;
+      if (numElements > this.ELEMENTS_WARN_SLOW) {
         console.warn(
             `Orthogonal initializer is being called on a matrix with more ` +
-            `than 2000 (${shape[0] * shape[1]}) elements: ` +
+            `than ${this.ELEMENTS_WARN_SLOW} (${numElements}) elements: ` +
             `Slowness may result.`);
       }
+      const flatShape =
+          [Math.max(numCols, numRows), Math.min(numCols, numRows)];
 
-      // TODO(cais): Add seed support.
-      const normalizedShape =
-          shape[0] > shape[1] ? [shape[1], shape[0]] : shape;
-      const a = K.randomNormal(normalizedShape, 0, 1, 'float32') as Tensor2D;
-      let q = linalg.gramSchmidt(a) as Tensor2D;
-      if (shape[0] > shape[1]) {
-        q = transpose(q);
+      // Generate a random matrix
+      const randNormalMat = K.randomNormal(flatShape, 0, 1, dtype, this.seed);
+
+      // Compute QR factorization
+      const qr = linalg.qr(randNormalMat, false);
+      let qMat = qr[0];
+      const rMat = qr[1];
+
+      // Make Q uniform
+      const diag = rMat.flatten().stridedSlice(
+          [0], [Math.min(numCols, numRows) * Math.min(numCols, numRows)],
+          [Math.min(numCols, numRows) + 1]);
+      qMat = mul(qMat, diag.sign());
+      if (numRows < numCols) {
+        qMat = qMat.transpose();
       }
-      return mul(this.gain, q);
+
+      return mul(scalar(this.gain), qMat.reshape(shape));
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     return {
       gain: this.gain,
       seed: this.seed,

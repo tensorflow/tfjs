@@ -193,7 +193,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       };
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
       cancelAnimationFrame(this.rafID);
       if (this.glContext) {
         GLView.destroyContextAsync(this.glContext);
@@ -345,7 +345,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     /**
      * Render the component
      */
-    render() {
+    override render() {
       const { cameraLayout } = this.state;
 
       // Before passing props into the original wrapped component we want to

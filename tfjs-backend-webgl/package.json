@@ -23,26 +23,16 @@
     "@bazel/bazelisk": "^1.12.0"
   },
   "scripts": {
-    "build-ci": "yarn build",
     "build": "bazel build :tfjs-backend-webgl_pkg",
-    "bundle": "bazel build :tfjs-backend-webgl_pkg",
-    "bundle-ci": "yarn bundle",
-    "build-link-package": "cd ../link-package && yarn build",
-    "build-deps": "yarn build-link-package",
-    "build-deps-ci": "yarn build-deps",
-    "build-npm": "bazel build :tfjs-backend-webgl_pkg",
-    "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-backend-webgl_pkg.publish",
-    "test": "yarn test-dev",
-    "test-dev": "bazel test :tests --test_output=streamed",
+    "test": "bazel test :tests --test_output=streamed",
+    "test-debug": "bazel run :tests --test_output=streamed",
     "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl2_test"
   },
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "^2.4.28",
-    "@types/webgl-ext": "0.0.30",
-    "@types/webgl2": "0.0.6",
     "seedrandom": "^3.0.5"
   },
   "peerDependencies": {

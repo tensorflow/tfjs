@@ -62,7 +62,8 @@ function mean_<T extends Tensor>(
   const attrs: MeanAttrs = {axis, keepDims};
 
   return ENGINE.runKernel(
-      Mean, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      Mean, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
-export const mean = op({mean_});
+export const mean = /* @__PURE__ */ op({mean_});

@@ -18,7 +18,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 
 def _make_rollup_config_impl(ctx):
-    output_file = ctx.actions.declare_file(ctx.label.name + ".js")
+    output_file = ctx.actions.declare_file(ctx.label.name + ".mjs")
 
     # TODO(mattsoulanille): This stats file is not declared as an output
     # of any rule. It should be declared as an output of the rollup_bundle
@@ -86,12 +86,12 @@ We use the commonjs rollup plugin to load commonjs modules in rollup. This plugi
             doc = "The name of the stats file",
         ),
         "template": attr.label(
-            default = Label("@//tools:rollup_template.config.js"),
+            default = Label("@//tools:rollup_template.config.mjs"),
             allow_single_file = True,
             doc = "The karma config template to expand",
         ),
     },
-    outputs = {"config_file": "%{name}.js"},
+    outputs = {"config_file": "%{name}.mjs"},
 )
 
 def tfjs_rollup_bundle(

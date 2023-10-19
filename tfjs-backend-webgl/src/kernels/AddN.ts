@@ -32,7 +32,7 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
   }
 
   // Limit the number of uploaded textures for optimization.
-  if (tensors.length > env().get('WEBGL_MAX_TEXTURES_IN_SHADER')) {
+  if (tensors.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
     const midIndex = Math.floor(tensors.length / 2);
     const leftSide = addN({inputs: tensors.slice(0, midIndex), backend});
     const rightSide = addN({inputs: tensors.slice(midIndex), backend});
@@ -53,5 +53,5 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
 export const addNConfig: KernelConfig = {
   kernelName: AddN,
   backendName: 'webgl',
-  kernelFunc: addN as {} as KernelFunc
+  kernelFunc: addN as unknown as KernelFunc
 };

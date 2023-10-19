@@ -8,7 +8,7 @@ build --symlink_prefix=dist/
 
 # These compile flags are active no matter which build mode we are in
 # (dbg vs opt). For flags specific to build mode, see cc_toolchain_config.bzl.
-build --cxxopt="-std=c++11"
+build --cxxopt="-std=c++17"
 build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
@@ -51,25 +51,42 @@ build:ci --config=bes
 # See https://github.com/angular/angular/issues/27514.
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
+test --incompatible_strict_action_env
 
-# Don't use a sandboxed build since it hurts performance.
-# When sandboxed, the wasm backend takes hours to build on a 32 core machine.
-build --spawn_strategy=remote,worker,local
+# Use a sandboxed build where available to avoid a possible issue with the rules_nodejs linker for Linux and MacOS. b/250727292
+# Remote builds are sandboxed.
+# TODO: Regain Windows sandboxed build when https://github.com/bazelbuild/bazel/issues/5136 fixed.
+common --enable_platform_specific_config
+build:linux --spawn_strategy=dynamic,remote,sandboxed,worker,local --internal_spawn_scheduler
+build:macos --spawn_strategy=remote,sandboxed,worker,local
+build:windows --spawn_strategy=remote,worker,local
+
+# Use dynamic execution to improve remote build performance when the autoscaling
+# build pool has few machines available. https://bazel.build/remote/dynamic
+build:rbe --dynamic_local_strategy=sandboxed
 
 # Pass BrowserStack credentials
 build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
-# Platform specific DISPLAY environment variable for webgl
-test --enable_platform_specific_config
-test:linux --test_env=DISPLAY
+# Make python debugging refer to the real files instead of symlinks
+build --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+run --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+test --action_env=PYDEVD_RESOLVE_SYMLINKS=true
+
+# Platform specific DISPLAY environment variable for webgl and headless setting
+# for browser tests.
+test:linux --test_env=DISPLAY --test_env=XAUTHORITY=/run/user/1001/.mutter-Xwaylandauth.ONEU31
 test:macos --define DISPLAY=true
-test:windows --define DISPLAY=true
+test:windows --define DISPLAY=true --//:headless=false
 
 # Enable debugging tests with --config=debug
-run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
-test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
+test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=36000 --nocache_test_results
+
+test:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
+run:debugpy --test_output=streamed --test_strategy=exclusive --test_timeout=999999 --nocache_test_results
 
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with

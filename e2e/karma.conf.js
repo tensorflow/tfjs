@@ -103,10 +103,20 @@ const devConfig = {
 
 const browserstackConfig = {
   ...devConfig,
-  hostname: 'bs-local.com',
+  // TODONT: do not use `hostname: 'bs-local.com'. This is automatically changed
+  // by BrowserStack when necessary (i.e. on ios safari). Setting it manually
+  // breaks WASM file serving.
+  // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9816
+  port: 9200
 };
+
+const chromeWebgpuFlags = [
+  '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
+  '--use-webgpu-adapter=swiftshader',
+  // https://github.com/tensorflow/tfjs/issues/7631
+  '--disable-vulkan-fallback-to-gl-for-testing',
+];
 
 module.exports = function(config) {
   const args = [];
@@ -134,6 +144,10 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
+    reporters: [
+      'spec',
+      'jasmine-order',
+    ],
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
@@ -153,7 +167,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'High Sierra',
+        flags: chromeWebgpuFlags,
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
@@ -171,16 +186,16 @@ module.exports = function(config) {
       },
       bs_ios_12: {
         base: 'BrowserStack',
-        device: 'iPhone X',
-        os: 'iOS',
+        device: 'iPhone XS',
+        os: 'ios',
         os_version: '12.3',
         real_mobile: true
       },
-      bs_android_9: {
+      bs_android_10: {
         base: 'BrowserStack',
-        device: 'Google Pixel 3 XL',
+        device: 'Google Pixel 4 XL',
         os: 'android',
-        os_version: '9.0',
+        os_version: '10.0',
         real_mobile: true
       },
       win_10_chrome: {
@@ -188,7 +203,8 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: '101.0',
         os: 'Windows',
-        os_version: '10'
+        os_version: '10',
+        flags: chromeWebgpuFlags,
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},

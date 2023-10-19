@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig",
+  "extends": "../tsconfig_base.json",
   "include": [
     "src/"
   ],
@@ -7,6 +7,7 @@
     "node_modules/"
   ],
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "skipLibCheck": true
   }
 }

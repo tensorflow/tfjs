@@ -107,6 +107,11 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         // the data generated maybe outside of [min, max].
         inputTensor = tf.clipByValue(generatedRaw, min, max);
         generatedRaw.dispose();
+      } else if (inputDef.dtype === 'string') {
+        size = tf.util.sizeFromShape(inputDef.shape);
+        data = [...Array(size)].map(
+            () => Math.random().toString(36).substring(2, 7));
+        inputTensor = tf.tensor(data, inputShape, inputDef.dtype);
       } else {
         throw new Error(
             `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
@@ -175,6 +180,8 @@ function getPredictFnForModel(model, input) {
  * about the model's inference time:
  * - `times`: an array of inference time for each inference
  * - `averageTime`: the average time of all inferences
+ * - `averageTimeExclFirst`: the average time of all inferences except the
+ *    first.
  * - `minTime`: the minimum time of all inferences
  * - `maxTime`: the maximum time of all inferences
  *
@@ -211,6 +218,8 @@ async function timeModelInference(model, input, numRuns = 1) {
  * time:
  * - `times`: an array of inference time for each inference
  * - `averageTime`: the average time of all inferences
+ * - `averageTimeExclFirst`: the average time of all inferences except the
+ *    first.
  * - `minTime`: the minimum time of all inferences
  * - `maxTime`: the maximum time of all inferences
  *
@@ -245,8 +254,14 @@ async function timeInference(predict, numRuns = 1) {
   for (let i = 0; i < numRuns; i++) {
     const start = performance.now();
     const res = await predict();
-    // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
-    const value = await downloadValuesFromTensorContainer(res);
+    // Prediction from tflite backend generates in the worker thread,
+    // we don't post the result back to main thread to avoid unnecessary
+    // overhead in transferring between worker and main thread.
+    if (!isTflite()) {
+      // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]:
+      // tf.Tensor}.
+      const value = await downloadValuesFromTensorContainer(res);
+    }
     const elapsedTime = performance.now() - start;
 
     tf.dispose(res);
@@ -254,16 +269,77 @@ async function timeInference(predict, numRuns = 1) {
   }
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+  const averageTimeExclFirst = times.length > 1 ?
+      times.slice(1).reduce((acc, curr) => acc + curr, 0) / (times.length - 1) :
+      'NA';
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
   const timeInfo = {
     times,
     averageTime,
+    averageTimeExclFirst,
     minTime,
     maxTime
 
   };
   return timeInfo;
+}
+
+/**
+ * Time one model inference with parallel compilation feature, based on the
+ * current backend.
+ *
+ * The inference time contains the time spent by both `predict()` and `data()`
+ * called by tensors in the prediction.
+ *
+ * ```js
+ * // Benchmark the first infernece time with parallel compilation.
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const firstInferenceTime =
+ *    await timeFirstInference(() => model.predict(zeros), true);
+ * ```
+ *
+ * @param predict The predict function to execute and time for.
+ * @param parallelCompile The boolean value to indicate whether to use parallel
+ *     compilation. This currently only has effect for WebGL backend and WebGPU
+ * backend.
+ */
+async function timeFirstInference(predict, parallelCompile = false) {
+  const start = performance.now();
+
+  // Parallel Compile
+  if (parallelCompile && tf.getBackend() === 'webgl') {
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    const compileRes = predict();
+    tf.env().set('ENGINE_COMPILE_ONLY', false);
+    await tf.backend().checkCompileCompletionAsync();
+    tf.backend().getUniformLocations();
+    tf.dispose(compileRes);
+  } else if (parallelCompile && tf.getBackend() === 'webgpu') {
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', true);
+    const compileRes = predict();
+    tf.env().set('WEBGPU_ENGINE_COMPILE_ONLY', false);
+    await tf.backend().checkCompileCompletionAsync();
+    tf.dispose(compileRes);
+  } else if (parallelCompile && isTflite()) {
+    throw new Error('Parallel Compilation for TFlite is not supported.');
+  }
+
+  // First inference
+  let res = predict();
+  if (parallelCompile && res instanceof Promise) {
+    throw new Error(
+        'Parallel Compilation for async function is not supported.');
+  }
+  res = await res;
+  await downloadValuesFromTensorContainer(res);
+  const elapsedTime = performance.now() - start;
+
+  tf.dispose(res);
+  return elapsedTime;
 }
 
 /**
@@ -348,14 +424,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
- * @param isTflite Whether a TFLite model is being profiled or not.
  * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(
-    model, input, isTflite = false, numProfiles = 1) {
-  const predict = isTflite ? () => tfliteModel.predict(input) :
-                             getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite, numProfiles);
+async function profileModelInference(model, input, numProfiles = 1) {
+  const predict = getPredictFnForModel(model, input);
+  return profileInference(predict, false, numProfiles);
 }
 
 /**
@@ -401,7 +474,7 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (isTflite) {
     for (let i = 0; i < numProfiles; i++) {
       await predict();
-      const profileItems = tfliteModel.getProfilingResults();
+      const profileItems = await tfliteModel.getProfilingResults();
       kernelInfo.kernels = profileItems.map(item => {
         return {
           name: item.nodeType,
@@ -492,8 +565,9 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
 /**
  * Set environment flags for testing.
  *
- * This is a wrapper function of `tf.env().setFlags()` to constrain users to
- * only set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`).
+ * This will first set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`). Then
+ * set URL parameter flags. If there are overlap, URL parameter flags will
+ * override tunable flags.
  *
  * ```js
  * const flagConfig = {
@@ -509,7 +583,7 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  */
 async function setEnvFlags(flagConfig) {
   if (flagConfig == null) {
-    return;
+    return true;
   } else if (typeof flagConfig !== 'object') {
     throw new Error(
         `An object is expected, while a(n) ${typeof flagConfig} is found.`);
@@ -530,17 +604,52 @@ async function setEnvFlags(flagConfig) {
   }
 
   tf.env().setFlags(flagConfig);
+  setEnvFlagsFromUrlParameters();
 
   // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
   // initializing backends, not only inferring.
   // TODO: The following backend rebuild logics can be implemented in `setHook`
   // when registering these flags.
   if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
-    await resetBackend('wasm');
+    return await resetBackend('wasm');
   }
 
   if ('WEBGL_VERSION' in flagConfig) {
-    await resetBackend('webgl');
+    return await resetBackend('webgl');
+  }
+}
+
+/**
+ * Set flags from URL. URL should be in the format:
+ * ?tfjsflags=FLAG1:1,FLAG2:true.
+ */
+function setEnvFlagsFromUrlParameters() {
+  const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
+  const urlParams = tf.env().getQueryParams(location.search);
+  if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
+    const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
+    keyValues.forEach(keyValue => {
+      const [key, value] = keyValue.split(':');
+      try {
+        tf.env().set(key, parseValue(value));
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+}
+
+/**
+ * Converted a URL parameter to a typed value, such a boolean, number, string.
+ */
+function parseValue(value) {
+  const lowerCaseValue = value.toLowerCase();
+  if (lowerCaseValue === 'true' || lowerCaseValue === 'false') {
+    return lowerCaseValue === 'true';
+  } else if (`${+ lowerCaseValue}` === lowerCaseValue) {
+    return +lowerCaseValue;
+  } else {
+    return value;
   }
 }
 
@@ -564,6 +673,36 @@ async function resetBackend(backendName) {
   }
 
   if (currentBackend === backendName) {
-    await tf.setBackend(backendName);
+    const isSuccessful = await tf.setBackend(backendName);
+    if (!isSuccessful) {
+      showMsg(`Failed to set backend ${backendName}.`);
+      return false;
+    }
   }
+
+  return true;
+}
+
+/**
+ * Get the renderer info from the WebGL backend.
+ */
+async function getRendererInfo() {
+  const curBackendName = tf.getBackend();
+  let webglRenderer;
+  try {
+    let webglBackend = tf.findBackend('webgl');
+    if (webglBackend == null) {
+      if (!(await tf.setBackend('webgl'))) {
+        throw new Error('Failed to initialize WebGL backend.');
+      }
+      webglBackend = tf.backend();
+    }
+    const gl = webglBackend.gpgpu.gl;
+    const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    webglRenderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+  } catch (e) {
+    webglRenderer = 'NA';
+  }
+  await tf.setBackend(curBackendName);
+  return webglRenderer;
 }

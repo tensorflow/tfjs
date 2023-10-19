@@ -36,5 +36,5 @@ export function maxPool(
 export const maxPoolConfig: KernelConfig = {
   kernelName: MaxPool,
   backendName: 'webgpu',
-  kernelFunc: maxPool as {} as KernelFunc
+  kernelFunc: maxPool as unknown as KernelFunc
 };

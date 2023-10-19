@@ -24,7 +24,7 @@ import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
@@ -63,15 +63,10 @@ describe('basic math', () => {
         .forEach(op => {
           it('should call tfOps.' + op, () => {
             node.op = op;
-            // TODO(mattsoulanille): Remove type assertion after TS4
-            // tslint:disable-next-line no-any
-            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
-              .and.returnValue({});
+            spyOps[uncapitalize(op)].and.returnValue({});
             executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-            // TODO(mattsoulanille): Remove type assertion after TS4
-            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
-              .toHaveBeenCalledWith(input1[0]);
+            expect(spyOps[uncapitalize(op)]).toHaveBeenCalledWith(input1[0]);
           });
           it('should match op def', () => {
             node.op = op;
@@ -109,24 +104,6 @@ describe('basic math', () => {
         node.op = 'ClipByValue';
         node.inputParams['clipValueMin'] = createNumberAttrFromIndex(1);
         node.inputParams['clipValueMax'] = createNumberAttrFromIndex(2);
-
-        expect(validateParam(node, basic_math.json)).toBeTruthy();
-      });
-    });
-    describe('Prod', () => {
-      it('should call tfOps.prod', () => {
-        node.op = 'Prod';
-        node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
-        const input2 = [tfOps.tensor1d([2])];
-        spyOps.prod.and.returnValue({});
-        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
-
-        expect(spyOps.prod).toHaveBeenCalledWith(input1[0], [2]);
-      });
-      it('should match op def', () => {
-        node.op = 'Prod';
-        node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
 
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
@@ -242,6 +219,34 @@ describe('basic math', () => {
       });
       it('should match op def', () => {
         node.op = 'IsNan';
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
+    describe('IsInf', () => {
+      it('should call tfOps.isInf', () => {
+        node.op = 'IsInf';
+
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.isInf).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'IsInf';
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
+    describe('IsFinite', () => {
+      it('should call tfOps.isFinite', () => {
+        node.op = 'IsFinite';
+
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+
+        expect(spyOps.isFinite).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'IsFinite';
 
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });

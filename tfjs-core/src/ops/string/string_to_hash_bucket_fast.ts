@@ -57,4 +57,4 @@ function stringToHashBucketFast_(
   return ENGINE.runKernel(StringToHashBucketFast, inputs as {}, attrs as {});
 }
 
-export const stringToHashBucketFast = op({stringToHashBucketFast_});
+export const stringToHashBucketFast = /* @__PURE__ */ op({stringToHashBucketFast_});

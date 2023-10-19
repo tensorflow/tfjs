@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DDerInputProgram} from '../conv_backprop_gpu';
+import {Conv2DDerInputPackedProgram} from '../conv_backprop_packed_gpu';
 
 export function conv2DBackpropInput(args: {
   inputs: Conv2DBackpropInputInputs,
@@ -34,12 +35,22 @@ export function conv2DBackpropInput(args: {
       inputShape, filter.shape as [number, number, number, number], strides,
       1 /* dilations */, pad, dimRoundingMode, false, $dataFormat);
 
-  const program = new Conv2DDerInputProgram(convInfo);
-  return backend.runWebGLProgram(program, [dy, filter], 'float32');
+  if (env().getBool('WEBGL_PACK_CONV2DTRANSPOSE') &&
+      $dataFormat === 'channelsLast') {
+    const customValues = [
+      [convInfo.strideHeight, convInfo.strideWidth],
+    ];
+    const program = new Conv2DDerInputPackedProgram(convInfo);
+    return backend.runWebGLProgram(
+        program, [dy, filter], 'float32', customValues);
+  } else {
+    const program = new Conv2DDerInputProgram(convInfo);
+    return backend.runWebGLProgram(program, [dy, filter], 'float32');
+  }
 }
 
 export const conv2DBackpropInputConfig: KernelConfig = {
   kernelName: Conv2DBackpropInput,
   backendName: 'webgl',
-  kernelFunc: conv2DBackpropInput as {} as KernelFunc,
+  kernelFunc: conv2DBackpropInput as unknown as KernelFunc,
 };

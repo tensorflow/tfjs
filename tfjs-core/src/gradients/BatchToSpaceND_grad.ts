@@ -23,7 +23,7 @@ import {Tensor} from '../tensor';
 export const batchToSpaceNDGradConfig: GradConfig = {
   kernelName: BatchToSpaceND,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const {blockShape, crops} = attrs as {} as BatchToSpaceNDAttrs;
+    const {blockShape, crops} = attrs as unknown as BatchToSpaceNDAttrs;
     return {x: () => spaceToBatchND(dy, blockShape, crops)};
   }
 };

@@ -29,6 +29,14 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
+        case 'StaticRegexReplace': {
+          return [ops.string.staticRegexReplace(
+            getParamValue('input', node, tensorMap, context) as Tensor,
+            getParamValue('pattern', node, tensorMap, context) as string,
+            getParamValue('rewrite', node, tensorMap, context) as string,
+            getParamValue('replaceGlobal', node, tensorMap, context) as boolean,
+          )];
+        }
         case 'StringNGrams': {
           const {nGrams, nGramsSplits} = ops.string.stringNGrams(
               getParamValue('data', node, tensorMap, context) as Tensor1D,

@@ -20,7 +20,7 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn,
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmThreadedSimdModule} from '../wasm-out/tfjs-backend-wasm-threaded-simd';
-import  * as wasmFactoryThreadedSimd_import from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
+import * as wasmFactoryThreadedSimd_import from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
 import * as wasmFactory_import from '../wasm-out/tfjs-backend-wasm.js';
@@ -29,11 +29,11 @@ import * as wasmFactory_import from '../wasm-out/tfjs-backend-wasm.js';
 // the node bundle (for testing). This would not be necessary if we
 // flipped esModuleInterop to true, but we likely can't do that since
 // google3 does not use it.
-const wasmFactoryThreadedSimd = (wasmFactoryThreadedSimd_import.default
-  || wasmFactoryThreadedSimd_import) as
-typeof wasmFactoryThreadedSimd_import.default;
-const wasmFactory = (wasmFactory_import.default
-  || wasmFactory_import) as typeof wasmFactory_import.default;
+const wasmFactoryThreadedSimd = (wasmFactoryThreadedSimd_import.default ||
+                                 wasmFactoryThreadedSimd_import) as
+    typeof wasmFactoryThreadedSimd_import.default;
+const wasmFactory = (wasmFactory_import.default || wasmFactory_import) as
+    typeof wasmFactory_import.default;
 
 interface TensorData {
   id: number;
@@ -59,26 +59,27 @@ export class BackendWasm extends KernelBackend {
     this.dataIdMap = new DataStorage(this, engine());
   }
 
-  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  override write(
+      values: backend_util.BackendValues|null, shape: number[],
+      dtype: DataType): DataId {
     const dataId = {id: this.dataIdNextNumber++};
     this.move(dataId, values, shape, dtype, 1);
     return dataId;
   }
 
-  numDataIds(): number {
+  override numDataIds(): number {
     return this.dataIdMap.numDataIds();
   }
 
-  async time(f: () => void): Promise<BackendTimingInfo> {
+  override async time(f: () => void): Promise<BackendTimingInfo> {
     const start = util.now();
     f();
     const kernelMs = util.now() - start;
     return {kernelMs};
   }
 
-  move(
-      dataId: DataId, values: backend_util.BackendValues, shape: number[],
+  override move(
+      dataId: DataId, values: backend_util.BackendValues|null, shape: number[],
       dtype: DataType, refCount: number): void {
     const id = this.dataIdNextNumber++;
     if (dtype === 'string') {
@@ -91,7 +92,11 @@ export class BackendWasm extends KernelBackend {
 
     const size = util.sizeFromShape(shape);
     const numBytes = size * util.bytesPerElement(dtype);
-    const memoryOffset = this.wasm._malloc(numBytes);
+
+    // `>>> 0` is needed for above 2GB allocations because wasm._malloc returns
+    // a signed int32 instead of an unsigned int32.
+    // https://v8.dev/blog/4gb-wasm-memory
+    const memoryOffset = this.wasm._malloc(numBytes) >>> 0;
 
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount});
 
@@ -106,11 +111,11 @@ export class BackendWasm extends KernelBackend {
     }
   }
 
-  async read(dataId: DataId): Promise<backend_util.BackendValues> {
+  override async read(dataId: DataId): Promise<backend_util.BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: DataId, start?: number, end?: number):
+  override readSync(dataId: DataId, start?: number, end?: number):
       backend_util.BackendValues {
     const {memoryOffset, dtype, shape, stringBytes} =
         this.dataIdMap.get(dataId);
@@ -137,7 +142,7 @@ export class BackendWasm extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force = false): boolean {
+  override disposeData(dataId: DataId, force = false): boolean {
     if (this.dataIdMap.has(dataId)) {
       const data = this.dataIdMap.get(dataId);
       data.refCount--;
@@ -153,7 +158,7 @@ export class BackendWasm extends KernelBackend {
   }
 
   /** Return refCount of a `TensorData`. */
-  refCount(dataId: DataId): number {
+  override refCount(dataId: DataId): number {
     if (this.dataIdMap.has(dataId)) {
       const tensorData = this.dataIdMap.get(dataId);
       return tensorData.refCount;
@@ -161,14 +166,14 @@ export class BackendWasm extends KernelBackend {
     return 0;
   }
 
-  incRef(dataId: DataId) {
+  override incRef(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
     if (data != null) {
       data.refCount++;
     }
   }
 
-  floatPrecision(): 32 {
+  override floatPrecision(): 32 {
     return 32;
   }
 
@@ -178,7 +183,7 @@ export class BackendWasm extends KernelBackend {
     return this.dataIdMap.get(dataId).memoryOffset;
   }
 
-  dispose() {
+  override dispose() {
     this.wasm.tfjs.dispose();
     if ('PThread' in this.wasm) {
       this.wasm.PThread.terminateAllThreads();
@@ -186,7 +191,7 @@ export class BackendWasm extends KernelBackend {
     this.wasm = null;
   }
 
-  memory() {
+  override memory() {
     return {unreliable: false};
   }
 
@@ -196,11 +201,12 @@ export class BackendWasm extends KernelBackend {
    * is present, the memory was allocated elsewhere (in c++) and we just record
    * the pointer where that memory lives.
    */
-  makeOutput(shape: number[], dtype: DataType, memoryOffset?: number):
-      TensorInfo {
+  makeOutput(
+      shape: number[], dtype: DataType, memoryOffset?: number,
+      values?: backend_util.BackendValues): TensorInfo {
     let dataId: {};
     if (memoryOffset == null) {
-      dataId = this.write(null /* values */, shape, dtype);
+      dataId = this.write(values ?? null, shape, dtype);
     } else {
       const id = this.dataIdNextNumber++;
       dataId = {id};
@@ -366,29 +372,31 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     // failed fetch, result in this promise being rejected. These are
     // caught and re-rejected below.
     wasm.then((module) => {
-      initialized = true;
-      initAborted = false;
+          initialized = true;
+          initAborted = false;
 
-      const voidReturnType: string = null;
-      // Using the tfjs namespace to avoid conflict with emscripten's API.
-      module.tfjs = {
-        init: module.cwrap('init', null, []),
-        initWithThreadsCount:
-            module.cwrap('init_with_threads_count', null, ['number']),
-        getThreadsCount: module.cwrap('get_threads_count', 'number', []),
-        registerTensor: module.cwrap(
-            'register_tensor', null,
-            [
-              'number',  // id
-              'number',  // size
-              'number',  // memoryOffset
-            ]),
-        disposeData: module.cwrap('dispose_data', voidReturnType, ['number']),
-        dispose: module.cwrap('dispose', voidReturnType, []),
-      };
+          const voidReturnType: string = null;
+          // Using the tfjs namespace to avoid conflict with emscripten's API.
+          module.tfjs = {
+            init: module.cwrap('init', null, []),
+            initWithThreadsCount:
+                module.cwrap('init_with_threads_count', null, ['number']),
+            getThreadsCount: module.cwrap('get_threads_count', 'number', []),
+            registerTensor: module.cwrap(
+                'register_tensor', null,
+                [
+                  'number',  // id
+                  'number',  // size
+                  'number',  // memoryOffset
+                ]),
+            disposeData:
+                module.cwrap('dispose_data', voidReturnType, ['number']),
+            dispose: module.cwrap('dispose', voidReturnType, []),
+          };
 
-      resolve({wasm: module});
-    }).catch(reject);
+          resolve({wasm: module});
+        })
+        .catch(reject);
   });
 }
 

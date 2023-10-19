@@ -27,7 +27,7 @@ steps:
   env: ['NIGHTLY=$_NIGHTLY']
 
 # General settings.
-timeout: 3600s
+timeout: 7200s
 logsBucket: 'gs://tfjs-build-logs'
 options:
   logStreamingOption: 'STREAM_ON'

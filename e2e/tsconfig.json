@@ -18,7 +18,8 @@
     "noUnusedParameters": false,
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false
+    "allowUnreachableCode": false,
+    "resolveJsonModule":true
   },
   "include": [
     "*.ts",

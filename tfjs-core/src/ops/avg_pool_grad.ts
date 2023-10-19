@@ -84,8 +84,8 @@ function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  AvgPoolGrad, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  AvgPoolGrad, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -93,4 +93,4 @@ function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const avgPoolGrad = op({avgPoolGrad_});
+export const avgPoolGrad = /* @__PURE__ */ op({avgPoolGrad_});

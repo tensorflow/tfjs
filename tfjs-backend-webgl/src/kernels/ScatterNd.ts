@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ScatterProgram} from '../scatter_gpu';
+import {ScatterPackedProgram} from '../scatter_packed_gpu';
 import {reshape} from './Reshape';
 
 export function scatterNd(args: {
@@ -46,9 +47,16 @@ export function scatterNd(args: {
 
   const defaultValue = backend.makeTensorInfo(
       [], 'float32', new Float32Array([0]));  // scalar(0)
-  const program = new ScatterProgram(
-      numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length,
-      strides, flattenShape);
+  let program;
+  if (env().getBool('WEBGL_PACK')) {
+    program = new ScatterPackedProgram(
+        numUpdates, sliceRank, flattenIndices.shape.length,
+        flattenX.shape.length, strides, flattenShape);
+  } else {
+    program = new ScatterProgram(
+        numUpdates, sliceRank, flattenIndices.shape.length,
+        flattenX.shape.length, strides, flattenShape);
+  }
   const res = backend.runWebGLProgram(
       program, [flattenX, flattenIndices, defaultValue], flattenX.dtype);
 
@@ -65,5 +73,5 @@ export function scatterNd(args: {
 export const scatterNdConfig: KernelConfig = {
   kernelName: ScatterNd,
   backendName: 'webgl',
-  kernelFunc: scatterNd as {} as KernelFunc
+  kernelFunc: scatterNd as unknown as KernelFunc
 };

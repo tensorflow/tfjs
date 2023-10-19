@@ -18,10 +18,9 @@
 import {backend_util, KernelConfig, KernelFunc, SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {SpaceToBatchNDProgram} from '../space_to_batchND_webgpu';
 
-import {padV2} from './PadV2';
 import {reshape} from './Reshape';
-import {transpose} from './Transpose';
 
 export const spaceToBatchND = (args: {
   inputs: SpaceToBatchNDInputs,
@@ -45,46 +44,36 @@ export const spaceToBatchND = (args: {
     completePaddings.push([0, 0]);
   }
 
-  const toDispose = [];
-
-  const paddedX = padV2({
-    inputs: {x},
-    backend,
-    attrs: {paddings: completePaddings, constantValue: 0}
-  });
-
+  const paddedXShape = completePaddings.map(
+      (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
   const reshapedPaddedShape =
-      backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
+      backend_util.getReshaped(paddedXShape, blockShape, prod, false);
 
   const permutedReshapedPaddedPermutation = backend_util.getPermuted(
       reshapedPaddedShape.length, blockShape.length, false);
 
   const flattenShape =
-      backend_util.getReshapedPermuted(paddedX.shape, blockShape, prod, false);
+      backend_util.getReshapedPermuted(paddedXShape, blockShape, prod, false);
 
-  const reshapedPaddedX = reshape(
-      {inputs: {x: paddedX}, backend, attrs: {shape: reshapedPaddedShape}});
-
-  const paddedXT = transpose({
-    inputs: {x: reshapedPaddedX},
-    backend,
-    attrs: {perm: permutedReshapedPaddedPermutation}
-  });
-
+  const paddedXShapeStrides = util.computeStrides(paddedXShape);
+  const program = new SpaceToBatchNDProgram(
+      x.shape, paddedXShape, completePaddings, reshapedPaddedShape,
+      permutedReshapedPaddedPermutation, paddedXShapeStrides.length);
+  const uniformData = [
+    {type: 'int32', data: reshapedPaddedShape},
+    {type: 'int32', data: paddedXShapeStrides}
+  ];
+  completePaddings.map(
+      p => uniformData.push({type: 'int32', data: [p[0], p[1]]}));
+  const paddedXT = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
   const result =
       reshape({inputs: {x: paddedXT}, backend, attrs: {shape: flattenShape}});
-
-  toDispose.push(paddedX);
-  toDispose.push(reshapedPaddedX);
-  toDispose.push(paddedXT);
-
-  toDispose.forEach(t => backend.disposeData(t.dataId));
-
+  backend.disposeData(paddedXT.dataId);
   return result;
 };
 
 export const spaceToBatchNDConfig: KernelConfig = {
   kernelName: SpaceToBatchND,
   backendName: 'webgpu',
-  kernelFunc: spaceToBatchND as {} as KernelFunc
+  kernelFunc: spaceToBatchND as unknown as KernelFunc
 };

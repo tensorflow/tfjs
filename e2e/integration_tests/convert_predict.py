@@ -42,7 +42,7 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 import tensorflowjs as tfjs
@@ -182,7 +182,7 @@ def _create_saved_model_v2(save_dir):
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.v1 = variables.Variable(3.)
   root.v2 = variables.Variable(2.)
   root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
@@ -211,7 +211,7 @@ def _create_saved_model_v2_with_control_flow(save_dir):
       v = v + 1
     return v
 
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.f = square_if_positive
   to_save = root.f.get_concrete_function(
       tensor_spec.TensorSpec([], dtypes.float32))
@@ -290,7 +290,7 @@ def _create_saved_model_v2_complex64(save_dir):
     save_dir: directory name of where the saved model will be stored.
   """
   input_data = constant_op.constant(1., shape=[1])
-  root = tracking.AutoTrackable()
+  root = autotrackable.AutoTrackable()
   root.v1 = variables.Variable(3 + 1j, dtype=tf.complex64)
   root.f = def_function.function(lambda x: tf.complex(x, x) + root.v1)
   to_save = root.f.get_concrete_function(input_data)
@@ -427,6 +427,47 @@ def _create_saved_model_v1_with_hashtable(save_dir):
         }
     }
 
+def _create_saved_model_v2_with_hashtable(save_dir):
+  """Test a TF V2 model with HashTable Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  class Table(tf.Module):
+    def __init__(self):
+        super(Table, self).__init__()
+        keys = tf.constant(['a', 'b'])
+        vals= tf.constant([0, 1])
+        init = tf.lookup.KeyValueTensorInitializer(keys, vals)
+        self.table = tf.lookup.StaticHashTable(init, -1)
+
+    def initializeTable(self):
+        @tf.function
+        def lookup(input):
+            return self.table.lookup(input)
+
+        return lookup
+
+  model = Table()
+  concrete_fn = model.initializeTable().get_concrete_function(
+    input=tf.TensorSpec([None], tf.string))
+
+  tf.saved_model.save(model, save_dir, signatures={"serving_default": concrete_fn})
+
+  return {
+      "async": False,
+      "inputs": {
+          "input:0": {
+              "value": ["a", "b", "c"], "shape": [3], "dtype": "string"
+          }
+      },
+      "outputs": {
+          "StatefulPartitionedCall/None_Lookup/LookupTableFindV2:0": {
+              "value": [0, 1, -1], "shape": [3], "dtype": "int32"
+          }
+      }
+  }
+
 def _layers_mobilenet():
   model = tf.keras.applications.MobileNetV2()
   model_path = 'mobilenet'
@@ -471,6 +512,8 @@ def main():
       'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
   _save_and_convert_model(_create_saved_model_v1_with_hashtable,
       'saved_model_v1_with_hashtable')
+  _save_and_convert_model(_create_saved_model_v2_with_hashtable,
+      'saved_model_v2_with_hashtable')
 
   _layers_mobilenet()
 if __name__ == '__main__':

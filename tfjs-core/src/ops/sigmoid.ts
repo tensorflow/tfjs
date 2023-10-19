@@ -41,6 +41,6 @@ function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: SigmoidInputs = {x: $x};
 
-  return ENGINE.runKernel(Sigmoid, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Sigmoid, inputs as unknown as NamedTensorMap);
 }
-export const sigmoid = op({sigmoid_});
+export const sigmoid = /* @__PURE__ */ op({sigmoid_});

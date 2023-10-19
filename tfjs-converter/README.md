@@ -2,7 +2,7 @@
 
 **TensorFlow.js converter** is an open source library to load a pretrained
 TensorFlow
-[SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models)
+[SavedModel](https://www.tensorflow.org/guide/saved_model)
 or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
 into the browser and run inference through
 [TensorFlow.js](https://js.tensorflow.org).
@@ -14,7 +14,7 @@ A 2-step process to import your model:
 1. A python pip package to convert a TensorFlow SavedModel or TensorFlow Hub
 module to a web friendly format. If you already have a converted model, or are
 using an already hosted model (e.g. MobileNet), skip this step.
-2. [JavaScript API](./src/executor/tf_model.ts), for loading and running
+2. [JavaScript API](./src/executor/graph_model.ts), for loading and running
 inference.
 
 ## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
@@ -24,7 +24,7 @@ __0. Please make sure that you run in a Docker container or a virtual environmen
  The script pulls its own subset of TensorFlow, which might conflict with the
  existing TensorFlow/Keras installation.
 
-__Note__: *Check that [`tf-nightly-2.0-preview`](https://pypi.org/project/tf-nightly-2.0-preview/#files) is available for your platform.*
+__Note__: *Check that [`tf-nightly-cpu-2.0-preview`](https://pypi.org/project/tf-nightly-cpu-2.0-preview/#files) is available for your platform.*
 
 Most of the times, this means that you have to use Python 3.6.8 in your local
 environment. To force Python 3.6.8 in your local project, you can install
@@ -56,9 +56,9 @@ __2. Run the converter script provided by the pip package:__
 
 There are three way to trigger the model conversion, explain below:
 
-- The conversion wizard: `tensorflowjs_wizard` ([go to section](#conversion-wizard-tensorflowjswizard))
-- Regular conversion script: `tensorflowjs_converter` ([go to section](#regular-conversion-script-tensorflowjsconverter))
-- Calling a converter function in Python (Flax/JAX) ([go to section](#calling-a-converter-function-in-python))
+- The conversion wizard: `tensorflowjs_wizard` ([go to section](https://github.com/tensorflow/tfjs/blob/master/tfjs-converter/README.md#conversion-wizard-tensorflowjs_wizard))
+- Regular conversion script: `tensorflowjs_converter` ([go to section](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter#regular-conversion-script-tensorflowjs_converter))
+- Calling a converter function in Python (Flax/JAX) ([go to section](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter#calling-a-converter-function-in-python-flaxjax))
 
 ## Conversion wizard: `tensorflowjs_wizard`
 
@@ -322,6 +322,20 @@ See
 [here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
 for more details on the exact syntax for this argument.
 
+When converting JAX models, you can also pass any [options that
+`convert_tf_saved_model`
+uses](https://github.com/tensorflow/tfjs/blob/master/tfjs-converter/python/tensorflowjs/converters/tf_saved_model_conversion_v2.py#L951-L974).
+For example, to quantize a model's weights, pass the `quantization_dtype_map`
+option listing the weights that should be quantized.
+
+```py
+jax_conversion.convert_jax(
+  apply_fn=module.apply,
+  params=params,
+  input_signatures=[((3, 4), np.float32)],
+  model_dir=tfjs_model_dir,
+  quantization_dtype_map={'float16': '*'})
+```
 
 ## Step 2: Loading and running in the browser
 

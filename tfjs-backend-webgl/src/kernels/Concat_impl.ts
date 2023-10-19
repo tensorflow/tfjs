@@ -21,6 +21,8 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ConcatProgram} from '../concat_gpu';
 import {ConcatPackedProgram} from '../concat_packed_gpu';
 import {concatImplCPU} from '../kernel_utils/shared';
+import {CLONE, UnaryOpProgram} from '../unaryop_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
 import {complex} from './Complex';
 import {imag} from './Imag';
@@ -95,11 +97,25 @@ export function concatImpl(
     return outInfo;
   }
 
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+
+  const shouldPack: boolean = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') &&
+      $inputs[0].shape.length > 1;
+
+  if ($inputs.length === 1) {
+    // Clone tensor.
+    const program = shouldPack ?
+        new UnaryOpProgram(inputs[0].shape, CLONE) :
+        new UnaryOpPackedProgram(inputs[0].shape, CLONE);
+    return backend.runWebGLProgram(program, inputs, dtype);
+  }
+
   const maxTexturesInShader = env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER');
-  if (inputs.length > maxTexturesInShader) {
+  if ($inputs.length > maxTexturesInShader) {
     const reducedInputs = [];
-    for (let i = 0; i < inputs.length; i += maxTexturesInShader) {
-      const subArray = inputs.slice(i, i + maxTexturesInShader);
+    for (let i = 0; i < $inputs.length; i += maxTexturesInShader) {
+      const subArray = $inputs.slice(i, i + maxTexturesInShader);
       reducedInputs.push(concatImpl(subArray, axis, backend));
     }
     const result = concatImpl(reducedInputs, axis, backend);
@@ -111,13 +127,12 @@ export function concatImpl(
     return result;
   }
 
-  if (env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') &&
-      inputs[0].shape.length > 1) {
-    const program = new ConcatPackedProgram(inputs.map(t => t.shape), axis);
-    return backend.runWebGLProgram(program, inputs, dtype);
+  if (shouldPack) {
+    const program = new ConcatPackedProgram($inputs.map(t => t.shape), axis);
+    return backend.runWebGLProgram(program, $inputs, dtype);
   }
 
-  const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+  const {tensors2D, outShape} = computeTensors2D($inputs, axis, backend);
   const program =
       new ConcatProgram(tensors2D.map(t => t.shape as [number, number]));
   const result = backend.runWebGLProgram(program, tensors2D, dtype);

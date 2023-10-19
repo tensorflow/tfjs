@@ -29,6 +29,12 @@ export interface FenceContext {
   isFencePassed(): boolean;
 }
 
+type WebGLVao = WebGLVertexArrayObject|WebGLVertexArrayObjectOES;
+
+export interface GPGPUContextProgram extends WebGLProgram {
+  vao: WebGLVao;
+}
+
 export class GPGPUContext {
   gl: WebGLRenderingContext;
   textureFloatExtension: {};
@@ -42,11 +48,16 @@ export class GPGPUContext {
   indexBuffer: WebGLBuffer;
   framebuffer: WebGLFramebuffer;
   outputTexture: WebGLTexture|null = null;
-  program: WebGLProgram|null = null;
+  program: GPGPUContextProgram|null = null;
   private disposed = false;
   private disjoint: boolean;
   private vertexShader: WebGLShader;
   textureConfig: TextureConfig;
+
+  createVertexArray: () => WebGLVao | null;
+  bindVertexArray: (vao: WebGLVao|null) => void;
+  deleteVertexArray: (vao: WebGLVao|null) => void;
+  getVertexArray: () => WebGLVao | null;
 
   constructor(gl?: WebGLRenderingContext) {
     const glVersion = env().getNumber('WEBGL_VERSION');
@@ -56,6 +67,50 @@ export class GPGPUContext {
     } else {
       this.gl = getWebGLContext(glVersion);
     }
+    gl = this.gl;
+
+    if (env().getNumber('WEBGL_VERSION') === 2) {
+      const gl2 = gl as WebGL2RenderingContext;
+      this.createVertexArray = () => {
+        return webgl_util.callAndCheck(gl2, () => gl2.createVertexArray());
+      };
+      this.bindVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.bindVertexArray(vao as WebGLVertexArrayObject));
+      };
+      this.deleteVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.deleteVertexArray(vao as WebGLVertexArrayObject));
+      };
+      this.getVertexArray = () => {
+        return webgl_util.callAndCheck(
+            gl2, () => gl2.getParameter(gl2.VERTEX_ARRAY_BINDING));
+      };
+    } else if (gl != null) {
+      const ext = gl.getExtension('OES_vertex_array_object');
+      if (ext == null) {
+        throw new Error(
+            'All WebGL1 implementations are expected to offer' +
+            ' OES_vertex_array_object.');
+      }
+      this.createVertexArray = () => {
+        return webgl_util.callAndCheck(gl, () => ext.createVertexArrayOES());
+      };
+      this.bindVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(
+            gl, () => ext.bindVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+      };
+      this.deleteVertexArray = (vao: WebGLVao|null) => {
+        return webgl_util.callAndCheck(
+            gl,
+            () => ext.deleteVertexArrayOES(vao as WebGLVertexArrayObjectOES));
+      };
+      this.getVertexArray = () => {
+        return webgl_util.callAndCheck(
+            gl, () => gl.getParameter(ext.VERTEX_ARRAY_BINDING_OES));
+      };
+    }
+
     // WebGL 2.0 enables texture floats without an extension.
     let COLOR_BUFFER_FLOAT = 'WEBGL_color_buffer_float';
     const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
@@ -273,9 +328,7 @@ export class GPGPUContext {
             this.gl, physicalRows, physicalCols));
   }
 
-  private vertexAttrsAreBound = false;
-
-  public createProgram(fragmentShader: WebGLShader): WebGLProgram {
+  public createProgram(fragmentShader: WebGLShader): GPGPUContextProgram {
     this.throwIfDisposed();
     const gl = this.gl;
     if (this.vertexShader == null) {
@@ -286,32 +339,45 @@ export class GPGPUContext {
         gl, () => gl.attachShader(program, this.vertexShader));
     webgl_util.callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, program);
+
+    const program2 = Object.assign(program, {vao: this.createVertexArray()});
     if (this.debug) {
-      webgl_util.validateProgram(gl, program);
+      webgl_util.validateProgram(gl, program2);
     }
-    if (!this.vertexAttrsAreBound) {
-      this.setProgram(program);
-      this.vertexAttrsAreBound = gpgpu_util.bindVertexProgramAttributeStreams(
-          gl, this.program, this.vertexBuffer);
-    }
-    return program;
+    return program2;
   }
 
-  public deleteProgram(program: WebGLProgram) {
+  public buildVao(program: GPGPUContextProgram) {
+    this.setProgram(program);
+    this.bindVertexArray(program.vao);
+    const gl = this.gl;
+    // Bind index buffer, and vertex buffers based on program attrib
+    // locations.
+    webgl_util.callAndCheck(
+        gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer));
+    gpgpu_util.bindVertexProgramAttributeStreams(
+        gl, program, this.vertexBuffer);
+  }
+
+  public deleteProgram(program: GPGPUContextProgram) {
     this.throwIfDisposed();
     if (program === this.program) {
       this.program = null;
     }
     if (program != null) {
       webgl_util.callAndCheck(this.gl, () => this.gl.deleteProgram(program));
+      this.deleteVertexArray(program.vao);
     }
   }
 
-  public setProgram(program: WebGLProgram|null) {
+  public setProgram(program: GPGPUContextProgram|null) {
     this.throwIfDisposed();
     this.program = program;
-    if ((this.program != null) && this.debug) {
-      webgl_util.validateProgram(this.gl, this.program);
+
+    if (this.program != null) {
+      if (this.debug) {
+        webgl_util.validateProgram(this.gl, this.program);
+      }
     }
     webgl_util.callAndCheck(this.gl, () => this.gl.useProgram(program));
   }
@@ -389,6 +455,11 @@ export class GPGPUContext {
     this.throwIfNoProgram();
     const gl = this.gl;
     if (this.debug) {
+      const boundVao = this.getVertexArray();
+      console.assert(
+          boundVao === this.program.vao,
+          'VAO changed between setProgram and executeProgram!');
+
       this.debugValidate();
     }
     webgl_util.callAndCheck(
@@ -539,11 +610,15 @@ export class GPGPUContext {
       return;
     }
     // Start a new loop that polls.
+    let scheduleFn = undefined;
+    if ('setTimeoutCustom' in env().platform) {
+      scheduleFn = env().platform.setTimeoutCustom.bind(env().platform);
+    }
     util.repeatedTry(() => {
       this.pollItems();
       // End the loop if no more items to poll.
       return this.itemsToPoll.length === 0;
-    });
+    }, () => 0, null, scheduleFn);
   }
 
   private bindTextureToFrameBuffer(texture: WebGLTexture) {

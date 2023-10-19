@@ -42,7 +42,7 @@ function relu6_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: Relu6Inputs = {x: $x};
 
-  return ENGINE.runKernel(Relu6, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Relu6, inputs as unknown as NamedTensorMap);
 }
 
-export const relu6 = op({relu6_});
+export const relu6 = /* @__PURE__ */ op({relu6_});

@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
-import {Backend, DataId, DataToGPUOptions, GPUData} from '../tensor';
-import {BackendValues, DataType} from '../types';
+import {Backend, DataToGPUOptions, GPUData, Tensor} from '../tensor';
+import {DataId} from '../tensor_info';
+import {BackendValues, DataType, WebGLData, WebGPUData} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -132,6 +133,12 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
       refCount: number): void {
     return notYetImplemented('move');
   }
+
+  createTensorFromGPUData(
+      values: WebGLData|WebGPUData, shape: number[], dtype: DataType): Tensor {
+    return notYetImplemented('createTensorFromGPUData');
+  }
+
   memory(): {unreliable: boolean; reasons?: string[]} {
     return notYetImplemented('memory');
   }

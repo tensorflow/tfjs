@@ -12,13 +12,14 @@
     "**/bazel-out/**/*": true,
     "**/bazel-genfiles/**/*": true,
     "**/bazel-testlogs/**/*": true,
-    "**/bazel-tfjs*/**/*": true,
+    "**/bazel-tfjs*/**/*": true
   },
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "[typescript]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "xaver.clang-format"
   },
   "[javascript]": {
     "editor.formatOnSave": true
@@ -141,5 +142,8 @@
     "hash_map": "cpp",
     "__refstring": "cpp"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  }
 }

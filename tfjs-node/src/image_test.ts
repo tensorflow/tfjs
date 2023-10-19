@@ -22,12 +22,15 @@ import {promisify} from 'util';
 
 import {getImageType, ImageType} from './image';
 import * as tf from './index';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 const readFile = promisify(fs.readFile);
 
 describe('decode images', () => {
   it('decode png', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/image_png_test.png');
     const imageTensor = tf.node.decodePng(uint8array);
@@ -38,10 +41,14 @@ describe('decode images', () => {
         await imageTensor.data(),
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode png 1 channels', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/image_png_test.png');
     const imageTensor = tf.node.decodeImage(uint8array, 1);
@@ -49,10 +56,14 @@ describe('decode images', () => {
     expect(imageTensor.shape).toEqual([2, 2, 1]);
     test_util.expectArraysEqual(await imageTensor.data(), [130, 50, 59, 124]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode png 3 channels', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/image_png_test.png');
     const imageTensor = tf.node.decodeImage(uint8array);
@@ -62,10 +73,14 @@ describe('decode images', () => {
         await imageTensor.data(),
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode png 4 channels', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array = await getUint8ArrayFromImage(
         'test_objects/images/image_png_4_channel_test.png');
     const imageTensor = tf.node.decodeImage(uint8array, 4);
@@ -75,10 +90,14 @@ describe('decode images', () => {
       238, 101, 0, 255, 50, 50, 50, 255, 100, 50, 0, 255, 200, 100, 50, 255
     ]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode bmp', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/image_bmp_test.bmp');
     const imageTensor = tf.node.decodeBmp(uint8array);
@@ -88,10 +107,14 @@ describe('decode images', () => {
         await imageTensor.data(),
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode bmp through decodeImage', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/image_bmp_test.bmp');
     const imageTensor = tf.node.decodeImage(uint8array);
@@ -101,10 +124,15 @@ describe('decode images', () => {
         await imageTensor.data(),
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode jpg', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
+
     const uint8array = await getUint8ArrayFromImage(
         'test_objects/images/image_jpeg_test.jpeg');
     const imageTensor = tf.node.decodeJpeg(uint8array);
@@ -114,6 +142,8 @@ describe('decode images', () => {
         await imageTensor.data(),
         [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode jpeg node bindings do not leak', async () => {
@@ -142,6 +172,9 @@ describe('decode images', () => {
 
   it('decode jpg 1 channel', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
+
     const uint8array = await getUint8ArrayFromImage(
         'test_objects/images/image_jpeg_test.jpeg');
     const imageTensor = tf.node.decodeImage(uint8array, 1);
@@ -149,10 +182,14 @@ describe('decode images', () => {
     expect(imageTensor.shape).toEqual([2, 2, 1]);
     test_util.expectArraysEqual(await imageTensor.data(), [130, 47, 56, 121]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode jpg 3 channels', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array = await getUint8ArrayFromImage(
         'test_objects/images/image_jpeg_test.jpeg');
     const imageTensor = tf.node.decodeImage(uint8array, 3);
@@ -162,12 +199,16 @@ describe('decode images', () => {
         await imageTensor.data(),
         [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode jpg with 0 channels, use the number of channels in the ' +
          'JPEG-encoded image',
      async () => {
        const beforeNumTensors = memory().numTensors;
+       const beforeNumTFTensors =
+           (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
        const uint8array = await getUint8ArrayFromImage(
            'test_objects/images/image_jpeg_test.jpeg');
        const imageTensor = tf.node.decodeImage(uint8array);
@@ -177,10 +218,14 @@ describe('decode images', () => {
            await imageTensor.data(),
            [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
        expect(memory().numTensors).toBe(beforeNumTensors + 1);
+       expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+           .toBe(beforeNumTFTensors + 1);
      });
 
   it('decode jpg with downscale', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array = await getUint8ArrayFromImage(
         'test_objects/images/image_jpeg_test.jpeg');
     const imageTensor = tf.node.decodeJpeg(uint8array, 0, 2);
@@ -188,10 +233,14 @@ describe('decode images', () => {
     expect(imageTensor.shape).toEqual([1, 1, 3]);
     test_util.expectArraysEqual(await imageTensor.data(), [147, 75, 25]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode gif', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/gif_test.gif');
     const imageTensor = tf.node.decodeImage(uint8array);
@@ -202,10 +251,15 @@ describe('decode images', () => {
       200, 100, 50, 34, 68, 102, 170, 0,  102, 255, 255, 255
     ]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
   it('decode gif with no expandAnimation', async () => {
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
+
     const uint8array =
         await getUint8ArrayFromImage('test_objects/images/gif_test.gif');
     const imageTensor = tf.node.decodeImage(uint8array, 3, 'int32', false);
@@ -215,52 +269,35 @@ describe('decode images', () => {
         await imageTensor.data(),
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors + 1);
   });
 
-  it('throw error if request non int32 dtype', async done => {
+  it('throw error if request non int32 dtype', async () => {
+    const uint8array = await getUint8ArrayFromImage(
+      'test_objects/images/image_png_test.png');
+    expect(() => tf.node.decodeImage(uint8array, 0, 'uint8')).toThrowError(
+      'decodeImage could only return Tensor of type `int32` for now.');
+  });
+
+  it('throw error if decode invalid image type', async () => {
+    const uint8array = await getUint8ArrayFromImage('package.json');
+    expect(() => tf.node.decodeImage(uint8array)).toThrowError(
+      'Expected image (BMP, JPEG, PNG, or GIF), ' +
+        'but got unsupported image type');
+  });
+
+  it('throw error if backend is not tensorflow', async () => {
+    const testBackend = new TestKernelBackend();
+    registerBackend('fake', () => testBackend);
+    setBackend('fake');
     try {
       const uint8array = await getUint8ArrayFromImage(
-          'test_objects/images/image_png_test.png');
-      tf.node.decodeImage(uint8array, 0, 'uint8');
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'decodeImage could only return Tensor of type `int32` for now.');
-      done();
-    }
-  });
-
-  it('throw error if decode invalid image type', async done => {
-    try {
-      const uint8array = await getUint8ArrayFromImage('package.json');
-      tf.node.decodeImage(uint8array);
-      done.fail();
-    } catch (error) {
-      expect(error.message)
-          .toBe(
-              'Expected image (BMP, JPEG, PNG, or GIF), ' +
-              'but got unsupported image type');
-      done();
-    }
-  });
-
-  it('throw error if backend is not tensorflow', async done => {
-    try {
-      const testBackend = new TestKernelBackend();
-      registerBackend('fake', () => testBackend);
-      setBackend('fake');
-
-      const uint8array = await getUint8ArrayFromImage(
-          'test_objects/images/image_png_test.png');
-      tf.node.decodeImage(uint8array);
-      done.fail();
-    } catch (err) {
-      expect(err.message)
-          .toBe(
-              'Expect the current backend to be "tensorflow", but got "fake"');
+        'test_objects/images/image_png_test.png');
+      expect(() => tf.node.decodeImage(uint8array)).toThrowError(
+        'Expect the current backend to be "tensorflow", but got "fake"');
+    } finally {
       setBackend('tensorflow');
-      done();
     }
   });
 });
@@ -271,18 +308,26 @@ describe('encode images', () => {
         new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
         [2, 2, 3]);
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor);
     expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     imageTensor.dispose();
   });
 
   it('encodeJpeg grayscale', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array([239, 0, 47, 0]), [2, 2, 1]);
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const jpegEncodedData = await tf.node.encodeJpeg(imageTensor, 'grayscale');
     expect(memory().numTensors).toBe(beforeNumTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     imageTensor.dispose();
   });
 
@@ -300,10 +345,14 @@ describe('encode images', () => {
     const yDensity = 500;
 
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const jpegEncodedData = await tf.node.encodeJpeg(
         imageTensor, format, quality, progressive, optimizeSize,
         chromaDownsampling, densityUnit, xDensity, yDensity);
     expect(memory().numTensors).toBe(beforeNumTensors);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
     imageTensor.dispose();
   });
@@ -313,11 +362,15 @@ describe('encode images', () => {
         new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]),
         [2, 2, 3]);
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const pngEncodedData = await tf.node.encodePng(imageTensor);
     const pngDecodedTensor = await tf.node.decodePng(pngEncodedData);
     const pngDecodedData = await pngDecodedTensor.data();
     pngDecodedTensor.dispose();
     expect(memory().numTensors).toBe(beforeNumTensors);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
     test_util.expectArraysEqual(await imageTensor.data(), pngDecodedData);
     imageTensor.dispose();
@@ -326,8 +379,12 @@ describe('encode images', () => {
   it('encodePng grayscale', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array([239, 0, 47, 0]), [2, 2, 1]);
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const pngEncodedData = await tf.node.encodePng(imageTensor);
     expect(memory().numTensors).toBe(beforeNumTensors);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
     imageTensor.dispose();
   });
@@ -339,8 +396,12 @@ describe('encode images', () => {
     const compression = 4;
 
     const beforeNumTensors = memory().numTensors;
+    const beforeNumTFTensors =
+        (tf.backend() as NodeJSKernelBackend).getNumOfTFTensors();
     const pngEncodedData = await tf.node.encodePng(imageTensor, compression);
     expect(memory().numTensors).toBe(beforeNumTensors);
+    expect((tf.backend() as NodeJSKernelBackend).getNumOfTFTensors())
+        .toBe(beforeNumTFTensors);
     expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
     imageTensor.dispose();
   });

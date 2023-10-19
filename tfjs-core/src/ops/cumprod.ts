@@ -61,9 +61,9 @@ function cumprod_<T extends Tensor>(
 
   return ENGINE.runKernel(
     Cumprod,
-    inputs as {} as NamedTensorMap,
-    attrs as {} as NamedAttrMap
+    inputs as unknown as NamedTensorMap,
+    attrs as unknown as NamedAttrMap
   );
 }
 
-export const cumprod = op({ cumprod_ });
+export const cumprod = /* @__PURE__ */ op({ cumprod_ });

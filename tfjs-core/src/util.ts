@@ -16,7 +16,8 @@
  */
 
 import {env} from './environment';
-import {BackendValues, DataType, TensorLike, TypedArray} from './types';
+import {isTypedArrayBrowser} from './platforms/is_typed_array_browser';
+import {BackendValues, DataType, RecursiveArray, TensorLike, TypedArray} from './types';
 import * as base from './util_base';
 export * from './util_base';
 export * from './hash_util';
@@ -44,7 +45,7 @@ export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
     throw new Error('Cannot convert a string[] to a TypedArray');
   }
   if (Array.isArray(a)) {
-    a = base.flatten(a);
+    a = flatten(a);
   }
 
   if (env().getBool('DEBUG')) {
@@ -95,7 +96,7 @@ export function now(): number {
  * If not, `tf.util.fetch` returns a platform-specific solution.
  *
  * ```js
- * const resource = await tf.util.fetch('https://unpkg.com/@tensorflow/tfjs');
+ * const resource = await tf.util.fetch('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs');
  * // handle response
  * ```
  *
@@ -130,4 +131,63 @@ export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
 export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   encoding = encoding || 'utf-8';
   return env().platform.decode(bytes, encoding);
+}
+
+export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
+    Uint8ClampedArray {
+  // TODO(mattsoulanille): Remove this fallback in 5.0.0
+  if (env().platform.isTypedArray != null) {
+    return env().platform.isTypedArray(a);
+  } else {
+    return isTypedArrayBrowser(a);
+  }
+}
+
+// NOTE: We explicitly type out what T extends instead of any so that
+// util.flatten on a nested array of number doesn't try to infer T as a
+// number[][], causing us to explicitly type util.flatten<number>().
+/**
+ *  Flattens an arbitrarily nested array.
+ *
+ * ```js
+ * const a = [[1, 2], [3, 4], [5, [6, [7]]]];
+ * const flat = tf.util.flatten(a);
+ * console.log(flat);
+ * ```
+ *
+ *  @param arr The nested array to flatten.
+ *  @param result The destination array which holds the elements.
+ *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
+ *      to false.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
+ */
+export function
+flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
+    arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
+  if (result == null) {
+    result = [];
+  }
+  if (typeof arr === 'boolean' || typeof arr === 'number' ||
+    typeof arr === 'string' || base.isPromise(arr) || arr == null ||
+      isTypedArray(arr) && skipTypedArray) {
+    result.push(arr as T);
+  } else if (Array.isArray(arr) || isTypedArray(arr)) {
+    for (let i = 0; i < arr.length; ++i) {
+      flatten(arr[i], result, skipTypedArray);
+    }
+  } else {
+    let maxIndex = -1;
+    for (const key of Object.keys(arr)) {
+      // 0 or positive integer.
+      if (/^([1-9]+[0-9]*|0)$/.test(key)) {
+        maxIndex = Math.max(maxIndex, Number(key));
+      }
+    }
+    for (let i = 0; i <= maxIndex; i++) {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      flatten((arr as RecursiveArray<T>)[i], result, skipTypedArray);
+    }
+  }
+  return result;
 }

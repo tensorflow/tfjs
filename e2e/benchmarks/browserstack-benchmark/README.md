@@ -58,6 +58,7 @@ The following are supported options arguments which trigger options features:
         "backend": ["backend_name"] //List of one or more backends to be benchmarked
       },
       "browsers": {
+        "local": {},  // Benchmark on your local device
         "unique_identifier_laptop_or_desktop": {
           "base": "BrowserStack",
           "browser": "browser_name",
@@ -101,6 +102,16 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --help
     ```
+  * --period
+    - Runs a part of models specified in `--benchmarks`'s file in a cycle and the part of models to run is determined by the date of a month. The value could be or 1~31 (representing Sunday to Saturday). This argument takes effect only if `--benchmarks` is set.
+    ``` shell
+    node app.js --period=15
+    ```
+  * --date
+    - Set the date for selecting models and this works only if `--period` is set. The value could be 1~31. If it is not declared, the date will the real date at runtime.
+    ``` shell
+    node app.js --period=15 --date=1
+    ```
   * --maxBenchmarks
     - Sets maximum for number of benchmarks run in parallel. Expects a positive integer.
     ``` shell
@@ -130,6 +141,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --localBuild=core,webgl,wasm,cpu,layers,converter,automl
     ```
+  * --npmVersion
+    - Specify the npm version of TFJS library to benchmark. By default the latest version of TFJS will be benchmarked. 
+   ``` shell
+    node app.js --npmVersion=4.4.0 
+   ```
 
 ## Custom model
 The custom model is supported, but is constrained by:
@@ -138,7 +154,7 @@ The custom model is supported, but is constrained by:
     - Storage: https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json
   * Currently only `tf.GraphModel` and `tf.LayersModel` are supported.
 
-If you want to benchmark more complex models with customized input preprocessing logic, you need to add your model with `load` and `predictFunc` methods into [`tfjs/e2e/benchmarks/model_config.js`](https://github.com/Linchenn/tfjs/blob/bs-benchmark-readme/e2e/benchmarks/model_config.js), following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
+If you want to benchmark more complex models with customized input preprocessing logic, you need to add your model with `load` and `predictFunc` methods into [`tfjs/e2e/benchmarks/model_config.js`](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/model_config.js), following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## About this tool
 The tool contains:

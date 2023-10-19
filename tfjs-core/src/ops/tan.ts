@@ -41,6 +41,6 @@ function tan_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: TanInputs = {x: $x};
 
-  return ENGINE.runKernel(Tan, inputs as {} as NamedTensorMap);
+  return ENGINE.runKernel(Tan, inputs as unknown as NamedTensorMap);
 }
-export const tan = op({tan_});
+export const tan = /* @__PURE__ */ op({tan_});

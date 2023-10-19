@@ -37,8 +37,8 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "f10a3a12894fc3c9bf578ee5a5691769f6805c4be84359681a785a0c12e8d2b6",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.3/rules_nodejs-5.5.3.tar.gz"],
+    sha256 = "94070eff79305be05b7699207fbac5d2608054dd53e6109f7d00d923919ff45a",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.8.2/rules_nodejs-5.8.2.tar.gz"],
 )
 
 # Install rules_nodejs dependencies.
@@ -50,7 +50,7 @@ load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 
 nodejs_register_toolchains(
     name = "nodejs",
-    node_version = "16.13.2",
+    node_version = "18.13.0",
 )
 
 # Install the yarn tool
@@ -102,9 +102,9 @@ http_archive(
     name = "emsdk",
     # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
     repo_mapping = {"@nodejs": "@nodejs_host"},
-    sha256 = "fd336c6d3e51c7205a8ec68e835c442dcbb187f92e50c42b3d7d54a312072ef7",
-    strip_prefix = "emsdk-3.1.20/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.20.tar.gz"],
+    sha256 = "b8270749b99d8d14922d1831b93781a5560fba6f7bce65cd477fc1b6aa262535",
+    strip_prefix = "emsdk-3.1.28/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.28.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -114,6 +114,10 @@ emsdk_deps()
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 
 emsdk_emscripten_deps()
+
+load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
+
+register_emscripten_toolchains()
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
@@ -211,30 +215,50 @@ http_archive(
 
 http_archive(
     name = "rules_python",
-    sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
-    strip_prefix = "rules_python-0.9.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
+    sha256 = "29a801171f7ca190c543406f9894abf2d483c206e14d6acbd695623662320097",
+    strip_prefix = "rules_python-0.18.1",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.18.1/rules_python-0.18.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
+# TODO(mattSoulanille): Change the docker so it doesn't run as root?
+# https://github.com/bazelbuild/rules_python/pull/713
+# https://github.com/GoogleCloudPlatform/cloud-builders/issues/641
 python_register_toolchains(
     name = "python3_8",
+    ignore_root_user_error = True,
     # Available versions are listed in @rules_python//python:versions.bzl.
     python_version = "3.8",
 )
 
 load("@python3_8//:defs.bzl", "interpreter")
-load("@rules_python//python:pip.bzl", "pip_install")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
-pip_install(
-    name = "tensorflowjs_dev_deps",
-    python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements-dev.txt",
-)
-
-pip_install(
+pip_parse(
     name = "tensorflowjs_deps",
     python_interpreter_target = interpreter,
-    requirements = "@//tfjs-converter/python:requirements.txt",
+    requirements_lock = "@//tfjs-converter/python:requirements_lock.txt",
 )
+
+load("@tensorflowjs_deps//:requirements.bzl", install_tfjs_deps = "install_deps")
+
+install_tfjs_deps()
+
+pip_parse(
+    name = "tensorflowjs_dev_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tfjs-converter/python:requirements-dev_lock.txt",
+)
+
+load("@tensorflowjs_dev_deps//:requirements.bzl", install_tfjs_dev_deps = "install_deps")
+
+install_tfjs_dev_deps()
+
+load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
+
+tflite_repositories()
+
+load("//tfjs-tfdf:tfdf_repositories.bzl", "tfdf_repositories")
+
+tfdf_repositories()

@@ -180,6 +180,25 @@ describeMathCPU('RandomUniform initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 17, 47);
   });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'RandomUniform',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('RandomUniform').apply([3]), 1);
   });
@@ -214,6 +233,25 @@ describeMathCPU('RandomNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     // TODO(bileschi): Add test to assert the values match expectations.
   });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'RandomNormal',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('RandomNormal').apply([3]), 1);
   });
@@ -237,6 +275,24 @@ describeMathCPU('HeNormal initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
+  });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'HeNormal',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
   });
 
   it('Does not leak', () => {
@@ -264,6 +320,24 @@ describeMathCPU('HeUniform initializer', () => {
     expectTensorsValuesInRange(weights, -bound, bound);
   });
 
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'HeUniform',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('heUniform').apply([3]), 1);
   });
@@ -289,6 +363,24 @@ describeMathCPU('LecunNormal initializer', () => {
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
 
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'LeCunNormal',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('LeCunNormal').apply([3]), 1);
   });
@@ -312,6 +404,24 @@ describeMathCPU('LeCunUniform initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -bound, bound);
+  });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'LeCunUniform',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
   });
 
   it('Does not leak', () => {
@@ -348,6 +458,25 @@ describeMathCPU('TruncatedNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 0.0, 2.0);
   });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'TruncatedNormal',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply(shape, 'float32');
+    const actual = actualInitializer.apply(shape, 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(
         () => getInitializer('TruncatedNormal').apply([3]), 1);
@@ -403,6 +532,25 @@ describeMathCPU('Glorot uniform initializer', () => {
           .toBeGreaterThan(-limit);
     });
   });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'GlorotUniform',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply([7, 2], 'float32');
+    const actual = actualInitializer.apply([7, 2], 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('GlorotUniform').apply([3]), 1);
   });
@@ -428,6 +576,27 @@ describeMathCPU('VarianceScaling initializer', () => {
       const newInit = new VarianceScaling(baseConfig);
       const newConfig = newInit.getConfig();
       expect(newConfig['distribution']).toEqual(baseConfig['distribution']);
+    });
+
+    it(`${distribution} with configured seed`, () => {
+
+      const initializerConfig: serialization.ConfigDict = {
+        className: 'VarianceScaling',
+        config: {
+          distribution,
+          seed: 42
+        }
+      };
+
+      const expectedInitializer = getInitializer(initializerConfig);
+      const actualInitializer = getInitializer(initializerConfig);
+
+      const expected = expectedInitializer.apply([7, 2], 'float32');
+      const actual = actualInitializer.apply([7, 2], 'float32');
+
+      expect(actual.shape).toEqual(expected.shape);
+      expect(actual.dtype).toEqual(expected.dtype);
+      expectTensorsClose(actual, expected);
     });
   });
 });
@@ -485,6 +654,25 @@ describeMathCPU('Glorot normal initializer', () => {
       expect(variance2).toBeLessThan(variance1);
     });
   });
+
+  it('with configured seed', () => {
+
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'GlorotNormal',
+      config: { seed: 42 }
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply([7, 2], 'float32');
+    const actual = actualInitializer.apply([7, 2], 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
+  });
+
   it('Does not leak', () => {
     expectNoLeakedTensors(() => getInitializer('GlorotNormal').apply([3]), 1);
   });
@@ -642,5 +830,22 @@ describeMathCPUAndWebGL2('Orthogonal Initializer', () => {
     expect(model.outputs[0].shape).toEqual([null, 128, 128, 1]);
     expect((model.predict(randomNormal([1, 128, 128, 1])) as Tensor).shape)
         .toEqual([1, 128, 128, 1]);
+  });
+
+  it('with configured seed', () => {
+    const initializerConfig: serialization.ConfigDict = {
+      className: 'Orthogonal',
+      config: {seed: 666013}
+    };
+
+    const expectedInitializer = getInitializer(initializerConfig);
+    const actualInitializer = getInitializer(initializerConfig);
+
+    const expected = expectedInitializer.apply([7, 2], 'float32');
+    const actual = actualInitializer.apply([7, 2], 'float32');
+
+    expect(actual.shape).toEqual(expected.shape);
+    expect(actual.dtype).toEqual(expected.dtype);
+    expectTensorsClose(actual, expected);
   });
 });

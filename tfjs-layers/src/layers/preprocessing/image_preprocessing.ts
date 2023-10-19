@@ -41,7 +41,7 @@ export class Rescaling extends Layer {
     }
   }
 
-  getConfig(): serialization.ConfigDict {
+  override getConfig(): serialization.ConfigDict {
     const config: serialization.ConfigDict = {
       'scale': this.scale,
       'offset': this.offset
@@ -52,7 +52,7 @@ export class Rescaling extends Layer {
     return config;
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
+  override call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor[]|Tensor {
     return tidy(() => {
       inputs = getExactlyOneTensor(inputs);
       if(inputs.dtype !== 'float32') {

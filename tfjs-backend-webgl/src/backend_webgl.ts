@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util, WebGLData} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -172,11 +172,44 @@ export class MathBackendWebGL extends KernelBackend {
     this.texData = new DataStorage(this, engine());
   }
 
-  numDataIds() {
+  override numDataIds() {
     return this.texData.numDataIds() - this.pendingDeletes;
   }
 
-  write(values: BackendValues, shape: number[], dtype: DataType): DataId {
+  // Writes a new entry to the data store with a WebGL texture, and registers it
+  // to the texture manager.
+  writeTexture(
+      texture: WebGLTexture, shape: number[], dtype: DataType,
+      texHeight: number, texWidth: number, channels: string): DataId {
+    // Temporarily create an tensor info to make the texture compatible with
+    // the runWebGLProgram's input.
+    const input = this.makeTensorInfo(shape, dtype);
+    const inData = this.texData.get(input.dataId);
+    // Even though the input texture could be unpacked or dense packed, it is
+    // always considered as unpacked for EncodeMatrixProgram.
+    inData.isPacked = false;
+
+    // Bind texture to the input tensor.
+    inData.texture = {texture, texShape: [texHeight, texWidth]};
+    inData.texShape = [texHeight, texWidth];
+
+    const shapeAs3D = webgl_util.getShapeAs3D(shape);
+    const program =
+        new EncodeMatrixProgram(shapeAs3D, false /* isByteArray */, channels);
+    const output =
+        this.runWebGLProgram(program, [input], dtype, [[texHeight, texWidth]]);
+    output.shape = shape;
+
+    // Unbind the texture from the input tensor to avoid the texture being
+    // released.
+    inData.texture = null;
+    this.disposeIntermediateTensorInfo(input);
+
+    return output.dataId;
+  }
+
+  override write(values: BackendValues, shape: number[], dtype: DataType):
+      DataId {
     if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
         env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
@@ -194,7 +227,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   /** Return refCount of a `TensorData`. */
-  refCount(dataId: DataId): number {
+  override refCount(dataId: DataId): number {
     if (this.texData.has(dataId)) {
       const tensorData = this.texData.get(dataId);
       return tensorData.refCount;
@@ -203,7 +236,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   /** Increase refCount of a `TextureData`. */
-  incRef(dataId: DataId): void {
+  override incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     texData.refCount++;
   }
@@ -216,7 +249,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
-  move(
+  override move(
       dataId: DataId, values: BackendValues, shape: number[], dtype: DataType,
       refCount: number): void {
     if (env().getBool('DEBUG')) {
@@ -235,7 +268,7 @@ export class MathBackendWebGL extends KernelBackend {
     this.disposeData(tensorInfo.dataId);
   }
 
-  readSync(dataId: DataId): BackendValues {
+  override readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensorInfos, slice, shape, isPacked} = texData;
 
@@ -284,7 +317,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.convertAndCacheOnCPU(dataId, result);
   }
 
-  async read(dataId: DataId): Promise<BackendValues> {
+  override async read(dataId: DataId): Promise<BackendValues> {
     if (this.pendingRead.has(dataId)) {
       const subscribers = this.pendingRead.get(dataId);
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
@@ -393,7 +426,8 @@ export class MathBackendWebGL extends KernelBackend {
    *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
    */
-  readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}): GPUData {
+  override readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}):
+      GPUData {
     const texData = this.texData.get(dataId);
     const {values, shape, slice, dtype, isPacked, texture} = texData;
 
@@ -508,11 +542,11 @@ export class MathBackendWebGL extends KernelBackend {
     return vals;
   }
 
-  timerAvailable(): boolean {
+  override timerAvailable(): boolean {
     return env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0;
   }
 
-  time(f: () => void): Promise<WebGLTimingInfo> {
+  override time(f: () => void): Promise<WebGLTimingInfo> {
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
 
@@ -570,7 +604,7 @@ export class MathBackendWebGL extends KernelBackend {
       return res;
     })();
   }
-  memory(): WebGLMemoryInfo {
+  override memory(): WebGLMemoryInfo {
     return {
       unreliable: false,
       numBytesInGPU: this.numBytesInGPU,
@@ -615,7 +649,7 @@ export class MathBackendWebGL extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force = false): boolean {
+  override disposeData(dataId: DataId, force = false): boolean {
     if (this.pendingDisposal.has(dataId)) {
       return false;
     }
@@ -753,7 +787,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (dtype === 'string' && values != null && values.length > 0 &&
         util.isString(values[0])) {
       const encodedValues =
-          (values as {} as string[]).map(d => util.encodeString(d));
+          (values as unknown as string[]).map(d => util.encodeString(d));
 
       dataId = this.write(encodedValues, shape, dtype);
     } else {
@@ -961,7 +995,7 @@ export class MathBackendWebGL extends KernelBackend {
           {name: program.constructor.name, query: this.getQueryTime(query)});
     }
 
-    const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
+    const glFlushThreshold = env().getNumber('WEBGL_FLUSH_THRESHOLD');
     // Manually GL flush requested
     if (glFlushThreshold > 0) {
       const time = util.now();
@@ -1005,7 +1039,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private disposed = false;
 
-  dispose() {
+  override dispose() {
     if (this.disposed) {
       return;
     }
@@ -1033,7 +1067,7 @@ export class MathBackendWebGL extends KernelBackend {
     this.disposed = true;
   }
 
-  floatPrecision(): 16|32 {
+  override floatPrecision(): 16|32 {
     if (this.floatPrecisionValue == null) {
       this.floatPrecisionValue = tidy(() => {
         if (!env().get('WEBGL_RENDER_FLOAT32_ENABLED')) {
@@ -1055,7 +1089,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   /** Returns the smallest representable number.  */
-  epsilon(): number {
+  override epsilon(): number {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
 
@@ -1160,8 +1194,6 @@ export class MathBackendWebGL extends KernelBackend {
     const texData = this.texData.get(dataId);
     const {dtype} = texData;
 
-    this.releaseGPUData(dataId);
-
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype as 'float32');
     }
@@ -1244,28 +1276,56 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   getUniformLocations() {
-    for (const [, binary] of Object.entries(this.binaryCache)) {
+    for (const binary of Object.values(this.binaryCache)) {
+      // TODO: Iterating through all binaries to build VAOs is supposed to be in
+      // a seperate function, like 'setVaos'. However, to avoid breaking changes
+      // for the users using parallel compile feature now, buildVao is silently
+      // added here.
+      this.gpgpu.buildVao(binary.webGLProgram);
+
       const {
-        uniformLocations,
+        variablesLocations,
         customUniformLocations,
         infLoc,
         nanLoc,
-        inShapesLocations,
-        inTexShapesLocations,
         outShapeLocation,
         outShapeStridesLocation,
         outTexShapeLocation
       } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
-      binary.uniformLocations = uniformLocations;
+      binary.variablesLocations = variablesLocations;
       binary.customUniformLocations = customUniformLocations;
       binary.infLoc = infLoc;
       binary.nanLoc = nanLoc;
-      binary.inShapesLocations = inShapesLocations;
-      binary.inTexShapesLocations = inTexShapesLocations;
       binary.outShapeLocation = outShapeLocation;
       binary.outShapeStridesLocation = outShapeStridesLocation;
       binary.outTexShapeLocation = outTexShapeLocation;
     }
+  }
+
+  /**
+   * Create a TF.js tensor out of an existing WebGL texture. A new texture will
+   * be created.
+   */
+  override createTensorFromGPUData(
+      values: WebGLData, shape: number[], dtype: DataType): Tensor {
+    values.channels = values.channels || 'RGBA';
+    const {texture, height, width, channels} = values;
+    const backend = engine().backend as MathBackendWebGL;
+
+    // Have to throw an error, otherwise WebGL just warns and returns wrong
+    // values.
+    if (!backend.gpgpu.gl.isTexture(texture)) {
+      throw new Error(
+          `The texture is invalid. Also, please make sure the texture and ` +
+          `the TFJS WebGL backend are using the same canvas. If you want to ` +
+          `use your own custom canvas, you have to create and use the custom ` +
+          `TFJS WebGL backend created from the canvas through ` +
+          `'new tf.MathBackendWebGL(customCanvas)'.`);
+    }
+
+    const dataId =
+        backend.writeTexture(texture, shape, dtype, height, width, channels);
+    return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
   }
 }
 

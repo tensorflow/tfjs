@@ -124,4 +124,9 @@ describeWithFlags('truncatedNormal', ALL_ENVS, () => {
     assertTruncatedValues(await result.data(), 0, 5);
     expectArrayInMeanStdRange(await result.data(), 0, 5, EPSILON);
   });
+
+  it('should throw error when shape is not integer', () => {
+    expect(() => tf.truncatedNormal([5.55, 3.33, 2.22], 0, 5, 'int32', SEED))
+        .toThrow();
+  });
 });

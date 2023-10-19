@@ -1,45 +1,53 @@
 {
+  "extends": "./tsconfig_base.json",
   "compilerOptions": {
-    "module": "ES2015",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "inlineSources": true,
-    "removeComments": false,
-    "preserveConstEnums": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "target": "es2017",
-    "lib": [
-      "es2019",
-      "dom"
-    ],
-    "outDir": "./dist",
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedParameters": false,
-    "pretty": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false,
-    "incremental": true
-  },
-  "include": [
-    "**/src/"
-  ],
-  "exclude": [
-    "bazel-out",
-    "dist",
-    "tfjs",
-    "tfjs-automl",
-    "tfjs-backend-nodegl",
-    "tfjs-backend-wasm",
-    "tfjs-backend-webgpu",
-    "tfjs-node",
-    "tfjs-node-gpu",
-    "tfjs-react-native",
-    "tfjs-vis",
-    "node_modules"
-  ]
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/tfjs-backend-cpu": [
+        "./tfjs-backend-cpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-webgl": [
+        "./tfjs-backend-webgl/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-webgpu": [
+        "./tfjs-backend-webgpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-backend-wasm": [
+        "./tfjs-backend-wasm/src/index.ts",
+      ],
+      "@tensorflow/tfjs-converter": [
+        "./tfjs-converter/src/index.ts",
+      ],
+      "@tensorflow/tfjs-core": [
+        "./tfjs-core/src/index.ts",
+      ],
+      "@tensorflow/tfjs-data": [
+        "./tfjs-data/src/index.ts",
+      ],
+      "@tensorflow/tfjs-layers": [
+        "./tfjs-layers/src/index.ts",
+      ],
+      "@tensorflow/tfjs-node": [
+        "./tfjs-node/src/index.ts",
+      ],
+      "@tensorflow/tfjs-node-gpu": [
+        "./tfjs-node-gpu/src/index.ts",
+      ],
+      "@tensorflow/tfjs-tfdf": [
+        "./tfjs-tfdf/src/index.ts",
+      ],
+      "@tensorflow/tfjs-tflite": [
+        "./tfjs-tflite/src/index.ts",
+      ],
+      "@tensorflow/tfjs": [
+        "./tfjs/src/index.ts",
+      ],
+      "@tensorflow/tfjs-core/dist/*": [
+        "./tfjs-core/src/*",
+      ],
+      "@tensorflow/tfjs-backend-cpu/dist/*": [
+        "./tfjs-backend-cpu/src/*",
+      ]
+    }
+  }
 }

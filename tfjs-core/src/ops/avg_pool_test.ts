@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {identityPoolTest} from './identity_pool_test';
 
 describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', async () => {
@@ -271,4 +272,6 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const result = tf.avgPool(a, 1, 1, 0);
     expectArraysClose(await result.data(), [0]);
   });
+
+  identityPoolTest(tf.avgPool);
 });

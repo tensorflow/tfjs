@@ -747,6 +747,37 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
            .toThrowError();
      });
 
+  it('throws when stride is less than or equal to 0', async () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 0;
+    const stride: [number, number] = [1, 0];
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv2d(x, w, stride, pad)).toThrowError();
+  });
+
+  it('throws when dilation is less than or equal to 0', async () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation: [number, number] = [1, 0];
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv2d(x, w, stride, pad, dataFormat, dilation))
+        .toThrowError();
+  });
+
   it('throws when both stride and dilation are greater than 1', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];

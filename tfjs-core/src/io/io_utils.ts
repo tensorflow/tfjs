@@ -21,7 +21,8 @@ import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightData, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {CompositeArrayBuffer} from './composite_array_buffer';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -101,8 +102,9 @@ export async function encodeWeights(
  *
  * This function is the reverse of `encodeWeights`.
  *
- * @param buffer A flat ArrayBuffer carrying the binary values of the tensors
- *   concatenated in the order specified in `specs`.
+ * @param weightData A flat ArrayBuffer or an array of ArrayBuffers carrying the
+ *   binary values of the tensors concatenated in the order specified in
+ *   `specs`.
  * @param specs Specifications of the names, dtypes and shapes of the tensors
  *   whose value are encoded by `buffer`.
  * @return A map from tensor name to tensor value, with the names corresponding
@@ -110,8 +112,10 @@ export async function encodeWeights(
  * @throws Error, if any of the tensors has unsupported dtype.
  */
 export function decodeWeights(
-    buffer: ArrayBuffer, specs: WeightsManifestEntry[]): NamedTensorMap {
+    weightData: WeightData,
+    specs: WeightsManifestEntry[]): NamedTensorMap {
   // TODO(adarob, cais): Support quantization.
+  const compositeBuffer = new CompositeArrayBuffer(weightData);
   const out: NamedTensorMap = {};
   let float16Decode: (buffer: Uint16Array) => Float32Array | undefined;
   let offset = 0;
@@ -145,7 +149,7 @@ export function decodeWeights(
       }
       const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
       const byteBuffer =
-          buffer.slice(offset, offset + size * quantizationSizeFactor);
+          compositeBuffer.slice(offset, offset + size * quantizationSizeFactor);
       const quantizedArray = (quantization.dtype === 'uint8') ?
           new Uint8Array(byteBuffer) :
           new Uint16Array(byteBuffer);
@@ -186,15 +190,17 @@ export function decodeWeights(
       values = [];
       for (let i = 0; i < size; i++) {
         const byteLength = new Uint32Array(
-            buffer.slice(offset, offset + NUM_BYTES_STRING_LENGTH))[0];
+            compositeBuffer.slice(offset, offset + NUM_BYTES_STRING_LENGTH))[0];
         offset += NUM_BYTES_STRING_LENGTH;
-        const bytes = new Uint8Array(buffer.slice(offset, offset + byteLength));
+        const bytes = new Uint8Array(
+          compositeBuffer.slice(offset, offset + byteLength));
         (values as Uint8Array[]).push(bytes);
         offset += byteLength;
       }
     } else {
       const dtypeFactor = DTYPE_VALUE_SIZE_MAP[dtype];
-      const byteBuffer = buffer.slice(offset, offset + size * dtypeFactor);
+      const byteBuffer = compositeBuffer.slice(offset,
+                                               offset + size * dtypeFactor);
 
       if (dtype === 'float32') {
         values = new Float32Array(byteBuffer);
@@ -285,7 +291,7 @@ const useNodeBuffer = typeof Buffer !== 'undefined' &&
  */
 export function stringByteLength(str: string): number {
   if (useNodeBuffer) {
-    return Buffer.byteLength(str);
+    return Buffer.byteLength(str, 'utf8');
   }
   return new Blob([str]).size;
 }
@@ -330,26 +336,15 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
 /**
  * Concatenate a number of ArrayBuffers into one.
  *
- * @param buffers A number of array buffers to concatenate.
+ * @param buffers An array of ArrayBuffers to concatenate, or a single
+ *     ArrayBuffer.
  * @returns Result of concatenating `buffers` in order.
+ *
+ * @deprecated Use tf.io.CompositeArrayBuffer.join() instead.
  */
-export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
-  if (buffers.length === 1) {
-    return buffers[0];
-  }
-
-  let totalByteLength = 0;
-  buffers.forEach((buffer: ArrayBuffer) => {
-    totalByteLength += buffer.byteLength;
-  });
-
-  const temp = new Uint8Array(totalByteLength);
-  let offset = 0;
-  buffers.forEach((buffer: ArrayBuffer) => {
-    temp.set(new Uint8Array(buffer), offset);
-    offset += buffer.byteLength;
-  });
-  return temp.buffer;
+export function concatenateArrayBuffers(buffers: ArrayBuffer[]
+      | ArrayBuffer): ArrayBuffer {
+  return CompositeArrayBuffer.join(buffers);
 }
 
 /**
@@ -396,10 +391,64 @@ export function getModelJSONForModelArtifacts(
   if (artifacts.modelInitializer != null) {
     result.modelInitializer = artifacts.modelInitializer;
   }
+  if (artifacts.initializerSignature != null) {
+    result.initializerSignature = artifacts.initializerSignature;
+  }
   if (artifacts.trainingConfig != null) {
     result.trainingConfig = artifacts.trainingConfig;
   }
   return result;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file and weights.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param weightSpecs The list of WeightsManifestEntry for the model. Must be
+ *     passed if the modelJSON has a weightsManifest.
+ * @param weightData An ArrayBuffer or array of ArrayBuffers of weight data for
+ *     the model corresponding to the weights in weightSpecs. Must be passed if
+ *     the modelJSON has a weightsManifest.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export function getModelArtifactsForJSONSync(
+    modelJSON: ModelJSON, weightSpecs?: WeightsManifestEntry[],
+    weightData?: WeightData): ModelArtifacts {
+
+  const modelArtifacts: ModelArtifacts = {
+    modelTopology: modelJSON.modelTopology,
+    format: modelJSON.format,
+    generatedBy: modelJSON.generatedBy,
+    convertedBy: modelJSON.convertedBy
+  };
+
+  if (modelJSON.trainingConfig != null) {
+    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+  }
+  if (modelJSON.weightsManifest != null) {
+    if (!weightSpecs) {
+      throw new Error('modelJSON has weightsManifest but weightSpecs is null');
+    }
+    if (!weightData) {
+      throw new Error('modelJSON has weightsManifest but weightData is null');
+    }
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+  if (modelJSON.signature != null) {
+    modelArtifacts.signature = modelJSON.signature;
+  }
+  if (modelJSON.userDefinedMetadata != null) {
+    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+  }
+  if (modelJSON.modelInitializer != null) {
+    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+  if (modelJSON.initializerSignature != null) {
+    modelArtifacts.initializerSignature = modelJSON.initializerSignature;
+  }
+
+  return modelArtifacts;
 }
 
 /**
@@ -414,35 +463,16 @@ export function getModelJSONForModelArtifacts(
 export async function getModelArtifactsForJSON(
     modelJSON: ModelJSON,
     loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
-      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+      /* weightSpecs */ WeightsManifestEntry[], WeightData,
     ]>): Promise<ModelArtifacts> {
-  const modelArtifacts: ModelArtifacts = {
-    modelTopology: modelJSON.modelTopology,
-    format: modelJSON.format,
-    generatedBy: modelJSON.generatedBy,
-    convertedBy: modelJSON.convertedBy
-  };
+  let weightSpecs: WeightsManifestEntry[] | undefined;
+  let weightData: WeightData | undefined;
 
-  if (modelJSON.trainingConfig != null) {
-    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-  }
   if (modelJSON.weightsManifest != null) {
-    const [weightSpecs, weightData] =
-        await loadWeights(modelJSON.weightsManifest);
-    modelArtifacts.weightSpecs = weightSpecs;
-    modelArtifacts.weightData = weightData;
-  }
-  if (modelJSON.signature != null) {
-    modelArtifacts.signature = modelJSON.signature;
-  }
-  if (modelJSON.userDefinedMetadata != null) {
-    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
-  }
-  if (modelJSON.modelInitializer != null) {
-    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+    [weightSpecs, weightData] = await loadWeights(modelJSON.weightsManifest);
   }
 
-  return modelArtifacts;
+  return getModelArtifactsForJSONSync(modelJSON, weightSpecs, weightData);
 }
 
 /**
@@ -467,8 +497,24 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
     weightDataBytes: modelArtifacts.weightData == null ?
         0 :
-        modelArtifacts.weightData.byteLength,
+        new CompositeArrayBuffer(modelArtifacts.weightData).byteLength,
   };
+}
+
+/**
+ * Concatenate the weights stored in a WeightsManifestConfig into a list of
+ * WeightsManifestEntry
+ *
+ * @param weightsManifest The WeightsManifestConfig to extract weights from.
+ * @returns A list of WeightsManifestEntry of the weights in the weightsManifest
+ */
+export function getWeightSpecs(weightsManifest: WeightsManifestConfig):
+    WeightsManifestEntry[] {
+  const weightSpecs: WeightsManifestEntry[] = [];
+  for (const entry of weightsManifest) {
+    weightSpecs.push(...entry.weights);
+  }
+  return weightSpecs;
 }
 
 /**

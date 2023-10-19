@@ -20,6 +20,8 @@ import {Fill, FillAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
+import {inferDtype} from '../util';
+import {assertNonNegativeIntegerDimensions} from '../util_base';
 
 /**
  * Creates a `tf.Tensor` filled with a scalar value.
@@ -31,15 +33,18 @@ import {DataType, Rank, ShapeMap} from '../types';
  * @param shape An array of integers defining the output tensor shape.
  * @param value The scalar value to fill the tensor with.
  * @param dtype The type of an element in the resulting tensor. Defaults to
- * 'float'.
+ *     'float32' if the given param value is a number, otherwise 'string'.
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+  assertNonNegativeIntegerDimensions(shape);
+
+  dtype = dtype || inferDtype(value);
   const attrs: FillAttrs = {shape, value, dtype};
 
-  return ENGINE.runKernel(Fill, {}, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Fill, {}, attrs as unknown as NamedAttrMap);
 }
 
 export {fill};

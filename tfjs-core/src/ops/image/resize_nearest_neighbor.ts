@@ -81,8 +81,8 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
-                  ResizeNearestNeighbor, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
+                  ResizeNearestNeighbor, inputs as unknown as NamedTensorMap,
+                  attrs as unknown as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
@@ -90,4 +90,4 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   return res;
 }
 
-export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
+export const resizeNearestNeighbor = /* @__PURE__ */ op({resizeNearestNeighbor_});

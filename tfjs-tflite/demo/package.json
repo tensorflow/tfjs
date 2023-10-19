@@ -12,7 +12,7 @@
     "clang-format": "~1.5.0",
     "cross-env": "^7.0.3",
     "parcel": "^2.3.2",
-    "typescript": "3.5.3"
+    "typescript": "5.0.4"
   },
   "scripts": {
     "build-deps": "cd ../../link-package && yarn build",

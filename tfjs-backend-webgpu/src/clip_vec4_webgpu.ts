@@ -26,15 +26,15 @@ export class ClipVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [64, 1, 1];
-  isVec4 = true;
+  workgroupSize: [number, number, number] = [64, 1, 1];
+  outputComponent = 4;
   size = true;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'clipVec4';
   }
@@ -44,15 +44,9 @@ export class ClipVec4Program implements WebGPUProgram {
       ${main('index')} {
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
-          var clampedValue : vec4<f32>;
-          for (var i = 0; i < 4; i = i + 1) {
-            if (isnan(value[i])) {
-              clampedValue[i] = value[i];
-            } else {
-              clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
-            }
-          }
-
+          var clampedValue = clamp(
+              value, vec4<f32>(uniforms.minVal), vec4<f32>(uniforms.maxVal));
+          clampedValue = select(clampedValue, value, isnanVec4(value));
           setOutputAtIndex(index, clampedValue);
         }
       }

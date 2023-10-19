@@ -25,5 +25,5 @@ export const realDiv = binaryKernelFunc({opType: BinaryOpType.DIV});
 export const realDivConfig: KernelConfig = {
   kernelName: RealDiv,
   backendName: 'webgpu',
-  kernelFunc: realDiv as {} as KernelFunc
+  kernelFunc: realDiv as unknown as KernelFunc
 };

@@ -42,6 +42,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {bitwiseAndConfig} from './kernels/BitwiseAnd';
 import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -69,6 +70,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
 import {dilation2DBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2DBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {drawConfig} from './kernels/Draw';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
@@ -132,6 +134,7 @@ import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {raggedGatherConfig} from './kernels/RaggedGather';
+import {raggedRangeConfig} from './kernels/RaggedRange';
 import {raggedTensorToTensorConfig} from './kernels/RaggedTensorToTensor';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
@@ -169,6 +172,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {staticRegexReplaceConfig} from './kernels/StaticRegexReplace';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {stringNGramsConfig} from './kernels/StringNGrams';
@@ -178,6 +182,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tensorScatterUpdateConfig} from './kernels/TensorScatterUpdate';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
@@ -212,6 +217,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  bitwiseAndConfig,
   broadcastArgsConfig,
   castConfig,
   ceilConfig,
@@ -239,6 +245,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2DConfig,
   dilation2DBackpropFilterConfig,
   dilation2DBackpropInputConfig,
+  drawConfig,
   einsumConfig,
   eluConfig,
   eluGradConfig,
@@ -302,6 +309,7 @@ const kernelConfigs: KernelConfig[] = [
   preluConfig,
   prodConfig,
   raggedGatherConfig,
+  raggedRangeConfig,
   raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,
@@ -339,6 +347,7 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  staticRegexReplaceConfig,
   stepConfig,
   stridedSliceConfig,
   stringNGramsConfig,
@@ -348,6 +357,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tensorScatterUpdateConfig,
   tileConfig,
   topKConfig,
   transformConfig,

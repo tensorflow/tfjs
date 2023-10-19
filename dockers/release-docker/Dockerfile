@@ -1,4 +1,4 @@
-FROM node:16.13.2-buster-slim
+FROM node:18.13.0-bullseye-slim
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=355.0.0
@@ -8,6 +8,7 @@ ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
 RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
+        parallel \
         python \
         python-dev \
         python3 \
@@ -26,7 +27,6 @@ RUN apt-get update -qqy && apt-get install -qqy \
         libffi-dev \
         zlib1g-dev \
         procps && \
-    ln -s /usr/bin/pip3 /usr/bin/pip && \
     pip3 install -U crcmod && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
@@ -47,4 +47,3 @@ RUN pip3 install virtualenv
 # Install absl
 RUN pip3 install absl-py
 
-ENTRYPOINT /bin/bash

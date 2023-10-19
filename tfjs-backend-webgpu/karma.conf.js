@@ -42,7 +42,6 @@ const devConfig = {
   ],
   preprocessors: {'src/**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript']
 };
 
 module.exports = function(config) {
@@ -60,8 +59,15 @@ module.exports = function(config) {
 
   config.set({
     ...devConfig,
+    reporters: ['dots', 'karma-typescript'],
+    plugins: [
+      require('karma-chrome-launcher'),
+      require('karma-typescript'),
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+    ],
     exclude,
-    port: 9876,
+    port: 9200,
     colors: true,
     autoWatch: false,
     browsers: ['Chrome', 'chrome_webgpu'],
@@ -69,10 +75,7 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_webgpu: {
         base: 'ChromeCanary',
-        flags: [
-          '--enable-unsafe-webgpu',
-          '--disable-dawn-features=disallow_unsafe_apis'
-        ],
+        flags: ['--disable-dawn-features=disallow_unsafe_apis'],
       }
     },
     client: {jasmine: {random: false}, args: args}

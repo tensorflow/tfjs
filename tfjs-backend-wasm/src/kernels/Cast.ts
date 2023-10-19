@@ -34,5 +34,5 @@ export function cast(
 export const castConfig: KernelConfig = {
   kernelName: Cast,
   backendName: 'wasm',
-  kernelFunc: cast as {} as KernelFunc,
+  kernelFunc: cast as unknown as KernelFunc,
 };

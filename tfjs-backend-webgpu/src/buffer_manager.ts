@@ -26,74 +26,65 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
-  acquireUploadBuffer(size: number, usage: GPUBufferUsageFlags) {
-    return this.acquireBuffer(size, usage, true);
-  }
-
   acquireBuffer(
-      size: number, usage: GPUBufferUsageFlags, mappedAtCreation = false) {
+      size: number, usage: GPUBufferUsageFlags, mappedAtCreation = false,
+      reuse = true) {
+    let buffer;
     const key = getBufferKey(size, usage);
-    if (!this.freeBuffers.has(key)) {
-      this.freeBuffers.set(key, []);
+
+    if (reuse) {
+      if (!this.freeBuffers.has(key)) {
+        this.freeBuffers.set(key, []);
+      }
+
+      if (this.freeBuffers.get(key).length > 0) {
+        buffer = this.freeBuffers.get(key).pop();
+        this.numFreeBuffers--;
+      } else {
+        buffer = this.device.createBuffer({size, usage, mappedAtCreation});
+        this.numBytesAllocated += size;
+      }
+    } else {
+      buffer = this.device.createBuffer({size, usage, mappedAtCreation});
+      this.numBytesAllocated += size;
     }
 
     if (!this.usedBuffers.has(key)) {
       this.usedBuffers.set(key, []);
     }
-
-    this.numBytesUsed += size;
+    this.usedBuffers.get(key).push(buffer);
     this.numUsedBuffers++;
+    this.numBytesUsed += size;
 
-    if (this.freeBuffers.get(key).length > 0) {
-      this.numFreeBuffers--;
-
-      const newBuffer = this.freeBuffers.get(key).shift();
-      this.usedBuffers.get(key).push(newBuffer);
-      return newBuffer;
-    }
-
-    this.numBytesAllocated += size;
-    const newBuffer = this.device.createBuffer({size, usage, mappedAtCreation});
-    this.usedBuffers.get(key).push(newBuffer);
-
-    return newBuffer;
+    return buffer;
   }
 
-  releaseBuffer(buffer: GPUBuffer, size: number, usage: GPUBufferUsageFlags) {
+  releaseBuffer(buffer: GPUBuffer, reuse = true) {
     if (this.freeBuffers.size === 0) {
       return;
     }
 
+    const size = buffer.size;
+    const usage = buffer.usage;
+
     const key = getBufferKey(size, usage);
-    if (!this.freeBuffers.has(key)) {
-      this.freeBuffers.set(key, []);
+    const bufferArray = this.usedBuffers.get(key);
+    const index = bufferArray.indexOf(buffer);
+    if (index < 0) {
+      throw new Error('Cannot find the buffer in buffer manager');
     }
-
-    this.freeBuffers.get(key).push(buffer);
-    this.numFreeBuffers++;
+    bufferArray[index] = bufferArray[bufferArray.length - 1];
+    bufferArray.pop();
     this.numUsedBuffers--;
-
-    const bufferList = this.usedBuffers.get(key);
-    const bufferIndex = bufferList.indexOf(buffer);
-    if (bufferIndex < 0) {
-      throw new Error(
-          'Cannot release a buffer that was never provided by this ' +
-          'buffer manager');
-    }
-    bufferList.splice(bufferIndex, 1);
     this.numBytesUsed -= size;
-  }
 
-  releaseUploadBuffer(
-      buffer: GPUBuffer, size: number, usage: GPUBufferUsageFlags) {
-    buffer.mapAsync(GPUMapMode.WRITE)
-        .then(
-            () => {
-              this.releaseBuffer(buffer, size, usage);
-            },
-            (err) => {
-                // Do nothing;
-            });
+    if (reuse) {
+      this.freeBuffers.get(key).push(buffer);
+      this.numFreeBuffers++;
+    } else {
+      buffer.destroy();
+      this.numBytesAllocated -= size;
+    }
   }
 
   getNumUsedBuffers(): number {

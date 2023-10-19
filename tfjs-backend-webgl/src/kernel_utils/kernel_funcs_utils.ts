@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import { backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -32,23 +32,11 @@ import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
-export const CHECK_NAN_SNIPPET_BINARY = `
-  if (isnan(a)) return a;
-  if (isnan(b)) return b;
-`;
-
-export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
-`;
-
 type UnaryKernelFuncConfig = {
   opSnippet: string,
   packedOpSnippet?: string,
   cpuKernelImpl?: SimpleUnaryKernelImplCPU,
-  dtype?: DataType
+  dtype?: DataType,
 };
 
 /**

@@ -53,8 +53,6 @@ ts_library(
         "//tfjs-core/src:tfjs-core_src_lib",
         "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
-        "@npm//@types/webgl-ext",
-        "@npm//@types/webgl2",
     ],
 )
 
@@ -69,9 +67,7 @@ ts_library(
 
 ts_library(
     name = "tfjs-backend-webgl_test_lib",
-    # TODO(mattsoulanille): Mark as testonly when esbuild is fixed to allow it.
-    # https://github.com/bazelbuild/rules_nodejs/pull/2984
-    # testonly = True,
+    testonly = True,
     srcs = glob(TEST_SRCS) + [":tests"],
     module_name = "@tensorflow/tfjs-backend-webgl/dist",
     deps = [

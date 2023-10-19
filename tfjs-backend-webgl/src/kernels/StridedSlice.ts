@@ -101,5 +101,5 @@ export function stridedSlice(args: {
 export const stridedSliceConfig: KernelConfig = {
   kernelName: StridedSlice,
   backendName: 'webgl',
-  kernelFunc: stridedSlice as {} as KernelFunc
+  kernelFunc: stridedSlice as unknown as KernelFunc
 };

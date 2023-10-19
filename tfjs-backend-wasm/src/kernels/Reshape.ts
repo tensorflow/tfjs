@@ -41,5 +41,5 @@ export function reshape(
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'wasm',
-  kernelFunc: reshape as {} as KernelFunc
+  kernelFunc: reshape as unknown as KernelFunc
 };

@@ -4,6 +4,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
+  waitedForByPackages: true
 
 # Test generate_cloudbuild.js
 # See #4523 for why this is special-cased into every cloudbuild.
@@ -42,13 +43,13 @@ steps:
 # in every build.
 - name: 'gcr.io/learnjs-174218/release'
   id: 'bazel-tests'
+  waitFor: ['yarn-common']
   entrypoint: 'bash'
   args:
     - './scripts/run_bazel_ci_tests.sh'
   env:
     - 'BROWSERSTACK_USERNAME=deeplearnjs1'
     - 'NIGHTLY=$_NIGHTLY'
-  waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # The following step builds the link package, which is a temporary package
@@ -67,6 +68,7 @@ steps:
   id: 'yarn-link-package-build'
   args: ['build', '--bazel_options=--config=ci']
   waitFor: ['yarn-link-package']
+  waitedForByPackages: true
 
 # General configuration
 secrets:
@@ -74,11 +76,11 @@ secrets:
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
     FIREBASE_KEY: CiQAkwyoIXmET39jOD3ywloCIa6+WUpu3w49twpMmkMqy0vS+YsSUAAD8BdZQGOL8FKEBxr/1jl0G78OigwlNVHjD3usZobNtlOp8tV/9iacb8zPFqy0SwIO1gvz3HRr+VU7c7LS2qqaTCdacZF+dx3VJNewvdZu
-timeout: 3600s
+timeout: 7200s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_32'
+  machineType: 'E2_HIGHCPU_32'
   substitution_option: 'ALLOW_LOOSE'

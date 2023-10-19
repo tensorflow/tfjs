@@ -23,7 +23,7 @@ import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
-import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('reduction', () => {
   let node: Node;
@@ -54,14 +54,10 @@ describe('reduction', () => {
             node.op = op;
             node.attrParams.keepDims = createBoolAttr(true);
             node.attrParams.axis = createNumberAttr(1);
-            // TODO(mattsoulanille): Remove type assertions after TS4
-            // tslint:disable-next-line no-any
-            (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
-              .and.returnValue({});
+            spyOps[uncapitalize(op)].and.returnValue({});
             executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-            // TODO(mattsoulanille): Remove type assertion after TS4
-            expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+            expect(spyOps[uncapitalize(op)])
                 .toHaveBeenCalledWith(input1[0], 1, true);
           });
         });
@@ -158,6 +154,15 @@ describe('reduction', () => {
 
         expect(validateParam(node, reduction.json, 'DenseBincount'))
             .toBeTruthy();
+      });
+    });
+    describe('Prod', () => {
+      it('should match op def', () => {
+        node.op = 'Prod';
+        node.inputParams['axis'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams['keepDims'] = createBoolAttr(true);
+
+        expect(validateParam(node, reduction.json)).toBeTruthy();
       });
     });
   });

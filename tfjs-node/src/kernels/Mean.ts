@@ -25,7 +25,7 @@ export const meanConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as MeanInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis, keepDims} = args.attrs as {} as MeanAttrs;
+    const {axis, keepDims} = args.attrs as unknown as MeanAttrs;
     const axes = util.parseAxisParam(axis, x.shape);
     const axesTensor = tensor1d(axes, 'int32');
 

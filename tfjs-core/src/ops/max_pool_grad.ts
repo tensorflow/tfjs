@@ -77,8 +77,8 @@ function maxPoolGrad_(
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   return ENGINE.runKernel(
-             MaxPoolGrad, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+             MaxPoolGrad, inputs as unknown as NamedTensorMap,
+             attrs as unknown as NamedAttrMap) as Tensor4D;
 }
 
-export const maxPoolGrad = op({maxPoolGrad_});
+export const maxPoolGrad = /* @__PURE__ */ op({maxPoolGrad_});

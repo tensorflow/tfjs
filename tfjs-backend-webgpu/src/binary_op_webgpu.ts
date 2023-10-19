@@ -24,14 +24,14 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
-  isVec4: boolean;
+  outputComponent: number;
   op: BinaryOpType;
   outputShape: number[];
   shaderKey: string;
   size = true;
   variableNames = ['A', 'B'];
-  workGroupSize: [number, number, number];
-  workPerThread: number;
+  workgroupSize: [number, number, number];
+  variableComponents: number[];
 
   private lastDimensionSize: number;
   private useSharedMemoryWithA: boolean;
@@ -49,45 +49,53 @@ export class BinaryOpProgram implements WebGPUProgram {
         bShape.length <= 1 && aShape.length > 1 && bShape[0] < 128;
 
     if (this.useSharedMemoryWithA || this.useSharedMemoryWithB) {
-      this.isVec4 = false;
+      this.outputComponent = 1;
+      this.variableComponents = [1, 1];
       // lastDimensionSize is used as sharedBuf array size, so can not be
       // used as uniform.
       this.lastDimensionSize =
           this.useSharedMemoryWithB ? bShape[0] : aShape[0];
-      this.shaderKey = `binary_${this.type}_${op}_${this.lastDimensionSize}_${
-          this.useSharedMemoryWithB}`;
+      this.shaderKey = `binary_${op}_${this.lastDimensionSize}`;
       this.type = 'shared';
       // This is an experimental value when using shared memory.
       // Note that the maximum of workgroup X dimension is 256.
-      this.workGroupSize = [256, 1, 1];
-      this.workPerThread = 1;
+      this.workgroupSize = [256, 1, 1];
     } else {
-      if (util.arraysEqual(aShape, bShape) &&
-          util.sizeFromShape(aShape) % 4 === 0) {
-        this.isVec4 = true;
-        this.type = 'vec4';
-        this.workPerThread = 4;
+      const aDivisibleBy4 =
+          aShape.length > 0 && aShape[aShape.length - 1] % 4 === 0;
+      const bDivisibleBy4 =
+          bShape.length > 0 && bShape[bShape.length - 1] % 4 === 0;
+      if (aDivisibleBy4 && bDivisibleBy4) {
+        this.outputComponent = 4;
+        this.variableComponents = [4, 4];
+      } else if (
+          (aDivisibleBy4 &&
+           (util.isScalarShape(bShape) || bShape[bShape.length - 1] === 1)) ||
+          (bDivisibleBy4 &&
+           (util.isScalarShape(aShape) || aShape[aShape.length - 1] === 1))) {
+        this.outputComponent = 4;
+        this.variableComponents = aDivisibleBy4 ? [4, 1] : [1, 4];
       } else {
-        this.isVec4 = false;
-        this.type = 'plain';
-        this.workPerThread = 1;
+        this.outputComponent = 1;
+        this.variableComponents = [1, 1];
       }
-      this.shaderKey = `binary_${this.type}_${op}`;
+      this.type = 'nonshared';
+      this.shaderKey = `binary_${op}_${this.variableComponents}`;
       // TODO(jiajia.qin@intel.com): Heuristically select a good work group
       // size.
-      this.workGroupSize = [128, 1, 1];
+      this.workgroupSize = [128, 1, 1];
     }
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workgroupSize,
+        [this.outputComponent, 1, 1]);
   }
 
   getUserCode(): string {
     let userCode;
-    const dType = this.isVec4 ? 'vec4<f32>' : 'f32';
+    const dType = this.outputComponent === 4 ? 'vec4<f32>' : 'f32';
     const opFnStr = `
     fn binaryOperation(a : ${dType}, b : ${dType}) -> ${dType} {
-      ${getBinaryOpString(this.op, this.isVec4)}
+      ${getBinaryOpString(this.op, this.outputComponent === 4)}
     };
     `;
 
@@ -124,8 +132,9 @@ export class BinaryOpProgram implements WebGPUProgram {
        ${opFnStr}
        ${main('index')} {
          if (index < uniforms.size) {
-           let a = getAByOutputIndex(index);
-           let b = getBByOutputIndex(index);
+           let coords = getCoordsFromIndex(index * ${this.outputComponent});
+           let a = ${dType}(getAByOutputCoords(coords));
+           let b = ${dType}(getBByOutputCoords(coords));
            setOutputAtIndex(index, binaryOperation(a, b));
          }
        }

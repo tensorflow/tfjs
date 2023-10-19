@@ -17,7 +17,7 @@
 
 import {KernelConfig, KernelFunc, Mod} from '@tensorflow/tfjs-core';
 
-import {CHECK_NAN_SNIPPET} from '../binaryop_packed_gpu';
+import {CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const MOD = `if (b == 0.0) return NAN;
@@ -25,9 +25,9 @@ const MOD = `if (b == 0.0) return NAN;
 
 const MOD_PACKED = `
   vec4 result = mod(a, b);
-  vec4 isNaN = vec4(equal(b, vec4(0.0)));
+  bvec4 isNaN = equal(b, vec4(0.0));
   ` +
-    CHECK_NAN_SNIPPET + `
+    CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
 
@@ -39,5 +39,5 @@ export const mod = binaryKernelFunc({
 export const modConfig: KernelConfig = {
   kernelName: Mod,
   backendName: 'webgl',
-  kernelFunc: mod as {} as KernelFunc
+  kernelFunc: mod as unknown as KernelFunc
 };

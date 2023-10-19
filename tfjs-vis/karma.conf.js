@@ -68,16 +68,19 @@ module.exports = function(config) {
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
-    port: 9836,
+    port: 9200,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       tunnelIdentifier:
           `tfjs_vis_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 180000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',
@@ -98,12 +101,12 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Mojave'
+        os_version: 'Big Sur'
       },
       bs_ios_12: {
         base: 'BrowserStack',
-        device: 'iPhone X',
-        os: 'iOS',
+        device: 'iPhone XS',
+        os: 'ios',
         os_version: '12.3',
         real_mobile: true
       },

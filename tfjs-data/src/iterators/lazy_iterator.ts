@@ -160,7 +160,7 @@ export abstract class LazyIterator<T> {
    *
    * Calling next() on a closed stream returns `{value:null, done:true}`.
    */
-  abstract async next(): Promise<IteratorResult<T>>;
+  abstract next(): Promise<IteratorResult<T>>;
 
   /**
    * Collect all remaining elements of a bounded stream into an array.
@@ -860,7 +860,7 @@ export abstract class OneToManyIterator<T> extends LazyIterator<T> {
    *   upstream source is exhausted AND nothing was added to the queue
    * (i.e., any remaining carryover).
    */
-  protected abstract async pump(): Promise<boolean>;
+  protected abstract pump(): Promise<boolean>;
 
   async serialNext(): Promise<IteratorResult<T>> {
     // Fetch so that the queue contains at least one item if possible.
@@ -1146,14 +1146,14 @@ export class ShuffleIterator<T> extends PrefetchIterator<T> {
   private upstreamExhausted = false;
 
   constructor(
-      protected upstream: LazyIterator<T>, protected windowSize: number,
+    protected override upstream: LazyIterator<T>, protected windowSize: number,
       seed?: string) {
     super(upstream, windowSize);
     this.random = seedrandom.alea(seed || tf.util.now().toString());
     this.lastRead = Promise.resolve({value: null, done: false});
   }
 
-  async next(): Promise<IteratorResult<T>> {
+  override async next(): Promise<IteratorResult<T>> {
     // This sets this.lastRead to a new Promise right away, as opposed to
     // saying `await this.lastRead; this.lastRead = this.serialNext();` which
     // would not work because this.nextRead would be updated only after the

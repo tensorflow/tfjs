@@ -18,10 +18,11 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {NamedTensorInfoMap} from './kernel_registry';
 import {ExplicitPadding} from './ops/conv_util';
 import {Activation} from './ops/fused_types';
-import {DataType, PixelData} from './types';
+import {TensorInfo} from './tensor_info';
+import {DataType, DrawOptions, PixelData} from './types';
 
 export const Abs = 'Abs';
 export type AbsInputs = UnaryInputs;
@@ -136,6 +137,9 @@ export type BincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
 export interface BincountAttrs {
   size: number;
 }
+
+export const BitwiseAnd = 'BitwiseAnd';
+export type BitwiseAndInputs = BinaryInputs;
 
 export const BroadcastTo = 'BroadcastTo';
 export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -331,6 +335,13 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
+export const Draw = 'Draw';
+export type DrawInputs = Pick<NamedTensorInfoMap, 'image'>;
+export interface DrawAttrs {
+  canvas: HTMLCanvasElement;
+  options?: DrawOptions;
+}
+
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
 
@@ -487,6 +498,11 @@ export interface LRNGradAttrs {
   alpha: number;
   beta: number;
 }
+
+export const MatrixBandPart = 'MatrixBandPart';
+export type MatrixBandPartInputs =
+    Pick<NamedTensorInfoMap, 'input'|'numLower'|'numUpper'>;
+export interface MatrixBandPartAttrs {}
 
 export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -667,6 +683,10 @@ export interface RaggedGatherAttrs {
   outputRaggedRank: number;
 }
 
+export const RaggedRange = 'RaggedRange';
+export type RaggedRangeInputs =
+    Pick<NamedTensorInfoMap, 'starts'|'limits'|'deltas'>;
+
 export const RaggedTensorToTensor = 'RaggedTensorToTensor';
 export type RaggedTensorToTensorInputs =
     Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
@@ -743,6 +763,11 @@ export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
 export interface ScatterNdAttrs {
   shape: number[];
 }
+
+export const TensorScatterUpdate = 'TensorScatterUpdate';
+export type TensorScatterUpdateInputs =
+    Pick<NamedTensorInfoMap, 'tensor'|'indices'|'updates'>;
+export interface TensorScatterUpdateAttrs {}
 
 export const SearchSorted = 'SearchSorted';
 export type SearchSortedInputs =
@@ -836,6 +861,14 @@ export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const StaticRegexReplace = 'StaticRegexReplace';
+export type StaticRegexReplaceInputs = UnaryInputs;
+export interface StaticRegexReplaceAttrs {
+  pattern: string;
+  rewrite: string;
+  replaceGlobal: boolean;
+}
 
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
