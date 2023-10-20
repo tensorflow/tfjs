@@ -95,7 +95,7 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Big Sur'
+        os_version: 'Mojave'
       },
       bs_ios_12: {
         base: 'BrowserStack',
