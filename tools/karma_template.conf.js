@@ -53,7 +53,7 @@ const CUSTOM_LAUNCHERS = {
     browser: 'safari',
     browser_version: 'latest',
     os: 'OS X',
-    os_version: 'High Sierra'
+    os_version: 'Mojave'
   },
   bs_ios_12: {
     base: 'BrowserStack',
@@ -173,7 +173,8 @@ module.exports = function(config) {
       // This is necessary for non-flaky Safari tests. They usually pass just
       // fine without it, but sometimes, Safari will fail to connect to Karma.
       // If you want to remove this, prove that it's not flaky by running
-      // bazel test //tfjs-core/src:bs_safari_mac_from_pixels_worker_test --runs_per_test=100
+      // bazel test //tfjs-core/src:bs_safari_mac_from_pixels_worker_test
+      // --runs_per_test=100
       extraConfig.hostname = 'bs-local.com';
     }
 
