@@ -89,6 +89,9 @@ ENV.registerFlag('WEBGL_LAZILY_UNPACK', () => ENV.getBool('WEBGL_PACK'));
 /** Whether we will use the im2col algorithm to speed up convolutions. */
 ENV.registerFlag('WEBGL_CONV_IM2COL', () => ENV.getBool('WEBGL_PACK'));
 
+/** Whether we will pack conv2dTranspose op. */
+ENV.registerFlag('WEBGL_PACK_CONV2DTRANSPOSE', () => ENV.getBool('WEBGL_PACK'));
+
 /** The maximum texture dimension. */
 ENV.registerFlag(
     'WEBGL_MAX_TEXTURE_SIZE',

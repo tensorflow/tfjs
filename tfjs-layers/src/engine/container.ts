@@ -36,6 +36,17 @@ export interface ContainerArgs {
   name?: string;
 }
 
+// get weights key from tensor map in order to check if it is from keras v3.
+// e.g. dense/0
+const isKerasSavedModelFormat = (weights: NamedTensorMap): boolean => {
+  const keys = Object.keys(weights);
+  if (keys.length === 0) {
+    return false;
+  }
+  const key = keys[0].split('/');
+  return !isNaN(parseInt(key[key.length - 1], 10));
+};
+
 /**
  * A Container is a directed acyclic graph of layers.
  *
@@ -594,16 +605,16 @@ export abstract class Container extends Layer {
   loadWeights(weights: NamedTensorMap, strict = true) {
     const nameToWeight: {[name: string]: LayerVariable} = {};
     let totalWeightsCount = 0;
-    // get weights key from tensor map in order to check if it is from keras v3.
-    // e.g. dense/0
-    const key = Object.keys(weights)[0].split('/');
-    const isKerasSavedModelFormat = !isNaN(parseInt(key[key.length - 1], 10));
+    const modelIsKerasSavedModelFormat = isKerasSavedModelFormat(weights);
+    if (modelIsKerasSavedModelFormat) {
+      this.parseWeights(weights);
+    }
     // Check if weights from keras v3.
     for (const layer of this.layers) {
       for (const [index, weight] of layer.weights.entries()) {
         // Parse the name to layerName/index.
         // e.g. dense/0, dense/1, dense_1/0, dense_1/1
-        const parsedName = isKerasSavedModelFormat ?
+        const parsedName = modelIsKerasSavedModelFormat ?
             `${weight.name.split('/').slice(0, -1).join('/') + '/'}${index}` :
             weight.originalName;
         if (nameToWeight[parsedName] != null) {
@@ -650,6 +661,33 @@ export abstract class Container extends Layer {
     }
 
     batchSetValue(weightValueTuples);
+  }
+
+  protected parseWeights(weights: NamedTensorMap) {
+    for (const key in Object.keys(weights)) {
+      const listParts = key.split('/');
+      const list = ['vars', 'layer_checkpoint_dependencies'];
+      // For keras v3, the weights name are saved based on the folder structure.
+      // e.g. _backbone/_layer_checkpoint_dependencies/transformer/_self../
+      // _output_dense/vars/0
+      // Therefore we discard the `vars` and `layer_checkpoint_depencies` within
+      // the saved name and only keeps the layer name and weights.
+      // This can help to mapping the actual name of the layers and load each
+      // weight accordingly.
+      const newKey = listParts
+                         .map(str => {
+                           if (str.startsWith('_')) {
+                             return str.slice(1);
+                           }
+                           return str;
+                         })
+                         .filter(str => !list.includes(str))
+                         .join('/');
+      if (newKey !== key) {
+        weights[newKey] = weights[key];
+        delete weights[key];
+      }
+    }
   }
 
   /**

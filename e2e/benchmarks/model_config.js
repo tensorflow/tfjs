@@ -634,7 +634,8 @@ async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
     const artifacts = await ioHandler.load();
     modelType = artifacts.format;
   } catch (e) {
-    throw new Error(`Failed to fetch or parse 'model.json' file.`);
+    console.error(`Failed to fetch or parse 'model.json' file.`);
+    throw e;
   }
 
   // load models
@@ -649,7 +650,8 @@ async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
       model = await tryAllLoadingMethods(ioHandler, loadOptions, state);
     }
   } catch (e) {
-    throw new Error('Failed to load the model.');
+    console.error('Failed to load the model.');
+    throw e;
   }
 
   return model;

@@ -50,7 +50,6 @@ describeWebGPU('fromPixels', () => {
         document.body.appendChild(video);
         await test_util.play(video);
 
-        // importExternalTexture is temporarily disabled
         {
           tf.env().set('WEBGPU_IMPORT_EXTERNAL_TEXTURE', true);
           const res = tf.browser.fromPixels(video);
@@ -59,7 +58,7 @@ describeWebGPU('fromPixels', () => {
           expect(data.length).toEqual(90 * 160 * 3);
           const freeTexturesAfterFromPixels =
               textureManager.getNumFreeTextures();
-          expect(freeTexturesAfterFromPixels).toEqual(1);
+          expect(freeTexturesAfterFromPixels).toEqual(0);
           const usedTexturesAfterFromPixels =
               textureManager.getNumUsedTextures();
           expect(usedTexturesAfterFromPixels).toEqual(0);

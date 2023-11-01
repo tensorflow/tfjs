@@ -275,6 +275,8 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
   kept = false;
   /** The id of the scope this tensor is being tracked in. */
   scopeId: number;
+  /** The keras mask that some keras layers attach to the tensor */
+  kerasMask?: Tensor;
 
   /**
    * Number of elements to skip in each dimension when indexing. See
@@ -441,6 +443,9 @@ export class Tensor<R extends Rank = Rank> implements TensorInfo {
   dispose(): void {
     if (this.isDisposed) {
       return;
+    }
+    if (this.kerasMask) {
+      this.kerasMask.dispose();
     }
     trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;

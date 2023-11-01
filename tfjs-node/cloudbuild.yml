@@ -51,7 +51,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint']
+  waitFor: ['yarn', 'build-addon', 'build-deps', 'lint']
 
 # CPU / GPU package alignment.
 - name: 'gcr.io/learnjs-174218/release'

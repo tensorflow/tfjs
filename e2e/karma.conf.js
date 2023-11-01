@@ -108,7 +108,7 @@ const browserstackConfig = {
   // breaks WASM file serving.
   // See https://www.browserstack.com/question/39574
   singleRun: true,
-  port: 9876
+  port: 9200
 };
 
 const chromeWebgpuFlags = [
@@ -144,6 +144,10 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
+    reporters: [
+      'spec',
+      'jasmine-order',
+    ],
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
@@ -178,13 +182,13 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Mojave'
       },
       bs_ios_12: {
         base: 'BrowserStack',
-        device: 'iPhone X',
-        os: 'iOS',
-        os_version: '11.0',
+        device: 'iPhone XS',
+        os: 'ios',
+        os_version: '12.3',
         real_mobile: true
       },
       bs_android_10: {
