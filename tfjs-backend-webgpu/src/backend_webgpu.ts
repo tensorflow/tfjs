@@ -651,7 +651,7 @@ export class WebGPUBackend extends KernelBackend {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
           `Start Chrome browser with flag ` +
-          `--disable-dawn-features=disallow_unsafe_apis to try it again. ` +
+          `--enable-dawn-features=allow_unsafe_apis to try it again. ` +
           `Otherwise, zero will be shown for the kernel time when profiling ` +
           `mode is enabled.`);
       this.hasTimestampQueryWarned = true;
@@ -962,18 +962,11 @@ export class WebGPUBackend extends KernelBackend {
           count: this.querySetCount,
         });
       }
-      computePassDescriptor.timestampWrites = [
-        {
-          querySet: this.querySet,
-          queryIndex: 0,
-          location: 'beginning',
-        },
-        {
-          querySet: this.querySet,
-          queryIndex: 1,
-          location: 'end',
-        }
-      ];
+      computePassDescriptor.timestampWrites = {
+        querySet: this.querySet,
+        beginningOfPassWriteIndex: 0,
+        endOfPassWriteIndex: 1,
+      };
       this.computePassEncoder =
           this.commandEncoder.beginComputePass(computePassDescriptor);
     } else if (!this.computePassEncoder) {
