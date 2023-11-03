@@ -310,10 +310,10 @@
   resolved "https://registry.yarnpkg.com/@types/cors/-/cors-2.8.12.tgz#6b2c510a7ad7039e98e7b8d3d6598f4359e5c080"
   integrity sha512-vt+kDhq/M2ayberEtJcIN/hxXy1Pk+59g2FV/ZQceeaTyCtCucjL2Q7FXlFjtWn4n15KCr1NE2lNNFhp0lEThw==
 
-"@types/dom-webcodecs@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.npmjs.org/@types/dom-webcodecs/-/dom-webcodecs-0.1.2.tgz#0099b842f3a6010e8a284c9b8cbb0aeab20fce60"
-  integrity sha512-e5DuY7mZedrV8rrgEnm1gPmy4h2x11ryUTnkjmbdR6SWGCS3Qvz1ZJudtBIrbPNEhnpGM634SL7ZHQDz7dsBCg==
+"@types/dom-webcodecs@0.1.4":
+  version "0.1.4"
+  resolved "https://registry.npmjs.org/@types/dom-webcodecs/-/dom-webcodecs-0.1.4.tgz#90a3dd80e5baf72baa79a74cf410e63863992516"
+  integrity sha512-dc+xSUnCaCdi/hExZArnLhiavS3E1Rdpp2+zCI6TcmJvz4qgDPBbpvCM7DsQhwRXIIpVMHO6c3s+t+JyCSqYBA==
 
 "@types/emscripten@~0.0.34":
   version "0.0.34"
