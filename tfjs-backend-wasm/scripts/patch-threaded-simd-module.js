@@ -44,8 +44,7 @@
  * https://github.com/emscripten-core/emscripten/pull/12832
  */
 const fs = require('fs');
-const {ArgumentParser} = require('argparse');
-
+const { ArgumentParser } = require('argparse');
 const parser = new ArgumentParser();
 
 parser.addArgument('jsFile', {
@@ -62,6 +61,7 @@ const args = parser.parseArgs();
 
 let content = fs.readFileSync(args.jsFile, 'utf8');
 content = content.replace(
-    /if\s*\(\s*_scriptDir\s*\)/g,
-    'if(typeof _scriptDir !== "undefined" && _scriptDir)');
+  /if\s*\(\s*_scriptDir\s*\)/g,
+  'if(typeof _scriptDir !== "undefined" && _scriptDir)');
+content = content.replace(/new Worker\(pthreadMainJs\)/g, 'new Worker(pthreadMainJs, { eval: true })');
 fs.writeFileSync(args.outFile, content);
