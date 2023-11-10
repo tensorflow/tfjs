@@ -1,6 +1,6 @@
 {
   "name": "tfjs-react-native-para-patch",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
   "repository": {
@@ -69,15 +69,15 @@
   },
   "peerDependencies": {
     "@react-native-async-storage/async-storage": "^1.13.0",
-    "@tensorflow/tfjs-backend-cpu": "~4.12.0",
-    "@tensorflow/tfjs-backend-webgl": "~4.12.0",
-    "@tensorflow/tfjs-core": "~4.12.0",
+    "@tensorflow/tfjs-backend-cpu": "^4.13.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.13.0",
+    "@tensorflow/tfjs-core": "^4.13.0",
     "expo-asset": "^7.0.0",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
     "react": "*",
     "react-native": ">= 0.72.0",
-    "react-native-fs": "^2.14.1"
+    "react-native-fs": "^2.20.0"
   },
   "resolutions": {
     "minimist": "1.2.6"
