@@ -38,6 +38,9 @@ Note that if you are using in a managed expo app the install instructions may be
   - **Install @tensorflow/tfjs** - `npm install @tensorflow/tfjs`
   - **Install @tensorflow/tfjs-react-native** - `npm install @tensorflow/tfjs-react-native`
 
+If you encounter dependency conflict error in npm install, you can either:
+- Follow the instructions to use `--force` or `--legacy-peer-deps`
+- Or use yarn to install
 
 > After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
