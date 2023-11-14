@@ -155,7 +155,7 @@ export function GPUBytesPerElement(dtype: DataType): number {
 }
 
 export function isWebGPUSupported(): boolean {
-  return !!globalThis.navigator.gpu;
+  return !!globalThis.navigator?.gpu;
 }
 
 export function assertNotComplex(
