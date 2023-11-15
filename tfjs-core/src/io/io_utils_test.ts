@@ -487,7 +487,7 @@ describeWithFlags('decodeWeights', {}, () => {
 
   async function decodeAsBuffer(data: ArrayBuffer,
                           specs: tf.io.WeightsManifestEntry[]) {
-    let result = tf.io.decodeWeights(data, specs);
+    const result = tf.io.decodeWeights(data, specs);
     // Make sure it doesn't return a promise.
     expect(result).not.toBeInstanceOf(Promise);
     // Wrap it in a promise to work with the tests.
