@@ -23,6 +23,7 @@ import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
 import {ResourceManager} from './resource_manager';
+// tslint:disable-next-line: no-imports-from-dist
 import {decodeWeightsStream} from '@tensorflow/tfjs-core/dist/io/io_utils';
 
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
@@ -190,7 +191,8 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     return this.loadWithWeightMap(artifacts, weightMap);
   }
 
-  private loadWithWeightMap(artifacts: io.ModelArtifacts, weightMap: NamedTensorMap) {
+  private loadWithWeightMap(artifacts: io.ModelArtifacts,
+                            weightMap: NamedTensorMap) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
 
@@ -230,7 +232,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     return true;
   }
-
 
   /**
    * Save the configuration and/or weights of the GraphModel.

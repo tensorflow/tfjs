@@ -25,6 +25,7 @@ import {GraphNode} from '../operations/types';
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
 import {HASH_TABLE_MODEL_V2} from './test_data/hash_table_v2_model_loader';
 import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
+// tslint:disable-next-line: no-imports-from-dist
 import {expectArrayBuffersEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 const HOST = 'http://example.org';
@@ -613,7 +614,8 @@ describe('Model', () => {
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.callFake((_url: string|string[], loadOptions?: io.LoadOptions) => {
+      spyIo.getLoadHandlers.and.callFake((_url: string|string[],
+                                          loadOptions?: io.LoadOptions) => {
         if (loadOptions.streamWeights) {
           return [SIMPLE_STREAMING_MODEL_LOADER];
         }
@@ -801,9 +803,11 @@ describe('Model', () => {
     });
 
     it('should stream graph model weights', async () => {
-      const model = await loadGraphModel(MODEL_URL, {streamWeights: true}, spyIo);
+      const model = await loadGraphModel(MODEL_URL, {streamWeights: true},
+                                         spyIo);
       expect(model).toBeDefined();
-      expectArrayBuffersEqual(model.weights['Const'][0].dataSync(), bias.dataSync());
+      expectArrayBuffersEqual(model.weights['Const'][0].dataSync(),
+                              bias.dataSync());
     });
 
     describe('InferenceModel interface', () => {

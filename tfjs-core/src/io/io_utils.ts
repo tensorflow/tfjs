@@ -395,7 +395,7 @@ export async function decodeWeightsStream(
   const reader = weightStream.getReader();
   let data = new ArrayBuffer(0);
 
-  for (let spec of specs) {
+  for (const spec of specs) {
     data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
     const byteLength = getWeightBytelength(spec, data);
     data = await readToLength(reader, data, byteLength);

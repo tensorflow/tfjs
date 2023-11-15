@@ -544,7 +544,7 @@ export interface LoadOptions {
    * Whether to stream the model directly to the backend or cache all its
    * weights on CPU. Useful for large models.
    */
-  streamWeights?: boolean
+  streamWeights?: boolean;
 }
 
 /**
