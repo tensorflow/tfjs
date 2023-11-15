@@ -123,8 +123,9 @@ export function decodeWeights(
   const out: NamedTensorMap = {};
   let offset = 0;
   for (const spec of specs) {
-    const byteLength = getWeightBytelength(spec, compositeBuffer
-      .slice(offset, offset + NUM_BYTES_STRING_LENGTH));
+    const byteLength = getWeightBytelength(spec, (start, end) => {
+      return compositeBuffer.slice(offset + start, offset + end);
+    });
     out[spec.name] = decodeWeight(spec, compositeBuffer
       .slice(offset, offset + byteLength));
     offset += byteLength;
@@ -133,7 +134,8 @@ export function decodeWeights(
 }
 
 function getWeightBytelength(spec: WeightsManifestEntry,
-                             firstFourBytes: ArrayBuffer): number {
+  slice: (start: number, end: number) => ArrayBuffer): number {
+
   const size = sizeFromShape(spec.shape);
   let bytesPerValue: number;
   if ('quantization' in spec) {
@@ -141,9 +143,37 @@ function getWeightBytelength(spec: WeightsManifestEntry,
     bytesPerValue = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
   } else if (spec.dtype === 'string') {
     // Can not statically determine string length.
-    const byteLength = new Uint32Array(
-      firstFourBytes.slice(0, NUM_BYTES_STRING_LENGTH))[0];
-    return NUM_BYTES_STRING_LENGTH + byteLength;
+    let byteLength = 0;
+    for (let i = 0; i < size; i++) {
+      byteLength += NUM_BYTES_STRING_LENGTH + new Uint32Array(
+        slice(byteLength, byteLength + NUM_BYTES_STRING_LENGTH))[0];
+    }
+    return byteLength;
+  } else {
+    bytesPerValue = DTYPE_VALUE_SIZE_MAP[spec.dtype];
+  }
+
+  return size * bytesPerValue;
+}
+
+async function getWeightBytelengthAsync(
+  spec: WeightsManifestEntry,
+  slice: (start: number, end: number) => Promise<ArrayBuffer>
+): Promise<number> {
+
+  const size = sizeFromShape(spec.shape);
+  let bytesPerValue: number;
+  if ('quantization' in spec) {
+    const quantization = spec.quantization;
+    bytesPerValue = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
+  } else if (spec.dtype === 'string') {
+    // Can not statically determine string length.
+    let byteLength = 0;
+    for (let i = 0; i < size; i++) {
+      byteLength += NUM_BYTES_STRING_LENGTH + new Uint32Array(
+        await slice(byteLength, byteLength + NUM_BYTES_STRING_LENGTH))[0];
+    }
+    return byteLength;
   } else {
     bytesPerValue = DTYPE_VALUE_SIZE_MAP[spec.dtype];
   }
@@ -291,8 +321,11 @@ export async function decodeWeightsStream(
   let data = new ArrayBuffer(0);
 
   for (const spec of specs) {
-    data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
-    const byteLength = getWeightBytelength(spec, data);
+    //data = await readToLength(reader, data, NUM_BYTES_STRING_LENGTH);
+    const byteLength = await getWeightBytelengthAsync(spec, async (start, end) => {
+      data = await readToLength(reader, data, end);
+      return data.slice(start, end);
+    });
     data = await readToLength(reader, data, byteLength);
 
     // Slice the tensor out
