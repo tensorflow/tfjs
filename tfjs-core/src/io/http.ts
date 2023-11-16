@@ -203,7 +203,7 @@ export class HTTPRequest implements IOHandler {
     return {
       ...modelJSON,
       weightSpecs,
-      streamWeights: stream,
+      getWeightStream: stream,
     };
   }
 

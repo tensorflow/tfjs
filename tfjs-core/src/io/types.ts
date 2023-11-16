@@ -259,10 +259,10 @@ export declare interface ModelArtifacts {
 
   /**
    * Returns a stream of the weights. Some models are too large to fit in
-   * V8's memory heap, and `streamWeights` loads their weights without storing
+   * V8's memory heap, and `getWeightStream` loads their weights without storing
    * them all in memory at the same time.
    */
-  streamWeights?: () => ReadableStream<ArrayBuffer>;
+  getWeightStream?: () => ReadableStream<ArrayBuffer>;
 
   /**
    * Hard-coded format name for models saved from TensorFlow.js or converted
@@ -542,7 +542,7 @@ export interface LoadOptions {
 
   /**
    * Whether to stream the model directly to the backend or cache all its
-   * weights on CPU. Useful for large models.
+   * weights on CPU first. Useful for large models.
    */
   streamWeights?: boolean;
 }
