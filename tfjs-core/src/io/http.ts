@@ -140,9 +140,9 @@ export class HTTPRequest implements IOHandler {
 
     if (!modelConfigRequest.ok) {
       throw new Error(
-        `Request to ${this.path} failed with status code ` +
-        `${modelConfigRequest.status}. Please verify this URL points to ` +
-        `the model JSON of the model to load.`);
+          `Request to ${this.path} failed with status code ` +
+          `${modelConfigRequest.status}. Please verify this URL points to ` +
+          `the model JSON of the model to load.`);
     }
     let modelJSON: ModelJSON;
     try {
@@ -153,14 +153,14 @@ export class HTTPRequest implements IOHandler {
       // .pb files are mostly gone.
       if (this.path.endsWith('.pb')) {
         message += ' Your path contains a .pb file extension. ' +
-          'Support for .pb models have been removed in TensorFlow.js 1.0 ' +
-          'in favor of .json models. You can re-convert your Python ' +
-          'TensorFlow model using the TensorFlow.js 1.0 conversion scripts ' +
-          'or you can convert your.pb models with the \'pb2json\'' +
-          'NPM script in the tensorflow/tfjs-converter repository.';
+            'Support for .pb models have been removed in TensorFlow.js 1.0 ' +
+            'in favor of .json models. You can re-convert your Python ' +
+            'TensorFlow model using the TensorFlow.js 1.0 conversion scripts ' +
+            'or you can convert your.pb models with the \'pb2json\'' +
+            'NPM script in the tensorflow/tfjs-converter repository.';
       } else {
         message += ' Please make sure the server is serving valid ' +
-          'JSON for this request.';
+            'JSON for this request.';
       }
       throw new Error(message);
     }
@@ -170,8 +170,8 @@ export class HTTPRequest implements IOHandler {
     const weightsManifest = modelJSON.weightsManifest;
     if (modelTopology == null && weightsManifest == null) {
       throw new Error(
-        `The JSON from HTTP path ${this.path} contains neither model ` +
-        `topology or manifest for weights.`);
+          `The JSON from HTTP path ${this.path} contains neither model ` +
+          `topology or manifest for weights.`);
     }
 
     return modelJSON;

@@ -26,8 +26,8 @@ import {CompositeArrayBuffer} from './composite_array_buffer';
 import {Tensor} from '../tensor';
 import {backend} from '../globals';
 import {DataId} from '../tensor_info';
-import { env } from '../environment';
-import { getBackend } from '../globals';
+import {env} from '../environment';
+import {getBackend} from '../globals';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -198,21 +198,21 @@ function decodeWeight(
     if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
       if (!('min' in quantization && 'scale' in quantization)) {
         throw new Error(
-          `Weight ${spec.name} with quantization ${quantization.dtype} ` +
-          `doesn't have corresponding metadata min and scale.`);
+            `Weight ${spec.name} with quantization ${quantization.dtype} ` +
+            `doesn't have corresponding metadata min and scale.`);
       }
     } else if (quantization.dtype === 'float16') {
       if (dtype !== 'float32') {
         throw new Error(
-          `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
-          `which only supports weights of type float32 not ${dtype}.`);
+            `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
+            `which only supports weights of type float32 not ${dtype}.`);
       }
     } else {
       throw new Error(
-        `Weight ${spec.name} has unknown ` +
-        `quantization dtype ${quantization.dtype}. ` +
-        `Supported quantization dtypes are: ` +
-        `'uint8', 'uint16', and 'float16'.`);
+          `Weight ${spec.name} has unknown ` +
+          `quantization dtype ${quantization.dtype}. ` +
+          `Supported quantization dtypes are: ` +
+          `'uint8', 'uint16', and 'float16'.`);
     }
     const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
     const quantizedArray = (quantization.dtype === 'uint8') ?
