@@ -132,7 +132,7 @@ const SIMPLE_STREAMING_MODEL_LOADER = {
     return {
       modelTopology: SIMPLE_MODEL,
       weightSpecs: weightsManifest,
-      streamWeights: () => {
+      getWeightStream: () => {
         const data = bias.dataSync();
         const blob = new Blob([data]);
         return blob.stream();

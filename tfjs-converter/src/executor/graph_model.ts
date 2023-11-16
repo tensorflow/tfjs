@@ -157,7 +157,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     const loadResult = this.handler.load() as ReturnType<IOHandler['load']>;
     if (util.isPromise(loadResult)) {
       return loadResult.then(artifacts => {
-        if (artifacts.streamWeights == null) {
+        if (artifacts.getWeightStream == null) {
           return this.loadSync(artifacts);
         }
         return this.loadStreaming(artifacts);
@@ -181,12 +181,12 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   }
 
   private async loadStreaming(artifacts: io.ModelArtifacts): Promise<boolean> {
-    if (artifacts.streamWeights == null) {
+    if (artifacts.getWeightStream == null) {
       throw new Error('Model artifacts missing streamWeights function');
     }
 
     const weightMap = await decodeWeightsStream(
-      artifacts.streamWeights(), artifacts.weightSpecs);
+      artifacts.getWeightStream(), artifacts.weightSpecs);
 
     return this.loadWithWeightMap(artifacts, weightMap);
   }
