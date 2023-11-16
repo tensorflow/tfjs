@@ -231,14 +231,6 @@ export class HTTPRequest implements IOHandler {
     return fetchURLs;
   }
 
-  // private get loadOptions(): LoadOptions {
-  //   return {
-  //     requestInit: this.requestInit,
-  //     fetchFunc: this.fetch,
-  //     onProgress: this.onProgress
-  //   };
-  // }
-
   private async loadWeights(weightsManifest: WeightsManifestConfig):
     Promise<[WeightsManifestEntry[], WeightData]> {
     const fetchURLs = await this.getWeightUrls(weightsManifest);
