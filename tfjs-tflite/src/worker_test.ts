@@ -25,18 +25,18 @@ const str2workerURL = (str: string): string => {
 
 // The source code of a web worker.
 const workerTest = `
-importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
-importScripts(location.origin
+importScripts('${location.origin}/base/tfjs/tfjs-core/tf-core.min.js');
+importScripts('${location.origin}'
   + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
 // Import order matters. TFLite must be imported after tfjs core.
-importScripts(location.origin + '/base/tfjs/tfjs-tflite/tf-tflite.min.js');
+importScripts('${location.origin}/base/tfjs/tfjs-tflite/tf-tflite.min.js');
 
 // Setting wasm path is required. It can be set to CDN if needed,
 // but that's not a good idea for a test.
-tflite.setWasmPath('/base/tfjs/tfjs-tflite/wasm/');
+tflite.setWasmPath('${location.origin}/base/tfjs/tfjs-tflite/wasm/');
 async function main() {
   // This is a test model that adds two tensors of shape [1, 4].
-  const model = await tflite.loadTFLiteModel(location.origin + '/base/tfjs/tfjs-tflite/test_files/add4.tflite');
+  const model = await tflite.loadTFLiteModel('${location.origin}/base/tfjs/tfjs-tflite/test_files/add4.tflite');
 
   const a = tf.tensor2d([[1, 2, 3, 4]]);
   const b = tf.tensor2d([[5, 6, 7, 8]]);

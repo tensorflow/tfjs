@@ -258,6 +258,13 @@ export declare interface ModelArtifacts {
   weightData?: WeightData;
 
   /**
+   * Returns a stream of the weights. Some models are too large to fit in
+   * V8's memory heap, and `getWeightStream` loads their weights without storing
+   * them all in memory at the same time.
+   */
+  getWeightStream?: () => ReadableStream<ArrayBuffer>;
+
+  /**
    * Hard-coded format name for models saved from TensorFlow.js or converted
    * by TensorFlow.js Converter.
    */
@@ -482,7 +489,7 @@ export interface LoadOptions {
   /**
    * A function used to override the `window.fetch` function.
    */
-  fetchFunc?: Function;
+  fetchFunc?: typeof fetch;
 
   /**
    * Strict loading model: whether extraneous weights or missing
@@ -532,6 +539,12 @@ export interface LoadOptions {
    * With this func you can convert the weight file name to any URL.
    */
   weightUrlConverter?: (weightFileName: string) => Promise<string>;
+
+  /**
+   * Whether to stream the model directly to the backend or cache all its
+   * weights on CPU first. Useful for large models.
+   */
+  streamWeights?: boolean;
 }
 
 /**
