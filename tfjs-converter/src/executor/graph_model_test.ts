@@ -25,6 +25,8 @@ import {GraphNode} from '../operations/types';
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
 import {HASH_TABLE_MODEL_V2} from './test_data/hash_table_v2_model_loader';
 import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
+// tslint:disable-next-line: no-imports-from-dist
+import {expectArrayBuffersEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 const HOST = 'http://example.org';
 const MODEL_URL = `${HOST}/model.json`;
@@ -117,6 +119,24 @@ const SIMPLE_HTTP_MODEL_LOADER = {
       modelTopology: SIMPLE_MODEL,
       weightSpecs: weightsManifest,
       weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1',
+      userDefinedMetadata: {signature: SIGNATURE}
+    };
+  }
+};
+
+const SIMPLE_STREAMING_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      getWeightStream: () => {
+        const data = bias.dataSync();
+        const blob = new Blob([data]);
+        return blob.stream();
+      },
       format: 'tfjs-graph-model',
       generatedBy: '1.15',
       convertedBy: '1.3.1',
@@ -438,7 +458,7 @@ describe('loadGraphModel', () => {
   });
 
   it('Pass a fetchFunc', async () => {
-    const fetchFunc = () => {};
+    const fetchFunc = (() => {}) as unknown as typeof fetch;
     spyIo.getLoadHandlers.and.returnValue([CUSTOM_HTTP_MODEL_LOADER]);
     await loadGraphModel(MODEL_URL, {fetchFunc}, spyIo);
     expect(spyIo.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
@@ -594,7 +614,13 @@ describe('Model', () => {
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([SIMPLE_HTTP_MODEL_LOADER]);
+      spyIo.getLoadHandlers.and.callFake((_url: string|string[],
+                                          loadOptions?: io.LoadOptions) => {
+        if (loadOptions.streamWeights) {
+          return [SIMPLE_STREAMING_MODEL_LOADER];
+        }
+        return [SIMPLE_HTTP_MODEL_LOADER];
+      });
       spyIo.browserHTTPRequest.and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
     });
     it('load', async () => {
@@ -774,6 +800,14 @@ describe('Model', () => {
       const url = `${HOST}/model/1`;
       const model = await loadGraphModel(url, {fromTFHub: true}, spyIo);
       expect(model).toBeDefined();
+    });
+
+    it('should stream graph model weights', async () => {
+      const model = await loadGraphModel(MODEL_URL, {streamWeights: true},
+                                         spyIo);
+      expect(model).toBeDefined();
+      expectArrayBuffersEqual(model.weights['Const'][0].dataSync(),
+                              bias.dataSync());
     });
 
     describe('InferenceModel interface', () => {

@@ -136,7 +136,7 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
 
     const loadOptions: LoadOptions = {
       onProgress: (fraction: number) => {},
-      fetchFunc: () => {}
+      fetchFunc: ((() => {}) as unknown as typeof fetch),
     };
     const loadHandler = tf.io.getLoadHandlers('foo:///123', loadOptions);
     expect(loadHandler.length).toEqual(1);
