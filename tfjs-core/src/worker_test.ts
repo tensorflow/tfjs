@@ -26,8 +26,8 @@ const str2workerURL = (str: string): string => {
 
 // The source code of a web worker.
 const workerTest = `
-importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
-importScripts(location.origin
+importScripts('${location.origin}/base/tfjs/tfjs-core/tf-core.min.js');
+importScripts('${location.origin}'
   + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
 
 let a = tf.tensor1d([1, 2, 3]);

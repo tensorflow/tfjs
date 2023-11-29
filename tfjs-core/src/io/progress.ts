@@ -27,8 +27,8 @@ import {OnProgressCallback} from './types';
  * @param startFraction Optional fraction start. Default to 0.
  * @param endFraction Optional fraction end. Default to 1.
  */
-export function monitorPromisesProgress(
-    promises: Array<Promise<{}|void>>, onProgress: OnProgressCallback,
+export function monitorPromisesProgress<T>(
+    promises: Array<Promise<T>>, onProgress: OnProgressCallback,
     startFraction?: number, endFraction?: number) {
   checkPromises(promises);
   startFraction = startFraction == null ? 0 : startFraction;
@@ -36,7 +36,7 @@ export function monitorPromisesProgress(
   checkFraction(startFraction, endFraction);
   let resolvedPromise = 0;
 
-  const registerMonitor = (promise: Promise<{}>) => {
+  const registerMonitor = (promise: Promise<T>) => {
     promise.then(value => {
       const fraction = startFraction +
           ++resolvedPromise / promises.length * (endFraction - startFraction);
@@ -47,7 +47,7 @@ export function monitorPromisesProgress(
     return promise;
   };
 
-  function checkPromises(promises: Array<Promise<{}|void>>): void {
+  function checkPromises(promises: Array<Promise<T>>): void {
     assert(
         promises != null && Array.isArray(promises) && promises.length > 0,
         () => 'promises must be a none empty array');

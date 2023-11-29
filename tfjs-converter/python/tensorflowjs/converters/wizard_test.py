@@ -24,7 +24,7 @@ import shutil
 import tensorflow.compat.v2 as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.saved_model import save
 
 from tensorflowjs.converters import wizard
@@ -74,7 +74,7 @@ class CliTest(unittest.TestCase):
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = tf.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v1 = variables.Variable(3.)
     root.v2 = variables.Variable(2.)
     root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
