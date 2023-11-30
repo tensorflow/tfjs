@@ -72,6 +72,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Plant AI](https://github.com/Rishit-dagli/Greenathon-Plant-AI) - This web app identifies diseases in plants across 38 healthy and unhealthy plant categories by species and diseases all in the browser - By Rishit Dagli, Rishabh Singh and Rucha Yagnik. [[demo](https://www.plant-ai.tech/)][[repo](https://github.com/Rishit-dagli/Greenathon-Plant-AI)]
 - [Brainchop.org](https://neuroneural.github.io/brainchop/) - Brings automatic 3D MRI segmentation capability to neuroimaging by running a deep learning model in the web-browser on the user side - By Mohamed Masoud and Sergey Plis. [[demo](https://neuroneural.github.io/brainchop/)][[repo](https://github.com/neuroneural/brainchop)][[wiki](https://github.com/neuroneural/brainchop/wiki)]
 - [chestxray.ai](https://github.com/jordimassaguerpla/chestxray.ai) - X-Ray image of you Chest, and predicts the probability of having any of these 4 diseases:Cardiomegaly,Mass,Pneumotorax,Edema - By Jordi Massaguer Pla. [[repo](https://github.com/jordimassaguerpla/chestxray.ai)]
+- [asanAI](https://asanai.scads.ai/) - A tool to experiment with different layer types, optimizers and so on with default and custom data, fully in the browser, see and visualize results and export to a python-model that can be run locally.
   
 ## Tutorials / Codelabs
 

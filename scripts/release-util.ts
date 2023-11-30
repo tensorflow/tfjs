@@ -601,6 +601,8 @@ export async function getNpmVersion(pkg: string, registry?: string,
 export function getTagFromVersion(version: string): string {
   if (version.includes('dev')) {
     return 'nightly';
+  }else if (version.includes('rc')) {
+    return 'next';
   }
   return 'latest';
 }
@@ -638,7 +640,8 @@ export async function runVerdaccio(): Promise<() => void> {
 
     serverProcess.on('message', (msg: {verdaccio_started: boolean}) => {
       if (msg.verdaccio_started) {
-        console.log('Verdaccio Started.');
+        console.log(chalk.magenta.bold(
+            `Verdaccio Started. Visit http://localhost:4873 to see packages.`));
         clearTimeout(timeout);
         resolve();
       }

@@ -27,8 +27,8 @@ import {assert} from '../util';
 import {getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts, getWeightSpecs} from './io_utils';
 import {CompositeArrayBuffer} from './composite_array_buffer';
 import {IORouter, IORouterRegistry} from './router_registry';
-import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
-import {loadWeightsAsArrayBuffer} from './weights_loader';
+import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, SaveResult, WeightData, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {loadWeightsAsArrayBuffer, streamWeights} from './weights_loader';
 
 const OCTET_STREAM_MIME_TYPE = 'application/octet-stream';
 const JSON_TYPE = 'application/json';
@@ -36,7 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly path: string;
   protected readonly requestInit: RequestInit;
 
-  private readonly fetch: Function;
+  private readonly fetch: typeof fetch;
   private readonly weightUrlConverter: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
@@ -44,14 +44,13 @@ export class HTTPRequest implements IOHandler {
   static readonly URL_SCHEME_REGEX = /^https?:\/\//;
 
   private readonly weightPathPrefix: string;
-  private readonly onProgress: OnProgressCallback;
+  private readonly loadOptions: LoadOptions;
 
   constructor(path: string, loadOptions?: LoadOptions) {
     if (loadOptions == null) {
       loadOptions = {};
     }
     this.weightPathPrefix = loadOptions.weightPathPrefix;
-    this.onProgress = loadOptions.onProgress;
     this.weightUrlConverter = loadOptions.weightUrlConverter;
 
     if (loadOptions.fetchFunc != null) {
@@ -84,6 +83,7 @@ export class HTTPRequest implements IOHandler {
           'requestInit is expected to have no pre-existing body, but has one.');
     }
     this.requestInit = loadOptions.requestInit || {};
+    this.loadOptions = loadOptions;
   }
 
   async save(modelArtifacts: ModelArtifacts): Promise<SaveResult> {
@@ -135,15 +135,7 @@ export class HTTPRequest implements IOHandler {
     }
   }
 
-  /**
-   * Load model artifacts via HTTP request(s).
-   *
-   * See the documentation to `tf.io.http` for details on the saved
-   * artifacts.
-   *
-   * @returns The loaded model artifacts (if loading succeeds).
-   */
-  async load(): Promise<ModelArtifacts> {
+  private async loadModelJSON(): Promise<ModelJSON> {
     const modelConfigRequest = await this.fetch(this.path, this.requestInit);
 
     if (!modelConfigRequest.ok) {
@@ -182,17 +174,44 @@ export class HTTPRequest implements IOHandler {
           `topology or manifest for weights.`);
     }
 
+    return modelJSON;
+  }
+
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `tf.io.http` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load(): Promise<ModelArtifacts> {
+    if (this.loadOptions.streamWeights) {
+      return this.loadStream();
+    }
+    const modelJSON = await this.loadModelJSON();
     return getModelArtifactsForJSON(
         modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
   }
 
-  private async loadWeights(weightsManifest: WeightsManifestConfig):
-    Promise<[WeightsManifestEntry[], WeightData]> {
+  private async loadStream(): Promise<ModelArtifacts> {
+    const modelJSON = await this.loadModelJSON();
+    const fetchURLs = await this.getWeightUrls(modelJSON.weightsManifest);
+    const weightSpecs = getWeightSpecs(modelJSON.weightsManifest);
+    const stream = () => streamWeights(fetchURLs, this.loadOptions);
+
+    return {
+      ...modelJSON,
+      weightSpecs,
+      getWeightStream: stream,
+    };
+  }
+
+  private async getWeightUrls(weightsManifest: WeightsManifestConfig):
+    Promise<string[]> {
     const weightPath = Array.isArray(this.path) ? this.path[1] : this.path;
     const [prefix, suffix] = parseUrl(weightPath);
     const pathPrefix = this.weightPathPrefix || prefix;
-
-    const weightSpecs = getWeightSpecs(weightsManifest);
 
     const fetchURLs: string[] = [];
     const urlPromises: Array<Promise<string>> = [];
@@ -209,12 +228,15 @@ export class HTTPRequest implements IOHandler {
     if (this.weightUrlConverter) {
       fetchURLs.push(...await Promise.all(urlPromises));
     }
+    return fetchURLs;
+  }
 
-    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
-      requestInit: this.requestInit,
-      fetchFunc: this.fetch,
-      onProgress: this.onProgress
-    });
+  private async loadWeights(weightsManifest: WeightsManifestConfig):
+    Promise<[WeightsManifestEntry[], WeightData]> {
+    const fetchURLs = await this.getWeightUrls(weightsManifest);
+    const weightSpecs = getWeightSpecs(weightsManifest);
+
+    const buffers = await loadWeightsAsArrayBuffer(fetchURLs, this.loadOptions);
     return [weightSpecs, buffers];
   }
 }

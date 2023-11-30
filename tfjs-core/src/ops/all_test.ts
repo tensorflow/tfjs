@@ -107,4 +107,10 @@ describeWithFlags('all', ALL_ENVS, () => {
         .toThrowError(
             /Argument 'x' passed to 'all' must be bool tensor, but got string/);
   });
+
+  it('returns a boolean tensor', () => {
+    const a = tf.tensor1d([1, 0], 'bool');
+    const r = tf.all(a);
+    expect(r.dtype).toEqual('bool');
+  });
 });

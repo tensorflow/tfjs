@@ -58,8 +58,8 @@ async function main() {
   // Delete possible branch from a prior execution of this script
   const branchCmd = `git branch -D ${lockfilesBranch}`;
   const result = shell.exec(branchCmd, {silent: true});
-  const okErrCode = `error: branch '${lockfilesBranch}' not found.`;
-  if (result.code > 0 && result.stderr.trim() !== okErrCode) {
+  const okErrCode = `branch '${lockfilesBranch}' not found`;
+  if (result.code > 0 && !result.stderr.trim().match(okErrCode)) {
     console.log('$', branchCmd);
     console.log(result.stderr);
     process.exit(1);

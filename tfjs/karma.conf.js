@@ -54,7 +54,7 @@ module.exports = function(config) {
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
-    port: 9806,
+    port: 9200,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
@@ -69,14 +69,14 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        browser_version: '90',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       chrome_with_swift_shader: {
         base: 'Chrome',
