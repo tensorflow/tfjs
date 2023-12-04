@@ -499,6 +499,9 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
       return 'float32';
     case tensorflow.DataType.DT_STRING:
       return 'string';
+    case tensorflow.DataType.DT_COMPLEX64:
+    case tensorflow.DataType.DT_COMPLEX128:
+      return 'complex64';
     default:
       // Unknown dtype error will happen at runtime (instead of parse time),
       // since these nodes might not be used by the actual subgraph execution.

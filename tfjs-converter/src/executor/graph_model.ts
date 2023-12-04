@@ -23,6 +23,8 @@ import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
 import {ResourceManager} from './resource_manager';
+// tslint:disable-next-line: no-imports-from-dist
+import {decodeWeightsStream} from '@tensorflow/tfjs-core/dist/io/io_utils';
 
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
 export const DEFAULT_MODEL_NAME = 'model.json';
@@ -154,7 +156,12 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
     const loadResult = this.handler.load() as ReturnType<IOHandler['load']>;
     if (util.isPromise(loadResult)) {
-      return loadResult.then(artifacts => this.loadSync(artifacts)) as Result;
+      return loadResult.then(artifacts => {
+        if (artifacts.getWeightStream == null) {
+          return this.loadSync(artifacts);
+        }
+        return this.loadStreaming(artifacts);
+      }) as Result;
     }
 
     return this.loadSync(loadResult) as Result;
@@ -167,6 +174,25 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   loadSync(artifacts: io.ModelArtifacts) {
+    const weightMap = this.io.decodeWeights(
+        artifacts.weightData, artifacts.weightSpecs);
+
+    return this.loadWithWeightMap(artifacts, weightMap);
+  }
+
+  private async loadStreaming(artifacts: io.ModelArtifacts): Promise<boolean> {
+    if (artifacts.getWeightStream == null) {
+      throw new Error('Model artifacts missing streamWeights function');
+    }
+
+    const weightMap = await decodeWeightsStream(
+      artifacts.getWeightStream(), artifacts.weightSpecs);
+
+    return this.loadWithWeightMap(artifacts, weightMap);
+  }
+
+  private loadWithWeightMap(artifacts: io.ModelArtifacts,
+                            weightMap: NamedTensorMap) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
 
@@ -184,8 +210,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
     this.signature = signature;
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    const weightMap = this.io.decodeWeights(
-        this.artifacts.weightData, this.artifacts.weightSpecs);
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, this.signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);

@@ -469,118 +469,153 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
 });
 
 describeWithFlags('decodeWeights', {}, () => {
-  it('Mixed dtype tensors', async () => {
-    const tensors: NamedTensorMap = {
-      x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
-      x2: scalar(13.37, 'float32'),
-      x3: tensor1d([true, false, false], 'bool'),
-      x4: tensor2d([['здраво', 'a'], ['b', 'c']], [2, 2], 'string'),
-      x5: tensor1d([''], 'string'),  // Empty string.
-      x6: scalar('hello'),           // Single string.
-      y1: tensor2d([-10, -20, -30], [3, 1], 'float32'),
-      y2: tf.complex([1, 1], [2, 2])
-    };
-    const dataAndSpecs = await tf.io.encodeWeights(tensors);
-    const data = dataAndSpecs.data;
-    const specs = dataAndSpecs.specs;
-    const decoded = tf.io.decodeWeights(data, specs);
-    expect(Object.keys(decoded).length).toEqual(8);
-    expectArraysEqual(await decoded['x1'].data(), await tensors['x1'].data());
-    expectArraysEqual(await decoded['x2'].data(), await tensors['x2'].data());
-    expectArraysEqual(await decoded['x3'].data(), await tensors['x3'].data());
-    expectArraysEqual(await decoded['x4'].data(), await tensors['x4'].data());
-    expectArraysEqual(await decoded['x5'].data(), await tensors['x5'].data());
-    expectArraysEqual(await decoded['x6'].data(), await tensors['x6'].data());
-    expectArraysEqual(await decoded['y1'].data(), await tensors['y1'].data());
-    expectArraysEqual(await decoded['y2'].data(), await tensors['y2'].data());
-  });
-
-  it('Unsupported dtype raises Error', () => {
-    const buffer = new ArrayBuffer(4);
-    // tslint:disable-next-line:no-any
-    const specs: any = [
-      {
-        name: 'x',
-        dtype: 'int16',
-        shape: [],
-      },
-      {name: 'y', dtype: 'int16', shape: []}
-    ];
-    expect(() => tf.io.decodeWeights(buffer, specs))
-        .toThrowError(/Unsupported dtype in weight \'x\': int16/);
-  });
-
-  it('support quantization uint8 weights', async () => {
-    const manifestSpecs: WeightsManifestEntry[] = [
-      {
-        'name': 'weight0',
-        'dtype': 'float32',
-        'shape': [3],
-        'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint8'}
-      },
-      {
-        'name': 'weight1',
-        'dtype': 'int32',
-        'shape': [3],
-        'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint8'}
+  function toStream(buffer: ArrayBuffer): ReadableStream<ArrayBuffer> {
+    let position = 0;
+    const chunkSize = 14; // something relatively small for testing
+    return new ReadableStream({
+      pull: (controller) => {
+        if (position < buffer.byteLength) {
+          const chunk = buffer.slice(position, position + chunkSize);
+          position += chunkSize;
+          controller.enqueue(chunk);
+        } else {
+          controller.close();
+        }
       }
-    ];
-    const data = new Uint8Array([0, 48, 255, 0, 48, 255]);
-    const decoded = tf.io.decodeWeights(data.buffer, manifestSpecs);
-    const weight0 = decoded['weight0'];
-    expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
-    expect(weight0.shape).toEqual([3]);
-    expect(weight0.dtype).toEqual('float32');
+    });
+  }
 
-    const weight1 = decoded['weight1'];
-    expectArraysEqual(await weight1.data(), [-1, 4, 25]);
-    expect(weight1.shape).toEqual([3]);
-    expect(weight1.dtype).toEqual('int32');
-  });
+  async function decodeAsBuffer(data: ArrayBuffer,
+                          specs: tf.io.WeightsManifestEntry[]) {
+    const result = tf.io.decodeWeights(data, specs);
+    // Make sure it doesn't return a promise.
+    expect(result).not.toBeInstanceOf(Promise);
+    // Wrap it in a promise to work with the tests.
+    return Promise.resolve(result);
+  }
 
-  it('support quantization uint16 weights', async () => {
-    const manifestSpecs: WeightsManifestEntry[] = [
-      {
-        'name': 'weight0',
-        'dtype': 'float32',
-        'shape': [3],
-        'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint16'}
-      },
-      {
-        'name': 'weight1',
-        'dtype': 'int32',
-        'shape': [3],
-        'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint16'}
-      }
-    ];
-    const data = new Uint16Array([0, 48, 255, 0, 48, 255]);
-    const decoded = tf.io.decodeWeights(data.buffer, manifestSpecs);
-    const weight0 = decoded['weight0'];
-    expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
-    expect(weight0.shape).toEqual([3]);
-    expect(weight0.dtype).toEqual('float32');
+  async function decodeAsStream(data: ArrayBuffer,
+                                specs: tf.io.WeightsManifestEntry[]) {
+    return tf.io.decodeWeightsStream(toStream(data), specs);
+  }
 
-    const weight1 = decoded['weight1'];
-    expectArraysEqual(await weight1.data(), [-1, 4, 25]);
-    expect(weight1.shape).toEqual([3]);
-    expect(weight1.dtype).toEqual('int32');
-  });
-  it('support quantization float16 weights', async () => {
-    const manifestSpecs: WeightsManifestEntry[] = [
-      {
-        name: 'weight0',
-        dtype: 'float32',
-        shape: [3],
-        quantization: { dtype: 'float16' },
-      },
-    ];
-    const data = new Uint16Array([13312, 14336, 14848]);
-    const decoded = tf.io.decodeWeights(data.buffer, manifestSpecs);
-    const weight0 = decoded['weight0'];
-    expectArraysClose(await weight0.data(), [0.25, 0.5, 0.75]);
-    expect(weight0.shape).toEqual([3]);
-    expect(weight0.dtype).toEqual('float32');
-  });
+  for (const [name, decode] of [['from arraybuffer', decodeAsBuffer],
+                                ['from stream', decodeAsStream]] as const) {
+    describe(name, () => {
+      it('Mixed dtype tensors', async () => {
+        const tensors: NamedTensorMap = {
+          x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
+          x2: scalar(13.37, 'float32'),
+          x3: tensor1d([true, false, false], 'bool'),
+          x4: tensor2d([['здраво', 'a'], ['b', 'c']], [2, 2], 'string'),
+          x5: tensor1d([''], 'string'),  // Empty string.
+          x6: scalar('hello'),           // Single string.
+          y1: tensor2d([-10, -20, -30], [3, 1], 'float32'),
+          y2: tf.complex([1, 1], [2, 2])
+        };
+        const dataAndSpecs = await tf.io.encodeWeights(tensors);
+        const data = dataAndSpecs.data;
+        const specs = dataAndSpecs.specs;
+        const res = await decode(data, specs);
+        expect(Object.keys(res).length).toEqual(8);
+        expectArraysEqual(await res['x1'].data(), await tensors['x1'].data());
+        expectArraysEqual(await res['x2'].data(), await tensors['x2'].data());
+        expectArraysEqual(await res['x3'].data(), await tensors['x3'].data());
+        expectArraysEqual(await res['x4'].data(), await tensors['x4'].data());
+        expectArraysEqual(await res['x5'].data(), await tensors['x5'].data());
+        expectArraysEqual(await res['x6'].data(), await tensors['x6'].data());
+        expectArraysEqual(await res['y1'].data(), await tensors['y1'].data());
+        expectArraysEqual(await res['y2'].data(), await tensors['y2'].data());
+      });
+
+      it('Unsupported dtype raises Error', async () => {
+        const buffer = new ArrayBuffer(4);
+        // tslint:disable-next-line:no-any
+        const specs: any = [
+          {
+            name: 'x',
+            dtype: 'int16',
+            shape: [],
+          },
+          {name: 'y', dtype: 'int16', shape: []}
+        ];
+        await expectAsync(decode(buffer, specs))
+          .toBeRejectedWithError(/Unsupported dtype in weight \'x\': int16/);
+      });
+
+      it('support quantization uint8 weights', async () => {
+        const manifestSpecs: WeightsManifestEntry[] = [
+          {
+            'name': 'weight0',
+            'dtype': 'float32',
+            'shape': [3],
+            'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint8'}
+          },
+          {
+            'name': 'weight1',
+            'dtype': 'int32',
+            'shape': [3],
+            'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint8'}
+          }
+        ];
+        const data = new Uint8Array([0, 48, 255, 0, 48, 255]);
+        const decoded = await decode(data.buffer, manifestSpecs);
+        const weight0 = decoded['weight0'];
+        expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
+        expect(weight0.shape).toEqual([3]);
+        expect(weight0.dtype).toEqual('float32');
+
+        const weight1 = decoded['weight1'];
+        expectArraysEqual(await weight1.data(), [-1, 4, 25]);
+        expect(weight1.shape).toEqual([3]);
+        expect(weight1.dtype).toEqual('int32');
+      });
+
+      it('support quantization uint16 weights', async () => {
+        const manifestSpecs: WeightsManifestEntry[] = [
+          {
+            'name': 'weight0',
+            'dtype': 'float32',
+            'shape': [3],
+            'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint16'}
+          },
+          {
+            'name': 'weight1',
+            'dtype': 'int32',
+            'shape': [3],
+            'quantization': {'min': -1, 'scale': 0.1, 'dtype': 'uint16'}
+          }
+        ];
+        const data = new Uint16Array([0, 48, 255, 0, 48, 255]);
+        const decoded = await decode(data.buffer, manifestSpecs);
+        const weight0 = decoded['weight0'];
+        expectArraysClose(await weight0.data(), [-1, 3.8, 24.5]);
+        expect(weight0.shape).toEqual([3]);
+        expect(weight0.dtype).toEqual('float32');
+
+        const weight1 = decoded['weight1'];
+        expectArraysEqual(await weight1.data(), [-1, 4, 25]);
+        expect(weight1.shape).toEqual([3]);
+        expect(weight1.dtype).toEqual('int32');
+      });
+      it('support quantization float16 weights', async () => {
+        const manifestSpecs: WeightsManifestEntry[] = [
+          {
+            name: 'weight0',
+            dtype: 'float32',
+            shape: [3],
+            quantization: { dtype: 'float16' },
+          },
+        ];
+        const data = new Uint16Array([13312, 14336, 14848]);
+        const decoded = await decode(data.buffer, manifestSpecs);
+        const weight0 = decoded['weight0'];
+        expectArraysClose(await weight0.data(), [0.25, 0.5, 0.75]);
+        expect(weight0.shape).toEqual([3]);
+        expect(weight0.dtype).toEqual('float32');
+      });
+    });
+  }
 });
 
 describe('stringByteLength', () => {

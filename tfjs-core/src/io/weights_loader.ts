@@ -71,6 +71,40 @@ export async function loadWeightsAsArrayBuffer(
   return buffers;
 }
 
+export function streamWeights(fetchURLs: string[], loadOptions: LoadOptions): ReadableStream<ArrayBuffer> {
+  const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch :
+    loadOptions.fetchFunc;
+
+  let fetchIndex = 0;
+  let chunkReader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  loadOptions.onProgress?.(0);
+  return new ReadableStream<Uint8Array>({
+    pull: async (controller) => {
+      while (fetchIndex < fetchURLs.length) {
+        if (!chunkReader) {
+          const body = (await fetchFunc(fetchURLs[fetchIndex],
+                                         loadOptions.requestInit,
+                                         {isBinary: true})).body;
+
+          chunkReader = body.getReader();
+        }
+
+        const {done, value} = await chunkReader.read();
+
+        if (done) {
+          fetchIndex++;
+          chunkReader = undefined;
+          loadOptions.onProgress?.(fetchIndex / fetchURLs.length);
+          continue;
+        }
+        controller.enqueue(value);
+        return;
+      }
+      controller.close();
+    },
+  });
+}
+
 /**
  * Reads a weights manifest JSON configuration, fetches the weights and
  * returns them as `Tensor`s.
