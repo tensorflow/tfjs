@@ -24,16 +24,24 @@ import uuid
 import zipfile
 import datetime
 import six
+import h5py
+import keras_nlp
 import tensorflow.compat.v2 as tf
 from tensorflowjs.converters import tf_module_mapper
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters.tf_module_mapper import TFCLASS_MODULE_MAP
 from tensorflowjs import read_weights
+from keras.src.saving import object_registration
+from keras.src.saving.serialization_lib import deserialize_keras_object
+from keras.src.saving.saving_lib import ATTR_SKIPLIST
+from keras.src.utils import generic_utils
+from keras.src.engine import base_layer
+from keras.src.optimizers import optimizer
+from keras import losses
 
 _CONFIG_FILENAME = "config.json"
 _METADATA_FILENAME = "metadata.json"
 _VARS_FNAME = "model.weights"
-
 
 def _deserialize_keras_model(model_topology_json,
                              weight_entries=None,
@@ -123,37 +131,119 @@ def _deserialize_keras_keras_model(model_topology_json,
 
   if 'model_config' in model_topology_json:
     # Build the map between class and its corresponding module in TF.
-    _generate_v3_keys(model_topology_json['model_config'])
+    if ('module' or 'registered_name') not in model_topology_json['model_config']:
+      _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
+  else:
+    raise Exception("'model_config' does not exist in json file.")
 
-  model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
-
+  model = deserialize_keras_object(model_topology_json)
   if weight_entries:
     weights_dict = dict()
     for weight_entry in weight_entries:
       weights_dict[weight_entry['name']] = weight_entry['data']
-
-    # Collect weight names from the model, in the same order as the internal
-    # ordering of model.set_weights() used below.
-
-    weight_names = []
-    for layer in model.layers:
-      for index, w in enumerate(layer.weights):
-        weight_names.append(layer.name + '/' + str(index))
-
-
-    # Prepare list of weight values for calling set_weights().
-    weights_list = []
-
-    for name in weight_names:
-      if name in weights_dict:
-        weights_list.append(weights_dict[name])
-      else:
-        raise Exception(f"${name} does not exist in weights entries.")
-
-    model.set_weights(weights_list)
-
+  _load_state(model,
+              weights_dict=weights_dict,
+              inner_path="",
+              visited_trackables=set())
+  if not weights_dict:
+    raise Exception('Unassigned weights for the model.')
+  os.remove('temp.h5')
   return model
+
+def _load_state(trackable, weights_dict, inner_path, visited_trackables=None):
+  if visited_trackables and id(trackable) in visited_trackables:
+    return
+
+  if hasattr(trackable, 'load_own_variables') and weights_dict:
+    filter_list = []
+    for key, val in weights_dict.items():
+      temp_str = key.split('/')
+      for i in temp_str:
+        # discard 'vars' in order to match with the path within the model.
+        if i == 'vars':
+          temp_str.remove(i)
+      match_str = '/'.join(temp_str[:-1])
+      if inner_path == match_str:
+        filter_list.append(key)
+    # Temporary .h5 file to store dataset.
+    h5f = h5py.File('temp.h5', 'w')
+    for i in filter_list:
+      index = i.split('/')[-1]
+      # Create temp dataset named with index.
+      h5f.create_dataset(f'{index}', data=weights_dict[i])
+      del weights_dict[i]
+    trackable.load_own_variables(h5f)
+    h5f.close()
+
+  if visited_trackables is not None:
+    visited_trackables.add(id(trackable))
+
+  for child_attr, child_obj in _walk_trackable(trackable):
+    if _is_keras_trackable(child_obj):
+      _load_state(child_obj,
+                  weights_dict,
+                  inner_path=tf.io.gfile.join(inner_path, child_attr),
+                  visited_trackables=visited_trackables)
+    elif isinstance(child_obj, (list, dict, tuple, set)):
+      _load_container_state(child_obj,
+                            weights_dict,
+                            inner_path=tf.io.gfile.join(inner_path, child_attr),
+                            visited_trackables=visited_trackables)
+
+def _walk_trackable(trackable):
+  for child_attr in dir(trackable):
+    if child_attr.startswith('__') or child_attr in ATTR_SKIPLIST:
+      continue
+    try:
+      child_obj = getattr(trackable, child_attr)
+    except Exception:
+      continue
+    yield child_attr, child_obj
+
+def _is_keras_trackable(obj):
+  from keras.src.metrics import base_metric
+
+  return isinstance(
+    obj,
+    (base_layer.Layer,
+     optimizer.Optimizer,
+     base_metric.Metric,
+     losses.Loss,
+     ),
+     )
+
+def _load_container_state(
+    container,
+    weight_dict,
+    inner_path,
+    visited_trackables,
+):
+    used_names = {}
+    if isinstance(container, dict):
+        container = list(container.values())
+
+    for trackable in container:
+        if _is_keras_trackable(trackable):
+            # Keeps layer name indexing in proper order
+            # when duplicate layers are in container.
+            if visited_trackables and id(trackable) in visited_trackables:
+                continue
+            # Do NOT address the trackable via `trackable.name`, since
+            # names are usually autogenerated and thus not reproducible
+            # (i.e. they may vary across two instances of the same model).
+            name = generic_utils.to_snake_case(trackable.__class__.__name__)
+            if name in used_names:
+                used_names[name] += 1
+                name = f"{name}_{used_names[name]}"
+            else:
+                used_names[name] = 0
+            _load_state(
+                trackable=trackable,
+                weights_dict=weight_dict,
+                inner_path=tf.io.gfile.join(inner_path, name),
+                visited_trackables=visited_trackables,
+            )
 
 def _check_config_json(config_json):
   if not isinstance(config_json, dict):
@@ -176,10 +266,18 @@ def _generate_v3_keys(config):
     for key in list_of_keys:
       _generate_v3_keys(config[key])
     if 'class_name' in list_of_keys:
-      config['module'] = tf_module_mapper.get_module_path(config['class_name'])
-      # Put registred name as None since we do not support
-      # custom object saving when we save the model.
-      config['registered_name'] = None
+      try:
+        config['module'] = tf_module_mapper.get_module_path(config['class_name'])
+        # Set registered name to None since it is not a custom class.
+        config['registered_name'] = None
+      except Exception:
+        if config['class_name'] in keras_nlp.models.__dict__:
+          obj = keras_nlp.models.__dict__.get(config['class_name'])
+          config['module'] = obj.__module__
+          # Set registered name of custom class in keras_nlp.
+          config['registered_name'] = object_registration.get_registered_name(obj)
+        else:
+          raise KeyError(f"Unknown class name {config['class_name']}")
 
   elif isinstance(config, list):
     for item in config:

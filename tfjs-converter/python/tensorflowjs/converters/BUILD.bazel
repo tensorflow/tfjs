@@ -85,6 +85,7 @@ py_test(
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_module_mapper",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
@@ -269,6 +270,7 @@ py_test(
     tags = ["ci"],
     deps = [
         ":wizard",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
@@ -313,6 +315,7 @@ py_binary(
         ":tf_module_mapper",
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_keras_nlp_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
         "//tfjs-converter/python/tensorflowjs:version",
     ],

@@ -363,7 +363,7 @@ def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
           'but cannot read valid JSON content from %s.' % config_json_path)
 
   model = keras_tfjs_loader.load_keras_keras_model(config_json_path)
-  tf.keras.saving.save_model(model, v3_path, save_format="keras")
+  tf.keras.saving.save_model(model, v3_path)
 
 
 def dispatch_tensorflowjs_to_keras_saved_model_conversion(
@@ -881,7 +881,6 @@ def get_arg_parser():
 
 def convert(arguments):
   args = get_arg_parser().parse_args(arguments)
-
   if args.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
