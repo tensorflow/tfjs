@@ -24,7 +24,8 @@ import { Tensor, serialization, tensor, tidy} from '@tensorflow/tfjs-core';
 
 import { Layer, LayerArgs } from '../../engine/topology';
 import { NotImplementedError, ValueError } from '../../errors';
-import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe, tensorArrTo2DArr, tensorToArr } from './tokenizers_utils';
+import { BytePairTokenizerCache, StaticHashTable, bytesToUnicode, createStaticHashtable, removeStringsFromInputs, splitStringsForBpe } from './tokenizers_utils';
+import { tensorToArr, tensorArrTo2DArr } from './utils';
 
 export declare interface TokenizerOptions {
   mode?: 'tokenize' | 'detokenize';
@@ -244,6 +245,7 @@ export class BytePairTokenizer extends Tokenizer {
   private readonly cache = new BytePairTokenizerCache();
 
   private readonly tokenToIdMap: StaticHashTable<string, number>;
+  private readonly idToTokenMap: StaticHashTable<number, string>;
 
   private readonly mergeRanksLookupDefault: number;
   private readonly mergeRanks: StaticHashTable<string, number>;
@@ -276,6 +278,9 @@ export class BytePairTokenizer extends Tokenizer {
 
     this.tokenToIdMap = createStaticHashtable(
       bytePairs, bytePairEncodingIndicies, -1);
+
+    this.idToTokenMap = createStaticHashtable(
+      bytePairEncodingIndicies, bytePairs, '');
 
     // Create ranking of merge rules, this is the same as order of merge pairs
     // in `this.merges`.
@@ -326,7 +331,7 @@ export class BytePairTokenizer extends Tokenizer {
 
   override getConfig(): serialization.ConfigDict {
     const config = {
-      vocabulary: this.vocabulary,
+      vocabulary: Array.from(this._vocabulary.entries()),
       merges: this.merges,
       sequenceLength: this.sequenceLength,
       addPrefixSpace: this.addPrefixSpace,
@@ -558,7 +563,10 @@ export class BytePairTokenizer extends Tokenizer {
   }
 
   override detokenize(inputs: Tensor[]): Tensor {
-    throw new NotImplementedError(`Not implemented yet.`);
+    const unicodeText = this.idToTokenMap.lookup(inputs)
+      .map(t => (tensorToArr(t) as string[]).join(''));
+
+    return tensor(unicodeText);
   }
 }
 serialization.registerClass(BytePairTokenizer);

@@ -155,10 +155,8 @@ export function GPUBytesPerElement(dtype: DataType): number {
 }
 
 export function isWebGPUSupported(): boolean {
-  return ((typeof window !== 'undefined') ||
-          //@ts-ignore
-          (typeof WorkerGlobalScope !== 'undefined')) &&
-      !!navigator.gpu;
+  return !!(typeof globalThis !== 'undefined' && (globalThis.navigator)
+    && (globalThis.navigator.gpu));
 }
 
 export function assertNotComplex(

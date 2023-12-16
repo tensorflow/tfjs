@@ -254,6 +254,7 @@ const signal = {
 import {cropAndResize} from './image/crop_and_resize';
 import {flipLeftRight} from './image/flip_left_right';
 import {grayscaleToRGB} from './image/grayscale_to_rgb';
+import {rgbToGrayscale} from './image/rgb_to_grayscale';
 import {rotateWithOffset} from './image/rotate_with_offset';
 import {nonMaxSuppression} from './image/non_max_suppression';
 import {nonMaxSuppressionAsync} from './image/non_max_suppression_async';
@@ -270,6 +271,7 @@ const image = {
   grayscaleToRGB,
   resizeNearestNeighbor,
   resizeBilinear,
+  rgbToGrayscale,
   rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,

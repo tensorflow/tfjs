@@ -35,7 +35,8 @@ export function conv2DBackpropInput(args: {
       inputShape, filter.shape as [number, number, number, number], strides,
       1 /* dilations */, pad, dimRoundingMode, false, $dataFormat);
 
-  if (env().getBool('WEBGL_PACK') && $dataFormat === 'channelsLast') {
+  if (env().getBool('WEBGL_PACK_CONV2DTRANSPOSE') &&
+      $dataFormat === 'channelsLast') {
     const customValues = [
       [convInfo.strideHeight, convInfo.strideWidth],
     ];

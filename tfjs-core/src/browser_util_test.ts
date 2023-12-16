@@ -18,13 +18,28 @@
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
+function isFloat(num: number) {
+  return num % 1 !== 0;
+}
+
 describeWithFlags('nextFrame', ALL_ENVS, () => {
   it('basic usage', async () => {
     const t0 = tf.util.now();
     await tf.nextFrame();
     const t1 = tf.util.now();
-    // tf.util.now should give sufficient accuracy on all supported envs.
-    expect(t1).toBeGreaterThan(t0);
+
+    // tf.nextFrame may take no more than 1ms to complete, so this test is
+    // meaningful only if the precision of tf.util.now is better than 1ms.
+    // After version 59, the precision of Firefox's tf.util.now becomes 2ms by
+    // default for security issues, https://caniuse.com/?search=performance.now.
+    // Then, this test is dropped for Firefox, even though it could be
+    // set to better precision through browser setting,
+    // https://github.com/lumen/threading-benchmarks/issues/7.
+    if (isFloat(t0) || isFloat(t1)) {
+      // If t0 or t1 have decimal point, it means the precision is better than
+      // 1ms.
+      expect(t1).toBeGreaterThan(t0);
+    }
   });
 
   it('does not block timers', async () => {

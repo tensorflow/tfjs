@@ -30,7 +30,7 @@ from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
+from tensorflow.python.trackable import autotrackable
 from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
@@ -177,6 +177,43 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
+  def _create_saved_model_with_fusable_addV2(self):
+    """Test a basic model with fusable addV2."""
+    @tf.function
+    def conv2d_addV2_depthwise_addV2(x):
+      filter = tf.ones([1, 1, 1, 1])
+      bias = tf.constant([100], dtype=dtypes.float32)
+      res = tf.raw_ops.Conv2D(
+        input=x, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
+      res = tf.raw_ops.AddV2(x=res, y=bias)
+      res = tf.raw_ops.DepthwiseConv2dNative(
+        input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
+      res = tf.raw_ops.AddV2(x=res, y=bias)
+      return res
+    root = autotrackable.AutoTrackable()
+    root.f = conv2d_addV2_depthwise_addV2
+    to_save = root.f.get_concrete_function(
+        tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    save(root, save_dir, to_save)
+
+  def _create_saved_model_with_unfusable_addV2(self):
+    """Test a basic model with fusable addV2."""
+    @tf.function
+    def addV2_conv2d(x):
+      bias = tf.constant([100], dtype=dtypes.float32)
+      filter = tf.ones([1, 1, 1, 1])
+      res = tf.raw_ops.AddV2(x=x, y=bias)
+      res = tf.raw_ops.Conv2D(
+        input=res, filter=filter, strides=[1, 1, 1, 1], padding="VALID")
+      return res
+    root = autotrackable.AutoTrackable()
+    root.f = addV2_conv2d
+    to_save = root.f.get_concrete_function(
+        tensor_spec.TensorSpec([1, 1, 1, 1], dtypes.float32))
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    save(root, save_dir, to_save)
+
   def _create_saved_model_with_prelu(self):
     """Test a basic model with fusable conv2d."""
     layers = [
@@ -210,7 +247,7 @@ class ConvertTest(tf.test.TestCase):
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
     input_data = constant_op.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v1 = variables.Variable(3.)
     root.v2 = variables.Variable(2.)
     root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
@@ -223,7 +260,7 @@ class ConvertTest(tf.test.TestCase):
     """Test a fusable matmul model."""
     input_data = constant_op.constant(1., shape=[1, 1])
     bias_data = constant_op.constant(1., shape=[1])
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.v2 = variables.Variable([[2.]])
     root.f = def_function.function(
         lambda x: tf.nn.relu(tf.nn.bias_add(tf.matmul(x, root.v2),
@@ -241,7 +278,7 @@ class ConvertTest(tf.test.TestCase):
       while tf.equal(v1 % 2, 0):
         v1 = v1 + 1
       return v1
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.f = find_next_odd
     to_save = root.f.get_concrete_function(
         tensor_spec.TensorSpec([], dtypes.int32))
@@ -266,7 +303,7 @@ class ConvertTest(tf.test.TestCase):
     model.save(save_dir)
 
   def _create_unsupported_saved_model(self):
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.w = variables.Variable(tf.random.uniform([2, 2]))
 
     @def_function.function
@@ -285,7 +322,7 @@ class ConvertTest(tf.test.TestCase):
     save(root, save_dir, to_save)
 
   def _create_saved_model_with_debug_ops(self):
-    root = tracking.AutoTrackable()
+    root = autotrackable.AutoTrackable()
     root.w = variables.Variable(tf.random.uniform([2, 2]))
 
     @def_function.function
@@ -776,6 +813,100 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_saved_model_with_unfusable_addV2(self):
+    self._create_saved_model_with_unfusable_addV2()
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    nodes = model_json['modelTopology']['node']
+
+    # check if AddV2 op exists
+    addV2_op = None
+    for node in nodes:
+      if node['op'] == 'AddV2':
+        addV2_op = node
+        break
+    self.assertTrue(addV2_op)
+
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_fusable_addV2(self):
+    self._create_saved_model_with_fusable_addV2()
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    nodes = model_json['modelTopology']['node']
+
+    # Check if AddV2 is fused to Conv2D and Depthwise ops.
+    fused_conv2d_op = None
+    fused_depthwise_op = None
+    for node in nodes:
+      self.assertNotEqual('Conv2D', node['op'])
+      self.assertNotEqual('DepthwiseConv2dNative', node['op'])
+      self.assertNotEqual('AddV2', node['op'])
+      self.assertNotEqual('BiasAdd', node['op'])
+      if node['op'] == graph_rewrite_util.FUSED_CONV2D:
+        fused_conv2d_op = node
+      elif node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
+        fused_depthwise_op = node
+    self.assertIsNot(fused_conv2d_op, None)
+    self.assertIsNot(fused_depthwise_op, None)
+    fused_conv2d_ops = list(map(base64.b64decode,
+                         fused_conv2d_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(fused_conv2d_ops, [b'BiasAdd'])
+    self.assertEqual(fused_conv2d_op['attr']['num_args']['i'], '1')
+    fused_depthwise_ops = list(
+        map(base64.b64decode,
+            fused_depthwise_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(fused_depthwise_ops, [b'BiasAdd'])
+    self.assertEqual(fused_depthwise_op['attr']['num_args']['i'], '1')
+
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
   def test_convert_saved_model_with_prelu(self):
     self._create_saved_model_with_prelu()
     tf_saved_model_conversion_v2.convert_tf_saved_model(
@@ -802,7 +933,7 @@ class ConvertTest(tf.test.TestCase):
     for node in nodes:
       if node['op'] == 'Prelu':
         prelu_op = node
-      if node['op'] == '_FusedConv2D':
+      if node['op'] == graph_rewrite_util.FUSED_CONV2D:
         fused_op = node
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         depthwise_fused_op = node
