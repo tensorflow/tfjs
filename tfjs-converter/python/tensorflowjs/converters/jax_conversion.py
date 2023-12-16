@@ -17,7 +17,7 @@ import tempfile
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 from jax.experimental import jax2tf
-from jax.experimental.jax2tf import shape_poly
+from jax.experimental.export import shape_poly
 import tensorflow as tf
 from tensorflowjs.converters import tf_saved_model_conversion_v2 as saved_model_conversion
 
