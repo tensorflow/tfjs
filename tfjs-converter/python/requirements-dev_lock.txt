@@ -12,8 +12,8 @@ absl-py==1.3.0 \
     #   optax
     #   orbax-checkpoint
     #   tensorboard
+    #   tensorflow
     #   tensorflow-decision-forests
-    #   tensorflow-macos
 astroid==2.5 \
     --hash=sha256:87ae7f2398b8a0ae5638ddecf9987f081b756e0e9fc071aeebdca525671fc4dc \
     --hash=sha256:b31c92f545517dcc452f284bc9c044050862fbe6d93d2b3de4a215a6b384bf0d
@@ -21,7 +21,7 @@ astroid==2.5 \
 astunparse==1.6.3 \
     --hash=sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872 \
     --hash=sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8
-    # via tensorflow-macos
+    # via tensorflow
 cached-property==1.5.2 \
     --hash=sha256:9fa5755838eecbb2d234c3aa390bd80fbd3ac6b6869109bfc1b499f7bd89a130 \
     --hash=sha256:df4f613cf7ad9a588cc381aaf4a512d26265ecebd5eb9e1ba12f1319eb85a6a0
@@ -97,7 +97,7 @@ etils==1.3.0 \
 flatbuffers==23.5.26 \
     --hash=sha256:9ea1144cac05ce5d86e2859f431c6cd5e66cd9c78c558317c7955fb8d4c78d89 \
     --hash=sha256:c0ff356da363087b915fde4b8b45bdda73432fc17cddb3c8157472eab1422ad1
-    # via tensorflow-macos
+    # via tensorflow
 flax==0.7.5 \
     --hash=sha256:bb8cf313e4935089e222fe676e09ea96e9b4d2f9ad355f8acff37c2ca5640d08 \
     --hash=sha256:f51043efd60eb194dd4648c778ae3ea291ef3fd03ec975dce69d98de7ca47489
@@ -105,7 +105,7 @@ flax==0.7.5 \
 gast==0.4.0 \
     --hash=sha256:40feb7b8b8434785585ab224d1568b857edb18297e5a3047f1ba012bc83b42c1 \
     --hash=sha256:b7adcdd5adbebf1adf17378da5ba3f543684dbec47b1cda1f3997e573cd542c4
-    # via tensorflow-macos
+    # via tensorflow
 google-auth==2.15.0 \
     --hash=sha256:6897b93556d8d807ad70701bb89f000183aea366ca7ed94680828b37437a4994 \
     --hash=sha256:72f12a6cfc968d754d7bdab369c5c5c16032106e52d32c6dfd8484e4c01a6d1f
@@ -120,7 +120,7 @@ google-pasta==0.2.0 \
     --hash=sha256:4612951da876b1a10fe3960d7226f0c7682cf901e16ac06e473b267a5afa8954 \
     --hash=sha256:b32482794a366b5366a32c92a9a9201b107821889935a02b3e51f6b432ea84ed \
     --hash=sha256:c9f2c8dfc8f96d0d5808299920721be30c9eec37f2389f28904f454565c8a16e
-    # via tensorflow-macos
+    # via tensorflow
 grpcio==1.51.1 \
     --hash=sha256:094e64236253590d9d4075665c77b329d707b6fca864dd62b144255e199b4f87 \
     --hash=sha256:0dc5354e38e5adf2498312f7241b14c7ce3484eefa0082db4297189dcbe272e6 \
@@ -169,7 +169,7 @@ grpcio==1.51.1 \
     --hash=sha256:fbdbe9a849854fe484c00823f45b7baab159bdd4a46075302281998cb8719df5
     # via
     #   tensorboard
-    #   tensorflow-macos
+    #   tensorflow
 h5py==3.7.0 \
     --hash=sha256:03d64fb86bb86b978928bad923b64419a23e836499ec6363e305ad28afd9d287 \
     --hash=sha256:04e2e1e2fc51b8873e972a08d2f89625ef999b1f2d276199011af57bb9fc7851 \
@@ -191,7 +191,7 @@ h5py==3.7.0 \
     --hash=sha256:f084bbe816907dfe59006756f8f2d16d352faff2d107f4ffeb1d8de126fc5dc7 \
     --hash=sha256:f514b24cacdd983e61f8d371edac8c1b780c279d0acb8485639e97339c866073 \
     --hash=sha256:f73307c876af49aa869ec5df1818e9bb0bdcfcf8a5ba773cc45a4fba5a286a5c
-    # via tensorflow-macos
+    # via tensorflow
 idna==3.4 \
     --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
     --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
@@ -250,7 +250,7 @@ jaxlib==0.4.23 \
 keras==2.13.1 \
     --hash=sha256:5ce5f706f779fa7330e63632f327b75ce38144a120376b2ae1917c00fa6136af \
     --hash=sha256:5df12cc241a015a11b65ddb452c0eeb2744fce21d9b54ba48db87492568ccc68
-    # via tensorflow-macos
+    # via tensorflow
 lazy-object-proxy==1.8.0 \
     --hash=sha256:0c1c7c0433154bb7c54185714c6929acc0ba04ee1b167314a779b9025517eada \
     --hash=sha256:14010b49a2f56ec4943b6cf925f597b534ee2fe1f0738c84b3bce0c1a11ff10d \
@@ -283,7 +283,7 @@ libclang==14.0.6 \
     --hash=sha256:e2add1703129b2abe066fb1890afa880870a89fd6ab4ec5d2a7a8dc8d271677e \
     --hash=sha256:e429853939423f276a25140b0b702442d7da9a09e001c05e48df888336947614 \
     --hash=sha256:ea03c12675151837660cdd5dce65bd89320896ac3421efef43a36678f113ce95
-    # via tensorflow-macos
+    # via tensorflow
 markdown==3.4.1 \
     --hash=sha256:08fb8465cffd03d10b9dd34a5c3fea908e20391a2a90b88d66362cb05beed186 \
     --hash=sha256:3b809086bb6efad416156e00a0da66fe47618a5d6918dd688f53f40c8e4cfeff
@@ -457,9 +457,9 @@ numpy==1.23.5 \
     #   pandas
     #   scipy
     #   tensorboard
+    #   tensorflow
     #   tensorflow-decision-forests
     #   tensorflow-hub
-    #   tensorflow-macos
     #   tensorstore
 oauthlib==3.2.2 \
     --hash=sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca \
@@ -470,7 +470,7 @@ opt-einsum==3.3.0 \
     --hash=sha256:59f6475f77bbc37dcf7cd748519c0ec60722e91e63ca114e68821c0c54a46549
     # via
     #   jax
-    #   tensorflow-macos
+    #   tensorflow
 optax==0.1.4 \
     --hash=sha256:12fcf33bd682f9a162a3deb097f864130c3224d76771af2ba09410de80399a9b \
     --hash=sha256:fb7a0550d57a6636164a3de25986a8a19be8ff6431fcdf1225b4e05175810f22
@@ -484,7 +484,7 @@ packaging==23.1 \
     --hash=sha256:a392980d2b6cffa644431898be54b0045151319d1e7ec34f0cfed48767dd334f
     # via
     #   -r tfjs-converter/python/requirements.txt
-    #   tensorflow-macos
+    #   tensorflow
 pandas==1.5.2 \
     --hash=sha256:0183cb04a057cc38fde5244909fca9826d5d57c4a5b7390c0cc3fa7acd9fa883 \
     --hash=sha256:1fc87eac0541a7d24648a001d553406f4256e744d92df1df8ebe41829a915028 \
@@ -535,8 +535,8 @@ protobuf==4.22.3 \
     --hash=sha256:f2f4710543abec186aee332d6852ef5ae7ce2e9e807a3da570f36de5a732d88e
     # via
     #   tensorboard
+    #   tensorflow
     #   tensorflow-hub
-    #   tensorflow-macos
 pyasn1==0.4.8 \
     --hash=sha256:39c7e2ec30515947ff4e87fb6f456dfc6e84857d34be479c9d4a4ba4bf46aa5d \
     --hash=sha256:aef77c9fb94a3ac588e87841208bdec464471d9871bd5050a287cc9a475cd0ba
@@ -751,7 +751,7 @@ setuptools==65.6.3 \
     # via
     #   -r tfjs-converter/python/requirements-dev.txt
     #   tensorboard
-    #   tensorflow-macos
+    #   tensorflow
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
@@ -762,11 +762,11 @@ six==1.16.0 \
     #   google-pasta
     #   prompt-toolkit
     #   python-dateutil
+    #   tensorflow
     #   tensorflow-decision-forests
-    #   tensorflow-macos
 tensorboard==2.13.0 \
     --hash=sha256:ab69961ebddbddc83f5fa2ff9233572bdad5b883778c35e4fe94bf1798bd8481
-    # via tensorflow-macos
+    # via tensorflow
 tensorboard-data-server==0.7.0 \
     --hash=sha256:64aa1be7c23e80b1a42c13b686eb0875bb70f5e755f4d2b8de5c1d880cf2267f \
     --hash=sha256:753d4214799b31da7b6d93837959abebbc6afa86e69eacf1e9a317a48daa31eb \
@@ -793,7 +793,9 @@ tensorflow==2.13.0 \
     --hash=sha256:e8f0b69ee2f800399fc6bc7ec55fecfa33662d136e425485959d90638f32a32a \
     --hash=sha256:fa7abe265cc3ebccc9b405a280bf674824c6d85df5e6ccfa985987b3c9d265b4 \
     --hash=sha256:fb2ff1129c93e853c19897d6a22ed0ec56387f5c6290ec03dec1c6f7b80bc396
-    # via -r tfjs-converter/python/requirements.txt
+    # via
+    #   -r tfjs-converter/python/requirements.txt
+    #   tensorflow-decision-forests
 tensorflow-decision-forests==1.5.0 \
     --hash=sha256:04fd913627d08fe54514b179c612e87eebf55f1448bf01951660985dfa14a6e1 \
     --hash=sha256:1209a2832ac65f8f74bd9d0c1d58f3f8b771e7fa5c9d504c547842311647b7d4 \
@@ -810,18 +812,31 @@ tensorflow-decision-forests==1.5.0 \
     # via -r tfjs-converter/python/requirements.txt
 tensorflow-estimator==2.13.0 \
     --hash=sha256:6f868284eaa654ae3aa7cacdbef2175d0909df9fcf11374f5166f8bf475952aa
-    # via tensorflow-macos
+    # via tensorflow
 tensorflow-hub==0.14.0 \
     --hash=sha256:519c6b56c4d304667fbd8ce66bd637e6a750c901215468db2cc6bfd0739bb0b0
     # via -r tfjs-converter/python/requirements.txt
-tensorflow-macos==2.13.0 \
-    --hash=sha256:331cc23682374ca5f3f92e069bd7fbb6e4d48a50278a9cd05e5b33f16d9a31e7 \
-    --hash=sha256:5dca8291125c0151bf426a2789689e02c623ce4540432cf66a073d361d3d6870 \
-    --hash=sha256:b0cea604f50a032dc426d7a6a91dc53a9df001cfa94fc814972e9d4cf062d31b \
-    --hash=sha256:d9571357a39cc8cdecfd22e67dfdcebf840be67a88a8c7464bd3b9b3e0aad446
-    # via
-    #   tensorflow
-    #   tensorflow-decision-forests
+tensorflow-io-gcs-filesystem==0.34.0 \
+    --hash=sha256:027a07553367187f918a99661f63ae0506b91b77a70bee9c7ccaf3920bf7cfe7 \
+    --hash=sha256:0dafed144673e1173528768fe208a7c5a6e8edae40208381cac420ee7c918ec9 \
+    --hash=sha256:182b0fbde7e9a537fda0b354c28b0b6c035736728de8fe2db7ef49cf90352014 \
+    --hash=sha256:2b035f4c92639657b6d376929d550ac3dee9e6c0523eb434eefe0a27bae3d05b \
+    --hash=sha256:396bfff61b49f80b86ddebe0c76ae0f2731689cee49ad7d782625180b50b13af \
+    --hash=sha256:3f346b287ed2400e09b13cfd8524222fd70a66aadb9164c645286c2087007e9f \
+    --hash=sha256:44ad387a812a78e7424bb8bee3820521ae1c044bddf72b1e163e8df95c124a74 \
+    --hash=sha256:5813c336b4f7cb0a01ff4cc6cbd3edf11ef67305baf0e3cf634911b702f493f8 \
+    --hash=sha256:6e6353123a5b51397950138a118876af833a7db66b531123bb86f82e80ab0e72 \
+    --hash=sha256:7f60183473f0ca966451bb1d1bb5dc29b3cf9c74d1d0e7f2ed46760ed56bd4af \
+    --hash=sha256:8d8664bddbe4e7b56ce94db8b93ea9077a158fb5e15364e11e29f93015ceea24 \
+    --hash=sha256:a17a616d2c7fae83de4424404815843507d40d4eb0d507c636a5493a20c3d958 \
+    --hash=sha256:b20622f8572fcb6c93e8f7d626327472f263e47ebd63d2153ef09162ef5ef7b5 \
+    --hash=sha256:b9a93fcb01db269bc845a1ced431f3c61201755ce5f9ec4885760f30122276ef \
+    --hash=sha256:cbe26c4a3332589c7b724f147df453b5c226993aa8d346a15536358d77b364c4 \
+    --hash=sha256:d3feba2dd76f7c188137c34642d68d378f0eed81636cb95090ecb1496722707c \
+    --hash=sha256:d831702fbb270996b27cda7fde06e0825b2ea81fd8dd3ead35242f4f8b3889b8 \
+    --hash=sha256:ec4604c99cbb5b708f4516dee27aa655abae222b876c98b740f4c2f89dd5c001 \
+    --hash=sha256:f211d2b3db8f9931765992b607b71cbfb98c8cd6169079d004a67a94ab10ecb4
+    # via tensorflow
 tensorstore==0.1.41 \
     --hash=sha256:025a62bb9122364885e90469af05fec2f62ad05f46ff46d9eae1d76ad9125563 \
     --hash=sha256:2aa81581f768382a38584698a3fcb07a533fc391067467326656f24ab019cba1 \
@@ -846,7 +861,7 @@ tensorstore==0.1.41 \
 termcolor==2.1.1 \
     --hash=sha256:67cee2009adc6449c650f6bcf3bdeed00c8ba53a8cda5362733c53e0a39fb70b \
     --hash=sha256:fa852e957f97252205e105dd55bbc23b419a70fec0085708fc0515e399f304fd
-    # via tensorflow-macos
+    # via tensorflow
 toml==0.10.2 \
     --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
     --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
@@ -862,7 +877,7 @@ typing-extensions==4.4.0 \
     #   flax
     #   optax
     #   orbax-checkpoint
-    #   tensorflow-macos
+    #   tensorflow
 urllib3==1.26.13 \
     --hash=sha256:47cc05d99aaa09c9e72ed5809b60e7ba354e64b59c9c173ac3018642d8bb41fc \
     --hash=sha256:c083dd0dce68dbfbe1129d5271cb90f9447dea7d52097c6e0126120c521ddea8
@@ -886,7 +901,7 @@ wrapt==1.12.1 \
     --hash=sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7
     # via
     #   astroid
-    #   tensorflow-macos
+    #   tensorflow
 wurlitzer==3.0.3 \
     --hash=sha256:224f5fe70618be3872c05dfddc8c457191ec1870654596279fcc1edadebe3e5b \
     --hash=sha256:ffcc584109f5ecd5244abfde4534f22140f8735a4890ce1abd90b4e503f5f427
