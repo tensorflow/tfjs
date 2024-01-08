@@ -57,6 +57,7 @@ async function symlinkDepsLib() {
     throw new Error('Destination path not supplied!');
   }
   try {
+    await fs.mkdir(path.dirname(destLibTensorFlowPath), {recursive: true});
     await symlink(
         path.relative(
             path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),
