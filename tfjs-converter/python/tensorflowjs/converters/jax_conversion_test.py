@@ -97,7 +97,7 @@ class JaxConversionTest(tf.test.TestCase):
   def test_convert_tf_poly_mismatch_raises(self):
     apply_fn = lambda params, x: jnp.sum(x) * params['w']
     with self.assertRaisesRegex(
-        ValueError, 'syntax error in polymorphic shape.* in dimension.* Parsed.*, remaining.*'):
+        ValueError, 'syntax error .* different size 4'):
       jax_conversion.convert_jax(
           apply_fn,
           {'w': 0.5},
