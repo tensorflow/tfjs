@@ -241,7 +241,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
     this.fitInner = dimInner % this.tileInner === 0;
 
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${
         this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${this.isVec4}_${
         this.innerElementSize}_${this.isChannelsLast}_${
         this.sequentialAccessByThreads}`;
