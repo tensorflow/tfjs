@@ -1,6 +1,6 @@
 # Tensorflow Decision Forests support for Tensorflow.js
 
-This package enables users to run arbitary Tensorflow Decision Forests models
+This package enables users to run arbitrary Tensorflow Decision Forests models
 on the web that are converted using tfjs-converter.
 Users can load a TFDF model from a URL, use TFJS tensors to set
 the model's input data, run inference, and get the output back in TFJS tensors.

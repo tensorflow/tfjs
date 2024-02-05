@@ -452,7 +452,7 @@ export class GraphExecutor implements FunctionExecutor {
    * @param isFunctionExecution Optional. Flag for executing a function.
    * @param tensorArrayMap Optional, global TensorArray map by id. Used for
    * function execution.
-   * @param tensorArrayMap Optinal global TensorList map by id. Used for
+   * @param tensorArrayMap Optional global TensorList map by id. Used for
    * function execution.
    */
   private async _executeAsync(
