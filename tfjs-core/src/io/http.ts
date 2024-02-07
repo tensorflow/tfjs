@@ -104,7 +104,7 @@ export class HTTPRequest implements IOHandler {
         getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
 
     init.body.append(
-        'model.json',
+        'model_json',
         new Blob(
             [JSON.stringify(modelTopologyAndWeightManifest)],
             {type: JSON_TYPE}),
@@ -116,7 +116,7 @@ export class HTTPRequest implements IOHandler {
       const weightBuffer = CompositeArrayBuffer.join(modelArtifacts.weightData);
 
       init.body.append(
-          'model.weights.bin',
+          'model_weights_bin',
           new Blob([weightBuffer], {type: OCTET_STREAM_MIME_TYPE}),
           'model.weights.bin');
     }
