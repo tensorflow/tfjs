@@ -27,7 +27,7 @@ interface SurfaceProps extends SurfaceInfoStrict {
 }
 
 /**
- * A surface is container for visualizations and other rendered thigns.
+ * A surface is container for visualizations and other rendered things.
  * It consists of a containing DOM Element, a label and an empty drawArea.
  */
 export class SurfaceComponent extends Component<SurfaceProps> {

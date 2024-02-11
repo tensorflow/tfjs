@@ -262,7 +262,7 @@ describe('hash_table', () => {
         const before = memory().numTensors;
         try {
           await executeOp(node, {input3, input5}, context, resourceManager);
-          fail('Shoudl fail, succeed unexpectedly.');
+          fail('Should fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
