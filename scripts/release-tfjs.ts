@@ -289,7 +289,7 @@ async function main() {
       'YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ' +
       'after you merge the PR.' +
       'Remember to delete the dev branch once PR is merged.' +
-      'Please remeber to update the website once you have released ' +
+      'Please remember to update the website once you have released ' +
       'a new package version.');
 
   if (args.dry) {

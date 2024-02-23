@@ -43,7 +43,7 @@ fs.writeFile(path.join(dirName, 'src/version.ts'), versionCode, err => {
   if (err) {
     throw new Error(`Could not save version file ${version}: ${err}`);
   }
-  console.log(`Version file for version ${version} saved sucessfully.`);
+  console.log(`Version file for version ${version} saved successfully.`);
 });
 
 if (dirName === 'tfjs-converter') {
@@ -60,7 +60,7 @@ version = '${version}'
           throw new Error(`Could not save pip version file ${version}: ${err}`);
         }
         console.log(
-            `Version file for pip version ${version} saved sucessfully.`);
+            `Version file for pip version ${version} saved successfully.`);
       });
 
   const buildFilename = path.join(dirName, '/python/BUILD.bazel');
@@ -74,6 +74,6 @@ version = '${version}'
     fs.writeFileSync(buildFilename, newValue, 'utf-8');
 
     console.log(
-        `pip version ${version} for BUILD.bazel file is updated sucessfully.`);
+        `pip version ${version} for BUILD.bazel file is updated successfully.`);
   });
 }

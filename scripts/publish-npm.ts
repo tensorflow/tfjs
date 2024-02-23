@@ -77,7 +77,7 @@ function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
   action: 'storeTrue',
-  help: 'Use the git protocal rather than the http protocol when cloning repos.'
+  help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
 parser.addArgument('--registry', {

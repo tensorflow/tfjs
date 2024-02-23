@@ -415,7 +415,7 @@ export async function getReleaseBranch(name: string): Promise<string> {
       Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
 
   // Find the latest matching branch, e.g. tfjs_1.7.1
-  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
+  // It will not match temporary generated branches such as tfjs_1.7.1_phase0.
   const exp = '^' + name + '_([^_]+)$';
   const regObj = new RegExp(exp);
   const maybeBranch = branches.find(branch => branch.match(regObj));
