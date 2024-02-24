@@ -127,7 +127,7 @@ export class GraphExecutor implements FunctionExecutor {
    *
    * @param graph Graph the model or function graph to be executed.
    * @param parent When building function exector you need to set the parent
-   * executor. Since the weights and function executor maps are set at parant
+   * executor. Since the weights and function executor maps are set at parent
    * level, that function executor can access the function maps and weight maps
    * through the parent.
    */

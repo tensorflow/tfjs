@@ -365,7 +365,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
    * method when your model contains control flow ops.
    *
    * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a `tf.Tensor`. For models with mutliple inputs,
+   * inputs param should be a `tf.Tensor`. For models with multiple inputs,
    * inputs params should be in either `tf.Tensor`[] if the input order is
    * fixed, or otherwise NamedTensorMap format.
    *

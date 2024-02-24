@@ -86,7 +86,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
           }
         });
 
-        // Recalcuate the condition of the loop using the latest results.
+        // Recalculate the condition of the loop using the latest results.
         const condResult =
             (await context.functionMap[condFunc].executeFunctionAsync(
                 result, context.tensorArrayMap, context.tensorListMap));
