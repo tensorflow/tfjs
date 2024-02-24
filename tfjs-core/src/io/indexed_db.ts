@@ -255,7 +255,7 @@ IORouterRegistry.registerLoadRouter(indexedDBRouter);
  *
  * @param modelPath A unique identifier for the model to be saved. Must be a
  *   non-empty string.
- * @returns An instance of `BrowserIndexedDB` (sublcass of `IOHandler`),
+ * @returns An instance of `BrowserIndexedDB` (subclass of `IOHandler`),
  *   which can be used with, e.g., `tf.Model.save`.
  */
 export function browserIndexedDB(modelPath: string): IOHandler {

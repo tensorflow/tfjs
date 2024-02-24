@@ -313,7 +313,7 @@ export class Engine implements TensorTracker, DataMover {
   /**
    * Initializes a backend by looking up the backend name in the factory
    * registry and calling the factory method. Returns a boolean representing
-   * whether the initialization of the backend suceeded. Throws an error if
+   * whether the initialization of the backend succeeded. Throws an error if
    * there is no backend in the factory registry.
    */
   private initializeBackend(backendName: string):
