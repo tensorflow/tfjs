@@ -446,7 +446,7 @@ describeWithFlags('parseUrl', BROWSER_ENVS, () => {
     expect(prefix).toEqual('http://google.com/');
     expect(suffix).toEqual('?param=1');
   });
-  it('should parse url with multiple serach params', () => {
+  it('should parse url with multiple search params', () => {
     const url = 'http://google.com/a?x=1/file?param=1';
     const [prefix, suffix] = parseUrl(url);
     expect(prefix).toEqual('http://google.com/a?x=1/');
