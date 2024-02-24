@@ -23,7 +23,7 @@ import {arraysEqualWithNull} from '../util_base';
 import {op} from './operation';
 
 /**
- * Checks the input tensor mathes the given shape.
+ * Checks the input tensor matches the given shape.
  *
  * Given an input tensor, returns a new tensor with the same values as the
  * input tensor with shape `shape`.

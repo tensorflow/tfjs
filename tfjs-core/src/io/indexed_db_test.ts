@@ -172,7 +172,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
 
        try {
          await handler.load();
-         fail('Loading nonexistent model from IndexedDB succeeded unexpectly');
+         fail('Loading nonexistent model from IndexedDB succeeded unexpectedly');
        } catch (err) {
          expect(err.message)
              .toEqual(

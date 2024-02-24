@@ -39,7 +39,7 @@ import {op} from '../operation';
  *     coordinates of the box in the `boxInd[i]`th image in the batch
  * @param boxInd 1d int32 tensor of shape `[numBoxes]` with values in range
  *     `[0, batch)` that specifies the image that the `i`-th box refers to.
- * @param cropSize 1d int32 tensor of 2 elements `[cropHeigh, cropWidth]`
+ * @param cropSize 1d int32 tensor of 2 elements `[cropHeight, cropWidth]`
  *     specifying the size to which all crops are resized to.
  * @param method Optional string from `'bilinear' | 'nearest'`,
  *     defaults to bilinear, which specifies the sampling method for resizing

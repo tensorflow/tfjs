@@ -332,7 +332,7 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
     expect(weight2.dtype).toEqual('float32');
   });
 
-  it('2 group, 4 weights, dont specify weights fetchs all', async () => {
+  it('2 group, 4 weights, dont specify weights fetches all', async () => {
     setupFakeWeightFiles({
       './weightfile0': new Float32Array([1, 2, 3, 4, 5]),
       './weightfile1': new Float32Array([6, 7, 8, 9])
