@@ -225,7 +225,7 @@ async function main() {
       fs.writeFileSync(packageJsonPath, pkg);
 
       // Update dependency versions of all package.json files found in the
-      // package to use the new verison numbers (except ones in node_modules).
+      // package to use the new version numbers (except ones in node_modules).
       const subpackages =
           $(`find ${
                 packagePath} -name package.json -not -path \'*/node_modules/*\'`)
@@ -289,7 +289,7 @@ async function main() {
       'YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ' +
       'after you merge the PR.' +
       'Remember to delete the dev branch once PR is merged.' +
-      'Please remeber to update the website once you have released ' +
+      'Please remember to update the website once you have released ' +
       'a new package version.');
 
   if (args.dry) {
