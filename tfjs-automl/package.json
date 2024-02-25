@@ -58,8 +58,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-backend-webgl": "^3.9.0",
-    "@tensorflow/tfjs-converter": "^3.9.0",
-    "@tensorflow/tfjs-core": "^3.9.0"
+    "@tensorflow/tfjs-backend-webgl": "^4.9.0",
+    "@tensorflow/tfjs-converter": "^4.9.0",
+    "@tensorflow/tfjs-core": "^4.9.0"
   }
 }
