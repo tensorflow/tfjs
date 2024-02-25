@@ -24,7 +24,7 @@ clone/
 coverage/
 demo/train-*
 deps/
-dist/
+#dist/
 tfjs-layers/integration_tests/tfjs2keras/test-data/
 tfjs-layers/integration/typescript/yarn.lock
 e2e/integration_tests/create_save_predict_data
