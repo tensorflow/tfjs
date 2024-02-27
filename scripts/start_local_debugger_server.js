@@ -118,7 +118,7 @@ parser.addArgument('--port', {
 });
 
 parser.addArgument('--version', {
-  help: `The verison of the bundle. Default: ${DEFAULT_VERSION}`,
+  help: `The version of the bundle. Default: ${DEFAULT_VERSION}`,
   defaultValue: DEFAULT_VERSION,
   type: 'string',
 });

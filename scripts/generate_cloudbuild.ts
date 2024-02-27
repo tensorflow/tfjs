@@ -33,7 +33,7 @@ interface CloudbuildStep {
 const CUSTOM_PROPS = new Set(['nightlyOnly', 'waitedForByPackages']);
 interface CustomCloudbuildStep extends CloudbuildStep {
   nightlyOnly?: boolean; // Only run during nightly tests
-  waitedForByPackages?: boolean; // Other non-bazel pacakges `waitFor` this step
+  waitedForByPackages?: boolean; // Other non-bazel packages `waitFor` this step
 }
 
 function removeCustomProps(step: CustomCloudbuildStep): CloudbuildStep {
