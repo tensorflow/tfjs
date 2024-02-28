@@ -240,7 +240,7 @@ export class TensorArray {
 
   /**
    * Scatter the values of a Tensor in specific indices of a TensorArray.
-   * @param indices nummber[] values in [0, max_value). If the
+   * @param indices number[] values in [0, max_value). If the
    *    TensorArray is not dynamic, max_value=size().
    * @param tensor Tensor input tensor.
    */

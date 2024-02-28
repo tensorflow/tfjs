@@ -141,11 +141,11 @@ export interface VisOptions {
  */
 export interface XYPlotOptions extends VisOptions {
   /**
-   * domain of the x axis. Overriden by zoomToFit
+   * domain of the x axis. Overridden by zoomToFit
    */
   xAxisDomain?: [number, number];
   /**
-   * domain of the y axis. Overriden by zoomToFit
+   * domain of the y axis. Overridden by zoomToFit
    */
   yAxisDomain?: [number, number];
   /**

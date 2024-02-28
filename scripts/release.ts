@@ -38,7 +38,7 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--git-protocol', {
   action: 'storeTrue',
-  help: 'Use the git protocal rather than the http protocol when cloning repos.'
+  help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
 async function main() {
@@ -174,7 +174,7 @@ async function main() {
       `Please publish by running  ` +
       `YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ` +
       `after you merge the PR.` +
-      `Please remeber to update the website once you have released ` +
+      `Please remember to update the website once you have released ` +
       'a new package version');
 
   process.exit(0);
