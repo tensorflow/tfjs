@@ -25,7 +25,8 @@ source ../scripts/setup-py-env.sh --dev
 
 parallel ::: 'echo "Load equivalent keras models and generate outputs." && python create_save_predict.py' \
   'echo "Create saved models and convert." && python convert_predict.py' \
-  'echo "Convert model with user defined metadata." && python metadata.py'
+  'echo "Convert model with user defined metadata." && python metadata.py'\
+  'echo "Load equivalent keras v3 models and generate outputs. From keras to tfjs" && node keras_to_tfjs_create_save_predict_test.js'
 
 # Cleanup python env.
 source ../scripts/cleanup-py-env.sh
