@@ -69,7 +69,7 @@ describe('convertPythonToTs', () => {
       inboundNodes: ['DoNotChange_Me', 0, null]
     });
   });
-  // We promote certan fields to enums
+  // We promote certain fields to enums
   it('enum promotion', () => {
     expect(convertPythonicToTs({mode: 'fan_out'})).toEqual({mode: 'fanOut'});
     expect(convertPythonicToTs({distribution: 'normal'})).toEqual({

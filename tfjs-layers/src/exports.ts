@@ -22,7 +22,7 @@ import {Sequential, SequentialArgs} from './models';
 export {loadLayersModel} from './models';
 
 // TODO(cais): Add doc string to all the public static functions in this
-//   class; include exectuable JavaScript code snippets where applicable
+//   class; include executable JavaScript code snippets where applicable
 //   (b/74074458).
 
 // LayersModel and related factory methods.

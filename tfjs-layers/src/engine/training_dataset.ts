@@ -595,7 +595,7 @@ export async function evaluateDataset<T>(
       if (hasBatches) {
         console.warn(
             'Your dataset iterator ran out of data during evaluateDataset(). ' +
-            'Interrupting evalution. Make sure that your ' +
+            'Interrupting evaluation. Make sure that your ' +
             'dataset can generate at least `batches` ' +
             `batches (in this case, ${args.batches} batches). ` +
             'You may need to use the repeat() function when building ' +

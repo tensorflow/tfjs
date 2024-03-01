@@ -896,7 +896,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
        expect(numTensors1).toEqual(numTensors0);
      });
 
-  // Refence Python tf.keras code:
+  // Reference Python tf.keras code:
   //
   // ```py
   // import numpy as np

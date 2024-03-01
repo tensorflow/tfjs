@@ -554,7 +554,7 @@ export abstract class Container extends Layer {
       throw new ValueError(
           'Container instance unexpectedly contains _trainableWeights.' +
           'The trainable weights of a Container are a union of the ' +
-          'trainable weights of its consituent Layers. Its own ' +
+          'trainable weights of its constituent Layers. Its own ' +
           '_trainableWeights must remain an empty Array.');
     }
 
@@ -670,7 +670,7 @@ export abstract class Container extends Layer {
       // For keras v3, the weights name are saved based on the folder structure.
       // e.g. _backbone/_layer_checkpoint_dependencies/transformer/_self../
       // _output_dense/vars/0
-      // Therefore we discard the `vars` and `layer_checkpoint_depencies` within
+      // Therefore we discard the `vars` and `layer_checkpoint_dependencies` within
       // the saved name and only keeps the layer name and weights.
       // This can help to mapping the actual name of the layers and load each
       // weight accordingly.

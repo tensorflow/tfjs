@@ -31,7 +31,7 @@ import {Resizing, ResizingArgs} from './layers/preprocessing/image_resizing';
 import {RandomWidth, RandomWidthArgs} from './layers/preprocessing/random_width';
 
 // TODO(cais): Add doc string to all the public static functions in this
-//   class; include exectuable JavaScript code snippets where applicable
+//   class; include executable JavaScript code snippets where applicable
 //   (b/74074458).
 
 // Input Layer.
@@ -1772,7 +1772,7 @@ export function centerCrop(args?: CenterCropArgs) {
  * This layer resizes an image input to a target height and width. The input
  * should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
  * format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
- * 255]`) and of interger or floating point dtype. By default, the layer will
+ * 255]`) and of integer or floating point dtype. By default, the layer will
  * output floats.
  *
  * Arguments:

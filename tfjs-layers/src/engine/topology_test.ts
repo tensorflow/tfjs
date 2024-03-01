@@ -1059,7 +1059,7 @@ describeMathCPUAndGPU('Layer-dispose', () => {
     const model = tfl.model({inputs: [input], outputs: [output]});
 
     const result = model.dispose();
-    // This model, consiting of only an input layer and a reshape layer, does
+    // This model, consisting of only an input layer and a reshape layer, does
     // not have any weights to dispose.
     expect(result.numDisposedVariables).toEqual(0);
     expect(() => model.predict(zeros([1, 2, 3])))

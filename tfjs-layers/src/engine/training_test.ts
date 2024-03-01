@@ -457,7 +457,7 @@ describeMathCPUAndWebGL2('LayersModel.fit long', () => {
   it('Return sequences; Fit with metric', async () => {
     // The golden values for history used in the assertion below can be obtained
     // with the following Python Keras code.
-    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
+    // Ran with Python Keras version 2.1.2 and TensorFlow (CPU) version
     // 1.7.0-dev20180226.
     // ```python
     // import keras
@@ -500,7 +500,7 @@ describeMathCPUAndWebGL2('LayersModel.fit long', () => {
     const dataSize = 16;
     const validationSplit = 0.5;
     const batchSize = 3;
-    // So there are 8 examples for train and validation, respectivly. The actual
+    // So there are 8 examples for train and validation, respectively. The actual
     // batches during training and validation will be 3, 3 and 2. This tests the
     // correct averaging of the loss values happens without broadcasting.
     const outputSize = 2;
@@ -2286,7 +2286,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       yieldEvery + 1,  // Should call.
       yieldEvery + 1,  // Should call.
       1,
-      yieldEvery + 1,  // SHould call.
+      yieldEvery + 1,  // Should call.
       yieldEvery + 1,  // Should call.
       1,
       1,

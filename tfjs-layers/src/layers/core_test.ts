@@ -605,7 +605,7 @@ describe('Reshape Layer: Symbolic', () => {
     const targetShape: number[] = [null, null];
     const flattenLayer = tfl.layers.reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
-        .toThrowError(/Can only specifiy one unknown dimension/);
+        .toThrowError(/Can only specify one unknown dimension/);
   });
 
   it('One unknown with indivisible size.', () => {

@@ -47,7 +47,7 @@ describe('arrayProd', () => {
     expect(math_utils.arrayProd([2, 3, 4], 1, 3)).toEqual(12);
   });
 
-  it('Partial no beginninng no end', () => {
+  it('Partial no beginnings no end', () => {
     expect(math_utils.arrayProd([2, 3, 4, 5], 1, 3)).toEqual(12);
   });
 

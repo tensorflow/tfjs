@@ -14,7 +14,7 @@ import {describeMathCPU} from '../utils/test_utils';
 // tslint:enable
 
 describeMathCPU('LruCache', () => {
-  it('Delete the leaset recent used entry when exceeding the size', () => {
+  it('Delete the least recent used entry when exceeding the size', () => {
     const maxEntries = 3;
     const cache = new LruCache<number>(maxEntries);
     cache.put('1', 1);  // Caching [1]

@@ -742,7 +742,7 @@ export class Concatenate extends Merge {
     if (mask.length !== inputs.length) {
       throw new ValueError(
           `Mismatch in the length of mask (${mask.length}) ` +
-          `and the legnth of inputs (${inputs.length})`);
+          `and the length of inputs (${inputs.length})`);
     }
     return tfc.tidy(() => {
       let allNullMasks = true;

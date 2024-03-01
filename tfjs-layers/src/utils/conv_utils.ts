@@ -80,7 +80,7 @@ export function deconvLength(
   } else if (padding === 'same') {
     dimSize = dimSize * strideSize;
   } else {
-    throw new ValueError(`Unsupport padding mode: ${padding}.`);
+    throw new ValueError(`Unsupported padding mode: ${padding}.`);
   }
   return dimSize;
 }
