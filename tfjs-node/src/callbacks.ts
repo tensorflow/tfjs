@@ -46,7 +46,7 @@ export class ProgbarLogger extends CustomCallback {
   private readonly RENDER_THROTTLE_MS = 50;
 
   /**
-   * Construtor of LoggingCallback.
+   * Constructor of LoggingCallback.
    */
   constructor() {
     super({
@@ -150,7 +150,7 @@ const BASE_NUM_DIGITS = 2;
 const MAX_NUM_DECIMAL_PLACES = 4;
 
 /**
- * Get a succint string representation of a number.
+ * Get a succinct string representation of a number.
  *
  * Uses decimal notation if the number isn't too small.
  * Otherwise, use engineering notation.
