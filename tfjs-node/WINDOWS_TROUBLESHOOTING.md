@@ -2,12 +2,11 @@
 
 The tfjs-node package uses the [node-gyp](https://github.com/nodejs/node-gyp) package to handle cross-compiling the C++ code required to bind TensorFlow to Node.js. This cross platform solution can be somewhat tricky on Windows platforms. This guide helps reference solutions that have been triaged through Issues on the main [tfjs repo](https://github.com/tensorflow/tfjs).
 
-
 ## 'The system cannot find the patch specified' Exceptions
 
 This can happen for a variety of reasons. First, to inspect what is missing either `cd node_modules/@tensorflow/tfjs-node` or clone the [tensorflow/tfjs repo](https://github.com/tensorflow/tfjs).
 
-After `cd`'ing or cloning, run the following command (you might need node-gyp installed globablly `npm install -g node-gyp`):
+After `cd`'ing or cloning, run the following command (you might need node-gyp installed globally `npm install -g node-gyp`):
 
 ```sh
 node-gyp configure --verbose
@@ -22,9 +21,9 @@ gyp verb check python checking for Python executable "python2" in the PATH
 gyp verb `which` failed Error: not found: python2
 ```
 
-This means that node-gyp expects a 'python2' exe somewhere in `%PATH%`. Try running this command from an Admin (elevated privilaged prompt):
+This means that node-gyp expects a 'python2' exe somewhere in `%PATH%`. Try running this command from an Admin (elevated privileged prompt):
 
-You can try running this from an Adminstrative prompt:
+You can try running this from an Administrative prompt:
 
 ```sh
 $ npm --add-python-to-path='true' --debug install --global windows-build-tools
