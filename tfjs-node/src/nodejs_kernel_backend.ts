@@ -235,7 +235,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.
    * @param dataId
-   * @oaram force Optional, remove the data regardless of refCount
+   * @param force Optional, remove the data regardless of refCount
    */
   disposeData(dataId: DataId, force = false): boolean {
     // No-op if already disposed.
