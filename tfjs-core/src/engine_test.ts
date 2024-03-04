@@ -305,6 +305,25 @@ describe('Backend registration', () => {
         .toThrowError(/Backend 'async' has not yet been initialized/);
     expect(await success).toBe(false);
   });
+
+  it('Get the list of available backends', async() => {
+    const backendNames = tf.backendNames();
+    expect(backendNames.length).toBeGreaterThanOrEqual(1);
+    // For test, the second one can be either 'webgl' or 'test-async-cpu'.
+    expect(backendNames).toContain('cpu');
+  });
+
+  it('Get the list of available backends including registered one',
+    async () => {
+      tf.registerBackend(
+        'sync', () => new TestKernelBackend(), 100 /* priority */);
+
+        const backendNames = tf.backendNames();
+        expect(backendNames.length).toBeGreaterThanOrEqual(2);
+        // For test, the third one can be either 'webgl' or 'test-async-cpu'.
+        expect(backendNames).toContain('cpu');
+        expect(backendNames).toContain('sync');
+    });
 });
 
 describeWithFlags('memory', ALL_ENVS, () => {
