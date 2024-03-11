@@ -521,15 +521,19 @@ function aggregateKernelTime(kernels) {
   kernels.forEach(kernel => {
     const oldAggregatedKernelTime = aggregatedKernelTime[kernel.name];
     if (oldAggregatedKernelTime == null) {
-      aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
-    } else {
       aggregatedKernelTime[kernel.name] =
-          oldAggregatedKernelTime + kernel.kernelTimeMs;
+          [kernel.kernelTimeMs, kernel.readOutputTimeMs];
+    } else {
+      aggregatedKernelTime[kernel.name] = [
+        oldAggregatedKernelTime[0] + kernel.kernelTimeMs,
+        oldAggregatedKernelTime[1] + kernel.readOutputTimeMs,
+      ];
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-      .map(([name, timeMs]) => ({name, timeMs}))
+      .map(([name,
+             [timeMs, readOutputTimeMs]]) => ({name, timeMs, readOutputTimeMs}))
       .sort((a, b) => b.timeMs - a.timeMs);
 }
 
