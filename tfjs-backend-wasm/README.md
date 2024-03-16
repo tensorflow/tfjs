@@ -47,7 +47,7 @@ tf.setBackend('wasm').then(() => main());
 Starting from Chrome 92 (to be released around July 2021), **cross-origin
 isolation** needs to be set up in your site in order to take advantage of
 the multi-threading support in WASM backend. Without this, the backend
-will fallback to the WASM binary with SIMD-only support (or the vanila version
+will fallback to the WASM binary with SIMD-only support (or the vanilla version
 if SIMD is not enabled). Without multi-threading support, certain models might
 not achieve the best performance.
 
