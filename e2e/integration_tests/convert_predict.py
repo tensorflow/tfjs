@@ -241,7 +241,7 @@ def _create_saved_model_with_conv2d(save_dir):
   result = model.predict(tf.ones((1, 24, 24, 3)))
   # set the learning phase to avoid keara learning placeholder, which
   # will cause error when saving.
-  tf.keras.backend.set_learning_phase(0)
+  #tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
@@ -270,7 +270,7 @@ def _create_saved_model_with_prelu(save_dir):
   ]
   model = tf.keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))
-  tf.keras.backend.set_learning_phase(0)
+  #tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
@@ -357,7 +357,7 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
 
   result = model.predict(tf.ones([1, 10]))
 
-  tf.keras.backend.set_learning_phase(0)
+  #tf.keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
 
   return {
