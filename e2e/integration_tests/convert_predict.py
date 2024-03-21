@@ -515,6 +515,6 @@ def main():
   _save_and_convert_model(_create_saved_model_v2_with_hashtable,
       'saved_model_v2_with_hashtable')
 
-  _layers_mobilenet()
+  # _layers_mobilenet()
 if __name__ == '__main__':
   main()
