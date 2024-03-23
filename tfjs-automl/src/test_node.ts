@@ -14,24 +14,27 @@
  * limitations under the License.
  * =============================================================================
  */
-import '@tensorflow/tfjs-backend-cpu';
+import "@tensorflow/tfjs-backend-cpu";
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import { setTestEnvs } from "@tensorflow/tfjs-core/dist/jasmine_util";
 
 // tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
+const jasmine = require("jasmine");
 
 // Increase test timeout since we are fetching the model files from GCS.
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
-process.on('unhandledRejection', e => {
+process.on("unhandledRejection", (e) => {
   throw e;
 });
 
-// Run node tests againts the cpu backend.
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
+// Run node tests against the cpu backend.
+setTestEnvs([{ name: "node", backendName: "cpu" }]);
 
 const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], jsLoader: 'require',
-                   random: false});
+runner.loadConfig({
+  spec_files: ["src/**/*_test.ts"],
+  jsLoader: "require",
+  random: false,
+});
 runner.execute();

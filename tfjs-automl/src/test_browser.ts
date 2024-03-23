@@ -14,23 +14,28 @@
  * limitations under the License.
  * =============================================================================
  */
-import '@tensorflow/tfjs-backend-webgl';
+import "@tensorflow/tfjs-backend-webgl";
 
 // tslint:disable-next-line: no-imports-from-dist
-import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {
+  parseTestEnvFromKarmaFlags,
+  registerTestEnv,
+  setTestEnvs,
+  TEST_ENVS,
+} from "@tensorflow/tfjs-core/dist/jasmine_util";
 
 // Increase test timeout since we are fetching the model files from GCS.
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 registerTestEnv({
-  name: 'webgl1',
-  backendName: 'webgl',
+  name: "webgl1",
+  backendName: "webgl",
   flags: {
-    'WEBGL_VERSION': 1,
-    'WEBGL_CPU_FORWARD': false,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+    WEBGL_VERSION: 1,
+    WEBGL_CPU_FORWARD: false,
+    WEBGL_SIZE_UPLOAD_UNIFORM: 0,
   },
-  isDataSync: true
+  isDataSync: true,
 });
 
 // tslint:disable-next-line:no-any
@@ -39,18 +44,18 @@ const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
 if (testEnv != null) {
   setTestEnvs([testEnv]);
 } else {
-  // Run browser tests againts both the webgl backends.
+  // Run browser tests against both the webgl backends.
   setTestEnvs([
     // WebGL.
     {
-      name: 'test-webgl',
-      backendName: 'webgl',
+      name: "test-webgl",
+      backendName: "webgl",
       flags: {
-        'WEBGL_VERSION': 2,
-        'WEBGL_CPU_FORWARD': false,
-        'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+        WEBGL_VERSION: 2,
+        WEBGL_CPU_FORWARD: false,
+        WEBGL_SIZE_UPLOAD_UNIFORM: 0,
       },
-      isDataSync: true
-    }
+      isDataSync: true,
+    },
   ]);
 }
