@@ -39,7 +39,7 @@ const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
 if (testEnv != null) {
   setTestEnvs([testEnv]);
 } else {
-  // Run browser tests againts both the webgl backends.
+  // Run browser tests against both the webgl backends.
   setTestEnvs([
     // WebGL.
     {
