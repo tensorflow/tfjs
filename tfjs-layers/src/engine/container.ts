@@ -670,8 +670,8 @@ export abstract class Container extends Layer {
       // For keras v3, the weights name are saved based on the folder structure.
       // e.g. _backbone/_layer_checkpoint_dependencies/transformer/_self../
       // _output_dense/vars/0
-      // Therefore we discard the `vars` and `layer_checkpoint_dependencies` within
-      // the saved name and only keeps the layer name and weights.
+      // Therefore we discard the `vars` and `layer_checkpoint_dependencies`
+      // within the saved name and only keeps the layer name and weights.
       // This can help to mapping the actual name of the layers and load each
       // weight accordingly.
       const newKey = listParts

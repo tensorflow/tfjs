@@ -500,9 +500,10 @@ describeMathCPUAndWebGL2('LayersModel.fit long', () => {
     const dataSize = 16;
     const validationSplit = 0.5;
     const batchSize = 3;
-    // So there are 8 examples for train and validation, respectively. The actual
-    // batches during training and validation will be 3, 3 and 2. This tests the
-    // correct averaging of the loss values happens without broadcasting.
+    // So there are 8 examples for train and validation, respectively.
+    // The actual batches during training and validation will be 3, 3 and 2.
+    // This tests the correct averaging of the loss values happens 
+    // without broadcasting.
     const outputSize = 2;
     const simpleRNN = tfl.layers.simpleRNN({
       units: outputSize,
