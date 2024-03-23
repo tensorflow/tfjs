@@ -243,7 +243,7 @@ describe('Backend registration', () => {
          throw new Error('failed to create async2');
        }, 101 /* priority */);
 
-       // Await for the library to find the best backend that succesfully
+       // Await for the library to find the best backend that successfully
        // initializes.
        await tf.ready();
        expect(tf.backend()).toEqual(testBackend);

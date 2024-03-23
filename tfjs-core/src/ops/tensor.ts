@@ -160,7 +160,7 @@ import {makeTensor} from './tensor_ops_util';
  * const aBuffer = createGPUBufferFromData(device, aData, dtype);
  * const shape = [aData.length];
  * // To use zeroCopy, use {buffer: aBuffer, zeroCopy: true} instead and destroy
- * // aBuffer untill all access is done.
+ * // aBuffer until all access is done.
  * const a = tf.tensor({buffer: aBuffer}, shape, dtype);
  * const b = tf.tensor(bData, shape, dtype);
  * const result = tf.add(a, b);

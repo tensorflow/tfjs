@@ -222,7 +222,7 @@ export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
   const s = skewness(values);
   const k = kurtosis(values);
   const jb = n / 6 * (Math.pow(s, 2) + 0.25 * Math.pow(k - 3, 2));
-  // JB test requires 2-degress of freedom from Chi-Square @ 0.95:
+  // JB test requires 2-degrees of freedom from Chi-Square @ 0.95:
   // http://www.itl.nist.gov/div898/handbook/eda/section3/eda3674.htm
   const CHI_SQUARE_2DEG = 5.991;
   if (jb > CHI_SQUARE_2DEG) {
