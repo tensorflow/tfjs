@@ -313,7 +313,7 @@ describeMathCPUAndGPU('MultiHeadAttention', () => {
         outputShape: null
       },
       {
-        testcaseName: 'wihtout_key_different_proj',
+        testcaseName: 'without_key_different_proj',
         queryDims: [40, 80],
         valueDims: [20, 80],
         keyDims: null,

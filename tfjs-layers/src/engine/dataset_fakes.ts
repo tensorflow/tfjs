@@ -26,7 +26,7 @@ export interface FakeDatasetArgs {
   xShape: Shape|{[name: string]: Shape};
 
   /**
-   * The shape of the target(s) of a single exapmle.
+   * The shape of the target(s) of a single example.
    */
   yShape: Shape|{[name: string]: Shape};
 

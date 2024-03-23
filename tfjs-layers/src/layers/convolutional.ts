@@ -401,7 +401,7 @@ export abstract class BaseConv extends Layer {
   protected readonly dilationRate: number[];
 
   // Bias-related members are here because all convolution subclasses use the
-  // same configuration parmeters to control bias.  Kernel-related members
+  // same configuration parameters to control bias.  Kernel-related members
   // are in subclass `Conv` because some subclasses use different parameters to
   // control kernel properties, for instance, `DepthwiseConv2D` uses
   // `depthwiseInitializer` instead of `kernelInitializer`.
