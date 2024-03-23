@@ -15,9 +15,12 @@
  * =============================================================================
  */
 
-import * as mobilenet from '@tensorflow-models/mobilenet';
-import * as tf from '@tensorflow/tfjs';
-import {asyncStorageIO, bundleResourceIO} from '@tensorflow/tfjs-react-native';
+import * as mobilenet from "@tensorflow-models/mobilenet";
+import * as tf from "@tensorflow/tfjs";
+import {
+  asyncStorageIO,
+  bundleResourceIO,
+} from "@tensorflow/tfjs-react-native";
 
 // All functions (i.e. 'runners") in this file are async
 // functions that return a function that can be invoked to
@@ -64,11 +67,12 @@ export async function mobilenetRunner() {
  * A runner that loads a model bundled with the app and runs a prediction
  * through it.
  */
-const modelJson = require('../assets/model/bundle_model_test.json');
-const modelWeights = require('../assets/model/bundle_model_test_weights.bin');
+const modelJson = require("../assets/model/bundle_model_test.json");
+const modelWeights = require("../assets/model/bundle_model_test_weights.bin");
 export async function localModelRunner() {
-  const model =
-      await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
+  const model = await tf.loadLayersModel(
+    bundleResourceIO(modelJson, modelWeights)
+  );
 
   return async () => {
     const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
@@ -81,11 +85,12 @@ export async function localModelRunner() {
  * A runner that loads a model bundled with the app and runs a prediction
  * through it.
  */
-const modelJson2 = require('../assets/graph_model/model.json');
-const modelWeights2 = require('../assets/graph_model/group1-shard1of1.bin');
+const modelJson2 = require("../assets/graph_model/model.json");
+const modelWeights2 = require("../assets/graph_model/group1-shard1of1.bin");
 export async function localGraphModelRunner() {
-  const model =
-      await tf.loadGraphModel(bundleResourceIO(modelJson2, modelWeights2));
+  const model = await tf.loadGraphModel(
+    bundleResourceIO(modelJson2, modelWeights2)
+  );
   return async () => {
     const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
     const data = await res.data();
@@ -97,33 +102,35 @@ export async function localGraphModelRunner() {
  * A runner that loads a sharded model bundled with the app and runs a
  * prediction through it.
  */
-const shardedModelJson = require('../assets/sharded_model/model.json');
-const shardedModelWeights1: number =
-    require('../assets/sharded_model/group1-shard1of2.bin');
-const shardedModelWeights2: number =
-    require('../assets/sharded_model/group1-shard2of2.bin');
+const shardedModelJson = require("../assets/sharded_model/model.json");
+const shardedModelWeights1: number = require("../assets/sharded_model/group1-shard1of2.bin");
+const shardedModelWeights2: number = require("../assets/sharded_model/group1-shard2of2.bin");
 
 export async function localShardedGraphModelRunner() {
-  const model = await tf.loadGraphModel(bundleResourceIO(
-      shardedModelJson, [shardedModelWeights1, shardedModelWeights2]));
+  const model = await tf.loadGraphModel(
+    bundleResourceIO(shardedModelJson, [
+      shardedModelWeights1,
+      shardedModelWeights2,
+    ])
+  );
 
   return async () => {
     const input = tf.zeros([1, 224, 224, 3]);
     const res = model.predict(input) as tf.Tensor;
     const data = await res.data();
-    return JSON.stringify({predictionsLength: data.length});
+    return JSON.stringify({ predictionsLength: data.length });
   };
 }
 
 /**
- * A runner that traines a model.
+ * A runner that trains a model.
  */
 export async function trainModelRunner() {
   // Define a model for linear regression.
   const model = tf.sequential();
-  model.add(tf.layers.dense({units: 5, inputShape: [1]}));
-  model.add(tf.layers.dense({units: 1}));
-  model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+  model.add(tf.layers.dense({ units: 5, inputShape: [1] }));
+  model.add(tf.layers.dense({ units: 1 }));
+  model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
 
   // Generate some synthetic data for training.
   const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
@@ -131,9 +138,9 @@ export async function trainModelRunner() {
 
   return async () => {
     // Train the model using the data.
-    await model.fit(xs, ys, {epochs: 20});
+    await model.fit(xs, ys, { epochs: 20 });
 
-    return 'done';
+    return "done";
   };
 }
 
@@ -143,14 +150,14 @@ export async function trainModelRunner() {
 export async function saveModelRunner() {
   // Define a model for linear regression.
   const model = tf.sequential();
-  model.add(tf.layers.dense({units: 5, inputShape: [1]}));
-  model.add(tf.layers.dense({units: 1}));
-  model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+  model.add(tf.layers.dense({ units: 5, inputShape: [1] }));
+  model.add(tf.layers.dense({ units: 1 }));
+  model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
 
   return async () => {
-    await model.save(asyncStorageIO('custom-model-test'));
-    await tf.loadLayersModel(asyncStorageIO('custom-model-test'));
+    await model.save(asyncStorageIO("custom-model-test"));
+    await tf.loadLayersModel(asyncStorageIO("custom-model-test"));
 
-    return 'done';
+    return "done";
   };
 }

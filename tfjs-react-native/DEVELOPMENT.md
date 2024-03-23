@@ -1,11 +1,11 @@
 # Development
 
-This file will document some of the differences from the regular developement workflow in [DEVELOPMENT.md](../DEVELOPMENT.md). You should read that document first to get familiar with typical TensorFlow.js development workflow.
+This file will document some of the differences from the regular development workflow in [DEVELOPMENT.md](../DEVELOPMENT.md). You should read that document first to get familiar with typical TensorFlow.js development workflow.
 
 Development and testing for tfjs-react-native is somewhat different from the packages like tfjs-core or tfjs-layers for a few reasons:
-- __Dependency on having a physical mobile device to run__: While the CPU backend can run in a simulator, the WebGL one requires running on a physical device. So most of the time you will want to test something using a mobile device connected to your computer.
-- __No browser or node environment__: We are running JavaScript outside of a browser and outside of node. We thus have to make sure we don't include things that depend on those two environments.
 
+- **Dependency on having a physical mobile device to run**: While the CPU backend can run in a simulator, the WebGL one requires running on a physical device. So most of the time you will want to test something using a mobile device connected to your computer.
+- **No browser or node environment**: We are running JavaScript outside of a browser and outside of node. We thus have to make sure we don't include things that depend on those two environments.
 
 ## Key Terms & Caveats
 
@@ -13,7 +13,7 @@ These are a few key terms/technologies to be familiar with that are different fr
 
 - [React Native](https://facebook.github.io/react-native/) — This is the framework that this package targets.
 - [Metro](https://facebook.github.io/metro/) — This is the bundler used to create the JavaScript bundle that is loaded into the native app by react native.
-  - The bundle needs to be created at 'compile time' thus all imports/requires need to be resolved. Thus _dynamic_ `import`s/`require`s are __statically resolved__. So you cannot exclude a require with a conditional in JS code.
+  - The bundle needs to be created at 'compile time' thus all imports/requires need to be resolved. Thus _dynamic_ `import`s/`require`s are **statically resolved**. So you cannot exclude a require with a conditional in JS code.
   - Since tfjs does dynamic `require`'s of certain node libraries that are not present in react native, files that do that need to be excluded from the metro build process. For end users, this is documented in the [README](../README.md), but it also happens in `integration_rn59/prep_tests.ts`.
   - Metro does not play well with symlinks, so if you are trying to develop against a local build of tfjs, copy the dist folder into the app's node_modules as appropriate. Do not use yalc.
 - [.ipa](https://en.wikipedia.org/wiki/.ipa) & [.apk](https://en.wikipedia.org/wiki/Android_application_package) — These are the formats for the final native bundle that is put on an iOS and Android device. They are created by their respective dev tools, [XCode](https://developer.apple.com/xcode/) and [Android Studio](https://developer.android.com/studio).
@@ -33,8 +33,9 @@ Unit tests from tfjs-core are imported into a react native application and run a
 Because these are part of an app to run them you must compile and run the integration_rn59 of the target device. There is a button in that app to start the unit tests.
 
 This is _automated in CI_ and runs on:
- - Changes to tfjs-core: [Tests will be run against HEAD of tfjs-core](../tfjs-core/cloudbuild.yml)
- - Changes to tfjs-react-native: [Tests will be run against the **published** version](./cloudbuild.yml) of tfjs on npm that is references in `integration_rn59/package.json`
+
+- Changes to tfjs-core: [Tests will be run against HEAD of tfjs-core](../tfjs-core/cloudbuild.yml)
+- Changes to tfjs-react-native: [Tests will be run against the **published** version](./cloudbuild.yml) of tfjs on npm that is references in `integration_rn59/package.json`
 
 ### Other integration tests
 

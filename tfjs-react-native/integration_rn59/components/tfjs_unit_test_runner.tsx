@@ -123,7 +123,7 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     const reactReporter: jasmine.CustomReporter = {
       jasmineStarted: suiteInfo => {
         // The console.warn below seems necessary in order for the spy on
-        // console.warn defined in one of the tests to run corrently.
+        // console.warn defined in one of the tests to run currently.
         console.warn('starting tests');
         //@ts-ignore
         console.reportErrorsAsExceptions = false;

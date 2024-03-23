@@ -15,91 +15,95 @@
  * =============================================================================
  */
 
-import './platform_react_native';
+import "./platform_react_native";
 
-import * as tf from '@tensorflow/tfjs-core';
+import * as tf from "@tensorflow/tfjs-core";
 // tslint:disable-next-line: no-imports-from-dist
-import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import { describeWithFlags } from "@tensorflow/tfjs-core/dist/jasmine_util";
 
-import {bundleResourceIO} from './bundle_resource_io';
-import * as tfjsRn from './platform_react_native';
-import {RN_ENVS} from './test_env_registry';
+import { bundleResourceIO } from "./bundle_resource_io";
+import * as tfjsRn from "./platform_react_native";
+import { RN_ENVS } from "./test_env_registry";
 
-describeWithFlags('BundleResourceIO', RN_ENVS, () => {
+describeWithFlags("BundleResourceIO", RN_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
-    'class_name': 'Sequential',
-    'keras_version': '2.1.4',
-    'config': [{
-      'class_name': 'Dense',
-      'config': {
-        'kernel_initializer': {
-          'class_name': 'VarianceScaling',
-          'config': {
-            'distribution': 'uniform',
-            'scale': 1.0,
-            'seed': null,
-            'mode': 'fan_avg'
-          }
+    class_name: "Sequential",
+    keras_version: "2.1.4",
+    config: [
+      {
+        class_name: "Dense",
+        config: {
+          kernel_initializer: {
+            class_name: "VarianceScaling",
+            config: {
+              distribution: "uniform",
+              scale: 1.0,
+              seed: null,
+              mode: "fan_avg",
+            },
+          },
+          name: "dense",
+          kernel_constraint: null,
+          bias_regularizer: null,
+          bias_constraint: null,
+          dtype: "float32",
+          activation: "linear",
+          trainable: true,
+          kernel_regularizer: null,
+          bias_initializer: { class_name: "Zeros", config: {} },
+          units: 1,
+          batch_input_shape: [null, 3],
+          use_bias: true,
+          activity_regularizer: null,
         },
-        'name': 'dense',
-        'kernel_constraint': null,
-        'bias_regularizer': null,
-        'bias_constraint': null,
-        'dtype': 'float32',
-        'activation': 'linear',
-        'trainable': true,
-        'kernel_regularizer': null,
-        'bias_initializer': {'class_name': 'Zeros', 'config': {}},
-        'units': 1,
-        'batch_input_shape': [null, 3],
-        'use_bias': true,
-        'activity_regularizer': null
-      }
-    }],
-    'backend': 'tensorflow'
+      },
+    ],
+    backend: "tensorflow",
   };
 
   const weightSpecs1: tf.io.WeightsManifestEntry[] = [
     {
-      name: 'dense/kernel',
+      name: "dense/kernel",
       shape: [3, 1],
-      dtype: 'float32',
+      dtype: "float32",
     },
     {
-      name: 'dense/bias',
+      name: "dense/bias",
       shape: [1],
-      dtype: 'float32',
-    }
+      dtype: "float32",
+    },
   ];
   const weightData1 = new ArrayBuffer(16);
 
-  it('constructs an IOHandler', async () => {
+  it("constructs an IOHandler", async () => {
     const modelJson: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
-      weightsManifest: [{
-        paths: [],
-        weights: weightSpecs1,
-      }]
-
+      weightsManifest: [
+        {
+          paths: [],
+          weights: weightSpecs1,
+        },
+      ],
     };
     const resourceId = 1;
     const handler = bundleResourceIO(modelJson, resourceId);
-    expect(typeof handler.load).toBe('function');
-    expect(typeof handler.save).toBe('function');
+    expect(typeof handler.load).toBe("function");
+    expect(typeof handler.save).toBe("function");
   });
 
-  it('loads model artifacts', async () => {
+  it("loads model artifacts", async () => {
     const response = new Response(weightData1);
-    spyOn(tfjsRn, 'fetch').and.returnValue(Promise.resolve(response));
+    spyOn(tfjsRn, "fetch").and.returnValue(Promise.resolve(response));
 
     const modelJson: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
-      weightsManifest: [{
-        paths: [],
-        weights: weightSpecs1,
-      }]
-
+      weightsManifest: [
+        {
+          paths: [],
+          weights: weightSpecs1,
+        },
+      ],
     };
     const resourceId = 1;
     const handler = bundleResourceIO(modelJson, resourceId);
@@ -111,10 +115,11 @@ describeWithFlags('BundleResourceIO', RN_ENVS, () => {
     expect(loaded.weightData).toEqual(weightData1);
   });
 
-  it('errors on string modelJSON', async () => {
+  it("errors on string modelJSON", async () => {
     const response = new Response(weightData1);
-    spyOn(tf.env().platform, 'fetch')
-        .and.returnValue(Promise.resolve(response));
+    spyOn(tf.env().platform, "fetch").and.returnValue(
+      Promise.resolve(response)
+    );
 
     const modelJson = `{
       modelTopology: modelTopology1,
@@ -124,100 +129,102 @@ describeWithFlags('BundleResourceIO', RN_ENVS, () => {
       }]
     }`;
     const resourceId = 1;
-    expect(
-        () => bundleResourceIO(
-            modelJson as unknown as tf.io.ModelJSON, resourceId))
-        .toThrow(new Error(
-            'modelJson must be a JavaScript object (and not a string).\n' +
-            'Have you wrapped yor asset path in a require() statment?'));
+    expect(() =>
+      bundleResourceIO(modelJson as unknown as tf.io.ModelJSON, resourceId)
+    ).toThrow(
+      new Error(
+        "modelJson must be a JavaScript object (and not a string).\n" +
+          "Have you wrapped yor asset path in a require() statement?"
+      )
+    );
   });
 });
 
-describeWithFlags('BundleResourceIO Sharded', RN_ENVS, () => {
+describeWithFlags("BundleResourceIO Sharded", RN_ENVS, () => {
   // Test data.
   const modelTopology: {} = {
-    'class_name': 'Sequential',
-    'keras_version': '2.1.4',
-    'config': [
+    class_name: "Sequential",
+    keras_version: "2.1.4",
+    config: [
       {
-        'class_name': 'Dense',
-        'config': {
-          'kernel_initializer': {
-            'class_name': 'VarianceScaling',
-            'config': {
-              'distribution': 'uniform',
-              'scale': 1.0,
-              'seed': null,
-              'mode': 'fan_avg'
-            }
+        class_name: "Dense",
+        config: {
+          kernel_initializer: {
+            class_name: "VarianceScaling",
+            config: {
+              distribution: "uniform",
+              scale: 1.0,
+              seed: null,
+              mode: "fan_avg",
+            },
           },
-          'name': 'dense',
-          'kernel_constraint': null,
-          'bias_regularizer': null,
-          'bias_constraint': null,
-          'dtype': 'float32',
-          'activation': 'linear',
-          'trainable': true,
-          'kernel_regularizer': null,
-          'bias_initializer': {'class_name': 'Zeros', 'config': {}},
-          'units': 1,
-          'batch_input_shape': [null, 3],
-          'use_bias': true,
-          'activity_regularizer': null
-        }
+          name: "dense",
+          kernel_constraint: null,
+          bias_regularizer: null,
+          bias_constraint: null,
+          dtype: "float32",
+          activation: "linear",
+          trainable: true,
+          kernel_regularizer: null,
+          bias_initializer: { class_name: "Zeros", config: {} },
+          units: 1,
+          batch_input_shape: [null, 3],
+          use_bias: true,
+          activity_regularizer: null,
+        },
       },
       {
-        'class_name': 'Dense',
-        'config': {
-          'kernel_initializer': {
-            'class_name': 'VarianceScaling',
-            'config': {
-              'distribution': 'uniform',
-              'scale': 1.0,
-              'seed': null,
-              'mode': 'fan_avg'
-            }
+        class_name: "Dense",
+        config: {
+          kernel_initializer: {
+            class_name: "VarianceScaling",
+            config: {
+              distribution: "uniform",
+              scale: 1.0,
+              seed: null,
+              mode: "fan_avg",
+            },
           },
-          'name': 'dense2',
-          'kernel_constraint': null,
-          'bias_regularizer': null,
-          'bias_constraint': null,
-          'dtype': 'float32',
-          'activation': 'linear',
-          'trainable': true,
-          'kernel_regularizer': null,
-          'bias_initializer': {'class_name': 'Zeros', 'config': {}},
-          'units': 1,
-          'batch_input_shape': [null, 3],
-          'use_bias': true,
-          'activity_regularizer': null
-        }
-      }
+          name: "dense2",
+          kernel_constraint: null,
+          bias_regularizer: null,
+          bias_constraint: null,
+          dtype: "float32",
+          activation: "linear",
+          trainable: true,
+          kernel_regularizer: null,
+          bias_initializer: { class_name: "Zeros", config: {} },
+          units: 1,
+          batch_input_shape: [null, 3],
+          use_bias: true,
+          activity_regularizer: null,
+        },
+      },
     ],
-    'backend': 'tensorflow'
+    backend: "tensorflow",
   };
 
   const weightSpecs: tf.io.WeightsManifestEntry[] = [
     {
-      name: 'dense/kernel',
+      name: "dense/kernel",
       shape: [3, 1],
-      dtype: 'float32',
+      dtype: "float32",
     },
     {
-      name: 'dense/bias',
+      name: "dense/bias",
       shape: [1],
-      dtype: 'float32',
+      dtype: "float32",
     },
     {
-      name: 'dense2/kernel',
+      name: "dense2/kernel",
       shape: [3, 1],
-      dtype: 'float32',
+      dtype: "float32",
     },
     {
-      name: 'dense2/bias',
+      name: "dense2/bias",
       shape: [1],
-      dtype: 'float32',
-    }
+      dtype: "float32",
+    },
   ];
   const weightData1 = new ArrayBuffer(16);
   const weightData2 = new ArrayBuffer(16);
@@ -225,35 +232,36 @@ describeWithFlags('BundleResourceIO Sharded', RN_ENVS, () => {
 
   const combinedWeightsExpected = new ArrayBuffer(32);
 
-  it('constructs an IOHandler', async () => {
+  it("constructs an IOHandler", async () => {
     const modelJson: tf.io.ModelJSON = {
       modelTopology,
-      weightsManifest: [{
-        paths: [],
-        weights: weightSpecs,
-      }]
-
+      weightsManifest: [
+        {
+          paths: [],
+          weights: weightSpecs,
+        },
+      ],
     };
 
     const handler = bundleResourceIO(modelJson, resourceIds);
-    expect(typeof handler.load).toBe('function');
-    expect(typeof handler.save).toBe('function');
+    expect(typeof handler.load).toBe("function");
+    expect(typeof handler.save).toBe("function");
   });
 
-  it('loads model artifacts', async () => {
-    spyOn(tf.env().platform, 'fetch')
-        .and.returnValues(
-            Promise.resolve(new Response(weightData1)),
-            Promise.resolve(new Response(weightData2)),
-        );
+  it("loads model artifacts", async () => {
+    spyOn(tf.env().platform, "fetch").and.returnValues(
+      Promise.resolve(new Response(weightData1)),
+      Promise.resolve(new Response(weightData2))
+    );
 
     const modelJson: tf.io.ModelJSON = {
       modelTopology,
-      weightsManifest: [{
-        paths: [],
-        weights: weightSpecs,
-      }]
-
+      weightsManifest: [
+        {
+          paths: [],
+          weights: weightSpecs,
+        },
+      ],
     };
 
     const handler = bundleResourceIO(modelJson, resourceIds);
