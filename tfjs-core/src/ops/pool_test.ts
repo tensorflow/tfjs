@@ -97,7 +97,7 @@ describeWithFlags('pool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [5, 5, 8, 8, 8, 8, 8, 8]);
   });
 
-  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit default dimRoundingMode',
     async () => {
       // Feed forward.
       const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
@@ -255,7 +255,7 @@ describeWithFlags('pool', ALL_ENVS, () => {
         await result.data(), [2.5, 3, 4, 4.5, 5.5, 6, 7, 7.5]);
   });
 
-  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit default dimRoundingMode',
     async () => {
       // Feed forward.
       const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
