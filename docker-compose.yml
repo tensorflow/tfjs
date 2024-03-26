@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  yarn:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
