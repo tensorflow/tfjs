@@ -15,7 +15,7 @@ import {stringLiteralArray} from './utils';
  */
 export const activationOptions = stringLiteralArray([
   'elu', 'hard_sigmoid', 'linear', 'relu', 'relu6', 'selu', 'sigmoid',
-  'softmax', 'softplus', 'softsign', 'tanh', 'swish', 'mish'
+  'softmax', 'softplus', 'softsign', 'tanh', 'swish', 'mish', 'gelu', 'gelu_new'
 ]);
 
 /**
@@ -28,4 +28,4 @@ export type ActivationSerialization = typeof activationOptions[number];
 // e.g. to src/common.ts.  Maybe even duplicate *all* of these to be pedantic?
 /** @docinline */
 export type ActivationIdentifier = 'elu'|'hardSigmoid'|'linear'|'relu'|'relu6'|
-    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh'|'swish'|'mish';
+    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh'|'swish'|'mish'|'gelu'|'gelu_new';
