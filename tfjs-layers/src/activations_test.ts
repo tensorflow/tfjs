@@ -401,24 +401,26 @@ describeMathCPUAndGPU('gelu activation', () => {
 });
 
 describeMathCPUAndGPU('gelu_new activation', () => {
-  const gelu_new = new GeluNew().apply;
+  const geluNew = new GeluNew().apply;
   // Setup: Array with initial values.
   // Execute: GeluNew on the last dimension.
   // Expect: Output array matches size and approximate expected values.
   it('1D', () => {
     const initX = tensor1d([0, 1, 3, 9]);
     const expectedVals = tensor1d([0, 0.8413447, 2.9959502, 9]);
-    expectTensorsClose(gelu_new(initX), expectedVals);
+    expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('1D all equal', () => {
     const initX = tensor1d([-1, -1, -1, -1]);
-    const expectedVals = tensor1d([-0.1586553, -0.1586553, -0.1586553, -0.1586553]);
+    const expectedVals = tensor1d(
+      [-0.1586553, -0.1586553, -0.1586553, -0.1586553]);
     expectTensorsClose(gelu_new(initX), expectedVals);
   });
   it('2D', () => {
     const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
     const expectedVals = tensor2d(
-        [[0, 0.5611233, 2.8508909, 8.9980001], [0, 0.5611233, 2.8508909, 8.9980001]]);
+        [[0, 0.5611233, 2.8508909, 8.9980001], 
+         [0, 0.5611233, 2.8508909, 8.9980001]]);
     expectTensorsClose(gelu_new(initX), expectedVals);
   });
   it('3D', () => {
