@@ -229,7 +229,7 @@ export class Gelu extends Activation {
         // Compute GELU(x) = x * Φ(x)
         return tfc.mul(x, cdf);
       });
-    })
+    });
   }
 }
 serialization.registerClass(Gelu);
@@ -259,8 +259,8 @@ export class GeluNew extends Activation {
                 )
             )
         )
-      )
-    })
+      );
+    });
   }
 }
 serialization.registerClass(GeluNew);
