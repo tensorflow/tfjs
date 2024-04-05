@@ -117,6 +117,12 @@ py_library(
 )
 
 py_library(
+    name = "expect_tf_keras_installed",
+    # tf-keras is used to provide keras 2.0 support.
+    deps = [requirement("tf-keras")],
+)
+
+py_library(
     name = "quantization",
     srcs = ["quantization.py"],
     srcs_version = "PY3",
