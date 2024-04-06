@@ -19,6 +19,32 @@ import {buffer, CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelCo
 
 import {MathBackendCPU} from '../backend_cpu';
 
+class ImageScaler {
+  private t2: number;
+  private t1: number;
+  private imageLength: number;
+  private cropLength: number;
+  // Do not calculate lengthScale first to avoid rounding errors.
+  // lengthScale * (cropLength - 1) => (imageLength - 1) may not be
+  // obtained. Example case, imageLength=56, cropLength=28
+
+  constructor(t2: number, t1: number, imageLength: number, cropLength: number) {
+    this.t2 = t2;
+    this.t1 = t1;
+    this.imageLength = imageLength;
+    this.cropLength = cropLength
+  }
+
+  scaling(x: number): number {
+    if (this.cropLength > 1) {
+      return (this.t2 - this.t1) * x * (this.imageLength - 1) /
+          (this.cropLength - 1);
+    } else {
+      return 0;
+    }
+  }
+}
+
 export function cropAndResize(args: {
   inputs: CropAndResizeInputs,
   backend: MathBackendCPU,
@@ -59,14 +85,12 @@ export function cropAndResize(args: {
       continue;
     }
 
-    const heightScale =
-        (cropHeight > 1) ? (y2 - y1) * (imageHeight - 1) / (cropHeight - 1) : 0;
-    const widthScale =
-        (cropWidth > 1) ? (x2 - x1) * (imageWidth - 1) / (cropWidth - 1) : 0;
+    const heightScaler = new ImageScaler(y2, y1, imageHeight, cropHeight)
+    const widthScaler = new ImageScaler(x2, x1, imageWidth, cropWidth)
 
     for (let y = 0; y < cropHeight; y++) {
       const yInd: number = (cropHeight > 1) ?
-          y1 * (imageHeight - 1) + y * (heightScale) :
+          y1 * (imageHeight - 1) + heightScaler.scaling(y) :
           0.5 * (y1 + y2) * (imageHeight - 1);
 
       if (yInd < 0 || yInd > imageHeight - 1) {
@@ -87,7 +111,7 @@ export function cropAndResize(args: {
 
         for (let x = 0; x < cropWidth; x++) {
           const xInd = (cropWidth > 1) ?
-              x1 * (imageWidth - 1) + x * widthScale :
+              x1 * (imageWidth - 1) + widthScaler.scaling(x) :
               0.5 * (x1 + x2) * (imageWidth - 1);
 
           if (xInd < 0 || xInd > imageWidth - 1) {
@@ -130,7 +154,7 @@ export function cropAndResize(args: {
       } else {  // method == "nearest"
         for (let x = 0; x < cropWidth; ++x) {
           const xInd = (cropWidth > 1) ?
-              x1 * (imageWidth - 1) + x * widthScale :
+              x1 * (imageWidth - 1) + widthScaler.scaling(x) :
               0.5 * (x1 + x2) * (imageWidth - 1);
 
           if (xInd < 0 || xInd > imageWidth - 1) {
