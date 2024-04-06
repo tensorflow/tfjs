@@ -33,7 +33,7 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
   });
 
   it('halving-nearest', async () => {
-    const baseSize = 28
+    const baseSize = 28;
     const image: tf.Tensor4D = tf.ones([1, 2 * baseSize, 1, 1]);
     const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
     const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');

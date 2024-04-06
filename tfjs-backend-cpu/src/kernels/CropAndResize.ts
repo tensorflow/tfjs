@@ -32,7 +32,7 @@ class ImageScaler {
     this.t2 = t2;
     this.t1 = t1;
     this.imageLength = imageLength;
-    this.cropLength = cropLength
+    this.cropLength = cropLength;
   }
 
   scaling(x: number): number {
@@ -85,8 +85,8 @@ export function cropAndResize(args: {
       continue;
     }
 
-    const heightScaler = new ImageScaler(y2, y1, imageHeight, cropHeight)
-    const widthScaler = new ImageScaler(x2, x1, imageWidth, cropWidth)
+    const heightScaler = new ImageScaler(y2, y1, imageHeight, cropHeight);
+    const widthScaler = new ImageScaler(x2, x1, imageWidth, cropWidth);
 
     for (let y = 0; y < cropHeight; y++) {
       const yInd: number = (cropHeight > 1) ?
