@@ -24,6 +24,7 @@ import unittest
 import numpy as np
 
 import tensorflow.compat.v2 as tf
+import tf_keras
 from tensorflow_decision_forests.keras import GradientBoostedTreesModel
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
@@ -152,28 +153,28 @@ class ConvertTest(tf.test.TestCase):
   def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
     layers = [
-        tf.keras.layers.Conv2D(
+        tf_keras.layers.Conv2D(
             16, [3, 3], padding='same', use_bias=use_bias),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.ReLU()
+        tf_keras.layers.BatchNormalization(),
+        tf_keras.layers.ReLU()
     ]
-    model = tf.keras.Sequential(layers)
+    model = tf_keras.Sequential(layers)
     model.predict(tf.ones((1, 224, 224, 3)))
-    tf.keras.backend.set_learning_phase(0)
+    tf_keras.backend.set_learning_phase(0)
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
   def _create_saved_model_with_fusable_depthwise_conv2d(self):
     """Test a basic model with fusable depthwise conv2d."""
     layers = [
-        tf.keras.layers.DepthwiseConv2D(
+        tf_keras.layers.DepthwiseConv2D(
             1, use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.ReLU()
+        tf_keras.layers.ReLU()
     ]
-    model = tf.keras.Sequential(layers)
+    model = tf_keras.Sequential(layers)
     model.predict(tf.ones((1, 2, 2, 3)))
-    tf.keras.backend.set_learning_phase(0)
+    tf_keras.backend.set_learning_phase(0)
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
@@ -217,30 +218,30 @@ class ConvertTest(tf.test.TestCase):
   def _create_saved_model_with_prelu(self):
     """Test a basic model with fusable conv2d."""
     layers = [
-        tf.keras.layers.Conv2D(
+        tf_keras.layers.Conv2D(
             16, [3, 3], padding='same', use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.DepthwiseConv2D(
+        tf_keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25)),
+        tf_keras.layers.DepthwiseConv2D(
             1, use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
+        tf_keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
     ]
-    model = tf.keras.Sequential(layers)
+    model = tf_keras.Sequential(layers)
     model.predict(tf.ones((1, 224, 224, 3)))
-    tf.keras.backend.set_learning_phase(0)
+    tf_keras.backend.set_learning_phase(0)
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
   def _create_saved_model_with_unfusable_prelu(self):
     """Test a basic model with unfusable prelu."""
     layers = [
-        tf.keras.layers.ReLU(),
-        tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
+        tf_keras.layers.ReLU(),
+        tf_keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
     ]
-    model = tf.keras.Sequential(layers)
+    model = tf_keras.Sequential(layers)
     model.predict(tf.ones((1, 224, 3)))
-    tf.keras.backend.set_learning_phase(0)
+    tf_keras.backend.set_learning_phase(0)
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
@@ -343,16 +344,16 @@ class ConvertTest(tf.test.TestCase):
 
   def _create_saved_model_with_structured_outputs(self):
     def create_input(name):
-      return tf.keras.layers.Input(name=name, shape=(1,), dtype=tf.float32)
+      return tf_keras.layers.Input(name=name, shape=(1,), dtype=tf.float32)
 
     input1 = create_input("input1")
     input3 = create_input("input3")
     input2 = create_input("input2")
 
-    output1 = tf.keras.layers.Dense(1, name='a')
-    output1 = output1(tf.keras.layers.concatenate([input1, input3], axis=1))
-    output2 = tf.keras.layers.Dense(1, name='b')(input2)
-    output3 = tf.keras.layers.Multiply(name='c')([output1, output2])
+    output1 = tf_keras.layers.Dense(1, name='a')
+    output1 = output1(tf_keras.layers.concatenate([input1, input3], axis=1))
+    output2 = tf_keras.layers.Dense(1, name='b')(input2)
+    output3 = tf_keras.layers.Multiply(name='c')([output1, output2])
 
     inputs = {
         "input1": input1,
@@ -366,24 +367,9 @@ class ConvertTest(tf.test.TestCase):
         "b": output2
     }
 
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    model = tf_keras.Model(inputs=inputs, outputs=outputs)
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
-
-  def _create_hub_module(self):
-    # Module function that doubles its input.
-    def double_module_fn():
-      w = tf.Variable([2.0, 4.0])
-      x = tf.compat.v1.placeholder(dtype=tf.float32)
-      hub.add_signature(inputs=x, outputs=x*w)
-    graph = tf.Graph()
-    with graph.as_default():
-      spec = hub.create_module_spec(double_module_fn)
-      m = hub.Module(spec)
-    # Export the module.
-    with tf.compat.v1.Session(graph=graph) as sess:
-      sess.run(tf.compat.v1.global_variables_initializer())
-      m.export(os.path.join(self._tmp_dir, HUB_MODULE_DIR), sess)
 
   def create_frozen_model(self):
     graph = tf.Graph()
@@ -1240,75 +1226,6 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertIs(model_json.get('userDefinedMetadata'), None)
 
-  def test_convert_hub_module_v1(self):
-    self._create_hub_module()
-    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-
-    tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
-
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['signature']
-    self.assertIsNot(signature, None)
-    self.assertIsNot(signature['inputs'], None)
-    self.assertIsNot(signature['outputs'], None)
-
-    weights_manifest = model_json['weightsManifest']
-    self.assertCountEqual(weights_manifest[0]['paths'],
-                          ['group1-shard1of1.bin'])
-    self.assertIn('weights', weights_manifest[0])
-
-    self.assertTrue(
-        glob.glob(
-            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
-
-  def test_convert_hub_module_v1_sharded(self):
-    self._create_hub_module()
-    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-
-    # Do initial conversion without sharding.
-    tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
-    weight_files = glob.glob(os.path.join(tfjs_path, 'group*.bin'))
-
-    # Get size of weights in bytes after graph optimizations.
-    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
-
-    # Due to the shard size, there ought to be 3 shards after conversion.
-    weight_shard_size_bytes = int(optimized_total_weight * 0.4)
-
-    tfjs_path = os.path.join(self._tmp_dir, 'sharded_model')
-    # Convert Hub model again with shard argument set.
-    tf_saved_model_conversion_v2.convert_tf_hub_module(
-        module_path, tfjs_path,
-        weight_shard_size_bytes=weight_shard_size_bytes)
-
-    weight_files = sorted(glob.glob(os.path.join(tfjs_path, 'group*.bin')))
-    self.assertEqual(len(weight_files), 3)
-    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
-
-    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
-    self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
-    self.assertLess(weight_file_sizes[2], weight_file_sizes[0])
-
-  def test_convert_hub_module_v1_with_metadata(self):
-    self._create_hub_module()
-    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-
-    metadata_json = {'a': 1}
-    tf_saved_model_conversion_v2.convert_tf_hub_module(
-        module_path, tfjs_path, metadata={'key': metadata_json})
-
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
-
   def test_convert_hub_module_v2(self):
     self._create_saved_model()
     module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -1399,8 +1316,8 @@ class ConvertTest(tf.test.TestCase):
     self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
   def test_convert_keras_model_to_saved_model(self):
-    keras_model = tf.keras.Sequential(
-        [tf.keras.layers.Dense(1, input_shape=[2])])
+    keras_model = tf_keras.Sequential(
+        [tf_keras.layers.Dense(1, input_shape=[2])])
 
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf_saved_model_conversion_v2.convert_keras_model_to_graph_model(

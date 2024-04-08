@@ -25,6 +25,7 @@ import subprocess
 import tempfile
 
 import tensorflow.compat.v2 as tf
+import tf_keras
 from tensorflow.python.saved_model.save import save
 
 class APIAndShellTest(tf.test.TestCase):
@@ -70,7 +71,7 @@ class APIAndShellTest(tf.test.TestCase):
   def testConvertMobileNetV2ModelToTfjsGraphModel(self):
     """create the keras mobilenet v2 model."""
     # 1. Create a saved model from keras mobilenet v2.
-    model = tf.keras.applications.MobileNetV2()
+    model = tf_keras.applications.MobileNetV2()
 
     save_dir = os.path.join(self._tmp_dir, 'mobilenetv2')
     save(model, save_dir)
@@ -93,7 +94,7 @@ class APIAndShellTest(tf.test.TestCase):
 
   def testConvertMobileNetV2Hdf5ToTfjsGraphModel(self):
     # 1. Create a model for testing.
-    model = tf.keras.applications.MobileNetV2()
+    model = tf_keras.applications.MobileNetV2()
 
     h5_path = os.path.join(self._tmp_dir, 'model.h5')
     model.save(h5_path)

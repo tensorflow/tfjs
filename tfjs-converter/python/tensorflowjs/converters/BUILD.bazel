@@ -59,6 +59,7 @@ py_test(
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
         "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
@@ -87,6 +88,7 @@ py_test(
         ":tf_module_mapper",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
@@ -105,6 +107,7 @@ py_library(
         ":graph_rewrite_util",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
@@ -154,6 +157,7 @@ py_library(
         ":graph_rewrite_util",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
@@ -180,6 +184,7 @@ py_library(
         ":graph_rewrite_util",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
@@ -229,6 +234,7 @@ py_library(
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_decision_forests_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
         "//tfjs-converter/python/tensorflowjs:resource_loader",
         "//tfjs-converter/python/tensorflowjs:version",
         "//tfjs-converter/python/tensorflowjs:write_weights",
@@ -283,6 +289,7 @@ py_binary(
         "//tfjs-converter/python/tensorflowjs:expect_PyInquirer_installed",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
@@ -314,6 +321,7 @@ py_binary(
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
         "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
@@ -325,6 +333,7 @@ py_binary(
     srcs_version = "PY3",
     deps = [
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tf_keras_installed",
     ],
 )
 
