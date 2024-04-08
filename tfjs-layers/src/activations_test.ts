@@ -374,24 +374,22 @@ describeMathCPUAndGPU('gelu activation', () => {
   // Expect: Output array matches size and approximate expected values.
   it('1D', () => {
     const initX = tensor1d([0, 1, 3, 9]);
-    const expectedVals = tensor1d([0.5, 0.841192, 0.9987875, 1]);
+    const expectedVals = tensor1d([ 0, 0.8413447141647339, 2.995950222015381, 9 ]);
     expectTensorsClose(gelu(initX), expectedVals);
   });
   it('1D all equal', () => {
     const initX = tensor1d([-1, -1, -1, -1]);
-    const expectedVals = tensor1d([0.158808, 0.158808, 0.158808, 0.158808]);
+    const expectedVals = tensor1d([-0.15865525603294373, -0.15865525603294373, -0.15865525603294373, -0.15865525603294373]);
     expectTensorsClose(gelu(initX), expectedVals);
   });
   it('2D', () => {
     const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
-    const expectedVals = tensor2d(
-      [[0.5, 0.841192, 0.9987875, 1], [0.5, 0.841192, 0.9987875, 1]]);
+    const expectedVals = tensor2d([[ 0, 0.8413447141647339, 2.995950222015381, 9 ], [ 0, 0.8413447141647339, 2.995950222015381, 9 ]]);
     expectTensorsClose(gelu(initX), expectedVals);
   });
   it('3D', () => {
     const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
-    const expectedVals = tensor3d(
-      [[[0.5, 0.841192, 0.9987875, 1], [0.5, 0.841192, 0.9987875, 1]]]);
+    const expectedVals = tensor3d([[[ 0, 0.8413447141647339, 2.995950222015381, 9 ], [ 0, 0.8413447141647339, 2.995950222015381, 9 ]]]);
     expectTensorsClose(gelu(initX), expectedVals);
   });
   it('Does not leak', () => {
@@ -407,26 +405,22 @@ describeMathCPUAndGPU('gelu_new activation', () => {
   // Expect: Output array matches size and approximate expected values.
   it('1D', () => {
     const initX = tensor1d([0, 1, 3, 9]);
-    const expectedVals = tensor1d([0, 0.8413447, 2.9959502, 9]);
+    const expectedVals = tensor1d([ 0.5, 0.8411920070648193, 0.998787522315979, 1 ]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('1D all equal', () => {
     const initX = tensor1d([-1, -1, -1, -1]);
-    const expectedVals = tensor1d(
-      [-0.1586553, -0.1586553, -0.1586553, -0.1586553]);
+    const expectedVals = tensor1d([0.15880802273750305, 0.15880802273750305, 0.15880802273750305, 0.15880802273750305]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('2D', () => {
     const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
-    const expectedVals = tensor2d(
-        [[0, 0.5611233, 2.8508909, 8.9980001], 
-         [0, 0.5611233, 2.8508909, 8.9980001]]);
+    const expectedVals = tensor2d([[ 0.5, 0.8411920070648193, 0.998787522315979, 1 ], [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ]]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('3D', () => {
     const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
-    const expectedVals = tensor3d(
-      [[[0, 0.8413447, 2.9959502, 9], [0, 0.8413447, 2.9959502, 9]]]);
+    const expectedVals = tensor3d([[[ 0.5, 0.8411920070648193, 0.998787522315979, 1 ], [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ]]]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('Does not leak', () => {
