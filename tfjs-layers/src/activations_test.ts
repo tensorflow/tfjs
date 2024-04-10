@@ -459,4 +459,3 @@ describeMathCPUAndGPU('gelu_new activation', () => {
     expectNoLeakedTensors(() => geluNew(initX), 1);
   });
 });
-
