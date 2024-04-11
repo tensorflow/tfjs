@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "0.0.0",
+  "version": "4.18.0-rc.0",
   "description": "TensorFlow layers API in JavaScript",
   "license": "Apache-2.0 AND MIT",
   "repository": {
@@ -38,6 +38,6 @@
     "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-layers_webgl2_test"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "4.18.0-rc.0"
   }
 }
