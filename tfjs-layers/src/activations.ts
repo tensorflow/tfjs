@@ -250,14 +250,17 @@ export class GeluNew extends Activation {
     return tidy(() => {
       return tfc.mul(
         0.5,
-        tfc.add(
-            1,
-            tfc.tanh(
-              tfc.mul(
-                tfc.sqrt(tfc.div(2, Math.PI)),
-                tfc.add(x, tfc.mul(0.044715, tfc.pow(x, 3)))
-                )
-            )
+        tfc.mul(
+          x,
+          tfc.add(
+              1,
+              tfc.tanh(
+                tfc.mul(
+                  tfc.sqrt(tfc.div(2, Math.PI)),
+                  tfc.add(x, tfc.mul(0.044715, tfc.pow(x, 3)))
+                  )
+              )
+          )
         )
       );
     });

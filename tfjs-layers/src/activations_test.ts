@@ -421,10 +421,10 @@ describeMathCPUAndGPU('gelu_new activation', () => {
   it('1D', () => {
     const initX = tensor1d([0, 1, 3, 9]);
     const expectedVals = tensor1d([
-      0.5,
+      0,
       0.8411920070648193,
-      0.998787522315979,
-      1
+      2.9963626861572266,
+      9
     ]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
@@ -441,17 +441,19 @@ describeMathCPUAndGPU('gelu_new activation', () => {
   it('2D', () => {
     const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
     const expectedVals = tensor2d([
-      [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ],
-      [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ]
+      [ 0, 0.8411920070648193, 2.9963626861572266, 9 ],
+      [ 0, 0.8411920070648193, 2.9963626861572266, 9 ]
     ]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('3D', () => {
     const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
-    const expectedVals = tensor3d([[
-      [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ],
-      [ 0.5, 0.8411920070648193, 0.998787522315979, 1 ]
-    ]]);
+    const expectedVals = tensor3d([
+      [
+        [ 0, 0.8411920070648193, 2.9963626861572266, 9 ],
+        [ 0, 0.8411920070648193, 2.9963626861572266, 9 ]
+      ]
+    ]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
   it('Does not leak', () => {
