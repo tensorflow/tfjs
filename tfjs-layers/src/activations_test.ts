@@ -431,10 +431,10 @@ describeMathCPUAndGPU('gelu_new activation', () => {
   it('1D all equal', () => {
     const initX = tensor1d([-1, -1, -1, -1]);
     const expectedVals = tensor1d([
-      0.15880802273750305,
-      0.15880802273750305,
-      0.15880802273750305,
-      0.15880802273750305
+      -0.15880802273750305,
+      -0.15880802273750305,
+      -0.15880802273750305,
+      -0.15880802273750305
     ]);
     expectTensorsClose(geluNew(initX), expectedVals);
   });
