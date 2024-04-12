@@ -88,7 +88,7 @@ enabled by default. In older versions of Chrome, they can be enabled in
 
 Starting from Chrome 92, **cross-origin isolation** needs to be set up in your
 site in order to take advantage of the multi-threading support. Without this, it
-will fallback to the WASM binary with SIMD-only support (or the vanila version
+will fallback to the WASM binary with SIMD-only support (or the vanilla version
 if SIMD is not enabled). Without multi-threading support, certain models might
 not achieve the best performance. See [here][cross origin setup steps] for the
 high-level steps to set up the cross-origin isolation.
