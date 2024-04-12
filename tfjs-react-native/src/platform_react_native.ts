@@ -15,27 +15,31 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-import {GPGPUContext, MathBackendWebGL, setWebGLContext} from '@tensorflow/tfjs-backend-webgl';
-import * as tf from '@tensorflow/tfjs-core';
-import {Platform} from '@tensorflow/tfjs-core';
-import {Buffer} from 'buffer';
-import {GLView} from 'expo-gl';
-import {Platform as RNPlatform} from 'react-native';
+import "@tensorflow/tfjs-backend-cpu";
+import {
+  GPGPUContext,
+  MathBackendWebGL,
+  setWebGLContext,
+} from "@tensorflow/tfjs-backend-webgl";
+import * as tf from "@tensorflow/tfjs-core";
+import { Platform } from "@tensorflow/tfjs-core";
+import { Buffer } from "buffer";
+import { GLView } from "expo-gl";
+import { Platform as RNPlatform } from "react-native";
 
-// See implemetation note on fetch
+// See implementation note on fetch
 // tslint:disable-next-line:max-line-length
 // https://github.com/facebook/react-native/blob/0ee5f68929610106ee6864baa04ea90be0fc5160/Libraries/vendor/core/whatwg-fetch.js#L421
 function parseHeaders(rawHeaders: string) {
   const headers = new Headers();
   // Replace instances of \r\n and \n followed by at least one space or
   // horizontal tab with a space https://tools.ietf.org/html/rfc7230#section-3.2
-  const preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
-  preProcessedHeaders.split(/\r?\n/).forEach(line => {
-    const parts = line.split(':');
+  const preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, " ");
+  preProcessedHeaders.split(/\r?\n/).forEach((line) => {
+    const parts = line.split(":");
     const key = parts.shift().trim();
     if (key) {
-      const value = parts.join(':').trim();
+      const value = parts.join(":").trim();
       headers.append(key, value);
     }
   });
@@ -67,8 +71,10 @@ function parseHeaders(rawHeaders: string) {
  * @doc {heading: 'Platform helpers', subheading: 'http'}
  */
 export async function fetch(
-    path: string, init?: RequestInit,
-    options?: tf.io.RequestDetails): Promise<Response> {
+  path: string,
+  init?: RequestInit,
+  options?: tf.io.RequestDetails
+): Promise<Response> {
   return new Promise((resolve, reject) => {
     const request = new Request(path, init);
     const xhr = new XMLHttpRequest();
@@ -77,27 +83,28 @@ export async function fetch(
       const reqOptions = {
         status: xhr.status,
         statusText: xhr.statusText,
-        headers: parseHeaders(xhr.getAllResponseHeaders() || ''),
-        url: '',
+        headers: parseHeaders(xhr.getAllResponseHeaders() || ""),
+        url: "",
       };
-      reqOptions.url = 'responseURL' in xhr ?
-          xhr.responseURL :
-          reqOptions.headers.get('X-Request-URL');
+      reqOptions.url =
+        "responseURL" in xhr
+          ? xhr.responseURL
+          : reqOptions.headers.get("X-Request-URL");
 
-      //@ts-ignore — ts belives the latter case will never occur.
-      const body = 'response' in xhr ? xhr.response : xhr.responseText;
+      //@ts-ignore — ts believes the latter case will never occur.
+      const body = "response" in xhr ? xhr.response : xhr.responseText;
 
       resolve(new Response(body, reqOptions));
     };
 
-    xhr.onerror = () => reject(new TypeError('Network request failed'));
-    xhr.ontimeout = () => reject(new TypeError('Network request failed'));
+    xhr.onerror = () => reject(new TypeError("Network request failed"));
+    xhr.ontimeout = () => reject(new TypeError("Network request failed"));
 
     xhr.open(request.method, request.url, true);
 
-    if (request.credentials === 'include') {
+    if (request.credentials === "include") {
       xhr.withCredentials = true;
-    } else if (request.credentials === 'omit') {
+    } else if (request.credentials === "omit") {
       xhr.withCredentials = false;
     }
 
@@ -105,7 +112,7 @@ export async function fetch(
       // In react native We need to set the response type to arraybuffer when
       // fetching binary resources in order for `.arrayBuffer` to work correctly
       // on the response.
-      xhr.responseType = 'arraybuffer';
+      xhr.responseType = "arraybuffer";
     }
 
     request.headers.forEach((value: string, name: string) => {
@@ -113,8 +120,8 @@ export async function fetch(
     });
 
     xhr.send(
-        //@ts-ignore
-        typeof request._bodyInit === 'undefined' ? null : request._bodyInit,
+      //@ts-ignore
+      typeof request._bodyInit === "undefined" ? null : request._bodyInit
     );
   });
 }
@@ -126,7 +133,10 @@ export class PlatformReactNative implements Platform {
    * see @fetch docs above.
    */
   async fetch(
-      path: string, init?: RequestInit, options?: tf.io.RequestDetails) {
+    path: string,
+    init?: RequestInit,
+    options?: tf.io.RequestDetails
+  ) {
     return fetch(path, init, options);
   }
 
@@ -136,16 +146,16 @@ export class PlatformReactNative implements Platform {
    */
   encode(text: string, encoding: string): Uint8Array {
     // See https://www.w3.org/TR/encoding/#utf-16le
-    if (encoding === 'utf-16') {
-      encoding = 'utf16le';
+    if (encoding === "utf-16") {
+      encoding = "utf16le";
     }
     return new Uint8Array(Buffer.from(text, encoding as BufferEncoding));
   }
   /** Decode the provided bytes into a string using the provided encoding. */
   decode(bytes: Uint8Array, encoding: string): string {
     // See https://www.w3.org/TR/encoding/#utf-16le
-    if (encoding === 'utf-16') {
-      encoding = 'utf16le';
+    if (encoding === "utf-16") {
+      encoding = "utf16le";
     }
     return Buffer.from(bytes).toString(encoding as BufferEncoding);
   }
@@ -160,13 +170,18 @@ export class PlatformReactNative implements Platform {
   }
 
   setTimeoutCustom() {
-    throw new Error('react native does not support setTimeoutCustom');
+    throw new Error("react native does not support setTimeoutCustom");
   }
 
-  isTypedArray(a: unknown): a is Uint8Array | Float32Array | Int32Array
-    | Uint8ClampedArray {
-    return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
+  isTypedArray(
+    a: unknown
+  ): a is Uint8Array | Float32Array | Int32Array | Uint8ClampedArray {
+    return (
+      a instanceof Float32Array ||
+      a instanceof Int32Array ||
+      a instanceof Uint8Array ||
+      a instanceof Uint8ClampedArray
+    );
   }
 }
 
@@ -177,89 +192,96 @@ function setupGlobals() {
 function registerWebGLBackend() {
   try {
     const PRIORITY = 5;
-    tf.registerBackend('rn-webgl', async () => {
-      const glContext = await GLView.createContextAsync();
+    tf.registerBackend(
+      "rn-webgl",
+      async () => {
+        const glContext = await GLView.createContextAsync();
 
-      // ExpoGl getBufferSubData is not implemented yet (throws an exception).
-      tf.env().set('WEBGL_BUFFER_SUPPORTED', false);
+        // ExpoGl getBufferSubData is not implemented yet (throws an exception).
+        tf.env().set("WEBGL_BUFFER_SUPPORTED", false);
 
-      //
-      // Mock extension support for EXT_color_buffer_float and
-      // EXT_color_buffer_half_float on the expo-gl context object.
-      // In react native we do not have to get a handle to the extension
-      // in order to use the functionality of that extension on the device.
-      //
-      // This code block makes iOS and Android devices pass the extension checks
-      // used in core. After those are done core will actually test whether
-      // we can render/download float or half float textures.
-      //
-      // We can remove this block once we upstream checking for these
-      // extensions in expo.
-      //
-      // TODO look into adding support for checking these extensions in expo-gl
-      //
-      //@ts-ignore
-      const getExt = glContext.getExtension.bind(glContext);
-      const shimGetExt = (name: string) => {
-        if (name === 'EXT_color_buffer_float') {
-          if (RNPlatform.OS === 'ios') {
-            // iOS does not support EXT_color_buffer_float
-            return null;
-          } else {
+        //
+        // Mock extension support for EXT_color_buffer_float and
+        // EXT_color_buffer_half_float on the expo-gl context object.
+        // In react native we do not have to get a handle to the extension
+        // in order to use the functionality of that extension on the device.
+        //
+        // This code block makes iOS and Android devices pass the extension checks
+        // used in core. After those are done core will actually test whether
+        // we can render/download float or half float textures.
+        //
+        // We can remove this block once we upstream checking for these
+        // extensions in expo.
+        //
+        // TODO look into adding support for checking these extensions in expo-gl
+        //
+        //@ts-ignore
+        const getExt = glContext.getExtension.bind(glContext);
+        const shimGetExt = (name: string) => {
+          if (name === "EXT_color_buffer_float") {
+            if (RNPlatform.OS === "ios") {
+              // iOS does not support EXT_color_buffer_float
+              return null;
+            } else {
+              return {};
+            }
+          }
+
+          if (name === "EXT_color_buffer_half_float") {
             return {};
           }
-        }
+          return getExt(name);
+        };
 
-        if (name === 'EXT_color_buffer_half_float') {
+        //
+        // Manually make 'read' synchronous. glContext has a defined gl.fenceSync
+        // function that throws a "Not implemented yet" exception so core
+        // cannot properly detect that it is not supported. We mock
+        // implementations of gl.fenceSync and gl.clientWaitSync
+        // TODO remove once fenceSync and clientWaitSync is implemented upstream.
+        //
+        const shimFenceSync = () => {
           return {};
-        }
-        return getExt(name);
-      };
+        };
+        const shimClientWaitSync = () => glContext.CONDITION_SATISFIED;
 
-      //
-      // Manually make 'read' synchronous. glContext has a defined gl.fenceSync
-      // function that throws a "Not implemented yet" exception so core
-      // cannot properly detect that it is not supported. We mock
-      // implementations of gl.fenceSync and gl.clientWaitSync
-      // TODO remove once fenceSync and clientWaitSync is implemented upstream.
-      //
-      const shimFenceSync = () => {
-        return {};
-      };
-      const shimClientWaitSync = () => glContext.CONDITION_SATISFIED;
+        // @ts-ignore
+        glContext.getExtension = shimGetExt.bind(glContext);
+        glContext.fenceSync = shimFenceSync.bind(glContext);
+        glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
 
-      // @ts-ignore
-      glContext.getExtension = shimGetExt.bind(glContext);
-      glContext.fenceSync = shimFenceSync.bind(glContext);
-      glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
+        // Set the WebGLContext before flag evaluation
+        setWebGLContext(2, glContext);
+        const context = new GPGPUContext();
+        const backend = new MathBackendWebGL(context);
 
-      // Set the WebGLContext before flag evaluation
-      setWebGLContext(2, glContext);
-      const context = new GPGPUContext();
-      const backend = new MathBackendWebGL(context);
-
-      return backend;
-    }, PRIORITY);
+        return backend;
+      },
+      PRIORITY
+    );
 
     // Register all the webgl kernels on the rn-webgl backend
     // TODO: Use tf.copyRegisteredKernels once synced to tfjs-core 2.5.0.
     // tf.copyRegisteredKernels('webgl', 'rn-webgl');
-    const kernels = tf.getKernelsForBackend('webgl');
-    kernels.forEach(kernelConfig => {
-      const newKernelConfig =
-          Object.assign({}, kernelConfig, {backendName: 'rn-webgl'});
+    const kernels = tf.getKernelsForBackend("webgl");
+    kernels.forEach((kernelConfig) => {
+      const newKernelConfig = Object.assign({}, kernelConfig, {
+        backendName: "rn-webgl",
+      });
       tf.registerKernel(newKernelConfig);
     });
   } catch (e) {
-    throw (new Error(`Failed to register Webgl backend: ${e.message}`));
+    throw new Error(`Failed to register Webgl backend: ${e.message}`);
   }
 }
 
 tf.env().registerFlag(
-    'IS_REACT_NATIVE', () => navigator && navigator.product === 'ReactNative');
+  "IS_REACT_NATIVE",
+  () => navigator && navigator.product === "ReactNative"
+);
 
-if (tf.env().getBool('IS_REACT_NATIVE')) {
+if (tf.env().getBool("IS_REACT_NATIVE")) {
   setupGlobals();
   registerWebGLBackend();
-  tf.setPlatform('react-native', new PlatformReactNative());
+  tf.setPlatform("react-native", new PlatformReactNative());
 }
