@@ -28,7 +28,7 @@ interface VisorProps {
   // objects that allow configuration of the surface. The actual surface
   // instance is managed by the visor.
   surfaceList: SurfaceInfoStrict[];
-  // Whether to inialize the visor to the open or closed state. Optional.
+  // Whether to initialize the visor to the open or closed state. Optional.
   startOpen?: boolean;
   // A ref handler
   ref?: (r: VisorComponent) => void;

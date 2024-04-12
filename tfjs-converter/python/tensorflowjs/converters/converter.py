@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Artifact conversion to and from Python TensorFlow and tf.keras."""
+"""Artifact conversion to and from Python TensorFlow and tf_keras."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -28,6 +28,7 @@ import tempfile
 import h5py
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
+import tf_keras
 
 from tensorflowjs import quantization
 from tensorflowjs import version
@@ -50,7 +51,7 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
     - A weights-only HDF5 (e.g., generated with Keras Model's `save_weights()`
       method),
     - A topology+weights combined HDF5 (e.g., generated with
-      `tf.keras.model.save_model`).
+      `tf_keras.model.save_model`).
 
   Args:
     h5_path: path to an HDF5 file containing keras model data as a `str`.
@@ -199,7 +200,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
 
   Args:
     h5_path: Path to the HDF5-format file that contains the model saved from
-      keras or tf.keras.
+      keras or tf_keras.
     output_dir: The destination to which the tfjs GraphModel artifacts will be
       written.
     quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
@@ -223,7 +224,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
         'directory: %s' % h5_path)
 
   temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
-  model = tf.keras.models.load_model(h5_path, compile=False)
+  model = tf_keras.models.load_model(h5_path, compile=False)
   model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
@@ -253,13 +254,13 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
   """Converts keras model saved in the SavedModel format to tfjs format.
 
   Note that the SavedModel format exists in keras, but not in
-  keras-team/tf.keras.
+  keras-team/tf_keras.
 
   Args:
     keras_saved_model_path: path to a folder in which the
       assets/saved_model.json can be found. This is usually a subfolder
       that is under the folder passed to
-      `tf.keras.models.save_model()` and has a Unix epoch time
+      `tf_keras.models.save_model()` and has a Unix epoch time
       as its name (e.g., 1542212752).
     output_dir: Output directory to which the TensorFlow.js-format model JSON
       file and weights files will be written. If the directory does not exist,
@@ -274,7 +275,7 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     metadata: User defined metadata map.
   """
   with tf.Graph().as_default(), tf.compat.v1.Session():
-    model = tf.keras.models.load_model(keras_saved_model_path)
+    model = tf_keras.models.load_model(keras_saved_model_path)
 
     # Save model temporarily in HDF5 format.
     temp_h5_path = tempfile.mktemp(suffix='.h5')
@@ -363,12 +364,12 @@ def dispatch_tensorflowjs_to_keras_keras_conversion(config_json_path, v3_path):
           'but cannot read valid JSON content from %s.' % config_json_path)
 
   model = keras_tfjs_loader.load_keras_keras_model(config_json_path)
-  tf.keras.saving.save_model(model, v3_path, save_format="keras")
+  tf_keras.saving.save_model(model, v3_path, save_format="keras")
 
 
 def dispatch_tensorflowjs_to_keras_saved_model_conversion(
     config_json_path, keras_saved_model_path):
-  """Converts a TensorFlow.js Layers model format to a tf.keras SavedModel.
+  """Converts a TensorFlow.js Layers model format to a tf_keras SavedModel.
 
   Args:
     config_json_path: Path to the JSON file that includes the model's
@@ -397,7 +398,7 @@ def dispatch_tensorflowjs_to_keras_saved_model_conversion(
 
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
-    tf.keras.models.save_model(
+    tf_keras.models.save_model(
         model, keras_saved_model_path, save_format='tf')
 
 
@@ -751,7 +752,7 @@ def get_arg_parser():
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
-      '    `tf.keras.model.save_model()` method).\n'
+      '    `tf_keras.model.save_model()` method).\n'
       '  - A weights-only HDF5 (e.g., generated with Keras Model\'s '
       '    `save_weights()` method). \n'
       'For "keras_saved_model", the input_path must point to a subfolder '
@@ -885,7 +886,7 @@ def convert(arguments):
   if args.show_version:
     print('\ntensorflowjs %s\n' % version.version)
     print('Dependency versions:')
-    print('  keras %s' % tf.keras.__version__)
+    print('  keras %s' % tf_keras.__version__)
     print('  tensorflow %s' % tf.__version__)
     return
 

@@ -71,9 +71,10 @@ py_wheel(
         "jax>=0.4.13",
         "jaxlib>=0.4.13",
         "tensorflow>=2.13.0,<3",
+        "tf-keras>=2.13.0",
         "tensorflow-decision-forests>=1.5.0",
         "six>=1.16.0,<2",
-        "tensorflow-hub>=0.14.0",
+        "tensorflow-hub>=0.16.1",
         "packaging~=23.1",
     ],
     strip_path_prefixes = [
