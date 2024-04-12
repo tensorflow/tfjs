@@ -22,6 +22,7 @@ const copy = util.promisify(fs.copyFile);
 const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
+const mkdir = util.promisify(fs.mkdir);
 const {
   depsLibTensorFlowFrameworkPath,
   depsLibTensorFlowPath,
@@ -57,6 +58,7 @@ async function symlinkDepsLib() {
     throw new Error('Destination path not supplied!');
   }
   try {
+    await mkdir(path.dirname(destLibTensorFlowPath), {recursive: true});
     await symlink(
         path.relative(
             path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),

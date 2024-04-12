@@ -37,6 +37,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
+import tf_keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -232,16 +233,16 @@ def _create_saved_model_with_conv2d(save_dir):
     save_dir: directory name of where the saved model will be stored.
   """
   layers = [
-      tf.keras.layers.Conv2D(
+      tf_keras.layers.Conv2D(
           16, [3, 3], padding='same', use_bias=False),
-      tf.keras.layers.BatchNormalization(),
-      tf.keras.layers.ReLU()
+      tf_keras.layers.BatchNormalization(),
+      tf_keras.layers.ReLU()
   ]
-  model = tf.keras.Sequential(layers)
+  model = tf_keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))
   # set the learning phase to avoid keara learning placeholder, which
   # will cause error when saving.
-  tf.keras.backend.set_learning_phase(0)
+  #tf_keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
@@ -263,14 +264,14 @@ def _create_saved_model_with_prelu(save_dir):
   # set the bias and alpha intitialize to make them constant and ensure grappler
   # be able to fuse the op.
   layers = [
-      tf.keras.layers.Conv2D(
+      tf_keras.layers.Conv2D(
           16, [3, 3], padding='same', use_bias=True,
           bias_initializer=tf.initializers.constant(0.25)),
-      tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
+      tf_keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
   ]
-  model = tf.keras.Sequential(layers)
+  model = tf_keras.Sequential(layers)
   result = model.predict(tf.ones((1, 24, 24, 3)))
-  tf.keras.backend.set_learning_phase(0)
+  #tf_keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
   return {
       "async": False,
@@ -351,13 +352,13 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
   Args:
     save_dir: directory name of where the saved model will be stored.
   """
-  model = tf.keras.Sequential()
-  model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
-  model.add(tf.keras.layers.GRU(4))
+  model = tf_keras.Sequential()
+  model.add(tf_keras.layers.Embedding(100, 20, input_shape=[10]))
+  model.add(tf_keras.layers.GRU(4))
 
   result = model.predict(tf.ones([1, 10]))
 
-  tf.keras.backend.set_learning_phase(0)
+  #tf_keras.backend.set_learning_phase(0)
   tf.saved_model.save(model, save_dir)
 
   return {
@@ -469,7 +470,7 @@ def _create_saved_model_v2_with_hashtable(save_dir):
   }
 
 def _layers_mobilenet():
-  model = tf.keras.applications.MobileNetV2()
+  model = tf_keras.applications.MobileNetV2()
   model_path = 'mobilenet'
   tfjs.converters.save_keras_model(model, os.path.join(
       _tmp_dir, model_path))

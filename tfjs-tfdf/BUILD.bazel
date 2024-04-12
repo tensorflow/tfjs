@@ -48,7 +48,7 @@ tfjs_bundle(
     ],
 )
 
-# Copy ouput files to dist/.
+# Copy output files to dist/.
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [

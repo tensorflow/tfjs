@@ -25,6 +25,7 @@ import zipfile
 import datetime
 import six
 import tensorflow.compat.v2 as tf
+import tf_keras
 from tensorflowjs.converters import tf_module_mapper
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters.tf_module_mapper import TFCLASS_MODULE_MAP
@@ -62,7 +63,7 @@ def _deserialize_keras_model(model_topology_json,
     model_topology_json = model_topology_json['model_config']
   unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
   with tf.compat.v1.name_scope(unique_name_scope):
-    model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+    model = tf_keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
@@ -126,7 +127,7 @@ def _deserialize_keras_keras_model(model_topology_json,
     _generate_v3_keys(model_topology_json['model_config'])
     model_topology_json = model_topology_json['model_config']
 
-  model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+  model = tf_keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
@@ -257,7 +258,7 @@ def load_keras_model(config_json_path,
       same TensorFlow Graph or Session context. Default: `False`.
 
   Returns:
-    The loaded instance of `tf.keras.Model`.
+    The loaded instance of `tf_keras.Model`.
 
   Raises:
     TypeError, if the format of the JSON content of `config_json_path` has an
@@ -324,7 +325,7 @@ def load_keras_keras_model(config_json_path,
       same TensorFlow Graph or Session context. Default: `False`.
 
   Returns:
-    The loaded instance of `tf.keras.Model`.
+    The loaded instance of `tf_keras.Model`.
 
   Raises:
     TypeError, if the format of the JSON content of `config_json_path` has an

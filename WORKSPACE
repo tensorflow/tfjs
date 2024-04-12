@@ -226,13 +226,13 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 # https://github.com/bazelbuild/rules_python/pull/713
 # https://github.com/GoogleCloudPlatform/cloud-builders/issues/641
 python_register_toolchains(
-    name = "python3_8",
+    name = "python3_9",
     ignore_root_user_error = True,
     # Available versions are listed in @rules_python//python:versions.bzl.
-    python_version = "3.8",
+    python_version = "3.9",
 )
 
-load("@python3_8//:defs.bzl", "interpreter")
+load("@python3_9//:defs.bzl", "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(
