@@ -170,8 +170,7 @@ export class GPT2Backbone extends Backbone {
         numHeads: args.numHeads,
         dropout: args.dropout,
         layerNormEpsilon: 1e-05,
-        // TODO(pforderique): Implement gelu.
-        activation: getActivation('relu'),
+        activation: getActivation('gelu'),
         kernelInitializer: gpt2KernelInitializer(0.02),
         normalizeFirst: true,
         name: `transformer_layer_${i}`,

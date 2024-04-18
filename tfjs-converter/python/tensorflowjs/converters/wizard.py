@@ -83,7 +83,7 @@ def detect_saved_model(input_path):
   saved_model = loader_impl.parse_saved_model(input_path)
   graph_def = saved_model.meta_graphs[0].object_graph_def
   if graph_def.nodes:
-    if 'tf_keras' in graph_def.nodes[0].user_object.identifier:
+    if any(x in graph_def.nodes[0].user_object.identifier for x in ['tf.keras', 'tf_keras']):
       return common.KERAS_SAVED_MODEL
   return common.TF_SAVED_MODEL
 

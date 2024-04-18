@@ -48,10 +48,10 @@ const modelUrl = 'model.json'; // URL to the model.json file.
 const model = await automl.loadImageClassification(modelUrl);
 ```
 
-If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constuctor. 
+If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constructor. 
 This is particularly relevant for __non-browser__ platforms.
 
-The following psuedocode demonstrates this approach:
+The following pseudocode demonstrates this approach:
 
 ```js
 import * as automl from '@tensorflow/tfjs-automl';
@@ -138,10 +138,10 @@ const modelUrl = 'model.json'; // URL to the model.json file.
 const model = await automl.loadObjectDetection(modelUrl);
 ```
 
-If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constuctor. 
+If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constructor. 
 This is particularly relevant for __non-browser__ platforms.
 
-The following psuedocode demonstrates this approach:
+The following pseudocode demonstrates this approach:
 
 ```js
 import * as automl from '@tensorflow/tfjs-automl';
