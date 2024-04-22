@@ -19,6 +19,7 @@ import shutil
 import tempfile
 
 import tensorflow.compat.v2 as tf
+import tf_keras
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
@@ -37,11 +38,11 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
 
   def testFuseDepthwiseConv2dNativeWithBias(self):
     layers = [
-        tf.keras.layers.DepthwiseConv2D(
+        tf_keras.layers.DepthwiseConv2D(
             1, bias_initializer=tf.initializers.constant(0.25))
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 1, 1, 2])
 
     @tf.function
@@ -68,12 +69,12 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
 
   def testFuseDepthwiseConv2dNativeWithBiasAndActivation(self):
     layers = [
-        tf.keras.layers.DepthwiseConv2D(
+        tf_keras.layers.DepthwiseConv2D(
             1, bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.ReLU()
+        tf_keras.layers.ReLU()
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 1, 1, 2])
 
     @tf.function
@@ -101,11 +102,11 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
 
   def testFuseDepthwiseConv2dNativeWithActivation(self):
     layers = [
-        tf.keras.layers.DepthwiseConv2D(1, use_bias=False),
-        tf.keras.layers.ReLU()
+        tf_keras.layers.DepthwiseConv2D(1, use_bias=False),
+        tf_keras.layers.ReLU()
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 1, 1, 2])
 
     @tf.function

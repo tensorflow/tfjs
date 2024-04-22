@@ -27,6 +27,7 @@ import tempfile
 
 import numpy as np
 import tensorflow.compat.v2 as tf
+import tf_keras
 
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters import keras_tfjs_loader
@@ -45,23 +46,21 @@ class LoadKerasModelTest(tf.test.TestCase):
     super(LoadKerasModelTest, self).tearDown()
 
   def _saveKerasModelForTest(self, path):
-    model = tf.keras.Sequential()
-    model.use_legacy_config = True
-    model.add(tf.keras.layers.Dense(
+    model = tf_keras.Sequential()
+    model.add(tf_keras.layers.Dense(
         2, input_shape=[12], bias_initializer='random_normal', name='dense'))
-    model.add(tf.keras.layers.Dense(
+    model.add(tf_keras.layers.Dense(
         8, bias_initializer='random_normal', name='foo/dense'))
-    model.add(tf.keras.layers.Dense(
+    model.add(tf_keras.layers.Dense(
         4, bias_initializer='random_normal', name='foo/bar/dense'))
     keras_h5_conversion.save_keras_model(model, path)
     return model
 
 
   def _saveRNNKerasModelForTest(self, path):
-    model = tf.keras.Sequential()
-    model.use_legacy_config = True
-    model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
-    model.add(tf.keras.layers.SimpleRNN(4))
+    model = tf_keras.Sequential()
+    model.add(tf_keras.layers.Embedding(100, 20, input_shape=[10]))
+    model.add(tf_keras.layers.SimpleRNN(4))
     keras_h5_conversion.save_keras_model(model, path)
     return model
 
@@ -77,7 +76,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'))
-      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -100,7 +98,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'))
-      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -129,7 +126,6 @@ class LoadKerasModelTest(tf.test.TestCase):
 
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(buff.read())
-      model2.use_legacy_config = True
 
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
@@ -148,7 +144,6 @@ class LoadKerasModelTest(tf.test.TestCase):
 
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(config_json)
-      model2.use_legacy_config = True
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
 
@@ -174,7 +169,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(
           json_buff, weight_data=weight_buffers)
-      model2.use_legacy_config = True
 
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
@@ -204,7 +198,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.deserialize_keras_model(
           json_file, weight_files)
-      model2.use_legacy_config = True
 
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
@@ -230,7 +223,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # Use a relative path under the current working directory.
       model2 = keras_tfjs_loader.load_keras_model('model.json')
-      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -252,7 +244,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'), load_weights=False)
-      model2.use_legacy_config = True
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
       for model1_weight_value, model2_weight_value in zip(
@@ -282,7 +273,6 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model2 = keras_tfjs_loader.load_keras_model(
           new_model_json_path, weights_path_prefix=tfjs_path)
-      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -335,7 +325,6 @@ class LoadKerasModelTest(tf.test.TestCase):
       model2 = keras_tfjs_loader.load_keras_model(
           os.path.join(tfjs_path, 'model.json'),
           weights_data_buffers=data_buffers)
-      model2.use_legacy_config = True
       # Verify the equality of all the weight values.
       model2_weight_values = model2.get_weights()
       self.assertEqual(len(model1_weight_values), len(model2_weight_values))
@@ -347,12 +336,12 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadNestedKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      inner_model = tf.keras.Sequential([
-          tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
-          tf.keras.layers.Dense(3, activation='tanh')])
-      outer_model = tf.keras.Sequential()
+      inner_model = tf_keras.Sequential([
+          tf_keras.layers.Dense(4, input_shape=[3], activation='relu'),
+          tf_keras.layers.Dense(3, activation='tanh')])
+      outer_model = tf_keras.Sequential()
       outer_model.add(inner_model)
-      outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+      outer_model.add(tf_keras.layers.Dense(1, activation='sigmoid'))
 
       x = np.ones([1, 3], dtype=np.float32)
       predict_out = outer_model.predict(x)
@@ -367,12 +356,12 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadNestedTfKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      inner_model = tf.keras.Sequential([
-          tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
-          tf.keras.layers.Dense(3, activation='tanh')])
-      outer_model = tf.keras.Sequential()
+      inner_model = tf_keras.Sequential([
+          tf_keras.layers.Dense(4, input_shape=[3], activation='relu'),
+          tf_keras.layers.Dense(3, activation='tanh')])
+      outer_model = tf_keras.Sequential()
       outer_model.add(inner_model)
-      outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+      outer_model.add(tf_keras.layers.Dense(1, activation='sigmoid'))
       outer_model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       x = np.ones([1, 3], dtype=np.float32)
@@ -425,18 +414,18 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadFunctionalKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      input1 = tf.keras.Input([4])
-      x1 = tf.keras.layers.Dense(2, activation='relu')(input1)
-      x1 = tf.keras.layers.BatchNormalization()(x1)
+      input1 = tf_keras.Input([4])
+      x1 = tf_keras.layers.Dense(2, activation='relu')(input1)
+      x1 = tf_keras.layers.BatchNormalization()(x1)
 
-      input2 = tf.keras.Input([10])
-      x2 = tf.keras.layers.Dense(5, activation='relu')(input2)
-      x2 = tf.keras.layers.BatchNormalization()(x2)
+      input2 = tf_keras.Input([10])
+      x2 = tf_keras.layers.Dense(5, activation='relu')(input2)
+      x2 = tf_keras.layers.BatchNormalization()(x2)
 
-      y = tf.keras.layers.Concatenate()([x1, x2])
-      y = tf.keras.layers.Dense(1, activation='sigmoid')(y)
+      y = tf_keras.layers.Concatenate()([x1, x2])
+      y = tf_keras.layers.Dense(1, activation='sigmoid')(y)
 
-      model = tf.keras.Model([input1, input2], y)
+      model = tf_keras.Model([input1, input2], y)
       model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       input1_val = np.ones([1, 4])
@@ -454,18 +443,18 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadFunctionalTfKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      input1 = tf.keras.Input([4])
-      x1 = tf.keras.layers.Dense(2, activation='relu')(input1)
-      x1 = tf.keras.layers.BatchNormalization()(x1)
+      input1 = tf_keras.Input([4])
+      x1 = tf_keras.layers.Dense(2, activation='relu')(input1)
+      x1 = tf_keras.layers.BatchNormalization()(x1)
 
-      input2 = tf.keras.Input([10])
-      x2 = tf.keras.layers.Dense(5, activation='relu')(input2)
-      x2 = tf.keras.layers.BatchNormalization()(x2)
+      input2 = tf_keras.Input([10])
+      x2 = tf_keras.layers.Dense(5, activation='relu')(input2)
+      x2 = tf_keras.layers.BatchNormalization()(x2)
 
-      y = tf.keras.layers.Concatenate()([x1, x2])
-      y = tf.keras.layers.Dense(1, activation='sigmoid')(y)
+      y = tf_keras.layers.Concatenate()([x1, x2])
+      y = tf_keras.layers.Dense(1, activation='sigmoid')(y)
 
-      model = tf.keras.Model([input1, input2], y)
+      model = tf_keras.Model([input1, input2], y)
       model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       input1_val = np.ones([1, 4])

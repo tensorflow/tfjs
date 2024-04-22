@@ -105,7 +105,7 @@ export function conv1dWithBias(
     if (bias != null && bias.shape.length !== 1) {
       throw new ValueError(
           `The bias for a conv1dWithBias operation should be 1, but is ` +
-          `${kernel.shape.length} instead`);
+          `${bias.shape.length} instead`);
     }
     // TODO(cais): Support CAUSAL padding mode.
     if (dataFormat === 'channelsFirst') {

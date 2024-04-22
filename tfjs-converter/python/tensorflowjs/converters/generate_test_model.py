@@ -23,6 +23,7 @@ import os
 import sys
 
 import tensorflow.compat.v2 as tf
+import tf_keras
 
 def parse_args():
   parser = argparse.ArgumentParser(
@@ -43,9 +44,9 @@ def parse_args():
 def main(_):
 
   if args.model_type == 'tf_keras_h5':
-    model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Dense(5, activation='relu', input_shape=(8,)))
-    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+    model = tf_keras.Sequential()
+    model.add(tf_keras.layers.Dense(5, activation='relu', input_shape=(8,)))
+    model.add(tf_keras.layers.Dense(1, activation='sigmoid'))
     model.save(os.path.join(args.output_path))
   elif args.model_type == 'tf_saved_model':
     class TimesThreePlusOne(tf.Module):

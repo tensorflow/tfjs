@@ -28,7 +28,7 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-// Run node tests againts the cpu backend.
+// Run node tests against the cpu backend.
 setTestEnvs([{name: 'node', backendName: 'cpu'}]);
 
 const runner = new jasmine();
