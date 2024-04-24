@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-wasm",
-  "version": "0.0.0",
+  "version": "4.19.0-rc.0",
   "main": "dist/tf-backend-wasm.node.js",
   "types": "dist/index.d.ts",
   "repository": {
@@ -35,10 +35,10 @@
     "perf_hooks": false
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "4.19.0-rc.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "4.19.0-rc.0",
     "@types/emscripten": "~0.0.34"
   },
   "devDependencies": {
