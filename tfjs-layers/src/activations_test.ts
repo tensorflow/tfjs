@@ -13,7 +13,7 @@
  */
 import {scalar, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import {Elu, HardSigmoid, Linear, LogSoftmax, Relu, Relu6, Selu, Sigmoid, Softmax, Softplus, Softsign, Tanh, Swish, Mish} from './activations';
+import {Elu, HardSigmoid, Linear, LogSoftmax, Relu, Relu6, Selu, Sigmoid, Softmax, Softplus, Softsign, Tanh, Swish, Mish, Gelu, GeluNew} from './activations';
 import {describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('linear activation', () => {
@@ -364,5 +364,100 @@ describeMathCPUAndGPU('mish activation', () => {
   it('Does not leak', () => {
     const initX = tensor1d([0, 1, 3, 9]);
     expectNoLeakedTensors(() => mish(initX), 1);
+  });
+});
+
+describeMathCPUAndGPU('gelu activation', () => {
+  const gelu = new Gelu().apply;
+  // Setup: Array with initial values.
+  // Execute: Gelu on the last dimension.
+  // Expect: Output array matches size and approximate expected values.
+  it('1D', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    const expectedVals = tensor1d([
+        0,
+        0.8413447141647339,
+        2.995950222015381, 9
+    ]);
+    expectTensorsClose(gelu(initX), expectedVals);
+  });
+  it('1D all equal', () => {
+    const initX = tensor1d([-1, -1, -1, -1]);
+    const expectedVals = tensor1d([
+      -0.15865525603294373,
+      -0.15865525603294373,
+      -0.15865525603294373,
+      -0.15865525603294373
+    ]);
+    expectTensorsClose(gelu(initX), expectedVals);
+  });
+  it('2D', () => {
+    const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
+    const expectedVals = tensor2d([
+      [0, 0.8413447141647339, 2.995950222015381, 9],
+      [0, 0.8413447141647339, 2.995950222015381, 9]
+    ]);
+    expectTensorsClose(gelu(initX), expectedVals);
+  });
+  it('3D', () => {
+    const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
+    const expectedVals = tensor3d([[
+      [ 0, 0.8413447141647339, 2.995950222015381, 9 ],
+      [ 0, 0.8413447141647339, 2.995950222015381, 9 ]
+    ]]);
+    expectTensorsClose(gelu(initX), expectedVals);
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    expectNoLeakedTensors(() => gelu(initX), 1);
+  });
+});
+
+describeMathCPUAndGPU('gelu_new activation', () => {
+  const geluNew = new GeluNew().apply;
+  // Setup: Array with initial values.
+  // Execute: GeluNew on the last dimension.
+  // Expect: Output array matches size and approximate expected values.
+  it('1D', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    const expectedVals = tensor1d([
+      0,
+      0.8411920070648193,
+      2.9963626861572266,
+      9
+    ]);
+    expectTensorsClose(geluNew(initX), expectedVals);
+  });
+  it('1D all equal', () => {
+    const initX = tensor1d([-1, -1, -1, -1]);
+    const expectedVals = tensor1d([
+      -0.15880802273750305,
+      -0.15880802273750305,
+      -0.15880802273750305,
+      -0.15880802273750305
+    ]);
+    expectTensorsClose(geluNew(initX), expectedVals);
+  });
+  it('2D', () => {
+    const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
+    const expectedVals = tensor2d([
+      [ 0, 0.8411920070648193, 2.9963626861572266, 9 ],
+      [ 0, 0.8411920070648193, 2.9963626861572266, 9 ]
+    ]);
+    expectTensorsClose(geluNew(initX), expectedVals);
+  });
+  it('3D', () => {
+    const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
+    const expectedVals = tensor3d([
+      [
+        [ 0, 0.8411920070648193, 2.9963626861572266, 9 ],
+        [ 0, 0.8411920070648193, 2.9963626861572266, 9 ]
+      ]
+    ]);
+    expectTensorsClose(geluNew(initX), expectedVals);
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    expectNoLeakedTensors(() => geluNew(initX), 1);
   });
 });
