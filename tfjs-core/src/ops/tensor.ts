@@ -178,15 +178,19 @@ import {makeTensor} from './tensor_ops_util';
  * encoded as utf-8 and kept as `Uint8Array[]`. If the values is a `WebGLData`
  * object, the dtype could only be 'float32' or 'int32' and the object has to
  * have: 1. texture, a `WebGLTexture`, the texture must share the same
- * `WebGLRenderingContext` with TFJS's WebGL backend (you could create a custom * WebGL backend from your texture's canvas) and the internal texture format
+ * `WebGLRenderingContext` with TFJS's WebGL backend (you could create a custom
+ * WebGL backend from your texture's canvas) and the internal texture format
  * for the input texture must be floating point or normalized integer; 2.
  * height, the height of the texture; 3. width, the width of the texture; 4.
  * channels, a non-empty subset of 'RGBA', indicating the values of which
- * channels will be passed to the tensor, such as 'R' or 'BR' (The order of the * channels affect the order of tensor values. ). (If the values passed from
- * texture is less than the tensor size, zeros will be padded at the rear.). If * the values is a `WebGPUData` object, the dtype could only be 'float32' or
+ * channels will be passed to the tensor, such as 'R' or 'BR' (The order of the 
+ * channels affect the order of tensor values. ). (If the values passed from 
+ * texture is less than the tensor size, zeros will be padded at the rear.). If 
+ * the values is a `WebGPUData` object, the dtype could only be 'float32' or
  * 'int32 and the object has to have: buffer, a `GPUBuffer`. The buffer must:
  * 1. share the same `GPUDevice` with TFJS's WebGPU backend; 2. buffer.usage
- * should at least support GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC; 3. * buffer.size should not be smaller than the byte size of tensor shape.
+ * should at least support GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC; 3.
+ * buffer.size should not be smaller than the byte size of tensor shape.
  * WebGPUData optionally supports zero copy by flag zeroCopy. When zeroCopy is
  * false or undefined(default),this passing GPUBuffer can be destroyed after
  * tensor is created. When zeroCopy is true, this GPUBuffer is bound directly
