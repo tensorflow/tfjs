@@ -207,4 +207,3 @@ export function tensor<R extends Rank>(
   const inferredShape = inferShape(values, dtype);
   return makeTensor(values, shape, inferredShape, dtype) as Tensor<R>;
 }
-
