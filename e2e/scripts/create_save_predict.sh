@@ -23,3 +23,10 @@ rm -rf "$TEST_DATA"
 mkdir "$TEST_DATA"
 
 node integration_tests/create_save_predict.js "$TEST_DATA"
+
+TEST_DATA_2="integration_tests/keras_to_tfjs_create_save_predict_data/"
+
+rm -rf "$TEST_DATA_2"
+mkdir "$TEST_DATA_2"
+
+python integration_tests/keras_to_tfjs_create_save_predict_test.py --test_data_dir=$TEST_DATA_2

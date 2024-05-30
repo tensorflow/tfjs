@@ -45,7 +45,7 @@ process.on('unhandledRejection', ex => {
  *   tensors. Used for models that take integer tensors as inputs.
  */
 async function saveModelAndRandomInputs(
-    model, exportPathprefix, inputIntegerMax) {
+  model, exportPathprefix, inputIntegerMax) {
   await model.save(tfjsNode.io.fileSystem(exportPathprefix));
 
   const xs = [];
@@ -56,20 +56,20 @@ async function saveModelAndRandomInputs(
     inputShape[0] = 1;
     if (inputShape.indexOf(null) !== -1) {
       throw new Error(
-          `It is assumed that the only the first dimension of the tensor ` +
-          `is undetermined, but the assumption is not satisfied for ` +
-          `input shape ${JSON.stringify(inputTensor.shape)}`);
+        `It is assumed that the only the first dimension of the tensor ` +
+        `is undetermined, but the assumption is not satisfied for ` +
+        `input shape ${JSON.stringify(inputTensor.shape)}`);
     }
     const xTensor = inputIntegerMax == null ?
-        tfc.randomNormal(inputShape) :
-        tfc.floor(tfc.randomUniform(inputShape, 0, inputIntegerMax));
+      tfc.randomNormal(inputShape) :
+      tfc.floor(tfc.randomUniform(inputShape, 0, inputIntegerMax));
     xs.push(xTensor);
     xsData.push(Array.from(xTensor.dataSync()));
     xsShapes.push(xTensor.shape);
   }
   fs.writeFileSync(exportPathprefix + '.xs-data.json', JSON.stringify(xsData));
   fs.writeFileSync(
-      exportPathprefix + '.xs-shapes.json', JSON.stringify(xsShapes));
+    exportPathprefix + '.xs-shapes.json', JSON.stringify(xsShapes));
 }
 
 // Multi-layer perceptron (MLP).
@@ -78,11 +78,11 @@ async function exportMLPModel(exportPath) {
   // Test both activations encapsulated in other layers and as standalone
   // layers.
   model.add(
-      tfl.layers.dense({units: 100, inputShape: [200], activation: 'relu'}));
-  model.add(tfl.layers.dense({units: 50, activation: 'elu'}));
-  model.add(tfl.layers.dense({units: 24}));
-  model.add(tfl.layers.activation({activation: 'elu'}));
-  model.add(tfl.layers.dense({units: 8, activation: 'softmax'}));
+    tfl.layers.dense({ units: 100, inputShape: [200], activation: 'relu' }));
+  model.add(tfl.layers.dense({ units: 50, activation: 'elu' }));
+  model.add(tfl.layers.dense({ units: 24 }));
+  model.add(tfl.layers.activation({ activation: 'elu' }));
+  model.add(tfl.layers.dense({ units: 8, activation: 'softmax' }));
 
   await saveModelAndRandomInputs(model, exportPath);
 }
@@ -101,20 +101,20 @@ async function exportCNNModel(exportPath) {
     padding: 'valid',
   }));
   model.add(tfl.layers.batchNormalization({}));
-  model.add(tfl.layers.activation({activation: 'relu'}));
-  model.add(tfl.layers.dropout({rate: 0.5}));
-  model.add(tfl.layers.maxPooling2d({poolSize: 2}));
+  model.add(tfl.layers.activation({ activation: 'relu' }));
+  model.add(tfl.layers.dropout({ rate: 0.5 }));
+  model.add(tfl.layers.maxPooling2d({ poolSize: 2 }));
   model.add(tfl.layers.separableConv2d({
     filters: 32,
     kernelSize: [4, 4],
     strides: [3, 3],
   }));
   model.add(tfl.layers.batchNormalization({}));
-  model.add(tfl.layers.activation({activation: 'relu'}));
-  model.add(tfl.layers.dropout({rate: 0.5}));
-  model.add(tfl.layers.avgPooling2d({poolSize: [2, 2]}));
+  model.add(tfl.layers.activation({ activation: 'relu' }));
+  model.add(tfl.layers.dropout({ rate: 0.5 }));
+  model.add(tfl.layers.avgPooling2d({ poolSize: [2, 2] }));
   model.add(tfl.layers.flatten({}));
-  model.add(tfl.layers.dense({units: 100, activation: 'softmax'}));
+  model.add(tfl.layers.dense({ units: 100, activation: 'softmax' }));
 
   await saveModelAndRandomInputs(model, exportPath);
 }
@@ -131,11 +131,11 @@ async function exportDepthwiseCNNModel(exportPath) {
     padding: 'valid',
   }));
   model.add(tfl.layers.batchNormalization({}));
-  model.add(tfl.layers.activation({activation: 'relu'}));
-  model.add(tfl.layers.dropout({rate: 0.5}));
-  model.add(tfl.layers.maxPooling2d({poolSize: 2}));
+  model.add(tfl.layers.activation({ activation: 'relu' }));
+  model.add(tfl.layers.dropout({ rate: 0.5 }));
+  model.add(tfl.layers.maxPooling2d({ poolSize: 2 }));
   model.add(tfl.layers.flatten({}));
-  model.add(tfl.layers.dense({units: 100, activation: 'softmax'}));
+  model.add(tfl.layers.dense({ units: 100, activation: 'softmax' }));
 
   await saveModelAndRandomInputs(model, exportPath);
 }
@@ -144,8 +144,8 @@ async function exportDepthwiseCNNModel(exportPath) {
 async function exportSimpleRNNModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
-  model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
-  model.add(tfl.layers.simpleRNN({units: 4}));
+  model.add(tfl.layers.embedding({ inputDim, outputDim: 20, inputShape: [10] }));
+  model.add(tfl.layers.simpleRNN({ units: 4 }));
 
   await saveModelAndRandomInputs(model, exportPath, inputDim);
 }
@@ -154,8 +154,8 @@ async function exportSimpleRNNModel(exportPath) {
 async function exportGRUModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
-  model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
-  model.add(tfl.layers.gru({units: 4, goBackwards: true}));
+  model.add(tfl.layers.embedding({ inputDim, outputDim: 20, inputShape: [10] }));
+  model.add(tfl.layers.gru({ units: 4, goBackwards: true }));
 
   await saveModelAndRandomInputs(model, exportPath, inputDim);
 }
@@ -164,10 +164,10 @@ async function exportGRUModel(exportPath) {
 async function exportBidirectionalLSTMModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
-  model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
+  model.add(tfl.layers.embedding({ inputDim, outputDim: 20, inputShape: [10] }));
   // TODO(cais): Investigate why the `tfl.layers.RNN` typing doesn't work.
-  const lstm = tfl.layers.lstm({units: 4, goBackwards: true});
-  model.add(tfl.layers.bidirectional({layer: lstm, mergeMode: 'concat'}));
+  const lstm = tfl.layers.lstm({ units: 4, goBackwards: true });
+  model.add(tfl.layers.bidirectional({ layer: lstm, mergeMode: 'concat' }));
 
   await saveModelAndRandomInputs(model, exportPath, inputDim);
 }
@@ -176,10 +176,10 @@ async function exportBidirectionalLSTMModel(exportPath) {
 async function exportTimeDistributedLSTMModel(exportPath) {
   const model = tfl.sequential();
   const inputDim = 100;
-  model.add(tfl.layers.embedding({inputDim, outputDim: 20, inputShape: [10]}));
-  model.add(tfl.layers.lstm({units: 4, returnSequences: true}));
+  model.add(tfl.layers.embedding({ inputDim, outputDim: 20, inputShape: [10] }));
+  model.add(tfl.layers.lstm({ units: 4, returnSequences: true }));
   model.add(tfl.layers.timeDistributed({
-    layer: tfl.layers.dense({units: 2, useBias: false, activation: 'softmax'})
+    layer: tfl.layers.dense({ units: 2, useBias: false, activation: 'softmax' })
   }));
 
   await saveModelAndRandomInputs(model, exportPath, inputDim);
@@ -189,11 +189,11 @@ async function exportTimeDistributedLSTMModel(exportPath) {
 async function exportOneDimensionalModel(exportPath) {
   const model = tfl.sequential();
   model.add(tfl.layers.conv1d(
-      {filters: 16, kernelSize: [4], inputShape: [80, 1], activation: 'relu'}));
-  model.add(tfl.layers.maxPooling1d({poolSize: 3}));
+    { filters: 16, kernelSize: [4], inputShape: [80, 1], activation: 'relu' }));
+  model.add(tfl.layers.maxPooling1d({ poolSize: 3 }));
   model.add(
-      tfl.layers.conv1d({filters: 8, kernelSize: [3], activation: 'relu'}));
-  model.add(tfl.layers.avgPooling1d({poolSize: 5}));
+    tfl.layers.conv1d({ filters: 8, kernelSize: [3], activation: 'relu' }));
+  model.add(tfl.layers.avgPooling1d({ poolSize: 5 }));
   model.add(tfl.layers.flatten());
 
   await saveModelAndRandomInputs(model, exportPath);
@@ -201,18 +201,18 @@ async function exportOneDimensionalModel(exportPath) {
 
 // Functional model with two Merge layers.
 async function exportFunctionalMergeModel(exportPath) {
-  const input1 = tfl.input({shape: [2, 5]});
-  const input2 = tfl.input({shape: [4, 5]});
-  const input3 = tfl.input({shape: [30]});
-  const reshaped1 = tfl.layers.reshape({targetShape: [10]}).apply(input1);
-  const reshaped2 = tfl.layers.reshape({targetShape: [20]}).apply(input2);
-  const dense1 = tfl.layers.dense({units: 5}).apply(reshaped1);
-  const dense2 = tfl.layers.dense({units: 5}).apply(reshaped2);
-  const dense3 = tfl.layers.dense({units: 5}).apply(input3);
+  const input1 = tfl.input({ shape: [2, 5] });
+  const input2 = tfl.input({ shape: [4, 5] });
+  const input3 = tfl.input({ shape: [30] });
+  const reshaped1 = tfl.layers.reshape({ targetShape: [10] }).apply(input1);
+  const reshaped2 = tfl.layers.reshape({ targetShape: [20] }).apply(input2);
+  const dense1 = tfl.layers.dense({ units: 5 }).apply(reshaped1);
+  const dense2 = tfl.layers.dense({ units: 5 }).apply(reshaped2);
+  const dense3 = tfl.layers.dense({ units: 5 }).apply(input3);
   const avg = tfl.layers.average().apply([dense1, dense2]);
-  const concat = tfl.layers.concatenate({axis: -1}).apply([avg, dense3]);
-  const output = tfl.layers.dense({units: 1}).apply(concat);
-  const model = tfl.model({inputs: [input1, input2, input3], outputs: output});
+  const concat = tfl.layers.concatenate({ axis: -1 }).apply([avg, dense3]);
+  const output = tfl.layers.dense({ units: 1 }).apply(concat);
+  const model = tfl.model({ inputs: [input1, input2, input3], outputs: output });
 
   await saveModelAndRandomInputs(model, exportPath);
 }
@@ -226,7 +226,7 @@ if (process.argv.length !== 3) {
 }
 const testDataDir = process.argv[2];
 
-(async function() {
+(async function () {
   await exportMLPModel(join(testDataDir, 'mlp'));
   await exportCNNModel(join(testDataDir, 'cnn'));
   await exportDepthwiseCNNModel(join(testDataDir, 'depthwise_cnn'));
@@ -234,7 +234,7 @@ const testDataDir = process.argv[2];
   await exportGRUModel(join(testDataDir, 'gru'));
   await exportBidirectionalLSTMModel(join(testDataDir, 'bidirectional_lstm'));
   await exportTimeDistributedLSTMModel(
-      join(testDataDir, 'time_distributed_lstm'));
+    join(testDataDir, 'time_distributed_lstm'));
   await exportOneDimensionalModel(join(testDataDir, 'one_dimensional'));
   await exportFunctionalMergeModel(join(testDataDir, 'functional_merge'));
 })();
