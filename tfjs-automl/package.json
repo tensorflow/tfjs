@@ -27,9 +27,9 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@tensorflow/tfjs-backend-webgl": "^4.9.0",
-    "@tensorflow/tfjs-converter": "^4.9.0",
-    "@tensorflow/tfjs-core": "^4.9.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.19.0",
+    "@tensorflow/tfjs-converter": "^4.19.0",
+    "@tensorflow/tfjs-core": "^4.19.0",
     "@types/jasmine": "~4.3.1",
     "clang-format": "~1.8.0",
     "jasmine": "4.5.0",
@@ -58,8 +58,11 @@
     "yalc": "~1.0.0-pre.21"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-backend-webgl": "^4.9.0",
-    "@tensorflow/tfjs-converter": "^4.9.0",
-    "@tensorflow/tfjs-core": "^4.9.0"
+    "@tensorflow/tfjs-backend-webgl": "^4.19.0",
+    "@tensorflow/tfjs-converter": "^4.19.0",
+    "@tensorflow/tfjs-core": "^4.19.0"
+  },
+  "dependencies": {
+    "yarn": "^1.22.22"
   }
 }
