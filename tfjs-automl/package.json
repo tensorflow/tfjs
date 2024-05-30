@@ -61,8 +61,5 @@
     "@tensorflow/tfjs-backend-webgl": "^4.19.0",
     "@tensorflow/tfjs-converter": "^4.19.0",
     "@tensorflow/tfjs-core": "^4.19.0"
-  },
-  "dependencies": {
-    "yarn": "^1.22.22"
   }
 }
