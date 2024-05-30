@@ -9,7 +9,7 @@ platform(
     ],
     exec_properties = {
         # We use the same docker image for remote builds as we use for CI testing.
-        "container-image": "docker://gcr.io/learnjs-174218/release@sha256:d85abab6146eaf1e01312bdb9e353a5efa0508b913dccf30fc5e505d009026ff",
+        "container-image": "docker://gcr.io/learnjs-174218/release:latest@sha256:f712eae902a364750727f1bc2e4bfc3f75be846e2277f4e8026f9c03752f00e4",
         # By default in Google Cloud Remote build execution, network access is disabled. We explicitly set the
         # property in the platform again in case the default ever changes. Network access is not desirable in
         # Bazel builds as it is potential source of flaky tests and therefore also breaks hermeticity.

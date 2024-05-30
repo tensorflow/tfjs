@@ -19,6 +19,7 @@ import shutil
 import tempfile
 
 import tensorflow.compat.v2 as tf
+import tf_keras
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.python.eager import def_function
@@ -43,13 +44,13 @@ class FusePreluTest(tf.test.TestCase):
 
   def testFusePrelu(self):
     layers = [
-        tf.keras.layers.PReLU(
+        tf_keras.layers.PReLU(
             alpha_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU(
+        tf_keras.layers.PReLU(
             alpha_initializer=tf.initializers.constant(0.25))
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0])
 
     @tf.function
@@ -92,13 +93,13 @@ class FusePreluTest(tf.test.TestCase):
 
   def testFusePreluWithConv2d(self):
     layers = [
-        tf.keras.layers.Conv2D(
+        tf_keras.layers.Conv2D(
             16, [3, 3], padding='same', use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU()
+        tf_keras.layers.PReLU()
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 2, 1, 1])
 
     @tf.function
@@ -142,14 +143,14 @@ class FusePreluTest(tf.test.TestCase):
 
   def testFusePreluWithMatMul(self):
     layers = [
-        tf.keras.layers.Dense(
+        tf_keras.layers.Dense(
             2, use_bias=True,
             kernel_initializer=tf.initializers.constant(0.25),
             bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU()
+        tf_keras.layers.PReLU()
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 2])
 
     @tf.function
@@ -191,12 +192,12 @@ class FusePreluTest(tf.test.TestCase):
 
   def testFusePreluWithDepthwiseConv2d(self):
     layers = [
-        tf.keras.layers.DepthwiseConv2D(
+        tf_keras.layers.DepthwiseConv2D(
             1, bias_initializer=tf.initializers.constant(0.25)),
-        tf.keras.layers.PReLU()
+        tf_keras.layers.PReLU()
     ]
-    model = tf.keras.Sequential(layers)
-    tf.keras.backend.set_learning_phase(0)
+    model = tf_keras.Sequential(layers)
+    tf_keras.backend.set_learning_phase(0)
     input_tensor = tf.constant([1.0, 1.0], shape=[1, 2, 1, 1])
 
     @tf.function
