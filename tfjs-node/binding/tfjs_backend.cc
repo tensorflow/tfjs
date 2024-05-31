@@ -135,7 +135,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   if (dtype == TF_INT64) {
     // Currently, int64-type Tensors are represented as Int32Arrays.
     // To represent a int64-type Tensor of `n` elements, an Int32Array of
-    // length `2 * n` is requried. This is why the length-match checking
+    // length `2 * n` is required. This is why the length-match checking
     // logic is special-cased for int64.
     if (array_length != num_elements * 2) {
       NAPI_THROW_ERROR(
@@ -379,7 +379,7 @@ void CopyTFE_TensorHandleDataToResourceArray(
 
   TF_AutoStatus status;
 
-  // Create a JS string to stash the resouce handle into.
+  // Create a JS string to stash the resource handle into.
   napi_status nstatus;
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
   nstatus = napi_create_array_with_length(env, byte_length, result);

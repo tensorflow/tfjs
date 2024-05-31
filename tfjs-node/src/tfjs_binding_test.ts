@@ -141,7 +141,7 @@ describe('executeOp', () => {
       binding.executeOp('Equal', null, [] as number[], null);
     }).toThrowError();
   });
-  it('throws excpetion with invalid inputs', () => {
+  it('throws exception with invalid inputs', () => {
     expect(() => {
       binding.executeOp(name, matMulOpAttrs, [] as number[], null);
     }).toThrowError();

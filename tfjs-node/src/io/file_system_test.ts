@@ -445,7 +445,7 @@ describe('File system IOHandler', () => {
     const history2 =
         await model2.fit(xs, ys, {epochs: 2, shuffle: false, verbose: 0});
     // The final loss value from training the model twice, 2 epochs
-    // at a time, should be equal to the final loss of trainig the
+    // at a time, should be equal to the final loss of training the
     // model only once with 4 epochs.
     expect(history2.history.loss[1]).toBeCloseTo(18.603);
   });

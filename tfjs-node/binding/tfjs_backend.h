@@ -36,7 +36,7 @@ class TFJSBackend {
   static TFJSBackend *Create(napi_env env);
 
   // Creates a new Tensor with given shape and data and returns an ID that
-  // refernces the new Tensor.
+  // references the new Tensor.
   // - shape_value (number[])
   // - dtype_value (number)
   // - array_value (TypedArray|Array)
