@@ -135,7 +135,7 @@ describeWithFlags('qr', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toEqual(numTensors + 2);
   });
 
-  it('Insuffient input tensor rank leads to error', () => {
+  it('Insufficient input tensor rank leads to error', () => {
     const x1 = scalar(12);
     expect(() => tf.linalg.qr(x1)).toThrowError(/rank >= 2.*got rank 0/);
     const x2 = tensor1d([12]);
