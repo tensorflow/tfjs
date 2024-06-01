@@ -16,6 +16,7 @@
  */
 
 import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, TensorLike, TypedArray, WebGLData, WebGPUData} from './types';
+import * as seedrandom from 'seedrandom';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -27,18 +28,21 @@ import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, Tenso
  * ```
  *
  * @param array The array to shuffle in-place.
+ * @param seed: (Optional) An integer specifying the random seed that will
+ *   be used to create the distribution.
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
 // tslint:disable-next-line:no-any
 export function shuffle(array: any[]|Uint32Array|Int32Array|
-                        Float32Array): void {
+                        Float32Array, seed?: number): void {
   let counter = array.length;
   let index = 0;
   // While there are elements in the array
   while (counter > 0) {
     // Pick a random index
-    index = (Math.random() * counter) | 0;
+    const random = seed ? seedrandom.alea(String(seed)).int32() : Math.random();
+    index = (random * counter) | 0;
     // Decrease counter by 1
     counter--;
     // And swap the last element with it
