@@ -12,7 +12,7 @@
     "webpack:custom": "webpack --env useCustomTfjs"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "link:../../../tfjs"
+    "@tensorflow/tfjs": "4.20.0"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.1",
