@@ -496,7 +496,7 @@ export class Reshape extends Layer {
         if (unknown === null) {
           unknown = i;
         } else {
-          throw new ValueError('Can only specifiy one unknown dimension.');
+          throw new ValueError('Can only specify one unknown dimension.');
         }
       } else {
         known *= dim;

@@ -70,7 +70,7 @@ export declare interface GPT2CausalLMArgs extends PipelineModelArgs {
 }
 
 /**
- * An end-to-end GPT2 model for causal langauge modeling.
+ * An end-to-end GPT2 model for causal language modeling.
  *
  * A causal language model (LM) predicts the next token based on previous
  * tokens. This task setup can be used to train the model unsupervised on

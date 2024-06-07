@@ -2019,7 +2019,7 @@ describeMathCPUAndGPU('Sequential', () => {
       dataFormat: 'channelsLast',
       inputShape: [4, 4, 1]
     });
-    // Adding the layer would result in a shpae of [null, -5, -5, 1]
+    // Adding the layer would result in a shape of [null, -5, -5, 1]
     expect(() => model.add(layer)).toThrowError(/Negative dimension size/);
   });
 
@@ -2034,7 +2034,7 @@ describeMathCPUAndGPU('Sequential', () => {
       padding: 'valid',
       dataFormat: 'channelsLast',
     });
-    // Adding the layer would result in a shpae of [null, -5, -5, 1]
+    // Adding the layer would result in a shape of [null, -5, -5, 1]
     expect(() => model.add(layer)).toThrowError(/Negative dimension size/);
   });
 

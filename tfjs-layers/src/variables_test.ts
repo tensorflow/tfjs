@@ -393,7 +393,7 @@ describeMathCPUAndGPU('Variable update', () => {
 });
 
 describeMathCPUAndGPU('batchGetValue', () => {
-  it('Legnth-3 Array, Mixed Tensor and Variable', () => {
+  it('Length-3 Array, Mixed Tensor and Variable', () => {
     const v1 = V.variable(zeros([]));
     const v2 = V.variable(zeros([2]));
     const v3 = V.variable(zeros([2, 2]));

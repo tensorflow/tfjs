@@ -170,6 +170,6 @@ export function expectNoLeakedTensors(
         `Created an unexpected number of new ` +
         `Tensors.  Expected: ${numNewTensors}, created : ${
             actualNewTensors}. ` +
-        `Please investigate the discrepency and/or use tidy.`);
+        `Please investigate the discrepancy and/or use tidy.`);
   }
 }
