@@ -64,7 +64,7 @@ async function loadTFJS(localBuild) {
     '../model_config.js',
     '../benchmark_util.js',
     './util.js',
-    './index.js',
+    './flag.js',
     './dump.js',
   ]);
 
