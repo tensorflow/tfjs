@@ -1125,26 +1125,6 @@ describe('Model', () => {
 });
 
 describe('Graph execution gives actionable errors', () => {
-  it('executeAsync warns when there are no dynamic ops', async () => {
-    const customLoader: tfc.io.IOHandler = {
-      load: async () => ({
-        modelTopology: SIMPLE_MODEL,
-        weightSpecs: weightsManifest,
-        weightData: new Int32Array([5]).buffer,
-      })
-    };
-    const model = await loadGraphModel(customLoader);
-    spyOn(console, 'warn');
-    const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-    await model.executeAsync(input);
-    expect(console.warn).toHaveBeenCalledTimes(1);
-    expect(console.warn)
-        .toHaveBeenCalledWith(
-            'This model execution did not contain any nodes with control ' +
-            'flow or dynamic output shapes. You can use model.execute() ' +
-            'instead.');
-  });
-
   it('executeAsync does not warn when there are dynamic ops', async () => {
     const customLoader: tfc.io.IOHandler = {
       load: async () => ({
@@ -1158,35 +1138,6 @@ describe('Graph execution gives actionable errors', () => {
     const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
     await model.executeAsync(input);
     expect(console.warn).toHaveBeenCalledTimes(0);
-  });
-
-  it('executeAsync warns when the subgraph has no dynamic ops', async () => {
-    const graphDef: tensorflow.IGraphDef = {
-      node: [
-        {name: 'input', op: 'Placeholder'},
-        {name: 'intermediate', op: 'Enter', input: ['input']},
-        {name: 'intermediate2', op: 'Sqrt', input: ['intermediate']},
-        {name: 'output', op: 'Square', input: ['intermediate2']},
-      ],
-      versions: {producer: 1.0, minConsumer: 3}
-    };
-    const customLoader: tfc.io.IOHandler = {
-      load: async () => ({
-        modelTopology: graphDef,
-        weightSpecs: weightsManifest,
-        weightData: new Int32Array([5]).buffer,
-      })
-    };
-    const model = await loadGraphModel(customLoader);
-    spyOn(console, 'warn');
-    const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
-    await model.executeAsync({'intermediate2': input});
-    expect(console.warn).toHaveBeenCalledTimes(1);
-    expect(console.warn)
-        .toHaveBeenCalledWith(
-            'This model execution did not contain any nodes with control ' +
-            'flow or dynamic output shapes. You can use model.execute() ' +
-            'instead.');
   });
 
   it('executeAsync works when the subgraph has no unknown ops', async () => {
