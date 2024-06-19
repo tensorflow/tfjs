@@ -17,7 +17,7 @@
     "karma-browserstack-launcher": "^1.6.0",
     "karma-chrome-launcher": "^3.1.0",
     "karma-jasmine": "^3.3.1",
-    "socket.io": "~4.4.1"
+    "socket.io": "~4.6.2"
   },
   "staticFiles": {
     "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
