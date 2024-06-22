@@ -17,7 +17,7 @@ using an already hosted model (e.g. MobileNet), skip this step.
 2. [JavaScript API](./src/executor/graph_model.ts), for loading and running
 inference.
 
-## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting_started/faq/#what-are-my-options-for-saving-models), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/keras/saving/save_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
+## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting_started/faq/#what-are-my-options-for-saving-models), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/keras/models/save_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
 
 __0. Please make sure that you run in a Docker container or a virtual environment.__
 
