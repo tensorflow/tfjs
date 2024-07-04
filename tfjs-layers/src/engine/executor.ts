@@ -365,7 +365,7 @@ export function execute(
   }
   // NOTE(cais): Unlike intermediate tensors, we don't discard mask
   // tensors as we go, because these tensors are sometimes passed over a
-  // series of mutliple layers, i.e., not obeying the immediate input
+  // series of multiple layers, i.e., not obeying the immediate input
   // relations in the graph. If this becomes a memory-usage concern,
   // we can improve this in the future.
   internalFeedDict.disposeMasks();

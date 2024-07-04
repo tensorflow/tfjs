@@ -430,7 +430,7 @@ export interface LayerNormalizationLayerArgs extends LayerArgs {
   axis?: number|number[];
 
   /**
-   * A small positive float added to variance to avoid divison by zero.
+   * A small positive float added to variance to avoid division by zero.
    * Defaults to 1e-3.
    */
   epsilon?: number;

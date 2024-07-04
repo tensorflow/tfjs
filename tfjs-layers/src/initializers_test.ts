@@ -702,7 +702,7 @@ describeMathCPU('initializers.get', () => {
   });
 });
 
-describe('Invalid intializer identifier', () => {
+describe('Invalid initializer identifier', () => {
   it('Throws exception', () => {
     expect(() => {
       getInitializer('invalid_initializer_id');

@@ -35,7 +35,7 @@ type InterpolationType = typeof INTERPOLATION_KEYS[number];
  *
  * The input should be a 3D (unbatched) or
  * 4D (batched) tensor in the `"channels_last"` image data format. Input pixel
- * values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and of interger
+ * values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and of integer
  * or floating point dtype. By default, the layer will output floats.
  *
  * tf methods implemented in tfjs: 'bilinear', 'nearest',
@@ -48,7 +48,7 @@ export class RandomHeight extends BaseRandomLayer {
   /** @nocollapse */
   static override className = 'RandomHeight';
   private readonly factor: number | [number, number];
-  private readonly interpolation?: InterpolationType;  // defualt = 'bilinear
+  private readonly interpolation?: InterpolationType;  // default = 'bilinear
   private heightLower: number;
   private heightUpper: number;
   private imgWidth: number;
