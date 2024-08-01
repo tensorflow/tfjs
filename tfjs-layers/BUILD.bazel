@@ -55,7 +55,7 @@ tfjs_web_test(
         # disabled android test due to training flakiness
         # "bs_android_10",
         "win_10_chrome",
-        "bs_ios_15",
+        "bs_ios_17",
     ],
     headless = False,
     seed = "12345",
