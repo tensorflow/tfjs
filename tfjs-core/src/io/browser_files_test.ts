@@ -259,7 +259,7 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
     // Verify that the default file names are used.
     expect(jsonAnchor.download).toEqual('model.json');
     expect(jsonAnchor.clicked).toEqual(1);
-    // The weight file should not have been downoaded.
+    // The weight file should not have been downloaded.
     expect(weightDataAnchor.download).toEqual(undefined);
     expect(weightDataAnchor.clicked).toEqual(0);
 
