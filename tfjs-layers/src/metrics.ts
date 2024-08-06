@@ -17,9 +17,7 @@ import {Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
-import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
-import {binaryCrossentropy as lossBinaryCrossentropy} from './losses';
-import {lossesMap} from './losses';
+import {binaryCrossentropy as lossBinaryCrossentropy, categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, lossesMap, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
 import {LossOrMetricFn} from './types';
 import * as util from './utils/generic_utils';
 
@@ -110,6 +108,14 @@ export function topKCategoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
 export function sparseTopKCategoricalAccuracy(
     yTrue: Tensor, yPred: Tensor): Tensor {
   throw new NotImplementedError();
+}
+
+export function r2Score(yTrue: Tensor, yPred: Tensor): Tensor {
+  return tidy(() => {
+    const sumSquaresResiduals = yTrue.sub(yPred).square().sum();
+    const sumSquares = yTrue.sub(yTrue.mean()).square().sum();
+    return tfc.scalar(1).sub(sumSquaresResiduals.div(sumSquares));
+  });
 }
 
 // Aliases.

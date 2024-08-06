@@ -314,3 +314,22 @@ export function MSE(yTrue: Tensor, yPred: Tensor): Tensor {
 export function mse(yTrue: Tensor, yPred: Tensor): Tensor {
   return losses.meanSquaredError(yTrue, yPred);
 }
+
+/**
+ * Computes R2 score.
+ *
+ * ```js
+ * const yTrue = tf.tensor2d([[0, 1], [3, 4]]);
+ * const yPred = tf.tensor2d([[0, 1], [-3, -4]]);
+ * const r2Score = tf.metrics.r2Score(yTrue, yPred);
+ * r2Score.print();
+ * ```
+ * @param yTrue Truth Tensor.
+ * @param yPred Prediction Tensor.
+ * @return R2 score Tensor.
+ *
+ * @doc {heading: 'Metrics', namespace: 'metrics'}
+ */
+export function r2Score(yTrue: Tensor, yPred: Tensor): Tensor {
+  return metrics.r2Score(yTrue, yPred);
+}
