@@ -82,6 +82,7 @@ limitations under the License.
         <tr>
           <th>Type</th>
           <th>Time(ms)</th>
+          <th>ReadOutputTime(ms)</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -372,7 +373,7 @@ limitations under the License.
     async function setupKernelTable() {
       kernelsTableHead.innerText = '';
       kernelTable.innerHTML = '';
-      const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
+      const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>', '<b>ReadOutputTime(ms)</b>'];
       if (state.kernelTiming === 'individual') {
         rows.push('<b>Inputs</b>', '<b>Output</b>');
         if (state.backend === 'webgl') {
@@ -726,7 +727,7 @@ limitations under the License.
               inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
             }
           });
-          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2),
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), kernel.readOutputTimeMs.toFixed(2),
                     inputInfo || '-',
                     kernel.outputShapes.length !== 0 ? kernel.outputShapes : '-',
                     kernel.extraInfo || '-');
@@ -736,7 +737,7 @@ limitations under the License.
           const nameSpan = document.createElement('span');
           nameSpan.setAttribute('title', r.name);
           nameSpan.textContent = r.name;
-          appendRow(tbody, nameSpan, r.timeMs.toFixed(2));
+          appendRow(tbody, nameSpan, r.timeMs.toFixed(2), r.readOutputTimeMs.toFixed(2));
         });
       }
     }
