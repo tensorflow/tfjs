@@ -195,7 +195,7 @@ export class Engine implements TensorTracker, DataMover {
     const sortedBackends = this.getSortedBackends();
 
     for (let i = 0; i < sortedBackends.length; i++) {
-      const backendName = sortedBackends[i];
+      const backendName = sortedBackends[i].name;
       const success = await this.initializeBackend(backendName).success;
       if (success) {
         await this.setBackend(backendName);
@@ -394,7 +394,17 @@ export class Engine implements TensorTracker, DataMover {
     }
   }
 
-  private getSortedBackends(): string[] {
+  prioritizeBackend(name: string, priority: number): void {
+    const registryFactoryEntry = this.registryFactory[name];
+    if (registryFactoryEntry == null) {
+      throw new Error(
+        `Cannot prioritize backend ${name}, no registration found.`);
+    }
+
+    registryFactoryEntry.priority = priority;
+  }
+
+  getSortedBackends(): Array<{name: string, priority: number}> {
     if (Object.keys(this.registryFactory).length === 0) {
       throw new Error('No backend found in registry.');
     }
@@ -402,7 +412,10 @@ export class Engine implements TensorTracker, DataMover {
       // Highest priority comes first.
       return this.registryFactory[b].priority -
           this.registryFactory[a].priority;
-    });
+    }).map(name => ({
+      name,
+      priority: this.registryFactory[name].priority
+    }));
   }
 
   private initializeBackendsAndReturnBest():
@@ -410,7 +423,7 @@ export class Engine implements TensorTracker, DataMover {
     const sortedBackends = this.getSortedBackends();
 
     for (let i = 0; i < sortedBackends.length; i++) {
-      const backendName = sortedBackends[i];
+      const backendName = sortedBackends[i].name;
       const {success, asyncInit} = this.initializeBackend(backendName);
       if (asyncInit || success) {
         return {name: backendName, asyncInit};
