@@ -122,7 +122,7 @@ const IGNORE_LIST: string[] = [
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
-  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit default dimRoundingMode',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
   // tslint:disable-next-line:max-line-length
@@ -130,7 +130,7 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
   // tslint:disable-next-line:max-line-length
-  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit default dimRoundingMode',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
   // tslint:disable-next-line:max-line-length
