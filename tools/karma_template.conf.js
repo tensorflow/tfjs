@@ -62,11 +62,11 @@ const CUSTOM_LAUNCHERS = {
     os_version: '12.3',
     real_mobile: true
   },
-  bs_ios_15: {
+  bs_ios_17: {
     base: 'BrowserStack',
-    device: 'iPhone 11 Pro',
+    device: 'iPhone 15 Pro Max',
     os: 'ios',
-    os_version: '15',
+    os_version: '17',
     real_mobile: true
   },
   bs_android_10: {
