@@ -8,8 +8,8 @@
     "url": "https://github.com/tensorflow/tfjs"
   },
   "devDependencies": {
-    "@tensorflow/tfjs": "link:../../../tfjs",
-    "@tensorflow/tfjs-backend-wasm": "link:../../../link-package/node_modules/@tensorflow/tfjs-backend-wasm",
+    "@tensorflow/tfjs": "4.21.0-rc.0",
+    "@tensorflow/tfjs-backend-wasm": "4.21.0-rc.0",
     "argparse": "^2.0.1",
     "firebase-admin": "^11.0.1",
     "jasmine": "^3.7.0",
