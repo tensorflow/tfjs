@@ -15,13 +15,23 @@
   resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.12.0.tgz#f08aebbf4afcb12684422450b0845dd6ef5cfe50"
   integrity sha512-7oQusq1e4AIyFgotxVV7Pc40Et0QyvoVjujL+7/qV5Vrbfh0Nj3CfqSgl63weEyI4r0+K6RlGVsjfRuBi05p5w==
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
+"@tensorflow/tfjs-backend-cpu@4.21.0-rc.0":
+  version "4.21.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-4.21.0-rc.0.tgz#d3a7deb417d0b5e6e62451678d9e6fc471c44a79"
+  integrity sha512-abMt0CHFLdnKq23NiM1qhX1gSig/mpssUCthcLnjpMkM+SjH11AvCasRS5XiRk50L7TRTBr0ysbM4x5R+dLUnw==
+  dependencies:
+    "@types/seedrandom" "^2.4.28"
+    seedrandom "^3.0.5"
 
 "@types/emscripten@~0.0.34":
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@types/emscripten/-/emscripten-0.0.34.tgz#12b4a344274fb102ff2f6c877b37587bc3e46008"
   integrity sha512-QSb9ojDincskc+uKMI0KXp8e1NALFINCrMlp8VGKGcTSxeEyRTTKyjWw75NYrCZHUsVEEEpr1tYHpbtaC++/sQ==
+
+"@types/seedrandom@^2.4.28":
+  version "2.4.34"
+  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.34.tgz#c725cd0fc0442e2d3d0e5913af005686ffb7eb99"
+  integrity sha512-ytDiArvrn/3Xk6/vtylys5tlY6eo7Ane0hvcx++TKo6RxQXuVfW0AF/oeWqAj9dN29SyhtawuXstgmPlwNcv/A==
 
 async@^1.5.2:
   version "1.5.2"
@@ -145,6 +155,11 @@ resolve@^1.1.6:
   dependencies:
     is-core-module "^2.2.0"
     path-parse "^1.0.6"
+
+seedrandom@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.5.tgz#54edc85c95222525b0c7a6f6b3543d8e0b3aa0a7"
+  integrity sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==
 
 wrappy@1:
   version "1.0.2"
