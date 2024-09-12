@@ -110,7 +110,7 @@ export interface ModelAndWeightsConfig {
    * A JSON object or JSON string containing the model config.
    *
    * This can be either of the following two formats:
-   *   - A model archiecture-only config,  i.e., a format consistent with the
+   *   - A model architecture-only config,  i.e., a format consistent with the
    *     return value of`keras.Model.to_json()`.
    *   - A full model config, containing not only model architecture, but also
    *     training options and state, i.e., a format consistent with the return

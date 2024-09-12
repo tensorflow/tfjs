@@ -125,7 +125,7 @@ describeMathCPU('constraints.get', () => {
 
 describe('Constraints Serialization', () => {
   it('Built-ins', () => {
-    // Test both types of captialization.
+    // Test both types of capitalization.
     const constraints: ConstraintIdentifier[] = [
       'maxNorm', 'nonNeg', 'unitNorm', 'minMaxNorm', 'MaxNorm', 'NonNeg',
       'UnitNorm', 'MinMaxNorm'

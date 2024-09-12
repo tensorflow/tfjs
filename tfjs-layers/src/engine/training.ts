@@ -290,7 +290,7 @@ function checkLossAndTargetCompatibility(
  * @param shapes: Expected shapes for the input data, from the model.
  * @param checkBatchAxis: Whether the size along the batch axis (i.e., the
  *   first dimension) will be checked for matching.
- * @param exceptionPrefix: Execption prefix message, used in generating error
+ * @param exceptionPrefix: Exception prefix message, used in generating error
  *   messages.
  * @throws ValueError: on incorrect number of inputs or mismatches in shapes.
  */
@@ -513,7 +513,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   //   implicit "knowledge" of the outputs it depends on.
   metricsTensors: Array<[LossOrMetricFn, number]>;
 
-  // User defind metadata (if any).
+  // User defined metadata (if any).
   private userDefinedMetadata: {};
 
   constructor(args: ContainerArgs) {
@@ -921,7 +921,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
     } else {
       throw new ValueError(
           `Either the input data should have a defined shape, or ` +
-          `${stepsName} shoud be specified.`);
+          `${stepsName} should be specified.`);
     }
     return numSamples;
   }
@@ -1028,7 +1028,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @param batchSize: integer batch size.
    * @param verbose: verbosity model
    * @returns: Predictions as `tf.Tensor` (if a single output) or an `Array` of
-   *   `tf.Tensor` (if multipe outputs).
+   *   `tf.Tensor` (if multiple outputs).
    */
   private predictLoop(ins: Tensor|Tensor[], batchSize = 32, verbose = false):
       Tensor|Tensor[] {

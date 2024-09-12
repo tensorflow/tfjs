@@ -54,7 +54,7 @@ describeMathCPUAndGPU('Preprocessing Utils', () => {
     expectTensorsClose(outputs, expectedOutput);
   });
 
-  it('Thows an error if input rank > 2', () => {
+  it('Throws an error if input rank > 2', () => {
     const inputs = tensor([[[1], [2]], [[3], [1]]]);
     expect(() =>utils.encodeCategoricalInputs(inputs, 'multiHot', 4))
     .toThrowError(`When outputMode is not int, maximum output rank is 2`
@@ -62,7 +62,7 @@ describeMathCPUAndGPU('Preprocessing Utils', () => {
     + ` which would result in output rank ${inputs.rank}.`);
   });
 
-  it('Thows an error if weights are not supplied for tfIdf', () => {
+  it('Throws an error if weights are not supplied for tfIdf', () => {
     const inputs = tensor([0, 1, 1, 2, 2, 2]);
     expect(() =>utils.encodeCategoricalInputs(inputs, 'tfIdf', 4)).
     toThrowError(`When outputMode is 'tfIdf', weights must be provided.`);

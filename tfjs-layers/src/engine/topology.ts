@@ -1382,7 +1382,7 @@ export abstract class Layer extends serialization.Serializable {
       // masking not explicitly supported: return null as mask
       return null;
     }
-    // if masking is explictly supported, by default
+    // if masking is explicitly supported, by default
     // carry over the input mask
     return mask;
   }

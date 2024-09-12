@@ -353,7 +353,7 @@ describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
     expect(layer.getWeights().length).toEqual(3);
-    // Firt weight is gamma.
+    // First weight is gamma.
     expectTensorsClose(layer.getWeights()[0], onesLike(layer.getWeights()[0]));
     // Second weight is moving mean.
     expectTensorsClose(layer.getWeights()[1], zerosLike(layer.getWeights()[1]));
@@ -366,7 +366,7 @@ describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
     expect(layer.getWeights().length).toEqual(3);
-    // Firt weight is beta.
+    // First weight is beta.
     expectTensorsClose(layer.getWeights()[0], zerosLike(layer.getWeights()[0]));
     // Second weight is moving mean.
     expectTensorsClose(layer.getWeights()[1], zerosLike(layer.getWeights()[1]));
@@ -529,7 +529,7 @@ describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
   // h = model.fit(xs, ys, epochs=3)
   // print(h.history)
   // ```
-  it('Fit: Wtih conv2d layer', async () => {
+  it('Fit: With conv2d layer', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.conv2d({
       filters: 4,

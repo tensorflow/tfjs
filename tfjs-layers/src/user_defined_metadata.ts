@@ -23,7 +23,7 @@ export const MAX_USER_DEFINED_METADATA_SERIALIZED_LENGTH = 1 * 1024 * 1024;
  *   Used during construction of error messages.
  * @param checkSize Whether to check the size of the metadata is under
  *   recommended limit. Default: `false`. If `true`, will try stringify the
- *   JSON object and print a console warning if the serialzied size is above the
+ *   JSON object and print a console warning if the serialized size is above the
  *   limit.
  * @throws Error if `userDefinedMetadata` is not a plain JSON object.
  */

@@ -333,7 +333,7 @@ export function stringToDType(dtype: string): DataType {
  * Test the element-by-element equality of two Arrays of strings.
  * @param xs First array of strings.
  * @param ys Second array of strings.
- * @returns Wether the two arrays are all equal, element by element.
+ * @returns Whether the two arrays are all equal, element by element.
  */
 export function stringsEqual(xs: string[], ys: string[]): boolean {
   if (xs == null || ys == null) {
@@ -456,7 +456,7 @@ export function assertPositiveInteger(value: number|number[], name: string) {
  * Format a value into a display-friendly, human-readable fashion.
  *
  * - `null` is formatted as `'null'`
- * - Strings are formated with flanking pair of quotes.
+ * - Strings are formatted with flanking pair of quotes.
  * - Arrays are formatted with flanking pair of square brackets.
  *
  * @param value The value to display.

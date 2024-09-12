@@ -215,7 +215,7 @@ export function sliceAlongLastAxis(
 }
 
 /**
- * Do slicing along the sepcified axis.
+ * Do slicing along the specified axis.
  * @param array input `tf.Tensor`.
  * @param start starting index, inclusive.
  * @param size of the slice along the chosen axis.

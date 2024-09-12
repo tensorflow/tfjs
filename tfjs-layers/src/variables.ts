@@ -297,7 +297,7 @@ export function update(x: LayerVariable, xNew: Tensor): LayerVariable {
 /**
  * Update the value of a Variable by adding an increment.
  * @param x The Variable to be updated.
- * @param increment The incrment to add to `x`.
+ * @param increment The increment to add to `x`.
  * @return The Variable updated.
  */
 export function updateAdd(x: LayerVariable, increment: Tensor): LayerVariable {
