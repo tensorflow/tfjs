@@ -529,7 +529,7 @@ describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
   // h = model.fit(xs, ys, epochs=3)
   // print(h.history)
   // ```
-  it('Fit: With conv2d layer', async () => {
+  it('Fit: Wtih conv2d layer', async () => {
     const model = tfl.sequential();
     model.add(tfl.layers.conv2d({
       filters: 4,
