@@ -554,7 +554,7 @@ export abstract class Container extends Layer {
       throw new ValueError(
           'Container instance unexpectedly contains _trainableWeights.' +
           'The trainable weights of a Container are a union of the ' +
-          'trainable weights of its consituent Layers. Its own ' +
+          'trainable weights of its constituent Layers. Its own ' +
           '_trainableWeights must remain an empty Array.');
     }
 

@@ -88,7 +88,7 @@ describeMathCPUAndGPU('Resizing Layer', () => {
   });
 
   it('Returns a tensor of the correct dtype', () => {
-    // do a same resizing operation, cheeck tensors dtypes and content
+    // do a same resizing operation, check tensors dtypes and content
     const height = 40;
     const width = 60;
     const numChannels = 3;

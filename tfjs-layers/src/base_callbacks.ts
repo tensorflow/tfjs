@@ -518,7 +518,7 @@ export class CallbackConstructorRegistry {
    * callbacks for every tf.LayersModel.fit() call afterwards.
    *
    * @param verbosityLevel Level of verbosity at which the `callbackConstructor`
-   *   is to be reigstered.
+   *   is to be registered.
    * @param callbackConstructor A no-arg constructor for `tf.Callback`.
    * @throws Error, if the same callbackConstructor has been registered before,
    *   either at the same or a different `verbosityLevel`.
