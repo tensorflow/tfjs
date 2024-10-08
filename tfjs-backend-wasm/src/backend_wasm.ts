@@ -308,6 +308,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
      */
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.worker.js')) {
+        if (env().get('IS_NODE')) {
+          return wasmWorkerContents.replace(/text[\s]*\+[\s]*["'].*?\n["']/, 'text+\'\\n\'');
+        }
         // Escape '\n' because Blob will turn it into a newline.
         // There should be a setting for this, but 'endings: "native"' does
         // not seem to work.
@@ -355,10 +358,16 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     let wasm: Promise<BackendWasmModule>;
     // If `wasmPath` has been defined we must initialize the vanilla module.
     if (threadsSupported && simdSupported && wasmPath == null) {
-      factoryConfig.mainScriptUrlOrBlob = new Blob(
+      if (env().get('IS_NODE')) {
+        factoryConfig.mainScriptUrlOrBlob = wasmFileMap['tfjs-backend-wasm-threaded-simd.js'] ||
+          global.require.resolve('../wasm-out/tfjs-backend-wasm-threaded-simd.js');
+      }
+      else {
+        factoryConfig.mainScriptUrlOrBlob = new Blob(
           [`var WasmBackendModuleThreadedSimd = ` +
            wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
+      }
       wasm = wasmFactoryThreadedSimd(factoryConfig);
     } else {
       // The wasmFactory works for both vanilla and SIMD binaries.
@@ -420,9 +429,14 @@ const wasmBinaryNames = [
 ] as const ;
 type WasmBinaryName = typeof wasmBinaryNames[number];
 
+const wasmWorkerNames = [
+  'tfjs-backend-wasm-threaded-simd.js',
+] as const ;
+type WasmWorkerName = typeof wasmWorkerNames[number];
+
 let wasmPath: string = null;
 let wasmPathPrefix: string = null;
-let wasmFileMap: {[key in WasmBinaryName]?: string} = {};
+let wasmFileMap: {[key in WasmBinaryName | WasmWorkerName]?: string} = {};
 let initAborted = false;
 let customFetch = false;
 
@@ -477,7 +491,7 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  * @doc {heading: 'Environment', namespace: 'wasm'}
  */
 export function setWasmPaths(
-    prefixOrFileMap: string|{[key in WasmBinaryName]?: string},
+    prefixOrFileMap: string|{[key in WasmBinaryName | WasmWorkerName]?: string},
     usePlatformFetch = false): void {
   if (initAborted) {
     throw new Error(
@@ -485,6 +499,7 @@ export function setWasmPaths(
         '`setWasmPaths()` before you call `tf.setBackend()` or ' +
         '`tf.ready()`');
   }
+  customFetch = usePlatformFetch;
 
   if (typeof prefixOrFileMap === 'string') {
     wasmPathPrefix = prefixOrFileMap;
@@ -499,9 +514,16 @@ export function setWasmPaths(
           `map providing a path for each binary, or with a string indicating ` +
           `the directory where all the binaries can be found.`);
     }
+    const missingWorkerPaths =
+    wasmWorkerNames.filter(name => wasmFileMap[name] == null);
+    if (env().get('IS_NODE') && missingWorkerPaths.length > 0) {
+      throw new Error(
+          `There were no entries found for the following workers: ` +
+          `${missingPaths.join(',')}. Please either call setWasmPaths with a ` +
+          `map providing a path for each worker, or with a string indicating ` +
+          `the directory where all the workers can be found.`);
+    }
   }
-
-  customFetch = usePlatformFetch;
 }
 
 /** Used in unit tests. */
