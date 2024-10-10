@@ -7,7 +7,7 @@ The tfjs-node package uses the [node-gyp](https://github.com/nodejs/node-gyp) pa
 
 This can happen for a variety of reasons. First, to inspect what is missing either `cd node_modules/@tensorflow/tfjs-node` or clone the [tensorflow/tfjs repo](https://github.com/tensorflow/tfjs).
 
-After `cd`'ing or cloning, run the following command (you might need node-gyp installed globablly `npm install -g node-gyp`):
+After `cd`'ing or cloning, run the following command (you might need node-gyp installed globally `npm install -g node-gyp`):
 
 ```sh
 node-gyp configure --verbose
@@ -22,9 +22,9 @@ gyp verb check python checking for Python executable "python2" in the PATH
 gyp verb `which` failed Error: not found: python2
 ```
 
-This means that node-gyp expects a 'python2' exe somewhere in `%PATH%`. Try running this command from an Admin (elevated privilaged prompt):
+This means that node-gyp expects a 'python2' exe somewhere in `%PATH%`. Try running this command from an Admin (elevated privileged prompt):
 
-You can try running this from an Adminstrative prompt:
+You can try running this from an Administrative prompt:
 
 ```sh
 $ npm --add-python-to-path='true' --debug install --global windows-build-tools
