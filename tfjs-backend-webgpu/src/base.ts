@@ -58,9 +58,9 @@ if (isWebGPUSupported()) {
 
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
     const adapterInfo =
-      'requestAdapterInfo' in adapter
-        ? await adapter.requestAdapterInfo()
-        : undefined;
+      'info' in adapter
+        ? adapter.info
+        : await adapter.requestAdapterInfo();
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }
