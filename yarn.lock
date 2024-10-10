@@ -513,10 +513,10 @@
   resolved "https://registry.yarnpkg.com/@verdaccio/ui-theme/-/ui-theme-6.0.0-6-next.23.tgz#268da5091e1e9264fe87b8b94c0ac596e9e54879"
   integrity sha512-GXpEPdZJm6o+2VAxzUsKaiDriS+5enqr7Gjrb2Bttcd+IkOuC8lDsoFHxIv0ib4JudZJ/aKsRYL3TN2AetPFjw==
 
-"@webgpu/types@0.1.38":
-  version "0.1.38"
-  resolved "https://registry.npmjs.org/@webgpu/types/-/types-0.1.38.tgz#6fda4b410edc753d3213c648320ebcf319669020"
-  integrity sha512-7LrhVKz2PRh+DD7+S+PVaFd5HxaWQvoMqBbsV9fNJO1pjUs1P8bM2vQVNfk+3URTqbuTI7gkXi0rfsN0IadoBA==
+"@webgpu/types@0.1.48":
+  version "0.1.48"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.48.tgz#8ab741852283118bd633345c20e218faa7211e9c"
+  integrity sha512-e3zmDEPih4Rle+JrP5cT8nCCtDizoUpEaN72OuD1clbhXGERtn0wwuMdxOrBymu3kMLWKDd8hd+ERhSheLuLTg==
 
 "@xmldom/xmldom@^0.7.3":
   version "0.7.5"

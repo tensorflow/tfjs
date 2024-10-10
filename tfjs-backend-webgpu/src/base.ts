@@ -60,7 +60,10 @@ if (isWebGPUSupported()) {
     const adapterInfo =
       'info' in adapter
         ? adapter.info
-        : await adapter.requestAdapterInfo();
+        : 'requestAdapterInfo' in adapter
+          // tslint:disable-next-line:no-any
+          ? await (adapter as any).requestAdapterInfo()
+          : undefined;
     return new WebGPUBackend(device, adapterInfo);
   }, 3 /*priority*/);
 }

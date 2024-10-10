@@ -29,7 +29,7 @@
     "@types/semver": "^7.3.9",
     "@types/shelljs": "^0.8.7",
     "@types/dom-webcodecs": "0.1.4",
-    "@webgpu/types": "0.1.38",
+    "@webgpu/types": "0.1.48",
     "ajv": "~6.12.3",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
