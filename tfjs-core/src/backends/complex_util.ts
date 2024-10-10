@@ -87,7 +87,7 @@ export function complexWithEvenIndex(complex: Float32Array):
 }
 
 /**
- * Extracts odd indexed comple values in the given array.
+ * Extracts odd indexed complete values in the given array.
  * @param complex The complex tensor values
  */
 export function complexWithOddIndex(complex: Float32Array):
