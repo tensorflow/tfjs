@@ -225,7 +225,7 @@ export class SerializationMap {
  *
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
- * @param pkg The pakcage name that this class belongs to. This used to define
+ * @param pkg The package name that this class belongs to. This used to define
  *     the key in GlobalCustomObject. If not defined, it defaults to `Custom`.
  * @param name The name that user specified. It defaults to the actual name of
  *     the class as specified by its static `className` property.

@@ -1214,7 +1214,7 @@ describeWithFlags('depthwiseConv2d gradients', ALL_ENVS, () => {
       [[[1, 1], [1, 1], [0, 0]], [[0, 1], [1, 1], [1, 1]]],
       [[[1, 0], [1, 1], [0, 0]], [[0, 1], [1, 0], [0, 0]]]
     ]);
-    // result of convolution operatoin
+    // result of convolution operation
     result = tf.tensor4d([
       [
         [[2, 8, 8, 7, 2, 2], [6, 3, 1, 1, 0, 0]],
