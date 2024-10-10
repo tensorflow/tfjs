@@ -188,7 +188,7 @@ function intersectionOverUnion(boxes: TypedArray, i: number, j: number) {
 
 // A Gaussian penalty function, this method always returns values in [0, 1].
 // The weight is a function of similarity, the more overlap two boxes are, the
-// smaller the weight is, meaning highly overlapping boxe will be significantly
+// smaller the weight is,meaning highly overlapping boxes will be significantly
 // penalized. On the other hand, a non-overlapping box will not be penalized.
 function suppressWeight(iouThreshold: number, scale: number, iou: number) {
   const weight = Math.exp(scale * iou * iou);

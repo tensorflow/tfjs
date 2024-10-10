@@ -70,7 +70,7 @@ import {op} from './operation';
  *     "ROW_SPLITS": the row_splits tensor from the ragged tensor.
  *     "VALUE_ROWIDS": the value_rowids tensor from the ragged tensor.
  *     "FIRST_DIM_SIZE": if value_rowids is used for the first dimension, then
- *         it is preceeded by "FIRST_DIM_SIZE". The tensors are in the order of
+ *         it is preceded by "FIRST_DIM_SIZE". The tensors are in the order of
  *         the dimensions.
  * @return A Tensor. Has the same type as values.
  * @doc {heading: 'Operations', subheading: 'Ragged'}
