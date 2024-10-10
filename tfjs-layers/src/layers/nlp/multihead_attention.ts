@@ -703,7 +703,7 @@ export class MultiHeadAttention extends Layer {
 
     newInputs = [inputs, kwargs['value']].concat(kwargs['key'] ?? []);
 
-    // TODO(pforderique): Support mask propogation.
+    // TODO(pforderique): Support mask propagation.
     return super.apply(newInputs, kwargs);
   }
 
