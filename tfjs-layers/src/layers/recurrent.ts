@@ -127,7 +127,7 @@ export function standardizeArgs(
  *   the stepwise outputs need to be kept (e.g., for an LSTM layer of which
  *   `returnSequence` is `true`.)
  * @returns An Array: `[lastOutput, outputs, newStates]`.
- *   lastOutput: the lastest output of the RNN, of shape `[samples, ...]`.
+ *   lastOutput: the last output of the RNN, of shape `[samples, ...]`.
  *   outputs: tensor with shape `[samples, time, ...]` where each entry
  *     `output[s, t]` is the output of the step function at time `t` for sample
  *     `s`. This return value is provided if and only if the
@@ -252,7 +252,7 @@ export declare interface BaseRNNLayerArgs extends LayerArgs {
    *     see section "Note on passing external constants" below.
    *     Porting Node: PyKeras overrides the `call()` signature of RNN cells,
    *       which are Layer subtypes, to accept two arguments. tfjs-layers does
-   *       not do such overriding. Instead we preseve the `call()` signature,
+   *       not do such overriding. Instead we preserve the `call()` signature,
    *       which due to its `Tensor|Tensor[]` argument and return value is
    *       flexible enough to handle the inputs and states.
    *   - a `stateSize` attribute. This can be a single integer (single state)

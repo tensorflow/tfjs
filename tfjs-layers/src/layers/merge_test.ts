@@ -687,7 +687,7 @@ describeMathCPU('Deserialize Merge Layers', () => {
 });
 
 describeMathCPU('Dot-Layer: Symbolic', () => {
-  // Example refernce Python Keras code:
+  // Example reference Python Keras code:
   //
   // ```py
   // import keras

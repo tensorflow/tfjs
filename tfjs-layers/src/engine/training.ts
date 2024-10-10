@@ -513,7 +513,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   //   implicit "knowledge" of the outputs it depends on.
   metricsTensors: Array<[LossOrMetricFn, number]>;
 
-  // User defind metadata (if any).
+  // User defined metadata (if any).
   private userDefinedMetadata: {};
 
   constructor(args: ContainerArgs) {

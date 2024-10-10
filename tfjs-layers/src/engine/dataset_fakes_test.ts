@@ -19,7 +19,7 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
     const dataset = new FakeNumericDataset(
         {xShape: [3], yShape: [1], batchSize: 8, numBatches: 5});
     for (let k = 0; k < 2; ++k) {
-      // Run twice to make sure that calling iteartor() multiple times works.
+      // Run twice to make sure that calling iterator() multiple times works.
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();
@@ -39,7 +39,7 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
     const dataset = new FakeNumericDataset(
         {xShape: [3, 4], yShape: [2], batchSize: 8, numBatches: 5});
     for (let k = 0; k < 2; ++k) {
-      // Run twice to make sure that calling iteartor() multiple times works.
+      // Run twice to make sure that calling iterator() multiple times works.
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();
@@ -63,7 +63,7 @@ describeMathCPUAndGPU('FakeNumericDataset', () => {
       numBatches: 5
     });
     for (let k = 0; k < 2; ++k) {
-      // Run twice to make sure that calling iteartor() multiple times works.
+      // Run twice to make sure that calling iterator() multiple times works.
       const iterator = await dataset.iterator();
       for (let i = 0; i < 5; ++i) {
         const result = await iterator.next();

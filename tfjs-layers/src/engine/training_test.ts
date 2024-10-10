@@ -457,7 +457,7 @@ describeMathCPUAndWebGL2('LayersModel.fit long', () => {
   it('Return sequences; Fit with metric', async () => {
     // The golden values for history used in the assertion below can be obtained
     // with the following Python Keras code.
-    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
+    // Ran with Python Keras version 2.1.2 and TensorFlow (CPU) version
     // 1.7.0-dev20180226.
     // ```python
     // import keras
@@ -2286,7 +2286,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       yieldEvery + 1,  // Should call.
       yieldEvery + 1,  // Should call.
       1,
-      yieldEvery + 1,  // SHould call.
+      yieldEvery + 1,  // Should call.
       yieldEvery + 1,  // Should call.
       1,
       1,
