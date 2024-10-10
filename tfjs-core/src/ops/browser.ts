@@ -254,7 +254,7 @@ export async function fromPixelsAsync(
     // In some cases, the input will have larger size than its content.
     // E.g. new Image(10, 10) but with 1 x 1 content. Using
     // createImageBitmap will clip the size from 10 x 10 to 1 x 1, which
-    // is not correct. We should avoid wrapping such resouce to
+    // is not correct. We should avoid wrapping such resource to
     // imageBitmap.
     if (imageBitmap != null && imageBitmap.width === pixels.width &&
         imageBitmap.height === pixels.height) {
@@ -292,7 +292,7 @@ function validateImgTensor(img: Tensor2D|Tensor3D) {
 function validateImageOptions(imageOptions: ImageOptions) {
   const alpha = imageOptions ?.alpha || 1;
   if (alpha > 1 || alpha < 0) {
-    throw new Error(`Alpha value ${alpha} is suppoed to be in range [0 - 1].`);
+    throw new Error(`Alpha value ${alpha} is supposed to be in range [0 - 1].`);
   }
 }
 
