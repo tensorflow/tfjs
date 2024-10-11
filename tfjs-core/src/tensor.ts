@@ -518,7 +518,7 @@ Object.defineProperty(Tensor, Symbol.hasInstance, {
 
 export function getGlobalTensorClass() {
   // Use getGlobal so that we can augment the Tensor class across package
-  // boundaries becase the node resolution alg may result in different modules
+  // boundaries because the node resolution alg may result in different modules
   // being returned for this file depending on the path they are loaded from.
   return getGlobal('Tensor', () => {
     return Tensor;

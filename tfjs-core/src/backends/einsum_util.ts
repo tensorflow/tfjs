@@ -167,7 +167,7 @@ export function checkEinsumDimSizes(
  *
  * @param summedDims indices to the dimensions being summed over.
  * @param idDims A look up table for the dimensions present in each input
- *     tensor. Each consituent array contains indices for the dimensions in the
+ *     tensor.Each constituent array contains indices for the dimensions in the
  *     corresponding input tensor.
  *
  * @return A map with two fields:

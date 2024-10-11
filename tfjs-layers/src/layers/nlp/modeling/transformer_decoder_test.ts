@@ -106,7 +106,7 @@ describe('TransformerDecoder', () => {
     const config = testLayer.getConfig();
     const restored = TransformerDecoder.fromConfig(TransformerDecoder, config);
 
-    // Initializers don't get serailized with customObjects.
+    // Initializers don't get serialized with customObjects.
     delete ((config['kernelInitializer'] as serialization.ConfigDict
       )['config'] as serialization.ConfigDict)['customObjects'];
     delete ((config['biasInitializer'] as serialization.ConfigDict
@@ -167,5 +167,5 @@ describe('TransformerDecoder', () => {
     expectTensorsClose(outputCache, noLoopCache);
   });
 
-  // TODO(pforderique): Test mask propogation once supported.
+  // TODO(pforderique): Test mask propagation once supported.
 });
