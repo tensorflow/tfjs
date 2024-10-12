@@ -39,7 +39,7 @@
     "core-js": "3",
     "deep-equal": "^1.0.1",
     "estree-walker": "~1.0.1",
-    "express": "4.18.2",
+    "express": "4.20.0",
     "inquirer": "^8.0.0",
     "jasmine": "~4.2.1",
     "jasmine-core": "~4.2.0",
