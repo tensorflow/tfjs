@@ -412,6 +412,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]],
+      'readOutputTimeMs': profile.kernels[0].readOutputTimeMs,
       'kernelTimeMs': profile.kernels[0].kernelTimeMs,
       'extraInfo': profile.kernels[0].extraInfo
     });
@@ -424,6 +425,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]],
+      'readOutputTimeMs': profile.kernels[1].readOutputTimeMs,
       'kernelTimeMs': profile.kernels[1].kernelTimeMs,
       'extraInfo': profile.kernels[1].extraInfo
     });
@@ -453,6 +455,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]],
+      'readOutputTimeMs': profile.kernels[0].readOutputTimeMs,
       'kernelTimeMs': profile.kernels[0].kernelTimeMs,
       'extraInfo': profile.kernels[0].extraInfo
     });
@@ -484,6 +487,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]],
+      'readOutputTimeMs': profile.kernels[0].readOutputTimeMs,
       'kernelTimeMs': profile.kernels[0].kernelTimeMs,
       'extraInfo': profile.kernels[0].extraInfo
     });
