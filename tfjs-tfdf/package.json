@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-tfdf",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.29",
   "description": "TensorFlow Decision Forests support for TensorFlow.js",
   "main": "dist/tf-tfdf.node.js",
   "module": "dist/tf-tfdf.fesm.js",
@@ -23,8 +23,8 @@
     "yarn": ">= 1.3.2"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter"
+    "@tensorflow/tfjs-core": "4.22.0-rc.0",
+    "@tensorflow/tfjs-converter": "4.22.0-rc.0"
   },
   "devDependencies": {
     "@bazel/bazelisk": "^1.12.0"
