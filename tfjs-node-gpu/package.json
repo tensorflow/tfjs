@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "0.0.0",
+  "version": "4.22.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -44,7 +44,7 @@
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "4.22.0",
     "@types/jasmine": "~4.0.3",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@mapbox/node-pre-gyp": "1.0.9",
-    "@tensorflow/tfjs": "link:../tfjs",
+    "@tensorflow/tfjs": "4.22.0",
     "adm-zip": "^0.5.2",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
