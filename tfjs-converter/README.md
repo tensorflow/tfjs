@@ -319,7 +319,7 @@ jax_conversion.convert_jax(
 ```
 
 See
-[here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
+[here](https://github.com/jax-ml/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
 for more details on the exact syntax for this argument.
 
 When converting JAX models, you can also pass any [options that
