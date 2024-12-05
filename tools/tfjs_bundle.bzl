@@ -214,7 +214,6 @@ def tfjs_bundle(
             entry_point = entry_point,
             format = "cjs",
             minify = minify,
-            es5 = True,
             external = external,
             globals = globals,
             leave_as_require = leave_as_require,
