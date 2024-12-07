@@ -35,6 +35,8 @@ export const LAYERS_MODELS = [
   'time_distributed_lstm', 'one_dimensional', 'functional_merge'
 ];
 
+export const V3_LAYERS_MODEL = ['mlp'];
+
 export const CONVERT_PREDICT_MODELS = {
   graph_model: [
     'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
