@@ -1070,7 +1070,7 @@ export class MathBackendWebGL extends KernelBackend {
   override floatPrecision(): 16|32 {
     if (this.floatPrecisionValue == null) {
       this.floatPrecisionValue = tidy(() => {
-        if (!env().get('WEBGL_RENDER_FLOAT32_ENABLED')) {
+        if (env().get('WEBGL_RENDER_FLOAT32_ENABLED')) {
           // Momentarily switching DEBUG flag to false so we don't throw an
           // error trying to upload a small value.
           const debugFlag = env().getBool('DEBUG');
