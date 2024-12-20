@@ -403,14 +403,12 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
 function typedArrayFromBuffer(
     buffer: ArrayBuffer, dtype: DataType): backend_util.TypedArray {
   switch (dtype) {
-    case 'float32':
-      return new Float32Array(buffer);
     case 'int32':
       return new Int32Array(buffer);
     case 'bool':
       return new Uint8Array(buffer);
     default:
-      throw new Error(`Unknown dtype ${dtype}`);
+      return new Float32Array(buffer);
   }
 }
 
