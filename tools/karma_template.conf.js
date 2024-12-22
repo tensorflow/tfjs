@@ -25,7 +25,10 @@ const browserstackConfig = {
 };
 
 // Select Chrome or ChromeHeadless based on the value of the --//:headless flag.
-const CHROME = TEMPLATE_headless ? 'ChromeHeadless' : 'Chrome';
+const HEADLESS = TEMPLATE_headless ? [
+  '--headless=new',
+  '--use-mock-keychain', // For MacOS
+] : [];
 
 const CUSTOM_LAUNCHERS = {
   // For browserstack configs see:
@@ -102,29 +105,38 @@ const CUSTOM_LAUNCHERS = {
     ],
   },
   chrome_with_swift_shader: {
-    base: CHROME,
-    flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+    base: 'Chrome',
+    flags: [
+      '--blacklist-accelerated-compositing',
+      '--blacklist-webgl',
+      ...HEADLESS
+    ],
   },
   chrome_autoplay: {
-    base: CHROME,
+    base: 'Chrome',
     flags: [
       '--autoplay-policy=no-user-gesture-required',
       '--no-sandbox',
+      ...HEADLESS,
     ],
   },
   chrome_webgpu_linux: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
       '--enable-features=Vulkan',
       '--enable-unsafe-webgpu',
       '--disable-dawn-features=disallow_unsafe_apis',
+      ...HEADLESS,
     ]
   },
   chrome_webgpu: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
+      '--use-mock-keychain',
+      '--enable-unsafe-webgpu',
       '--disable-dawn-features=disallow_unsafe_apis',
       '--no-sandbox',
+      ...HEADLESS,
     ]
   },
   chrome_debugging: {
@@ -132,8 +144,21 @@ const CUSTOM_LAUNCHERS = {
     flags: ['--remote-debugging-port=9333'],
   },
   chrome_no_sandbox: {
-    base: CHROME,
-    flags: ['--no-sandbox'],
+    base: 'Chrome',
+    flags: [
+      '--no-sandbox',
+      ...HEADLESS,
+    ],
+  },
+  chrome_new_headless: {
+    base: "Chrome",
+    flags: [
+      '--use-mock-keychain',
+      '--enable-unsafe-webgpu',
+      '--no-sandbox',
+      '--headless=new',
+      '--use-webgpu-adapter=swiftshader',
+    ],
   }
 };
 
