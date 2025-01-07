@@ -200,6 +200,18 @@ describeWebGPU('backend webgpu', () => {
     await c3.data();
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
+
+  it('dataToGPU uploads to GPU if the tensor is on CPU', async () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const data = [1,2,3,4,5];
+    const tensor = tf.tensor1d(data);
+    const res = tensor.dataToGPU();
+    expect(res.buffer).toBeDefined();
+    const resData = await webGPUBackend.getBufferData(res.buffer);
+    const values = tf.util.convertBackendValuesAndArrayBuffer(
+      resData, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
+  });
 });
 
 describeWebGPU('backendWebGPU', () => {
