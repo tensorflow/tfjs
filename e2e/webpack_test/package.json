@@ -8,8 +8,8 @@
     "build": "webpack"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-backend-cpu": "link:../../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "4.23.0-rc.0",
+    "@tensorflow/tfjs-backend-cpu": "4.23.0-rc.0",
     "webpack": "^5.76.0",
     "webpack-cli": "^4.7.2"
   }
