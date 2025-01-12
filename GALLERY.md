@@ -74,6 +74,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [chestxray.ai](https://github.com/jordimassaguerpla/chestxray.ai) - X-Ray image of you Chest, and predicts the probability of having any of these 4 diseases:Cardiomegaly,Mass,Pneumotorax,Edema - By Jordi Massaguer Pla. [[repo](https://github.com/jordimassaguerpla/chestxray.ai)]
 - [asanAI](https://asanai.scads.ai/) - A tool to experiment with different layer types, optimizers and so on with default and custom data, fully in the browser, see and visualize results and export to a python-model that can be run locally.
 - [TF.js-TFLite Object Detection](https://github.com/NSTiwari/TFJS-TFLite-Object-Detection) - This project is an implementation of object detection to detect different categories of waste in real-time directly on the browser using the TF.js-TFLite Web API - by [Nitin Tiwari](https://linkedin.com/in/tiwari-nitin).
+- [StraightenUp.ai](https://chromewebstore.google.com/detail/straightenup-ai-ai-postur/nfhoegpkonllcaghgmhdmcpmebmocokf) - A web extension which helps to maintain a healthy posture while using a computer. - by [Maciej Jalocha](https://www.linkedin.com/in/maciejjalocha/)
 
 ## Tutorials / Codelabs
 
