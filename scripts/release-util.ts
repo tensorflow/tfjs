@@ -264,6 +264,16 @@ export function $async(cmd: string,
   });
 }
 
+export async function promiseTimeout<T>(promise: Promise<T>, ms=10_000,
+                                        error?: Error): Promise<T> {
+  return Promise.race([promise, new Promise<T>((_resolve, reject) => {
+    setTimeout(
+        () => reject(error ?? new Error(`Timed out after ${ms/1000} seconds`)),
+        ms
+    );
+  })]);
+}
+
 export function printReleaseUnit(releaseUnit: ReleaseUnit, id: number) {
   console.log(chalk.green(`Release unit ${id}:`));
   console.log(` packages: ${
@@ -464,8 +474,14 @@ export function createPR(
  *
  * @return A string of all the issues. Empty if there are none.
  */
-export function getReleaseBlockers() {
-  return $('hub issue -l "RELEASE BLOCKER"');
+export async function getReleaseBlockers() {
+  const timeout = 20_000;
+  return promiseTimeout($async('hub issue -l "RELEASE BLOCKER"'), timeout,
+                        new Error('Failed to list github issues with \'hub\' '
+        + `after ${timeout} seconds. Make sure you have a github `
+        + 'token set in your environment (\'echo $GITHUB_TOKEN\' should print '
+        + 'something). If you don\'t have one, create one at '
+        + 'github.com/settings/tokens/'));
 }
 
 // Computes the default updated version (does a patch version update).
