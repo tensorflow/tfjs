@@ -114,6 +114,7 @@ export class EarlyStopping extends Callback {
   private stoppedEpoch: number;
   private best: number;
   private bestWeights: Tensor[];
+  bestEpoch: number;
 
   constructor(args?: EarlyStoppingCallbackArgs) {
     super();
@@ -129,6 +130,7 @@ export class EarlyStopping extends Callback {
     this.baseline = args.baseline;
     this.restoreBestWeights = args.restoreBestWeights || false;
     this.bestWeights = [];
+    this.bestEpoch = 0;
 
     if (['auto', 'min', 'max'].indexOf(this.mode) === -1) {
       console.warn(
@@ -179,6 +181,7 @@ export class EarlyStopping extends Callback {
       if (this.restoreBestWeights) {
         this.bestWeights.forEach(tensor => tensor.dispose());
         this.bestWeights = this.model.getWeights().map(w => w.clone());
+        this.bestEpoch = epoch;
       }
     } else {
       this.wait++;
@@ -195,6 +198,8 @@ export class EarlyStopping extends Callback {
     }
 
     if (this.restoreBestWeights && this.bestWeights.length > 0) {
+      console.log(`Restoring model weights from the end of the best epoch: ${
+          this.bestEpoch}`);
       this.model.setWeights(this.bestWeights);
     }
   }
