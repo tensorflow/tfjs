@@ -167,7 +167,6 @@ export class EarlyStopping extends Callback {
     }
   }
 
-
   override async onEpochEnd(epoch: number, logs?: Logs) {
     await resolveScalarsInLogs(logs);
     const current = this.getMonitorValue(logs);
