@@ -178,7 +178,7 @@ export class EarlyStopping extends Callback {
       this.wait = 0;
       if (this.restoreBestWeights) {
         this.bestWeights.forEach(tensor => tensor.dispose());
-        this.bestWeights = this.model.getWeights();
+        this.bestWeights = this.model.getWeights().map(w => w.clone());
       }
     } else {
       this.wait++;
