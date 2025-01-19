@@ -128,6 +128,7 @@ export class EarlyStopping extends Callback {
     this.mode = args.mode || 'auto';
     this.baseline = args.baseline;
     this.restoreBestWeights = args.restoreBestWeights || false;
+    this.bestWeights = [];
 
     if (['auto', 'min', 'max'].indexOf(this.mode) === -1) {
       console.warn(
@@ -152,8 +153,6 @@ export class EarlyStopping extends Callback {
     if (this.monitorFunc === less) {
       this.minDelta *= -1;
     }
-
-    this.bestWeights = null;
   }
 
   override async onTrainBegin(logs?: Logs) {
@@ -165,6 +164,7 @@ export class EarlyStopping extends Callback {
       this.best = this.monitorFunc === less ? Infinity : -Infinity;
     }
   }
+
 
   override async onEpochEnd(epoch: number, logs?: Logs) {
     await resolveScalarsInLogs(logs);
@@ -194,7 +194,7 @@ export class EarlyStopping extends Callback {
       console.log(`Epoch ${this.stoppedEpoch}: early stopping.`);
     }
 
-    if (this.restoreBestWeights && this.bestWeights != null) {
+    if (this.restoreBestWeights && this.bestWeights.length > 0) {
       this.model.setWeights(this.bestWeights);
     }
   }
