@@ -10,11 +10,12 @@
 
 /* Original source: keras/callbacks.py */
 
+import {Tensor} from '@tensorflow/tfjs-core';
+
 import {BaseCallback} from './base_callbacks';
 import {Container} from './engine/container';
 import {LayersModel} from './engine/training';
 import {Logs, resolveScalarsInLogs} from './logs';
-import { Tensor } from '@tensorflow/tfjs-core';
 
 export abstract class Callback extends BaseCallback {
   /** Instance of `keras.models.Model`. Reference of the model being trained. */
