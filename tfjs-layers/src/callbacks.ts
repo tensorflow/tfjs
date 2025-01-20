@@ -114,7 +114,7 @@ export class EarlyStopping extends Callback {
   private stoppedEpoch: number;
   private best: number;
   private bestWeights: Tensor[];
-  bestEpoch: number;
+  private bestEpoch: number;
 
   constructor(args?: EarlyStoppingCallbackArgs) {
     super();
