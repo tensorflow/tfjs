@@ -103,7 +103,7 @@ class BundleResourceHandler implements io.IOHandler {
           if (Platform.OS === 'android') {
             // On android we get a resource id instead of a regular path. We
             // need to load the weights from the res/raw folder using this id.
-            const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
+            const fileName = weightsAsset.uri ? `${weightsAsset.uri}.${weightsAsset.type}` : weightsAsset.localUri;
             try {
               base64Weights = await RNFS.readFileRes(fileName, 'base64');
             } catch (e) {
@@ -114,7 +114,7 @@ class BundleResourceHandler implements io.IOHandler {
             }
           } else {
             try {
-              base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
+              base64Weights = await RNFS.readFile(weightsAsset.uri ?? weightsAsset.localUri, 'base64');
             } catch (e) {
               throw new Error(
                   `Error reading resource ${weightsAsset.uri}.`,
