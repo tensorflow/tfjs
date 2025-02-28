@@ -13,6 +13,7 @@
     "@rollup/plugin-commonjs": "^24.1.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@types/argparse": "^1.0.38",
+    "@types/dom-webcodecs": "0.1.4",
     "@types/emscripten": "~0.0.34",
     "@types/estree": "^0.0.51",
     "@types/inquirer": "^8.0.0",
@@ -28,7 +29,6 @@
     "@types/seedrandom": "^2.4.28",
     "@types/semver": "^7.3.9",
     "@types/shelljs": "^0.8.7",
-    "@types/dom-webcodecs": "0.1.4",
     "@webgpu/types": "0.1.48",
     "ajv": "~6.12.3",
     "argparse": "^1.0.10",
@@ -107,5 +107,6 @@
   },
   "resolutions": {
     "minimist": "1.2.6"
-  }
+  },
+  "packageManager": "yarn@4.5.3+sha512.3003a14012e2987072d244c720506549c1aab73ee728208f1b2580a9fd67b92d61ba6b08fe93f6dce68fd771e3af1e59a0afa28dd242dd0940d73b95fedd4e90"
 }

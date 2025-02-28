@@ -33,6 +33,8 @@ export interface TFJSBinding {
   TensorMetadata: typeof TensorMetadata;
   TFEOpAttr: typeof TFEOpAttr;
 
+  loadPluggableDeviceLibrary(libPath: string): void;
+
   // Creates a tensor with the backend.
   createTensor(
       shape: number[], dtype: number,

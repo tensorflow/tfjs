@@ -27,6 +27,7 @@
 #include "tensorflow/c/tf_datatype.h"
 #include "tensorflow/c/tf_status.h"
 #include "tensorflow/c/tf_tensor.h"
+#include "tensorflow/c/c_api_experimental.h"
 #include "tensorflow/core/platform/ctstring_internal.h"
 #include "tf_auto_tensor.h"
 #include "tfe_auto_op.h"
@@ -716,6 +717,17 @@ TFJSBackend::~TFJSBackend() {
 }
 
 TFJSBackend *TFJSBackend::Create(napi_env env) { return new TFJSBackend(env); }
+
+void TFJSBackend::LoadPluggableDeviceLibrary(napi_env env, napi_value lib_path_value) {
+  std::string lib_path;
+  napi_status nstatus = GetStringParam(env, lib_path_value, lib_path);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  TF_AutoStatus tf_status;
+  TF_LoadPluggableDeviceLibrary(lib_path.c_str(), tf_status.status);
+
+  ENSURE_TF_OK(env, tf_status);
+}
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
   return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
