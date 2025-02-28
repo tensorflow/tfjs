@@ -689,6 +689,10 @@ TFJSBackend::TFJSBackend(napi_env env)
       device_name =
           std::string(TF_DeviceListName(device_list, i, tf_status.status));
       ENSURE_TF_OK(env, tf_status);
+    } else if (strcmp(device_type, "XPU") == 0) {
+      device_name =
+          std::string(TF_DeviceListName(device_list, i, tf_status.status));
+      ENSURE_TF_OK(env, tf_status);
     }
   }
 
