@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+#    runs-on: ubuntu-latest
+    runs-on: macos-latest-xlarge # consumer gpu
     steps:
       - uses: actions/checkout@v4
       - name: Test TFJS CPU
