@@ -109,10 +109,17 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac_webgpu",
     ],
-    local_browser = select({
-        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
-        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
-        "//conditions:default": "chrome_webgpu",
-    }),
+    # local_browser = select({
+    #     "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+    #     "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+    #     "//conditions:default": "chrome_webgpu",
+    # }),
     static_files = STATIC_FILES,
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-webgpu_test",
+    ],
 )

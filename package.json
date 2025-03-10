@@ -80,6 +80,8 @@
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
     "test": "bazel test //:tests",
+    "test-cpu": "bazel test //:test_cpu",
+    "test-gpu": "bazel test //:test_gpu",
     "build": "cd link-package && yarn build",
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
     "nightly-cloudbuild": "NIGHTLY=true yarn generate-cloudbuild-for-packages && gcloud builds submit . --config=cloudbuild_generated.yml --substitutions=_NIGHTLY=true",
