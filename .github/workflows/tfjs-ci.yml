@@ -36,3 +36,16 @@ jobs:
       - run: yarn install
       - run: yarn test-gpu
     
+  test-gpu-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test TFJS GPU
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      - run: npm i -g yarn
+      - run: yarn install
+      - run: yarn test-gpu
+    
