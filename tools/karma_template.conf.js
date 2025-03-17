@@ -120,7 +120,7 @@ const CUSTOM_LAUNCHERS = {
     ],
   },
   chrome_webgpu_linux: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
       '--enable-features=Vulkan',
       '--enable-unsafe-webgpu',
@@ -129,7 +129,7 @@ const CUSTOM_LAUNCHERS = {
     ]
   },
   chrome_webgpu: {
-    base: 'ChromeCanary',
+    base: 'Chrome',
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
       '--no-sandbox',
