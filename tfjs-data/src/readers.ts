@@ -188,6 +188,8 @@ export function func<T extends TensorContainer>(
  *
  * @param generator A JavaScript function that returns
  *     a (potentially async) JavaScript iterator.
+ * @param size The total number of elements the generator
+ *     is expected to return.
  *
  * @doc {
  *   heading: 'Data',
