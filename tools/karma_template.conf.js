@@ -37,6 +37,7 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra',
     flags: [
+      '--use-mock-keychain',
       // For tfjs-data
       '--autoplay-policy=no-user-gesture-required',
     ],
@@ -96,6 +97,7 @@ const CUSTOM_LAUNCHERS = {
     flags: [
       '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
       '--use-webgpu-adapter=swiftshader',
+      '--use-mock-keychain',
 
       // https://github.com/tensorflow/tfjs/issues/7631
       '--disable-vulkan-fallback-to-gl-for-testing',
@@ -103,13 +105,18 @@ const CUSTOM_LAUNCHERS = {
   },
   chrome_with_swift_shader: {
     base: CHROME,
-    flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+    flags: [
+      '--blacklist-accelerated-compositing',
+      '--blacklist-webgl',
+      '--use-mock-keychain',
+    ]
   },
   chrome_autoplay: {
     base: CHROME,
     flags: [
       '--autoplay-policy=no-user-gesture-required',
       '--no-sandbox',
+      '--use-mock-keychain',
     ],
   },
   chrome_webgpu_linux: {
@@ -118,6 +125,7 @@ const CUSTOM_LAUNCHERS = {
       '--enable-features=Vulkan',
       '--enable-unsafe-webgpu',
       '--disable-dawn-features=disallow_unsafe_apis',
+      '--use-mock-keychain',
     ]
   },
   chrome_webgpu: {
@@ -125,15 +133,22 @@ const CUSTOM_LAUNCHERS = {
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
       '--no-sandbox',
+      '--use-mock-keychain',
     ]
   },
   chrome_debugging: {
     base: 'Chrome',
-    flags: ['--remote-debugging-port=9333'],
+    flags: [
+      '--remote-debugging-port=9333',
+      '--use-mock-keychain',
+    ],
   },
   chrome_no_sandbox: {
     base: CHROME,
-    flags: ['--no-sandbox'],
+    flags: [
+      '--no-sandbox',
+      '--use-mock-keychain',
+    ],
   }
 };
 
