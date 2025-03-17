@@ -54,7 +54,7 @@ test_suite(
         "//tfjs-backend-cpu:tests",
         "//tfjs-backend-wasm:tests",
         "//tfjs-converter:tests",
-        #        "//tfjs-core:tests",
+        "//tfjs-core:tests",
         "//tfjs-data:tests",
         "//tfjs-tfdf:tests",
         "//tfjs-tflite:tests",
@@ -64,10 +64,9 @@ test_suite(
 test_suite(
     name = "tests_gpu",
     tests = [
-        # "//tfjs-backend-webgl:tests",
-        # "//tfjs-backend-webgpu:tests",
-        # "//tfjs-layers:tests",
-        "//tfjs-core:tests",
+        "//tfjs-backend-webgl:tests",
+        "//tfjs-backend-webgpu:tests",
+        "//tfjs-layers:tests",
     ],
 )
 
