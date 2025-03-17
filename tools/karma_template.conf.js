@@ -120,7 +120,7 @@ const CUSTOM_LAUNCHERS = {
     ],
   },
   chrome_webgpu_linux: {
-    base: 'Chrome',
+    base: 'ChromeHeadless',
     flags: [
       '--enable-features=Vulkan',
       '--enable-unsafe-webgpu',
