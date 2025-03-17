@@ -198,11 +198,12 @@ export function func<T extends TensorContainer>(
  */
 export function generator<T extends TensorContainer>(
   generator: () => Iterator<T> | Promise<Iterator<T>> | AsyncIterator<T>,
+  size: number = null,
 ): Dataset<T> {
   return datasetFromIteratorFn(async () => {
     const gen = await generator();
     return iteratorFromFunction(() => gen.next());
-  });
+  }, size);
 }
 
 /**
