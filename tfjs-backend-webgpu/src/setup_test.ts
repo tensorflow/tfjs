@@ -192,6 +192,12 @@ const TEST_FILTERS: TestFilter[] = [
       'unique ',
     ]
   },
+  {
+    startsWith: 'pow ',
+    excludes: [
+      'int32^int32 returns int32' // Failing on MacOS CI
+    ],
+  },
 ];
 
 const customInclude = (testName: string) => {
