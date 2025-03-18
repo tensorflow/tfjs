@@ -193,7 +193,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'pow ',
+    startsWith: 'pow',
     excludes: [
       'int32^int32 returns int32' // Failing on MacOS CI
     ],
