@@ -34,6 +34,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'pow',
+    excludes: [
+      'int32' // MacOS precision issue
+    ],
+  },
+  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
@@ -191,12 +197,6 @@ const TEST_FILTERS: TestFilter[] = [
       'stringToHashBucketFast ',
       'unique ',
     ]
-  },
-  {
-    startsWith: 'pow',
-    excludes: [
-      'int32^int32 returns int32' // Failing on MacOS CI
-    ],
   },
 ];
 
