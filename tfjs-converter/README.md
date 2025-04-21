@@ -26,14 +26,14 @@ __0. Please make sure that you run in a Docker container or a virtual environmen
 
 __Note__: *Check that [`tf-nightly-cpu-2.0-preview`](https://pypi.org/project/tf-nightly-cpu-2.0-preview/#files) is available for your platform.*
 
-Most of the times, this means that you have to use Python 3.6.8 in your local
-environment. To force Python 3.6.8 in your local project, you can install
+Most of the times, this means that you have to use Python 3.7.10 in your local
+environment. To force Python 3.7.10 in your local project, you can install
 [`pyenv`](https://github.com/pyenv/pyenv) and proceed as follows in the target
 directory:
 
 ```bash
-pyenv install 3.6.8
-pyenv local 3.6.8
+pyenv install 3.7.10
+pyenv local 3.7.10
 ```
 
 Now, you can
