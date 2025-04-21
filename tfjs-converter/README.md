@@ -41,7 +41,7 @@ Now, you can
 a `venv` virtual environment in your current folder:
 
 ```bash
-virtualenv --no-site-packages venv
+virtualenv venv
 . venv/bin/activate
 ```
 
