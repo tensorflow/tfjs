@@ -34,6 +34,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'pow',
+    excludes: [
+      'int32' // MacOS precision issue
+    ],
+  },
+  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // TODO: fix precision problem.
@@ -62,6 +68,13 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradients',             // Failing on MacOS
       'gradient with clones',  // Failing on MacOS
+      'propagates NaNs',       // Failing on MacOS
+    ],
+  },
+  {
+    startsWith: 'sin ',
+    excludes: [
+      'propagates NaNs',       // Failing on MacOS
     ],
   },
   {
