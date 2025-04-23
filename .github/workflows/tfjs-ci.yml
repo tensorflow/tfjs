@@ -1,0 +1,54 @@
+name: TFJS Continuous Integration
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}-cpu
+          # Share repository cache between workflows.
+          repository-cache: true
+      - uses: actions/checkout@v4
+      - name: Test TFJS CPU
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      - run: npm i -g yarn
+      - run: yarn install
+      - run: yarn test-cpu
+
+  test-gpu-mac:
+    runs-on: macos-latest-xlarge # consumer gpu
+    steps:
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          # Avoid downloading Bazel every time.
+          bazelisk-cache: true
+          # Store build cache per workflow.
+          disk-cache: ${{ github.workflow }}-gpu-mac
+          # Share repository cache between workflows.
+          repository-cache: true
+      - uses: actions/checkout@v4
+      - name: Test TFJS GPU
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      - run: npm i -g yarn
+      - run: yarn install
+      - run: yarn test-gpu
