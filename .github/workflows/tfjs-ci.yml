@@ -2,9 +2,9 @@ name: TFJS Continuous Integration
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 permissions:
