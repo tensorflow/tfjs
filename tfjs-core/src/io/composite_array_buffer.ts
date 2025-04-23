@@ -91,7 +91,7 @@ export class CompositeArrayBuffer {
       start = end;
     }
 
-    // Set the byteLenghth
+    // Set the byteLength
     if (this.shards.length === 0) {
       this.byteLength = 0;
     }

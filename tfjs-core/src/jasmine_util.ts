@@ -105,7 +105,7 @@ export interface TestFilter {
  *     Tests that have the substrings specified by the include or startsWith
  *     will be included in the test run, unless one of the substrings specified
  *     by `excludes` appears in the name.
- * @param customInclude Function to programatically include a test.
+ * @param customInclude Function to programmatically include a test.
  *     If this function returns true, a test will immediately run. Otherwise,
  *     `testFilters` is used for fine-grained filtering.
  *
@@ -124,7 +124,7 @@ export function setupTestFilters(
    * Filter method that returns boolean, if a given test should run or be
    * ignored based on its name. The exclude list has priority over the
    * include list. Thus, if a test matches both the exclude and the include
-   * list, it will be exluded.
+   * list, it will be excluded.
    */
   // tslint:disable-next-line: no-any
   const specFilter = (spec: any) => {

@@ -324,7 +324,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  * The following GitHub Gist
  * https://gist.github.com/dsmilkov/1b6046fd6132d7408d5257b0976f7864
  * implements a server based on [flask](https://github.com/pallets/flask) that
- * can receive the request. Upon receiving the model artifacts via the requst,
+ * can receive the request. Upon receiving the model artifacts via the request,
  * this particular server reconstitutes instances of [Keras
  * Models](https://keras.io/models/model/) in memory.
  *

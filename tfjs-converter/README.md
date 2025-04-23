@@ -17,7 +17,7 @@ using an already hosted model (e.g. MobileNet), skip this step.
 2. [JavaScript API](./src/executor/graph_model.ts), for loading and running
 inference.
 
-## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting_started/faq/#what-are-my-options-for-saving-models), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/keras/saving/save_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
+## Step 1: Converting a [TensorFlow SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [TensorFlow Hub module](https://www.tensorflow.org/hub/), [Keras HDF5](https://keras.io/getting_started/faq/#what-are-my-options-for-saving-models), [tf.keras SavedModel](https://www.tensorflow.org/api_docs/python/tf/keras/models/save_model), or [Flax/JAX model](http://github.com/google/flax) to a web-friendly format
 
 __0. Please make sure that you run in a Docker container or a virtual environment.__
 
@@ -26,14 +26,14 @@ __0. Please make sure that you run in a Docker container or a virtual environmen
 
 __Note__: *Check that [`tf-nightly-cpu-2.0-preview`](https://pypi.org/project/tf-nightly-cpu-2.0-preview/#files) is available for your platform.*
 
-Most of the times, this means that you have to use Python 3.6.8 in your local
-environment. To force Python 3.6.8 in your local project, you can install
+Most of the times, this means that you have to use Python 3.7.10 in your local
+environment. To force Python 3.7.10 in your local project, you can install
 [`pyenv`](https://github.com/pyenv/pyenv) and proceed as follows in the target
 directory:
 
 ```bash
-pyenv install 3.6.8
-pyenv local 3.6.8
+pyenv install 3.7.10
+pyenv local 3.7.10
 ```
 
 Now, you can
@@ -41,7 +41,7 @@ Now, you can
 a `venv` virtual environment in your current folder:
 
 ```bash
-virtualenv --no-site-packages venv
+virtualenv venv
 . venv/bin/activate
 ```
 
@@ -319,7 +319,7 @@ jax_conversion.convert_jax(
 ```
 
 See
-[here](https://github.com/google/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
+[here](https://github.com/jax-ml/jax/tree/main/jax/experimental/jax2tf#shape-polymorphic-conversion)
 for more details on the exact syntax for this argument.
 
 When converting JAX models, you can also pass any [options that

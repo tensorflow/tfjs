@@ -45,6 +45,21 @@ describeAllEnvs('readers', () => {
     expect(result).toEqual([0, 1, 2, 3, 4]);
   });
 
+  it('generate dataset from async generator', async () => {
+    async function* dataGenerator() {
+      const numElements = 5;
+      let index = 0;
+      while (index < numElements) {
+        const x = index;
+        index++;
+        yield x;
+      }
+    }
+    const ds = tfd.generator(dataGenerator);
+    const result = await ds.toArrayForTest();
+    expect(result).toEqual([0, 1, 2, 3, 4]);
+  });
+
   it('generate multiple datasets from JavaScript generator', async () => {
     function* dataGenerator() {
       const numElements = 5;

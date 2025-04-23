@@ -73,8 +73,8 @@ const reshapeDispatch =
      program: webgpu_program.WebGPUProgram): [number, number, number] => {
       const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
           device.limits.maxComputeWorkgroupsPerDimension;
-      const layout = program['dispatchLayout'];
-      const dispatch = program['dispatch'];
+      const layout = program.dispatchLayout;
+      const dispatch = program.dispatch;
       if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
         return dispatch;
       }
@@ -594,8 +594,9 @@ export class WebGPUBackend extends KernelBackend {
    * @param dataId The source tensor.
    */
   override readToGPU(dataId: DataId): GPUData {
-    const srcTensorData = this.tensorMap.get(dataId);
-    const {values, dtype, shape, resource} = srcTensorData;
+    let srcTensorData = this.tensorMap.get(dataId);
+    const {values, dtype, shape} = srcTensorData;
+    let resource = srcTensorData.resource;
 
     if (dtype === 'complex64') {
       throw new Error('Does not support reading buffer for complex64 dtype.');
@@ -603,7 +604,9 @@ export class WebGPUBackend extends KernelBackend {
 
     if (resource == null) {
       if (values != null) {
-        throw new Error('Data is not on GPU but on CPU.');
+        this.uploadToGPU(dataId);
+        srcTensorData = this.tensorMap.get(dataId);
+        resource = srcTensorData.resource;
       } else {
         throw new Error('There is no data on GPU or CPU.');
       }
@@ -691,8 +694,8 @@ export class WebGPUBackend extends KernelBackend {
     };
 
     const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-    res['kernelMs'] = util.sum(kernelMs);
-    res['getExtraProfileInfo'] = () =>
+    res.kernelMs = util.sum(kernelMs);
+    res.getExtraProfileInfo = () =>
         kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
             .map(d => `${d.name}: ${d.ms}`)
             .join(', ');

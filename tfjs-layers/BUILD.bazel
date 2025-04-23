@@ -55,10 +55,15 @@ tfjs_web_test(
         # disabled android test due to training flakiness
         # "bs_android_10",
         "win_10_chrome",
-        "bs_ios_15",
+        "bs_ios_17",
     ],
     headless = False,
     seed = "12345",
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
@@ -79,6 +84,11 @@ tfjs_web_test(
     ],
     headless = False,
     seed = "12345",
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
