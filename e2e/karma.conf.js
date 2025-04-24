@@ -40,6 +40,7 @@ if (coverageEnabled) {
 }
 
 const devConfig = {
+  singleRun: true,
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
     {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
