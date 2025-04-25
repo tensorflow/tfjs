@@ -133,7 +133,7 @@ async function main() {
   if (args.force) {
     console.warn('Ignoring any potential release blockerse due to \'--force\'');
   } else {
-    const blockers = getReleaseBlockers();
+    const blockers = await getReleaseBlockers();
     if (blockers) {
       throw new Error(`Can not release due to release blockers:\n ${blockers}`);
     }
