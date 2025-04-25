@@ -44,8 +44,8 @@ build:bes --config=remote --bes_backend="buildeventservice.googleapis.com" --bes
 build:rbe --config=remote
 
 # Config for Google Cloud continuous integration that uses default credentials.
-# Disabled for now
-# build:ci --config=bes
+build:ci --config=bes
+
 
 # This flag is needed to prevent the bazel cache from being invalidated when
 # running bazel via `yarn bazel`.
