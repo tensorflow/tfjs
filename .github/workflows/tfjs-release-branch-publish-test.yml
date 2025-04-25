@@ -1,4 +1,4 @@
-name: TFJS NPM Publish Test
+name: TFJS Release Branch Publish Test
 
 on:
   pull_request:
