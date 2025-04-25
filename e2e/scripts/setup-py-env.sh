@@ -38,7 +38,11 @@ fi
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating venv at ${VENV_DIR} ..."
-python3 -m venv "${VENV_DIR}"
+if ! which virtualenv > /dev/null 2>&1; then
+  python3 -m venv "${VENV_DIR}"
+else
+  virtualenv -p python3 "${VENV_DIR}"
+fi
 source "${VENV_DIR}/bin/activate"
 
 # Install python packages.
