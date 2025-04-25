@@ -149,7 +149,7 @@ module.exports = function(config) {
       'spec',
       'jasmine-order',
     ],
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
