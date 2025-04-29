@@ -170,7 +170,7 @@ export class Environment {
       const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
       keyValues.forEach(keyValue => {
         const [key, value] = keyValue.split(':') as [string, string];
-        this.urlFlags[key] = parseValue(key, value);
+        this.urlFlags[key] = parseValue(value);
       });
     }
   }
@@ -190,7 +190,7 @@ function decodeParam(
   params[decodeURIComponent(name)] = decodeURIComponent(value || '');
 }
 
-function parseValue(flagName: string, value: string): FlagValue {
+function parseValue(value: string): FlagValue {
   const lowerCaseValue = value.toLowerCase();
   if (lowerCaseValue === 'true' || lowerCaseValue === 'false') {
     return lowerCaseValue === 'true';
