@@ -72,7 +72,7 @@
     "@tensorflow/tfjs-backend-cpu": "^4.13.0",
     "@tensorflow/tfjs-backend-webgl": "^4.13.0",
     "@tensorflow/tfjs-core": "^4.13.0",
-    "expo-camera": "^13.4.4",
+    "expo-camera": "*",
     "expo-gl": "^13.0.1",
     "react": "*",
     "react-native": ">= 0.72.0",
