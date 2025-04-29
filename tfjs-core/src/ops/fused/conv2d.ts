@@ -180,7 +180,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     // scalar.
     //
     // 3-D or 4-D bias is not disabled for NHWC format, because they are
-    // currently being used in some cases. For examplem in our code base,
+    // currently being used in some cases. For example, in our code base,
     // https://github.com/tensorflow/tfjs/blob/b53bd47e880367ae57493f0ea628abaf08db2d5d/tfjs-core/src/ops/fused/fused_conv2d_test.ts#L1972.
     if (dataFormat === 'NHWC') {
       broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
