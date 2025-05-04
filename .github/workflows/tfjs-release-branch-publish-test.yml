@@ -1,0 +1,42 @@
+name: TFJS Release Branch Publish Test
+
+on:
+  pull_request:
+    branches:
+      - 'tfjs_**' # Matches branches starting with tfjs_, e.g., tfjs_1.2.3, tfjs_core
+  workflow_dispatch: # Allows manual triggering
+
+permissions:
+  contents: read # Default permissions, adjust if the script needs to write to the repo
+
+jobs:
+  release_e2e_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-release-e2e
+          repository-cache: true
+
+      - name: Setup Node.js and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'yarn' # Changed from 'npm' in example to 'yarn' as primary tool here
+
+      - name: Install Yarn globally (if not already cached by setup-node with yarn cache)
+        run: npm i -g yarn
+
+      - name: Install top-level dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run E2E Release Script
+        working-directory: ./e2e # Sets the directory for this step
+        env:
+          RELEASE: 'true' # Set RELEASE to true as requested
+        run: bash ./scripts/release-e2e.sh

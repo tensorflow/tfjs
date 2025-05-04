@@ -1,0 +1,52 @@
+name: TFJS Nightly Release and Publish Test
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # Runs daily at 5:00 AM UTC
+  workflow_dispatch: # Allows manual triggering
+
+permissions:
+  contents: read # Default permissions, adjust if the script needs to write to the repo
+
+jobs:
+  nightly_release_verification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-nightly-release
+          repository-cache: true
+
+      - name: Setup Node.js and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x # Using a current LTS version of Node.js
+          cache: 'yarn'
+
+      - name: Install Yarn globally (if not already cached by setup-node with yarn cache)
+        run: npm i -g yarn
+
+      - name: Install top-level dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run Nightly Verdaccio Test Script
+        env:
+          RELEASE: 'true' # Set RELEASE to true as in the original config
+        run: |
+          set -eEuo pipefail
+          yarn release-tfjs --dry --guess-version release --use-local-changes --force
+          # The original script changes directory to a temporary location created by the release script.
+          # This assumes /tmp/ is accessible and the path structure is consistent.
+          # If release-e2e.sh is relative to the checkout root after the release script prep, adjust path.
+          if [ -d "/tmp/tfjs-release/tfjs/e2e/" ]; then
+            cd /tmp/tfjs-release/tfjs/e2e/
+            bash scripts/release-e2e.sh
+          else
+            echo "Error: Expected directory /tmp/tfjs-release/tfjs/e2e/ not found after release script."
+            exit 1
+          fi
