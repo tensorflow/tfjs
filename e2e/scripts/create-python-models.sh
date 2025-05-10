@@ -23,9 +23,14 @@ cd integration_tests
 
 source ../scripts/setup-py-env.sh --dev
 
-parallel ::: 'echo "Load equivalent keras models and generate outputs." && python create_save_predict.py' \
-  'echo "Create saved models and convert." && python convert_predict.py' \
-  'echo "Convert model with user defined metadata." && python metadata.py'
+echo "Load equivalent keras models and generate outputs."
+python create_save_predict.py
+
+echo "Create saved models and convert."
+python convert_predict.py
+
+echo "Convert model with user defined metadata."
+python metadata.py
 
 # Cleanup python env.
 source ../scripts/cleanup-py-env.sh

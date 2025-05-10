@@ -40,6 +40,7 @@ if (coverageEnabled) {
 }
 
 const devConfig = {
+  singleRun: true,
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
     {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
@@ -148,7 +149,7 @@ module.exports = function(config) {
       'spec',
       'jasmine-order',
     ],
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,

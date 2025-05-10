@@ -15,12 +15,20 @@
 # limitations under the License.
 # ==============================================================================
 
+set -e
+
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
+
 
 # Go to e2e root
 cd ..
 
-parallel ::: 'cd custom_module/blazeface && ./build.sh' \
-  'cd custom_module/dense_model && ./build.sh' \
-  'cd custom_module/universal_sentence_encoder && ./build.sh'
+echo "Building blazeface..."
+(cd custom_module/blazeface && ./build.sh)
+
+echo "Building dense_model..."
+(cd custom_module/dense_model && ./build.sh)
+
+echo "Building universal_sentence_encoder..."
+(cd custom_module/universal_sentence_encoder && ./build.sh)
