@@ -28,6 +28,7 @@ module.exports = function(config) {
 
   const devConfig = {
     frameworks: ['jasmine'],
+    singleRun: true,
     files: [
       {
         pattern: coreBundlePath,
