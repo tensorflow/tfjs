@@ -698,3 +698,129 @@ describeWebGPU('create tensor from GPUBuffer', () => {
 describeWebGPU('create tensor from GPUBuffer with zero copy', () => {
   createTensorFromGPUTest(true);
 });
+
+describeWebGPU('getShader ', () => {
+  const conv2dSpec = {
+    'name': 'conv2d',
+    'inputs': [
+      {'shape': [4, 4, 1], 'dtype': 'float32'},
+      {'shape': [1, 1, 1, 3], 'dtype': 'float32'}
+    ],
+    'args': [[2, 2], 'same', 'NHWC', [1, 1]]
+  };
+
+  // Optional dataFormat, dilations is not provided.
+  const conv2dSpec2 = {
+    'name': 'conv2d',
+    'inputs': [
+      {'shape': [4, 4, 1], 'dtype': 'float32'},
+      {'shape': [1, 1, 1, 3], 'dtype': 'float32'}
+    ],
+    'args': [[2, 2], 'same']
+  };
+
+  // Required padding is not provided.
+  const incompleteConv2dSpec = {
+    'name': 'conv2d',
+    'inputs': [
+      {'shape': [4, 4, 1], 'dtype': 'float32'},
+      {'shape': [1, 1, 1, 3], 'dtype': 'float32'}
+    ],
+    'args': [[2, 2]]
+  };
+
+  const addSpec = {
+    'name': 'add',
+    'inputs':
+        [{'shape': [6], 'dtype': 'float32'}, {'shape': [6], 'dtype': 'float32'}]
+  };
+
+  const addSpec2 = {'name': 'add', 'inputs': [{'shape': [6]}, {'shape': [6]}]};
+
+  const sinSpec = {
+    'name': 'sin',
+    'inputs': [{'shape': [6], 'dtype': 'float32'}]
+  };
+
+  const opNotExistSpec = {
+    'name': 'opNotExist',
+    'inputs': [{'shape': [6]}, {'shape': [6]}]
+  };
+
+  const incompleteSpec = {'name': 'add'};
+
+  it('get shader of a single operator', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const startNumTensors = tf.memory().numTensors;
+    let shader = webGPUBackend.getShader(conv2dSpec);
+    // conv2d is done by two shaders.
+    expect(shader.length).toEqual(2);
+
+    shader = webGPUBackend.getShader(addSpec);
+    expect(shader.length).toEqual(1);
+
+    shader = webGPUBackend.getShader(addSpec2);
+    expect(shader.length).toEqual(1);
+
+    shader = webGPUBackend.getShader(sinSpec);
+    expect(shader.length).toEqual(1);
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumTensors - startNumTensors).toEqual(0);
+  });
+
+  it('get shader of multiple operators', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const startNumTensors = tf.memory().numTensors;
+    const inputSpecs = [];
+    inputSpecs.push(addSpec);
+    inputSpecs.push(addSpec);
+    inputSpecs.push(addSpec2);
+    inputSpecs.push(sinSpec);
+    inputSpecs.push(conv2dSpec);
+    const shader = webGPUBackend.getShader(inputSpecs);
+    expect(shader.length).toEqual(4);
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumTensors - startNumTensors).toEqual(0);
+  });
+
+  it('get shader works when optional parameter is not provided', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const startNumTensors = tf.memory().numTensors;
+    const shader = webGPUBackend.getShader(conv2dSpec2);
+    expect(shader.length).toEqual(2);
+    const endNumTensors = tf.memory().numTensors;
+    expect(endNumTensors - startNumTensors).toEqual(0);
+  });
+
+  it('get shader will throw when required parameter is not provided', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    expect(() => webGPUBackend.getShader(incompleteConv2dSpec)).toThrowError();
+  });
+
+  it('get shader of non existing op will throw', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    expect(() => webGPUBackend.getShader(opNotExistSpec)).toThrowError();
+  });
+
+  it('get shader with incomplete input spec will throw', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    expect(() => webGPUBackend.getShader(incompleteSpec)).toThrowError();
+  });
+
+  it('get shader without input spec will throw', () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    expect(() => webGPUBackend.getShader(null)).toThrowError();
+  });
+
+  it('should work after get shader', async () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const shader = webGPUBackend.getShader(addSpec);
+    expect(shader.length).toEqual(1);
+
+    const a = tf.tensor1d([1, 2, 3, 4, 5, 6], 'int32');
+    const b = tf.tensor1d([1, 2, 3, 4, 5, 6], 'int32');
+    const c = tf.add(a, b);
+    const expected = [2, 4, 6, 8, 10, 12];
+    expectArraysEqual(await c.data(), expected);
+  });
+});
