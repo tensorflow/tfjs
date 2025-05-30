@@ -11,7 +11,7 @@
 import {InputLayer, InputLayerArgs} from './engine/input_layer';
 import {Layer, LayerArgs} from './engine/topology';
 import {input} from './exports';
-import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
+import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs, SigmoidRange, SigmoidRangeLayerArgs} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs, Conv3DTranspose} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
 import {ConvLSTM2D, ConvLSTM2DArgs, ConvLSTM2DCell, ConvLSTM2DCellArgs} from './layers/convolutional_recurrent';
@@ -191,6 +191,28 @@ export function prelu(args?: PReLULayerArgs) {
  */
 export function softmax(args?: SoftmaxLayerArgs) {
   return new Softmax(args);
+}
+
+/**
+ * SigmoidRange layer.
+ * It follows
+ * `sigmoid(x) * (max - min) + min`
+ * the output of the layer will be between max and min
+ * Input shape:
+ *   Arbitrary. Use the configuration `inputShape` when using this layer as the
+ *   first layer in a model.
+ *
+ * Output shape:
+ *   Same shape as the input.
+ *
+ * @doc {
+ *   heading: 'Layers',
+ *   subheading: 'Advanced Activation',
+ *   namespace: 'layers'
+ * }
+ */
+ export function sigmoidRange(args?: SigmoidRangeLayerArgs) {
+  return new SigmoidRange(args);
 }
 
 /**
