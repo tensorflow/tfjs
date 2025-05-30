@@ -403,8 +403,6 @@ export class WebGPUBackend extends KernelBackend {
           `poor on the webgpu backend, please use asynchronous APIs instead.`);
     }
 
-    const alphaModes: GPUCanvasAlphaMode[] = ['opaque', 'premultiplied'];
-
     const buffer = tensorData.resource as GPUBuffer;
     const bufferSize = buffer.size;
     util.assert(
@@ -415,89 +413,77 @@ export class WebGPUBackend extends KernelBackend {
     const valsGPU = new ArrayBuffer(bufferSize);
     // TODO: adjust the reading window size according the `bufferSize`.
     const canvasWidth = 256, canvasHeight = 256;
-    const stagingDeviceStorage: OffscreenCanvas[] =
-        alphaModes.map(_ => new OffscreenCanvas(canvasWidth, canvasHeight));
+    const stagingDeviceStorage: OffscreenCanvas =
+        new OffscreenCanvas(canvasWidth, canvasHeight);
     const stagingHostStorage = new OffscreenCanvas(canvasWidth, canvasHeight);
 
     this.endComputePassEncoder();
-    stagingDeviceStorage
-        .map((storage, index) => {
-          const context = storage.getContext('webgpu');
-          // TODO: use rgba8unorm format when this format is supported on Mac.
-          // https://bugs.chromium.org/p/chromium/issues/detail?id=1298618
-          context.configure({
-            device: this.device,
-            format: 'bgra8unorm',
-            usage: GPUTextureUsage.COPY_DST,
-            alphaMode: alphaModes[index],
-          });
-          return context.getCurrentTexture();
-        })
-        .map((texture, index) => {
-          const bytesPerRow = canvasWidth * 4;
-          const readDataGPUToCPU =
-              (width: number, height: number, offset: number) => {
-                this.ensureCommandEncoderReady();
-                this.commandEncoder.copyBufferToTexture(
-                    {
-                      buffer,
-                      bytesPerRow,
-                      offset,
-                    },
-                    {
-                      texture,
-                    },
-                    {
-                      width,
-                      height,
-                    });
-                this.submitQueue();
+    const context = stagingDeviceStorage.getContext('webgpu');
+    context.configure({
+      device: this.device,
+      format: 'rgba8unorm',
+      usage: GPUTextureUsage.COPY_DST,
+      alphaMode: 'premultiplied',
+    });
+    const texture = context.getCurrentTexture();
 
-                const context = stagingHostStorage.getContext('2d', {
-                  willReadFrequently: true,
-                });
-                context.clearRect(0, 0, width, height);
-                context.drawImage(stagingDeviceStorage[index], 0, 0);
-                const stagingValues =
-                    context.getImageData(0, 0, width, height).data;
-                const alphaMode = alphaModes[index];
-                const span =
-                    new Uint8ClampedArray(valsGPU, offset, width * height * 4);
-                for (let k = 0; k < span.length; k += 4) {
-                  if (alphaMode === 'premultiplied') {
-                    span[k + 3] = stagingValues[k + 3];
-                  } else {
-                    const value = stagingValues[k];
-                    span[k] = stagingValues[k + 2];
-                    span[k + 1] = stagingValues[k + 1];
-                    span[k + 2] = value;
-                  }
-                }
-              };
+    const bytesPerRow = canvasWidth * 4;
+    const readDataGPUToCPU =
+        (width: number, height: number, offset: number) => {
+          this.ensureCommandEncoderReady();
+          this.commandEncoder.copyBufferToTexture(
+              {
+                buffer,
+                bytesPerRow,
+                offset,
+              },
+              {
+                texture,
+              },
+              {
+                width,
+                height,
+              });
+          this.submitQueue();
 
-          const fullyReadCount =
-              Math.floor(pixelsSize / (canvasWidth * canvasHeight));
-          let width = canvasWidth, height = canvasHeight, offset = 0;
-          for (let i = 0; i < fullyReadCount; i++) {
-            // Read the buffer data, which fully fill the whole canvas.
-            readDataGPUToCPU(width, height, offset);
-            offset += canvasWidth * canvasHeight * 4;
-          }
+          const gl = stagingHostStorage.getContext('webgl2');
+          const glTex = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, glTex);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+          gl.texImage2D(
+              gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE,
+              stagingDeviceStorage);
+          const fb = gl.createFramebuffer();
+          gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+          gl.framebufferTexture2D(
+              gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, glTex, 0);
 
-          const remainSize = pixelsSize % (canvasWidth * canvasHeight);
-          height = Math.floor(remainSize / canvasWidth);
-          if (height > 0) {
-            // Read the buffer data, which fully fill certain rows of canvas.
-            readDataGPUToCPU(width, height, offset);
-            offset += height * (canvasWidth * 4);
-          }
+          const id = new Uint8ClampedArray(valsGPU, offset, width * height * 4);
+          gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, id);
+        };
 
-          width = remainSize % canvasWidth;
-          if (width > 0) {
-            // Read the buffer data, which not fully fill one row of canvas.
-            readDataGPUToCPU(width, 1, offset);
-          }
-        });
+    const fullyReadCount =
+        Math.floor(pixelsSize / (canvasWidth * canvasHeight));
+    let width = canvasWidth, height = canvasHeight, offset = 0;
+    for (let i = 0; i < fullyReadCount; i++) {
+      // Read the buffer data, which fully fill the whole canvas.
+      readDataGPUToCPU(width, height, offset);
+      offset += canvasWidth * canvasHeight * 4;
+    }
+
+    const remainSize = pixelsSize % (canvasWidth * canvasHeight);
+    height = Math.floor(remainSize / canvasWidth);
+    if (height > 0) {
+      // Read the buffer data, which fully fill certain rows of canvas.
+      readDataGPUToCPU(width, height, offset);
+      offset += height * (canvasWidth * 4);
+    }
+
+    width = remainSize % canvasWidth;
+    if (width > 0) {
+      // Read the buffer data, which not fully fill one row of canvas.
+      readDataGPUToCPU(width, 1, offset);
+    }
 
     const vals =
         util.convertBackendValuesAndArrayBuffer(valsGPU, tensorData.dtype);
