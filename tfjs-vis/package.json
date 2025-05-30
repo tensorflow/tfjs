@@ -31,7 +31,7 @@
     "d3-selection": "~3.0.0",
     "glamor": "~2.20.40",
     "preact": "~8.2.9",
-    "vega": "5.20.0",
+    "vega": "5.23.0",
     "vega-embed": "6.17.0",
     "vega-lite": "4.13.1"
   },
