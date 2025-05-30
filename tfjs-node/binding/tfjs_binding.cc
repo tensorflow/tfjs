@@ -48,6 +48,33 @@ static void AssignIntProperty(napi_env env, napi_value exports,
   ENSURE_NAPI_OK(env, nstatus);
 }
 
+static napi_value LoadPluggableDeviceLibrary(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  // Delete tensor takes 1 param: tensor ID;
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  if (argc < 1) {
+    NAPI_THROW_ERROR(env,
+                     "Invalid number of args passed to loadPluggableDeviceLibrary(). "
+                     "Expecting 1 arg but got %d.",
+                     argc);
+    return js_this;
+  }
+
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], js_this);
+
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  backend->LoadPluggableDeviceLibrary(env, args[0]);
+  return js_this;
+}
+
 static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
@@ -301,6 +328,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Set all export values list here.
   napi_property_descriptor exports_properties[] = {
+      {"loadPluggableDeviceLibrary", nullptr, LoadPluggableDeviceLibrary, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
       {"createTensor", nullptr, CreateTensor, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"deleteTensor", nullptr, DeleteTensor, nullptr, nullptr, nullptr,
