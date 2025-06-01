@@ -61,6 +61,7 @@ type KernelInfo = {
   totalTensorsSnapshot: number;
   inputShapes: number[][];
   outputShapes: number[][];
+  readOutputTimeMs: number;
   kernelTimeMs: number | {error: string} | Promise<number|{error: string}>;
   extraInfo: string | Promise<string>;
 };
@@ -736,6 +737,7 @@ export class Engine implements TensorTracker, DataMover {
         inputShapes: Object.keys(inputs).map(
             key => inputs[key] != null ? inputs[key].shape : null),
         outputShapes: outputs.map(item => item.shape),
+        readOutputTimeMs: kernelProfile.readOutputTimeMs,
         kernelTimeMs: kernelProfile.timeMs,
         extraInfo: kernelProfile.extraInfo
       });

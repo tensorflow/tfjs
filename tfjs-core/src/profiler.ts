@@ -26,6 +26,7 @@ export type KernelProfile = {
   kernelName: string,
   outputs: Tensor[],
   inputs: NamedTensorMap,
+  readOutputTimeMs: number,
   timeMs: Promise<number|{error: string}>,
   extraInfo: Promise<string>
 };
@@ -54,14 +55,17 @@ export class Profiler {
       }
       timer = Promise.resolve({kernelMs: util.now() - start});
     }
+    let readOutputTimeMs = 0;
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up
         // asynchronicity.
+        const start1 = util.now();
         output.data().then(tensorVals => {
           checkComputationForErrors(tensorVals, output.dtype, kernelName);
         });
+        readOutputTimeMs = util.now() - start1;
       }
     }
 
@@ -69,6 +73,7 @@ export class Profiler {
       kernelName,
       outputs,
       inputs,
+      readOutputTimeMs,
       timeMs: timer.then(timing => timing.kernelMs),
       extraInfo: timer.then(
           timing => timing.getExtraProfileInfo != null ?
