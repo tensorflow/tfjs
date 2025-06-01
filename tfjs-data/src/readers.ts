@@ -188,6 +188,8 @@ export function func<T extends TensorContainer>(
  *
  * @param generator A JavaScript function that returns
  *     a (potentially async) JavaScript iterator.
+ * @param size The total number of elements the generator
+ *     is expected to return.
  *
  * @doc {
  *   heading: 'Data',
@@ -198,11 +200,12 @@ export function func<T extends TensorContainer>(
  */
 export function generator<T extends TensorContainer>(
   generator: () => Iterator<T> | Promise<Iterator<T>> | AsyncIterator<T>,
+  size: number = null,
 ): Dataset<T> {
   return datasetFromIteratorFn(async () => {
     const gen = await generator();
     return iteratorFromFunction(() => gen.next());
-  });
+  }, size);
 }
 
 /**
