@@ -18,6 +18,7 @@
 import {io, util} from '@tensorflow/tfjs-core';
 import {Asset} from 'expo-asset';
 import {Platform} from 'react-native';
+import {readFileRes, readFile} from '@dr.pogodin/react-native-fs'
 
 import {fetch} from './platform_react_native';
 
@@ -87,9 +88,6 @@ class BundleResourceHandler implements io.IOHandler {
     // with managed expo workflow. However the managed expo workflow should
     // never hit this code path.
 
-    // tslint:disable-next-line: no-require-imports
-    const RNFS = require('react-native-fs');
-
     const modelJson = this.modelJson;
     const modelArtifacts: io.ModelArtifacts = Object.assign({}, modelJson);
     modelArtifacts.weightSpecs = modelJson.weightsManifest[0].weights;
@@ -105,7 +103,7 @@ class BundleResourceHandler implements io.IOHandler {
             // need to load the weights from the res/raw folder using this id.
             const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
             try {
-              base64Weights = await RNFS.readFileRes(fileName, 'base64');
+              base64Weights = await readFileRes(fileName, 'base64');
             } catch (e) {
               throw new Error(
                   `Error reading resource ${fileName}. Make sure the file is
@@ -114,7 +112,7 @@ class BundleResourceHandler implements io.IOHandler {
             }
           } else {
             try {
-              base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
+              base64Weights = await readFile(weightsAsset.uri, 'base64');
             } catch (e) {
               throw new Error(
                   `Error reading resource ${weightsAsset.uri}.`,
