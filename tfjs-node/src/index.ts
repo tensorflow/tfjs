@@ -49,7 +49,7 @@ if (!fs.existsSync(bindingPath)) {
       `WINDOWS_TROUBLESHOOTING.md or file an issue.`);
 }
 // tslint:disable-next-line:no-require-imports
-const bindings = require(bindingPath);
+const bindings = require(bindingPath) as TFJSBinding;
 
 // Merge version and io namespaces.
 export const version = {
@@ -70,7 +70,7 @@ const pjson = require('../package.json');
 
 // Side effects for default initialization of Node backend.
 tf.registerBackend('tensorflow', () => {
-  return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
+  return new NodeJSKernelBackend(bindings, pjson.name);
 }, 3 /* priority */);
 
 const success = tf.setBackend('tensorflow');
@@ -84,3 +84,7 @@ tf.io.registerSaveRouter(nodeFileSystemRouter);
 
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
 tf.registerCallbackConstructor(1, ProgbarLogger);
+
+export function loadPluggableDeviceLibrary(libPath: string) {
+  bindings.loadPluggableDeviceLibrary(libPath);
+}
