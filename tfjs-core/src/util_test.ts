@@ -48,6 +48,19 @@ describe('Util', () => {
     expect(a.length).toEqual(b.length);
   });
 
+  it('Arrays shuffle consistently if given seed', () => {
+    // Create 1000 numbers ordered
+    const a = Array.apply(0, {length: 1000}).map(Number.call, Number).slice(1);
+    const b = [].concat(a);  // copy ES5 style
+    const c = [].concat(a);
+    util.shuffle(a, 1);
+    util.shuffle(b, 1);
+    expect(a).toEqual(b);
+    expect(a).not.toEqual(c);
+    expect(a.length).toEqual(b.length);
+    expect(a.length).toEqual(c.length);
+  });
+
   it('Multiple arrays shuffle together', () => {
     // Create 1000 numbers ordered
     const a = Array.apply(0, {length: 1000}).map(Number.call, Number).slice(1);
