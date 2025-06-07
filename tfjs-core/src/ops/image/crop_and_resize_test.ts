@@ -32,6 +32,21 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [2.5]);
   });
 
+  it('halving-nearest', async () => {
+    const baseSize = 28;
+    const image: tf.Tensor4D = tf.ones([1, 2 * baseSize, 1, 1]);
+    const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+    const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+    const output = tf.image.cropAndResize(
+        image, boxes, boxInd, [baseSize, 1], 'nearest', -1000);
+    const expected = Array(baseSize).fill(1);
+
+    expect(output.shape).toEqual([1, baseSize, 1, 1]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), expected);
+  });
+
   it('5x5-bilinear, no change in shape', async () => {
     const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
     const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
