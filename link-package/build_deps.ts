@@ -57,7 +57,7 @@ parser.add_argument('--bazel_options', {
  */
 async function main() {
   const args = parser.parse_args();
-  let packageNames: string[] = args.tfjs_package;
+  const packageNames: string[] = args.tfjs_package;
 
   let targets: string[];
   if (args.all) {
