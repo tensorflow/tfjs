@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
-import {getCoordsDataType, UniformType} from './shader_compiler';
+import {getCoordsDataType, getUniformInfoFromShape, UniformType} from './shader_compiler';
 
 export class PadPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
@@ -26,20 +26,35 @@ export class PadPackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   customUniforms = [{name: 'value', type: 'float' as UniformType}];
+  enableShapeUniforms: boolean;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+      xTexShape: number[]) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = xShape.length;
     const dtype = getCoordsDataType(rank);
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    paddings.map((_, i) => {
+      this.customUniforms.push({name: `pad${i}`, type: 'ivec2' as const });
+    });
+    const start = paddings.map((_, i) => `pad${i}[0]`).join(',');
+    // If the |xShape| is squeezed, we can't use it to calculate |end|.
+    const {useSqueezeShape} = getUniformInfoFromShape(true, xShape, xTexShape);
+    const end = paddings
+                    .map(
+                        (_, i) => `pad${i}[0] + ${
+                            this.enableShapeUniforms && !useSqueezeShape ?
+                                `xShape${rank > 1 ? `[${i}]` : ''}` :
+                                xShape[i]}`)
+                    .join(',');
     const coords = getChannels('rc', rank);
     const source = getChannels('source', rank);
-    const cLimit = `${coords[rank - 1]} < ${this.outputShape[rank - 1]}`;
+    const cLimit = `${coords[rank - 1]} < ${
+        this.enableShapeUniforms ? `outShape[${rank} - 1]` :
+                                   this.outputShape[rank - 1]}`;
     const innerDims =
         rank === 1 ? 'source' : `vec2(${source.slice(-2).join()})`;
 
@@ -47,10 +62,14 @@ export class PadPackedProgram implements GPGPUProgram {
       `${dtype} rc = outputLoc;`, `${coords[rank - 1]} += 1;
        if(${cLimit}) {
       `,
-      rank === 1 ? '' : `}
+      rank === 1 ?
+          '' :
+          `}
        rc = outputLoc;
        ${coords[rank - 2]} += 1;
-       if(${coords[rank - 2]} < ${this.outputShape[rank - 2]}) {`,
+       if(${coords[rank - 2]} < ${
+              this.enableShapeUniforms ? `outShape[${rank} - 2]` :
+                                         this.outputShape[rank - 2]}) {`,
       rank === 1 ? '' : `  ${coords[rank - 1]} += 1;
          if(${cLimit}) {`
     ];
@@ -73,10 +92,10 @@ export class PadPackedProgram implements GPGPUProgram {
     mainLoop += (rank === 1 ? `} ` : `}}`);
 
     this.userCode = `
-      const ${dtype} start = ${dtype}(${start});
-      const ${dtype} end = ${dtype}(${end});
-
       void main() {
+        ${dtype} start = ${dtype}(${start});
+        ${dtype} end = ${dtype}(${end});
+
         ${dtype} outputLoc = getOutputCoords();
         vec4 result = vec4(0.);
         ${mainLoop}

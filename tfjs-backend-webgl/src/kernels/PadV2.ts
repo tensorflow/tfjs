@@ -41,10 +41,12 @@ export const padV2 =
             });
           }
 
+          const xTexShape = backend.texData.get(x.dataId).texShape;
           const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-              new PadPackedProgram(x.shape, paddings, constantValue) :
-              new PadProgram(x.shape, paddings, constantValue);
+              new PadPackedProgram(x.shape, paddings, xTexShape) :
+              new PadProgram(x.shape, paddings, xTexShape);
           const customValues = [[constantValue]];
+          paddings.map(p => customValues.push([p[0], p[1]]));
           return backend.runWebGLProgram(program, [x], x.dtype, customValues);
         };
 
