@@ -243,7 +243,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const init = requestInits[0];
           expect(init.method).toEqual('POST');
           const body = init.body as FormData;
-          const jsonFile = body.get('model.json') as File;
+          const jsonFile = body.get('model_json') as File;
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
             const modelJSON =
@@ -254,7 +254,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
             expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
-            const weightsFile = body.get('model.weights.bin') as File;
+            const weightsFile = body.get('model_weights_bin') as File;
             const weightsFileReader = new FileReader();
             weightsFileReader.onload = (event: Event) => {
               // tslint:disable-next-line:no-any
