@@ -323,6 +323,13 @@ export function removeBackend(name: string): void {
 }
 
 /**
+ * Returns the list of available backend names.
+ */
+export function backendNames(): string[] {
+  return ENGINE.backendNames();
+}
+
+/**
  * Finds the backend registered under the provided name. Returns null if the
  * name is not in the registry, or the registration hasn't finished yet.
  */
