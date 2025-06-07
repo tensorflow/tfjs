@@ -60,6 +60,15 @@ export interface WebGPUTimingInfo extends TimingInfo {
   downloadWaitMs: number;
 }
 
+export type WebGPUProgramCache = {
+  shader: string,
+  pipeline: GPUComputePipeline|Promise<GPUComputePipeline>
+}
+
+export type ShaderCache = {
+  [key: string]: string
+}
+
 type ProgramUniform = Array<{type: string; data: number[]}>;
 
 // Empirically determined constant used to determine size threshold for handing
@@ -116,8 +125,7 @@ export class WebGPUBackend extends KernelBackend {
   private dummyContext: GPUCanvasContext;
   private tensorDataPendingDisposal: DataId[] = [];
   private static nextDataId = 0;
-  private pipelineCache:
-      {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
+  private pipelineCache: {[key: string]: WebGPUProgramCache};
   private programTimersStack: TimerNode[];
   private queryResolveBuffer: GPUBuffer = null;
   private querySet: GPUQuerySet = null;
@@ -325,13 +333,14 @@ export class WebGPUBackend extends KernelBackend {
   async checkCompileCompletionAsync() {
     let pipelines: GPUComputePipeline[];
     try {
-      pipelines = await Promise.all(Object.values(this.pipelineCache));
+      pipelines = await Promise.all(
+          Object.values(this.pipelineCache).map(e => e.pipeline));
     } catch (e) {
       // TODO: Add test case to catch this exception.
       throw new Error(e.message);
     }
     Object.keys(this.pipelineCache).map((key, i) => {
-      this.pipelineCache[key] = pipelines[i];
+      this.pipelineCache[key].pipeline = pipelines[i];
     });
   }
 
@@ -850,6 +859,22 @@ export class WebGPUBackend extends KernelBackend {
     return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
 
+  public exportCache(): ShaderCache {
+    const shaderCache: ShaderCache = {};
+    for (const [key, value] of Object.entries(this.pipelineCache)) {
+      shaderCache[key] = value.shader;
+    }
+    return shaderCache;
+  }
+
+  public importCache(shaderCache: ShaderCache) {
+    for (const [key, value] of Object.entries(shaderCache)) {
+      if (!(key in this.pipelineCache)) {
+        this.pipelineCache[key] = {shader: value, pipeline: null};
+      }
+    }
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, programDefinedUniform?: ProgramUniform,
@@ -889,11 +914,22 @@ export class WebGPUBackend extends KernelBackend {
         webgpu_program.makeShaderKey(program, inputsData, output);
 
     const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
+    let cachedProgram: WebGPUProgramCache;
     if (!(program.shaderKey in this.pipelineCache)) {
-      this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
-          this.device, program, inputsData, output, parallelCompilation);
+      cachedProgram = {
+        shader: webgpu_program.buildProgram(program, inputsData, output),
+        pipeline: null
+      };
+      this.pipelineCache[program.shaderKey] = cachedProgram;
+    } else {
+      cachedProgram = this.pipelineCache[program.shaderKey];
     }
-    program.pipeline = this.pipelineCache[program.shaderKey];
+
+    if (cachedProgram.pipeline == null) {
+      cachedProgram.pipeline = webgpu_program.compileProgram(
+          this.device, program, cachedProgram.shader, parallelCompilation);
+    }
+    program.pipeline = cachedProgram.pipeline;
 
     if (!parallelCompilation) {
       this.recordAndSubmit(program, output, inputs, programDefinedUniform);
