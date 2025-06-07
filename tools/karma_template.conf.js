@@ -103,6 +103,20 @@ const CUSTOM_LAUNCHERS = {
       '--disable-vulkan-fallback-to-gl-for-testing',
     ],
   },
+  bs_chrome_swiftshader_webgpu: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: 'latest',
+    os: 'Windows',
+    os_version: '10',
+    flags: [
+      '--enable-unsafe-webgpu',  // Can be removed after WebGPU release
+      '--use-webgpu-adapter=swiftshader',
+
+      // https://github.com/tensorflow/tfjs/issues/7631
+      '--disable-vulkan-fallback-to-gl-for-testing',
+    ],
+  },
   chrome_with_swift_shader: {
     base: CHROME,
     flags: [
