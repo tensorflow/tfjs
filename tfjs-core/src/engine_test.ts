@@ -305,6 +305,80 @@ describe('Backend registration', () => {
         .toThrowError(/Backend 'async' has not yet been initialized/);
     expect(await success).toBe(false);
   });
+
+  describe('prioritizeBackend', () => {
+    let testA: TestKernelBackend;
+    let testB: TestKernelBackend;
+
+    beforeEach(() => {
+      testA = new TestKernelBackend();
+      tf.registerBackend('testA', () => testA, 100);
+      testB = new TestKernelBackend();
+      tf.registerBackend('testB', () => testB, 100);
+
+      const backends = tf.getSortedBackends();
+      expect(backends.length).toBeGreaterThanOrEqual(2);
+      expect(backends).toContain({name: 'testA', priority: 100});
+      expect(backends).toContain({name: 'testB', priority: 100});
+    });
+
+    it('prioritize higher and ready', async () => {
+      tf.prioritizeBackend('testA', 101);
+
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeLessThan(indexB);
+
+      await tf.ready();
+      expect(tf.getBackend()).toEqual('testA');
+      expect(tf.backend()).toEqual(testA);
+    });
+
+    it('prioritize lower and ready', async () => {
+      tf.prioritizeBackend('testA', 99);
+
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeGreaterThan(indexB);
+
+      await tf.ready();
+      expect(tf.getBackend()).toEqual('testB');
+      expect(tf.backend()).toEqual(testB);
+    });
+
+    it('prioritize higher and backend', () => {
+      tf.prioritizeBackend('testA', 101);
+
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeLessThan(indexB);
+
+      const backend = tf.backend();
+      expect(tf.getBackend()).toEqual('testA');
+      expect(backend).toEqual(testA);
+    });
+
+    it('prioritize lower and backend', async () => {
+      tf.prioritizeBackend('testA', 99);
+
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeGreaterThan(indexB);
+
+      const backend = tf.backend();
+      expect(tf.getBackend()).toEqual('testB');
+      expect(backend).toEqual(testB);
+    });
+
+    it('prioritize unregistered', () => {
+      expect(() => tf.prioritizeBackend('unregistered', 1))
+        .toThrowError(/Cannot prioritize backend unregistered/);
+    });
+  });
 });
 
 describeWithFlags('memory', ALL_ENVS, () => {
