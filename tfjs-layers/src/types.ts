@@ -28,7 +28,7 @@ export type HasShape = {
  *
  * Takes a true value and a predicted value, and returns a loss or metric value.
  */
-export type LossOrMetricFn = (yTrue: Tensor, yPred: Tensor) => Tensor;
+export type LossOrMetricFn = ((yTrue: Tensor, yPred: Tensor) => Tensor) | ((yTrue: Tensor, yPred: Tensor, axis: number) => Tensor);
 
 /**
  * Type for a regularizer function.
