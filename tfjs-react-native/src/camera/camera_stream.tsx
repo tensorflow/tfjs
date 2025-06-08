@@ -23,7 +23,7 @@ import {
   LayoutChangeEvent,
   Platform,
 } from 'react-native';
-import { Camera } from 'expo-camera';
+import { CameraView} from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
 import { Rotation } from './types';
@@ -178,7 +178,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     T & Props,
     State
   > {
-    camera: Camera;
+    cameraView: CameraView;
     glView: GLView;
     glContext: ExpoWebGLRenderingContext;
     rafID: number;
@@ -198,7 +198,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       if (this.glContext) {
         GLView.destroyContextAsync(this.glContext);
       }
-      this.camera = null;
+      this.cameraView = null;
       this.glView = null;
       this.glContext = null;
     }
@@ -219,9 +219,9 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
      * contain the contents of the camera.
      */
     async createCameraTexture(): Promise<WebGLTexture> {
-      if (this.glView != null && this.camera != null) {
+      if (this.glView != null && this.cameraView != null) {
         //@ts-ignore
-        return this.glView.createCameraTextureAsync(this.camera);
+        return this.glView.createCameraTextureAsync(this.cameraView);
       } else {
         throw new Error('Expo GL context or camera not available');
       }
@@ -326,7 +326,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           cameraLayout.height
         );
         const isFrontCamera =
-          this.camera.props.type === Camera.Constants.Type.front;
+          this.cameraView.props.facing === 'front'
         const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
@@ -390,7 +390,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         <CameraComponent
           key='camera-with-tensor-camera-view'
           {...cameraProps}
-          ref={(ref: Camera) => (this.camera = ref)}
+          ref={(ref:CameraView) => (this.cameraView = ref)}
         />
       );
 
