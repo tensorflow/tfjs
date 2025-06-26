@@ -1102,7 +1102,7 @@ export class SeparableConv extends Conv {
     this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
     this.depthwiseConstraint = getConstraint(config.depthwiseConstraint);
     this.pointwiseInitializer = getInitializer(
-        config.depthwiseInitializer || this.DEFAULT_POINTWISE_INITIALIZER);
+        config.pointwiseInitializer || this.DEFAULT_POINTWISE_INITIALIZER);
     this.pointwiseRegularizer = getRegularizer(config.pointwiseRegularizer);
     this.pointwiseConstraint = getConstraint(config.pointwiseConstraint);
   }
