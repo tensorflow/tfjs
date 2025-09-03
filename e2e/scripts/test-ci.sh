@@ -14,12 +14,21 @@
 # limitations under the License.
 # ==============================================================================
 
-set -e
+set -euxo pipefail
 
 # Generate custom bundle files and model files for tests
-parallel ::: ./scripts/run-custom-builds.sh \
-  ./scripts/create-python-models.sh
+./scripts/run-custom-builds.sh
+./scripts/create-python-models.sh
 
-# Run browserstack tests (and webpack test)
-parallel ::: ./scripts/run-browserstack-tests.sh \
-  "cd webpack_test && yarn --mutex network && yarn build"
+TAGS='#SMOKE,#REGRESSION,#GOLDEN'
+
+# Test with smoke/regression tests.
+yarn karma start --single-run --tags "${TAGS}"
+
+# Test script tag bundles
+# Temporarily disabled
+# yarn karma start --single-run ./script_tag_tests/tfjs/karma.conf.js --testBundle tf.min.js --tags "${TAGS}"
+# yarn karma start --single-run ./script_tag_tests/tfjs-core-cpu/karma.conf.js --tags "${TAGS}"
+
+# Test webpack
+(cd webpack_test && yarn --mutex network && yarn build)

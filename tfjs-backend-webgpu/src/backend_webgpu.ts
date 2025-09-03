@@ -73,8 +73,8 @@ const reshapeDispatch =
      program: webgpu_program.WebGPUProgram): [number, number, number] => {
       const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
           device.limits.maxComputeWorkgroupsPerDimension;
-      const layout = program['dispatchLayout'];
-      const dispatch = program['dispatch'];
+      const layout = program.dispatchLayout;
+      const dispatch = program.dispatch;
       if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
         return dispatch;
       }
@@ -694,8 +694,8 @@ export class WebGPUBackend extends KernelBackend {
     };
 
     const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-    res['kernelMs'] = util.sum(kernelMs);
-    res['getExtraProfileInfo'] = () =>
+    res.kernelMs = util.sum(kernelMs);
+    res.getExtraProfileInfo = () =>
         kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
             .map(d => `${d.name}: ${d.ms}`)
             .join(', ');

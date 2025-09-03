@@ -49,16 +49,31 @@ headless_flag(
 )
 
 test_suite(
-    name = "tests",
+    name = "tests_cpu",
     tests = [
         "//tfjs-backend-cpu:tests",
         "//tfjs-backend-wasm:tests",
-        "//tfjs-backend-webgl:tests",
         "//tfjs-converter:tests",
         "//tfjs-core:tests",
         "//tfjs-data:tests",
-        "//tfjs-layers:tests",
         "//tfjs-tfdf:tests",
         "//tfjs-tflite:tests",
+    ],
+)
+
+test_suite(
+    name = "tests_gpu",
+    tests = [
+        "//tfjs-backend-webgl:tests",
+        "//tfjs-backend-webgpu:tests",
+        "//tfjs-layers:tests",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tests_cpu",
+        ":tests_gpu",
     ],
 )

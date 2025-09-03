@@ -116,6 +116,11 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_android_10",
     ],
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 
@@ -137,6 +142,11 @@ tfjs_web_test(
         "bs_safari_mac",
         "bs_ios_12",
     ],
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 
@@ -156,6 +166,11 @@ tfjs_web_test(
     ],
     headless = False,
     presubmit_browsers = [],  # Only run in nightly
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 
@@ -175,6 +190,11 @@ tfjs_web_test(
     ],
     headless = False,
     presubmit_browsers = [],  # Only run in nightly
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 
@@ -194,6 +214,11 @@ tfjs_web_test(
     ],
     headless = False,
     presubmit_browsers = [],  # Only run in nightly
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 
@@ -213,6 +238,11 @@ tfjs_web_test(
     ],
     headless = False,
     presubmit_browsers = [],  # Only run in nightly
+    local_browser = select({
+        "@bazel_tools//src/conditions:linux_x86_64": "chrome_webgpu_linux",
+        "@bazel_tools//src/conditions:windows": "chrome_webgpu",
+        "//conditions:default": "chrome_webgpu",
+    }),
     static_files = STATIC_FILES,
 )
 

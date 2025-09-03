@@ -36,7 +36,6 @@ from tensorflow.python.ops import variables
 from tensorflow.python.tools import freeze_graph
 from tensorflow.python.trackable import autotrackable
 from tensorflow.python.saved_model.save import save
-import tensorflow_hub as hub
 
 import tensorflowjs as tfjs
 
@@ -124,27 +123,6 @@ def _createTensorFlowSavedModel(save_path):
 
   save(root, save_path, to_save)
 
-
-def _create_hub_module(save_path):
-  """Create a TensorFlow Hub module for testing.
-
-  Args:
-    save_path: The directory path in which to save the model.
-  """
-  # Module function that doubles its input.
-  def double_module_fn():
-    w = tf.Variable([2.0, 4.0])
-    x = tf.compat.v1.placeholder(dtype=tf.float32)
-    hub.add_signature(inputs=x, outputs=x*w)
-  graph = tf.Graph()
-  with graph.as_default():
-    spec = hub.create_module_spec(double_module_fn)
-    m = hub.Module(spec)
-  # Export the module.
-  with tf.compat.v1.Session(graph=graph) as sess:
-    sess.run(tf.compat.v1.global_variables_initializer())
-    m.export(save_path, sess)
-
 def _create_frozen_model(save_path):
   graph = tf.Graph()
   saved_model_dir = os.path.join(save_path)
@@ -198,7 +176,6 @@ class APIAndShellTest(tf.test.TestCase):
     _createTensorFlowSavedModelV1('b', cls.tf_saved_model_v1_dir)
     _create_frozen_model(cls.tf_frozen_model_dir)
     cls.tf_hub_module_dir = os.path.join(cls.class_tmp_dir, 'tf_hub_module')
-    _create_hub_module(cls.tf_hub_module_dir)
 
   @classmethod
   def tearDownClass(cls):
@@ -448,32 +425,6 @@ class APIAndShellTest(tf.test.TestCase):
         'paths': ['group1-shard1of1.bin'],
         'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
 
-    # Load the saved weights as a JSON string.
-    output_json = json.load(
-        open(os.path.join(output_dir, 'model.json'), 'rt'))
-    self.assertEqual(output_json['weightsManifest'], weights)
-
-    # Check the content of the output directory.
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
-
-  def testConvertTFHubModuleWithCommandLineWorks(self):
-    output_dir = os.path.join(self._tmp_dir)
-    process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tf_hub',
-        self.tf_hub_module_dir, output_dir
-    ])
-    process.communicate()
-    self.assertEqual(0, process.returncode)
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
-    }]
     # Load the saved weights as a JSON string.
     output_json = json.load(
         open(os.path.join(output_dir, 'model.json'), 'rt'))

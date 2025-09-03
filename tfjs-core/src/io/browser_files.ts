@@ -139,8 +139,15 @@ class BrowserFiles implements IOHandler {
     return new Promise((resolve, reject) => {
       const jsonReader = new FileReader();
       jsonReader.onload = (event: Event) => {
-        // tslint:disable-next-line:no-any
-        const modelJSON = JSON.parse((event.target as any).result) as ModelJSON;
+        let modelJSON: ModelJSON;
+        try {
+          // tslint:disable-next-line:no-any
+          modelJSON = JSON.parse((event.target as any).result);
+        } catch {
+          reject(new Error(`Failed to parse file ${
+            this.jsonFile.name}: {e.message}`));
+          return;
+        }
 
         const modelTopology = modelJSON.modelTopology;
         if (modelTopology == null) {

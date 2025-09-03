@@ -116,3 +116,10 @@ tfjs_web_test(
     }),
     static_files = STATIC_FILES,
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-webgpu_test",
+    ],
+)

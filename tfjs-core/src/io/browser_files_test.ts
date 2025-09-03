@@ -677,4 +677,12 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(() => tf.io.browserFiles(null)).toThrowError(/at least 1 file/);
     expect(() => tf.io.browserFiles([])).toThrowError(/at least 1 file/);
   });
+
+  it('Invalid JSON leads to Error', async () => {
+    const file = new File(['invalid'], 'model.json', {
+      type: 'application/json',
+    });
+    const filesHandler = tf.io.browserFiles([file]);
+    await expectAsync(filesHandler.load()).toBeRejectedWithError(/parse file/);
+  });
 });

@@ -350,7 +350,8 @@ async function main() {
 
   const bazelArgs = ['bazel', 'build']
   if (args.ci) {
-    bazelArgs.push('--config=ci');
+    // Disabled for now since github actions don't have a gcp key currently.
+    // bazelArgs.push('--config=ci');
   }
   // Use child_process.spawnSync to show bazel build progress.
   const result = child_process.spawnSync('yarn',
