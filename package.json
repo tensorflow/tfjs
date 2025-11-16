@@ -43,7 +43,7 @@
     "inquirer": "^8.0.0",
     "jasmine": "~4.2.1",
     "jasmine-core": "~4.2.0",
-    "js-yaml": "^3.14.0",
+    "js-yaml": "^4.1.1",
     "jszip": "^3.10.0",
     "karma": "^6.4.0",
     "karma-browserstack-launcher": "^1.6.0",
