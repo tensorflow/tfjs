@@ -162,7 +162,7 @@ async function benchmarkAll(benchmarkInfo, browsers) {
  * for the browser instance, while the value is the browser configuration.
  *
  * - `benchmark`: An object with the following properties:
- *  - `model`: The name of model (registed at
+ *  - `model`: The name of model (registered at
  * 'tfjs/e2e/benchmarks/model_config.js') or `custom`.
  *  - modelUrl: The URL to the model description file. Only applicable when
  * the `model` is `custom`.
@@ -392,7 +392,7 @@ function setupHelpMessage() {
     action: 'store'
   });
   parser.add_argument('--maxTries', {
-    help: 'the maximum number of times a given benchmark is tried befor it ' +
+    help: 'the maximum number of times a given benchmark is tried before it ' +
       'officially fails',
     type: 'int',
     default: 3,
@@ -405,7 +405,7 @@ function setupHelpMessage() {
   parser.add_argument('--outfile', {
     help: 'write results to outfile. Expects \'html\' or \'json\'. ' +
       'If you set it as \'html\', benchmark_results.js will be generated ' +
-      'and you could review the benchmark results by openning ' +
+      'and you could review the benchmark results by opening ' +
       'benchmark_result.html file.',
     type: 'string',
     action: 'store'
