@@ -13,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.14.0
+        uses: bazel-contrib/setup-bazel@5483a91b6e3ffac6092848f1dd7eafcfad203d80 # 0.14.0
         with:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}-nightly-release
           repository-cache: true
 
       - name: Setup Node.js and Yarn
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20.x # Using a current LTS version of Node.js
           cache: 'yarn'
