@@ -48,15 +48,19 @@ export class TransposeProgram implements WebGPUProgram {
     const dtype = getCoordsDataType(this.outputShape.length);
     const switched = getSwitchedCoords(this.newDim);
 
+    // Add f32 cast to fix WGSL type mismatch when input is int32.
+    // This assumes float32 output,
+    // which is the standard case. int32 output is not tested or expected in the current codebase.
+    // This is a minimal fix for models (e.g., ONNX-converted) that have int32 input tensors.
     const userCode = `
       ${main('index')} {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
             let coords = getCoordsFromIndex(flatIndex);
-            setOutputAtIndex(flatIndex, A[getIndexFromCoords${
+            setOutputAtIndex(flatIndex, f32(A[getIndexFromCoords${
         this.outputShape.length}D(
-              ${dtype}(${switched}), uniforms.aShape)]);
+              ${dtype}(${switched}), uniforms.aShape)]));
           }
         }
       }

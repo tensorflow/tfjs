@@ -260,4 +260,44 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose([[1, 3], [2, 4]], await tf.real(res).data());
     expectArraysClose([[4, -6], [-5, -7]], await tf.imag(res).data());
   });
+
+  it('int32 2D', async () => {
+    const t = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3], 'int32');
+    const t2 = tf.transpose(t, [1, 0]);
+
+    expect(t2.shape).toEqual([3, 2]);
+    expect(t2.dtype).toBe('int32');
+    expectArraysClose(await t2.data(), [1, 4, 2, 5, 3, 6]);
+  });
+
+  it('int32 3D', async () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2], 'int32');
+    const t2 = tf.transpose(t, [2, 1, 0]);
+
+    expect(t2.shape).toEqual([2, 2, 2]);
+    expect(t2.dtype).toBe('int32');
+    expectArraysClose(await t2.data(), [1, 5, 3, 7, 2, 6, 4, 8]);
+  });
+
+  it('int32 5D', async () => {
+    const t = tf.tensor5d(
+        new Array(32).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2], 'int32');
+    const t2 = tf.transpose(t, [0, 2, 3, 4, 1]);
+
+    expect(t2.shape).toEqual([2, 2, 2, 2, 2]);
+    expect(t2.dtype).toBe('int32');
+    expectArraysClose(await t2.data(), [
+      1,  9,  2,  10, 3,  11, 4,  12, 5,  13, 6,  14, 7,  15, 8,  16,
+      17, 25, 18, 26, 19, 27, 20, 28, 21, 29, 22, 30, 23, 31, 24, 32
+    ]);
+  });
+
+  it('bool 2D', async () => {
+    const t = tf.tensor2d([true, false, false, true], [2, 2], 'bool');
+    const t2 = tf.transpose(t, [1, 0]);
+
+    expect(t2.shape).toEqual([2, 2]);
+    expect(t2.dtype).toBe('bool');
+    expectArraysClose(await t2.data(), [1, 0, 0, 1]);
+  });
 });
