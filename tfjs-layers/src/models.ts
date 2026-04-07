@@ -773,7 +773,7 @@ export class Sequential extends LayersModel {
    *
    * @param x The input data, as a Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
-   * @param conifg A `ModelPredictConfig` object containing optional fields.
+   * @param config A `ModelPredictConfig` object containing optional fields.
    *
    * @return `tf.Tensor`(s) of predictions.
    *
