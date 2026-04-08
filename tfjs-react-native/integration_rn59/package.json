@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
-    "@babel/runtime": "^7.5.5",
+    "@babel/runtime": "^7.26.10",
     "@types/jasmine": "^3.4.2",
     "@types/jest": "^24.0.17",
     "@types/react-test-renderer": "^16.8.3",
