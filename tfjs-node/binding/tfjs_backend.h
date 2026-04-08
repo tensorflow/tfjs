@@ -35,6 +35,8 @@ class TFJSBackend {
   // fails, a nullptr is returned.
   static TFJSBackend *Create(napi_env env);
 
+  void LoadPluggableDeviceLibrary(napi_env env, napi_value lib_path_value);
+
   // Creates a new Tensor with given shape and data and returns an ID that
   // references the new Tensor.
   // - shape_value (number[])
