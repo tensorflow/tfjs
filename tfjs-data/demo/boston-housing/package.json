@@ -12,7 +12,7 @@
     "@tensorflow/tfjs": "0.14.0",
     "vega-embed": "^6.20.8",
     "vega-lite": "5.2.0",
-    "vega": "5.23.0"
+    "vega": "5.32.0"
   },
   "scripts": {
     "link-local": "yalc link",
