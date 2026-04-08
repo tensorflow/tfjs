@@ -17,6 +17,7 @@
 
 import './flags_webgpu';
 
+import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendValues, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util, WebGPUData} from '@tensorflow/tfjs-core';
 
 import {AdapterInfo} from './adapter_info';
@@ -128,6 +129,8 @@ export class WebGPUBackend extends KernelBackend {
   private uploadWaitMs = 0;
   private hasReadSyncWarned = false;
   private hasTimestampQueryWarned = false;
+  private isGetShader = false;
+  private shaderSource: {[key: string]: string} = {};
 
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
@@ -734,6 +737,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   uploadToGPU(dataId: DataId): void {
+    // Early out when user calls getShader.
+    if (this.isGetShader) {
+      return;
+    }
     const tensorData = this.tensorMap.get(dataId);
     // Already on the GPU.
     if (tensorData.resource != null) {
@@ -888,12 +895,25 @@ export class WebGPUBackend extends KernelBackend {
     program.shaderKey =
         webgpu_program.makeShaderKey(program, inputsData, output);
 
-    const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
-    if (!(program.shaderKey in this.pipelineCache)) {
-      this.pipelineCache[program.shaderKey] = webgpu_program.compileProgram(
-          this.device, program, inputsData, output, parallelCompilation);
+    if (this.isGetShader) {
+      if (!(program.shaderKey in this.shaderSource)) {
+        const shader = webgpu_program.makeShader(inputsData, output, program);
+        this.shaderSource[program.shaderKey] = shader;
+      }
+      return output;
     }
-    program.pipeline = this.pipelineCache[program.shaderKey];
+
+    const parallelCompilation = env().getBool('WEBGPU_ENGINE_COMPILE_ONLY');
+    if (program.shaderKey in this.pipelineCache) {
+      program.pipeline =
+          this.pipelineCache[program.shaderKey] as GPUComputePipeline;
+    } else {
+      const shader = webgpu_program.makeShader(inputsData, output, program);
+      program.pipeline = webgpu_program.compileProgram(
+                             this.device, program, shader,
+                             parallelCompilation) as GPUComputePipeline;
+      this.pipelineCache[program.shaderKey] = program.pipeline;
+    }
 
     if (!parallelCompilation) {
       this.recordAndSubmit(program, output, inputs, programDefinedUniform);
@@ -1042,6 +1062,42 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.numDataIds() - this.tensorDataPendingDisposal.length;
   }
 
+  /**
+   * Returns wgsl shader according to input spec.
+   *
+   * @param inputSpecs Parameters for operator. Input spec consists of three
+   *     members: `name`, `inputs`, `args`.  `name` is the same as TFJS
+   *     operation API name (Such as add/conv2d,
+   *     https://js.tensorflow.org/api/latest/#Operations). `inputs` includes
+   *     the shape and dtype of the operation API's tensor or tensor like
+   *     parameter. `args` includes the rest parameters which are not tensor or
+   *     tensor like. When non tensor or tensor like parameter is required(Such
+   *     as pad for conv2d), `args` is required. Input spec should provide all
+   *     required parameter defined by operation API.
+   */
+  // tslint:disable-next-line: no-any
+  getShader(inputSpecs: any): string[] {
+    if (inputSpecs == null) {
+      throw new Error(`Input spec is not provided!`);
+    }
+    const savedFlag = tf.env().getBool('WEBGPU_CPU_FORWARD');
+    env().set('WEBGPU_CPU_FORWARD', false);
+    this.isGetShader = true;
+    this.shaderSource = {};
+    if (Array.isArray(inputSpecs)) {
+      inputSpecs.forEach(inputSpec => {
+        callOp(inputSpec);
+      });
+    } else {
+      callOp(inputSpecs);
+    }
+    tf.env().set('WEBGPU_CPU_FORWARD', savedFlag);
+    this.isGetShader = false;
+    const shaderTmp = Object.values(this.shaderSource);
+    this.shaderSource = {};
+    return shaderTmp;
+  }
+
   override dispose() {
     if (this.disposed) {
       return;
@@ -1053,4 +1109,35 @@ export class WebGPUBackend extends KernelBackend {
     this.textureManager.dispose();
     this.disposed = true;
   }
+}
+
+// tslint:disable-next-line: no-any
+function callOp(inputSpec: any) {
+  const {name, inputs, args} = inputSpec;
+  const tensorArray: Tensor[] = [];
+  try {
+    // tslint:disable-next-line: no-any
+    inputs.forEach((input: {shape: any; dtype: any;}) => {
+      tensorArray.push(tf.zeros(input.shape, input.dtype));
+    });
+  } catch {
+    throw new Error(`Input spec ${JSON.stringify(inputSpec)} is incomplete!`);
+  }
+
+  // tslint:disable-next-line: no-any
+  const tfOpFunc = (tf as any)[name];
+  if (typeof tfOpFunc === 'undefined') {
+    throw new Error(`Operator ${name} is not defined in ${
+        tf.engine().backendName} backend`);
+  }
+
+  if (typeof args === 'undefined') {
+    tfOpFunc(...tensorArray).dispose();
+  } else {
+    tfOpFunc(...tensorArray, ...args).dispose();
+  }
+
+  tensorArray.forEach(tensor => {
+    tensor.dispose();
+  });
 }

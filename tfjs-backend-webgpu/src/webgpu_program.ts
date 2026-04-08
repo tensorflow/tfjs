@@ -59,13 +59,11 @@ export interface WebGPUProgram {
 }
 
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo, parallelCompilation: boolean): GPUComputePipeline|
+    (device: GPUDevice, program: WebGPUProgram, shader: string,
+     parallelCompilation: boolean): GPUComputePipeline|
     Promise<GPUComputePipeline> => {
-      const outputData = {dtype: output.dtype, shape: output.shape};
-      const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
-          {code: source, label: program.constructor.name});
+          {code: shader, label: program.constructor.name});
 
       let printShaderString = env().get('WEBGPU_PRINT_SHADER') as string;
       if (printShaderString !== '') {
@@ -75,7 +73,7 @@ export const compileProgram =
             printShaderArray.some(
                 item => program.shaderKey.toLowerCase().includes(item))) {
           console.group(program.shaderKey);
-          console.debug(source);
+          console.debug(shader);
           console.groupEnd();
         }
       }
@@ -195,8 +193,8 @@ export function getWorkgroupSizeString(program: WebGPUProgram): string {
 `;
 }
 
-function makeShader(
-    inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
+export function makeShader(
+    inputInfo: InputInfo[], outputData: TensorInfo,
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   const flatWorkgroupSize = program.workgroupSize[0] *
@@ -792,13 +790,13 @@ function setOutputSnippet(
     outShape: number[], outBufferType: DataType, component: number): string {
   const outRank = outShape.length;
   const gpuType = dataTypeToGPUType(outBufferType, component);
-  let snippet =
-      `fn setOutputAtIndex(flatIndex : i32, value : ${typeSnippet(component)}) {
+  let snippet = `fn setOutputAtIndex(flatIndex : i32, value : ${
+      typeSnippet(component)}) {
       result[flatIndex] = ${gpuType}(value);
     }
 
     fn setOutputAtIndexI32(flatIndex : i32, value : ${
-          typeSnippet(component, 'i32')}) {
+      typeSnippet(component, 'i32')}) {
       result[flatIndex] = ${gpuType}(value);
     }
     `;
