@@ -644,8 +644,7 @@
     tslib "^2.4.0"
 
 "@tensorflow/tfjs-automl@link:../..":
-  version "0.0.0"
-  uid ""
+  version "1.2.0"
 
 "@tensorflow/tfjs-backend-cpu@4.2.0":
   version "4.2.0"
@@ -1982,9 +1981,9 @@ lmdb@2.5.2:
     "@lmdb/lmdb-win32-x64" "2.5.2"
 
 lodash@^4.17.4:
-  version "4.17.21"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
-  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
+  version "4.18.1"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
+  integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
 
 long@4.0.0:
   version "4.0.0"
