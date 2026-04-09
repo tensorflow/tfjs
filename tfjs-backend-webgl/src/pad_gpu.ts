@@ -15,25 +15,38 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType, UniformType} from './shader_compiler';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
+import {getCoordsDataType, getUniformInfoFromShape, UniformType} from './shader_compiler';
 
 export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
   customUniforms = [{name: 'value', type: 'float' as UniformType}];
+  enableShapeUniforms: boolean;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+      xTexShape: number[]) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = xShape.length;
     const type = getCoordsDataType(rank);
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    paddings.map((_, i) => {
+      this.customUniforms.push({name: `pad${i}`, type: 'ivec2' as UniformType});
+    });
+    const start = paddings.map((_, i) => `pad${i}[0]`).join(',');
+    // If the |xShape| is squeezed, we can't use it to calculate |end|.
+    const {useSqueezeShape} = getUniformInfoFromShape(false, xShape, xTexShape);
+    const end = paddings
+                    .map(
+                        (_, i) => `pad${i}[0] + ${
+                            this.enableShapeUniforms && !useSqueezeShape ?
+                                `xShape${rank > 1 ? `[${i}]` : ''}` :
+                                xShape[i]}`)
+                    .join(',');
     const unpackedCoords =
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank);
 
@@ -54,10 +67,10 @@ export class PadProgram implements GPGPUProgram {
       return;
     }
     this.userCode = `
-      ${type} start = ${type}(${start});
-      ${type} end = ${type}(${end});
-
       void main() {
+        ${type} start = ${type}(${start});
+        ${type} end = ${type}(${end});
+
         ${type} outC = getOutputCoords();
         if (any(lessThan(outC, start)) || any(greaterThanEqual(outC, end))) {
           setOutput(value);
