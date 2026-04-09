@@ -102,6 +102,18 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
     throw new Error(`Actual length ${
         actualKeys.length} not equal Expected length ${expectedKeys.length}`);
   }
+
+  // For TypedArray, check type first.
+  if (tf.util.isTypedArray(actual) && tf.util.isTypedArray(expected)) {
+    const actualType = actual.constructor.name;
+    const expectedType = expected.constructor.name;
+    if (actualType !== expectedType) {
+      throw new Error(
+          `Arrays are of different type. Actual: ${actualType}. ` +
+          `Expected: ${expectedType}`);
+    }
+  }
+
   for (let i = 0; i < actualKeys.length; i++) {
     let key = actualKeys[i];
     let isObject = typeof (actual[key]) === 'object' &&
