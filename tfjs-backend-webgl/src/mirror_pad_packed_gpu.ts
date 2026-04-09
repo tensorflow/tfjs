@@ -108,7 +108,7 @@ export class MirrorPadPackedProgram implements GPGPUProgram {
         ${dtype} source = rc;
         ${dtype} lt = ${dtype}(lessThan(source, start));
         ${dtype} gte = ${dtype}(greaterThanEqual(source, end));
-        ${dtype} orig = 1 - (lt + gte);
+        ${dtype} orig = ${dtype}(1) - (lt + gte);
         source = orig * source +
                 lt * (start * 2 - source - ${offset}) +
                 gte * ((end - 1) * 2 - source + ${offset});
