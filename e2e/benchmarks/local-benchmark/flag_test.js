@@ -257,4 +257,145 @@ describe('index', () => {
       expect(flagValueRange).toEqual([false, true]);
     });
   });
+
+  describe('setEnvFlags', () => {
+    describe('changes nothing when setting empty config or rejecting', () => {
+      let originalFlags = {};
+
+      beforeEach(() => {
+        originalFlags = {...tf.env().flags};
+      });
+      afterAll(() => tf.env().reset());
+
+      it('empty config', async () => {
+        await setEnvFlags();
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
+
+      it('rejects when setting untunable flags', async () => {
+        const flagConfig = {
+          IS_BROWSER: false,
+        };
+        expectAsync(setEnvFlags(flagConfig))
+            .toBeRejectedWithError(
+                Error, /is not a tunable or valid environment flag./);
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
+
+      it('rejects when setting a number flag by a boolean value', async () => {
+        const flagConfig = {
+          WEBGL_VERSION: false,
+        };
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
+
+      it('rejects when setting boolean flag by a number', async () => {
+        const flagConfig = {
+          WEBGL_PACK: 1,
+        };
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
+
+      it('rejects when setting flag value out of the range', async () => {
+        const outOfRangeValue =
+            Math.max(...TUNABLE_FLAG_VALUE_RANGE_MAP.WEBGL_VERSION) + 1;
+        const flagConfig = {
+          WEBGL_VERSION: outOfRangeValue,
+        };
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
+    });
+
+    describe('reset simple flags', () => {
+      beforeEach(() => tf.env().reset());
+      afterEach(() => tf.env().reset());
+
+      it('reset number type flags', async () => {
+        const flagConfig = {
+          WEBGL_VERSION: 1,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getNumber('WEBGL_VERSION')).toBe(1);
+      });
+
+      it('reset boolean flags', async () => {
+        const flagConfig = {
+          WASM_HAS_SIMD_SUPPORT: false,
+          WEBGL_CPU_FORWARD: false,
+          WEBGL_PACK: false,
+          WEBGL_FORCE_F16_TEXTURES: false,
+          WEBGL_RENDER_FLOAT32_CAPABLE: false,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getBool('WASM_HAS_SIMD_SUPPORT')).toBe(false);
+        expect(tf.env().getBool('WEBGL_CPU_FORWARD')).toBe(false);
+        expect(tf.env().getBool('WEBGL_PACK')).toBe(false);
+        expect(tf.env().getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(false);
+        expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(false);
+      });
+    });
+
+    describe('reset flags related to environment initialization', () => {
+      beforeEach(() => tf.engine().reset());
+      afterAll(() => {
+        tf.engine().reset();
+        tf.setBackend('cpu');
+      });
+
+      it(`set 'WEBGL_VERSION' to 2`, async () => {
+        if (!tf.webgl_util.isWebGLVersionEnabled(2)) {
+          pending(
+              'Please use a browser supporting WebGL 2.0 to run this test.');
+        }
+        const flagConfig = {
+          WEBGL_VERSION: 2,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(true);
+      });
+
+      it(`set 'WEBGL_VERSION' to 1`, async () => {
+        if (!tf.webgl_util.isWebGLVersionEnabled(1)) {
+          pending(
+              'Please use a browser supporting WebGL 1.0 to run this test.');
+        }
+        const flagConfig = {
+          WEBGL_VERSION: 1,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(false);
+      });
+
+      it(`reset flags when the related backend is active`, async () => {
+        if (!tf.webgl_util.isWebGLVersionEnabled(1)) {
+          pending(
+              'Please use a browser supporting WebGL 1.0 to run this test.');
+        }
+        await tf.setBackend('webgl');
+        const flagConfig = {
+          WEBGL_VERSION: 1,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.getBackend()).toBe('webgl');
+      });
+
+      it(`reset 'WASM_HAS_SIMD_SUPPORT' as true`,
+         async () => {
+             // TODO: add test for SIMD after SIMD implementation.
+             // const simdSupported = await
+             // env().getAsync('WASM_HAS_SIMD_SUPPORT');
+         });
+
+      it(`reset 'WASM_HAS_SIMD_SUPPORT' as false`, async () => {
+        const flagConfig = {
+          WASM_HAS_SIMD_SUPPORT: false,
+        };
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getBool('WASM_HAS_SIMD_SUPPORT')).toBe(false);
+      });
+    });
+  });
 });
