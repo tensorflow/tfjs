@@ -15,6 +15,7 @@
 import {add, cast, clipByValue, elu, exp, greater, leakyRelu, logSumExp, mul, ones, prelu, relu, scalar, serialization, sub, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
+import {Sigmoid as sigmoidActivation} from '../activations';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -364,3 +365,57 @@ export class Softmax extends Layer {
   }
 }
 serialization.registerClass(Softmax);
+
+export declare interface SigmoidRangeLayerArgs extends LayerArgs {
+  /**
+   * Floats, max > min,
+   * A minimum and a maximum range for the sigmoid function
+   * min defaults to `0`, and max defaults to `1`
+   */
+   max?: number;
+   min?: number;
+
+}
+
+export class SigmoidRange extends Layer {
+  /** @nocollapse */
+  static className = 'SigmoidRange';
+  readonly max: number;
+  readonly min: number;
+  readonly DEFAULT_MAX = 1.0;
+  readonly DEFAULT_MIN = 0.0;
+  readonly sigmoid: (t: Tensor) => Tensor;
+
+  constructor(args?: SigmoidRangeLayerArgs) {
+    super(args == null ? {} : args);
+    if (args == null) {
+      args = {};
+    }
+
+    if (args.min > args.max) {
+      throw new ValueError(`max can not be smaller or equal to min`);
+    }
+
+    this.max = args.max == null ? this.DEFAULT_MAX : args.max;
+    this.min = args.min == null ? this.DEFAULT_MIN : args.min;
+    this.sigmoid = new sigmoidActivation().apply;
+
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    const x = getExactlyOneTensor(inputs);
+    return this.sigmoid(x).mul(this.max - this.min).add(this.min);
+  }
+
+  computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
+    return inputShape;
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {max: this.max, min: this.min};
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.registerClass(SigmoidRange);
