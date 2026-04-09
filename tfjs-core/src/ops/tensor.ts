@@ -115,12 +115,14 @@ import {makeTensor} from './tensor_ops_util';
  *   const bytesPerElement = 4;
  *   const sizeInBytes = data.length * bytesPerElement;
  *
- *   const gpuWriteBuffer = device.createBuffer({
+ *   const gpuBuffer = device.createBuffer({
  *     mappedAtCreation: true,
  *     size: sizeInBytes,
- *     usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC
+ *     usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST |
+ *         GPUBufferUsage.STORAGE
  *   });
- *   const arrayBuffer = gpuWriteBuffer.getMappedRange();
+ *
+ *   const arrayBuffer = gpuBuffer.getMappedRange();
  *   if (dtype === 'float32') {
  *     new Float32Array(arrayBuffer).set(data);
  *   } else if (dtype === 'int32') {
@@ -130,22 +132,9 @@ import {makeTensor} from './tensor_ops_util';
  *         `Creating tensor from GPUBuffer only supports` +
  *         `'float32'|'int32' dtype, while the dtype is ${dtype}.`);
  *   }
- *   gpuWriteBuffer.unmap();
+ *   gpuBuffer.unmap();
  *
- *   const gpuReadBuffer = device.createBuffer({
- *     mappedAtCreation: false,
- *     size: sizeInBytes,
- *     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE |
- *         GPUBufferUsage.COPY_SRC
- *   });
- *
- *   const copyEncoder = device.createCommandEncoder();
- *   copyEncoder.copyBufferToBuffer(
- *       gpuWriteBuffer, 0, gpuReadBuffer, 0, sizeInBytes);
- *   const copyCommands = copyEncoder.finish();
- *   device.queue.submit([copyCommands]);
- *   gpuWriteBuffer.destroy();
- *   return gpuReadBuffer;
+ *   return gpuBuffer;
  * }
  *
  * const savedBackend = tf.getBackend();
@@ -183,9 +172,9 @@ import {makeTensor} from './tensor_ops_util';
  * for the input texture must be floating point or normalized integer; 2.
  * height, the height of the texture; 3. width, the width of the texture; 4.
  * channels, a non-empty subset of 'RGBA', indicating the values of which
- * channels will be passed to the tensor, such as 'R' or 'BR' (The order of the 
- * channels affect the order of tensor values. ). (If the values passed from 
- * texture is less than the tensor size, zeros will be padded at the rear.). If 
+ * channels will be passed to the tensor, such as 'R' or 'BR' (The order of the
+ * channels affect the order of tensor values. ). (If the values passed from
+ * texture is less than the tensor size, zeros will be padded at the rear.). If
  * the values is a `WebGPUData` object, the dtype could only be 'float32' or
  * 'int32 and the object has to have: buffer, a `GPUBuffer`. The buffer must:
  * 1. share the same `GPUDevice` with TFJS's WebGPU backend; 2. buffer.usage
