@@ -430,7 +430,7 @@ export async function getReleaseBranch(name: string): Promise<string> {
 }
 
 export function checkoutReleaseBranch(
-    releaseBranch: string, git_protocol: string, dir: string) {
+    releaseBranch: string, git_protocol: string, dir: string, shallow=true) {
   console.log(chalk.magenta.bold(
       `~~~ Checking out release branch ${releaseBranch} ~~~`));
   $(`rm -f -r ${dir}`);
@@ -442,7 +442,9 @@ export function checkoutReleaseBranch(
   });
 
   const urlBase = git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+  const shallowArg = shallow ? '--depth=1' : '';
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${dir} `
+    + `${shallowArg}`);
 }
 
 export function createPR(
