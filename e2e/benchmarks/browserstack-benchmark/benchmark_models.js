@@ -101,7 +101,7 @@ async function benchmarkCodeSnippet(benchmarkParameters) {
   }
 
   // Warm up.
-  await timeInference(predict, 1);
+  await timeInference(predict, 50);
 
   // Benchmark code snippet.
   timeInfo = await timeInference(predict, benchmarkParameters.numRuns);
