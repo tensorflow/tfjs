@@ -113,7 +113,12 @@ Add the following code to an HTML file:
       model.fit(xs, ys).then(() => {
         // Use the model to do inference on a data point the model hasn't seen before:
         // Open the browser devtools to see the output
-        model.predict(tf.tensor2d([5], [1, 1])).print();
+        const result = model.predict(tf.tensor2d([5], [1, 1]))
+        if (Array.isArray(result)) {
+          result.forEach(item => item.print())
+        } else {
+          result.print()
+        }
       });
     </script>
   </head>
@@ -153,7 +158,12 @@ const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
 // Train the model using the data.
 model.fit(xs, ys).then(() => {
   // Use the model to do inference on a data point the model hasn't seen before:
-  model.predict(tf.tensor2d([5], [1, 1])).print();
+  const result = model.predict(tf.tensor2d([5], [1, 1]))
+  if (Array.isArray(result)) {
+    result.forEach(item => item.print())
+  } else {
+    result.print()
+  }
 });
 ```
 
