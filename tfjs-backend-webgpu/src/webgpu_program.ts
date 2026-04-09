@@ -58,12 +58,16 @@ export interface WebGPUProgram {
   getUserCode: () => string;
 }
 
+export function buildProgram(
+    program: WebGPUProgram, inputsData: InputInfo[], output: TensorInfo) {
+  const outputData = {dtype: output.dtype, shape: output.shape};
+  return makeShader(inputsData, outputData, program);
+}
+
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
-     output: TensorInfo, parallelCompilation: boolean): GPUComputePipeline|
+    (device: GPUDevice, program: WebGPUProgram, source: string,
+     parallelCompilation: boolean): GPUComputePipeline|
     Promise<GPUComputePipeline> => {
-      const outputData = {dtype: output.dtype, shape: output.shape};
-      const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
 
