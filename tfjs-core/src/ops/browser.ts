@@ -105,7 +105,7 @@ function fromPixels_(
         'pixels passed to tf.browser.fromPixels() must be either an ' +
         `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
         `in browser, or OffscreenCanvas, ImageData in webworker` +
-        ` or {data: Uint32Array, width: number, height: number}, ` +
+        ` or {data: Uint8Array, width: number, height: number}, ` +
         `but was ${(pixels as {}).constructor.name}`);
   }
   // If the current backend has 'FromPixels' registered, it has a more
