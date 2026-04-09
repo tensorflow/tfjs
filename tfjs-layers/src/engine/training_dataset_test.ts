@@ -3411,4 +3411,175 @@ describeMathCPUAndGPU('LayersModel.evaluateDataset', () => {
        const numTensors1 = tfc.memory().numTensors;
        expect(numTensors1).toEqual(numTensors0);
      });
+     it('2 inputs, 2 output, 1 metric, no validation, no batches specified',
+     async () => {
+       // Create a functional model with 2 inputs.
+       const input1 = tfl.layers.input({shape: [1]});
+       const input2 = tfl.layers.input({shape: [1]});
+       const concat = tfl.layers.concatenate().apply([input1, input2]);
+       const output1 = tfl.layers.dense({units: 1, kernelInitializer: 'zeros'})
+                     .apply(concat) as tfl.SymbolicTensor;
+        const output2 = tfl.layers.dense({units: 1, kernelInitializer: 'zeros'})
+                     .apply(concat) as tfl.SymbolicTensor;
+       const model = tfl.model({inputs: [input1, input2], outputs: [output1, output2]});
+       model.compile(
+           {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+       const batchSize = 8;
+       const batches = 3;
+       const xTensorsFunc = () => {
+         const output: {[name: string]: tfc.Tensor[]} = {};
+         output[input1.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         output[input2.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         return output;
+       };
+       const yTensorsFunc =
+           () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+             batchSize, 1
+           ])];
+       const dataset = new FakeNumericDataset({
+         xShape: [1],
+         yShape: [1],
+         batchSize,
+         numBatches: batches,
+         xTensorsFunc,
+         yTensorsFunc
+       });
+
+       // Do a burn-in call to account for initialization of cached tensors (for
+       // the memory-leak check below).
+       await model.evaluateDataset(dataset, {});
+       model.setWeights([tfc.zeros([2, 1]), tfc.zeros([1])]);
+
+       const numTensors0 = tfc.memory().numTensors;
+       const evalOut = await model.evaluateDataset(dataset, {}) as tfc.Scalar[];
+       const expectedLoss = tfc.scalar(1.0);
+       const expectedAcc = tfc.scalar(0.0);
+       expectTensorsClose(evalOut[0], expectedLoss);
+       expectTensorsClose(evalOut[1], expectedAcc);
+       tfc.dispose(evalOut);
+       tfc.dispose([expectedLoss, expectedAcc]);
+       const numTensors1 = tfc.memory().numTensors;
+       expect(numTensors1).toEqual(numTensors0);
+     });
+     it('3 inputs, 1 output, 1 metric, no validation, no batches specified',
+     async () => {
+       // Create a functional model with 2 inputs.
+       const input1 = tfl.layers.input({shape: [1]});
+       const input2 = tfl.layers.input({shape: [1]});
+       const input3 = tfl.layers.input({shape: [1]});
+       const concat = tfl.layers.concatenate().apply([input1, input2,input3]);
+       const y = tfl.layers.dense({units: 1, kernelInitializer: 'zeros'})
+                     .apply(concat) as tfl.SymbolicTensor;
+       const model = tfl.model({inputs: [input1, input2,input3], outputs: y});
+       model.compile(
+           {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+       const batchSize = 8;
+       const batches = 3;
+       const xTensorsFunc = () => {
+         const output: {[name: string]: tfc.Tensor[]} = {};
+         output[input1.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         output[input2.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         return output;
+       };
+       const yTensorsFunc =
+           () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+             batchSize, 1
+           ])];
+       const dataset = new FakeNumericDataset({
+         xShape: [1],
+         yShape: [1],
+         batchSize,
+         numBatches: batches,
+         xTensorsFunc,
+         yTensorsFunc
+       });
+
+       // Do a burn-in call to account for initialization of cached tensors (for
+       // the memory-leak check below).
+       await model.evaluateDataset(dataset, {});
+       model.setWeights([tfc.zeros([2, 1]), tfc.zeros([1])]);
+
+       const numTensors0 = tfc.memory().numTensors;
+       const evalOut = await model.evaluateDataset(dataset, {}) as tfc.Scalar[];
+       const expectedLoss = tfc.scalar(1.0);
+       const expectedAcc = tfc.scalar(0.0);
+       expectTensorsClose(evalOut[0], expectedLoss);
+       expectTensorsClose(evalOut[1], expectedAcc);
+       tfc.dispose(evalOut);
+       tfc.dispose([expectedLoss, expectedAcc]);
+       const numTensors1 = tfc.memory().numTensors;
+       expect(numTensors1).toEqual(numTensors0);
+     });
+     it('4 inputs, 1 output, 1 metric, no validation, no batches specified',
+     async () => {
+       // Create a functional model with 2 inputs.
+       const input1 = tfl.layers.input({shape: [1]});
+       const input2 = tfl.layers.input({shape: [1]});
+       const input3 = tfl.layers.input({shape: [1]});
+       const input4 = tfl.layers.input({shape: [1]});
+       const concat = tfl.layers.concatenate().apply([input1, input2,input3,input4]);
+       const y = tfl.layers.dense({units: 1, kernelInitializer: 'zeros'})
+                     .apply(concat) as tfl.SymbolicTensor;
+       const model = tfl.model({inputs: [input1, input2,input3,input4], outputs: y});
+       model.compile(
+           {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
+
+       const batchSize = 8;
+       const batches = 3;
+       const xTensorsFunc = () => {
+         const output: {[name: string]: tfc.Tensor[]} = {};
+         output[input1.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         output[input2.name] = [
+           tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]),
+           tfc.ones([batchSize, 1])
+         ];
+         return output;
+       };
+       const yTensorsFunc =
+           () => [tfc.ones([batchSize, 1]), tfc.ones([batchSize, 1]), tfc.ones([
+             batchSize, 1
+           ])];
+       const dataset = new FakeNumericDataset({
+         xShape: [1],
+         yShape: [1],
+         batchSize,
+         numBatches: batches,
+         xTensorsFunc,
+         yTensorsFunc
+       });
+
+       // Do a burn-in call to account for initialization of cached tensors (for
+       // the memory-leak check below).
+       await model.evaluateDataset(dataset, {});
+       model.setWeights([tfc.zeros([2, 1]), tfc.zeros([1])]);
+
+       const numTensors0 = tfc.memory().numTensors;
+       const evalOut = await model.evaluateDataset(dataset, {}) as tfc.Scalar[];
+       const expectedLoss = tfc.scalar(1.0);
+       const expectedAcc = tfc.scalar(0.0);
+       expectTensorsClose(evalOut[0], expectedLoss);
+       expectTensorsClose(evalOut[1], expectedAcc);
+       tfc.dispose(evalOut);
+       tfc.dispose([expectedLoss, expectedAcc]);
+       const numTensors1 = tfc.memory().numTensors;
+       expect(numTensors1).toEqual(numTensors0);
+     });
+     
 });
