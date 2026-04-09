@@ -18,13 +18,13 @@
 import {ENGINE} from '../engine';
 import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D, Tensor4D} from '../tensor';
+import {Tensor, Tensor1D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 
-import {xAs4D} from './batchnorm_util';
+import {xAs5D} from './batchnorm_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -88,10 +88,10 @@ function batchNorm_<R extends Rank>(
       () => 'Batch normalization gradient requires mean and scale to have ' +
           'equal ranks.');
 
-  const x4D: Tensor4D = xAs4D($x);
+  const x5D: Tensor5D = xAs5D($x);
 
   const inputs: FusedBatchNormInputs = {
-    x: x4D,
+    x: x5D,
     scale: $scale,
     offset: $offset,
     mean: $mean,
