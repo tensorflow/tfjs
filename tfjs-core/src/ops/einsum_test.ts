@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {parseEquation} from './einsum';
 
 import {tensor1d, tensor2d, tensor3d} from './ops';
 
@@ -261,5 +262,33 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
     expect(() => tf.einsum('ij,jk->ik->i', x, y)).toThrowError(/exactly one/);
+  });
+
+  it('reduce einsum to batch matmul', async () => {
+    const x = tf.randomNormal([2, 32, 16]);
+    const y = tf.randomNormal([16, 12, 8]);
+    const equation = 'abc,cde->abde';
+    const parseRes = parseEquation([x, y], equation);
+    const actualRes = await tf.einsum(equation, x, y).data();
+
+    const reshapedX = tf.reshape(x, [1, 2 * 32, 16]);
+    const reshapedY = tf.reshape(y, [1, 16, 12 * 8]);
+    const expectedRes = await tf.matMul(reshapedX, reshapedY).data();
+    expect(parseRes.isReducible).toBeTrue();
+    expectArraysClose(actualRes, expectedRes);
+  });
+
+  it('reduce einsum to batch matmul with two dims to reduce', async () => {
+    const x = tf.randomNormal([2, 32, 12, 8]);
+    const y = tf.randomNormal([12, 8, 16]);
+    const equation = 'abcd,cde->abe';
+    const parseRes = parseEquation([x, y], equation);
+    const actualRes = await tf.einsum(equation, x, y).data();
+
+    const reshapedX = tf.reshape(x, [1, 2 * 32, 12 * 8]);
+    const reshapedY = tf.reshape(y, [1, 12 * 8, 16]);
+    const expectedRes = await tf.matMul(reshapedX, reshapedY).data();
+    expect(parseRes.isReducible).toBeTrue();
+    expectArraysClose(actualRes, expectedRes);
   });
 });
