@@ -63,6 +63,10 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     expect(a).toThrowError();
     tf.env().set('DEBUG', debug);
   });
+
+  it('floatPrecision works', () => {
+    expect(tf.backend().floatPrecision()).toEqual(16);
+  });
 });
 
 describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
