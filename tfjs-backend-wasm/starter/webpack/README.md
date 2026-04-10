@@ -40,3 +40,41 @@ setWasmPaths({
   'tfjs-backend-wasm-threaded-simd.wasm': wasmSimdThreadedPath
 });
 ```
+
+---
+
+### Or another way
+
+We also can use `copy-webpack-plugin` plugin to copy static `.wasm` files from `'./node_modules/@tensorflow/tfjs-backend-wasm/dist'` source folder to the destination directory at once.
+
+```js
+const CopyPlugin = require("copy-webpack-plugin");
+
+module.exports = {
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
+          globOptions: {
+            dot: true,
+            gitignore: true,
+            ignore: ["**/!(*.wasm)"],
+          }
+        }
+      ],
+    }),
+  ]
+}
+```
+
+After WebPack build we will have all required `.wasm` files in destination folder. And then we can specify the backend.
+
+```ts
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-wasm';
+tf.setBackend('wasm');
+tf.ready().then(() => {
+  console.log(tf.getBackend());
+});
+```
