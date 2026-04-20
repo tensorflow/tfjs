@@ -38,7 +38,7 @@ if (isWebGPUSupported()) {
       requiredFeatures.push('timestamp-query');
     }
     if (adapter.features.has('bgra8unorm-storage')) {
-      requiredFeatures.push(['bgra8unorm-storage']);
+      requiredFeatures.push('bgra8unorm-storage');
     }
     deviceDescriptor.requiredFeatures =
         requiredFeatures as Iterable<GPUFeatureName>;
