@@ -204,7 +204,7 @@ export class DepthwiseConv2D extends BaseConv {
     config['depthwiseRegularizer'] =
         serializeRegularizer(this.depthwiseRegularizer);
     config['depthwiseConstraint'] =
-        serializeConstraint(this.depthwiseRegularizer);
+        serializeConstraint(this.depthwiseConstraint);
     return config;
   }
 }
