@@ -24,8 +24,13 @@ import shutil
 import tempfile
 from zipfile import ZipFile
 
-# Required to load saved models that use TFDF.
-import tensorflow_decision_forests
+# Optional: only required to load saved models that use TFDF custom ops.
+# Not all environments have this package installed.
+try:
+  import tensorflow_decision_forests
+except ImportError:
+  tensorflow_decision_forests = None
+
 import tensorflow as tf
 from tensorflow.core.framework import function_pb2
 from tensorflow.core.framework import graph_pb2
@@ -48,7 +53,10 @@ from tensorflow.python.tools.saved_model_utils import get_meta_graph_def
 from tensorflow.python.training.saver import export_meta_graph
 from tensorflow.saved_model.experimental import TrackableResource
 from google.protobuf.json_format import MessageToDict
-import tensorflow_hub as hub
+try:
+  import tensorflow_hub as hub
+except ImportError:
+  hub = None
 from packaging import version
 
 from tensorflowjs import write_weights
@@ -1009,6 +1017,10 @@ def load_and_initialize_hub_module(module_path, signature='default'):
   Raises:
     ValueError: If signature contains a SparseTensor on input or output.
   """
+  if hub is None:
+    raise ImportError(
+        'tensorflow_hub is required to convert TF-Hub modules. '
+        'Install it with: pip install tensorflow_hub')
   graph = tf.Graph()
   with graph.as_default():
     tf.compat.v1.logging.info('Importing %s', module_path)
@@ -1153,6 +1165,10 @@ def convert_tf_hub_module(module_handle, output_dir,
     experiments: Bool enable experimental features.
     metadata: User defined metadata map.
   """
+  if hub is None:
+    raise ImportError(
+        'tensorflow_hub is required to convert TF-Hub modules. '
+        'Install it with: pip install tensorflow_hub')
   module_path = hub.resolve(module_handle)
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
   # modules is fixed on the TF side, or once the modules we cannot load become
