@@ -25,7 +25,13 @@ import numpy as np
 
 import tensorflow.compat.v2 as tf
 import tf_keras
-from tensorflow_decision_forests.keras import GradientBoostedTreesModel
+try:
+  from tensorflow_decision_forests.keras import GradientBoostedTreesModel
+  _TFDF_AVAILABLE = True
+except ImportError:
+  GradientBoostedTreesModel = None
+  _TFDF_AVAILABLE = False
+
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -34,7 +40,13 @@ from tensorflow.python.ops import variables
 from tensorflow.python.trackable import autotrackable
 from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
-import tensorflow_hub as hub
+try:
+  import tensorflow_hub as hub
+  _TFHUB_AVAILABLE = True
+except ImportError:
+  hub = None
+  _TFHUB_AVAILABLE = False
+
 from tensorflowjs import version
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
@@ -1072,6 +1084,7 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  @unittest.skipUnless(_TFDF_AVAILABLE, 'tensorflow_decision_forests not installed')
   def test_convert_saved_model_with_tfdf(self):
     self._create_saved_model_with_tfdf()
 
@@ -1226,6 +1239,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertIs(model_json.get('userDefinedMetadata'), None)
 
+  @unittest.skipUnless(_TFHUB_AVAILABLE, 'tensorflow_hub not installed')
   def test_convert_hub_module_v2(self):
     self._create_saved_model()
     module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -1253,6 +1267,7 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  @unittest.skipUnless(_TFHUB_AVAILABLE, 'tensorflow_hub not installed')
   def test_convert_hub_module_v2_with_metadata(self):
     self._create_saved_model()
     module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -1340,6 +1355,47 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+class OptionalDependencyImportTest(tf.test.TestCase):
+  """Tests that the converter imports cleanly when optional deps are absent."""
+
+  def test_import_succeeds_without_tensorflow_decision_forests(self):
+    import sys
+    import importlib
+    from unittest.mock import patch
+    with patch.dict(sys.modules, {'tensorflow_decision_forests': None}):
+      try:
+        importlib.reload(
+            sys.modules[
+                'tensorflowjs.converters.tf_saved_model_conversion_v2'])
+      except ImportError as e:
+        self.fail(
+            'Importing tf_saved_model_conversion_v2 raised ImportError when '
+            'tensorflow_decision_forests was absent: %s' % e)
+
+  def test_import_succeeds_without_tensorflow_hub(self):
+    import sys
+    import importlib
+    from unittest.mock import patch
+    with patch.dict(sys.modules, {'tensorflow_hub': None}):
+      try:
+        importlib.reload(
+            sys.modules[
+                'tensorflowjs.converters.tf_saved_model_conversion_v2'])
+      except ImportError as e:
+        self.fail(
+            'Importing tf_saved_model_conversion_v2 raised ImportError when '
+            'tensorflow_hub was absent: %s' % e)
+
+  def test_hub_conversion_raises_clear_error_without_tensorflow_hub(self):
+    from tensorflowjs.converters import tf_saved_model_conversion_v2
+    import unittest.mock as mock
+    with mock.patch.object(tf_saved_model_conversion_v2, 'hub', None):
+      with self.assertRaises(ImportError) as ctx:
+        tf_saved_model_conversion_v2.convert_tf_hub_module(
+            'fake_handle', '/tmp/out')
+      self.assertIn('tensorflow_hub', str(ctx.exception))
+
 
 if __name__ == '__main__':
   tf.test.main()
