@@ -72,13 +72,12 @@ steps:
 
 # Push results to bucket
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gsutil'
+  entrypoint: 'gcloud'
   id: 'push'
-  args: ['cp', 'tf_build/libtensorflow_r2_7_linux_arm64.tar.gz', 'gs://tf-builds']
+  args: ['storage', 'cp', 'tf_build/libtensorflow_r2_7_linux_arm64.tar.gz', 'gs://tf-builds']
 
 timeout: 7200s
 options:
   logStreamingOption: 'STREAM_ON'
   machineType: 'E2_HIGHCPU_32'
   substitution_option: 'ALLOW_LOOSE'
-
