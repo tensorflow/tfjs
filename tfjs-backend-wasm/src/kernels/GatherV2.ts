@@ -24,7 +24,7 @@ import {CppDType} from './types';
 
 let wasmGather: (
     xId: number, dtype: CppDType, xStrides: Uint8Array, stridesSize: number,
-    indicesId: number, batchSize: number, outStrides: Uint8Array,
+    indicesId: number, indicesPerBatch: number, outStrides: Uint8Array,
     outId: number) => void;
 
 function setup(backend: BackendWasm): void {
@@ -34,7 +34,7 @@ function setup(backend: BackendWasm): void {
     'array',   // xStrides
     'number',  // stridesSize
     'number',  // indicesId
-    'number',  // batchSize
+    'number',  // indicesPerBatch
     'array',   // outStrides
     'number'   // outId
   ]);
@@ -88,6 +88,7 @@ function gatherV2(
     return out;
   }
   const stridesSize = flattenX.shape.length - 1;
+  const indicesPerBatch = indicesSize / shapeInfo.batchSize;
 
   const xData = backend.dataIdMap.get(flattenX.dataId);
   const xId = xData.id;
@@ -104,7 +105,7 @@ function gatherV2(
 
   wasmGather(
       xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId,
-      shapeInfo.batchSize, outStridesBytes, outId);
+      indicesPerBatch, outStridesBytes, outId);
 
   backend.disposeData(flattenX.dataId);
   backend.disposeData(flattenIndex.dataId);
