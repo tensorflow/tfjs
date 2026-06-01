@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
-import {dirname, join, resolve} from 'path';
+import {dirname, join, resolve, sep} from 'path';
 import {promisify} from 'util';
 import {toArrayBuffer} from './io_utils';
 
@@ -190,6 +190,17 @@ export class NodeFileSystem implements tf.io.IOHandler {
     for (const group of weightsManifest) {
       for (const path of group.paths) {
         const weightFilePath = join(dirName, path);
+        // The weight paths come from the (untrusted) model manifest. Ensure
+        // each resolves inside the model directory so that a path containing
+        // '..' or an absolute path cannot read files outside of it.
+        const resolvedDir = resolve(dirName);
+        const resolvedFile = resolve(weightFilePath);
+        if (resolvedFile !== resolvedDir &&
+            !resolvedFile.startsWith(resolvedDir + sep)) {
+          throw new Error(
+              `Invalid weight file path '${path}': it must stay within the ` +
+              `model directory.`);
+        }
         const buffer = await readFile(weightFilePath)
                            .catch(doesNotExistHandler('Weight file'));
         buffers.push(buffer);
