@@ -543,6 +543,19 @@ describeWithFlags('decodeWeights', {}, () => {
           .toBeRejectedWithError(/Unsupported dtype in weight \'x\': int16/);
       });
 
+      it('truncated string tensor raises Error', async () => {
+        const buffer = new ArrayBuffer(5);
+        const view = new DataView(buffer);
+        view.setUint32(0, 10, true);
+        new Uint8Array(buffer)[4] = 65;
+        const specs: WeightsManifestEntry[] = [
+          {name: 'x', dtype: 'string', shape: [1]}
+        ];
+
+        await expectAsync(decode(buffer, specs))
+          .toBeRejectedWithError(/expected 10 bytes for string 0/);
+      });
+
       it('support quantization uint8 weights', async () => {
         const manifestSpecs: WeightsManifestEntry[] = [
           {
