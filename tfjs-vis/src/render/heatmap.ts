@@ -25,6 +25,19 @@ import {assert} from '../util/utils';
 import {getDrawArea} from './render_utils';
 
 /**
+ * Escapes HTML-significant characters so a string is rendered as text rather
+ * than markup. Mirrors vega-tooltip's default `escapeHTML` sanitizer, which is
+ * bypassed whenever a custom `sanitize` function is supplied to the tooltip.
+ */
+export function escapeHTML(value: string): string {
+  return value.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+}
+
+/**
  * Renders a heatmap.
  *
  * ```js
@@ -209,8 +222,11 @@ export async function heatmap(
     //@ts-ignore
     embedOpts.tooltip = {
       sanitize: (value: string|number) => {
-        const valueString = String(value);
-        return valueString.replace(suffixRegex, '');
+        // Strip the internal index suffix, then re-apply the HTML escaping
+        // that vega-tooltip performs by default. Supplying a custom `sanitize`
+        // bypasses that default, so without this, tick-label strings would be
+        // interpreted as HTML in the tooltip.
+        return escapeHTML(String(value).replace(suffixRegex, ''));
       }
     };
   }

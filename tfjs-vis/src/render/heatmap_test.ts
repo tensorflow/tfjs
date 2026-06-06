@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 
 import {HeatmapData} from '../types';
 
-import {heatmap} from './heatmap';
+import {escapeHTML, heatmap} from './heatmap';
 
 describe('renderHeatmap', () => {
   let pixelRatio: number;
@@ -221,5 +221,21 @@ describe('renderHeatmap', () => {
       threw = true;
     }
     expect(threw).toBe(true);
+  });
+});
+
+describe('escapeHTML', () => {
+  it('escapes HTML-significant characters', () => {
+    expect(escapeHTML('<img src=x onerror="alert(1)">'))
+        .toEqual(
+            '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');
+  });
+
+  it('escapes ampersands before other entities', () => {
+    expect(escapeHTML('a & b < c')).toEqual('a &amp; b &lt; c');
+  });
+
+  it('leaves plain tick labels unchanged', () => {
+    expect(escapeHTML('alpha')).toEqual('alpha');
   });
 });
