@@ -1205,6 +1205,17 @@ describeWithFlags('matmulBatch', ALL_ENVS, () => {
       -38, -50, 28, 48, 12,  -26, 70,  10, -40, 40,  -34, 20, -4, -89, -2
     ]);
   });
+
+  it('gradients: batched matMul with broadcasted shapes (Issue #8721)', () => {
+    const a = tf.tensor3d([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]);
+    const b = tf.tensor2d([[9, 10], [11, 12]]);
+
+    const grads = tf.grads((a1, b1) => tf.matMul(a1, b1));
+    const [da, db] = grads([a, b]);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+  });
 });
 
 describeWithFlags('dot', ALL_ENVS, () => {
