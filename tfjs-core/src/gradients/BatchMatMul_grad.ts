@@ -19,6 +19,16 @@ import {BatchMatMul, BatchMatMulAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {matMul} from '../ops/mat_mul';
 import {Tensor} from '../tensor';
+import {sum} from '../ops/sum';
+import {getReductionAxes} from '../ops/broadcast_util';
+
+function reduceToShape(grad: Tensor, originalShape: number[]): Tensor {
+  const reduceAxes = getReductionAxes(originalShape, grad.shape);
+  if (reduceAxes.length > 0) {
+    return sum(grad, reduceAxes);
+  }
+  return grad;
+}
 
 export const batchMatMulGradConfig: GradConfig = {
   kernelName: BatchMatMul,
@@ -30,23 +40,23 @@ export const batchMatMulGradConfig: GradConfig = {
 
     if (!transposeA && !transposeB) {
       return {
-        a: () => matMul(dy, b, false, true),
-        b: () => matMul(a, dy, true, false)
+        a: () => reduceToShape(matMul(dy, b, false, true), a.shape),
+        b: () => reduceToShape(matMul(a, dy, true, false), b.shape)
       };
     } else if (!transposeA && transposeB) {
       return {
-        a: () => matMul(dy, b, false, false),
-        b: () => matMul(dy, a, true, false)
+        a: () => reduceToShape(matMul(dy, b, false, false), a.shape),
+        b: () => reduceToShape(matMul(dy, a, true, false), b.shape)
       };
     } else if (transposeA && !transposeB) {
       return {
-        a: () => matMul(b, dy, false, true),
-        b: () => matMul(a, dy, false, false)
+        a: () => reduceToShape(matMul(b, dy, false, true), a.shape),
+        b: () => reduceToShape(matMul(a, dy, false, false), b.shape)
       };
     } else {
       return {
-        a: () => matMul(b, dy, true, true),
-        b: () => matMul(dy, a, true, true)
+        a: () => reduceToShape(matMul(b, dy, true, true), a.shape),
+        b: () => reduceToShape(matMul(dy, a, true, true), b.shape)
       };
     }
   }
