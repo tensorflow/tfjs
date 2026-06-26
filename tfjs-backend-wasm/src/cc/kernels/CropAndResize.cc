@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -119,11 +120,15 @@ void CropAndResize(size_t images_id, size_t boxes_id, size_t box_ind_id,
     const float x2 = *boxes_buf;
     boxes_buf++;
 
-    if (*box_ind_buf >= batch) {
+    if (*box_ind_buf < 0 || static_cast<size_t>(*box_ind_buf) >= batch) {
+      float* out_buf_ptr = out_buf + b * output_strides[0];
+      std::fill(out_buf_ptr, out_buf_ptr + output_strides[0], 0.0f);
+      box_ind_buf++;
       continue;
     }
 
-    const size_t box_offset = *box_ind_buf * images_strides[0];
+    const size_t box_offset =
+        static_cast<size_t>(*box_ind_buf) * images_strides[0];
 
     const float height_scale =
         (crop_height > 1) ? (y2 - y1) * image_height_m1 / (crop_height - 1) : 0;

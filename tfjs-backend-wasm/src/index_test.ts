@@ -65,6 +65,26 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     test_util.expectArraysClose(await t.data(), view);
   });
 
+  it('cropAndResize zero-fills out-of-range box indices', async () => {
+    const image = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
+    const boxes = tf.tensor2d([
+      0, 0, 1, 1,
+      0, 0, 1, 1,
+    ], [2, 4]);
+    const boxInd = tf.tensor1d([999, -1], 'int32');
+
+    const output =
+        tf.image.cropAndResize(image, boxes, boxInd, [4, 4], 'nearest', -7);
+
+    expect(output.shape).toEqual([2, 4, 4, 1]);
+    test_util.expectArraysClose(await output.data(), new Float32Array(32));
+
+    image.dispose();
+    boxes.dispose();
+    boxInd.dispose();
+    output.dispose();
+  });
+
   // TODO(mattSoulanille): Re-enable this once it's working on iOS.
   // tslint:disable-next-line: ban
   xit('allocates more than two gigabytes', async () => {
