@@ -37,3 +37,4 @@ export {ModelAndWeightsConfig, Sequential, SequentialArgs} from './models';
 export {LayerVariable} from './variables';
 export {version as version_layers} from './version';
 export {constraints, initializers, layers, metrics, models, regularizers};
+export {padSequences, PadSequencesOptions} from './utils/pad_sequences';
