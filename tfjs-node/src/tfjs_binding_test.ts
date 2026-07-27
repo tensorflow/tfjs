@@ -24,6 +24,9 @@ const bindingPath =
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
 const binding = bindings as TFJSBinding;
+const testBinding = bindings as TFJSBinding&{
+  setNextTensorIdForTest(nextTensorId: number): void;
+};
 
 describe('Exposes TF_DataType enum values', () => {
   it('contains TF_FLOAT', () => {
@@ -115,6 +118,38 @@ describe('tensor management', () => {
     expect(outputMetadata[0].dtype).toEqual(binding.TF_INT32);
     expect(binding.tensorDataSync(outputMetadata[0].id))
         .toEqual(new Int32Array([3]));
+  });
+  it('wraps tensor IDs, skips -1, and avoids live ID collisions', () => {
+    const initialNumTensors = binding.getNumOfTensors();
+    const values = new Int32Array([42]);
+    const persistentId =
+        binding.createTensor([1], binding.TF_INT32, values);
+    const createdIds: number[] = [];
+
+    try {
+      testBinding.setNextTensorIdForTest(persistentId);
+      const collisionId =
+          binding.createTensor([1], binding.TF_INT32, new Int32Array([7]));
+      expect(collisionId).not.toBe(persistentId);
+      binding.deleteTensor(collisionId);
+      expect(binding.tensorDataSync(persistentId)).toEqual(values);
+
+      testBinding.setNextTensorIdForTest(2147483647);
+      createdIds.push(binding.createTensor([1], binding.TF_INT32, values));
+      createdIds.push(binding.createTensor([1], binding.TF_INT32, values));
+      expect(createdIds).toEqual([2147483647, -2147483648]);
+
+      testBinding.setNextTensorIdForTest(-2);
+      createdIds.push(binding.createTensor([1], binding.TF_INT32, values));
+      createdIds.push(binding.createTensor([1], binding.TF_INT32, values));
+      expect(createdIds[2]).toBe(-2);
+      expect(createdIds[3]).not.toBe(-1);
+    } finally {
+      createdIds.forEach(id => binding.deleteTensor(id));
+      binding.deleteTensor(persistentId);
+      testBinding.setNextTensorIdForTest(persistentId + 1);
+    }
+    expect(binding.getNumOfTensors()).toBe(initialNumTensors);
   });
 });
 

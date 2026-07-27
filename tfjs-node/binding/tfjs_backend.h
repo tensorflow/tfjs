@@ -88,9 +88,13 @@ class TFJSBackend {
   // Get number of tensor handles in the backend:
   napi_value GetNumOfTensors(napi_env env);
 
+  // Sets the next tensor ID. Intended for testing only.
+  void SetNextTensorIdForTest(int32_t next_tensor_id);
+
  private:
   TFJSBackend(napi_env env);
 
+  int32_t NextTensorId();
   int32_t InsertHandle(TFE_TensorHandle *tfe_handle);
   int32_t InsertSavedModel(TF_Session *tf_session, TF_Graph *tf_graph);
   napi_value GenerateOutputTensorInfo(napi_env env, TFE_TensorHandle *handle);

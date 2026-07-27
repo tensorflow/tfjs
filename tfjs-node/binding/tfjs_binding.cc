@@ -274,6 +274,38 @@ static napi_value GetNumOfSavedModels(napi_env env, napi_callback_info info) {
   return backend->GetNumOfSavedModels(env);
 }
 
+static napi_value SetNextTensorIdForTest(napi_env env,
+                                         napi_callback_info info) {
+  napi_status nstatus;
+
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  if (argc < 1) {
+    NAPI_THROW_ERROR(
+        env,
+        "Invalid number of args passed to setNextTensorIdForTest(). "
+        "Expecting 1 arg but got %d.",
+        argc);
+    return js_this;
+  }
+
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
+
+  int32_t next_tensor_id;
+  nstatus = napi_get_value_int32(env, args[0], &next_tensor_id);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  backend->SetNextTensorIdForTest(next_tensor_id);
+  return js_this;
+}
+
 /**
  * Called by Node to cleanup our instance data, which is
  * the TFJSBackend allocated in `InitTFNodeJSBinding`.
@@ -323,6 +355,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        nullptr, napi_default, nullptr},
       {"getNumOfTensors", nullptr, GetNumOfTensors, nullptr, nullptr,
        nullptr, napi_default, nullptr},
+      {"setNextTensorIdForTest", nullptr, SetNextTensorIdForTest, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
 
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
