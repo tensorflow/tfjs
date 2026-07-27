@@ -21,6 +21,10 @@ import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {createTensorsTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
+type TestBinding = NodeJSKernelBackend['binding']&{
+  setNextTensorIdForTest(nextTensorId: number): void;
+};
+
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
     const t = tf.tensor1d([1, 2, 3]);
@@ -37,6 +41,27 @@ describe('delayed upload', () => {
     expect(softmaxLogits.dataSync()[0]).toEqual(data[0]);
     expect(softmaxLogits.dataSync()[1]).toEqual(data[1]);
     expect(softmaxLogits.dataSync()[2]).toEqual(data[2]);
+  });
+});
+
+describe('tensor ID rollover', () => {
+  it('disposes native tensors with negative IDs', () => {
+    const binding = nodeBackend().binding as TestBinding;
+    const restoreId = binding.createTensor(
+        [1], binding.TF_INT32, new Int32Array([0]));
+    const initialNumTensors = binding.getNumOfTensors();
+
+    try {
+      binding.setNextTensorIdForTest(2147483647);
+      tf.tidy(() => {
+        const result = tf.tensor1d([1, 2]).square();
+        tf.test_util.expectArraysClose(result.dataSync(), [1, 4]);
+      });
+      expect(binding.getNumOfTensors()).toBe(initialNumTensors);
+    } finally {
+      binding.setNextTensorIdForTest(restoreId + 1);
+      binding.deleteTensor(restoreId);
+    }
   });
 });
 

@@ -32,6 +32,8 @@ type TensorData = {
   refCount: number;
 };
 
+const TENSOR_ID_NOT_ON_DEVICE = -1;
+
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
@@ -245,7 +247,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         return false;
       }
 
-      if (id != null && id >= 0) {
+      if (id != null && id !== TENSOR_ID_NOT_ON_DEVICE) {
         this.binding.deleteTensor(id);
       }
       this.tensorMap.delete(dataId);
@@ -269,7 +271,13 @@ export class NodeJSKernelBackend extends KernelBackend {
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
     this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount});
+        dataId, {
+          shape,
+          dtype: getTFDType(dtype),
+          values,
+          id: TENSOR_ID_NOT_ON_DEVICE,
+          refCount
+        });
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):

@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -33,6 +34,8 @@
 #include "utils.h"
 
 namespace tfnodejs {
+
+constexpr int32_t kTensorIdNotOnDevice = -1;
 
 // Used to hold strings beyond the lifetime of a JS call.
 static std::set<std::string> ATTR_NAME_SET;
@@ -717,9 +720,33 @@ TFJSBackend::~TFJSBackend() {
 
 TFJSBackend *TFJSBackend::Create(napi_env env) { return new TFJSBackend(env); }
 
+int32_t TFJSBackend::NextTensorId() {
+  const int32_t tensor_id = next_tensor_id_;
+  next_tensor_id_ = tensor_id == std::numeric_limits<int32_t>::max()
+                        ? std::numeric_limits<int32_t>::min()
+                        : tensor_id + 1;
+
+  // -1 represents tensor data that has not been uploaded to the native
+  // backend.
+  if (next_tensor_id_ == kTensorIdNotOnDevice) {
+    next_tensor_id_ = 0;
+  }
+  return tensor_id;
+}
+
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
-  return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
-      .first->first;
+  while (true) {
+    const int32_t tensor_id = NextTensorId();
+    const auto insert_result = tfe_handle_map_.emplace(tensor_id, tfe_handle);
+    if (insert_result.second) {
+      return tensor_id;
+    }
+  }
+}
+
+void TFJSBackend::SetNextTensorIdForTest(int32_t next_tensor_id) {
+  next_tensor_id_ =
+      next_tensor_id == kTensorIdNotOnDevice ? 0 : next_tensor_id;
 }
 
 int32_t TFJSBackend::InsertSavedModel(TF_Session *tf_session,
