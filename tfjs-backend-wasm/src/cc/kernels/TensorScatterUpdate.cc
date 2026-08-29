@@ -40,6 +40,13 @@ void scatter(const int* indices_ptr, const T* updates_ptr,
       indices_ptr++;
     }
 
+    // Skip out-of-range indices instead of writing outside the output
+    // tensor (negative int indices sign-extend and are caught here too).
+    if (flattened_index >= output_size / slice_size) {
+      updates_ptr += slice_size;
+      continue;
+    }
+
     out_buf_ptr += flattened_index * slice_size;
 
     memcpy(out_buf_ptr, updates_ptr, slice_size * dtype_size);
