@@ -40,6 +40,16 @@ void scatter(const int* indices_ptr, const T* updates_ptr,
       indices_ptr++;
     }
 
+    // Skip out-of-range indices instead of writing outside the output
+    // tensor. flattened_index is computed from int indices, so negative
+    // values sign-extend to huge size_t values and are caught here too.
+    if (flattened_index >= output_size / slice_size) {
+      if (!update_as_scalar) {
+        updates_ptr += slice_size;
+      }
+      continue;
+    }
+
     T* out = out_buf_ptr + flattened_index * slice_size;
 
     for (size_t k = 0; k < slice_size; ++k) {

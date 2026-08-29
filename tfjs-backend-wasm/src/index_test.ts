@@ -265,4 +265,18 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  it('scatterNd rejects out-of-range indices instead of writing OOB', async () => {
+    const indices = tf.tensor2d([2000000000], [1, 1], 'int32');
+    const updates = tf.tensor1d([42], 'float32');
+    expect(() => tf.scatterNd(indices, updates, [100])).toThrowError(
+        /Invalid indices/);
+    // Negative indices sign-extend in the wasm kernel; they must be rejected
+    // too, not written before the output allocation.
+    const negIndices = tf.tensor2d([-1], [1, 1], 'int32');
+    expect(() => tf.tensorScatterUpdate(
+               tf.zeros([100]), negIndices, updates))
+        .toThrowError(/Invalid indices/);
+  });
+
 });

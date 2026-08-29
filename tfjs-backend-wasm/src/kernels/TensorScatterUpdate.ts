@@ -1,3 +1,24 @@
+
+function validateScatterIndices(
+    indices: Tensor, strides: number[], outputSize: number,
+    sliceSize: number): void {
+  const numSlices = outputSize / sliceSize;
+  const indicesVals = indices.dataSync();
+  const sliceRank = strides.length;
+  const numUpdates = indicesVals.length / sliceRank;
+  for (let i = 0; i < numUpdates; ++i) {
+    let flattenedIndex = 0;
+    for (let j = 0; j < sliceRank; ++j) {
+      flattenedIndex += indicesVals[i * sliceRank + j] * strides[j];
+    }
+    if (flattenedIndex < 0 || flattenedIndex >= numSlices) {
+      throw new Error(
+          `Invalid indices: ${flattenedIndex} does not index into ` +
+          `${numSlices}`);
+    }
+  }
+}
+
 /**
  * @license
  * Copyright 2022 Google LLC. All Rights Reserved.
@@ -69,6 +90,9 @@ function tensorScatterUpdate(args: {
   const tensorId = tensorData.id;
 
   const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+
+  // Match the CPU backend: reject out-of-range indices before entering wasm.
+  validateScatterIndices(indices, strides, outputSize, sliceSize);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmTensorScatterUpdate(
