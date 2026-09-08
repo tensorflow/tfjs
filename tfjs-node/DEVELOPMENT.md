@@ -74,7 +74,7 @@ $ yarn test
 
 #### Prerequisite: install GCP command line tool
 
-Publishing this package requires uploading objects to GCP bucket. Developers need to install GCP command line tool [gsutil](https://cloud.google.com/storage/docs/gsutil_install) before publishing. Please ask TFJS developers for GCP project ID.
+Publishing this package requires uploading objects to GCP bucket. Developers need to install GCP command line tool [gcloud storage](https://docs.cloud.google.com/sdk/docs/install-sdk) before publishing. Please ask TFJS developers for GCP project ID.
 
 #### Build and upload node addon to Google Cloud Platform
 

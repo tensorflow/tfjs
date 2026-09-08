@@ -27,4 +27,4 @@ $ yarn watch
 
 [blog]: https://blog.tensorflow.org/2020/09/how-to-create-cartoonizer-with-tf-lite.html
 [live demo]: https://storage.googleapis.com/tfweb/demos/cartoonizer/index.html
-[gsutil]: https://cloud.google.com/storage/docs/gsutil_install
+[gcloud storage]: https://docs.cloud.google.com/sdk/docs/install-sdk
