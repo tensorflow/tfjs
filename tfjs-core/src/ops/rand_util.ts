@@ -159,7 +159,7 @@ export class RandGamma implements RandomGamma {
         break;
       }
     }
-    v = (1 / this.beta) * this.d * v;
+    v = this.beta * this.d * v;
     if (this.alpha < 1) {
       v *= Math.pow(this.randu(), 1 / this.alpha);
     }
