@@ -207,6 +207,20 @@ describe('RandGamma', () => {
     expectValuesInRange(values, 0, 30);
   });
 
+  it('should sample with mean alpha / beta and std sqrt(alpha) / beta', () => {
+    const alpha = 2;
+    const beta = 2;
+    const rand = new RandGamma(alpha, beta, 'float32', SEED);
+    const values = [];
+    const size = 10000;
+    for (let i = 0; i < size; i++) {
+      values.push(rand.nextValue());
+    }
+    // gamma(alpha, rate=beta) has mean alpha / beta and std sqrt(alpha) / beta.
+    expectArrayInMeanStdRange(
+        values, alpha / beta, Math.sqrt(alpha) / beta, 0.1);
+  });
+
   it('should handle int32 numbers', () => {
     const rand = new RandGamma(2, 2, 'int32');
     expect(isFloat(rand.nextValue())).toBe(false);

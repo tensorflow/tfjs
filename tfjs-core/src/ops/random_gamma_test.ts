@@ -123,6 +123,20 @@ describeWithFlags('randomGamma', ALL_ENVS, () => {
     expectValuesInRange(await result.data(), GAMMA_MIN, GAMMA_MAX);
   });
 
+  it('should have a mean of alpha / beta', async () => {
+    const alpha = 2;
+    const beta = 3;
+    const result = tf.randomGamma([10000], alpha, beta);
+    const values = await result.data();
+    let sum = 0;
+    for (let i = 0; i < values.length; i++) {
+      sum += values[i];
+    }
+    // The sampled mean should be close to alpha / beta, so a loose tolerance
+    // over 10000 samples is enough to catch a wrong scaling.
+    expect(Math.abs(sum / values.length - alpha / beta)).toBeLessThan(0.1);
+  });
+
   it('should throw error when shape is not integer', () => {
     expect(() => tf.randomGamma([2, 2.22, 3.33], 2, 2)).toThrow();
   });
