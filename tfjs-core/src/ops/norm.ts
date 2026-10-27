@@ -117,14 +117,17 @@ function normImpl(
 
   // matrix (assumption axis[0] < axis[1])
   if (Array.isArray(axis) && axis.length === 2) {
+    // Normalize negative axes before the second reduction: its axis is
+    // expressed relative to the rank-reduced output of the first one.
+    const [axis0, axis1] = parseAxisParam(axis, x.shape);
     if (p === 1) {
-      return max(sum(abs(x), axis[0]), axis[1] - 1);
+      return max(sum(abs(x), axis0), axis1 - 1);
     }
     if (p === Infinity) {
-      return max(sum(abs(x), axis[1]), axis[0]);
+      return max(sum(abs(x), axis1), axis0);
     }
     if (p === -Infinity) {
-      return min(sum(abs(x), axis[1]), axis[0]);
+      return min(sum(abs(x), axis1), axis0);
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))

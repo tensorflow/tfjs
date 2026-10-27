@@ -118,6 +118,51 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expect(() => tf.norm(a, 2, [0, 1])).toThrowError();
   });
 
+  it('matrix 1 norm with negative axes', async () => {
+    const a = tf.tensor2d([1, 2, -3, 1, 1, 1], [3, 2]);
+    const norm = tf.norm(a, 1, [-2, -1]);
+
+    expect(norm.shape).toEqual([]);
+    expect(norm.dtype).toBe('float32');
+    expectArraysClose(await norm.data(), 5);
+  });
+
+  it('batched matrix 1 norm with negative axes', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, -1, 0, 2, 3, -4, 1], [2, 2, 3]);
+    const norm = tf.norm(a, 1, [-2, -1]);
+
+    expect(norm.shape).toEqual([2]);
+    expect(norm.dtype).toBe('float32');
+    expectArraysClose(await norm.data(), [9, 4]);
+  });
+
+  it('batched matrix inf norm with negative axes', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, -1, 0, 2, 3, -4, 1], [2, 2, 3]);
+    const norm = tf.norm(a, Infinity, [-2, -1]);
+
+    expect(norm.shape).toEqual([2]);
+    expect(norm.dtype).toBe('float32');
+    expectArraysClose(await norm.data(), [15, 8]);
+  });
+
+  it('batched matrix -inf norm with negative axes', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, -1, 0, 2, 3, -4, 1], [2, 2, 3]);
+    const norm = tf.norm(a, -Infinity, [-2, -1]);
+
+    expect(norm.shape).toEqual([2]);
+    expect(norm.dtype).toBe('float32');
+    expectArraysClose(await norm.data(), [6, 3]);
+  });
+
+  it('batched matrix 1 norm with negative axes and keepDims', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, -1, 0, 2, 3, -4, 1], [2, 2, 3]);
+    const norm = tf.norm(a, 1, [-2, -1], true);
+
+    expect(norm.shape).toEqual([2, 1, 1]);
+    expect(norm.dtype).toBe('float32');
+    expectArraysClose(await norm.data(), [9, 4]);
+  });
+
   it('propagates NaNs for norm', async () => {
     const a = tf.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
     const norm = tf.norm(a);
