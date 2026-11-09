@@ -976,4 +976,22 @@ describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {
         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
     expectArraysClose(await output.data(), expected);
   });
+
+  it('greyscale: upscale, non-square input, align corners', async () => {
+    const input = tf.tensor3d([[[1], [2], [3]], [[4], [5], [6]]]);
+    const dy = tf.tensor3d([
+      [[1], [2], [3], [4], [5]], [[6], [7], [8], [9], [10]],
+      [[11], [12], [13], [14], [15]], [[16], [17], [18], [19], [20]]
+    ]);
+
+    const size: [number, number] = [4, 5];
+    const alignCorners = true;
+    const g = tf.grad(
+        (i: tf.Tensor3D) => tf.image.resizeBilinear(i, size, alignCorners));
+
+    const output = g(input, dy);
+    expect(output.shape).toEqual([2, 3, 1]);
+    expectArraysClose(
+        await output.data(), [14, 76 / 3, 24, 39, 176 / 3, 49]);
+  });
 });
