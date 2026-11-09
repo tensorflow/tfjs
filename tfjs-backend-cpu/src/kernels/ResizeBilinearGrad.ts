@@ -106,7 +106,7 @@ export function resizeBilinearGrad(args: {
   }
 
   return backend.makeTensorInfo(
-      [batch, xWidth, xHeight, depth], 'float32', output);
+      [batch, xHeight, xWidth, depth], 'float32', output);
 }
 
 export const resizeBilinearGradConfig: KernelConfig = {
