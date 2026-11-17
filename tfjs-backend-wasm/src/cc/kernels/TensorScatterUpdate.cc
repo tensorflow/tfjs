@@ -32,12 +32,28 @@ void scatter(const int* indices_ptr, const T* updates_ptr,
   // Initialize output to tensor.
   memcpy(out_buf_ptr, tensor_ptr, output_size * dtype_size);
 
+  if (slice_size == 0) {
+    return;
+  }
+  // Number of valid slices in the output. Any flattened_index computed from
+  // `indices_ptr` must land strictly before this to keep every write to
+  // out_buf_ptr in bounds.
+  const size_t outer_size = output_size / slice_size;
+
   for (size_t i = 0; i < num_updates; ++i) {
     size_t flattened_index = 0;
     for (size_t j = 0; j < slice_rank; ++j) {
       flattened_index += *indices_ptr * strides_ptr[j];
 
       indices_ptr++;
+    }
+
+    if (flattened_index >= outer_size) {
+      util::warn(
+          "TensorScatterUpdate: the computed index %zu is not in [0, %zu). "
+          "The 'indices' tensor contains an out-of-bounds value.",
+          flattened_index, outer_size);
+      return;
     }
 
     out_buf_ptr += flattened_index * slice_size;
