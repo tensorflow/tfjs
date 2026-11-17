@@ -22,16 +22,32 @@
 namespace {
 
 template <typename T>
-void gathernd_impl(const T* x_ptr, const int32_t* indices_ptr,
+void gathernd_impl(const T* x_ptr, const size_t x_size,
+                   const int32_t* indices_ptr,
                    const size_t num_slices, const size_t slice_rank,
                    const size_t slice_size,
                    const std::vector<int32_t>& strides_ptr, T* out_buf_ptr) {
+  if (slice_size == 0) {
+    return;
+  }
+  // Number of valid slices in x. Any flattened_index computed from `indices`
+  // must land strictly before this to keep every read of x_ptr in bounds.
+  const size_t outer_size = x_size / slice_size;
+
   for (size_t i = 0; i < num_slices; ++i) {
     size_t flattened_index = 0;
     for (size_t j = 0; j < slice_rank; ++j) {
       flattened_index += (*indices_ptr * strides_ptr[j]);
 
       indices_ptr++;
+    }
+
+    if (flattened_index >= outer_size) {
+      util::warn(
+          "GatherNd: the computed index %zu is not in [0, %zu). The "
+          "'indices' tensor contains an out-of-bounds value.",
+          flattened_index, outer_size);
+      return;
     }
 
     x_ptr += flattened_index * slice_size;
@@ -69,16 +85,19 @@ void GatherNd(const size_t x_id, const DType dtype, const size_t indices_id,
 
   switch (dtype) {
     case DType::float32:
-      gathernd_impl<float>(x_info.f32(), indices_buf, num_slices, slice_rank,
-                           slice_size, strides, out_info.f32_write());
+      gathernd_impl<float>(x_info.f32(), x_info.size, indices_buf, num_slices,
+                           slice_rank, slice_size, strides,
+                           out_info.f32_write());
       break;
     case DType::int32:
-      gathernd_impl<int32_t>(x_info.i32(), indices_buf, num_slices, slice_rank,
-                             slice_size, strides, out_info.i32_write());
+      gathernd_impl<int32_t>(x_info.i32(), x_info.size, indices_buf,
+                             num_slices, slice_rank, slice_size, strides,
+                             out_info.i32_write());
       break;
     case DType::boolean:
-      gathernd_impl<bool>(x_info.b(), indices_buf, num_slices, slice_rank,
-                          slice_size, strides, out_info.b_write());
+      gathernd_impl<bool>(x_info.b(), x_info.size, indices_buf, num_slices,
+                          slice_rank, slice_size, strides,
+                          out_info.b_write());
       break;
     default:
       util::warn("GatherNd for tensor id %d failed. Unknown dtype %d",
